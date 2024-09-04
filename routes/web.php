@@ -6,7 +6,7 @@ use App\Http\Controllers\HuileHEController;
 use App\Http\Controllers\RecetteController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('huilehes.index');
 });
 
 // Route to display the list of recettes
