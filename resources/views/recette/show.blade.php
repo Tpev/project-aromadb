@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ $recette->NomRecette }} Details
+            {{ $recette->NomRecette }}
         </h2>
     </x-slot>
 
@@ -12,7 +12,7 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ $recette->NomRecette }} Details</h1>
+            <h1 class="details-title">Recette {{ $recette->NomRecette }} </h1>
 
             <!-- Recipe General Information -->
             <div class="row">

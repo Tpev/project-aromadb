@@ -6,11 +6,11 @@
     </x-slot>
 
     <div class="container mt-5">
-        <h1 class="page-title">List of Recette Entries</h1>
+        <h1 class="page-title">Liste des Recettes</h1>
 
         <!-- Search Bar -->
         <div class="mb-4 text-end">
-            <input type="text" id="search" class="form-control" placeholder="Search by Nom Recette..." onkeyup="filterTable()">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()">
         </div>
 
         <div class="table-responsive mx-auto">

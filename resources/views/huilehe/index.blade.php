@@ -6,12 +6,12 @@
     </x-slot>
 
     <div class="container mt-5">
-        <h1 class="page-title">List of HuileHE Entries</h1>
+        <h1 class="page-title">Listes des Huiles essentielles</h1>
 
         <!-- Filter and Search Bar -->
         <div class="mb-4 text-end">
             <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()">
-                <option value="">Filter by Indication</option>
+                <option value="">Filtre par Indication</option>
                 @php
                     // Gather all unique indications, split by semicolon, and remove duplicates
                     $indications = collect($huileHEs)->pluck('Indications')
@@ -24,7 +24,7 @@
                 @endforeach
             </select>
 
-            <input type="text" id="search" class="form-control" placeholder="Search by Nom HE..." onkeyup="filterTable()">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()">
         </div>
 
         <div class="table-responsive mx-auto">
