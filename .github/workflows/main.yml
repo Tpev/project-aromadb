@@ -21,3 +21,12 @@ jobs:
       - name: Pull latest code via SSH
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 'cd /var/www/project-aromadb && sudo git pull origin master'
+      
+      - name: Run Laravel migration and seeders
+        run: |
+          ssh -o StrictHostKeyChecking=no your-username@your-server-ip << 'EOF'
+            cd /var/www/project-aromadb
+            sudo php artisan migrate:fresh
+            sudo php artisan db:seed --class=RecetteSeeder
+            sudo php artisan db:seed --class=HuileHESeeder
+          EOF
