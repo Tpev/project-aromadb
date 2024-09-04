@@ -20,4 +20,4 @@ jobs:
 
       - name: Pull latest code via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 'sudo cd /var/www/project-aromadb && sudo git pull origin main'
+          ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 'cd /var/www/project-aromadb && sudo git pull origin main'
