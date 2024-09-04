@@ -24,7 +24,7 @@ jobs:
       
       - name: Run Laravel migration and seeders
         run: |
-          ssh -o StrictHostKeyChecking=no your-username@your-server-ip << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
             cd /var/www/project-aromadb
             sudo php artisan migrate:fresh
             sudo php artisan db:seed --class=RecetteSeeder
