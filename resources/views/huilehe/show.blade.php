@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ $huileHE->NomHE }} 
+            {{ $huileHE->NomHE }} Details
         </h2>
     </x-slot>
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">Huile essentielle {{ $huileHE->NomHE }} </h1>
+            <h1 class="details-title">Huile essentielle {{ $huileHE->NomHE }}</h1>
 
             <!-- Image and Info in Two Columns -->
             <div class="row align-items-center">
@@ -21,24 +21,34 @@
                     </div>
                     <div class="details-box">
                         <label class="details-label"><i class="fas fa-globe"></i> Provenance</label>
-                        @php
-                            $countryMap = [
-                                'France' => 'fr',
-                                'Italy' => 'it',
-                                'Madagascar' => 'mg',
-                                'Vietnam' => 'vn',
-                                'Brazil' => 'br',
-                                'Portugal' => 'pt',
-                                'Spain' => 'es',
-                                'Morocco' => 'ma',
-                            ];
-                            $countryCode = $countryMap[$huileHE->Provenance] ?? null;
-                        @endphp
                         <p class="details-value">
-                            @if ($countryCode)
-                                <span class="flag-icon flag-icon-{{ $countryCode }}"></span>
-                            @endif
-                            {{ $huileHE->Provenance }}
+                            @php
+                                // Split the Provenance by semicolon and map each to a country code
+                                $provenances = explode(';', $huileHE->Provenance);
+                                $countryMap = [
+                                    'France' => 'fr',
+                                    'Corse' => 'fr',
+                                    'Italy' => 'it',
+                                    'Espagne' => 'es',
+                                    'Madagascar' => 'mg',
+                                    'Vietnam' => 'vn',
+                                    'Brazil' => 'br',
+                                    'Portugal' => 'pt',
+                                    'Spain' => 'es',
+                                    'Maroc' => 'ma',
+                                    'Australie' => 'au',
+                                ];
+                            @endphp
+                            @foreach($provenances as $provenance)
+                                @php
+                                    $provenance = trim($provenance);
+                                    $countryCode = $countryMap[$provenance] ?? null;
+                                @endphp
+                                @if ($countryCode)
+                                    <span class="flag-icon flag-icon-{{ $countryCode }}"></span>
+                                @endif
+                                {{ $provenance }}<br>
+                            @endforeach
                         </p>
                     </div>
                 </div>
@@ -64,7 +74,14 @@
                     </div>
                     <div class="details-box">
                         <label class="details-label"><i class="fas fa-vial"></i> Sb (Substances)</label>
-                        <p class="details-value">{{ $huileHE->Sb }}</p>
+                        @php
+                            $substances = explode(';', $huileHE->Sb);
+                        @endphp
+                        <ul class="details-list">
+                            @foreach ($substances as $substance)
+                                <li>{{ trim($substance) }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 </div>
 
