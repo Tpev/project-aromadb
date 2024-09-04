@@ -18,7 +18,7 @@ Route::get('/recettes/{recette}', [RecetteController::class, 'show'])->name('rec
 Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
 Route::get('/huilehes/{huileHE}', [HuileHEController::class, 'show'])->name('huilehes.show');
 
-
+//test
 
 Route::get('/dashboard', function () {
     return view('dashboard');
