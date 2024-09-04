@@ -5,9 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HuileHEController;
 use App\Http\Controllers\RecetteController;
 
-Route::get('/', function () {
-    return view([HuileHEController::class, 'index']);
-});
+Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');
 
 // Route to display the list of recettes
 Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
