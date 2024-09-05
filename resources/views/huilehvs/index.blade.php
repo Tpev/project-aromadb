@@ -31,7 +31,7 @@
             <table class="table table-bordered table-hover" id="huileTable">
                 <thead>
                     <tr>
-                        <th>Nom HE</th>
+                        <th>Nom HV</th>
                         <!-- Hidden Indications Column -->
                         <th class="d-none">Indications</th>
                     </tr>
