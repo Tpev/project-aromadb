@@ -12,10 +12,13 @@
 				</div>				
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('huilehes.index')" :active="request()->routeIs('dashboard')">
-                        {{ __('Huile HE') }}
+                    <x-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')">
+                        {{ __('Huile Essentielle') }}
+                    </x-nav-link>                       
+					<x-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')">
+                        {{ __('Huile Végétale') }}
                     </x-nav-link>                    
-					<x-nav-link :href="route('recettes.index')" :active="request()->routeIs('dashboard')">
+					<x-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')">
                         {{ __('Recette') }}
                     </x-nav-link>
                 </div>
@@ -83,7 +86,10 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')">
                 {{ __('Huile Essentielle') }}
-            </x-responsive-nav-link>            
+            </x-responsive-nav-link>             
+			<x-responsive-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')">
+                {{ __('Huile Végétale') }}
+            // </x-responsive-nav-link>            
 			<x-responsive-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')">
                 {{ __('Recette') }}
             </x-responsive-nav-link>

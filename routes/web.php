@@ -4,6 +4,10 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HuileHEController;
 use App\Http\Controllers\RecetteController;
+use App\Http\Controllers\HuileHVController;
+
+Route::resource('huilehvs', HuileHVController::class);
+
 
 Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');
 
@@ -15,6 +19,12 @@ Route::get('/recettes/{recette}', [RecetteController::class, 'show'])->name('rec
 
 Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
 Route::get('/huilehes/{huileHE}', [HuileHEController::class, 'show'])->name('huilehes.show');
+
+
+Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
+Route::get('huilehvs/{huileHV}', [HuileHVController::class, 'show'])->name('huilehvs.show');
+
+
 
 //test
 
