@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HuileHEController;
 use App\Http\Controllers\RecetteController;
 use App\Http\Controllers\HuileHVController;
+use App\Http\Controllers\FavoriteController;
+use App\Models\Favorite;
+
 
 Route::resource('huilehvs', HuileHVController::class);
 
@@ -23,6 +26,10 @@ Route::get('/huilehes/{huileHE}', [HuileHEController::class, 'show'])->name('hui
 
 Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
 Route::get('huilehvs/{huileHV}', [HuileHVController::class, 'show'])->name('huilehvs.show');
+
+
+Route::post('/favorites/toggle/{type}/{id}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
 
 
 

@@ -26,4 +26,20 @@
             </div>
         </div>
     </div>
+	
+	<h2>My Favorites</h2>
+<ul>
+    @foreach(auth()->user()->favorites as $favorite)
+        <li>
+            @if($favorite->favoritable_type === 'App\Models\HuileHE')
+                Huile Essentielle: <a href="{{ route('huilehes.show', $favorite->favoritable_id) }}">{{ $favorite->favoritable->NomHE }}</a>
+            @elseif($favorite->favoritable_type === 'App\Models\HuileHV')
+                Huile Végétale: <a href="{{ route('huilehvs.show', $favorite->favoritable_id) }}">{{ $favorite->favoritable->NomHV }}</a>
+            @elseif($favorite->favoritable_type === 'App\Models\Recette')
+                Recette: <a href="{{ route('recettes.show', $favorite->favoritable_id) }}">{{ $favorite->favoritable->NomRecette }}</a>
+            @endif
+        </li>
+    @endforeach
+</ul>
+
 </x-app-layout>
