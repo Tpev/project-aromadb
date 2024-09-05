@@ -29,4 +29,5 @@ jobs:
             sudo php artisan migrate:fresh
             sudo php artisan db:seed --class=RecetteSeeder
             sudo php artisan db:seed --class=HuileHESeeder
+            sudo php artisan db:seed --class=HuileHVSeeder
           EOF
