@@ -12,7 +12,73 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">Recette {{ $recette->NomRecette }} </h1>
+            <h1 class="details-title">Recette {{ $recette->NomRecette }}</h1>
+
+            <!-- Favorites Button -->
+            <div class="text-center mb-4">
+                @auth
+                    <form id="favorite-form" method="POST" action="{{ route('favorites.toggle', ['type' => 'recette', 'id' => $recette->id]) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-favorite" id="favorite-btn">
+                            @if(auth()->user()->favorites->contains('favoritable_id', $recette->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\Recette'))
+                                <i class="fas fa-heart text-red-500"></i> <span>Remove from Favorites</span>
+                            @else
+                                <i class="far fa-heart"></i> <span>Add to Favorites</span>
+                            @endif
+                        </button>
+                    </form>
+                @else
+                    <!-- Redirect to login if the user is not authenticated -->
+                    <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
+                        <i class="far fa-heart"></i> <span>Add to Favorites</span>
+                    </a>
+                @endauth
+            </div>
+
+            <!-- Custom JavaScript for AJAX with Console Logs -->
+            @auth
+            <script>
+            document.getElementById('favorite-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const form = this;
+                const formData = new FormData(form);
+                const favoriteBtn = document.getElementById('favorite-btn');
+
+                console.log('Submitting favorite form...');
+
+                fetch(form.action, {
+                    method: form.method,
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => {
+                    console.log('Response received:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
+                    if (data.success) {
+                        if (data.action === 'added') {
+                            console.log('Marked as favorite');
+                            favoriteBtn.innerHTML = '<i class="fas fa-heart text-red-500"></i> <span>Remove from Favorites</span>';
+                        } else if (data.action === 'removed') {
+                            console.log('Removed from favorites');
+                            favoriteBtn.innerHTML = '<i class="far fa-heart"></i> <span>Add to Favorites</span>';
+                        }
+                    } else {
+                        console.log('Failed to update favorite status');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error occurred:', error);
+                });
+            });
+            </script>
+            @endauth
 
             <!-- Recipe General Information -->
             <div class="row">
@@ -39,7 +105,6 @@
                     @endphp
                     @foreach($recette->parsed_ingredients as $index => $ingredient)
                         @php
-                            // Add contre indications to the array if they are not null or 'None'
                             if (!empty($ingredient['huileHE']->ContreIndications) && $ingredient['huileHE']->ContreIndications !== 'None') {
                                 $allContreIndications = array_merge($allContreIndications, explode(';', $ingredient['huileHE']->ContreIndications));
                             }
@@ -73,7 +138,6 @@
 
             <!-- Contre Indications Summary -->
             @php
-                // Remove duplicate contre indications
                 $uniqueContreIndications = array_unique($allContreIndications);
             @endphp
 
@@ -94,6 +158,18 @@
 
     <!-- Custom Styles -->
     <style>
+        .btn-favorite {
+            background-color: transparent;
+            border: none;
+            color: #ff5a5f;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .btn-favorite:hover {
+            color: #ff0000;
+        }
+
         .container {
             max-width: 1200px;
         }
