@@ -5,6 +5,11 @@
         </h2>
     </x-slot>
 
+    <!-- Ensure Font Awesome icons are loaded -->
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    </head>
+
     <div class="container mt-5">
         <h1 class="page-title">Listes des Huiles végétales</h1>
 
@@ -38,8 +43,15 @@
                 </thead>
                 <tbody>
                     @foreach($huileHVs as $huileHV)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('huilehvs.show', $huileHV->id) }}');">
-                            <td>{{ $huileHV->NomHV }} (<em>{{ $huileHV->NomLatin ?? 'Unknown' }}</em>)</td>
+                        <tr class="table-row">
+                            <td onclick="animateAndRedirect(this, '{{ route('huilehvs.show', $huileHV->id) }}');">
+                                {{ $huileHV->NomHV }} (<em>{{ $huileHV->NomLatin ?? 'Unknown' }}</em>)
+                                @auth
+                                    @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $huileHV->id && $fav->favoritable_type == 'App\Models\HuileHV'))
+                                        <i class="fas fa-heart text-red-500 ms-2"></i> <!-- Show only when it's a favorite -->
+                                    @endif
+                                @endauth
+                            </td>
                             <!-- Hidden Indications Column -->
                             <td class="d-none">{{ $huileHV->Indications }}</td>
                         </tr>
@@ -52,42 +64,42 @@
     <!-- Custom Styles -->
     <style>
         .container {
-            max-width: 1200px; /* Make the container wider */
-            text-align: center; /* Center content within the container */
+            max-width: 1200px;
+            text-align: center;
         }
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 0 auto; /* Center the table container */
+            margin: 0 auto;
             display: flex;
-            justify-content: center; /* Ensure the table is centered */
+            justify-content: center;
         }
         .table {
-            width: 100%; /* Ensure the table takes up the full width of the container */
-            max-width: 1000px; /* Control the maximum width of the table */
+            width: 100%;
+            max-width: 1000px;
         }
         .table thead {
-            background-color: #16a34a; /* Tailwind CSS green-600 color */
+            background-color: #16a34a;
             color: #ffffff;
         }
         .table tbody tr {
-            cursor: pointer; /* Change cursor to pointer to indicate the row is clickable */
-            transition: background-color 0.3s, color 0.3s, transform 0.3s; /* Smooth transition including transform */
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s;
         }
         .table tbody tr:hover {
-            background-color: #16a34a; /* Match the hover color */
-            color: #ffffff; /* Change text color to white on hover */
-            transform: scale(1.02); /* Slightly zoom in on hover */
+            background-color: #16a34a;
+            color: #ffffff;
+            transform: scale(1.02);
         }
         .table tbody tr.active {
-            transform: scale(1.1); /* Apply larger zoom on click */
-            transition: transform 0.5s ease; /* Smooth zoom-out transition */
+            transform: scale(1.1);
+            transition: transform 0.5s ease;
         }
         .table th, .table td {
             vertical-align: middle;
-            text-align: center; /* Center content within table cells */
+            text-align: center;
         }
         .page-title {
             font-size: 2rem;
@@ -96,29 +108,36 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        .btn-add {
-            background-color: #007bff;
-            color: #ffffff;
-            margin-bottom: 20px;
+        .btn-favorite {
+            background-color: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
-        .btn-add:hover {
-            background-color: #0056b3;
+        .btn-favorite i {
+            transition: color 0.3s;
+        }
+        .btn-favorite:hover i {
+            color: #ff0000;
         }
         #search {
             width: 100%;
-            max-width: 300px; /* Adjust the width of the search bar */
+            max-width: 300px;
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #ccc;
-            margin-right: 15px; /* Add a bit of margin on the right for spacing */
+            margin-right: 15px;
         }
         .text-end {
-            padding-right: 15px; /* Ensure there's padding on the right side */
+            padding-right: 15px;
         }
-
-        /* Hide Indications Column */
         .d-none {
             display: none !important;
+        }
+
+        /* Adjust spacing between the heart icon and text */
+        .ms-2 {
+            margin-left: 8px;
         }
     </style>
 

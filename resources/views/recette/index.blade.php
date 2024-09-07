@@ -4,7 +4,10 @@
             {{ __('Aroma Made DB') }}
         </h2>
     </x-slot>
-
+   <!-- Ensure Font Awesome icons are loaded -->
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    </head>
     <div class="container mt-5">
         <h1 class="page-title">Liste des Recettes</h1>
 
@@ -24,7 +27,14 @@
                 <tbody>
                     @foreach($recettes as $recette)
                         <tr class="table-row text-center" onclick="window.location='{{ route('recettes.show', $recette->id) }}';">
-                            <td>{{ $recette->NomRecette }}</td>
+                            <td>
+                                {{ $recette->NomRecette }}
+                                @auth
+                                    @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $recette->id && $fav->favoritable_type == 'App\Models\Recette'))
+                                        <i class="fas fa-heart text-red-500 ms-2"></i> <!-- Show heart if favorited -->
+                                    @endif
+                                @endauth
+                            </td>
                             <td>{{ $recette->TypeApplication }}</td>
                         </tr>
                     @endforeach
@@ -96,6 +106,9 @@
         }
         .text-end {
             padding-right: 15px; /* Ensure there's padding on the right side */
+        }
+        .ms-2 {
+            margin-left: 8px;
         }
     </style>
 

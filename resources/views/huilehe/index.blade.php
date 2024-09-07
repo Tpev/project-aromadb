@@ -4,10 +4,12 @@
             {{ __('Aroma Made DB') }}
         </h2>
     </x-slot>
+
     <!-- Ensure Font Awesome icons are loaded -->
     <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     </head>
+
     <div class="container mt-5">
         <h1 class="page-title">Liste des Huiles essentielles</h1>
 
@@ -35,33 +37,19 @@
                 <thead>
                     <tr>
                         <th>Nom HE</th>
-                        <th>Favori</th>
                         <!-- Hidden Indications Column -->
                         <th class="d-none">Indications</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($huileHEs as $huileHE)
-                        <tr class="table-row">
-                            <td onclick="animateAndRedirect(this, '{{ route('huilehes.show', $huileHE->id) }}');">
-                                {{ $huileHE->NomHE }} (<em>{{ $huileHE->NomLatin ?? 'Unknown' }}</em>)
-                            </td>
+                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('huilehes.show', $huileHE->id) }}');">
                             <td>
+                                {{ $huileHE->NomHE }} (<em>{{ $huileHE->NomLatin ?? 'Unknown' }}</em>)
                                 @auth
-                                    <form id="favorite-form-{{ $huileHE->id }}" method="POST" action="{{ route('favorites.toggle', ['type' => 'huilehe', 'id' => $huileHE->id]) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-favorite" onclick="event.stopPropagation();">
-                                            @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $huileHE->id && $fav->favoritable_type == 'App\Models\HuileHE'))
-                                                <i class="fas fa-heart text-red-500"></i>
-                                            @else
-                                                <i class="far fa-heart"></i>
-                                            @endif
-                                        </button>
-                                    </form>
-                                @else
-                                    <a href="{{ route('login') }}" class="btn btn-favorite">
-                                        <i class="far fa-heart"></i>
-                                    </a>
+                                    @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $huileHE->id && $fav->favoritable_type == 'App\Models\HuileHE'))
+                                        <i class="fas fa-heart text-red-500 ms-2"></i> <!-- Show only when it's a favorite -->
+                                    @endif
                                 @endauth
                             </td>
                             <!-- Hidden Indications Column -->
@@ -147,6 +135,11 @@
         .d-none {
             display: none !important;
         }
+
+        /* Adjust spacing between the heart icon and text */
+        .ms-2 {
+            margin-left: 8px;
+        }
     </style>
 
     <!-- JavaScript for row click animation and filtering -->
@@ -180,7 +173,7 @@
             let tr = table.getElementsByTagName('tr');
 
             for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName('td')[2];
+                let td = tr[i].getElementsByTagName('td')[1]; // Indications column
                 if (td) {
                     let indications = td.textContent.toLowerCase().split(';').map(s => s.trim());
                     tr[i].style.display = indications.includes(filter) || filter === '' ? '' : 'none';
