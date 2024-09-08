@@ -30,4 +30,5 @@ jobs:
             sudo php artisan db:seed --class=RecetteSeeder
             sudo php artisan db:seed --class=HuileHESeeder
             sudo php artisan db:seed --class=HuileHVSeeder
+            sudo php artisan db:seed --class=TisaneSeeder
           EOF
