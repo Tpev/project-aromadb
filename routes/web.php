@@ -7,9 +7,14 @@ use App\Http\Controllers\RecetteController;
 use App\Http\Controllers\HuileHVController;
 use App\Http\Controllers\FavoriteController;
 use App\Models\Favorite;
-
+use App\Http\Controllers\TisaneController;
 
 Route::resource('huilehvs', HuileHVController::class);
+
+
+Route::get('/tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
+Route::get('/tisanes/{tisanes}', [TisaneController::class, 'show'])->name('tisanes.show');
+
 
 
 Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');

@@ -18,6 +18,9 @@
 					<x-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-green-600 hover:text-green-800">
                         {{ __('Huile Végétale') }}
                     </x-nav-link>                    
+					<x-nav-link :href="route('tisanes.index')" :active="request()->routeIs('tisanes.index')" class="text-green-600 hover:text-green-800">
+                        {{ __('Tisane') }}
+                    </x-nav-link>					
 					<x-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-green-600 hover:text-green-800">
                         {{ __('Recette') }}
                     </x-nav-link>
@@ -92,6 +95,9 @@
 			<x-responsive-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-green-600 hover:text-green-800">
                 {{ __('Huile Végétale') }}
             </x-responsive-nav-link>            
+			<x-responsive-nav-link :href="route('tisanes.index')" :active="request()->routeIs('tisanes.index')" class="text-green-600 hover:text-green-800">
+                {{ __('Tisane') }}
+            </x-responsive-nav-link>			
 			<x-responsive-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-green-600 hover:text-green-800">
                 {{ __('Recette') }}
             </x-responsive-nav-link>

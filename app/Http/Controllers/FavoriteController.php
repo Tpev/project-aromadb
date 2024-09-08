@@ -5,6 +5,7 @@ use App\Models\HuileHE;
 use App\Models\HuileHV;
 use App\Models\Recette;
 use App\Models\Favorite;
+use App\Models\Tisane;
 use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
@@ -46,6 +47,8 @@ class FavoriteController extends Controller
                 return HuileHE::class;
             case 'huilehv':
                 return HuileHV::class;
+				case 'tisane':
+                return Tisane::class;
             case 'recette':
                 return Recette::class;
             default:
