@@ -8,6 +8,12 @@ use App\Http\Controllers\HuileHVController;
 use App\Http\Controllers\FavoriteController;
 use App\Models\Favorite;
 use App\Http\Controllers\TisaneController;
+use App\Http\Controllers\SitemapController;
+
+Route::get('/sitemap', [SitemapController::class, 'index']);
+
+
+
 
 Route::resource('huilehvs', HuileHVController::class);
 
@@ -24,11 +30,12 @@ Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.ind
 // Route to show a single recette
 Route::get('/recettes/{recette}', [RecetteController::class, 'show'])->name('recettes.show');
 
+Route::get('/huilehe/{slug}', [HuileHEController::class, 'show'])->name('huilehes.show');
 
 Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
 Route::get('/huilehes/{huileHE}', [HuileHEController::class, 'show'])->name('huilehes.show');
 
-
+Route::get('/huilehvs/{slug}', [HuileHVController::class, 'show'])->name('huilehvs.show');
 Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
 Route::get('huilehvs/{huileHV}', [HuileHVController::class, 'show'])->name('huilehvs.show');
 

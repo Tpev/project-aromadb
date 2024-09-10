@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\HuileHV;
 use League\Csv\Reader;
+use Illuminate\Support\Str;
 
 class HuileHVSeeder extends Seeder
 {
@@ -24,6 +25,7 @@ class HuileHVSeeder extends Seeder
             HuileHV::create([
                 'REF' => $record['REF'],
                 'NomHV' => $record['NomHV'],
+                'slug' => Str::slug($record['NomHV']), // Ensure the slug is created
                 'NomLatin' => $record['NomLatin'],
                 'Provenance' => $record['Provenance'],
                 'OrganeProducteur' => $record['OrganeProducteur'],

@@ -1,10 +1,10 @@
 <?php
-
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\HuileHE;
 use League\Csv\Reader;
+use Illuminate\Support\Str;
 
 class HuileHESeeder extends Seeder
 {
@@ -21,6 +21,16 @@ class HuileHESeeder extends Seeder
 
         // Iterate through CSV records
         foreach ($csv as $record) {
+            $originalSlug = Str::slug($record['NomHE']);  // Generate a slug from the NomHE
+            $slug = $originalSlug;
+            $count = 1;
+
+            // Ensure the slug is unique by appending a counter if needed
+            while (HuileHE::where('slug', $slug)->exists()) {
+                $slug = "{$originalSlug}-{$count}";
+                $count++;
+            }
+
             HuileHE::create([
                 'REF' => $record['REF'],
                 'NomHE' => $record['NomHE'],
@@ -33,6 +43,7 @@ class HuileHESeeder extends Seeder
                 'ContreIndications' => $record['ContreIndications'],
                 'Note' => $record['Note'],
                 'Description' => $record['Description'],
+                'slug' => $slug,  // Add the generated slug here
             ]);
         }
     }

@@ -43,7 +43,7 @@
                 </thead>
                 <tbody>
                     @foreach($huileHEs as $huileHE)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('huilehes.show', $huileHE->id) }}');">
+                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('huilehes.show', $huileHE->slug) }}');">
                             <td>
                                 {{ $huileHE->NomHE }} (<em>{{ $huileHE->NomLatin ?? 'Unknown' }}</em>)
                                 @auth

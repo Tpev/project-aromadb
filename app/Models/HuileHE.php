@@ -29,6 +29,10 @@ public function favorites()
     return $this->morphMany(Favorite::class, 'favoritable');
 }
 
+public function getRouteKeyName()
+{
+    return 'slug'; // Instead of 'id'
+}
 
 
 }

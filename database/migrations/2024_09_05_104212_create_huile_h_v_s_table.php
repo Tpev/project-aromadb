@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,8 +15,9 @@ class CreateHuileHvsTable extends Migration
     {
         Schema::create('huile_hvs', function (Blueprint $table) {
             $table->id();
-			$table->string('REF');
+            $table->string('REF');
             $table->string('NomHV');
+            $table->string('slug')->unique(); // Add slug field
             $table->string('NomLatin');
             $table->string('Provenance');
             $table->string('OrganeProducteur');

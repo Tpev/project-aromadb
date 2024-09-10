@@ -44,7 +44,7 @@
                 <tbody>
                     @foreach($huileHVs as $huileHV)
                         <tr class="table-row">
-                            <td onclick="animateAndRedirect(this, '{{ route('huilehvs.show', $huileHV->id) }}');">
+                            <td onclick="animateAndRedirect(this, '{{ route('huilehvs.show', $huileHV->slug) }}');">
                                 {{ $huileHV->NomHV }} (<em>{{ $huileHV->NomLatin ?? 'Unknown' }}</em>)
                                 @auth
                                     @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $huileHV->id && $fav->favoritable_type == 'App\Models\HuileHV'))
