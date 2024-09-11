@@ -22,7 +22,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 'cd /var/www/project-aromadb && sudo git pull origin master'
       
-      - name: Run Laravel migration and seeders
+      - name: Run Laravel migration and seeders fresh
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
             cd /var/www/project-aromadb
