@@ -9,8 +9,15 @@ use App\Http\Controllers\FavoriteController;
 use App\Models\Favorite;
 use App\Http\Controllers\TisaneController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/sitemap', [SitemapController::class, 'index']);
+
+
+
+
+
+Route::get('/admin/users', [AdminController::class, 'index'])->name('admin.index');
 
 
 

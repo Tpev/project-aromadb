@@ -10,18 +10,24 @@ use App\Models\Favorite;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
+    use HasFactory, Notifiable;
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'login_count',
+        'last_login_at', // Add this if not already present
     ];
+
+    // Ensure last_login_at is treated as a date
+    protected $dates = ['last_login_at'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -55,6 +61,12 @@ public function favorites()
 }
 
 
+// app/Models/User.php
+
+    public function isAdmin()
+    {
+        return $this->is_admin; // Assuming `admin` is a boolean field in your users table
+    }
 
 
 
