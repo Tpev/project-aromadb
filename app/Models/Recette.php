@@ -3,6 +3,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use App\Models\HuileHE;
 use App\Models\Favorite;
 
@@ -13,16 +14,25 @@ class Recette extends Model
     protected $fillable = [
         'REF',
         'NomRecette',
+        'slug', // Ensure slug is fillable
         'TypeApplication',
         'Ingredients',
         'Explication',
     ];
 
-    /**
-     * Get the parsed ingredients with full HuileHE details.
-     *
-     * @return array
-     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($recette) {
+            $recette->slug = Str::slug($recette->NomRecette);
+        });
+
+        static::updating(function ($recette) {
+            $recette->slug = Str::slug($recette->NomRecette);
+        });
+    }
+
     public function getParsedIngredientsAttribute()
     {
         $ingredients = explode(';', $this->Ingredients);
@@ -39,9 +49,9 @@ class Recette extends Model
 
         return $parsedIngredients;
     }
-public function favorites()
-{
-    return $this->morphMany(Favorite::class, 'favoritable');
-}
 
+    public function favorites()
+    {
+        return $this->morphMany(Favorite::class, 'favoritable');
+    }
 }

@@ -26,7 +26,7 @@
                 </thead>
                 <tbody>
                     @foreach($recettes as $recette)
-                        <tr class="table-row text-center" onclick="window.location='{{ route('recettes.show', $recette->id) }}';">
+                        <tr class="table-row text-center" onclick="window.location='{{ route('recettes.show', $recette->slug) }}';">
                             <td>
                                 {{ $recette->NomRecette }}
                                 @auth

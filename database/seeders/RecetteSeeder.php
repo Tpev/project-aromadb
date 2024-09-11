@@ -5,14 +5,10 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Recette;
 use League\Csv\Reader;
+use Illuminate\Support\Str;
 
 class RecetteSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
         // Load the CSV file
@@ -24,6 +20,7 @@ class RecetteSeeder extends Seeder
             Recette::create([
                 'REF' => $record['REF'],
                 'NomRecette' => $record['NomRecette'],
+                'slug' => Str::slug($record['NomRecette']), // Ensure slug is created here
                 'TypeApplication' => $record['TypeApplication'],
                 'Ingredients' => $record['Ingredients'],
                 'Explication' => $record['Explication'],

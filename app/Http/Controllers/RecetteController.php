@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Recette;
@@ -20,7 +19,7 @@ class RecetteController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'REF' => 'required|string|max:255|unique:recettes',
             'NomRecette' => 'required|string|max:255',
             'TypeApplication' => 'required|string|max:255',
@@ -28,14 +27,16 @@ class RecetteController extends Controller
             'Explication' => 'required|string',
         ]);
 
-        Recette::create($request->all());
+        $data['slug'] = Str::slug($data['NomRecette']);
 
-        return redirect()->route('recettes.index')
-                         ->with('success', 'Recette created successfully.');
+        Recette::create($data);
+
+        return redirect()->route('recettes.index')->with('success', 'Recette created successfully.');
     }
 
-    public function show(Recette $recette)
+    public function show($slug)
     {
+        $recette = Recette::where('slug', $slug)->firstOrFail();
         return view('recette.show', compact('recette'));
     }
 
@@ -46,7 +47,7 @@ class RecetteController extends Controller
 
     public function update(Request $request, Recette $recette)
     {
-        $request->validate([
+        $data = $request->validate([
             'REF' => 'required|string|max:255|unique:recettes,REF,'.$recette->id,
             'NomRecette' => 'required|string|max:255',
             'TypeApplication' => 'required|string|max:255',
@@ -54,17 +55,16 @@ class RecetteController extends Controller
             'Explication' => 'required|string',
         ]);
 
-        $recette->update($request->all());
+        $data['slug'] = Str::slug($data['NomRecette']);
 
-        return redirect()->route('recettes.index')
-                         ->with('success', 'Recette updated successfully.');
+        $recette->update($data);
+
+        return redirect()->route('recettes.index')->with('success', 'Recette updated successfully.');
     }
 
     public function destroy(Recette $recette)
     {
         $recette->delete();
-
-        return redirect()->route('recettes.index')
-                         ->with('success', 'Recette deleted successfully.');
+        return redirect()->route('recettes.index')->with('success', 'Recette deleted successfully.');
     }
 }

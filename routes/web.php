@@ -18,17 +18,15 @@ Route::get('/sitemap', [SitemapController::class, 'index']);
 Route::resource('huilehvs', HuileHVController::class);
 
 
-Route::get('/tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
-Route::get('/tisanes/{tisanes}', [TisaneController::class, 'show'])->name('tisanes.show');
-
-
+Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
+Route::get('tisanes/{slug}', [TisaneController::class, 'show'])->name('tisanes.show');
 
 Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');
 
 // Route to display the list of recettes
 Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
 // Route to show a single recette
-Route::get('/recettes/{recette}', [RecetteController::class, 'show'])->name('recettes.show');
+Route::get('/recettes/{slug}', [RecetteController::class, 'show'])->name('recettes.show');
 
 Route::get('/huilehe/{slug}', [HuileHEController::class, 'show'])->name('huilehes.show');
 
