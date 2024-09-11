@@ -30,7 +30,7 @@ class GenerateSitemap extends Command
         // Add HuileHE records to sitemap
         $huileHEs = HuileHE::all();
         foreach ($huileHEs as $huileHE) {
-            $sitemap->add(Url::create("/huilehes/{$huileHE->id}")
+            $sitemap->add(Url::create("/huilehes/{$huileHE->slug}")
                             ->setLastModificationDate($huileHE->updated_at)
                             ->setPriority(0.9));
         }
@@ -38,7 +38,7 @@ class GenerateSitemap extends Command
         // Add HuileHV records to sitemap
         $huileHVs = HuileHV::all();
         foreach ($huileHVs as $huileHV) {
-            $sitemap->add(Url::create("/huilehvs/{$huileHV->id}")
+            $sitemap->add(Url::create("/huilehvs/{$huileHV->slug}")
                             ->setLastModificationDate($huileHV->updated_at)
                             ->setPriority(0.9));
         }
@@ -46,7 +46,7 @@ class GenerateSitemap extends Command
         // Add Tisane records to sitemap
         $tisanes = Tisane::all();
         foreach ($tisanes as $tisane) {
-            $sitemap->add(Url::create("/tisanes/{$tisane->id}")
+            $sitemap->add(Url::create("/tisanes/{$tisane->slug}")
                             ->setLastModificationDate($tisane->updated_at)
                             ->setPriority(0.9));
         }
@@ -54,7 +54,7 @@ class GenerateSitemap extends Command
         // Add Recette records to sitemap
         $recettes = Recette::all();
         foreach ($recettes as $recette) {
-            $sitemap->add(Url::create("/recettes/{$recette->id}")
+            $sitemap->add(Url::create("/recettes/{$recette->slug}")
                             ->setLastModificationDate($recette->updated_at)
                             ->setPriority(0.9));
         }
