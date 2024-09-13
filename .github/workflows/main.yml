@@ -33,9 +33,10 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
             cd /var/www/project-aromadb
             
-            
-            sudo php artisan migrate:fresh
-         
+            sudo php artisan migrate --path=/database/migrations/2024_09_02_172024_create_huile_h_e_s_table.php
+            sudo php artisan migrate --path=/database/migrations/2024_09_03_093220_create_recettes_table.php
+            sudo php artisan migrate --path=/database/migrations/2024_09_05_104212_create_huile_h_v_s_table.php
+            sudo php artisan migrate --path=/database/migrations/2024_09_08_103726_create_tisanes_table.php
             sudo php artisan db:seed --class=RecetteSeeder
             sudo php artisan db:seed --class=HuileHESeeder
             sudo php artisan db:seed --class=HuileHVSeeder
