@@ -39,10 +39,19 @@ class HuileHEController extends Controller
         return response()->json($huileHE, 201);
     }
 
-	public function show(HuileHE $huileHE)
-	{
-		return view('huilehe.show', compact('huileHE'));
-	}
+    public function show($slug)
+    {
+        // Retrieve the record by slug instead of id
+        $huileHE = HuileHE::where('slug', $slug)->first();
+
+        // Ensure that the record exists
+        if (!$huileHE) {
+            abort(404, 'HuileHV not found');
+        }
+
+        // Pass the record to the view
+        return view('huilehe.show', compact('huileHE'));
+    }
 
 
     public function edit(HuileHE $huileHE)

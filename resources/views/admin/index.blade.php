@@ -15,9 +15,6 @@
                         <th class="text-center">User ID</th>
                         <th class="text-center">Nom</th>
                         <th class="text-center">Email</th>
-                        <th class="text-center">Login Count</th> <!-- New column for login count -->
-                        <th class="text-center">Last Login</th> <!-- New column for last login date -->
-                        <th class="text-center">Nombre de Favoris</th> <!-- New column for number of favorites -->
                     </tr>
                 </thead>
                 <tbody>
@@ -26,9 +23,29 @@
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
-                            <td>{{ $user->login_count }}</td> <!-- Show login count -->
-                            <td>{{ $user->last_login_at ? $user->last_login_at : 'Never' }}</td> <!-- Show last login date -->
-                            <td>{{ $user->favorites->count() }}</td> <!-- Show count of user's favorites -->
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <h1 class="page-title">Page Views</h1>
+
+        <div class="table-responsive mx-auto">
+            <table class="table table-bordered table-hover mx-auto" id="pageViewsTable">
+                <thead>
+                    <tr>
+                        <th class="text-center">Page URL</th>
+                        <th class="text-center">Views</th>
+                        <th class="text-center">Last Viewed At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pageViews as $pageView)
+                        <tr class="text-center">
+                            <td>{{ $pageView->url }}</td>
+                            <td>{{ $pageView->view_count }}</td>
+                            <td>{{ \Carbon\Carbon::parse($pageView->viewed_at)->format('d/m/Y H:i') }}</td>
                         </tr>
                     @endforeach
                 </tbody>

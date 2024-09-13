@@ -14,35 +14,24 @@ use App\Http\Controllers\AdminController;
 Route::get('/sitemap', [SitemapController::class, 'index']);
 
 
+Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function () {
+    Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');
+	Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
+	Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
+	Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
+	Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
+	
+    Route::get('/huilehes/{slug}', [HuileHEController::class, 'show'])->name('huilehes.show');
+    Route::get('/huilehvs/{slug}', [HuileHVController::class, 'show'])->name('huilehvs.show');
+    Route::get('/recettes/{slug}', [RecetteController::class, 'show'])->name('recettes.show');
+    Route::get('/tisanes/{slug}', [TisaneController::class, 'show'])->name('tisanes.show');
+});
 
 
 
 Route::get('/admin/users', [AdminController::class, 'index'])->name('admin.index');
 
 
-
-
-Route::resource('huilehvs', HuileHVController::class);
-
-
-Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
-Route::get('tisanes/{slug}', [TisaneController::class, 'show'])->name('tisanes.show');
-
-Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');
-
-// Route to display the list of recettes
-Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
-// Route to show a single recette
-Route::get('/recettes/{slug}', [RecetteController::class, 'show'])->name('recettes.show');
-
-Route::get('/huilehe/{slug}', [HuileHEController::class, 'show'])->name('huilehes.show');
-
-Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
-Route::get('/huilehes/{huileHE}', [HuileHEController::class, 'show'])->name('huilehes.show');
-
-Route::get('/huilehvs/{slug}', [HuileHVController::class, 'show'])->name('huilehvs.show');
-Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
-Route::get('huilehvs/{huileHV}', [HuileHVController::class, 'show'])->name('huilehvs.show');
 
 
 Route::post('/favorites/toggle/{type}/{id}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
