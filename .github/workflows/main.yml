@@ -24,8 +24,8 @@ jobs:
       
       - name: Drop specific tables
         run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
-        sudo mysql -u root yourdatabase -e "DROP TABLE IF EXISTS recettes, huile_hes, huile_hvs, tisanes;"
+            ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
+             sudo mysql -u root yourdatabase -e "DROP TABLE IF EXISTS recettes, huile_hes, huile_hvs, tisanes;"
 
 
       - name: Run Laravel migration and seeders fresh
