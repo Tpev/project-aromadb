@@ -22,8 +22,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 'cd /var/www/project-aromadb && sudo git pull origin master'
       
-          - name: Drop specific tables
-      run: |
+      - name: Drop specific tables
+        run: |
         ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
         sudo mysql -u root yourdatabase -e "DROP TABLE IF EXISTS recettes, huile_hes, huile_hvs, tisanes;"
 
