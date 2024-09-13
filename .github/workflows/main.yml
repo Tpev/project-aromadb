@@ -22,7 +22,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
            cd /var/www/project-aromadb && sudo git pull origin master
-
+          EOF
       - name: Drop specific tables
         run: |
            ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
@@ -36,4 +36,4 @@ jobs:
             sudo php artisan db:seed --class=HuileHVSeeder
             sudo php artisan db:seed --class=TisaneSeeder
             sudo php artisan sitemap:generate
-          EOF
+           EOF
