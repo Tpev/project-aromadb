@@ -21,7 +21,7 @@ jobs:
       - name: Pull latest code via SSH
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 'cd /var/www/project-aromadb && sudo git pull origin master'
-      
+
       - name: Drop specific tables
         run: |
            ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
