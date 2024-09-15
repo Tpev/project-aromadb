@@ -1,2 +1,2 @@
-REF,NomRecette,TypeApplication,Ingredients,Explication
-1,Verrue,Cutanée,"1 goutte,1;4 gouttes,4;1 goutte,7;4 gouttes,15",Blablabla
+REF,NomRecette,TypeApplication,IngredientsHE,IngredientsHV,IngredientsTisane,Explication
+1,Abcès cutané,Cutanée,"1g,43;1g,20;2g,42","1 c. à café,6",,Blablabla

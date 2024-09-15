@@ -13,7 +13,9 @@ class CreateRecettesTable extends Migration
             $table->string('NomRecette');
             $table->string('slug')->unique(); // Add this field
             $table->string('TypeApplication');
-            $table->text('Ingredients');
+            $table->text('IngredientsHE');
+            $table->text('IngredientsHV');
+            $table->text('IngredientsTisane');
             $table->text('Explication');
             $table->timestamps();
         });

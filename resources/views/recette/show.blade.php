@@ -79,78 +79,124 @@
             });
             </script>
             @endauth
-
-            <!-- Recipe General Information -->
-            <div class="row">
                 <div class="col-md-6">
                     <div class="details-box">
                         <label class="details-label"><i class="fas fa-syringe"></i> Type Application</label>
                         <p class="details-value">{{ $recette->TypeApplication }}</p>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-align-left"></i> Explication</label>
-                        <p class="details-value">{{ $recette->Explication }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ingredients with Accordion -->
+            <!-- Ingredients Section with Accordion for HuileHE, HuileHV, and Tisane -->
             <div class="details-box">
                 <label class="details-label"><i class="fas fa-vial"></i> Ingredients</label>
-                <ul>
-                    @php
-                        $allContreIndications = [];
-                    @endphp
-                    @foreach($recette->parsed_ingredients as $index => $ingredient)
-                        @php
-                            if (!empty($ingredient['huileHE']->ContreIndications) && $ingredient['huileHE']->ContreIndications !== 'None') {
-                                $allContreIndications = array_merge($allContreIndications, explode(';', $ingredient['huileHE']->ContreIndications));
-                            }
-                        @endphp
-                        <li class="mb-3 d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-0">&bull; {{ $ingredient['quantity'] }} {{ $ingredient['huileHE']->NomHE ?? 'Unknown' }} (<em>{{ $ingredient['huileHE']->NomLatin ?? 'Unknown' }}</em>)</p>
-                            </div>
-                            <div>
-                                <!-- Small button for more details -->
-                                <button class="accordion-toggle btn btn-sm btn-outline-secondary ms-3" onclick="toggleAccordion(this)">More Details</button>
-                            </div>
-                        </li>
 
-                        <!-- Custom Accordion for additional details -->
-                        <div class="custom-accordion">
-                            <div class="accordion-content">
-                                <p><strong><i class="fas fa-globe"></i> Provenance:</strong> {{ $ingredient['huileHE']->Provenance ?? 'Unknown' }}</p>
-                                <p><strong><i class="fas fa-seedling"></i> Organe Producteur:</strong> {{ $ingredient['huileHE']->OrganeProducteur ?? 'Unknown' }}</p>
-                                <p><strong><i class="fas fa-vial"></i> Substances (Sb):</strong> {{ $ingredient['huileHE']->Sb ?? 'Unknown' }}</p>
-                                <p><strong><i class="fas fa-capsules"></i> Properties:</strong> {{ $ingredient['huileHE']->Properties ?? 'Unknown' }}</p>
-                                <p><strong><i class="fas fa-stethoscope"></i> Indications:</strong> {{ $ingredient['huileHE']->Indications ?? 'Unknown' }}</p>
-                                <p><strong><i class="fas fa-exclamation-circle"></i> Contre Indications:</strong> {{ $ingredient['huileHE']->ContreIndications ?? 'None' }}</p>
-                                <p><strong><i class="fas fa-info-circle"></i> Note:</strong> {{ $ingredient['huileHE']->Note ?? 'None' }}</p>
-                                <p><strong><i class="fas fa-align-left"></i> Description:</strong> {{ $ingredient['huileHE']->Description ?? 'None' }}</p>
+                <!-- Display Ingredients for HuileHE only if there are ingredients -->
+                @if(count($parsed_ingredients_he) > 0)
+                    <h2 class="section-title">Huile Essentielle (HE)</h2>
+                    <ul>
+                        @foreach($parsed_ingredients_he as $ingredient)
+                            <li class="mb-3 d-flex align-items-center justify-content-between">
+                                <div>
+                                    <p class="mb-0">&bull; {{ $ingredient['quantity'] }} {{ $ingredient['huile']->NomHE ?? 'Unknown' }} (<em>{{ $ingredient['huile']->NomLatin ?? 'Unknown' }}</em>)</p>
+                                </div>
+                                <div>
+                                    <button class="accordion-toggle btn btn-sm btn-outline-secondary ms-3" onclick="toggleAccordion(this)">En savoir plus</button>
+                                </div>
+                            </li>
+
+                            <div class="custom-accordion">
+                                <div class="accordion-content">
+                                    <p><strong><i class="fas fa-globe"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-seedling"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-vial"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules"></i> Properties:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-stethoscope"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-exclamation-circle"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-info-circle"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-align-left"></i> Description:</strong> {{ $ingredient['huile']->Description ?? 'None' }}</p>
+                                </div>
                             </div>
-                        </div>
-                    @endforeach
-                </ul>
+                        @endforeach
+                    </ul>
+                @endif
+
+                <!-- Display Ingredients for HuileHV only if there are ingredients -->
+                @if(count($parsed_ingredients_hv) > 0)
+                    <h2 class="section-title">Huile Végétale (HV)</h2>
+                    <ul>
+                        @foreach($parsed_ingredients_hv as $ingredient)
+                            <li class="mb-3 d-flex align-items-center justify-content-between">
+                                <div>
+                                    <p class="mb-0">&bull; {{ $ingredient['quantity'] }} {{ $ingredient['huile']->NomHV ?? 'Unknown' }} (<em>{{ $ingredient['huile']->NomLatin ?? 'Unknown' }}</em>)</p>
+                                </div>
+                                <div>
+                                    <button class="accordion-toggle btn btn-sm btn-outline-secondary ms-3" onclick="toggleAccordion(this)">En savoir plus</button>
+                                </div>
+                            </li>
+
+                            <div class="custom-accordion">
+                                <div class="accordion-content">
+                                    <p><strong><i class="fas fa-globe"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-seedling"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-vial"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules"></i> Properties:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-stethoscope"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-exclamation-circle"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-info-circle"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-align-left"></i> Description:</strong> {{ $ingredient['huile']->Description ?? 'None' }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </ul>
+                @endif
+
+                <!-- Display Ingredients for Tisane only if there are ingredients -->
+                @if(count($parsed_ingredients_tisane) > 0)
+                    <h2 class="section-title">Tisane</h2>
+                    <ul>
+                        @foreach($parsed_ingredients_tisane as $ingredient)
+                            <li class="mb-3 d-flex align-items-center justify-content-between">
+                                <div>
+                                    <p class="mb-0">&bull; {{ $ingredient['quantity'] }} {{ $ingredient['tisane']->NomTisane ?? 'Unknown' }} (<em>{{ $ingredient['tisane']->NomLatin ?? 'Unknown' }}</em>)</p>
+                                </div>
+                                <div>
+                                    <button class="accordion-toggle btn btn-sm btn-outline-secondary ms-3" onclick="toggleAccordion(this)">En savoir plus</button>
+                                </div>
+                            </li>
+
+                            <div class="custom-accordion">
+                                <div class="accordion-content">
+                                    <p><strong><i class="fas fa-globe"></i> Provenance:</strong> {{ $ingredient['tisane']->Provenance ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-seedling"></i> Organe Producteur:</strong> {{ $ingredient['tisane']->OrganeProducteur ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-vial"></i> Substances (Sb):</strong> {{ $ingredient['tisane']->Sb ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules"></i> Properties:</strong> {{ $ingredient['tisane']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-stethoscope"></i> Indications:</strong> {{ $ingredient['tisane']->Indications ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-exclamation-circle"></i> Contre Indications:</strong> {{ $ingredient['tisane']->ContreIndications ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-info-circle"></i> Note:</strong> {{ $ingredient['tisane']->Note ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-align-left"></i> Description:</strong> {{ $ingredient['tisane']->Description ?? 'None' }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
 
             <!-- Contre Indications Summary -->
-            @php
-                $uniqueContreIndications = array_unique($allContreIndications);
-            @endphp
-
-            @if(count($uniqueContreIndications) > 0)
+            @if(count($all_contre_indications) > 0)
                 <div class="details-box">
                     <label class="details-label"><i class="fas fa-exclamation-triangle"></i> Contre Indications</label>
                     <ul class="details-list">
-                        @foreach($uniqueContreIndications as $contreIndication)
+                        @foreach($all_contre_indications as $contreIndication)
                             <li>{{ $contreIndication }}</li>
                         @endforeach
                     </ul>
                 </div>
             @endif
+
+            <!-- Explication section after ingredients and contre indications -->
+            <div class="details-box">
+                <label class="details-label"><i class="fas fa-align-left"></i> Explication</label>
+                <p class="details-value">{{ $recette->Explication }}</p>
+            </div>
 
             <a href="{{ route('recettes.index') }}" class="btn btn-outline-secondary mt-4">&larr; Back to List</a>
         </div>
@@ -212,15 +258,11 @@
             font-size: 1rem;
         }
 
-        .btn-outline-secondary {
-            border-color: #16a34a;
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
             color: #16a34a;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .btn-outline-secondary:hover {
-            background-color: #16a34a;
-            color: #ffffff;
+            margin-bottom: 10px;
         }
 
         ul {

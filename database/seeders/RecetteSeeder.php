@@ -22,7 +22,9 @@ class RecetteSeeder extends Seeder
                 'NomRecette' => $record['NomRecette'],
                 'slug' => Str::slug($record['NomRecette']), // Ensure slug is created here
                 'TypeApplication' => $record['TypeApplication'],
-                'Ingredients' => $record['Ingredients'],
+                'IngredientsHE' => $record['IngredientsHE'], // Ingredients for HuileHE
+                'IngredientsHV' => $record['IngredientsHV'], // Ingredients for HuileHV
+                'IngredientsTisane' => $record['IngredientsTisane'], // Ingredients for Tisanes
                 'Explication' => $record['Explication'],
             ]);
         }
