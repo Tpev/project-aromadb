@@ -28,7 +28,6 @@
                         </button>
                     </form>
                 @else
-                    <!-- Redirect to login if the user is not authenticated -->
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
                         <i class="far fa-heart"></i> <span>Add to Favorites</span>
                     </a>
@@ -45,8 +44,6 @@
                 const formData = new FormData(form);
                 const favoriteBtn = document.getElementById('favorite-btn');
 
-                console.log('Submitting favorite form...');
-
                 fetch(form.action, {
                     method: form.method,
                     body: formData,
@@ -55,41 +52,33 @@
                         'X-Requested-With': 'XMLHttpRequest',
                     }
                 })
-                .then(response => {
-                    console.log('Response received:', response);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    console.log('Data received:', data);
                     if (data.success) {
                         if (data.action === 'added') {
-                            console.log('Marked as favorite');
                             favoriteBtn.innerHTML = '<i class="fas fa-heart text-red-500"></i> <span>Remove from Favorites</span>';
                         } else if (data.action === 'removed') {
-                            console.log('Removed from favorites');
                             favoriteBtn.innerHTML = '<i class="far fa-heart"></i> <span>Add to Favorites</span>';
                         }
-                    } else {
-                        console.log('Failed to update favorite status');
                     }
                 })
-                .catch(error => {
-                    console.error('Error occurred:', error);
-                });
+                .catch(error => console.error('Error occurred:', error));
             });
             </script>
             @endauth
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-syringe"></i> Type Application</label>
-                        <p class="details-value">{{ $recette->TypeApplication }}</p>
-                    </div>
+
+            <!-- Recipe General Information -->
+            <div class="col-md-6">
+                <div class="details-box">
+                    <label class="details-label"><i class="fas fa-syringe"></i> Type Application</label>
+                    <p class="details-value">{{ $recette->TypeApplication }}</p>
                 </div>
+            </div>
+
             <!-- Ingredients Section with Accordion for HuileHE, HuileHV, and Tisane -->
             <div class="details-box">
                 <label class="details-label"><i class="fas fa-vial"></i> Ingredients</label>
 
-                <!-- Display Ingredients for HuileHE only if there are ingredients -->
                 @if(count($parsed_ingredients_he) > 0)
                     <h2 class="section-title">Huile Essentielle (HE)</h2>
                     <ul>
@@ -119,7 +108,6 @@
                     </ul>
                 @endif
 
-                <!-- Display Ingredients for HuileHV only if there are ingredients -->
                 @if(count($parsed_ingredients_hv) > 0)
                     <h2 class="section-title">Huile Végétale (HV)</h2>
                     <ul>
@@ -149,7 +137,6 @@
                     </ul>
                 @endif
 
-                <!-- Display Ingredients for Tisane only if there are ingredients -->
                 @if(count($parsed_ingredients_tisane) > 0)
                     <h2 class="section-title">Tisane</h2>
                     <ul>
@@ -199,8 +186,20 @@
             </div>
 
             <a href="{{ route('recettes.index') }}" class="btn btn-outline-secondary mt-4">&larr; Back to List</a>
-        </div>
+		            <!-- Warning Box -->
+            <div class="warning-box mt-5 p-4">
+                <p class="warning-text">
+                    <strong>Attention :</strong> L'auto-médication avec des produits naturels comporte des risques. L'usage inapproprié peut entraîner des effets secondaires. Les informations sur ce site ne constituent pas des conseils médicaux. Consultez un professionnel de santé avant utilisation.
+                </p>
+            </div>     
+
+
+	 </div>
+		
+
     </div>
+
+
 
     <!-- Custom Styles -->
     <style>
@@ -321,6 +320,29 @@
             color: #333333;
         }
 
+        .alert-warning {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            text-align: center;
+            max-width: 800px;
+        }
+		        /* Warning Box */
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .warning-text {
+            color: #856404;
+            font-size: 1rem;
+            font-weight: 500;
         .fa-syringe,
         .fa-align-left,
         .fa-vial,

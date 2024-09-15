@@ -23,57 +23,11 @@
                         </button>
                     </form>
                 @else
-                    <!-- Redirect to login if the user is not authenticated -->
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
                         <i class="far fa-heart"></i> <span>Add to Favorites</span>
                     </a>
                 @endauth
             </div>
-
-            <!-- Custom JavaScript for AJAX with Console Logs -->
-            @auth
-            <script>
-            document.getElementById('favorite-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const form = this;
-                const formData = new FormData(form);
-                const favoriteBtn = document.getElementById('favorite-btn');
-
-                console.log('Submitting favorite form...');
-
-                fetch(form.action, {
-                    method: form.method,
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
-                })
-                .then(response => {
-                    console.log('Response received:', response);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Data received:', data);
-                    if (data.success) {
-                        if (data.action === 'added') {
-                            console.log('Marked as favorite');
-                            favoriteBtn.innerHTML = '<i class="fas fa-heart text-red-500"></i> <span>Remove from Favorites</span>';
-                        } else if (data.action === 'removed') {
-                            console.log('Removed from favorites');
-                            favoriteBtn.innerHTML = '<i class="far fa-heart"></i> <span>Add to Favorites</span>';
-                        }
-                    } else {
-                        console.log('Failed to update favorite status');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error occurred:', error);
-                });
-            });
-            </script>
-            @endauth
 
             <!-- Image and Info in Two Columns -->
             <div class="row align-items-center">
@@ -89,7 +43,6 @@
                         <label class="details-label"><i class="fas fa-globe"></i> Provenance</label>
                         <p class="details-value">
                             @php
-                                // Split the Provenance by semicolon and map each to a country code
                                 $provenances = explode(';', $huileHV->Provenance);
                                 $countryMap = [
                                     'France' => 'fr',
@@ -180,6 +133,13 @@
             </div>
 
             <a href="{{ route('huilehvs.index') }}" class="btn btn-primary mt-4">Back to List</a>
+
+            <!-- Warning Box -->
+            <div class="warning-box mt-5 p-4">
+                <p class="warning-text">
+                    <strong>Attention :</strong> L'auto-médication avec des produits naturels comporte des risques. L'usage inapproprié peut entraîner des effets secondaires. Les informations sur ce site ne constituent pas des conseils médicaux. Consultez un professionnel de santé avant utilisation.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -288,6 +248,21 @@
         img.img-fluid {
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .warning-text {
+            color: #856404;
+            font-size: 1rem;
+            font-weight: 500;
         }
     </style>
 
