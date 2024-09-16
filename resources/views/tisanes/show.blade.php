@@ -89,7 +89,24 @@
                 <label class="details-label"><i class="fas fa-align-left"></i> Description</label>
                 <p class="details-value">{{ $tisane->Description ?? 'None' }}</p>
             </div>
-
+			
+<!-- List of Recettes where this HuileHE is used -->
+<div class="details-box mt-4">
+    <label class="details-label"><i class="fas fa-book-open"></i> Recettes avec {{ $tisane->NomTisane }}</label>
+    @if($tisane->relatedRecettes()->isNotEmpty())
+        <ul class="details-list">
+            @foreach($tisane->relatedRecettes() as $recette)
+                <li class="mb-2">
+                    <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
+                         {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+    @else
+        <p>Aucune recette trouvée utilisant cette tisane.</p>
+    @endif
+</div>
             <a href="{{ route('tisanes.index') }}" class="btn btn-primary mt-4">Retour à la liste</a>
 
             <!-- Warning Box -->
@@ -103,6 +120,15 @@
 
     <!-- Custom Styles -->
     <style>
+			.recette-link {
+		text-decoration: none;
+		color: #16a34a;
+		}
+
+		.recette-link:hover {
+			text-decoration: underline;
+			color: #15803d;
+		}
         .btn-favorite {
             background-color: transparent;
             border: none;

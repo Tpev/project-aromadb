@@ -132,30 +132,26 @@
                 <p class="details-value">{{ $huileHE->Description ?? 'None' }}</p>
             </div>
 
-<!-- Accordion for Recettes where this HuileHE is used -->
+<!-- List of Recettes where this HuileHE is used -->
 <div class="details-box mt-4">
-    <h2 class="section-title">Recettes avec {{ $huileHE->NomHE }}</h2>
+    <label class="details-label"><i class="fas fa-book-open"></i> Recettes avec {{ $huileHE->NomHE }}</label>
     @if($huileHE->relatedRecettes()->isNotEmpty())
-        <div class="accordion" id="recettesAccordion">
+        <ul class="details-list">
             @foreach($huileHE->relatedRecettes() as $recette)
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading{{ $recette->id }}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $recette->id }}" aria-expanded="false" aria-controls="collapse{{ $recette->id }}">
-                            {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
-                        </button>
-                    </h2>
-                    <div id="collapse{{ $recette->id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $recette->id }}" data-bs-parent="#recettesAccordion">
-                        <div class="accordion-body">
-                            {{ $recette->Explication }}
-                        </div>
-                    </div>
-                </div>
+                <li class="mb-2">
+                    <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
+                         {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
+                    </a>
+                </li>
             @endforeach
-        </div>
+        </ul>
     @else
-        <p>No related recipes found for this Huile Essentielle.</p>
+        <p>Aucune recette trouvée utilisant cette huile essentielle.</p>
     @endif
 </div>
+
+
+
 
             <a href="{{ route('huilehes.index') }}" class="btn btn-primary mt-4">Back to List</a>
             
@@ -170,6 +166,17 @@
 
     <!-- Custom Styles -->
     <style>
+	
+		.recette-link {
+		text-decoration: none;
+		color: #16a34a;
+		}
+
+		.recette-link:hover {
+			text-decoration: underline;
+			color: #15803d;
+		}
+
         .btn-favorite {
             background-color: transparent;
             border: none;

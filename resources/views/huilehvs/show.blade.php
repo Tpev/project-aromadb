@@ -132,6 +132,25 @@
                 <p class="details-value">{{ $huileHV->Description ?? 'None' }}</p>
             </div>
 
+			<!-- List of Recettes where this HuileHV is used -->
+			<div class="details-box mt-4">
+				<label class="details-label"><i class="fas fa-book-open"></i> Recettes avec {{ $huileHV->NomHV }}</label>
+				@if($huileHV->relatedRecettes()->isNotEmpty())
+					<ul class="details-list">
+						@foreach($huileHV->relatedRecettes() as $recette)
+							<li class="mb-2">
+								<a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
+									 {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
+								</a>
+							</li>
+						@endforeach
+					</ul>
+				@else
+					<p>Aucune recette trouvée utilisant cette huile végétale.</p>
+				@endif
+			</div>
+
+
             <a href="{{ route('huilehvs.index') }}" class="btn btn-primary mt-4">Back to List</a>
 
             <!-- Warning Box -->
@@ -145,6 +164,15 @@
 
     <!-- Custom Styles -->
     <style>
+			.recette-link {
+		text-decoration: none;
+		color: #16a34a;
+		}
+
+		.recette-link:hover {
+			text-decoration: underline;
+			color: #15803d;
+		}
         .btn-favorite {
             background-color: transparent;
             border: none;
