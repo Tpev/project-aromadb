@@ -1,20 +1,25 @@
-REF,NomRecette,TypeApplication,IngredientsHE,IngredientsHV,IngredientsTisane,Explication
-1,Abcès cutané,Cutanée,"1goutte,43;1goutte,20;2gouttes,42","1 c. à café,6",,"1 à 2 gouttes sur un coton-tige imbibé, application locale, 3 fois par jour jusqu'à guérison."
-2,Acné,Cutanée,"1goutte,21;1goutte,46;2gouttes,42","1 c. à soupe,3",,"Matin et soir 1 à 2 gouttes avec un coton-tige sur chaque bouton, ou zone de boutons, jusqu'à disparition."
-3,Allergie respiratoire,Diffusion,"5gouttes,36;5gouttes,13",,,"Diffusez 10 minutes, 2 à 3 fois par jour."
-4,Allergie respiratoire,Cutanée,"2gouttes,10;1goutte,3;","1 c. à soupe,3",,"Appliquez quelques gouttes du mélange sur l'intérieur des poignets, le thorax et le long de la colonne vertébrale (et/ou sur la plante des pieds), et masser jusqu'à pénétration complète, 2 à 3 fois par jour."
-5,Allergie respiratoire,Inhalation,"8gouttes,10;4gouttes,3",,,"Versez ce mélange dans un stick inhalateur ou sur un mouchoir, et respirer tout au long de la journée (jusqu'à 6 fois)."
-6,Allergie cutanée,Cutanée,"1goutte,3;3gouttes,22","1 c. à soupe,11",,"Appliquez quelques gouttes sur les zones concernées, jusqu'à pénétration complète, 2 à 3 fois par jour jusqu'à disparition."
-7,Angine/Pharyngo-amygdalite,Diffusion,"5gouttes,36;5gouttes,42",,,Diffusez 2 à 3 fois par jour durant 5 à 10 minutes dans les pièces à vivre.
-8,Angine/Pharyngo-amygdalite,Bain aromatique,"10gouttes,36",,,Mélangez dans un fond de savon liquide et versez dans l'eau du bain.
-9,Angine/Pharyngo-amygdalite,Cutanée,"1goutte,47;1goutte,42;1goutte,36","1 c. à café,3;2 c. à café,11",,"Appliquez doucement sur le cou et en regard des ganglions lymphatiques situés sous la mâchoire, 1 à 4 fois par jour."
-10,Angine/Pharyngo-amygdalite,Voie orale,"2gouttes,47",,,"Dans une cuillière de miel, 2 fois par jour."
-11,Angine/Pharyngo-amygdalite,Voie orale,"1goutte,47",,,"Sur un demi sucre, 3 fois par jour, pendant 3 jours."
-12,Arthrite/Arthrose,Bain aromatique,"10gouttes,14",,,
-13,Arthrite/Arthrose,Cutanée,"1goutte,20;4gouttes14;2gouttes,11","1 c. à soupe,11",,"Appliquez avec le bout des doigts sur les articulations douloureuses, jusqu'à pénétration complète, 2 à 3 fois par jour. Jusqu'à 6 fois en cas de douleurs intenses."
-14,Bronchite (toux sèche),Diffusion,"5gouttes,13;5gouttes,36;2gouttes,8",,,Diffusez 2 à 3 fois par jour durant 5 à 10 minutes dans les pièces à vivre.
-15,Bronchite (toux grasse),Diffusion,"5gouttes,13;5gouttes,36;2gouttes,48",,,Diffusez 2 à 3 fois par jour durant 5 à 10 minutes dans les pièces à vivre.
-16,Bronchite,Bain aromatique,"10gouttes,52",,,Mélangez dans un fond de savon liquide et versez dans l'eau du bain.
-17,Bronchite,Bain aromatique,"10gouttes,36",,,Mélangez dans un fond de savon liquide et versez dans l'eau du bain.
-18,Bronchite,Cutanée,"2gouttes,13;2gouttes,36;2gouttes,37;2gouttes,42","1 c. à soupe,3",,"Appliquez quelques gouttes à l'intérieur des poignets, sur le thorax, dans le dos en regard des poumons et le long de la colonne vertébrale, jusqu'à pénétration complète, 2 à 3 fois par jour pendant 10 jours."
-19,Bronchite,Voie orale,"2gouttes,6;4gouttes,43",,,"Mélangez dans 250 grammes de miel liquide, prenez un cuillierée à café 2 fois par jour."
+REF,NomRecette,TypeApplication,IngredientsHE,IngredientsHV,IngredientsTisane,Explication,Note
+1,Abcès cutané,Cutanée,"1goutte,43;1goutte,20;2gouttes,42","1 c. à café,6",,"1 à 2 gouttes sur un coton-tige imbibé, application locale, 3 fois par jour jusqu'à guérison.",
+2,Acné,Cutanée,"1goutte,21;1goutte,46;2gouttes,42","1 c. à soupe,3",,"Matin et soir 1 à 2 gouttes avec un coton-tige sur chaque bouton, ou zone de boutons, jusqu'à disparition.",
+3,Allergie respiratoire,Diffusion,"5gouttes,36;5gouttes,13",,,"Diffusez 10 minutes, 2 à 3 fois par jour.",
+4,Allergie respiratoire,Cutanée,"2gouttes,10;1goutte,3","1 c. à soupe,3",,"Appliquez quelques gouttes du mélange sur l'intérieur des poignets, le thorax et le long de la colonne vertébrale (et/ou sur la plante des pieds), et masser jusqu'à pénétration complète, 2 à 3 fois par jour.",
+5,Allergie respiratoire,Inhalation,"8gouttes,10;4gouttes,3",,,"Versez ce mélange dans un stick inhalateur ou sur un mouchoir, et respirer tout au long de la journée (jusqu'à 6 fois).",
+6,Allergie cutanée,Cutanée,"1goutte,3;3gouttes,22","1 c. à soupe,11",,"Appliquez quelques gouttes sur les zones concernées, jusqu'à pénétration complète, 2 à 3 fois par jour jusqu'à disparition.",
+7,Angine/Pharyngo-amygdalite,Diffusion,"5gouttes,36;5gouttes,42",,,Diffusez 2 à 3 fois par jour durant 5 à 10 minutes dans les pièces à vivre.,
+8,Angine/Pharyngo-amygdalite,Bain aromatique,"10gouttes,36",,,Mélangez dans un fond de savon liquide et versez dans l'eau du bain.,
+9,Angine/Pharyngo-amygdalite,Cutanée,"1goutte,47;1goutte,42;1goutte,36","1 c. à café,3;2 c. à café,11",,"Appliquez doucement sur le cou et en regard des ganglions lymphatiques situés sous la mâchoire, 1 à 4 fois par jour.",
+10,Angine/Pharyngo-amygdalite,Voie orale,"2gouttes,47",,,"Dans une cuillière de miel, 2 fois par jour.",
+11,Angine/Pharyngo-amygdalite,Voie orale,"1goutte,47",,,"Sur un demi sucre, 3 fois par jour, pendant 3 jours.",
+12,Arthrite/Arthrose,Bain aromatique,"10gouttes,14",,,,
+13,Arthrite/Arthrose,Cutanée,"1goutte,20;4gouttes,14;2gouttes,11","1 c. à soupe,11",,"Appliquez avec le bout des doigts sur les articulations douloureuses, jusqu'à pénétration complète, 2 à 3 fois par jour. Jusqu'à 6 fois en cas de douleurs intenses.",
+14,Bronchite (toux sèche),Diffusion,"5gouttes,13;5gouttes,36;2gouttes,8",,,Diffusez 2 à 3 fois par jour durant 5 à 10 minutes dans les pièces à vivre.,
+15,Bronchite (toux grasse),Diffusion,"5gouttes,13;5gouttes,36;2gouttes,48",,,Diffusez 2 à 3 fois par jour durant 5 à 10 minutes dans les pièces à vivre.,
+16,Bronchite,Bain aromatique,"10gouttes,52",,,Mélangez dans un fond de savon liquide et versez dans l'eau du bain.,
+17,Bronchite,Bain aromatique,"10gouttes,36",,,Mélangez dans un fond de savon liquide et versez dans l'eau du bain.,
+18,Bronchite,Cutanée,"2gouttes,13;2gouttes,36;2gouttes,37;2gouttes,42","1 c. à soupe,3",,"Appliquez quelques gouttes à l'intérieur des poignets, sur le thorax, dans le dos en regard des poumons et le long de la colonne vertébrale, jusqu'à pénétration complète, 2 à 3 fois par jour pendant 10 jours.",
+19,Bronchite,Voie orale,"2gouttes,6;4gouttes,43",,,"Mélangez dans 250 grammes de miel liquide, prenez un cuillierée à café 2 fois par jour.",
+20, Brûlure,Cutanée,"4gouttes,22;1goutte,46;2gouttes,19","15ml,6",,"Mélangez dans un flacon de 15ml. Appliquez quelques gouttes sur la zone brûlée et autour, 5 à 6 fois par jour pendant les 2 à 3 premiers jours, puis 2 à 3 fois par jour jusqu'à guérison.","Il s'agit ici de brûlure légère, du quotidien (coup de soleil, frottement, fer à repasser etc.). En cas de brûlure importante, rendez-vous en centre médical."
+21,Céphalée/Migraine,Cutanée,"1goutte,27;1goutte,14","1 c. à café,12",,"Appliquez 1 à 2 gouttes du mélange sur les zones douloureuses et sur les tempes, le haut du front et la nuque, en veillant à ne pas approcher des yeux. Toutes les heures tant que la douleur persiste, et/ou en accompagnement d'un éventuel traitement médical.",
+22,Constipation,Cutanée,"6gouttes,17;6gouttes,1","30ml,5",,"Appliquez doucement 5 à 7 gouutes du mélange sur le ventre, autour du nombril, dans le sens des aiguilles d'une montre, 3 fois par jour après les repas.","En première intention, pensez à bien vous hydrater., pendant et entre les repas."
+23,"Constipation (enfant après 4ans, personnes âgées)",Cutanée,"1goutte,3","1 c. à café,1",,"Appliquez doucement sur le ventre, dans le sens des aiguilles d'une montre, 2 à 3 fois par jour après les repas.",
+24,Constipation ,Voie orale,"1goutte,38",,,"A prendre dans une 1/2 cuillerée à café d'huile d'olive vierge de première pression à froid bio, avant chaque repas, jusqu'au retour d'un transit normal.",

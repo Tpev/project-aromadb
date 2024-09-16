@@ -132,6 +132,31 @@
                 <p class="details-value">{{ $huileHE->Description ?? 'None' }}</p>
             </div>
 
+<!-- Accordion for Recettes where this HuileHE is used -->
+<div class="details-box mt-4">
+    <h2 class="section-title">Recettes avec {{ $huileHE->NomHE }}</h2>
+    @if($huileHE->relatedRecettes()->isNotEmpty())
+        <div class="accordion" id="recettesAccordion">
+            @foreach($huileHE->relatedRecettes() as $recette)
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading{{ $recette->id }}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $recette->id }}" aria-expanded="false" aria-controls="collapse{{ $recette->id }}">
+                            {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
+                        </button>
+                    </h2>
+                    <div id="collapse{{ $recette->id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ $recette->id }}" data-bs-parent="#recettesAccordion">
+                        <div class="accordion-body">
+                            {{ $recette->Explication }}
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <p>No related recipes found for this Huile Essentielle.</p>
+    @endif
+</div>
+
             <a href="{{ route('huilehes.index') }}" class="btn btn-primary mt-4">Back to List</a>
             
             <!-- Warning Box -->
