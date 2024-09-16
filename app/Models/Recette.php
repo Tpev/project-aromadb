@@ -29,13 +29,7 @@ class Recette extends Model
     {
         parent::boot();
 
-        static::creating(function ($recette) {
-            $recette->slug = Str::slug($recette->NomRecette);
-        });
 
-        static::updating(function ($recette) {
-            $recette->slug = Str::slug($recette->NomRecette);
-        });
     }
 
 public function getParsedIngredientsAttribute()
