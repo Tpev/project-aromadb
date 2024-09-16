@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ $huileHE->NomHE }}
         </h2>
     </x-slot>
@@ -16,15 +16,15 @@
                         @csrf
                         <button type="submit" class="btn btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $huileHE->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\HuileHE'))
-                                <i class="fas fa-heart text-red-500"></i> <span>Remove from Favorites</span>
+                                <i class="fas fa-heart" style="color: #854f38;"></i> <span>Remove from Favorites</span>
                             @else
-                                <i class="far fa-heart"></i> <span>Add to Favorites</span>
+                                <i class="far fa-heart" style="color: #647a0b;"></i> <span>Add to Favorites</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart"></i> <span>Add to Favorites</span>
+                        <i class="far fa-heart" style="color: #647a0b;"></i> <span>Add to Favorites</span>
                     </a>
                 @endauth
             </div>
@@ -36,11 +36,11 @@
                 </div>
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-leaf"></i> Latin Name</label>
+                        <label class="details-label"><i class="fas fa-leaf" style="color: #647a0b;"></i> Latin Name</label>
                         <p class="details-value"><em>{{ $huileHE->NomLatin }}</em></p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-globe"></i> Provenance</label>
+                        <label class="details-label"><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance</label>
                         <p class="details-value">
                             @php
                                 $provenances = explode(';', $huileHE->Provenance);
@@ -77,7 +77,7 @@
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-capsules"></i> Properties</label>
+                        <label class="details-label"><i class="fas fa-capsules" style="color: #647a0b;"></i> Properties</label>
                         @php
                             $properties = explode(';', $huileHE->Properties);
                         @endphp
@@ -88,11 +88,11 @@
                         </ul>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-seedling"></i> Organe Producteur</label>
+                        <label class="details-label"><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur</label>
                         <p class="details-value">{{ $huileHE->OrganeProducteur }}</p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-vial"></i> Sb (Substances)</label>
+                        <label class="details-label"><i class="fas fa-vial" style="color: #647a0b;"></i> Sb (Substances)</label>
                         @php
                             $substances = explode(';', $huileHE->Sb);
                         @endphp
@@ -106,7 +106,7 @@
 
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-stethoscope"></i> Indications</label>
+                        <label class="details-label"><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications</label>
                         @php
                             $indications = explode(';', $huileHE->Indications);
                         @endphp
@@ -117,43 +117,40 @@
                         </ul>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-exclamation-circle"></i> Contre Indications</label>
+                        <label class="details-label"><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications</label>
                         <p class="details-value">{{ $huileHE->ContreIndications ?? 'None' }}</p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-info-circle"></i> Note</label>
+                        <label class="details-label"><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note</label>
                         <p class="details-value">{{ $huileHE->Note ?? 'None' }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="details-box mt-4">
-                <label class="details-label"><i class="fas fa-align-left"></i> Description</label>
+                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Description</label>
                 <p class="details-value">{{ $huileHE->Description ?? 'None' }}</p>
             </div>
 
-<!-- List of Recettes where this HuileHE is used -->
-<div class="details-box mt-4">
-    <label class="details-label"><i class="fas fa-book-open"></i> Recettes avec {{ $huileHE->NomHE }}</label>
-    @if($huileHE->relatedRecettes()->isNotEmpty())
-        <ul class="details-list">
-            @foreach($huileHE->relatedRecettes() as $recette)
-                <li class="mb-2">
-                    <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
-                         {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
-                    </a>
-                </li>
-            @endforeach
-        </ul>
-    @else
-        <p>Aucune recette trouvée utilisant cette huile essentielle.</p>
-    @endif
-</div>
+            <!-- List of Recettes where this HuileHE is used -->
+            <div class="details-box mt-4">
+                <label class="details-label"><i class="fas fa-book-open" style="color: #647a0b;"></i> Recettes avec {{ $huileHE->NomHE }}</label>
+                @if($huileHE->relatedRecettes()->isNotEmpty())
+                    <ul class="details-list">
+                        @foreach($huileHE->relatedRecettes() as $recette)
+                            <li class="mb-2">
+                                <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
+                                     {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p>Aucune recette trouvée utilisant cette huile essentielle.</p>
+                @endif
+            </div>
 
-
-
-
-            <a href="{{ route('huilehes.index') }}" class="btn btn-primary mt-4">Back to List</a>
+            <a href="{{ route('huilehes.index') }}" class="btn-primary mt-4">Back to List</a>
             
             <!-- Warning Box -->
             <div class="warning-box mt-5 p-4">
@@ -166,27 +163,26 @@
 
     <!-- Custom Styles -->
     <style>
-	
-		.recette-link {
-		text-decoration: none;
-		color: #16a34a;
-		}
+        .recette-link {
+            text-decoration: none;
+            color: #854f38;
+        }
 
-		.recette-link:hover {
-			text-decoration: underline;
-			color: #15803d;
-		}
+        .recette-link:hover {
+            text-decoration: underline;
+            color: #647a0b;
+        }
 
         .btn-favorite {
             background-color: transparent;
             border: none;
-            color: #ff5a5f;
+            color: #647a0b;
             font-size: 1.5rem;
             cursor: pointer;
         }
 
         .btn-favorite:hover {
-            color: #ff0000;
+            color: #854f38;
         }
 
         .container {
@@ -204,7 +200,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #333333;
+            color: #647a0b;
             margin-bottom: 10px;
             text-align: center;
         }
@@ -219,7 +215,7 @@
 
         .details-label {
             font-weight: bold;
-            color: #555555;
+            color: #647a0b;
             margin-bottom: 10px;
             display: block;
             font-size: 1.1rem;
@@ -248,13 +244,18 @@
         }
 
         .btn-primary {
-            background-color: #16a34a;
-            border-color: #16a34a;
+            background-color: #647a0b;
+            border-color: #647a0b;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
         }
 
         .btn-primary:hover {
-            background-color: #15803d;
-            border-color: #15803d;
+            background-color: #854f38;
+            border-color: #854f38;
         }
 
         .row {

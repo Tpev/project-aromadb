@@ -1,27 +1,27 @@
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
-				<div class="shrink-0 flex items-center">
-					<a href="{{ route('huilehes.index') }}">
-						<x-application-logo class="block h-12 w-auto fill-current text-green-600" />
-					</a>
-				</div>				
+                <div class="shrink-0 flex items-center">
+                    <a href="{{ route('welcome') }}">
+                        <x-application-logo class="block h-12 w-auto" style="color: #647a0b;" />
+                    </a>
+                </div>
+
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-green-600 hover:text-green-800">
+                    <x-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Huile Essentielle') }}
-                    </x-nav-link>                       
-					<x-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-green-600 hover:text-green-800">
+                    </x-nav-link>
+                    <x-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Huile Végétale') }}
-                    </x-nav-link>                    
-					<x-nav-link :href="route('tisanes.index')" :active="request()->routeIs('tisanes.index')" class="text-green-600 hover:text-green-800">
+                    </x-nav-link>
+                    <x-nav-link :href="route('tisanes.index')" :active="request()->routeIs('tisanes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Tisane') }}
-                    </x-nav-link>					
-					<x-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-green-600 hover:text-green-800">
+                    </x-nav-link>
+                    <x-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Recette') }}
                     </x-nav-link>
                 </div>
@@ -32,7 +32,7 @@
                 @if(Auth::check())
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
-                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-600 bg-white hover:text-green-800 focus:outline-none transition ease-in-out duration-150">
+                            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-[#647a0b] bg-white hover:text-[#854f38] focus:outline-none transition ease-in-out duration-150">
                                 <div>{{ Auth::user()->name }}</div>
                                 <div class="ms-1">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -43,18 +43,17 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('profile.edit')" class="text-green-600 hover:text-green-800">
+                            <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                                 {{ __('Profile') }}
-                            </x-dropdown-link>                            
-							<x-dropdown-link :href="route('dashboard')" class="text-green-600 hover:text-green-800">
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('dashboard')" class="text-[#647a0b] hover:text-[#854f38]">
                                 {{ __('Favoris') }}
                             </x-dropdown-link>
 
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-
-                                <x-dropdown-link :href="route('logout')" class="text-green-600 hover:text-green-800"
+                                <x-dropdown-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
                                     onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                     {{ __('Log Out') }}
@@ -64,10 +63,10 @@
                     </x-dropdown>
                 @else
                     <div class="flex items-center space-x-4">
-                        <a href="{{ route('login') }}" class="text-sm font-medium text-green-600 hover:text-green-800">
+                        <a href="{{ route('login') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Login') }}
                         </a>
-                        <a href="{{ route('register') }}" class="text-sm font-medium text-green-600 hover:text-green-800">
+                        <a href="{{ route('register') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Register') }}
                         </a>
                     </div>
@@ -76,7 +75,7 @@
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-green-600 hover:text-green-800 hover:bg-green-100 focus:outline-none transition duration-150 ease-in-out">
+                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -89,16 +88,16 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-green-600 hover:text-green-800">
+            <x-responsive-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Huile Essentielle') }}
-            </x-responsive-nav-link>             
-			<x-responsive-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-green-600 hover:text-green-800">
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Huile Végétale') }}
-            </x-responsive-nav-link>            
-			<x-responsive-nav-link :href="route('tisanes.index')" :active="request()->routeIs('tisanes.index')" class="text-green-600 hover:text-green-800">
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('tisanes.index')" :active="request()->routeIs('tisanes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Tisane') }}
-            </x-responsive-nav-link>			
-			<x-responsive-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-green-600 hover:text-green-800">
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Recette') }}
             </x-responsive-nav-link>
         </div>
@@ -107,23 +106,22 @@
         <div class="pt-4 pb-1 border-t border-gray-200">
             @if(Auth::check())
                 <div class="px-4">
-                    <div class="font-medium text-base text-green-600">{{ Auth::user()->name }}</div>
+                    <div class="font-medium text-base text-[#647a0b]">{{ Auth::user()->name }}</div>
                     <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('profile.edit')" class="text-green-600 hover:text-green-800">
+                    <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Profile') }}
-                    </x-responsive-nav-link>                    
-					<x-responsive-nav-link :href="route('dashboard')" class="text-green-600 hover:text-green-800">
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('dashboard')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Favoris') }}
                     </x-responsive-nav-link>
 
                     <!-- Authentication -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-
-                        <x-responsive-nav-link :href="route('logout')" class="text-green-600 hover:text-green-800"
+                        <x-responsive-nav-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
                             {{ __('Log Out') }}
@@ -132,20 +130,19 @@
                 </div>
             @else
                 <div class="px-4">
-                    <div class="font-medium text-base text-green-600">{{ __('Guest') }}</div>
+                    <div class="font-medium text-base text-[#647a0b]">{{ __('Guest') }}</div>
                     <div class="font-medium text-sm text-gray-500">{{ __('Please login to access more features') }}</div>
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('login')" class="text-green-600 hover:text-green-800">
+                    <x-responsive-nav-link :href="route('login')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Login') }}
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('register')" class="text-green-600 hover:text-green-800">
+                    <x-responsive-nav-link :href="route('register')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Register') }}
                     </x-responsive-nav-link>
                 </div>
             @endif
         </div>
-
     </div>
 </nav>

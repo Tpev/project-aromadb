@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-green-600 leading-tight">
+        <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Aroma Made DB') }}
         </h2>
     </x-slot>
@@ -11,7 +11,7 @@
     </head>
 
     <div class="container mt-5">
-        <h1 class="page-title">Listes des Huiles végétales</h1>
+        <h1 class="page-title">Liste des Huiles Végétales</h1>
 
         <!-- Filter and Search Bar -->
         <div class="mb-4 text-end">
@@ -48,7 +48,7 @@
                                 {{ $huileHV->NomHV }} (<em>{{ $huileHV->NomLatin ?? 'Unknown' }}</em>)
                                 @auth
                                     @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $huileHV->id && $fav->favoritable_type == 'App\Models\HuileHV'))
-                                        <i class="fas fa-heart text-red-500 ms-2"></i> <!-- Show only when it's a favorite -->
+                                        <i class="fas fa-heart" style="color: #854f38;"></i> <!-- Show only when it's a favorite -->
                                     @endif
                                 @endauth
                             </td>
@@ -67,6 +67,7 @@
             max-width: 1200px;
             text-align: center;
         }
+
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
@@ -76,50 +77,61 @@
             display: flex;
             justify-content: center;
         }
+
         .table {
             width: 100%;
             max-width: 1000px;
         }
+
         .table thead {
-            background-color: #16a34a;
+            background-color: #647a0b;
             color: #ffffff;
         }
+
         .table tbody tr {
             cursor: pointer;
             transition: background-color 0.3s, color 0.3s, transform 0.3s;
         }
+
         .table tbody tr:hover {
-            background-color: #16a34a;
+            background-color: #854f38;
             color: #ffffff;
             transform: scale(1.02);
         }
+
         .table tbody tr.active {
             transform: scale(1.1);
             transition: transform 0.5s ease;
         }
+
         .table th, .table td {
             vertical-align: middle;
             text-align: center;
         }
+
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #333333;
+            color: #647a0b;
             margin-bottom: 20px;
             text-align: center;
         }
+
         .btn-favorite {
             background-color: transparent;
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
         }
+
         .btn-favorite i {
             transition: color 0.3s;
         }
+
         .btn-favorite:hover i {
             color: #ff0000;
         }
+
         #search {
             width: 100%;
             max-width: 300px;
@@ -128,9 +140,11 @@
             border: 1px solid #ccc;
             margin-right: 15px;
         }
+
         .text-end {
             padding-right: 15px;
         }
+
         .d-none {
             display: none !important;
         }
@@ -147,7 +161,7 @@
             row.classList.add('active');
             setTimeout(function() {
                 window.location.href = url;
-            }, 500); // Duration of the zoom-out animation
+            }, 500);
         }
 
         function filterTable() {
@@ -174,7 +188,7 @@
             for (let i = 1; i < tr.length; i++) {
                 let td = tr[i].getElementsByTagName('td')[1]; // Indications column
                 if (td) {
-                    let indications = td.textContent.toLowerCase().split(';').map(s => s.trim()); // Split and trim each indication
+                    let indications = td.textContent.toLowerCase().split(';').map(s => s.trim());
                     tr[i].style.display = indications.includes(filter) || filter === '' ? '' : 'none';
                 }
             }
