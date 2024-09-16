@@ -15,17 +15,24 @@ Route::get('/sitemap', [SitemapController::class, 'index']);
 
 
 Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function () {
-    Route::get('/', [HuileHEController::class, 'index'])->name('huilehes.index');
-	Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
-	Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
-	Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
-	Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
+
+    // Route to the welcome page directly returning the welcome view
+    Route::get('/', function () {
+        return view('welcome');
+    })->name('welcome');
+
+    // Other routes
+    Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
+    Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
+    Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
+    Route::get('huilehvs', [HuileHVController::class, 'index'])->name('huilehvs.index');
 	
     Route::get('/huilehes/{slug}', [HuileHEController::class, 'show'])->name('huilehes.show');
     Route::get('/huilehvs/{slug}', [HuileHVController::class, 'show'])->name('huilehvs.show');
     Route::get('/recettes/{slug}', [RecetteController::class, 'show'])->name('recettes.show');
     Route::get('/tisanes/{slug}', [TisaneController::class, 'show'])->name('tisanes.show');
 });
+
 
 
 
