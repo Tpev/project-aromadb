@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-green-600 leading-tight">
+        <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Aroma Made DB - Tisanes') }}
         </h2>
     </x-slot>
@@ -15,7 +15,7 @@
 
         <!-- Filter and Search Bar -->
         <div class="mb-4 text-end">
-            <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()">
+            <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()" style="border-color: #647a0b;">
                 <option value="">Filtrer par Indication</option>
                 @php
                     // Gather all unique indications, split by semicolon, and remove duplicates
@@ -29,7 +29,7 @@
                 @endforeach
             </select>
 
-            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #854f38;">
         </div>
 
         <div class="table-responsive mx-auto">
@@ -43,12 +43,12 @@
                 </thead>
                 <tbody>
                     @foreach($tisanes as $tisane)
-                        <tr class="table-row">
-                            <td onclick="animateAndRedirect(this, '{{ route('tisanes.show', $tisane->slug) }}');">
+                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('tisanes.show', $tisane->slug) }}');">
+                            <td>
                                 {{ $tisane->NomTisane }} (<em>{{ $tisane->NomLatin ?? 'Unknown' }}</em>)
                                 @auth
                                     @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $tisane->id && $fav->favoritable_type == 'App\Models\Tisane'))
-                                        <i class="fas fa-heart text-red-500 ms-2"></i> <!-- Show only when it's a favorite -->
+                                        <i class="fas fa-heart ms-2" style="color: #854f38;"></i> <!-- Show only when it's a favorite -->
                                     @endif
                                 @endauth
                             </td>
@@ -67,6 +67,7 @@
             max-width: 1200px;
             text-align: center;
         }
+
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
@@ -76,65 +77,84 @@
             display: flex;
             justify-content: center;
         }
+
         .table {
             width: 100%;
             max-width: 1000px;
         }
+
         .table thead {
-            background-color: #16a34a;
+            background-color: #647a0b;
             color: #ffffff;
         }
+
         .table tbody tr {
             cursor: pointer;
             transition: background-color 0.3s, color 0.3s, transform 0.3s;
         }
+
         .table tbody tr:hover {
-            background-color: #16a34a;
+            background-color: #854f38;
             color: #ffffff;
             transform: scale(1.02);
         }
+
         .table tbody tr.active {
             transform: scale(1.1);
             transition: transform 0.5s ease;
         }
+
         .table th, .table td {
             vertical-align: middle;
             text-align: center;
         }
+
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #333333;
+            color: #647a0b;
             margin-bottom: 20px;
             text-align: center;
         }
+
         .btn-favorite {
             background-color: transparent;
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
         }
+
         .btn-favorite i {
             transition: color 0.3s;
         }
+
         .btn-favorite:hover i {
-            color: #ff0000;
+            color: #854f38;
         }
+
         #search {
             width: 100%;
             max-width: 300px;
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #854f38;
             margin-right: 15px;
         }
+
+        select#indicationFilter {
+            border: 1px solid #647a0b;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
         .text-end {
             padding-right: 15px;
         }
+
         .d-none {
             display: none !important;
         }
-        /* Adjust spacing between the heart icon and text */
+
         .ms-2 {
             margin-left: 8px;
         }

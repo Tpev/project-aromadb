@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ $tisane->NomTisane }}
         </h2>
     </x-slot>
@@ -16,15 +16,15 @@
                         @csrf
                         <button type="submit" class="btn btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $tisane->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\Tisane'))
-                                <i class="fas fa-heart text-red-500"></i> <span>Retirer des Favoris</span>
+                                <i class="fas fa-heart" style="color: #647a0b;"></i> <span>Retirer des Favoris</span>
                             @else
-                                <i class="far fa-heart"></i> <span>Ajouter aux Favoris</span>
+                                <i class="far fa-heart" style="color: #647a0b;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart"></i> <span>Ajouter aux Favoris</span>
+                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
@@ -36,11 +36,11 @@
                 </div>
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-leaf"></i> Nom Latin</label>
+                        <label class="details-label"><i class="fas fa-leaf" style="color: #647a0b;"></i> Nom Latin</label>
                         <p class="details-value"><em>{{ $tisane->NomLatin }}</em></p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-globe"></i> Provenance</label>
+                        <label class="details-label"><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance</label>
                         <p class="details-value">{{ $tisane->Provenance }}</p>
                     </div>
                 </div>
@@ -50,7 +50,7 @@
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-capsules"></i> Propriétés</label>
+                        <label class="details-label"><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés</label>
                         @php
                             $properties = explode(';', $tisane->Properties);
                         @endphp
@@ -61,14 +61,14 @@
                         </ul>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-seedling"></i> Partie Utilisée</label>
+                        <label class="details-label"><i class="fas fa-seedling" style="color: #647a0b;"></i> Partie Utilisée</label>
                         <p class="details-value">{{ $tisane->OrganeProducteur }}</p>
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-stethoscope"></i> Indications</label>
+                        <label class="details-label"><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications</label>
                         @php
                             $indications = explode(';', $tisane->Indications);
                         @endphp
@@ -79,34 +79,35 @@
                         </ul>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-exclamation-circle"></i> Contre Indications</label>
+                        <label class="details-label"><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications</label>
                         <p class="details-value">{{ $tisane->ContreIndications ?? 'None' }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="details-box mt-4">
-                <label class="details-label"><i class="fas fa-align-left"></i> Description</label>
+                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Description</label>
                 <p class="details-value">{{ $tisane->Description ?? 'None' }}</p>
             </div>
-			
-<!-- List of Recettes where this HuileHE is used -->
-<div class="details-box mt-4">
-    <label class="details-label"><i class="fas fa-book-open"></i> Recettes avec {{ $tisane->NomTisane }}</label>
-    @if($tisane->relatedRecettes()->isNotEmpty())
-        <ul class="details-list">
-            @foreach($tisane->relatedRecettes() as $recette)
-                <li class="mb-2">
-                    <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
-                         {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
-                    </a>
-                </li>
-            @endforeach
-        </ul>
-    @else
-        <p>Aucune recette trouvée utilisant cette tisane.</p>
-    @endif
-</div>
+
+            <!-- List of Recettes where this Tisane is used -->
+            <div class="details-box mt-4">
+                <label class="details-label"><i class="fas fa-book-open" style="color: #647a0b;"></i> Recettes avec {{ $tisane->NomTisane }}</label>
+                @if($tisane->relatedRecettes()->isNotEmpty())
+                    <ul class="details-list">
+                        @foreach($tisane->relatedRecettes() as $recette)
+                            <li class="mb-2">
+                                <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
+                                     {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p>Aucune recette trouvée utilisant cette tisane.</p>
+                @endif
+            </div>
+
             <a href="{{ route('tisanes.index') }}" class="btn btn-primary mt-4">Retour à la liste</a>
 
             <!-- Warning Box -->
@@ -120,15 +121,16 @@
 
     <!-- Custom Styles -->
     <style>
-			.recette-link {
-		text-decoration: none;
-		color: #16a34a;
+		.recette-link {
+            text-decoration: none;
+            color: #647a0b;
 		}
 
 		.recette-link:hover {
 			text-decoration: underline;
-			color: #15803d;
+			color: #854f38;
 		}
+
         .btn-favorite {
             background-color: transparent;
             border: none;
@@ -156,7 +158,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #333333;
+            color: #647a0b;
             margin-bottom: 10px;
             text-align: center;
         }
@@ -195,18 +197,14 @@
             color: #333333;
         }
 
-        .flag-icon {
-            margin-right: 8px;
-        }
-
         .btn-primary {
-            background-color: #16a34a;
-            border-color: #16a34a;
+            background-color: #647a0b;
+            border-color: #647a0b;
         }
 
         .btn-primary:hover {
-            background-color: #15803d;
-            border-color: #15803d;
+            background-color: #854f38;
+            border-color: #854f38;
         }
 
         .row {
@@ -252,5 +250,4 @@
 
     <!-- Font Awesome for icons and Flag Icons for flags -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css">
 </x-app-layout>

@@ -1,23 +1,25 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-green-600 leading-tight">
-            {{ __('Aroma Made DB') }}
+        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+            {{ __('Aroma Made DB - Recettes') }}
         </h2>
     </x-slot>
-   <!-- Ensure Font Awesome icons are loaded -->
+
+    <!-- Ensure Font Awesome icons are loaded -->
     <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     </head>
+
     <div class="container mt-5">
         <h1 class="page-title">Liste des Recettes</h1>
 
         <!-- Search Bar -->
         <div class="mb-4 text-end">
-            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #854f38;">
         </div>
 
         <div class="table-responsive mx-auto">
-            <table class="table table-bordered table-hover mx-auto" id="huileTable">
+            <table class="table table-bordered table-hover mx-auto" id="recetteTable">
                 <thead>
                     <tr>
                         <th class="text-center">Nom Recette</th>
@@ -31,7 +33,7 @@
                                 {{ $recette->NomRecette }}
                                 @auth
                                     @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $recette->id && $fav->favoritable_type == 'App\Models\Recette'))
-                                        <i class="fas fa-heart text-red-500 ms-2"></i> <!-- Show heart if favorited -->
+                                        <i class="fas fa-heart ms-2" style="color: #854f38;"></i> <!-- Show heart if favorited -->
                                     @endif
                                 @endauth
                             </td>
@@ -49,6 +51,7 @@
             max-width: 1200px; /* Make the container wider */
             text-align: center; /* Center content within the container */
         }
+
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
@@ -58,55 +61,72 @@
             display: flex;
             justify-content: center; /* Ensure the table is centered */
         }
+
         .table {
             width: 100%; /* Ensure the table takes up the full width of the container */
             max-width: 1000px; /* Control the maximum width of the table */
         }
+
         .table thead {
-            background-color: #16a34a; /* Tailwind CSS green-600 color */
+            background-color: #647a0b; /* Primary color */
             color: #ffffff;
         }
+
         .table tbody tr {
             transition: background-color 0.3s, color 0.3s; /* Smooth transition */
             cursor: pointer; /* Change cursor to pointer to indicate the row is clickable */
         }
+
         .table tbody tr:hover {
-            background-color: #16a34a; /* Match the hover color of the button */
+            background-color: #854f38; /* Hover color */
             color: #ffffff; /* Change text color to white on hover */
         }
+
         .table tbody tr:hover a {
             color: #ffffff; /* Ensure links also turn white on hover */
         }
+
         .table th, .table td {
             vertical-align: middle;
             text-align: center; /* Center content within table cells */
         }
+
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #333333;
+            color: #647a0b; /* Primary color */
             margin-bottom: 20px;
             text-align: center;
         }
-        .btn-add {
-            background-color: #007bff;
-            color: #ffffff;
-            margin-bottom: 20px;
+
+        .btn-favorite {
+            background-color: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
-        .btn-add:hover {
-            background-color: #0056b3;
+
+        .btn-favorite i {
+            transition: color 0.3s;
         }
+
+        .btn-favorite:hover i {
+            color: #854f38; /* Hover color */
+        }
+
         #search {
             width: 100%;
             max-width: 300px; /* Adjust the width of the search bar */
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: 1px solid #854f38;
             margin-right: 15px; /* Add a bit of margin on the right for spacing */
         }
+
         .text-end {
             padding-right: 15px; /* Ensure there's padding on the right side */
         }
+
         .ms-2 {
             margin-left: 8px;
         }
@@ -117,7 +137,7 @@
         function filterTable() {
             let input = document.getElementById('search');
             let filter = input.value.toLowerCase();
-            let table = document.getElementById('huileTable');
+            let table = document.getElementById('recetteTable');
             let tr = table.getElementsByTagName('tr');
 
             for (let i = 1; i < tr.length; i++) {
