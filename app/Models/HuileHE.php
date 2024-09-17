@@ -22,7 +22,8 @@ class HuileHE extends Model
         'Indications', 
         'ContreIndications', 
         'Note', 
-        'Description'
+        'Description',
+        'MetaDesc'
     ];
 	
 public function favorites()

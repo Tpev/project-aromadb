@@ -25,6 +25,7 @@ class HuileHV extends Model
         'ContreIndications',
         'Note',
         'Description',
+        'MetaDesc',
     ];
 
     public function favorites()

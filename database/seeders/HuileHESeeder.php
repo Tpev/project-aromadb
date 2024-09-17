@@ -43,6 +43,7 @@ class HuileHESeeder extends Seeder
                 'ContreIndications' => $record['ContreIndications'],
                 'Note' => $record['Note'],
                 'Description' => $record['Description'],
+				'MetaDesc' => $record['MetaDesc'],
                 'slug' => $slug,  // Add the generated slug here
             ]);
         }

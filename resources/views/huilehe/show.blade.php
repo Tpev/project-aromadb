@@ -1,9 +1,15 @@
 <x-app-layout>
+    <!-- Meta Description -->
+@section('meta_description')
+    {{ $huileHE->MetaDesc ?? 'Default meta description for this Huile Essentielle.' }}
+@endsection
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ $huileHE->NomHE }}
         </h2>
     </x-slot>
+
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">

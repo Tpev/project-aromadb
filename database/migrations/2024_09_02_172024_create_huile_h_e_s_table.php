@@ -26,6 +26,7 @@ class CreateHuileHesTable extends Migration
             $table->text('ContreIndications')->nullable();
             $table->text('Note')->nullable();
             $table->text('Description')->nullable();
+            $table->text('MetaDesc')->nullable();
             $table->string('slug')->unique(); // Add slug field, make it unique
             $table->timestamps();
         });
