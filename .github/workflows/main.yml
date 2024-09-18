@@ -38,6 +38,6 @@ jobs:
             sudo php artisan db:seed --class=HuileHESeeder
             sudo php artisan db:seed --class=HuileHVSeeder
             sudo php artisan db:seed --class=TisaneSeeder
-            sudo php artisan db:seed --class=BlogPostSSeeder
+            sudo php artisan db:seed --class=BlogPostSeeder
             sudo php artisan sitemap:generate
            EOF
