@@ -8,45 +8,55 @@
         </div>
     </div>
 
-    <!-- Features Section (Nos Catégories) -->
-    <section class="py-8 bg-white">
-        <div class="container mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4" style="color: #647a0b;"><i class="fas fa-th-large mr-2" style="color: #854f38;"></i>Nos catégories</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Huile Essentielle -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-leaf text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Huiles Essentielles</h3>
-                    <p class="text-lg mb-4">Découvrez des informations fiables sur les huiles essentielles : leurs bienfaits, usages, et précautions, pour un usage éclairé et responsable.</p>
-                    <a href="{{ route('huilehes.index') }}" class="btn-primary">Découvrir</a>
-                </div>
+<!-- Features Section (Nos Catégories) -->
+<section class="py-8 bg-white">
+    <div class="container mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-4" style="color: #647a0b;">
+            <i class="fas fa-th-large mr-2" style="color: #854f38;"></i>Nos catégories
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Huile Essentielle -->
+            <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
+                <i class="fas fa-leaf text-6xl mb-4" style="color: #854f38;"></i>
+                <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Huiles Essentielles</h3>
+                <p class="text-lg mb-4">Découvrez des informations fiables sur les huiles essentielles : leurs bienfaits, usages, et précautions, pour un usage éclairé et responsable.</p>
+                <a href="{{ route('huilehes.index') }}" class="btn-primary">Découvrir</a>
+            </div>
 
-                <!-- Huile Végétale -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-seedling text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Huiles Végétales</h3>
-                    <p class="text-lg mb-4">Découvrez notre collection d'huiles végétales, soigneusement documentée pour offrir des informations fiables sur leurs bienfaits naturels.</p>
-                    <a href="{{ route('huilehvs.index') }}" class="btn-primary">Explorer</a>
-                </div>
+            <!-- Huile Végétale -->
+            <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
+                <i class="fas fa-seedling text-6xl mb-4" style="color: #854f38;"></i>
+                <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Huiles Végétales</h3>
+                <p class="text-lg mb-4">Découvrez notre collection d'huiles végétales, soigneusement documentée pour offrir des informations fiables sur leurs bienfaits naturels.</p>
+                <a href="{{ route('huilehvs.index') }}" class="btn-primary">Explorer</a>
+            </div>
 
-                <!-- Tisanes -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-mug-hot text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Tisanes</h3>
-                    <p class="text-lg mb-4">Explorez les tisanes, où chaque infusion est accompagnée d'informations précises et vérifiées. Que ce soit pour la relaxation ou pour leurs vertus spécifiques.</p>
-                    <a href="{{ route('tisanes.index') }}" class="btn-primary">Voir plus</a>
-                </div>
+            <!-- Tisanes -->
+            <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
+                <i class="fas fa-mug-hot text-6xl mb-4" style="color: #854f38;"></i>
+                <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Tisanes</h3>
+                <p class="text-lg mb-4">Explorez les tisanes, où chaque infusion est accompagnée d'informations précises et vérifiées. Que ce soit pour la relaxation ou pour leurs vertus spécifiques.</p>
+                <a href="{{ route('tisanes.index') }}" class="btn-primary">Voir plus</a>
+            </div>
 
-                <!-- Recettes -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-book-open text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Recettes</h3>
-                    <p class="text-lg mb-4">Explorez des recettes naturelles soigneusement élaborées pour soutenir votre bien-être, tout en mettant en avant l’efficacité des huiles essentielles, végétales, et tisanes.</p>
-                    <a href="{{ route('recettes.index') }}" class="btn-primary">Voir Recettes</a>
-                </div>
+            <!-- Recettes -->
+            <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
+                <i class="fas fa-book-open text-6xl mb-4" style="color: #854f38;"></i>
+                <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Recettes</h3>
+                <p class="text-lg mb-4">Explorez des recettes naturelles soigneusement élaborées pour soutenir votre bien-être, tout en mettant en avant l’efficacité des huiles essentielles, végétales, et tisanes.</p>
+                <a href="{{ route('recettes.index') }}" class="btn-primary">Voir Recettes</a>
+            </div>
+
+            <!-- Articles -->
+            <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
+                <i class="fas fa-newspaper text-6xl mb-4" style="color: #854f38;"></i>
+                <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Articles</h3>
+                <p class="text-lg mb-4">Découvrez des articles hebdomadaires sur l'aromathérapie, le bien-être, et les bonnes pratiques pour rester en bonne santé naturellement.</p>
+                <a href="{{ route('blog.index') }}" class="btn-primary">Lire les Articles</a>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- New Section for Additional Features -->
     <section class="py-8 bg-gray-50">
