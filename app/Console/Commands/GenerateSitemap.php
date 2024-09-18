@@ -9,6 +9,7 @@ use App\Models\HuileHE;
 use App\Models\HuileHV;
 use App\Models\Tisane;
 use App\Models\Recette;
+use App\Models\BlogPost; // Include BlogPost model
 
 class GenerateSitemap extends Command
 {
@@ -57,6 +58,14 @@ class GenerateSitemap extends Command
             $sitemap->add(Url::create("/recettes/{$recette->slug}")
                             ->setLastModificationDate($recette->updated_at)
                             ->setPriority(0.9));
+        }
+
+        // Add BlogPost records to sitemap
+        $blogPosts = BlogPost::all();
+        foreach ($blogPosts as $blogPost) {
+            $sitemap->add(Url::create("/article/{$blogPost->slug}") // Update to match blog route
+                            ->setLastModificationDate($blogPost->updated_at)
+                            ->setPriority(0.8));
         }
 
         // Write the sitemap to a file

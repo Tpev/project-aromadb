@@ -10,6 +10,16 @@ use App\Models\Favorite;
 use App\Http\Controllers\TisaneController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\BlogPostController;
+
+
+
+// Route for displaying all blog posts in the index page
+Route::get('/article', [BlogPostController::class, 'index'])->name('blog.index');
+
+// Route for displaying individual blog posts using slug
+Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.show');
+
 
 Route::get('/sitemap', [SitemapController::class, 'index']);
 

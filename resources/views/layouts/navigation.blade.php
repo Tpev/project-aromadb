@@ -23,6 +23,9 @@
                     </x-nav-link>
                     <x-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Recette') }}
+                    </x-nav-link>                    
+					<x-nav-link :href="route('blog.index')" :active="request()->routeIs('blog.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Article') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -99,6 +102,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('recettes.index')" :active="request()->routeIs('recettes.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Recette') }}
+            </x-responsive-nav-link>            
+			<x-responsive-nav-link :href="route('blog.index')" :active="request()->routeIs('blog.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Article') }}
             </x-responsive-nav-link>
         </div>
 
