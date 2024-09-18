@@ -25,8 +25,7 @@ class GenerateSitemap extends Command
     {
         $sitemap = Sitemap::create()
             ->add(Url::create('/')->setPriority(1.0))
-            ->add(Url::create('/about')->setPriority(0.8))
-            ->add(Url::create('/contact')->setPriority(0.7));
+
 
         // Add HuileHE records to sitemap
         $huileHEs = HuileHE::all();
