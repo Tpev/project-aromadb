@@ -1,5 +1,5 @@
 <x-app-layout>
-	@section('title', 'AromaMade Page d'acceuil')
+
     <!-- Hero Section with Logo -->
     <div class="hero bg-cover bg-center flex items-center justify-center" style="background-image: url('{{ asset('images/hero-background.jpg') }}'); height: 60vh;">
         <div class="container mx-auto text-center">
