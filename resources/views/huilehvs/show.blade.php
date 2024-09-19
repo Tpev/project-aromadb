@@ -3,6 +3,7 @@
 @section('meta_description')
     {{ $huileHE->MetaDesc ?? 'Default meta description for this Huile Végétale.' }}
 @endsection
+@section('title', 'Huile Végétale ' . $huileHV->NomHV . ' (' . $huileHV->NomLatin . ')')
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ $huileHV->NomHV }}

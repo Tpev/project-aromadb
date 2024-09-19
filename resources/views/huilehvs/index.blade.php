@@ -1,8 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Aroma Made DB') }}
-        </h2>
+@section('title', 'Liste des Huiles Végétales')
     </x-slot>
 
     <!-- Ensure Font Awesome icons are loaded -->

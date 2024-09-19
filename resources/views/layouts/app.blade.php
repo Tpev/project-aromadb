@@ -17,7 +17,10 @@
         <!-- Dynamic Meta Description -->
         <meta name="description" content="@yield('meta_description', 'Default meta description for AromaMade')">
 
-        <title>{{ config('app.name', 'AromaMade') }}</title>
+        
+        <!-- Dynamic Page Title -->
+        <title>@yield('title', config('app.name', 'AromaMade'))</title>
+
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

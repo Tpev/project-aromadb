@@ -3,6 +3,7 @@
 @section('meta_description')
     {{ $post->MetaDescription ?? 'Default meta description for this blog post.' }}
 @endsection
+@section('title', 'Article ' .  $post->Title )
 
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">

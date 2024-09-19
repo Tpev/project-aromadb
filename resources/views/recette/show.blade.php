@@ -3,6 +3,7 @@
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ $recette->NomRecette }}
         </h2>
+		@section('title', 'Recette ' . $recette->NomRecette . ' (' .  $recette->TypeApplication  . ')')
     </x-slot>
 
     <!-- Ensure Font Awesome icons are loaded -->

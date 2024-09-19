@@ -3,6 +3,7 @@
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ $tisane->NomTisane }}
         </h2>
+		@section('title', 'Tisane ' .  $tisane->NomTisane . ' (' . $tisane->NomLatin . ')')
     </x-slot>
 
     <div class="container mt-5">
