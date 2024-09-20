@@ -67,10 +67,10 @@
                 @else
                     <div class="flex items-center space-x-4">
                         <a href="{{ route('login') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">
-                            {{ __('Login') }}
+                            {{ __('Se connecter') }}
                         </a>
                         <a href="{{ route('register') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">
-                            {{ __('Register') }}
+                            {{ __('S\'inscrire') }}
                         </a>
                     </div>
                 @endif
@@ -135,17 +135,14 @@
                     </form>
                 </div>
             @else
-                <div class="px-4">
-                    <div class="font-medium text-base text-[#647a0b]">{{ __('Guest') }}</div>
-                    <div class="font-medium text-sm text-gray-500">{{ __('Please login to access more features') }}</div>
-                </div>
+
 
                 <div class="mt-3 space-y-1">
                     <x-responsive-nav-link :href="route('login')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Login') }}
+                        {{ __('Se connecter') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('register')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Register') }}
+                        {{ __('S\'inscrire') }}
                     </x-responsive-nav-link>
                 </div>
             @endif

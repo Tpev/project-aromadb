@@ -22,15 +22,15 @@
                         @csrf
                         <button type="submit" class="btn btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $recette->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\Recette'))
-                                <i class="fas fa-heart" style="color: #854f38;"></i> <span>Remove from Favorites</span>
+                                <i class="fas fa-heart" style="color: #854f38;"></i> <span>Retirer des Favoris</span>
                             @else
-                                <i class="far fa-heart" style="color: #854f38;"></i> <span>Add to Favorites</span>
+                                <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Add to Favorites</span>
+                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
@@ -98,7 +98,7 @@
 									<p><strong><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
 									<p><strong><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
 									<p><strong><i class="fas fa-vial" style="color: #647a0b;"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
-									<p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Properties:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
+									<p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
 									<p><strong><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
 									<p><strong><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
 									<p><strong><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
@@ -131,7 +131,7 @@
                                     <p><strong><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-vial" style="color: #647a0b;"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Properties:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
                                     <p><strong><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
@@ -162,7 +162,7 @@
                                     <p><strong><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance:</strong> {{ $ingredient['tisane']->Provenance ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur:</strong> {{ $ingredient['tisane']->OrganeProducteur ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-vial" style="color: #647a0b;"></i> Substances (Sb):</strong> {{ $ingredient['tisane']->Sb ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Properties:</strong> {{ $ingredient['tisane']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés:</strong> {{ $ingredient['tisane']->Properties ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications:</strong> {{ $ingredient['tisane']->Indications ?? 'Unknown' }}</p>
                                     <p><strong><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications:</strong> {{ $ingredient['tisane']->ContreIndications ?? 'None' }}</p>
                                     <p><strong><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note:</strong> {{ $ingredient['tisane']->Note ?? 'None' }}</p>
@@ -195,7 +195,7 @@
                 <p class="details-value">{{ $recette->Explication }}</p>
             </div>
 
-            <a href="{{ route('recettes.index') }}" class="btn btn-primary mt-4">&larr; Back to List</a>
+            <a href="{{ route('recettes.index') }}" class="btn btn-primary mt-4">&larr; Retour à la liste</a>
 
             <!-- Warning Box -->
             <div class="warning-box mt-5 p-4">

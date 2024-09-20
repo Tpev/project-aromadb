@@ -21,15 +21,15 @@
                         @csrf
                         <button type="submit" class="btn btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $huileHV->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\HuileHV'))
-                                <i class="fas fa-heart" style="color: #647a0b;"></i> <span>Remove from Favorites</span>
+                                <i class="fas fa-heart" style="color: #647a0b;"></i> <span>Retirer des Favoris</span>
                             @else
-                               <i class="far fa-heart" style="color: #647a0b;"></i> <span>Add to Favorites</span>
+                               <i class="far fa-heart" style="color: #647a0b;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Add to Favorites</span>
+                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
@@ -82,7 +82,7 @@
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-capsules" style="color: #647a0b;"></i> Properties</label>
+                        <label class="details-label"><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés</label>
                         @php
                             $properties = explode(';', $huileHV->Properties);
                         @endphp
@@ -155,7 +155,7 @@
 				@endif
 			</div>
 
-            <a href="{{ route('huilehvs.index') }}" class="btn btn-primary mt-4">Back to List</a>
+            <a href="{{ route('huilehvs.index') }}" class="btn btn-primary mt-4">Retour à la liste</a>
 
             <!-- Warning Box -->
             <div class="warning-box mt-5 p-4">
