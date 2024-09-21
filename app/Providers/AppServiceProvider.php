@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use App\Models\ClientProfile;
+use App\Policies\ClientProfilePolicy;
 use Carbon\Carbon;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+		  \Illuminate\Support\Facades\Gate::policy(ClientProfile::class, ClientProfilePolicy::class);
         // Listen for login event and update login count and last login time
         Event::listen(Login::class, function ($event) {
             $user = $event->user;

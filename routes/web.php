@@ -11,6 +11,36 @@ use App\Http\Controllers\TisaneController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BlogPostController;
+use App\Http\Controllers\ClientProfileController;
+
+
+
+
+
+// Client Profiles Routes
+Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
+    Route::get('/client_profiles', [ClientProfileController::class, 'index'])->name('client_profiles.index'); // Show all client profiles
+    Route::get('/client_profiles/create', [ClientProfileController::class, 'create'])->name('client_profiles.create'); // Show form to create a client profile
+    Route::post('/client_profiles', [ClientProfileController::class, 'store'])->name('client_profiles.store'); // Handle form submission for creating a client profile
+    Route::get('/client_profiles/{clientProfile}', [ClientProfileController::class, 'show'])->name('client_profiles.show');
+    Route::get('/client_profiles/{clientProfile}/edit', [ClientProfileController::class, 'edit'])->name('client_profiles.edit'); // Show form to edit a client profile
+    Route::put('/client_profiles/{clientProfile}', [ClientProfileController::class, 'update'])->name('client_profiles.update'); // Handle form submission for updating a client profile
+    Route::delete('/client_profiles/{clientProfile}', [ClientProfileController::class, 'destroy'])->name('client_profiles.destroy'); // Handle the deletion of a client profile
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

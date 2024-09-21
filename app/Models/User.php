@@ -66,6 +66,11 @@ public function favorites()
     public function isAdmin()
     {
         return $this->is_admin; // Assuming `admin` is a boolean field in your users table
+    }    
+	
+	public function isTherapist()
+    {
+        return $this->is_therapist; // Assuming `admin` is a boolean field in your users table
     }
 
 
