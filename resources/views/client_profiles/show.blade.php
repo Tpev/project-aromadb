@@ -4,6 +4,7 @@
             {{ __('Détails du profil client') }} - {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
         </h2>
     </x-slot>
+<a href="{{ route('session_notes.index', $clientProfile->id) }}">View Session Notes</a>
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">

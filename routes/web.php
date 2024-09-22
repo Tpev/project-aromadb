@@ -13,6 +13,20 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BlogPostController;
 use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\SessionNoteController;
+
+
+// Session Notes Routes
+
+Route::middleware(['auth', 'can:viewAny,App\Models\ClientProfile'])->group(function () {
+    Route::get('/client_profiles/{clientProfile}/session_notes', [SessionNoteController::class, 'index'])->name('session_notes.index');
+    Route::get('/client_profiles/{clientProfile}/session_notes/create', [SessionNoteController::class, 'create'])->name('session_notes.create');
+    Route::post('/client_profiles/{clientProfile}/session_notes', [SessionNoteController::class, 'store'])->name('session_notes.store');
+    Route::get('/session_notes/{sessionNote}', [SessionNoteController::class, 'show'])->name('session_notes.show');
+    Route::get('/session_notes/{sessionNote}/edit', [SessionNoteController::class, 'edit'])->name('session_notes.edit');
+    Route::put('/session_notes/{sessionNote}', [SessionNoteController::class, 'update'])->name('session_notes.update');
+    Route::delete('/session_notes/{sessionNote}', [SessionNoteController::class, 'destroy'])->name('session_notes.destroy');
+});
 
 
 
