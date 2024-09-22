@@ -78,7 +78,7 @@ class ClientProfileController extends Controller
         $this->authorize('view', $clientProfile);
 
         // Get related appointments, session notes, and invoices
-        $appointments = Appointment::where('client_profile_id', $clientProfile->id)->get();
+        $appointments = $clientProfile->appointments; // Assuming the relation is defined
         $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
         $invoices = Invoice::where('client_profile_id', $clientProfile->id)->get();
 
