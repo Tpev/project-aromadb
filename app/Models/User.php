@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'login_count',
         'last_login_at', // Add this if not already present
+        'is_therapist', // Add this if not already present
     ];
 
     // Ensure last_login_at is treated as a date

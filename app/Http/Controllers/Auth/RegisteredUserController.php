@@ -20,6 +20,10 @@ class RegisteredUserController extends Controller
     public function create(): View
     {
         return view('auth.register');
+    }   
+	public function createpro(): View
+    {
+        return view('auth.register-pro');
     }
 
     /**
@@ -33,12 +37,38 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+			'is_therapist' => ['boolean'],
+           
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+			'is_therapist' => $data['is_therapist'] ?? false,  // Default to false if not provided
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
+    }    
+	public function storepro(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+			'is_therapist' => ['boolean'],
+           
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+			'is_therapist' => true,  // Default to true
         ]);
 
         event(new Registered($user));

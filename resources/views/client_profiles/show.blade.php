@@ -4,7 +4,6 @@
             {{ __('Détails du profil client') }} - {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
         </h2>
     </x-slot>
-<a href="{{ route('session_notes.index', $clientProfile->id) }}">View Session Notes</a>
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
@@ -72,6 +71,7 @@
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h2 class="details-title">{{ __('Rendez-vous de ce client') }}</h2>
+                    <a href="{{ route('appointments.create', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Créer un Rendez-vous') }}</a>
                     
                     @if($appointments->isEmpty())
                         <p>Aucun rendez-vous trouvé pour ce client.</p>
@@ -95,6 +95,42 @@
                                             <td>
                                                 <a href="{{ route('appointments.show', $appointment->id) }}" class="btn btn-primary">Voir</a>
                                                 <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn btn-secondary">Modifier</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Session Notes Section -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h2 class="details-title">{{ __('Notes de Séance de ce client') }}</h2>
+                    <a href="{{ route('session_notes.create', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Créer une Note de Séance') }}</a>
+                    
+                    @if($sessionNotes->isEmpty())
+                        <p>Aucune note trouvée pour ce client.</p>
+                    @else
+                        <div class="table-responsive mx-auto">
+                            <table class="table table-bordered table-hover" id="sessionNotesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Note</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($sessionNotes as $sessionNote)
+                                        <tr>
+                                            <td>{{ $sessionNote->created_at }}</td>
+                                            <td style="word-wrap: break-word; max-width: 300px;">{{ $sessionNote->note }}</td>
+                                            <td>
+                                                <a href="{{ route('session_notes.show', $sessionNote->id) }}" class="btn btn-primary">Voir</a>
+                                                <a href="{{ route('session_notes.edit', $sessionNote->id) }}" class="btn btn-secondary">Modifier</a>
                                             </td>
                                         </tr>
                                     @endforeach
