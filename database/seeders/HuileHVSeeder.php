@@ -20,8 +20,16 @@ class HuileHVSeeder extends Seeder
         $csv = Reader::createFromPath(base_path('database/seeders/huilehv.csv'), 'r');
         $csv->setHeaderOffset(0);
 
-        // Iterate through CSV records
-        foreach ($csv as $record) {
+        // Get all records from the CSV file and convert them to an array
+        $records = iterator_to_array($csv);
+
+        // Sort the records by 'NomHV'
+        usort($records, function ($a, $b) {
+            return strcmp($a['NomHV'], $b['NomHV']);
+        });
+
+        // Iterate through the sorted records and insert them into the database
+        foreach ($records as $record) {
             HuileHV::create([
                 'REF' => $record['REF'],
                 'NomHV' => $record['NomHV'],

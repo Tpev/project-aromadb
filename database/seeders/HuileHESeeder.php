@@ -19,8 +19,16 @@ class HuileHESeeder extends Seeder
         $csv = Reader::createFromPath(base_path('database/seeders/huile_he_data.csv'), 'r');
         $csv->setHeaderOffset(0);
 
-        // Iterate through CSV records
-        foreach ($csv as $record) {
+        // Get all records from the CSV file and convert them to an array
+        $records = iterator_to_array($csv);
+
+        // Sort the records by 'NomHE'
+        usort($records, function ($a, $b) {
+            return strcmp($a['NomHE'], $b['NomHE']);
+        });
+
+        // Iterate through the sorted records and insert them into the database
+        foreach ($records as $record) {
             $originalSlug = Str::slug($record['NomHE']);  // Generate a slug from the NomHE
             $slug = $originalSlug;
             $count = 1;

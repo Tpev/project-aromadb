@@ -10,10 +10,25 @@ class TisaneSeeder extends Seeder
 {
     public function run()
     {
-        $csv = Reader::createFromPath(base_path('database/seeders/tisane_data.csv'), 'r');
-        $csv->setHeaderOffset(0);
+        try {
+            // Load the CSV file
+            $csv = Reader::createFromPath(base_path('database/seeders/tisane_data.csv'), 'r');
+            $csv->setHeaderOffset(0);
+        } catch (Exception $e) {
+            echo "Error loading CSV file: " . $e->getMessage() . PHP_EOL;
+            return;
+        }
 
-        foreach ($csv as $record) {
+        // Get all records from the CSV file and convert them to an array
+        $records = iterator_to_array($csv);
+
+        // Sort the records by 'NomTisane'
+        usort($records, function ($a, $b) {
+            return strcmp($a['NomTisane'], $b['NomTisane']);
+        });
+
+        // Iterate through sorted records and insert them into the database
+        foreach ($records as $record) {
             Tisane::create([
                 'REF' => $record['REF'],
                 'NomTisane' => $record['NomTisane'],

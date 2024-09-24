@@ -65,7 +65,7 @@
             <p class="text-lg max-w-3xl mx-auto mb-6">
                 En créant un compte gratuit sur AromaMade, vous accédez à des fonctionnalités exclusives. Sauvegardez vos fiches préférées, que ce soit pour les huiles essentielles, les huiles végétales, les tisanes ou les recettes, et bien plus encore !
             </p>
-            <a href="{{ route('register') }}" class="btn-secondary">Rejoindre Maintenant</a>
+            <a href="{{ route('register') }}" class="btn-secondary">Créer un compte</a>
         </div>
     </section>
 

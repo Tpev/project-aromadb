@@ -21,8 +21,16 @@ class RecetteSeeder extends Seeder
             return;
         }
 
-        // Iterate through CSV records
-        foreach ($csv as $record) {
+        // Get all records from the CSV file and convert them to an array
+        $records = iterator_to_array($csv);
+
+        // Sort the records by 'NomRecette'
+        usort($records, function ($a, $b) {
+            return strcmp($a['NomRecette'], $b['NomRecette']);
+        });
+
+        // Iterate through sorted records
+        foreach ($records as $record) {
             // Validate required fields
             if (!isset($record['NomRecette'], $record['TypeApplication'], $record['REF'])) {
                 echo "Missing required fields for record: " . json_encode($record) . PHP_EOL;
