@@ -11,6 +11,12 @@
     <div class="container mt-5">
         <h1 class="page-title">Liste des Huiles essentielles</h1>
 
+<!-- Description Section -->
+<div class="description-box">
+    <p class="description-text">
+        Bienvenue dans notre bibliothèque d'huiles essentielles, un guide complet dédié aux propriétés et usages des huiles essentielles. Explorez des fiches détaillées sur chaque huile essentielle, avec des informations précises sur leurs bienfaits, leurs indications thérapeutiques, ainsi que des conseils d’utilisation sécurisée. Utilisez les filtres pour parcourir les huiles en fonction de leurs propriétés spécifiques, ou recherchez directement par nom. Cette base de données est conçue pour vous offrir une expertise approfondie sur l'aromathérapie, idéale pour les thérapeutes, passionnés et praticiens.
+    </p>
+</div>
         <!-- Filter and Search Bar -->
         <div class="mb-4 text-end">
             <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()" style="border-color: #647a0b;">
@@ -61,6 +67,46 @@
 
     <!-- Custom Styles -->
     <style>
+	
+	    .description-box {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 30px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .description-box:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .description-text {
+        font-size: 1.2rem;
+		padding: 20px 30px;
+        line-height: 1.7;
+        color: #333;
+        text-align: justify;
+    }
+
+    /* Animation */
+    .description-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 300%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .description-box:hover::before {
+        left: 100%;
+    }
         .container {
             max-width: 1200px;
             text-align: center;
@@ -75,6 +121,8 @@
             display: flex;
             justify-content: center;
         }
+
+
 
         .table {
             width: 100%;

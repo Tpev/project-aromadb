@@ -55,26 +55,24 @@ class RegisteredUserController extends Controller
         return redirect(route('dashboard', absolute: false));
     }    
 	public function storepro(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-			'is_therapist' => ['boolean'],
-           
-        ]);
+	{
+		$request->validate([
+			'name' => ['required', 'string', 'max:255'],
+			'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+			'password' => ['required', 'confirmed', Rules\Password::defaults()],
+		]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-			'is_therapist' => true,  // Default to true
-        ]);
+		$user = User::create([
+			'name' => $request->name,
+			'email' => $request->email,
+			'password' => Hash::make($request->password),
+			'is_therapist' => true,  // Set to true for therapist registration
+		]);
 
-        event(new Registered($user));
+		event(new Registered($user));
 
-        Auth::login($user);
+		Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
-    }
+		return redirect()->route('dashboard');
+	}
 }

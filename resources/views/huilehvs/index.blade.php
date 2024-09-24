@@ -10,7 +10,13 @@
 
     <div class="container mt-5">
         <h1 class="page-title">Liste des Huiles Végétales</h1>
-
+		
+<!-- Description Section -->
+<div class="description-box">
+    <p class="description-text">
+        Explorez notre guide détaillé des huiles végétales, une ressource précieuse pour découvrir les propriétés bénéfiques de chaque huile végétale. Que vous soyez à la recherche d'huiles riches en nutriments pour la peau, les cheveux ou le bien-être général, notre bibliothèque offre des informations claires et précises. Chaque huile est accompagnée de ses utilisations, bienfaits, et recommandations d’application. Filtrez selon vos besoins spécifiques ou explorez directement par nom pour trouver l'huile idéale pour vos soins naturels.
+    </p>
+</div>
         <!-- Filter and Search Bar -->
         <div class="mb-4 text-end">
             <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()">
@@ -61,6 +67,45 @@
 
     <!-- Custom Styles -->
     <style>
+	   .description-box {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .description-box:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .description-text {
+        font-size: 1.2rem;
+        line-height: 1.7;
+        color: #333;
+        text-align: justify;
+    }
+
+    /* Animation */
+    .description-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 300%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .description-box:hover::before {
+        left: 100%;
+    }
+
         .container {
             max-width: 1200px;
             text-align: center;

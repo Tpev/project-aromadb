@@ -11,6 +11,12 @@
     <div class="container mt-5">
         <h1 class="page-title">Liste des Recettes</h1>
 
+<!-- Description Section for Recette Page -->
+<div class="description-box">
+    <p class="description-text">
+        Bienvenue dans notre collection de recettes d'aromathérapie. Vous trouverez ici des préparations spécifiques à base d'huiles essentielles, d'huiles végétales, et de tisanes pour diverses applications, telles que cutanées, inhalation, diffusion, et voie orale. Chaque recette est minutieusement élaborée pour répondre à des besoins spécifiques, comme soulager les douleurs musculaires, améliorer la digestion, ou traiter des affections cutanées. Que vous soyez un passionné d'aromathérapie ou un professionnel, cette base de données vous fournira des solutions naturelles et efficaces pour vous accompagner au quotidien. Explorez les recettes, découvrez les bienfaits des ingrédients utilisés, et apprenez à appliquer chaque formule en toute sécurité.
+    </p>
+</div>
         <!-- Search Bar -->
         <div class="mb-4 text-end">
             <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #854f38;">
@@ -128,6 +134,46 @@
         .ms-2 {
             margin-left: 8px;
         }
+		
+		
+		    .description-box {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .description-box:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .description-text {
+        font-size: 1.2rem;
+        line-height: 1.7;
+        color: #333;
+        text-align: justify;
+    }
+
+    /* Animation */
+    .description-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 300%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .description-box:hover::before {
+        left: 100%;
+    }
     </style>
 
     <!-- Search Filter Script -->

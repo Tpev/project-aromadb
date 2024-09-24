@@ -11,6 +11,12 @@
     <div class="container mt-5">
         <h1 class="page-title">Articles du Blog</h1>
 
+<!-- Description Section for Blog Page -->
+<div class="description-box">
+    <p class="description-text">
+        Bienvenue sur notre blog dédié à l’aromathérapie, aux huiles essentielles, et au bien-être. Découvrez une vaste sélection d’articles détaillés couvrant les meilleures pratiques, des guides d’utilisation, et des conseils pour intégrer l’aromathérapie dans votre vie quotidienne. Que vous cherchiez à améliorer votre sommeil, renforcer votre immunité, ou purifier votre environnement, nos articles vous offrent des solutions naturelles, basées sur des expertises fiables et des études approfondies. Ce blog est un espace d’apprentissage et d’inspiration pour les passionnés du bien-être naturel et les thérapeutes. Explorez nos articles pour enrichir vos connaissances et appliquer les bienfaits des huiles essentielles au quotidien.
+    </p>
+</div>
         <!-- Search Bar -->
         <div class="mb-4 text-end">
             <input type="text" id="search" class="form-control" placeholder="Recherche par titre..." onkeyup="filterPosts()" style="border-color: #854f38;">
@@ -34,6 +40,44 @@
 
     <!-- Custom Styles -->
     <style>
+	    .description-box {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+        padding: 20px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .description-box:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .description-text {
+        font-size: 1.2rem;
+        line-height: 1.7;
+        color: #333;
+        text-align: justify;
+    }
+
+    /* Animation */
+    .description-box::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 300%;
+        height: 100%;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+        transition: all 0.3s ease-in-out;
+    }
+
+    .description-box:hover::before {
+        left: 100%;
+    }
         .container {
             max-width: 1200px;
             text-align: center;
