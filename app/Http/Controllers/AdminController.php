@@ -22,7 +22,7 @@ class AdminController extends Controller
         $botUserAgents = [
             'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'Googlebot',
             'Bingbot', 'Baiduspider', 'DuckDuckBot', 'YandexBot', 'Sogou',
-            'Exabot', 'facebot', 'ia_archiver', 'MJ12bot'
+            'Exabot', 'facebot', 'ia_archiver', 'MJ12bot', 'AsyncHttp', 'python'
         ];
 
         // Base query excluding null and empty user agents, and bot user agents
