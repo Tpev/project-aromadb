@@ -51,7 +51,7 @@
                             <td title="{{ $pageView->referrer ?? 'N/A' }}" class="text-wrap">{{ $pageView->referrer ?? 'N/A' }}</td>
                             <td title="{{ $pageView->ip_address }}" class="text-wrap">{{ $pageView->ip_address }}</td>
                             <td>{{ $pageView->view_count }}</td>
-                            <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->format('d/m/Y H:i') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
