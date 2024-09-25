@@ -17,12 +17,13 @@ public function index()
     // Get the list of users
     $users = User::all();
 
-    // Get the page view stats: group by URL, count the views, and get the last viewed timestamp
-    $pageViews = PageViewLog::select('url', \DB::raw('COUNT(*) as view_count'), \DB::raw('MAX(created_at) as viewed_at'))
-        ->groupBy('url')
-        ->orderByDesc('view_count')
+    // Get the page view stats: group by session_id and url, count the views, and get the last viewed timestamp for each page
+    $pageViews = PageViewLog::select('url', 'session_id', \DB::raw('COUNT(*) as view_count'), \DB::raw('MAX(viewed_at) as last_viewed_at'))
+        ->groupBy('url', 'session_id')
+        ->orderByDesc('last_viewed_at')
         ->get();
 
     return view('admin.index', compact('users', 'pageViews'));
 }
+
 }
