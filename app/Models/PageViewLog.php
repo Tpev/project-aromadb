@@ -11,7 +11,8 @@ class PageViewLog extends Model
         'viewed_at', 
         'ip_address', 
         'session_id', 
-        'referrer'
+        'referrer',
+		'user_agent'
     ];
 
     // Disable automatic timestamps since we manage 'viewed_at'
