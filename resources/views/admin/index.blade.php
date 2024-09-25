@@ -75,7 +75,6 @@
                         <th class="text-center">Referrer</th>
                         <th class="text-center">IP</th>
                         <th class="text-center">User-Agent</th>
-                        <th class="text-center">Views</th>
                         <th class="text-center">Last Viewed At</th>
                     </tr>
                 </thead>
@@ -87,7 +86,6 @@
                             <td title="{{ $pageView->referrer ?? 'N/A' }}" class="text-wrap">{{ $pageView->referrer ?? 'N/A' }}</td>
                             <td title="{{ $pageView->ip_address }}" class="text-wrap">{{ $pageView->ip_address }}</td>
                             <td title="{{ $pageView->user_agent }}" class="text-wrap">{{ $pageView->user_agent }}</td>
-                            <td>{{ $pageView->view_count }}</td>
                             <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') }}</td>
                         </tr>
                     @endforeach
