@@ -38,6 +38,7 @@
                 <th class="text-center">Page URL</th>
                 <th class="text-center">Session ID</th>
                 <th class="text-center">Referrer</th>
+                <th class="text-center">IP</th>
                 <th class="text-center">Views</th>
                 <th class="text-center">Last Viewed At</th>
             </tr>
@@ -48,6 +49,7 @@
                     <td>{{ $pageView->url }}</td>
                     <td>{{ $pageView->session_id }}</td>
                     <td>{{ $pageView->referrer }}</td>
+                    <td>{{ $pageView->ip_address }}</td>
                     <td>{{ $pageView->view_count }}</td>
                     <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->format('d/m/Y H:i') }}</td>
                 </tr>
