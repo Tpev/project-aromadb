@@ -33,7 +33,7 @@
             <!-- Image and Info in Two Columns -->
             <div class="row align-items-center">
                 <div class="col-md-6 text-center">
-                    <img src="{{ asset('images/default_tisane.webp') }}" alt="{{ $tisane->NomTisane }}" class="img-fluid" style="max-width: 400px; height: auto; margin-bottom: 20px;">
+                    <img src="{{ asset('images/default.webp') }}" alt="{{ $tisane->NomTisane }}" class="img-fluid" style="max-width: 400px; height: auto; margin-bottom: 20px;">
                 </div>
                 <div class="col-md-6">
                     <div class="details-box">
