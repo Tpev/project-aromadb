@@ -31,33 +31,32 @@
 
         <h1 class="page-title mt-5">Page Views Grouped by Session ID</h1>
 
-<div class="table-responsive mx-auto">
-    <table class="table table-bordered table-hover mx-auto" id="pageViewsTable">
-        <thead>
-            <tr>
-                <th class="text-center">Page URL</th>
-                <th class="text-center">Session ID</th>
-                <th class="text-center">Referrer</th>
-                <th class="text-center">IP</th>
-                <th class="text-center">Views</th>
-                <th class="text-center">Last Viewed At</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($pageViews as $pageView)
-                <tr class="text-center">
-                    <td>{{ $pageView->url }}</td>
-                    <td>{{ $pageView->session_id }}</td>
-                    <td>{{ $pageView->referrer }}</td>
-                    <td>{{ $pageView->ip_address }}</td>
-                    <td>{{ $pageView->view_count }}</td>
-                    <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->format('d/m/Y H:i') }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-
+        <div class="table-responsive mx-auto">
+            <table class="table table-bordered table-hover mx-auto" id="pageViewsTable">
+                <thead>
+                    <tr>
+                        <th class="text-center">Page URL</th>
+                        <th class="text-center">Session ID</th>
+                        <th class="text-center">Referrer</th>
+                        <th class="text-center">IP</th>
+                        <th class="text-center">Views</th>
+                        <th class="text-center">Last Viewed At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pageViews as $pageView)
+                        <tr class="text-center">
+                            <td>{{ $pageView->url }}</td>
+                            <td>{{ $pageView->session_id }}</td>
+                            <td>{{ $pageView->referrer ?? 'N/A' }}</td>
+                            <td>{{ $pageView->ip_address }}</td>
+                            <td>{{ $pageView->view_count }}</td>
+                            <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->format('d/m/Y H:i') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Custom Styles -->
@@ -66,6 +65,7 @@
             max-width: 1200px;
             text-align: center;
         }
+
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
