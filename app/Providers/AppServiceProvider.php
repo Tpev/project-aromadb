@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use App\Models\ClientProfile;
 use App\Policies\ClientProfilePolicy;
 use Carbon\Carbon;
+use App\Services\IpInfoService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,7 +17,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+             $this->app->bind(IpInfoService::class, function ($app) {
+            return new IpInfoService();
+        });
     }
 
     /**

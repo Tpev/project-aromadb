@@ -5,31 +5,34 @@ namespace App\Http\Middleware;
 use Closure;
 use App\Models\PageViewLog;
 use Carbon\Carbon;
+use App\Services\IpInfoService;
 
 class TrackPageViews
 {
+    protected $ipInfoService;
+
+    public function __construct(IpInfoService $ipInfoService)
+    {
+        $this->ipInfoService = $ipInfoService;
+    }
+
     public function handle($request, Closure $next)
     {
+        $ipAddress = $request->ip(); // Get the user's IP address
+        $country = $this->ipInfoService->getCountryByIp($ipAddress); // Get country
 
-        // Get the client IP address
-        $ipAddress = $request->ip(); // This should work in most cases
-        
-        // Optional: if you have a proxy/load balancer, use this to get real IP
-        // $ipAddress = $request->header('X-Forwarded-For') ?? $request->ip();
-
-        // Get the User-Agent string
-      
-		 
-
-        // Log the current page view with IP address, session, referrer, and user-agent
-        PageViewLog::create([
-            'url' => $request->path(),
-            'session_id' => $request->session()->getId(),
-            'ip_address' => $ipAddress,
-            'referrer' => $request->headers->get('referer'),  // Track the referrer
-            'user_agent' => $request->userAgent(),                       // Track the User-Agent
-            'viewed_at' => Carbon::now(),
-        ]);
+        // Only log the page view if the country is France ('FR')
+        if ($country === 'FR') {
+            PageViewLog::create([
+                'url' => $request->path(),
+                'session_id' => $request->session()->getId(),
+                'ip_address' => $ipAddress,
+                'referrer' => $request->headers->get('referer'),
+                'viewed_at' => Carbon::now(),
+                'user_agent' => $request->header('User-Agent'),
+                'country' => $country, // Store the country
+            ]);
+        }
 
         return $next($request);
     }
