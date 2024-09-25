@@ -20,9 +20,9 @@
                 <tbody>
                     @foreach($users as $user)
                         <tr class="text-center">
-                            <td>{{ $user->id }}</td>
-                            <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
+                            <td title="{{ $user->id }}">{{ $user->id }}</td>
+                            <td title="{{ $user->name }}" class="text-wrap">{{ $user->name }}</td>
+                            <td title="{{ $user->email }}" class="text-wrap">{{ $user->email }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -46,10 +46,10 @@
                 <tbody>
                     @foreach($pageViews as $pageView)
                         <tr class="text-center">
-                            <td>{{ $pageView->url }}</td>
-                            <td>{{ $pageView->session_id }}</td>
-                            <td>{{ $pageView->referrer ?? 'N/A' }}</td>
-                            <td>{{ $pageView->ip_address }}</td>
+                            <td title="{{ $pageView->url }}" class="text-wrap">{{ $pageView->url }}</td>
+                            <td title="{{ $pageView->session_id }}" class="text-wrap">{{ $pageView->session_id }}</td>
+                            <td title="{{ $pageView->referrer ?? 'N/A' }}" class="text-wrap">{{ $pageView->referrer ?? 'N/A' }}</td>
+                            <td title="{{ $pageView->ip_address }}" class="text-wrap">{{ $pageView->ip_address }}</td>
                             <td>{{ $pageView->view_count }}</td>
                             <td>{{ \Carbon\Carbon::parse($pageView->last_viewed_at)->format('d/m/Y H:i') }}</td>
                         </tr>
@@ -75,31 +75,48 @@
             display: flex;
             justify-content: center;
         }
+
         .table {
             width: 100%;
             max-width: 1000px;
+            table-layout: fixed; /* Prevents table from expanding based on content */
+            word-wrap: break-word; /* Forces text to wrap in table cells */
         }
+
         .table thead {
             background-color: #16a34a;
             color: #ffffff;
         }
+
         .table tbody tr {
             transition: background-color 0.3s, color 0.3s;
         }
+
         .table tbody tr:hover {
             background-color: #16a34a;
             color: #ffffff;
         }
+
         .table th, .table td {
             vertical-align: middle;
             text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis; /* Adds "..." when text overflows */
+            white-space: nowrap; /* Prevents text from wrapping to a new line */
         }
+
+        .text-wrap {
+            white-space: normal; /* Allows wrapping for columns where text is long */
+            word-wrap: break-word; /* Breaks long words if necessary */
+        }
+
         .page-title {
             font-size: 2rem;
             font-weight: 600;
             color: #333333;
             margin-bottom: 20px;
         }
+
         ul {
             padding-left: 15px;
             text-align: left;
