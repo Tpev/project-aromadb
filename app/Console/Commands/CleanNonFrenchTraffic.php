@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\PageViewLog;
 use App\Services\IpInfoService; // Assuming you're using this service for geolocation
-use DB;
 
 class CleanNonFrenchTraffic extends Command
 {
@@ -24,8 +23,8 @@ class CleanNonFrenchTraffic extends Command
     {
         $this->info('Starting to clean non-France traffic from PageViewLogs...');
 
-        // Process entries in batches to avoid memory exhaustion
-        PageViewLog::whereNull('country')->chunk(100, function ($logs) {
+        // Process all page view logs in batches
+        PageViewLog::chunk(100, function ($logs) {
             foreach ($logs as $log) {
                 // Get the country from the IP address
                 $country = $this->ipInfoService->getCountryByIp($log->ip_address);
@@ -35,8 +34,8 @@ class CleanNonFrenchTraffic extends Command
                     $this->info("Deleting entry with IP {$log->ip_address} (Country: {$country})");
                     $log->delete();
                 } else {
-                    // Optionally, update the country for France entries
-                    $log->update(['country' => 'FR']);
+                    // Log entries from France to confirm they're kept
+                    $this->info("Keeping entry with IP {$log->ip_address} (Country: {$country})");
                 }
             }
         });
