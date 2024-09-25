@@ -122,4 +122,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+
+
+    // Route to the welcome page directly returning the welcome view
+    Route::get('/IntroductionAromatherapie', function () {
+        return view('formation1');
+    })->name('formation1');
+
+
+
+
+
+
+
+
+
 require __DIR__.'/auth.php';

@@ -26,6 +26,9 @@
                     </x-nav-link>                    
 					<x-nav-link :href="route('blog.index')" :active="request()->routeIs('blog.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Articles') }}
+                    </x-nav-link>					
+					<x-nav-link :href="route('formation1')" :active="request()->routeIs('formation1')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Apprendre') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -105,6 +108,9 @@
             </x-responsive-nav-link>            
 			<x-responsive-nav-link :href="route('blog.index')" :active="request()->routeIs('blog.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Articles') }}
+            </x-responsive-nav-link>			
+			<x-responsive-nav-link :href="route('formation1')" :active="request()->routeIs('formation1')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Apprendre') }}
             </x-responsive-nav-link>
         </div>
 
