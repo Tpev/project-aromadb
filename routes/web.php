@@ -60,21 +60,6 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
 
 
 
-
-
-
-
-
-
-
-
-// Route for displaying all blog posts in the index page
-Route::get('/article', [BlogPostController::class, 'index'])->name('blog.index');
-
-// Route for displaying individual blog posts using slug
-Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.show');
-
-
 Route::get('/sitemap', [SitemapController::class, 'index']);
 
 
@@ -95,6 +80,17 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
     Route::get('/huilehvs/{slug}', [HuileHVController::class, 'show'])->name('huilehvs.show');
     Route::get('/recettes/{slug}', [RecetteController::class, 'show'])->name('recettes.show');
     Route::get('/tisanes/{slug}', [TisaneController::class, 'show'])->name('tisanes.show');
+	
+	    Route::get('/IntroductionAromatherapie', function () {
+        return view('formation1');
+    })->name('formation1');
+	
+	 Route::get('/huilehe/proprietes', [HuileHEController::class, 'showhuilehepropriete'])->name('huilehes.showhuilehepropriete');
+	// Route for displaying all blog posts in the index page
+Route::get('/article', [BlogPostController::class, 'index'])->name('blog.index');
+
+// Route for displaying individual blog posts using slug
+Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.show');
 });
 
 
@@ -123,12 +119,6 @@ Route::middleware('auth')->group(function () {
 });
 
 
-
-
-    // Route to the Formation page  
-    Route::get('/IntroductionAromatherapie', function () {
-        return view('formation1');
-    })->name('formation1');
 
 
     // Route to the privacy policy page 

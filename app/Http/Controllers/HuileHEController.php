@@ -53,6 +53,40 @@ class HuileHEController extends Controller
         return view('huilehe.show', compact('huileHE'));
     }
 
+public function showHuileHEPropriete()
+{
+    // Retrieve all HuileHE data
+    $huileHEs = HuileHE::all();
+
+    // Group the huiles by their 'Propriétés', splitting by semicolon and sorting alphabetically
+    $groupedByProperty = collect();
+
+    foreach ($huileHEs as $huileHE) {
+        // Split the Properties field by semicolon and trim each value
+        $properties = explode(';', $huileHE->Properties);
+
+        foreach ($properties as $property) {
+            $property = trim($property); // Trim spaces around each property
+            if ($property !== '') {
+                // If the property doesn't exist yet in the collection, initialize it as an empty array
+                if (!$groupedByProperty->has($property)) {
+                    $groupedByProperty[$property] = collect();
+                }
+                // Add the huileHE to the collection of that property
+                $groupedByProperty[$property]->push($huileHE);
+            }
+        }
+    }
+
+    // Sort the grouped properties alphabetically by their key (property name)
+    $groupedByProperty = $groupedByProperty->sortKeys();
+
+    // Pass the grouped and sorted data to the view
+    return view('huilehe.showhuilehepropriete', compact('groupedByProperty'));
+}
+
+
+
 
     public function edit(HuileHE $huileHE)
     {
