@@ -125,13 +125,16 @@ Route::middleware('auth')->group(function () {
 
 
 
-    // Route to the welcome page directly returning the welcome view
+    // Route to the Formation page  
     Route::get('/IntroductionAromatherapie', function () {
         return view('formation1');
     })->name('formation1');
 
 
-
+    // Route to the privacy policy page 
+    Route::get('/privacy-policy', function () {
+        return view('privacypolicy');
+    })->name('privacypolicy');
 
 
 
