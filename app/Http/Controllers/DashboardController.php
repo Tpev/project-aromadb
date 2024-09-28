@@ -25,7 +25,7 @@ class DashboardController extends Controller
             ->where('appointment_date', '>=', Carbon::now())
             ->count();
         $totalInvoices = Invoice::where('user_id', $userId)->count();
-        $pendingInvoices = Invoice::where('user_id', $userId)->where('status', 'pending')->count();
+        $pendingInvoices = Invoice::where('user_id', $userId)->where('status', 'En attente')->count();
         $monthlyRevenue = Invoice::where('user_id', $userId)
             ->whereMonth('invoice_date', Carbon::now()->month)
             ->sum('total_amount'); // Utilisation de 'total_amount'
