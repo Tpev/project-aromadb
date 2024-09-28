@@ -106,9 +106,9 @@
             <div class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold text-gray-700">{{ __('Prochains Rendez-vous') }}</h3>
-                    <a href="{{ route('appointments.index') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    <a href="{{ route('appointments.index') }}" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
                         {{ __('Voir tous') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
@@ -130,7 +130,7 @@
                                         {{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap">
-                                        {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}
+                                        {{ \Carbon\Carbon::parse($appointment->appointment_date)->locale('fr_FR')->isoFormat('DD/MM/YYYY HH:mm') }}
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap">
                                         {{ $appointment->duration }}
@@ -160,9 +160,9 @@
             <div class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold text-gray-700">{{ __('Dernières Factures') }}</h3>
-                    <a href="{{ route('invoices.index') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    <a href="{{ route('invoices.index') }}" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
                         {{ __('Voir tous') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
@@ -195,7 +195,7 @@
                                         </span>
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap">
-                                        {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}
+                                        {{ \Carbon\Carbon::parse($invoice->invoice_date)->locale('fr_FR')->isoFormat('DD/MM/YYYY') }}
                                     </td>
                                 </tr>
                             @empty
@@ -217,104 +217,109 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // Rendez-vous par Mois
-                var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
-                var appointmentsChart = new Chart(ctxAppointments, {
-                    type: 'bar',
-                    data: {
-                        labels: @json(array_map(function($month) {
-                            return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
-                        }, array_keys($appointmentsPerMonth))),
-                        datasets: [{
-                            label: '{{ __("Nombre de Rendez-vous") }}',
-                            data: @json(array_values($appointmentsPerMonth)),
-                            backgroundColor: 'rgba(100, 122, 11, 0.6)', // Couleur de votre marque
-                            borderColor: 'rgba(100, 122, 11, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                precision:0,
-                                ticks: {
-                                    stepSize: 1
-                                }
-                            }
+                // Vérifiez que les données existent avant d'initialiser les graphiques
+                @if(!empty($appointmentsPerMonth) && !empty($monthlyRevenueData))
+                    // Rendez-vous par Mois
+                    var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
+                    var appointmentsChart = new Chart(ctxAppointments, {
+                        type: 'bar',
+                        data: {
+                            labels: @json(array_map(function($month) {
+                                return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
+                            }, array_keys($appointmentsPerMonth))),
+                            datasets: [{
+                                label: '{{ __("Nombre de Rendez-vous") }}',
+                                data: @json(array_values($appointmentsPerMonth)),
+                                backgroundColor: 'rgba(100, 122, 11, 0.6)', // Couleur de votre marque
+                                borderColor: 'rgba(100, 122, 11, 1)',
+                                borderWidth: 1
+                            }]
                         },
-                        plugins: {
-                            legend: {
-                                display: false
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    precision:0,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
                             },
-                            tooltip: {
-                                backgroundColor: 'rgba(0,0,0,0.7)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.parsed.y + ' {{ __("Rendez-vous") }}';
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.parsed.y + ' {{ __("Rendez-vous") }}';
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
 
-                // Revenus Mensuels
-                var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-                var revenueChart = new Chart(ctxRevenue, {
-                    type: 'line',
-                    data: {
-                        labels: @json(array_map(function($month) {
-                            return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
-                        }, array_keys($monthlyRevenueData))),
-                        datasets: [{
-                            label: '{{ __("Revenus (€)") }}',
-                            data: @json(array_values($monthlyRevenueData)),
-                            backgroundColor: 'rgba(133, 79, 56, 0.2)', // Couleur de votre marque
-                            borderColor: 'rgba(133, 79, 56, 1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: 'rgba(133, 79, 56, 1)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return value + '€';
+                    // Revenus Mensuels
+                    var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+                    var revenueChart = new Chart(ctxRevenue, {
+                        type: 'line',
+                        data: {
+                            labels: @json(array_map(function($month) {
+                                return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
+                            }, array_keys($monthlyRevenueData))),
+                            datasets: [{
+                                label: '{{ __("Revenus (€)") }}',
+                                data: @json(array_values($monthlyRevenueData)),
+                                backgroundColor: 'rgba(133, 79, 56, 0.2)', // Couleur de votre marque
+                                borderColor: 'rgba(133, 79, 56, 1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value + '€';
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
                             },
-                            tooltip: {
-                                backgroundColor: 'rgba(0,0,0,0.7)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.parsed.y + ' €';
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0,0,0,0.7)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.parsed.y + ' €';
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                @else
+                    console.warn('Les données pour les graphiques ne sont pas disponibles.');
+                @endif
             });
         </script>
     @endpush
