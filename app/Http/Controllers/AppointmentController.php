@@ -6,6 +6,14 @@ use App\Models\Appointment;
 use App\Models\ClientProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Product;
+use App\Models\Availability;
+use Carbon\Carbon;
+use App\Http\Controllers\AvailabilityController;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
+
 
 class AppointmentController extends Controller
 {
@@ -19,33 +27,54 @@ class AppointmentController extends Controller
         return view('appointments.index', compact('appointments'));
     }
 
-    public function create()
-    {
-        // Get client profiles for the logged-in therapist
-        $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
+public function create()
+{
+    $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
+    $products = Product::where('user_id', Auth::id())->get();
 
-        return view('appointments.create', compact('clientProfiles'));
+    return view('appointments.create', compact('clientProfiles', 'products'));
+}
+
+
+public function store(Request $request)
+{
+    // Validate separately
+    $request->validate([
+        'client_profile_id' => 'required|exists:client_profiles,id',
+        'appointment_date' => 'required|date', // Validating date
+        'appointment_time' => 'required',     // Validating time separately
+        'status' => 'required|string',
+        'notes' => 'nullable|string',
+        'type' => 'nullable|string',
+        'duration' => 'required|integer|min:1',
+        'product_id' => 'nullable|exists:products,id',
+    ]);
+
+    // Combine date and time into a single datetime
+    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
+
+    // Check availability before creating the appointment
+    if (!$this->isAvailable($appointmentDateTime, $request->duration)) {
+        return redirect()->back()->withErrors(['appointment_date' => 'The appointment time is outside your availability or conflicts with another appointment.'])->withInput();
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'client_profile_id' => 'required|exists:client_profiles,id',
-            'appointment_date' => 'required|date',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
-        ]);
+    // Store the appointment
+    Appointment::create([
+        'client_profile_id' => $request->client_profile_id,
+        'user_id' => Auth::id(),
+        'appointment_date' => $appointmentDateTime, // Save the combined date and time
+        'status' => $request->status,
+        'notes' => $request->notes,
+        'type' => $request->type,
+        'duration' => $request->duration,
+        'product_id' => $request->product_id,
+    ]);
 
-        Appointment::create([
-            'client_profile_id' => $request->client_profile_id,
-            'user_id' => Auth::id(),
-            'appointment_date' => $request->appointment_date,
-            'status' => $request->status,
-            'notes' => $request->notes,
-        ]);
+    return redirect()->route('appointments.index')->with('success', 'Appointment created successfully.');
+}
 
-        return redirect()->route('appointments.index')->with('success', 'Appointment created successfully.');
-    }
+
+
 
     public function show(Appointment $appointment)
     {
@@ -55,34 +84,108 @@ class AppointmentController extends Controller
         return view('appointments.show', compact('appointment'));
     }
 
-    public function edit(Appointment $appointment)
-    {
-        // Ensure the appointment belongs to the authenticated user
-        $this->authorize('update', $appointment);
+public function edit(Appointment $appointment)
+{
+    // Ensure the appointment belongs to the authenticated user
+    $this->authorize('update', $appointment);
 
-        // Get client profiles for the logged-in therapist
-        $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
+    // Get client profiles for the logged-in therapist
+    $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
 
-        return view('appointments.edit', compact('appointment', 'clientProfiles'));
+    // Get available products
+    $products = Product::where('user_id', Auth::id())->get();
+
+    // Get the duration from the appointment
+    $duration = $appointment->duration;
+
+    // Get available slots for the current appointment date
+    $date = Carbon::parse($appointment->appointment_date)->format('Y-m-d');
+    $availableSlots = $this->getAvailableSlotsForEdit($date, $duration);
+
+    return view('appointments.edit', compact('appointment', 'clientProfiles', 'products', 'availableSlots'));
+}
+
+
+private function getAvailableSlotsForEdit($date, $duration)
+{
+    $dayOfWeek = Carbon::createFromFormat('Y-m-d', $date)->dayOfWeekIso - 1; // Monday = 0, Sunday = 6
+    $availabilities = Availability::where('user_id', Auth::id())->where('day_of_week', $dayOfWeek)->get();
+
+    if ($availabilities->isEmpty()) {
+        return [];
     }
 
-    public function update(Request $request, Appointment $appointment)
-    {
-        // Ensure the appointment belongs to the authenticated user
-        $this->authorize('update', $appointment);
+    $existingAppointments = Appointment::where('user_id', Auth::id())->whereDate('appointment_date', $date)->get();
+    $slots = [];
 
-        $request->validate([
-            'client_profile_id' => 'required|exists:client_profiles,id',
-            'appointment_date' => 'required|date',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
-        ]);
+    foreach ($availabilities as $availability) {
+        $startTime = Carbon::createFromFormat('H:i:s', $availability->start_time)->setDate(Carbon::now()->year, Carbon::now()->month, Carbon::now()->day);
+        $endTime = Carbon::createFromFormat('H:i:s', $availability->end_time)->setDate(Carbon::now()->year, Carbon::now()->month, Carbon::now()->day);
 
-        // Update the appointment
-        $appointment->update($request->all());
+        while ($startTime->addMinutes($duration)->lessThanOrEqualTo($endTime)) {
+            $slotStart = $startTime->copy()->subMinutes($duration);
+            $slotEnd = $startTime->copy();
 
-        return redirect()->route('appointments.index')->with('success', 'Appointment updated successfully.');
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            if (!$isBooked) {
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end' => $slotEnd->format('H:i'),
+                ];
+            }
+        }
     }
+
+    return $slots;
+}
+
+
+public function update(Request $request, Appointment $appointment)
+{
+    $this->authorize('update', $appointment);
+
+    // Validate the incoming request
+    $request->validate([
+        'client_profile_id' => 'required|exists:client_profiles,id',
+        'appointment_date' => 'required|date', // Validating date
+        'appointment_time' => 'required',     // Validating time separately
+        'status' => 'required|string',
+        'notes' => 'nullable|string',
+        'type' => 'nullable|string',
+        'duration' => 'required|integer|min:1',
+        'product_id' => 'nullable|exists:products,id',
+    ]);
+
+    // Combine date and time into a single datetime
+    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
+
+    // Check availability before updating the appointment
+    if (!$this->isAvailable($appointmentDateTime, $request->duration, $appointment->id)) {
+        return redirect()->back()->withErrors([
+            'appointment_date' => 'The appointment time is outside your availability or conflicts with another appointment.'
+        ])->withInput();
+    }
+
+    // Update the appointment with the validated data
+    $appointment->update([
+        'client_profile_id' => $request->client_profile_id,
+        'appointment_date' => $appointmentDateTime, // Save the combined date and time
+        'status' => $request->status,
+        'notes' => $request->notes,
+        'type' => $request->type,
+        'duration' => $request->duration,
+        'product_id' => $request->product_id,
+    ]);
+
+    return redirect()->route('appointments.index')->with('success', 'Appointment updated successfully.');
+}
+
 
     public function destroy(Appointment $appointment)
     {
@@ -94,4 +197,112 @@ class AppointmentController extends Controller
 
         return redirect()->route('appointments.index')->with('success', 'Appointment deleted successfully.');
     }
+private function isAvailable($appointmentDateTime, $duration, $appointmentId = null)
+{
+    $appointmentDateTime = Carbon::parse($appointmentDateTime);
+    
+    // Adjust dayOfWeek to treat Monday as day 0
+    $dayOfWeek = ($appointmentDateTime->dayOfWeekIso) - 1;
+
+    $appointmentTime = $appointmentDateTime->format('H:i:s');
+    $appointmentEndTime = $appointmentDateTime->copy()->addMinutes((int) $duration)->format('H:i:s');
+
+    // Get therapist's availabilities for the day
+    $availabilities = Availability::where('user_id', Auth::id())
+        ->where('day_of_week', $dayOfWeek)
+        ->get();
+
+    $isWithinAvailability = false;
+
+    foreach ($availabilities as $availability) {
+        if ($appointmentTime >= $availability->start_time && $appointmentEndTime <= $availability->end_time) {
+            $isWithinAvailability = true;
+            break;
+        }
+    }
+
+    if (!$isWithinAvailability) {
+        return false;
+    }
+
+    // Check for conflicting appointments
+    $conflictingAppointments = Appointment::where('user_id', Auth::id())
+        ->where('id', '!=', $appointmentId)
+        ->where(function ($query) use ($appointmentDateTime, $appointmentEndTime, $duration) {
+            $query->whereBetween('appointment_date', [$appointmentDateTime, $appointmentEndTime])
+                // For SQLite, use DATETIME() to add minutes instead of DATE_ADD()
+                ->orWhereBetween(DB::raw("DATETIME(appointment_date, '+' || $duration || ' minutes')"), [$appointmentDateTime, $appointmentEndTime]);
+        })
+        ->exists();
+
+    if ($conflictingAppointments) {
+        return false;
+    }
+
+    return true;
+}
+
+
+
+
+
+public function getAvailableSlots(Request $request)
+{
+    Log::info('Fetching available slots for date: ' . $request->date . ', duration: ' . $request->duration);
+
+    $request->validate([
+        'date' => 'required|date_format:Y-m-d',
+        'duration' => 'required|integer|min:1',
+    ]);
+
+    $date = Carbon::createFromFormat('Y-m-d', $request->date);
+    $dayOfWeek = ($date->dayOfWeekIso) - 1; // Monday = 0, Sunday = 6
+    $duration = (int) $request->duration;
+
+    // Fetch user's availabilities for the selected day
+    $availabilities = Availability::where('user_id', Auth::id())
+        ->where('day_of_week', $dayOfWeek)
+        ->get();
+
+    if ($availabilities->isEmpty()) {
+        return response()->json(['slots' => []]);
+    }
+
+    // Fetch existing appointments on the selected date
+    $existingAppointments = Appointment::where('user_id', Auth::id())
+        ->whereDate('appointment_date', $date->toDateString())
+        ->get();
+
+    $slots = [];
+
+    foreach ($availabilities as $availability) {
+        $startTime = Carbon::createFromFormat('H:i:s', $availability->start_time)->setDate($date->year, $date->month, $date->day);
+        $endTime = Carbon::createFromFormat('H:i:s', $availability->end_time)->setDate($date->year, $date->month, $date->day);
+
+        while ($startTime->addMinutes($duration)->lessThanOrEqualTo($endTime)) {
+            $slotStart = $startTime->copy()->subMinutes($duration);
+            $slotEnd = $startTime->copy();
+
+            // Check for overlapping appointments
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            if (!$isBooked) {
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end' => $slotEnd->format('H:i'),
+                ];
+            }
+        }
+    }
+
+    return response()->json(['slots' => $slots]);
+}
+
+
+
 }

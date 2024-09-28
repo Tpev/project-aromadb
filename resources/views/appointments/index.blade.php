@@ -12,7 +12,7 @@
         <!-- Search Bar and Create Button -->
         <div class="mb-4 d-flex justify-content-between">
             <input type="text" id="search" class="form-control" placeholder="Recherche par client..." onkeyup="filterTable()" style="border-color: #854f38; max-width: 300px;">
-
+            
             <!-- Create Appointment Button -->
             <a href="{{ route('appointments.create') }}" class="btn-primary" style="white-space: nowrap;">
                 <i class="fas fa-plus mr-2"></i> Créer un rendez-vous
@@ -26,21 +26,33 @@
                     <tr>
                         <th onclick="sortTable(0)">Nom du Client <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(1)">Date du Rendez-vous <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable(2)">Statut <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(2)">Durée <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(3)">Produit <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(4)">Statut <i class="fas fa-sort"></i></th>
+                        <th>Actions</th> <!-- New action column -->
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($appointments as $appointment)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('appointments.show', $appointment->id) }}');">
+                        <tr class="table-row">
                             <td>{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</td>
                             <td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</td>
+                            <td>{{ $appointment->duration }} {{ __('min') }}</td>
+                            <td>{{ $appointment->product->name ?? __('Aucun produit') }}</td>
                             <td>{{ ucfirst($appointment->status) }}</td>
+                            <td>
+                                <!-- Generate Invoice Button -->
+                                <a href="{{ route('invoices.create', ['client_id' => $appointment->client_profile_id, 'product_id' => $appointment->product_id]) }}" class="btn btn-success">
+                                    <i class="fas fa-file-invoice-dollar"></i> Générer une facture
+                                </a>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
     </div>
+
 
     <!-- Custom Styles -->
     <style>

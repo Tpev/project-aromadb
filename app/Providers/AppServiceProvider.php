@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+		 Carbon::setLocale('fr');
 		  \Illuminate\Support\Facades\Gate::policy(ClientProfile::class, ClientProfilePolicy::class);
         // Listen for login event and update login count and last login time
         Event::listen(Login::class, function ($event) {

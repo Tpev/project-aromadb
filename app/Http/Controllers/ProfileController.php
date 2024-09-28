@@ -57,4 +57,33 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+	
+	public function editCompanyInfo()
+{
+    if (!auth()->user()->isTherapist()) {
+        abort(403);
+    }
+
+    return view('profile.edit-company-info');
+}
+
+public function updateCompanyInfo(Request $request)
+{
+    if (!auth()->user()->isTherapist()) {
+        abort(403);
+    }
+
+    $validatedData = $request->validate([
+        'company_name' => 'nullable|string|max:255',
+        'company_address' => 'nullable|string',
+        'company_email' => 'nullable|email',
+        'company_phone' => 'nullable|string|max:20',
+        'legal_mentions' => 'nullable|string',
+    ]);
+
+    auth()->user()->update($validatedData);
+
+    return redirect()->route('profile.editCompanyInfo')->with('success', 'Informations mises à jour avec succès.');
+}
+
 }

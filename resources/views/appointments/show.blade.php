@@ -7,48 +7,69 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Rendez-vous avec ') }}{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</h1>
+            <h1 class="details-title">
+                <i class="fas fa-calendar-alt"></i> 
+                {{ __('Rendez-vous avec ') }}{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
+            </h1>
 
-            <div class="row mt-4">
-                <!-- Client Name -->
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label">{{ __('Nom du Client') }}</label>
+            <!-- Client Information Section -->
+            <div class="info-box">
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> {{ __('Informations du Client') }}
+                </h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="details-label">{{ __('Nom') }}</label>
                         <p class="details-value">{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</p>
                     </div>
-                </div>
-
-                <!-- Appointment Date -->
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label">{{ __('Date et Heure du Rendez-vous') }}</label>
+                    <div class="col-md-6">
+                        <label class="details-label">{{ __('Date et Heure') }}</label>
                         <p class="details-value">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <!-- Status -->
-                <div class="col-md-6">
-                    <div class="details-box">
+            <!-- Appointment Details Section -->
+            <div class="info-box mt-4">
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i> {{ __('Détails du Rendez-vous') }}
+                </h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="details-label">{{ __('Durée') }}</label>
+                        <p class="details-value">{{ $appointment->duration }} {{ __('minutes') }}</p>
+                    </div>
+                    <div class="col-md-4">
                         <label class="details-label">{{ __('Statut') }}</label>
                         <p class="details-value">{{ ucfirst($appointment->status) }}</p>
                     </div>
+                    <div class="col-md-4">
+                        <label class="details-label">{{ __('Type') }}</label>
+                        <p class="details-value">{{ $appointment->type ?? __('Non spécifié') }}</p>
+                    </div>
                 </div>
 
-                <!-- Notes -->
-                <div class="col-md-6">
-                    <div class="details-box">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="details-label">{{ __('Produit') }}</label>
+                        <p class="details-value">{{ $appointment->product->name ?? __('Aucun produit') }}</p>
+                    </div>
+                    <div class="col-md-8">
                         <label class="details-label">{{ __('Notes') }}</label>
-                        <p class="details-value">{{ $appointment->notes ?? 'Aucune note' }}</p>
+                        <p class="details-value">{{ $appointment->notes ?? __('Aucune note') }}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-12 text-center">
-                    <a href="{{ route('appointments.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
-                    <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary">{{ __('Modifier le Rendez-vous') }}</a>
+            <!-- Action Buttons -->
+            <div class="row mt-4 text-center">
+                <div class="col-md-12">
+                    <a href="{{ route('appointments.index') }}" class="btn-primary mx-2">
+                        <i class="fas fa-arrow-left"></i> {{ __('Retour à la liste') }}
+                    </a>
+                    <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary mx-2">
+                        <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
+                    </a>
                 </div>
             </div>
         </div>
@@ -57,50 +78,63 @@
     <!-- Custom Styles -->
     <style>
         .container {
-            max-width: 800px;
+            max-width: 900px;
         }
 
         .details-container {
             background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .details-title {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: bold;
             color: #647a0b;
-            margin-bottom: 20px;
             text-align: center;
+            margin-bottom: 20px;
         }
 
-        .details-box {
-            margin-bottom: 20px;
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #647a0b;
+            margin-bottom: 15px;
+        }
+
+        .info-box {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .details-label {
-            font-weight: bold;
+            font-weight: 600;
             color: #647a0b;
             display: block;
             margin-bottom: 5px;
         }
 
         .details-value {
-            color: #333333;
             font-size: 1rem;
+            color: #333;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
         }
 
         .btn-primary {
             background-color: #647a0b;
             color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
         }
 
         .btn-primary:hover {
@@ -110,16 +144,19 @@
         .btn-secondary {
             background-color: transparent;
             color: #854f38;
-            padding: 10px 20px;
             border: 1px solid #854f38;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
         }
 
         .btn-secondary:hover {
             background-color: #854f38;
             color: #fff;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 768px) {
+            .details-label, .details-value, .section-title {
+                text-align: center;
+            }
         }
     </style>
 </x-app-layout>

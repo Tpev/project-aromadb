@@ -18,14 +18,20 @@ class User extends Authenticatable
      */
     use HasFactory, Notifiable;
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'login_count',
-        'last_login_at', // Add this if not already present
-        'is_therapist', // Add this if not already present
-    ];
+	protected $fillable = [
+		'name',
+		'email',
+		'password',
+		'login_count',
+		'last_login_at',
+		'is_therapist',
+		'company_name',
+		'company_address',
+		'company_email',
+		'company_phone',
+		'legal_mentions',
+	];
+
 
     // Ensure last_login_at is treated as a date
     protected $dates = ['last_login_at'];
@@ -75,7 +81,18 @@ public function favorites()
     }
 
 
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 
+    /**
+     * Obtenir les factures créées par l'utilisateur.
+     */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 
 
 

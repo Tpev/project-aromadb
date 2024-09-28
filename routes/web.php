@@ -14,6 +14,102 @@ use App\Http\Controllers\BlogPostController;
 use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\SessionNoteController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AvailabilityController;
+
+Route::middleware(['auth'])->group(function () {
+
+
+    Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
+    Route::put('/profile/company-info', [ProfileController::class, 'updateCompanyInfo'])->name('profile.updateCompanyInfo');
+});
+
+
+Route::middleware(['auth'])->group(function () {
+    // Liste des disponibilités de l'utilisateur authentifié
+    Route::get('/availabilities', [AvailabilityController::class, 'index'])->name('availabilities.index');
+
+    // Formulaire pour créer une nouvelle disponibilité
+    Route::get('/availabilities/create', [AvailabilityController::class, 'create'])->name('availabilities.create');
+
+    // Stocker une nouvelle disponibilité
+    Route::post('/availabilities', [AvailabilityController::class, 'store'])->name('availabilities.store');
+
+    // Formulaire pour éditer une disponibilité existante
+    Route::get('/availabilities/{availability}/edit', [AvailabilityController::class, 'edit'])
+        ->name('availabilities.edit')
+        ->middleware('can:update,availability');
+
+    // Mettre à jour une disponibilité existante
+    Route::put('/availabilities/{availability}', [AvailabilityController::class, 'update'])
+        ->name('availabilities.update')
+        ->middleware('can:update,availability');
+
+    // Supprimer une disponibilité
+    Route::delete('/availabilities/{availability}', [AvailabilityController::class, 'destroy'])
+        ->name('availabilities.destroy')
+        ->middleware('can:delete,availability');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Liste des produits de l'utilisateur authentifié
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+
+    // Formulaire pour créer un nouveau produit
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+
+    // Stocker un nouveau produit
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+
+    // Afficher un produit spécifique
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show')->middleware('can:view,product');
+
+    // Formulaire pour éditer un produit existant
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit')->middleware('can:update,product');
+
+    // Mettre à jour un produit existant
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update')->middleware('can:update,product');
+
+    // Supprimer un produit
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('can:delete,product');
+});
+
+
+
+// Invoice Routes
+
+// Invoice Routes
+
+
+
+Route::middleware(['auth', 'can:viewAny,App\Models\Invoice'])->group(function () {
+    // Liste de toutes les factures de l'utilisateur connecté
+   Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'generatePDF'])->name('invoices.pdf')->middleware('can:view,invoice');
+
+	Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+
+// Route to list invoices for a specific client profile
+Route::get('/client_profiles/{clientProfile}/invoices', [InvoiceController::class, 'clientInvoices'])->name('invoices.client');
+
+Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+
+    // Afficher une facture spécifique
+    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show')->middleware('can:view,invoice');
+    
+    // Formulaire pour éditer une facture existante
+    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit')->middleware('can:update,invoice');
+    
+    // Mettre à jour une facture existante
+    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update')->middleware('can:update,invoice');
+    
+    // Supprimer une facture
+    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy')->middleware('can:delete,invoice');
+
+    Route::put('/invoices/{invoice}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
+
+});
 
 
 // Session Notes Routes
@@ -46,13 +142,17 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
 
 
 Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
-    Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
+   Route::get('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
+ 
+ Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/create', [App\Http\Controllers\AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/appointments', [App\Http\Controllers\AppointmentController::class, 'store'])->name('appointments.store');
     Route::get('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'show'])->name('appointments.show');
     Route::get('/appointments/{appointment}/edit', [App\Http\Controllers\AppointmentController::class, 'edit'])->name('appointments.edit');
     Route::put('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'update'])->name('appointments.update');
     Route::delete('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    
+ 
 });
 
 

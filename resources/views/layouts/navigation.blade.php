@@ -12,9 +12,24 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Huiles Essentielles') }}
-                    </x-nav-link>
+				<div class="relative group flex items-center">
+					<!-- Navigation link for Huiles Essentielles -->
+					<x-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-[#647a0b] hover:text-[#854f38]">
+						{{ __('Huiles Essentielles') }}
+					</x-nav-link>
+
+					<!-- Dropdown Menu (hidden by default) -->
+					<div class="absolute left-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+						<a href="{{ route('huilehes.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+							{{ __('Par nom') }}
+						</a>
+						<a href="{{ route('huilehes.showhuilehepropriete') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+							{{ __('Par propriétés') }}
+						</a>
+					</div>
+				</div>
+
+
                     <x-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Huiles Végétales') }}
                     </x-nav-link>
@@ -95,7 +110,10 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('huilehes.index')" :active="request()->routeIs('huilehes.index')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Huiles Essentielles') }}
+                {{ __('Huiles Essentielles - Par nom') }}
+            </x-responsive-nav-link>            
+			<x-responsive-nav-link :href="route('huilehes.showhuilehepropriete')" :active="request()->routeIs('huilehes.showhuilehepropriete')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Huiles Essentielles - Par propriétés') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('huilehvs.index')" :active="request()->routeIs('huilehvs.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Huiles Végétales') }}

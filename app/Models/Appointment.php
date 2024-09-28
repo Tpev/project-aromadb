@@ -9,7 +9,22 @@ class Appointment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['client_profile_id', 'user_id', 'appointment_date', 'status', 'notes'];
+protected $fillable = [
+    'client_profile_id',
+    'user_id',
+    'appointment_date',
+    'status',
+    'notes',
+    'type',
+    'duration',
+    'product_id',
+];
+
+// Add relationship to Product
+public function product()
+{
+    return $this->belongsTo(Product::class);
+}
 
     /**
      * The user (therapist) that created the appointment.
@@ -26,4 +41,9 @@ class Appointment extends Model
     {
         return $this->belongsTo(ClientProfile::class);
     }
+	// In Appointment.php model
+public function invoice()
+{
+    return $this->hasOne(Invoice::class);
+}
 }

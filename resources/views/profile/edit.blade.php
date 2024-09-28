@@ -1,30 +1,109 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Profile') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
+    <div class="container mt-5">
+        <div class="details-container mx-auto p-4">
+
+            <!-- Section : Mettre à jour les informations du profil -->
+            <div class="section">
+                <h1 class="details-title">{{ __('Mettre à jour les informations du profil') }}</h1>
+                <div class="section-content">
                     @include('profile.partials.update-profile-information-form')
                 </div>
             </div>
+            @if(auth()->user()->isTherapist())
+                <!-- Section : Informations de l'Entreprise -->
+                <div class="section">
+                    <h1 class="details-title">{{ __('Informations de l\'Entreprise') }}</h1>
+                    <div class="section-content text-center">
+                        <p>{{ __('Vous pouvez modifier les informations de votre entreprise ci-dessous.') }}</p>
+                        <a href="{{ route('profile.editCompanyInfo') }}" class="btn-primary mt-4">{{ __('Modifier les Informations de l\'Entreprise') }}</a>
+                    </div>
+                </div>
+            @endif
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
+
+
+            <!-- Section : Mettre à jour le mot de passe -->
+            <div class="section">
+                <h1 class="details-title">{{ __('Mettre à jour le mot de passe') }}</h1>
+                <div class="section-content">
                     @include('profile.partials.update-password-form')
                 </div>
             </div>
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
+            <!-- Section : Supprimer le compte -->
+            <div class="section">
+                <h1 class="details-title">{{ __('Supprimer le compte') }}</h1>
+                <div class="section-content">
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
+
+
+
         </div>
     </div>
 
+    <!-- Styles personnalisés -->
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .details-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .details-title {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #647a0b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .section-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary {
+            background-color: #647a0b;
+            color: #fff;
+            padding: 10px 30px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #854f38;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
 </x-app-layout>
