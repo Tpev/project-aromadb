@@ -35,7 +35,7 @@ jobs:
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_08_103726_create_tisanes_table.php
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_18_151847_create_blog_posts_table.php
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_18_151847_create_blog_posts_table.php
-            sudo php artisan migrate:refresh --path=/database/migrations/2024_09_11_124133_add_is_admin_to_users_table.php
+           
             sudo php artisan db:seed --class=RecetteSeeder
             sudo php artisan db:seed --class=HuileHESeeder
             sudo php artisan db:seed --class=HuileHVSeeder
