@@ -5,25 +5,39 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="">
+                    <a href="{{ route('dashboard') }}"> <!-- Assurez-vous que cette route existe ou remplacez-la par la route appropriée -->
                         <x-application-logo class="block h-12 w-auto" style="color: #647a0b;" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                    <!-- Clients -->
+                    <x-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.*')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Clients') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Appointments') }}
+                    
+                    <!-- Rendez-vous -->
+                    <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Rendez-vous') }}
                     </x-nav-link>
-                    <x-nav-link >
-                        {{ __('Session Notes') }}
+                    
+                    <!-- Produits -->
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Produits') }}
                     </x-nav-link>
-                    <x-nav-link >
-                        {{ __('Invoices') }}
+                    
+                    <!-- Disponibilités -->
+                    <x-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Disponibilités') }}
                     </x-nav-link>
+                    
+                    <!-- Factures -->
+                    <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Factures') }}
+                    </x-nav-link>
+                    
+
                 </div>
             </div>
 
@@ -42,24 +56,33 @@
                     </x-slot>
 
                     <x-slot name="content">
+                        <!-- Profil -->
                         <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
-                            {{ __('Profile') }}
+                            {{ __('Profil') }}
+                        </x-dropdown-link>
+                        
+                        <!-- Informations de l'entreprise -->
+                        <x-dropdown-link :href="route('profile.editCompanyInfo')" class="text-[#647a0b] hover:text-[#854f38]">
+                            {{ __('Informations de l\'entreprise') }}
                         </x-dropdown-link>
 
-                        <!-- Authentication -->
+                        <!-- Séparateur -->
+                        <div class="border-t border-gray-100"></div>
+
+                        <!-- Déconnexion -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
                                 onclick="event.preventDefault();
                                             this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                                {{ __('Déconnexion') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
                 </x-dropdown>
             </div>
 
-            <!-- Hamburger -->
+            <!-- Hamburger Menu (Responsive) -->
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -74,18 +97,33 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.index')" class="text-[#647a0b] hover:text-[#854f38]">
+            <!-- Clients -->
+            <x-responsive-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Clients') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.index')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Appointments') }}
+            
+            <!-- Rendez-vous -->
+            <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Rendez-vous') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link>
-                {{ __('Session Notes') }}
+            
+            <!-- Produits -->
+            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Produits') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link>
-                {{ __('Invoices') }}
+            
+            <!-- Disponibilités -->
+            <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Disponibilités') }}
             </x-responsive-nav-link>
+            
+            <!-- Factures -->
+            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Factures') }}
+            </x-responsive-nav-link>
+            
+            <!-- Notes de Session -->
+
         </div>
 
         <!-- Responsive Settings Options -->
@@ -96,16 +134,23 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                <!-- Profil -->
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
-                    {{ __('Profile') }}
+                    {{ __('Profil') }}
                 </x-responsive-nav-link>
 
+                <!-- Informations de l'entreprise -->
+                <x-responsive-nav-link :href="route('profile.editCompanyInfo')" class="text-[#647a0b] hover:text-[#854f38]">
+                    {{ __('Informations de l\'entreprise') }}
+                </x-responsive-nav-link>
+
+                <!-- Déconnexion -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
                         onclick="event.preventDefault();
                                     this.closest('form').submit();">
-                        {{ __('Log Out') }}
+                        {{ __('Déconnexion') }}
                     </x-responsive-nav-link>
                 </form>
             </div>

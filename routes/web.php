@@ -17,12 +17,19 @@ use App\Http\Controllers\SessionNoteController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\DashboardController;
 
 Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
     Route::put('/profile/company-info', [ProfileController::class, 'updateCompanyInfo'])->name('profile.updateCompanyInfo');
+});
+Route::middleware(['auth'])->group(function () {
+
+
+    Route::get('/dashboard-pro', [DashboardController::class, 'index'])->name('dashboard-pro');
+   
 });
 
 
