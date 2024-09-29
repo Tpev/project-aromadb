@@ -25,7 +25,7 @@ jobs:
           EOF
       - name: Update specific tables for data
         run: |
-           ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
+           ssh -o StrictHostKeyChecking=no ubuntu@16.171.161.214 << 'EOF'
             sudo mysql -u root yourdatabase -e "DROP TABLE IF EXISTS recettes, huile_hes, huile_hvs, tisanes;"
             cd /var/www/project-aromadb
             sudo php artisan migrate
