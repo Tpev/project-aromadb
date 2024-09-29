@@ -63,6 +63,32 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+				
+<div class="mb-4">
+    <label class="flex items-center">
+        <input type="checkbox" name="share_address_publicly" class="form-checkbox h-5 w-5 text-brand-green" 
+        {{ old('share_address_publicly', $user->share_address_publicly) ? 'checked' : '' }}>
+        <span class="ml-2 text-gray-700">{{ __('Partager l\'adresse publiquement') }}</span>
+    </label>
+</div>
+
+<div class="mb-4">
+    <label class="flex items-center">
+        <input type="checkbox" name="share_phone_publicly" class="form-checkbox h-5 w-5 text-brand-green" 
+        {{ old('share_phone_publicly', $user->share_phone_publicly) ? 'checked' : '' }}>
+        <span class="ml-2 text-gray-700">{{ __('Partager le téléphone publiquement') }}</span>
+    </label>
+</div>
+
+<div class="mb-4">
+    <label class="flex items-center">
+        <input type="checkbox" name="share_email_publicly" class="form-checkbox h-5 w-5 text-brand-green" 
+        {{ old('share_email_publicly', $user->share_email_publicly) ? 'checked' : '' }}>
+        <span class="ml-2 text-gray-700">{{ __('Partager l\'email publiquement') }}</span>
+    </label>
+</div>
+
+
 
                 <button type="submit" class="btn-primary mt-4">{{ __('Enregistrer les Modifications') }}</button>
                 <a href="{{ route('profile.edit') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>

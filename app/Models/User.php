@@ -2,98 +2,108 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Favorite;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     use HasFactory, Notifiable;
 
-	protected $fillable = [
-		'name',
-		'email',
-		'password',
-		'login_count',
-		'last_login_at',
-		'is_therapist',
-		'company_name',
-		'company_address',
-		'company_email',
-		'company_phone',
-		'legal_mentions',
-	];
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'login_count',
+        'last_login_at',
+        'is_therapist',
+        'company_name',
+        'company_address',
+        'company_email',
+        'company_phone',
+        'legal_mentions',
+        'slug',
+		'share_address_publicly',
+        'share_phone_publicly',
+        'share_email_publicly',
+    ];
 
-
-    // Ensure last_login_at is treated as a date
     protected $dates = ['last_login_at'];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    // Relationships
+
+    public function favorites()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(Favorite::class);
     }
-
-
-
-
-public function favorites()
-{
-    return $this->hasMany(Favorite::class);
-}
-
-
-// app/Models/User.php
-
-    public function isAdmin()
-    {
-        return $this->is_admin; // Assuming `admin` is a boolean field in your users table
-    }    
-	
-	public function isTherapist()
-    {
-        return $this->is_therapist; // Assuming `admin` is a boolean field in your users table
-    }
-
 
     public function products()
     {
         return $this->hasMany(Product::class);
     }
 
-    /**
-     * Obtenir les factures créées par l'utilisateur.
-     */
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
     }
 
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
 
+    // Add the missing clientProfiles relationship
+    public function clientProfiles()
+    {
+        return $this->hasMany(ClientProfile::class); // Assuming one therapist can have multiple client profiles
+    }
 
+    // Additional methods
+
+    public function isAdmin()
+    {
+        return $this->is_admin; // Assuming `is_admin` is a boolean field
+    }
+
+    public function isTherapist()
+    {
+        return $this->is_therapist; // Assuming `is_therapist` is a boolean field
+    }
+
+    /**
+     * Génère un slug unique basé sur le nom de l'entreprise.
+     *
+     * @param string $companyName
+     * @param int $userId
+     * @return string|null
+     */
+    public static function createUniqueSlug($companyName, $userId)
+    {
+        if (empty($companyName)) {
+            return null;
+        }
+
+        $slug = Str::slug($companyName);
+        $originalSlug = $slug;
+        $counter = 1;
+
+        // Vérifier l'unicité du slug
+        while (self::where('slug', $slug)->where('id', '!=', $userId)->exists()) {
+            $slug = $originalSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
 }
