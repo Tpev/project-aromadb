@@ -20,7 +20,7 @@ jobs:
 
       - name: Pull latest code via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.53.168.129 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@16.171.161.214 << 'EOF'
            cd /var/www/project-aromadb && sudo git pull origin master
           EOF
       - name: Update specific tables for data
