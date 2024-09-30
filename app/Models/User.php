@@ -27,6 +27,13 @@ class User extends Authenticatable
 		'share_address_publicly',
         'share_phone_publicly',
         'share_email_publicly',
+		'about',
+		'services',
+		'profile_description',
+		'minimum_notice_hours', // Ensure this line is present
+        'profile_picture',
+		'accept_online_appointments', // Ensure this line is present
+
     ];
 
     protected $dates = ['last_login_at'];
@@ -39,6 +46,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+		'accept_online_appointments' => 'boolean', // Ensure this line is present
     ];
 
     // Relationships

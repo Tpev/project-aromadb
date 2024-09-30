@@ -1,3 +1,4 @@
+{{-- resources/views/profile/edit-company-info.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -15,7 +16,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('profile.updateCompanyInfo') }}" method="POST">
+            <!-- Updated Form with enctype for file uploads -->
+            <form action="{{ route('profile.updateCompanyInfo') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -55,6 +57,72 @@
                     @enderror
                 </div>
 
+                <!-- About Us -->
+                <div class="details-box">
+                    <label class="details-label" for="about">{{ __('À Propos') }}</label>
+                    <textarea id="about" name="about" class="form-control">{{ old('about', auth()->user()->about) }}</textarea>
+                    @error('about')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Services (Enhanced User-Friendly Input) -->
+                <div class="details-box">
+                    <label class="details-label" for="service-input">{{ __('Services') }}</label>
+                    <div class="flex flex-wrap items-center border border-gray-300 rounded p-2">
+                        <div id="services-list" class="flex flex-wrap gap-2">
+                            @php
+                                // Decode the services JSON string into an array
+                                $services = json_decode(old('services', auth()->user()->services), true);
+                                
+                                // Handle cases where services might be a JSON-encoded string
+                                if (!is_array($services)) {
+                                    $services = json_decode($services, true) ?? [];
+                                }
+                            @endphp
+
+                            @foreach($services as $service)
+                                <span class="service-tag bg-green-500 text-white px-3 py-1 rounded-full flex items-center">
+                                    {{ $service }}
+                                    <button type="button" class="ml-2 remove-service-btn" aria-label="Remove {{ $service }}">&times;</button>
+                                </span>
+                            @endforeach
+                        </div>
+                        <input type="text" id="service-input" class="flex-grow p-1 border-none focus:outline-none" placeholder="{{ __('Ajouter un service...') }}">
+                        <button type="button" id="add-service-btn" class="ml-2 bg-green-500 text-white px-3 py-1 rounded">{{ __('Ajouter') }}</button>
+                    </div>
+                    @error('services')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                    <!-- Ensure the hidden input contains a valid JSON array -->
+                    <input type="hidden" name="services" id="services-input" value='@json($services)'>
+                </div>
+
+                <!-- Profile Description -->
+                <div class="details-box">
+                    <label class="details-label" for="profile_description">{{ __('Description du Profil') }}</label>
+                    <textarea id="profile_description" name="profile_description" class="form-control">{{ old('profile_description', auth()->user()->profile_description) }}</textarea>
+                    @error('profile_description')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Profile Picture Upload -->
+                <div class="details-box">
+                    <label class="details-label" for="profile_picture">{{ __('Photo de Profil') }}</label>
+                    <div class="flex items-center">
+                        <!-- Display Current Profile Picture or Default -->
+                        @if(auth()->user()->profile_picture)
+                            <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" alt="{{ __('Photo de Profil') }}" class="w-20 h-20 rounded-full object-cover mr-4">
+                        @endif
+                        <!-- File Input -->
+                        <input type="file" id="profile_picture" name="profile_picture" class="form-control">
+                    </div>
+                    @error('profile_picture')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Mentions Légales -->
                 <div class="details-box">
                     <label class="details-label" for="legal_mentions">{{ __('Mentions Légales') }}</label>
@@ -63,38 +131,134 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-				
-<div class="mb-4">
+
+<!-- Willingness to Accept Online Appointments -->
+<div class="details-box">
     <label class="flex items-center">
-        <input type="checkbox" name="share_address_publicly" class="form-checkbox h-5 w-5 text-brand-green" 
-        {{ old('share_address_publicly', $user->share_address_publicly) ? 'checked' : '' }}>
-        <span class="ml-2 text-gray-700">{{ __('Partager l\'adresse publiquement') }}</span>
+        <input type="checkbox" name="accept_online_appointments" class="form-checkbox h-5 w-5 text-green-500" 
+        {{ old('accept_online_appointments', auth()->user()->accept_online_appointments) ? 'checked' : '' }}>
+        <span class="ml-2 text-gray-700">{{ __('Accepter les rendez-vous en ligne') }}</span>
     </label>
+    @error('accept_online_appointments')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
 </div>
 
-<div class="mb-4">
-    <label class="flex items-center">
-        <input type="checkbox" name="share_phone_publicly" class="form-checkbox h-5 w-5 text-brand-green" 
-        {{ old('share_phone_publicly', $user->share_phone_publicly) ? 'checked' : '' }}>
-        <span class="ml-2 text-gray-700">{{ __('Partager le téléphone publiquement') }}</span>
-    </label>
-</div>
-
-<div class="mb-4">
-    <label class="flex items-center">
-        <input type="checkbox" name="share_email_publicly" class="form-checkbox h-5 w-5 text-brand-green" 
-        {{ old('share_email_publicly', $user->share_email_publicly) ? 'checked' : '' }}>
-        <span class="ml-2 text-gray-700">{{ __('Partager l\'email publiquement') }}</span>
-    </label>
+<!-- Minimum Notice for Booking Appointment -->
+<div class="details-box">
+    <label class="details-label" for="minimum_notice_hours">{{ __('Préavis Minimum pour Prendre un Rendez-vous (heures)') }}</label>
+    <input type="number" id="minimum_notice_hours" name="minimum_notice_hours" class="form-control" min="0" value="{{ old('minimum_notice_hours', auth()->user()->minimum_notice_hours) }}">
+    @error('minimum_notice_hours')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
 </div>
 
 
+                <!-- Checkbox fields for sharing info publicly -->
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="share_address_publicly" class="form-checkbox h-5 w-5 text-green-500" 
+                        {{ old('share_address_publicly', auth()->user()->share_address_publicly) ? 'checked' : '' }}>
+                        <span class="ml-2 text-gray-700">{{ __('Partager l\'adresse publiquement') }}</span>
+                    </label>
+                </div>
 
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="share_phone_publicly" class="form-checkbox h-5 w-5 text-green-500" 
+                        {{ old('share_phone_publicly', auth()->user()->share_phone_publicly) ? 'checked' : '' }}>
+                        <span class="ml-2 text-gray-700">{{ __('Partager le téléphone publiquement') }}</span>
+                    </label>
+                </div>
+
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="share_email_publicly" class="form-checkbox h-5 w-5 text-green-500" 
+                        {{ old('share_email_publicly', auth()->user()->share_email_publicly) ? 'checked' : '' }}>
+                        <span class="ml-2 text-gray-700">{{ __('Partager l\'email publiquement') }}</span>
+                    </label>
+                </div>
+
+                <!-- Submit and Cancel buttons -->
                 <button type="submit" class="btn-primary mt-4">{{ __('Enregistrer les Modifications') }}</button>
                 <a href="{{ route('profile.edit') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
         </div>
     </div>
+
+    <!-- Add JavaScript to handle dynamic services list -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addServiceBtn = document.getElementById('add-service-btn');
+            const serviceInput = document.getElementById('service-input');
+            const servicesList = document.getElementById('services-list');
+            const servicesInputHidden = document.getElementById('services-input');
+
+            let services = [];
+
+            // Initialize services from hidden input
+            if (servicesInputHidden.value) {
+                try {
+                    const parsed = JSON.parse(servicesInputHidden.value);
+                    services = Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    console.error('Invalid JSON in services-input:', e);
+                    services = [];
+                }
+            }
+
+            // Function to render services
+            function renderServices() {
+                servicesList.innerHTML = '';
+                services.forEach((service, index) => {
+                    const tag = document.createElement('span');
+                    tag.className = 'service-tag bg-green-500 text-white px-3 py-1 rounded-full flex items-center';
+                    tag.textContent = service;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'ml-2 remove-service-btn';
+                    removeBtn.setAttribute('aria-label', `Remove ${service}`);
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.addEventListener('click', () => removeService(index));
+
+                    tag.appendChild(removeBtn);
+                    servicesList.appendChild(tag);
+                });
+                servicesInputHidden.value = JSON.stringify(services);
+            }
+
+            // Function to add a service
+            function addService() {
+                const service = serviceInput.value.trim();
+                if (service && !services.includes(service)) {
+                    services.push(service);
+                    serviceInput.value = '';
+                    renderServices();
+                }
+            }
+
+            // Function to remove a service
+            function removeService(index) {
+                services.splice(index, 1);
+                renderServices();
+            }
+
+            // Event listener for add button
+            addServiceBtn.addEventListener('click', addService);
+
+            // Event listener for Enter key in input
+            serviceInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addService();
+                }
+            });
+
+            // Initial render
+            renderServices();
+        });
+    </script>
 
     <!-- Styles personnalisés -->
     <style>
@@ -154,10 +318,12 @@
             cursor: pointer;
             display: inline-block;
             margin-right: 10px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
         }
 
         .btn-primary:hover {
             background-color: #854f38;
+            transform: translateY(-2px);
         }
 
         .btn-secondary {
@@ -169,11 +335,13 @@
             text-decoration: none;
             cursor: pointer;
             display: inline-block;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
         }
 
         .btn-secondary:hover {
             background-color: #854f38;
             color: #fff;
+            transform: translateY(-2px);
         }
 
         .text-red-500 {
@@ -183,6 +351,42 @@
 
         .mt-4 {
             margin-top: 1rem;
+        }
+
+        .service-tag {
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .service-tag:hover {
+            transform: translateY(-5px);
+            background-color: #2f855a; /* Tailwind's green-600 */
+        }
+
+        .service-tag button {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .details-container {
+                padding: 20px;
+            }
+
+            .details-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Additional Styles for Profile Picture */
+        img.rounded-full {
+            object-fit: cover;
         }
     </style>
 </x-app-layout>

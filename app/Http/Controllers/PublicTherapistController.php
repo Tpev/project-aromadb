@@ -15,13 +15,12 @@ class PublicTherapistController extends Controller
      */
     public function show($slug)
     {
-        // Trouver le thérapeute par slug et vérifier qu'il est bien un thérapeute
+        // Find the therapist by slug and ensure the user is a therapist
         $therapist = User::where('slug', $slug)
                          ->where('is_therapist', true)
-                         ->with(['clientProfiles', 'invoices', 'appointments'])
                          ->firstOrFail();
-
-        // Passer les données à la vue
+			
+        // Pass the therapist data to the view
         return view('public.therapist.show', compact('therapist'));
     }
 }

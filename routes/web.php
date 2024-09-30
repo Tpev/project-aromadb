@@ -21,7 +21,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicTherapistController;
 
 // Routes publiques pour les pages des thérapeutes
-Route::get('/therapist/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
+Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
 
 
 Route::middleware(['auth'])->group(function () {
