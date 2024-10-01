@@ -128,11 +128,18 @@
                     @enderror
                 </div>
 
-                <!-- Duration -->
+                <!-- Prestation (required) -->
                 <div class="details-box form-section">
-                    <label class="details-label" for="duration">{{ __('Durée (minutes)') }}</label>
-                    <input type="number" id="duration" name="duration" class="form-control" value="{{ old('duration', $appointment->duration) }}" min="1" required>
-                    @error('duration')
+                    <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
+                    <select id="product_id" name="product_id" class="form-control" required>
+                        <option value="" disabled>{{ __('Sélectionner une prestation') }}</option>
+                        @foreach($products as $product)
+                            <option value="{{ $product->id }}" {{ old('product_id', $appointment->product_id) == $product->id ? 'selected' : '' }}>
+                                {{ $product->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('product_id')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -140,7 +147,6 @@
                 <!-- Appointment Date -->
                 <div class="details-box form-section">
                     <label class="details-label" for="appointment_date">{{ __('Date du Rendez-vous') }}</label>
-                    <!-- Make sure the appointment date is treated as a Carbon instance -->
                     <input type="date" id="appointment_date" name="appointment_date" class="form-control" value="{{ old('appointment_date', \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d')) }}" required>
                     @error('appointment_date')
                         <p class="text-red-500">{{ $message }}</p>
@@ -162,31 +168,6 @@
                         <i class="fas fa-spinner fa-spin"></i>
                     </div>
                     @error('appointment_time')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Type -->
-                <div class="details-box form-section">
-                    <label class="details-label" for="type">{{ __('Type de Rendez-vous') }}</label>
-                    <input type="text" id="type" name="type" class="form-control" value="{{ old('type', $appointment->type) }}">
-                    @error('type')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Product (Optional) -->
-                <div class="details-box form-section">
-                    <label class="details-label" for="product_id">{{ __('Produit (Optionnel)') }}</label>
-                    <select id="product_id" name="product_id" class="form-control">
-                        <option value="">{{ __('Sélectionner un produit') }}</option>
-                        @foreach($products as $product)
-                            <option value="{{ $product->id }}" {{ old('product_id', $appointment->product_id) == $product->id ? 'selected' : '' }}>
-                                {{ $product->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('product_id')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -232,23 +213,23 @@
     <!-- Custom Scripts for slot fetching -->
     <script>
         $(document).ready(function() {
-            $('#appointment_date, #duration').change(function() {
+            $('#product_id, #appointment_date').change(function() {
                 let selectedDate = $('#appointment_date').val();
-                let duration = $('#duration').val();
+                let productId = $('#product_id').val();
 
-                if (selectedDate && duration) {
-                    fetchAvailableSlots(selectedDate, duration);
+                if (selectedDate && productId) {
+                    fetchAvailableSlots(selectedDate, productId);
                 }
             });
 
-            function fetchAvailableSlots(date, duration) {
+            function fetchAvailableSlots(date, productId) {
                 $('#appointment_time').prop('disabled', true);
                 $('.loading-spinner').show();
 
                 $.ajax({
                     url: '{{ route("appointments.available-slots") }}',
                     method: 'GET',
-                    data: { date: date, duration: duration },
+                    data: { date: date, product_id: productId },
                     success: function(response) {
                         $('.loading-spinner').hide();
                         if (response.slots.length > 0) {
@@ -270,9 +251,9 @@
                 });
             }
 
-            // Fetch slots for the current date and duration when page loads
+            // Fetch slots for the current date and product when page loads
             @if(old('appointment_date') || $appointment->appointment_date)
-                fetchAvailableSlots('{{ old('appointment_date', \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d')) }}', $('#duration').val());
+                fetchAvailableSlots('{{ old('appointment_date', \Carbon\Carbon::parse($appointment->appointment_date)->format('Y-m-d')) }}', '{{ $appointment->product_id }}');
                 $('#appointment_time').val('{{ old('appointment_time', \Carbon\Carbon::parse($appointment->appointment_date)->format('H:i')) }}');
             @endif
         });

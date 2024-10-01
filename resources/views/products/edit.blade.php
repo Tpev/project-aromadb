@@ -1,21 +1,21 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Modifier le Produit') }}
+            {{ __('Modifier la Prestation') }}
         </h2>
     </x-slot>
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Modifier le Produit') }}</h1>
+            <h1 class="details-title">{{ __('Modifier la Prestation') }}</h1>
 
             <form action="{{ route('products.update', $product->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
-                <!-- Nom du Produit -->
+                <!-- Nom de la Prestation -->
                 <div class="details-box">
-                    <label class="details-label" for="name">{{ __('Nom du Produit') }}</label>
+                    <label class="details-label" for="name">{{ __('Nom de la Prestation') }}</label>
                     <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $product->name) }}" required>
                     @error('name')
                         <p class="text-red-500">{{ $message }}</p>
@@ -49,7 +49,52 @@
                     @enderror
                 </div>
 
-                <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour le Produit') }}</button>
+                <!-- Durée -->
+                <div class="details-box">
+                    <label class="details-label" for="duration">{{ __('Durée (en minutes)') }}</label>
+                    <input type="number" id="duration" name="duration" class="form-control" value="{{ old('duration', $product->duration) }}" min="1">
+                    @error('duration')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Mode de prestation (Visio, À domicile, Dans le cabinet) -->
+                <div class="details-box">
+                    <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
+                    <select id="mode" name="mode" class="form-control" required>
+                        <option value="visio" {{ old('mode', $product->visio ? 'visio' : '') == 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
+                        <option value="adomicile" {{ old('mode', $product->adomicile ? 'adomicile' : '') == 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
+                        <option value="dans_le_cabinet" {{ old('mode', $product->dans_le_cabinet ? 'dans_le_cabinet' : '') == 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
+                    </select>
+                    @error('mode')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+<!-- Can Be Booked Online -->
+<div class="details-box">
+    <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
+    <!-- Hidden input to ensure a value is always sent -->
+    <input type="hidden" name="can_be_booked_online" value="0">
+    <!-- Checkbox input -->
+    <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online', $product->can_be_booked_online) ? 'checked' : '' }}>
+    @error('can_be_booked_online')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
+</div>
+
+
+
+                <!-- Maximum séances par jour -->
+                <div class="details-box">
+                    <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
+                    <input type="number" id="max_per_day" name="max_per_day" class="form-control" value="{{ old('max_per_day', $product->max_per_day) }}" min="1">
+                    @error('max_per_day')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour la Prestation') }}</button>
                 <a href="{{ route('products.show', $product->id) }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
         </div>

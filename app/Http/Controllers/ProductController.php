@@ -9,24 +9,25 @@ use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    // Applique l'authentification et les politiques
+    // Apply authentication and authorization policies
     public function __construct()
     {
-
+        // You can add middleware or policies here, if needed
     }
 
     /**
-     * Affiche la liste des produits de l'utilisateur authentifié.
+     * Display a listing of the products for the authenticated user.
      */
     public function index()
     {
+        // Fetch products for the logged-in user
         $products = Product::where('user_id', Auth::id())->get();
 
         return view('products.index', compact('products'));
     }
 
     /**
-     * Affiche le formulaire pour créer un nouveau produit.
+     * Show the form for creating a new product.
      */
     public function create()
     {
@@ -34,40 +35,52 @@ class ProductController extends Controller
     }
 
     /**
-     * Enregistre un nouveau produit en base de données.
+     * Store a newly created product in the database.
      */
     public function store(Request $request)
     {
-        // Validation des données
+        // Validate the request
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'tax_rate' => 'required|numeric|min:0|max:100', // Ajout du champ tax_rate
+            'tax_rate' => 'required|numeric|min:0|max:100',
+            'duration' => 'nullable|integer|min:1',
+            'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
+            'max_per_day' => 'nullable|integer|min:1',
+            'can_be_booked_online' => 'required|boolean',  // Handle the new can_be_booked_online field
         ]);
 
-        // Crée le produit
+        // Set visio, adomicile, and dans_le_cabinet based on the selected mode
+        $visio = $validatedData['mode'] === 'visio';
+        $adomicile = $validatedData['mode'] === 'adomicile';
+        $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
+
+        // Create the product
         $product = Product::create([
             'user_id' => Auth::id(),
             'name' => $validatedData['name'],
             'description' => $validatedData['description'],
             'price' => $validatedData['price'],
-            'tax_rate' => $validatedData['tax_rate'], // Enregistrement du tax_rate
+            'tax_rate' => $validatedData['tax_rate'],
+            'duration' => $validatedData['duration'],
+            'can_be_booked_online' => $validatedData['can_be_booked_online'],  // Store the can_be_booked_online value
+            'visio' => $visio,
+            'adomicile' => $adomicile,
+            'dans_le_cabinet' => $dans_le_cabinet,
+            'max_per_day' => $validatedData['max_per_day'],
         ]);
 
-        return redirect()->route('products.show', $product)->with('success', 'Produit créé avec succès.');
+        return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
     }
 
     /**
-     * Affiche un produit spécifique.
+     * Display a specific product along with its associated invoices.
      */
     public function show(Product $product)
     {
-        // Vérifie que l'utilisateur est autorisé à voir ce produit
-       
-
-        // Récupère les factures associées au produit
-        $invoices = Invoice::whereHas('items', function($query) use ($product) {
+        // Fetch the invoices associated with this product
+        $invoices = Invoice::whereHas('items', function ($query) use ($product) {
             $query->where('product_id', $product->id);
         })->with('clientProfile')->get();
 
@@ -75,46 +88,62 @@ class ProductController extends Controller
     }
 
     /**
-     * Affiche le formulaire pour éditer un produit existant.
+     * Show the form for editing the specified product.
      */
     public function edit(Product $product)
     {
-        // Vérifie que l'utilisateur est autorisé à éditer ce produit
-        
-
+        // Ensure the user is authorized to edit this product
         return view('products.edit', compact('product'));
     }
 
     /**
-     * Met à jour un produit existant en base de données.
+     * Update the specified product in the database.
      */
     public function update(Request $request, Product $product)
     {
-        // Vérifie que l'utilisateur est autorisé à mettre à jour ce produit
-       
-
-        // Validation des données
+        // Validate the request
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'tax_rate' => 'required|numeric|min:0|max:100', // Ajout du champ tax_rate
+            'tax_rate' => 'required|numeric|min:0|max:100',
+            'duration' => 'nullable|integer|min:1',
+            'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',  // Updated to validate the mode
+            'max_per_day' => 'nullable|integer|min:1',
+            'can_be_booked_online' => 'required|boolean',  // Handle the can_be_booked_online field
         ]);
 
-        // Met à jour le produit
-        $product->update($validatedData);
+        // Set visio, adomicile, and dans_le_cabinet based on the selected mode
+        $visio = $validatedData['mode'] === 'visio';
+        $adomicile = $validatedData['mode'] === 'adomicile';
+        $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
 
-        return redirect()->route('products.show', $product)->with('success', 'Produit mis à jour avec succès.');
+        // Update the product
+        $product->update([
+            'name' => $validatedData['name'],
+            'description' => $validatedData['description'],
+            'price' => $validatedData['price'],
+            'tax_rate' => $validatedData['tax_rate'],
+            'duration' => $validatedData['duration'],
+            'can_be_booked_online' => $validatedData['can_be_booked_online'],  // Update the can_be_booked_online value
+            'visio' => $visio,
+            'adomicile' => $adomicile,
+            'dans_le_cabinet' => $dans_le_cabinet,
+            'max_per_day' => $validatedData['max_per_day'],
+        ]);
+
+        return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
     }
 
     /**
-     * Supprime un produit de la base de données.
+     * Remove the specified product from the database.
      */
     public function destroy(Product $product)
     {
-        // Vérifie que l'utilisateur est autorisé à supprimer ce produit
+        // Ensure the user is authorized to delete this product
         $this->authorize('delete', $product);
 
+        // Delete the product
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès.');

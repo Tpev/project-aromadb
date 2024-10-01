@@ -1,21 +1,23 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Liste des Produits') }}
+            {{ __('Liste des Prestations') }}
         </h2>
     </x-slot>
+
     <!-- Lien vers Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
     <div class="container mt-5">
-        <h1 class="page-title">Liste des Produits</h1>
+        <h1 class="page-title">Liste des Prestations</h1>
 
         <!-- Barre de recherche et bouton de création -->
         <div class="mb-4 d-flex justify-content-between">
-            <input type="text" id="search" class="form-control" placeholder="Recherche par nom du produit..." onkeyup="filterTable()" style="border-color: #854f38; max-width: 300px;">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom de la prestation..." onkeyup="filterTable()" style="border-color: #854f38; max-width: 300px;">
 
-            <!-- Bouton pour créer un produit -->
+            <!-- Bouton pour créer une prestation -->
             <a href="{{ route('products.create') }}" class="btn-primary" style="white-space: nowrap;">
-                <i class="fas fa-plus mr-2"></i> Créer un produit
+                <i class="fas fa-plus mr-2"></i> Créer une prestation
             </a>
         </div>
 
@@ -24,10 +26,14 @@
             <table class="table table-bordered table-hover" id="productTable">
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0)">Nom du Produit <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(0)">Nom de la Prestation <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(1)">Description <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(2)">Prix (€) <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(3)">Taux de Taxe (%) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(4)">Durée (minutes) <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(5)">Réservable en ligne <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(6)">Mode <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(7)">Max séances/jour <i class="fas fa-sort"></i></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,6 +43,15 @@
                             <td>{{ $product->description }}</td>
                             <td>{{ number_format($product->price, 2, ',', ' ') }}</td>
                             <td>{{ number_format($product->tax_rate, 2, ',', ' ') }}%</td>
+                            <td>{{ $product->duration }}</td>
+                            <td>{{ $product->can_be_booked_online ? 'Oui' : 'Non' }}</td>
+                            <td>
+                                @if($product->visio) Visio
+                                @elseif($product->adomicile) À domicile
+                                @else Dans le cabinet
+                                @endif
+                            </td>
+                            <td>{{ $product->max_per_day }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -180,9 +195,9 @@
                     let xContent = x.innerHTML.toLowerCase();
                     let yContent = y.innerHTML.toLowerCase();
 
-                    if (n === 2 || n === 3) { // Colonnes Prix (€) et Taux de Taxe (%)
-                        xContent = parseFloat(xContent.replace(',', '.').replace(/[^0-9.-]+/g,""));
-                        yContent = parseFloat(yContent.replace(',', '.').replace(/[^0-9.-]+/g,""));
+                    if (n === 2 || n === 3 || n === 4 || n === 7) { // Colonnes Prix (€), Taux de Taxe (%), Durée, Max par jour
+                        xContent = parseFloat(xContent.replace(',', '.').replace(/[^0-9.-]+/g, ""));
+                        yContent = parseFloat(yContent.replace(',', '.').replace(/[^0-9.-]+/g, ""));
                     }
 
                     if (dir === 'asc') {

@@ -23,8 +23,12 @@
                         <p class="details-value">{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</p>
                     </div>
                     <div class="col-md-6">
-                        <label class="details-label">{{ __('Date et Heure') }}</label>
-                        <p class="details-value">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</p>
+                        <label class="details-label">{{ __('Téléphone') }}</label>
+                        <p class="details-value">{{ $appointment->clientProfile->phone ?? __('Non renseigné') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="details-label">{{ __('Email') }}</label>
+                        <p class="details-value">{{ $appointment->clientProfile->email ?? __('Non renseigné') }}</p>
                     </div>
                 </div>
             </div>
@@ -35,6 +39,17 @@
                     <i class="fas fa-info-circle"></i> {{ __('Détails du Rendez-vous') }}
                 </h2>
                 <div class="row">
+                    <div class="col-md-6">
+                        <label class="details-label">{{ __('Prestation (Produit)') }}</label>
+                        <p class="details-value">{{ $appointment->product->name ?? __('Aucune prestation') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="details-label">{{ __('Date et Heure') }}</label>
+                        <p class="details-value">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</p>
+                    </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-4">
                         <label class="details-label">{{ __('Durée') }}</label>
                         <p class="details-value">{{ $appointment->duration }} {{ __('minutes') }}</p>
@@ -44,17 +59,13 @@
                         <p class="details-value">{{ ucfirst($appointment->status) }}</p>
                     </div>
                     <div class="col-md-4">
-                        <label class="details-label">{{ __('Type') }}</label>
-                        <p class="details-value">{{ $appointment->type ?? __('Non spécifié') }}</p>
+                        <label class="details-label">{{ __('Mode') }}</label>
+                        <p class="details-value">{{ $mode }}</p>
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col-md-4">
-                        <label class="details-label">{{ __('Produit') }}</label>
-                        <p class="details-value">{{ $appointment->product->name ?? __('Aucun produit') }}</p>
-                    </div>
-                    <div class="col-md-8">
+                    <div class="col-md-12">
                         <label class="details-label">{{ __('Notes') }}</label>
                         <p class="details-value">{{ $appointment->notes ?? __('Aucune note') }}</p>
                     </div>

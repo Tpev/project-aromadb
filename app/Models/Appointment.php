@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str; 
 
 class Appointment extends Model
 {
@@ -20,6 +21,16 @@ protected $fillable = [
     'product_id',
 ];
 
+    // Automatically generate a token when creating a new appointment
+    public static function boot()
+    {
+        parent::boot();
+
+        // Listen for the creating event to generate the token
+        static::creating(function ($appointment) {
+            $appointment->token = Str::random(64); // Generate a random 64-character string
+        });
+    }
 // Add relationship to Product
 public function product()
 {
@@ -46,4 +57,9 @@ public function invoice()
 {
     return $this->hasOne(Invoice::class);
 }
+
+    // Cast appointment_date to datetime
+    protected $casts = [
+        'appointment_date' => 'datetime',
+    ];
 }

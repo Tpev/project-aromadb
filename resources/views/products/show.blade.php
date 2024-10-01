@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Détails du Produit') }}
+            {{ __('Détails de la Prestation') }}
         </h2>
     </x-slot>
 
@@ -12,13 +12,13 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ $product->name }}</h1>
 
-            <!-- Informations sur le produit -->
+            <!-- Informations sur la prestation -->
             <div class="product-info-boxes">
-                <!-- Nom du Produit -->
+                <!-- Nom de la Prestation -->
                 <div class="product-box">
                     <i class="fas fa-tag icon"></i>
                     <div class="product-details">
-                        <p class="product-label">{{ __('Nom du Produit') }}</p>
+                        <p class="product-label">{{ __('Nom de la Prestation') }}</p>
                         <p class="product-value">{{ $product->name }}</p>
                     </div>
                 </div>
@@ -49,6 +49,47 @@
                         <p class="product-value">{{ number_format($product->tax_rate, 2, ',', ' ') }}%</p>
                     </div>
                 </div>
+
+                <!-- Durée -->
+                <div class="product-box">
+                    <i class="fas fa-clock icon"></i>
+                    <div class="product-details">
+                        <p class="product-label">{{ __('Durée (en minutes)') }}</p>
+                        <p class="product-value">{{ $product->duration ?? 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <!-- Réservable en ligne -->
+                <div class="product-box">
+                    <i class="fas fa-calendar-alt icon"></i>
+                    <div class="product-details">
+                        <p class="product-label">{{ __('Réservable en ligne') }}</p>
+                        <p class="product-value">{{ $product->can_be_booked_online ? 'Oui' : 'Non' }}</p>
+                    </div>
+                </div>
+
+                <!-- Mode de prestation -->
+                <div class="product-box">
+                    <i class="fas fa-map-marker-alt icon"></i>
+                    <div class="product-details">
+                        <p class="product-label">{{ __('Mode de Prestation') }}</p>
+                        <p class="product-value">
+                            @if($product->visio) {{ __('Visio') }}
+                            @elseif($product->adomicile) {{ __('À domicile') }}
+                            @else {{ __('Dans le cabinet') }}
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Maximum séances par jour -->
+                <div class="product-box">
+                    <i class="fas fa-users icon"></i>
+                    <div class="product-details">
+                        <p class="product-label">{{ __('Nombre maximum de séances par jour') }}</p>
+                        <p class="product-value">{{ $product->max_per_day ?? 'N/A' }}</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Boutons d'action -->
@@ -57,7 +98,7 @@
                 <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display: inline-block;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-secondary" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')">{{ __('Supprimer') }}</button>
+                    <button type="submit" class="btn-secondary" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette prestation ?')">{{ __('Supprimer') }}</button>
                 </form>
                 <a href="{{ route('products.index') }}" class="btn-secondary">{{ __('Retour à la liste') }}</a>
             </div>
@@ -92,7 +133,7 @@
                     </table>
                 </div>
             @else
-                <p>{{ __('Aucune facture associée à ce produit.') }}</p>
+                <p>{{ __('Aucune facture associée à cette prestation.') }}</p>
             @endif
         </div>
     </div>

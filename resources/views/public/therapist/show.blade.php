@@ -100,7 +100,7 @@
 			</p>
 			<div class="mt-6">
 				@if($therapist->accept_online_appointments)
-					<a href="{{ route('appointments.create', $therapist->id) }}" class="inline-block bg-green-500 text-white text-lg px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-300">
+					<a href="{{ route('appointments.createPatient', $therapist->id) }}" class="inline-block bg-green-500 text-white text-lg px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-300">
 						{{ __('Réservez Maintenant') }}
 					</a>
 				@endif

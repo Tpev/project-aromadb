@@ -15,6 +15,12 @@ class Product extends Model
         'description',
         'price',
         'tax_rate', // Ajout du champ tax_rate
+        'duration', // Duration in minutes
+        'can_be_booked_online', // Can be booked online
+        'visio', // Visio option
+        'adomicile', // At-home option
+        'dans_le_cabinet', // In-office option
+        'max_per_day', // Maximum bookings per day
     ];
 
     /**

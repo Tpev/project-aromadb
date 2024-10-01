@@ -27,7 +27,7 @@
                     
                     <!-- Produits -->
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Produits') }}
+                        {{ __('Préstations') }}
                     </x-nav-link>
                     
                     <!-- Disponibilités -->
@@ -112,7 +112,7 @@
             
             <!-- Produits -->
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Produits') }}
+                {{ __('Préstations') }}
             </x-responsive-nav-link>
             
             <!-- Disponibilités -->

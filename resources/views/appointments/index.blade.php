@@ -34,7 +34,7 @@
                 </thead>
                 <tbody>
                     @foreach($appointments as $appointment)
-                        <tr class="table-row">
+                        <tr class="table-row" data-url="{{ route('appointments.show', $appointment->id) }}">
                             <td>{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</td>
                             <td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</td>
                             <td>{{ $appointment->duration }} {{ __('min') }}</td>
@@ -146,13 +146,18 @@
 
     <!-- JavaScript for sorting, filtering, and redirect -->
     <script>
-        function animateAndRedirect(row, url) {
-            row.classList.add('active');
-            setTimeout(function() {
-                window.location.href = url;
-            }, 500);
-        }
+        // Function to handle redirect on row click
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.table-row');
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    window.location.href = url;
+                });
+            });
+        });
 
+        // Filter function for searching
         function filterTable() {
             let input = document.getElementById('search');
             let filter = input.value.toLowerCase();
@@ -168,6 +173,7 @@
             }
         }
 
+        // Sort function for columns
         function sortTable(n) {
             let table = document.getElementById('appointmentTable');
             let rows = table.rows;

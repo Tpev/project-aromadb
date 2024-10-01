@@ -152,11 +152,14 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
 });
 
 
+// Public Routes for Patient Booking
+Route::get('/appointments/available-slots-patient', [AppointmentController::class, 'getAvailableSlotsForPatient'])->name('appointments.available-slots-patient');
 
 Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
-   Route::get('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
- 
- Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
+   
+   
+    Route::get('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
+    Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/create', [App\Http\Controllers\AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/appointments', [App\Http\Controllers\AppointmentController::class, 'store'])->name('appointments.store');
     Route::get('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'show'])->name('appointments.show');
@@ -167,6 +170,13 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
  
 });
 
+
+
+
+Route::get('/book-appointment/{therapist}', [AppointmentController::class, 'createPatient'])->name('appointments.createPatient');
+Route::post('/book-appointment', [AppointmentController::class, 'storePatient'])->name('appointments.storePatient');
+Route::get('/appointment-confirmation/{token}', [AppointmentController::class, 'showPatient'])->name('appointments.showPatient');
+Route::get('/appointment-ics/{token}', [AppointmentController::class, 'downloadICS'])->name('appointments.downloadICS');
 
 
 
