@@ -20,12 +20,12 @@ jobs:
 
       - name: Pull latest code via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@16.171.161.214 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
            cd /var/www/project-aromadb && sudo git pull origin master
           EOF
       - name: Update specific tables for data
         run: |
-           ssh -o StrictHostKeyChecking=no ubuntu@16.171.161.214 << 'EOF'
+           ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
             sudo mysql -u root yourdatabase -e "DROP TABLE IF EXISTS recettes, huile_hes, huile_hvs, tisanes;"
             cd /var/www/project-aromadb
             sudo php artisan migrate
