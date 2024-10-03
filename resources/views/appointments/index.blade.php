@@ -1,3 +1,4 @@
+{{-- resources/views/appointments/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -5,22 +6,30 @@
         </h2>
     </x-slot>
 
+    <!-- Inclure le CSS compilé -->
+    <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+
+    <!-- Vos styles personnalisés -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
     <div class="container mt-5">
         <h1 class="page-title">Liste des Rendez-vous</h1>
 
-        <!-- Search Bar and Create Button -->
-        <div class="mb-4 d-flex justify-content-between">
+        <!-- Barre de recherche et bouton de création -->
+        <div class="mb-4 d-flex justify-content-between align-items-center">
             <input type="text" id="search" class="form-control" placeholder="Recherche par client..." onkeyup="filterTable()" style="border-color: #854f38; max-width: 300px;">
-            
-            <!-- Create Appointment Button -->
+
+            <!-- Bouton pour créer un nouveau rendez-vous -->
             <a href="{{ route('appointments.create') }}" class="btn-primary" style="white-space: nowrap;">
                 <i class="fas fa-plus mr-2"></i> Créer un rendez-vous
             </a>
         </div>
 
-        <!-- Sortable and Filterable Table -->
-        <div class="table-responsive mx-auto">
+        <!-- Calendrier -->
+        <div id="calendar"></div>
+
+        <!-- Table des rendez-vous -->
+        <div class="table-responsive mx-auto mt-5">
             <table class="table table-bordered table-hover" id="appointmentTable">
                 <thead>
                     <tr>
@@ -29,7 +38,7 @@
                         <th onclick="sortTable(2)">Durée <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(3)">Produit <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(4)">Statut <i class="fas fa-sort"></i></th>
-                        <th>Actions</th> <!-- New action column -->
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,7 +50,7 @@
                             <td>{{ $appointment->product->name ?? __('Aucun produit') }}</td>
                             <td>{{ ucfirst($appointment->status) }}</td>
                             <td>
-                                <!-- Generate Invoice Button -->
+                                <!-- Bouton pour générer une facture -->
                                 <a href="{{ route('invoices.create', ['client_id' => $appointment->client_profile_id, 'product_id' => $appointment->product_id]) }}" class="btn btn-success">
                                     <i class="fas fa-file-invoice-dollar"></i> Générer une facture
                                 </a>
@@ -53,8 +62,100 @@
         </div>
     </div>
 
+    <!-- Inclure le JS compilé -->
+    <script src="{{ mix('js/app.js') }}"></script>
 
-    <!-- Custom Styles -->
+    <!-- Vos scripts personnalisés -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialisation du calendrier
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                plugins: [ FullCalendar.dayGridPlugin, FullCalendar.timeGridPlugin, FullCalendar.interactionPlugin, FullCalendar.listPlugin, FullCalendar.bootstrapPlugin ],
+                locale: 'fr',
+                initialView: 'dayGridMonth',
+                themeSystem: 'bootstrap',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                buttonText: {
+                    today:    'Aujourd\'hui',
+                    month:    'Mois',
+                    week:     'Semaine',
+                    day:      'Jour',
+                    list:     'Liste'
+                },
+                events: @json($events),
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        info.jsEvent.preventDefault();
+                    }
+                }
+            });
+
+            calendar.render();
+
+            // Fonction pour gérer la redirection lors du clic sur une ligne de la table
+            const rows = document.querySelectorAll('.table-row');
+            rows.forEach(row => {
+                row.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    window.location.href = url;
+                });
+            });
+        });
+
+        // Fonction de filtrage pour la recherche
+        function filterTable() {
+            let input = document.getElementById('search');
+            let filter = input.value.toLowerCase();
+            let table = document.getElementById('appointmentTable');
+            let tr = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < tr.length; i++) {
+                let td = tr[i].getElementsByTagName('td')[0];
+                if (td) {
+                    let txtValue = td.textContent || td.innerText;
+                    tr[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+                }
+            }
+        }
+
+        // Fonction de tri pour les colonnes
+        function sortTable(n) {
+            let table = document.getElementById('appointmentTable');
+            let rows = table.rows;
+            let switching = true;
+            let shouldSwitch, i, x, y, asc = true, switchcount = 0;
+
+            while (switching) {
+                switching = false;
+                for (i = 1; i < rows.length - 1; i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName('td')[n];
+                    y = rows[i + 1].getElementsByTagName('td')[n];
+                    if (asc ? (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) : (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase())) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else if (switchcount === 0 && asc) {
+                    asc = false;
+                    switching = true;
+                }
+            }
+        }
+    </script>
+
+    <!-- Vos styles personnalisés -->
     <style>
         .container {
             max-width: 1200px;
@@ -142,65 +243,47 @@
         .justify-content-between {
             justify-content: space-between;
         }
+
+        /* Styles pour le calendrier */
+        #calendar {
+            max-width: 100%;
+            margin: 0 auto 50px auto;
+        }
+
+        /* Personnalisation des boutons du calendrier */
+        .fc .fc-toolbar.fc-header-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .fc .fc-toolbar .fc-left,
+        .fc .fc-toolbar .fc-center,
+        .fc .fc-toolbar .fc-right {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .fc .fc-toolbar .fc-button {
+            margin: 5px;
+            background-color: #647a0b;
+            border-color: #647a0b;
+        }
+
+        .fc .fc-toolbar .fc-button:hover {
+            background-color: #854f38;
+            border-color: #854f38;
+        }
+
+        .fc .fc-toolbar h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #647a0b;
+            margin: 0 10px;
+        }
     </style>
-
-    <!-- JavaScript for sorting, filtering, and redirect -->
-    <script>
-        // Function to handle redirect on row click
-        document.addEventListener('DOMContentLoaded', function() {
-            const rows = document.querySelectorAll('.table-row');
-            rows.forEach(row => {
-                row.addEventListener('click', function() {
-                    const url = this.getAttribute('data-url');
-                    window.location.href = url;
-                });
-            });
-        });
-
-        // Filter function for searching
-        function filterTable() {
-            let input = document.getElementById('search');
-            let filter = input.value.toLowerCase();
-            let table = document.getElementById('appointmentTable');
-            let tr = table.getElementsByTagName('tr');
-
-            for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName('td')[0];
-                if (td) {
-                    let txtValue = td.textContent || td.innerText;
-                    tr[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
-                }
-            }
-        }
-
-        // Sort function for columns
-        function sortTable(n) {
-            let table = document.getElementById('appointmentTable');
-            let rows = table.rows;
-            let switching = true;
-            let shouldSwitch, i, x, y, dir, switchcount = 0;
-            let asc = true;
-
-            while (switching) {
-                switching = false;
-                for (i = 1; i < rows.length - 1; i++) {
-                    shouldSwitch = false;
-                    x = rows[i].getElementsByTagName('td')[n];
-                    y = rows[i + 1].getElementsByTagName('td')[n];
-                    if (asc ? (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) : (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase())) {
-                        shouldSwitch = true;
-                        break;
-                    }
-                }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else if (switchcount === 0 && asc) {
-                    asc = false;
-                    switching = true;
-                }
-            }
-        }
-    </script>
 </x-app-layout>

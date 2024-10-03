@@ -114,4 +114,23 @@ class User extends Authenticatable
 
         return $slug;
     }
+	
+	    public function activeLicense()
+    {
+        return $this->hasOne(UserLicense::class);
+    }
+
+    /**
+     * Get the license history for the user.
+     */
+    public function licenseHistories()
+    {
+        return $this->hasMany(LicenseHistory::class);
+    }
+	// User.php
+public function license()
+{
+    return $this->hasOne(UserLicense::class);
+}
+
 }

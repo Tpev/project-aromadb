@@ -17,13 +17,25 @@ class AppointmentController extends Controller
 {
     use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-    public function index()
-    {
-        // Get all appointments for the authenticated therapist
-        $appointments = Appointment::where('user_id', Auth::id())->get();
+public function index()
+{
+    $appointments = Appointment::where('user_id', Auth::id())->with(['clientProfile', 'product'])->get();
 
-        return view('appointments.index', compact('appointments'));
+    $events = [];
+
+    foreach ($appointments as $appointment) {
+        $events[] = [
+            'title' => $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'start' => $appointment->appointment_date->format('Y-m-d H:i:s'),
+            'end' => $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Y-m-d H:i:s'),
+            'url' => route('appointments.show', $appointment->id),
+            'color' => '#854f38',
+        ];
     }
+
+    return view('appointments.index', compact('appointments', 'events'));
+}
+
 
     public function create()
     {
@@ -44,6 +56,7 @@ public function store(Request $request)
         'notes' => 'nullable|string',
         'product_id' => 'required|exists:products,id',  // Now required and linked to a Prestation
     ]);
+	$therapistId = Auth::id();
 
     // Get the product (Prestation) and its duration
     $product = Product::findOrFail($request->product_id);
@@ -53,7 +66,8 @@ public function store(Request $request)
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
 
     // Check availability using the product's duration
-    if (!$this->isAvailable($appointmentDateTime, $duration)) {
+    if (!$this->isAvailable($appointmentDateTime, $duration,$therapistId
+)) {
         return redirect()->back()->withErrors(['appointment_date' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])->withInput();
     }
 
@@ -166,12 +180,13 @@ public function update(Request $request, Appointment $appointment)
     // Get the product (Prestation) and its duration
     $product = Product::findOrFail($request->product_id);
     $duration = $product->duration;
+	
 
     // Combine date and time into a single datetime
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
 
     // Check availability using the product's duration
-    if (!$this->isAvailable($appointmentDateTime, $duration, $appointment->id)) {
+    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId)) {
         return redirect()->back()->withErrors([
             'appointment_date' => 'The selected time is outside of your availability or conflicts with another appointment.'
         ])->withInput();
@@ -311,52 +326,62 @@ public function storePatient(Request $request)
 }
 
 
-private function isAvailable($appointmentDateTime, $duration, $therapistId)
+private function isAvailable($appointmentDateTime, $duration, $therapistId, $excludeAppointmentId = null)
 {
-    // Ensure duration is an integer
+    // Convertir la durée en entier
     $duration = (int) $duration;
 
-    // Parse appointment datetime
-    $appointmentDateTime = Carbon::parse($appointmentDateTime);
-    $appointmentEndTime = $appointmentDateTime->copy()->addMinutes($duration);
+    // Convertir la date et l'heure du rendez-vous en objet Carbon
+    $appointmentStartTime = Carbon::parse($appointmentDateTime);
+    $appointmentEndTime = $appointmentStartTime->copy()->addMinutes($duration);
 
-    // Get therapist's availabilities for the selected date
-    $dayOfWeek = ($appointmentDateTime->dayOfWeekIso) - 1;
+    // Récupérer les disponibilités du thérapeute pour le jour de la semaine
+    $dayOfWeek = $appointmentStartTime->dayOfWeekIso - 1; // Lundi = 0
 
     $availabilities = Availability::where('user_id', $therapistId)
         ->where('day_of_week', $dayOfWeek)
         ->get();
 
     if ($availabilities->isEmpty()) {
-        return false; // No availability on this day
+        return false; // Pas de disponibilité ce jour-là
     }
 
     $isWithinAvailability = false;
 
     foreach ($availabilities as $availability) {
         $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
-            ->setDate($appointmentDateTime->year, $appointmentDateTime->month, $appointmentDateTime->day);
+            ->setDate($appointmentStartTime->year, $appointmentStartTime->month, $appointmentStartTime->day);
         $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
-            ->setDate($appointmentDateTime->year, $appointmentDateTime->month, $appointmentDateTime->day);
+            ->setDate($appointmentStartTime->year, $appointmentStartTime->month, $appointmentStartTime->day);
 
-        // Check if the appointment is within the therapist's availability
-        if ($appointmentDateTime->gte($availabilityStart) && $appointmentEndTime->lte($availabilityEnd)) {
+        // Vérifier si le rendez-vous est dans les disponibilités du thérapeute
+        if ($appointmentStartTime->gte($availabilityStart) && $appointmentEndTime->lte($availabilityEnd)) {
             $isWithinAvailability = true;
             break;
         }
     }
 
     if (!$isWithinAvailability) {
-        return false; // Appointment is outside availability
+        return false; // Le rendez-vous est en dehors des disponibilités
     }
 
-    // Check for conflicting appointments
+    // Vérifier les conflits avec les rendez-vous existants
     $conflictingAppointments = Appointment::where('user_id', $therapistId)
-        ->where('appointment_date', '<', $appointmentEndTime)
-        ->whereRaw("DATE_ADD(appointment_date, INTERVAL ? MINUTE) > ?", [$duration, $appointmentDateTime])
-        ->exists();
+        ->where(function ($query) use ($appointmentStartTime, $appointmentEndTime) {
+            $query->where(function ($subQuery) use ($appointmentStartTime, $appointmentEndTime) {
+                $subQuery->where('appointment_date', '<', $appointmentEndTime)
+                         ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$appointmentStartTime]);
+            });
+        });
 
-    return !$conflictingAppointments; // True if no conflicts
+    // Exclure le rendez-vous actuel lors de la mise à jour
+    if ($excludeAppointmentId) {
+        $conflictingAppointments->where('id', '!=', $excludeAppointmentId);
+    }
+
+    $conflictExists = $conflictingAppointments->exists();
+
+    return !$conflictExists; // Retourne vrai s'il n'y a pas de conflits
 }
 
 

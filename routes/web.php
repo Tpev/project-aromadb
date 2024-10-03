@@ -19,11 +19,20 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicTherapistController;
+use App\Http\Controllers\UserLicenseController;
 
 // Routes publiques pour les pages des thérapeutes
 Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
+// routes/web.php
 
+// Routes pour l'onboarding
+Route::middleware(['auth'])->group(function () {
+    // Route pour afficher le formulaire d'onboarding
+    Route::get('/onboarding', [ProfileController::class, 'showOnboardingForm'])->name('onboarding');
 
+    // Route pour soumettre le formulaire d'onboarding
+    Route::post('/onboarding/submit', [ProfileController::class, 'submitOnboarding'])->name('onboarding.submit');
+});
 Route::middleware(['auth'])->group(function () {
 
 
@@ -217,9 +226,15 @@ Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.s
 
 
 
+// Admin License routes
 
-Route::get('/admin/users', [AdminController::class, 'index'])->name('admin.index');
+Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])->name('admin.license');
+Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/upgrade/license', [UserLicenseController::class, 'showUpgradePage'])->name('upgrade.license');
+    Route::post('/upgrade/license/process', [UserLicenseController::class, 'processLicenseUpgrade'])->name('upgrade.license.process');
+});
 
 
 

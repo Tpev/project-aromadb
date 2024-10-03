@@ -5,6 +5,9 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\PageViewLog;
 use Carbon\Carbon;
+use App\Models\UserLicense;
+use App\Models\LicenseHistory;
+use App\Models\LicenseTier;
 
 class AdminController extends Controller
 {
@@ -60,4 +63,67 @@ class AdminController extends Controller
         // Pass the counts to the view
         return view('admin.index', compact('users', 'pageViews', 'sessionsToday', 'sessionsYesterday', 'sessionsThisWeek', 'sessionsLastWeek', 'sessionsThisMonth', 'sessionsLastMonth'));
     }
+	
+public function showLicenseManagement()
+{
+	        // Check if the user is an admin
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return redirect('/')->with('error', 'Unauthorized access');
+        }
+    // Get all therapists
+    $therapists = User::where('is_therapist', true)->get();
+
+    // Get all available licenses
+    $availableLicenses = LicenseTier::all();
+
+    return view('admin.licenses.index', compact('therapists', 'availableLicenses'));
+}
+
+
+    /**
+     * Assign a license manually to a therapist.
+     */
+public function assignLicense(Request $request, $therapistId)
+{
+	        // Check if the user is an admin
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return redirect('/')->with('error', 'Unauthorized access');
+        }
+    // Validate the request
+    $request->validate([
+        'license_tier_name' => 'required|exists:license_tiers,name',
+    ]);
+
+    // Find the therapist
+    $therapist = User::findOrFail($therapistId);
+
+    // Find the license tier by name
+    $licenseTier = LicenseTier::where('name', $request->license_tier_name)->firstOrFail();
+
+    // Calculate expiration date: now + duration_days from the license tier
+    $expirationDate = now()->addDays($licenseTier->duration_days);
+
+    // Update or create a license for the therapist
+    $license = UserLicense::updateOrCreate(
+        ['user_id' => $therapist->id],
+        [
+            'license_tier_id' => $licenseTier->id,
+            'start_date' => now(),
+            'expiration_date' => $expirationDate,
+        ]
+    );
+
+    // Log the license history
+    LicenseHistory::create([
+        'user_id' => $therapist->id,
+        'license_tier_id' => $licenseTier->id,
+        'assigned_by' => auth()->user()->id, // The admin assigning the license
+        'expires_at' => $expirationDate,
+		'start_date' => now(),
+    ]);
+
+    return redirect()->route('admin.license')->with('success', 'License assigned successfully!');
+}
+
+
 }
