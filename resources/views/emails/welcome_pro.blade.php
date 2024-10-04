@@ -27,7 +27,7 @@ Nous sommes ravis de vous accueillir parmi nos professionnels sur **{{ config('a
 Accéder à mon espace pro
 @endcomponent
 
-Si vous avez des questions ou besoin d'assistance, n'hésitez pas à nous contacter ou à consulter notre [Centre d'aide]({{ route('help-center') }}).
+Si vous avez des questions ou besoin d'assistance, n'hésitez pas à nous contacter ou à consulter notre [Centre d'aide]({{ route('dashboard-pro') }}).
 
 Nous vous souhaitons une excellente expérience sur **{{ config('app.name') }}** !
 
