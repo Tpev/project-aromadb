@@ -39,6 +39,13 @@
                 <h4>Sessions Last Month</h4>
                 <p>{{ $sessionsLastMonth }}</p>
             </div>
+        </div>        <!-- Row for Last Period's KPIs -->
+        <div class="stat-grid">
+		            <div class="stat-box">
+                <h4>Sessions Total</h4>
+                <p>{{ {{ $sessionsTotal }} }}</p>
+            </div>
+
         </div>
 
         <h1 class="page-title">Liste des Utilisateurs</h1>
