@@ -30,6 +30,7 @@ class WelcomeProMail extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.welcome_pro');
+        return $this->subject('Bienvenue chez ' . config('app.name') . ' !') // Définir le sujet de l'e-mail
+                    ->markdown('emails.welcome_pro');
     }
 }
