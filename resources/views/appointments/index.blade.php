@@ -6,8 +6,7 @@
         </h2>
     </x-slot>
 
-    <!-- Inclure le CSS compilé -->
-    <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+  
 
     <!-- Vos styles personnalisés -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
