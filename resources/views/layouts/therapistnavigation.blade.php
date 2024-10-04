@@ -29,7 +29,12 @@
                     </x-nav-link>
                     <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Factures') }}
-                    </x-nav-link>
+                    </x-nav-link>                    
+					
+					<x-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+						{{ __('Portail') }}
+					</x-nav-link>
+
                 </div>
             </div>
 
@@ -99,7 +104,11 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Factures') }}
-            </x-responsive-nav-link>
+            </x-responsive-nav-link>            
+			
+			<x-responsive-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+						{{ __('Portail') }}
+			</x-responsive-nav-link>
         </div>
 
         <div class="pt-4 pb-1 border-t border-gray-200">
