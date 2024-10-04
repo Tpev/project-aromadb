@@ -12,6 +12,11 @@ use App\Models\Availability;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\AppointmentCreatedPatientMail;
+use App\Mail\AppointmentCreatedTherapistMail;
+
+
 
 class AppointmentController extends Controller
 {
@@ -47,43 +52,65 @@ public function index()
 
 public function store(Request $request)
 {
-    // Validate the request
+    // Valider la requête
     $request->validate([
         'client_profile_id' => 'required|exists:client_profiles,id',
-        'appointment_date' => 'required|date',  // Validating date
-        'appointment_time' => 'required',      // Validating time separately
+        'appointment_date' => 'required|date',  // Validation de la date
+        'appointment_time' => 'required',      // Validation de l'heure séparément
         'status' => 'required|string',
         'notes' => 'nullable|string',
-        'product_id' => 'required|exists:products,id',  // Now required and linked to a Prestation
+        'product_id' => 'required|exists:products,id',  // Maintenant requis et lié à une Prestation
     ]);
-	$therapistId = Auth::id();
+    $therapistId = Auth::id();
 
-    // Get the product (Prestation) and its duration
+    // Récupérer le produit (Prestation) et sa durée
     $product = Product::findOrFail($request->product_id);
     $duration = $product->duration;
 
-    // Combine date and time into a single datetime
+    // Combiner la date et l'heure en un seul datetime
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
 
-    // Check availability using the product's duration
-    if (!$this->isAvailable($appointmentDateTime, $duration,$therapistId
-)) {
+    // Vérifier la disponibilité en utilisant la durée du produit
+    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId)) {
         return redirect()->back()->withErrors(['appointment_date' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])->withInput();
     }
 
-    // Store the appointment
-    Appointment::create([
+    // Enregistrer le rendez-vous
+    $appointment = Appointment::create([
         'client_profile_id' => $request->client_profile_id,
-        'user_id' => Auth::id(),
-        'appointment_date' => $appointmentDateTime, // Save the combined date and time
+        'user_id' => $therapistId,
+        'appointment_date' => $appointmentDateTime, // Enregistrer la date et l'heure combinées
         'status' => $request->status,
         'notes' => $request->notes,
-        'product_id' => $request->product_id,  // Link the product
-        'duration' => $duration,  // Add duration
+        'product_id' => $request->product_id,  // Lier le produit
+        'duration' => $duration,  // Ajouter la durée
     ]);
+
+    // Envoyer les notifications par e-mail
+    try {
+        // Récupérer l'e-mail du patient
+        $patientEmail = $appointment->clientProfile->email;
+
+        // Envoyer un e-mail au patient
+        if ($patientEmail) {
+            Mail::to($patientEmail)->send(new AppointmentCreatedPatientMail($appointment));
+        }
+
+        // Récupérer l'e-mail du thérapeute
+        $therapistEmail = Auth::user()->email;
+
+        // Envoyer un e-mail au thérapeute
+        if ($therapistEmail) {
+            Mail::to($therapistEmail)->send(new AppointmentCreatedTherapistMail($appointment));
+        }
+    } catch (\Exception $e) {
+        // Gérer l'exception (par exemple, enregistrer l'erreur)
+        Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
+    }
 
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
+
 
 public function show(Appointment $appointment)
 {
