@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Carbon\Carbon;
+use App\Mail\WelcomeProMail;
+use Illuminate\Support\Facades\Mail;
+
 
 class RegisteredUserController extends Controller
 {
@@ -62,37 +65,41 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function storepro(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+   public function storepro(Request $request): RedirectResponse
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    ]);
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'is_therapist' => true,  // Set to true for therapist registration
+    ]);
+
+    // Fetch the trial license tier
+    $trialLicenseTier = LicenseTier::where('is_trial', true)->first();
+
+    if ($trialLicenseTier) {
+        // Assign a trial license to the user
+        UserLicense::create([
+            'user_id' => $user->id,
+            'license_tier_id' => $trialLicenseTier->id,
+            'start_date' => Carbon::now(),
+            'expiration_date' => Carbon::now()->addDays($trialLicenseTier->trial_duration_days), // Set expiration based on trial duration
         ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'is_therapist' => true,  // Set to true for therapist registration
-        ]);
-
-        // Fetch the trial license tier
-        $trialLicenseTier = LicenseTier::where('is_trial', true)->first();
-
-        if ($trialLicenseTier) {
-            // Assign a trial license to the user
-            UserLicense::create([
-                'user_id' => $user->id,
-                'license_tier_id' => $trialLicenseTier->id,
-                'start_date' => Carbon::now(),
-                'expiration_date' => Carbon::now()->addDays($trialLicenseTier->trial_duration_days), // Set expiration based on trial duration
-            ]);
-        }
-
-        event(new Registered($user));
-        Auth::login($user);
-
-        return redirect()->route('onboarding');
     }
+
+    event(new Registered($user));
+    Auth::login($user);
+
+    // Envoyer l'e-mail de bienvenue
+    Mail::to($user->email)->send(new WelcomeProMail($user));
+
+    return redirect()->route('onboarding');
+}
+
 }
