@@ -75,16 +75,14 @@
                 initialView: 'dayGridMonth',
                 themeSystem: 'bootstrap',
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left: 'prev,next',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 buttonText: {
-                    today:    'Aujourd\'hui',
                     month:    'Mois',
                     week:     'Semaine',
-                    day:      'Jour',
-                    list:     'Liste'
+                    day:      'Jour', 
                 },
                 events: @json($events),
                 eventClick: function(info) {
