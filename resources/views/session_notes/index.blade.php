@@ -36,7 +36,8 @@
                         <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('session_notes.show', $sessionNote->id) }}');">
                             <td>{{ $sessionNote->clientProfile->first_name }} {{ $sessionNote->clientProfile->last_name }}</td>
                             <td>{{ $sessionNote->created_at->format('d/m/Y') }}</td>
-                            <td>{{ Str::limit($sessionNote->note, 50) }}</td>
+							<td>{!! Str::limit(strip_tags($sessionNote->note), 50) !!}</td>
+
                             <td>
                                 <a href="{{ route('session_notes.edit', $sessionNote->id) }}" class="btn btn-secondary">Modifier</a>
                             </td>

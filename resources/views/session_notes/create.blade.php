@@ -1,3 +1,5 @@
+<!-- resources/views/session_notes/create.blade.php -->
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -9,13 +11,16 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouvelle Note de Session pour ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}</h1>
 
-            <form action="{{ route('session_notes.store', $clientProfile->id) }}" method="POST">
+            <form action="{{ route('session_notes.store', $clientProfile->id) }}" method="POST" id="session-note-form">
                 @csrf
 
                 <!-- Note -->
                 <div class="details-box">
                     <label class="details-label" for="note">{{ __('Note') }}</label>
-                    <textarea id="note" name="note" class="form-control" rows="5" required>{{ old('note') }}</textarea>
+                    <!-- Hidden input to store the HTML content -->
+                    <input type="hidden" name="note" id="note-input">
+                    <!-- Quill Editor Container -->
+                    <div id="quill-editor">{!! old('note') !!}</div>
                     @error('note')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -26,6 +31,53 @@
             </form>
         </div>
     </div>
+
+    <!-- Quill.js CDN -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <!-- Initialiser Quill -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var quill = new Quill('#quill-editor', {
+                theme: 'snow',
+                placeholder: 'Rédigez votre note de session ici...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Charger le contenu précédent si disponible
+            @if(old('note'))
+                quill.root.innerHTML = `{!! addslashes(old('note')) !!}`;
+            @endif
+
+            // Fonction pour mettre à jour le champ caché
+            function updateHiddenInput() {
+                var noteInput = document.querySelector('#note-input');
+                noteInput.value = quill.root.innerHTML;
+                console.log('Note Input Updated:', noteInput.value); // Debugging
+            }
+
+            // Mettre à jour le champ caché avant la soumission du formulaire
+            var form = document.querySelector('#session-note-form');
+            form.addEventListener('submit', function() {
+                updateHiddenInput();
+            });
+
+            // Optionnel : Mettre à jour le champ caché à chaque changement
+            quill.on('text-change', function() {
+                updateHiddenInput();
+            });
+        });
+    </script>
 
     <!-- Custom Styles -->
     <style>
@@ -60,9 +112,10 @@
             margin-bottom: 5px;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 10px;
+        /* Style pour le Quill Editor */
+        #quill-editor {
+            height: 200px;
+            background-color: #ffffff;
             border: 1px solid #ccc;
             border-radius: 5px;
         }

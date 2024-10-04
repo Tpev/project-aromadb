@@ -6,6 +6,7 @@ use App\Models\SessionNote;
 use App\Models\ClientProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Mews\Purifier\Facades\Purifier; // Importer le façade Purifier
 
 class SessionNoteController extends Controller
 {
@@ -14,17 +15,16 @@ class SessionNoteController extends Controller
     /**
      * Display a listing of session notes for a specific client profile.
      */
-		public function index(ClientProfile $clientProfile)
-		{
-			$this->authorize('view', $clientProfile);
+    public function index(ClientProfile $clientProfile)
+    {
+        $this->authorize('view', $clientProfile);
 
-			$sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)
-				->where('user_id', Auth::id())
-				->get();
+        $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)
+            ->where('user_id', Auth::id())
+            ->get();
 
-			return view('session_notes.index', compact('sessionNotes', 'clientProfile'));
-		}
-
+        return view('session_notes.index', compact('sessionNotes', 'clientProfile'));
+    }
 
     /**
      * Show the form for creating a new session note for a specific client.
@@ -45,13 +45,17 @@ class SessionNoteController extends Controller
         $request->validate([
             'note' => 'required|string',
         ]);
-
+			
+        // Purifier le contenu HTML
+        $clean_note = Purifier::clean($request->note);
+		
+		
         SessionNote::create([
             'client_profile_id' => $client_profile_id,
             'user_id' => Auth::id(),
-            'note' => $request->note,
+            'note' => $clean_note,
         ]);
-
+		
         return redirect()->route('session_notes.index', $client_profile_id)
             ->with('success', 'Session note created successfully.');
     }
@@ -87,7 +91,12 @@ class SessionNoteController extends Controller
             'note' => 'required|string',
         ]);
 
-        $sessionNote->update($request->only('note'));
+        // Purifier le contenu HTML
+        $clean_note = Purifier::clean($request->note);
+
+        $sessionNote->update([
+            'note' => $clean_note,
+        ]);
 
         return redirect()->route('session_notes.index', $sessionNote->client_profile_id)
             ->with('success', 'Session note updated successfully.');

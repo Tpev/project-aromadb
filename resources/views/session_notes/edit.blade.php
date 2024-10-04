@@ -1,3 +1,5 @@
+<!-- resources/views/session_notes/edit.blade.php -->
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -9,13 +11,17 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Modifier la note de séance pour') }} {{ $sessionNote->clientProfile->first_name }} {{ $sessionNote->clientProfile->last_name }}</h1>
 
-            <form action="{{ route('session_notes.update', $sessionNote->id) }}" method="POST">
+            <form action="{{ route('session_notes.update', $sessionNote->id) }}" method="POST" id="edit-session-note-form">
                 @csrf
                 @method('PUT')
 
+                <!-- Note -->
                 <div class="details-box">
                     <label class="details-label" for="note">{{ __('Contenu de la note') }}</label>
-                    <textarea id="note" name="note" class="form-control" required>{{ old('note', $sessionNote->note) }}</textarea>
+                    <!-- Hidden input to store the HTML content -->
+                    <input type="hidden" name="note" id="note-input">
+                    <!-- Quill Editor Container -->
+                    <div id="quill-editor">{!! old('note', $sessionNote->note) !!}</div>
                     @error('note')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -28,6 +34,52 @@
             </form>
         </div>
     </div>
+
+    <!-- Quill.js CDN -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <!-- Initialiser Quill.js et Synchroniser le Contenu -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialiser Quill Editor
+            var quill = new Quill('#quill-editor', {
+                theme: 'snow',
+                placeholder: 'Rédigez votre note de séance ici...',
+                modules: {
+                    toolbar: [
+                        [{ header: [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Charger le contenu existant dans Quill
+            var existingContent = `{!! old('note', addslashes($sessionNote->note)) !!}`;
+            quill.root.innerHTML = existingContent;
+
+            // Fonction pour mettre à jour le champ caché avant la soumission
+            function updateHiddenInput() {
+                var noteInput = document.querySelector('#note-input');
+                noteInput.value = quill.root.innerHTML;
+            }
+
+            // Mettre à jour le champ caché avant la soumission du formulaire
+            var form = document.querySelector('#edit-session-note-form');
+            form.addEventListener('submit', function() {
+                updateHiddenInput();
+            });
+
+            // Optionnel : Mettre à jour le champ caché à chaque changement
+            quill.on('text-change', function() {
+                updateHiddenInput();
+            });
+        });
+    </script>
 
     <!-- Custom Styles -->
     <style>
@@ -52,7 +104,7 @@
         }
 
         .details-box {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .details-label {
@@ -62,11 +114,13 @@
             margin-bottom: 5px;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 10px;
+        /* Style pour le Quill Editor */
+        #quill-editor {
+            height: 300px;
+            background-color: #ffffff;
             border: 1px solid #ccc;
             border-radius: 5px;
+            padding: 10px;
         }
 
         .btn-primary {
@@ -78,6 +132,7 @@
             text-decoration: none;
             display: inline-block;
             cursor: pointer;
+            margin-right: 10px;
         }
 
         .btn-primary:hover {
@@ -92,6 +147,7 @@
             border-radius: 5px;
             text-decoration: none;
             display: inline-block;
+            cursor: pointer;
         }
 
         .btn-secondary:hover {
@@ -102,6 +158,28 @@
         .text-red-500 {
             color: #e3342f;
             font-size: 0.875rem;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 600px) {
+            .details-title {
+                font-size: 1.5rem;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .btn-primary:last-child,
+            .btn-secondary:last-child {
+                margin-bottom: 0;
+            }
+
+            #quill-editor {
+                height: 200px;
+            }
         }
     </style>
 </x-app-layout>

@@ -127,7 +127,7 @@
                                     @foreach($sessionNotes as $sessionNote)
                                         <tr>
                                             <td>{{ $sessionNote->created_at }}</td>
-                                            <td style="word-wrap: break-word; max-width: 300px;">{{ $sessionNote->note }}</td>
+                                            <td>{!! Str::limit(strip_tags($sessionNote->note), 50) !!}</td>
                                             <td>
                                                 <a href="{{ route('session_notes.show', $sessionNote->id) }}" class="btn btn-primary">Voir</a>
                                                 <a href="{{ route('session_notes.edit', $sessionNote->id) }}" class="btn btn-secondary">Modifier</a>
