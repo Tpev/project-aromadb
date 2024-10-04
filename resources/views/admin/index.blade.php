@@ -43,7 +43,7 @@
         <div class="stat-grid">
 		            <div class="stat-box">
                 <h4>Sessions Total</h4>
-                <p>{{ {{ $sessionsTotal }} }}</p>
+                <p>{{ $sessionsTotal }}</p>
             </div>
 
         </div>
