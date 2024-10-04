@@ -1,18 +1,24 @@
 @component('mail::message')
-# Daily KPIs Report
+# Rapport Quotidien des KPIs
 
-Hello Admin,
+Bonjour Lapiz,
 
-Here are the KPIs for {{ \Carbon\Carbon::now()->format('d/m/Y') }}:
+Voici les KPIs pour le **{{ \Carbon\Carbon::now()->format('d/m/Y') }}** :
 
-- **Sessions Today:** {{ $kpis['sessionsToday'] }}
-- **Sessions Yesterday:** {{ $kpis['sessionsYesterday'] }}
-- **Sessions This Week:** {{ $kpis['sessionsThisWeek'] }}
-- **Sessions Last Week:** {{ $kpis['sessionsLastWeek'] }}
-- **Sessions This Month:** {{ $kpis['sessionsThisMonth'] }}
-- **Sessions Last Month:** {{ $kpis['sessionsLastMonth'] }}
-- **Total Sessions:** {{ $kpis['sessionsTotal'] }}
+@component('mail::table')
+| KPI                        | Valeur                       |
+| -------------------------- | ---------------------------- |
+| **Sessions Aujourd'hui**   | {{ $kpis['sessionsToday'] }} |
+| **Sessions Hier**          | {{ $kpis['sessionsYesterday'] }} |
+| **Sessions Cette Semaine** | {{ $kpis['sessionsThisWeek'] }} |
+| **Sessions Semaine Dernière** | {{ $kpis['sessionsLastWeek'] }} |
+| **Sessions Ce Mois**       | {{ $kpis['sessionsThisMonth'] }} |
+| **Sessions Mois Dernier**  | {{ $kpis['sessionsLastMonth'] }} |
+| **Total des Sessions**     | {{ $kpis['sessionsTotal'] }} |
+@endcomponent
 
-Thanks,<br>
+Cordialement,
+
+Le CLO (Chief Lapin Officier),<br>
 {{ config('app.name') }}
 @endcomponent
