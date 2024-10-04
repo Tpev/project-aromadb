@@ -61,8 +61,7 @@
         </div>
     </div>
 
-    <!-- Inclure le JS compilé -->
-    <script src="{{ mix('js/app.js') }}"></script>
+ 
 
     <!-- Vos scripts personnalisés -->
     <script>
