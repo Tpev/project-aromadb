@@ -1,5 +1,5 @@
 <?php
-// app/Console/Commands/SendOneHourReminder.php
+// app/Console/Commands/SendOneHourReminder.php test
 
 namespace App\Console\Commands;
 
