@@ -1,5 +1,5 @@
 <?php
-// app/Console/Commands/SendAppointmentReminders.php
+// app/Console/Commands/SendOneHourReminder.php
 
 namespace App\Console\Commands;
 
@@ -9,17 +9,17 @@ use App\Models\Appointment;
 use App\Mail\AppointmentReminderClientMail;
 use Carbon\Carbon;
 
-class SendAppointmentReminders extends Command
+class SendOneHourReminder extends Command
 {
-    protected $signature = 'email:send-appointment-reminders';
+    protected $signature = 'email:send-one-hour-reminder';
 
-    protected $description = 'Send email reminders 24 hours before appointments';
+    protected $description = 'Send email reminders 1 hour before appointments';
 
     public function handle()
     {
-        // Set the time window to find appointments that are between 23 and 25 hours away
-        $startReminderWindow = Carbon::now()->addHours(23);
-        $endReminderWindow = Carbon::now()->addHours(25);
+        // Set a time window to catch appointments between 50 and 70 minutes from now
+        $startReminderWindow = Carbon::now()->addMinutes(50);
+        $endReminderWindow = Carbon::now()->addMinutes(70);
 
         // Fetch all appointments happening in that window
         $appointments = Appointment::whereBetween('appointment_date', [
@@ -35,6 +35,6 @@ class SendAppointmentReminders extends Command
             }
         }
 
-        $this->info('Appointment reminder emails have been sent successfully.');
+        $this->info('One-hour reminder emails have been sent successfully.');
     }
 }

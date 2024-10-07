@@ -230,6 +230,12 @@ public function update(Request $request, Appointment $appointment)
         'duration' => $duration,  // Update duration based on the product
     ]);
 
+    // Send an email to the client about the updated appointment
+    if ($appointment->clientProfile && $appointment->clientProfile->email) {
+        Mail::to($appointment->clientProfile->email)
+            ->send(new AppointmentEditedClientMail($appointment));
+    }
+
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous mis à jour avec succès.');
 }
 
