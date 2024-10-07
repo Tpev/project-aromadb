@@ -213,26 +213,24 @@
     </div>
 
     {{-- Scripts pour les Graphiques --}}
-    @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-    @if(!empty($appointmentsPerMonth) && !empty($monthlyRevenueData))
-        // Parse the data to ensure it's numeric
-        const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);
-        const revenueData = @json(array_values($monthlyRevenueData)).map(Number);
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
 
-        // Rendez-vous par Mois
+        // Dynamic data from backend
+        const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);  // Convert to numbers
+        const revenueData = @json(array_values($monthlyRevenueData)).map(Number);  // Convert to numbers
+        const monthLabels = @json(array_values($months));  // Use the translated month names from PHP
+
+        // "Rendez-vous par Mois" Chart
         var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
         var appointmentsChart = new Chart(ctxAppointments, {
             type: 'bar',
             data: {
-                labels: @json(array_map(function($month) {
-                    return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
-                }, array_keys($appointmentsPerMonth))),
+                labels: monthLabels,  // Use month names
                 datasets: [{
                     label: '{{ __("Nombre de Rendez-vous") }}',
-                    data: appointmentsData, // Ensure it's numeric
+                    data: appointmentsData,
                     backgroundColor: 'rgba(100, 122, 11, 0.6)',
                     borderColor: 'rgba(100, 122, 11, 1)',
                     borderWidth: 1
@@ -258,7 +256,7 @@
                         titleColor: '#fff',
                         bodyColor: '#fff',
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.parsed.y + ' {{ __("Rendez-vous") }}';
                             }
                         }
@@ -267,17 +265,15 @@
             }
         });
 
-        // Revenus Mensuels
+        // "Revenus Mensuels" Chart
         var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
         var revenueChart = new Chart(ctxRevenue, {
             type: 'line',
             data: {
-                labels: @json(array_map(function($month) {
-                    return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
-                }, array_keys($monthlyRevenueData))),
+                labels: monthLabels,  // Use month names
                 datasets: [{
                     label: '{{ __("Revenus (€)") }}',
-                    data: revenueData, // Ensure it's numeric
+                    data: revenueData,
                     backgroundColor: 'rgba(133, 79, 56, 0.2)',
                     borderColor: 'rgba(133, 79, 56, 1)',
                     borderWidth: 2,
@@ -296,7 +292,7 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: function(value) {
+                            callback: function (value) {
                                 return value + '€';
                             }
                         }
@@ -311,7 +307,7 @@
                         titleColor: '#fff',
                         bodyColor: '#fff',
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.parsed.y + ' €';
                             }
                         }
@@ -319,16 +315,15 @@
                 }
             }
         });
-    @else
-        console.warn('Les données pour les graphiques ne sont pas disponibles.');
-    @endif
-});
 
-        </script>
-    @endpush
+    });
+</script>
+
+
+
 
     {{-- Styles personnalisés (si nécessaire) --}}
-    @push('styles')
+ 
         <style>
             /* Styles personnalisés adaptés à votre marque */
             .bg-brand-green {
@@ -353,11 +348,7 @@
                 max-height: 300px;
             }
         </style>
-    @endpush
+
 </x-app-layout>
 
 
-<script>
-    console.log(@json($appointmentsPerMonth));
-    console.log(@json($monthlyRevenueData));
-</script>

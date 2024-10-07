@@ -28,9 +28,12 @@ class DashboardController extends Controller
         $pendingInvoices = Invoice::where('user_id', $userId)->where('status', 'En Attente')->count();
         $monthlyRevenue = Invoice::where('user_id', $userId)
             ->whereMonth('invoice_date', Carbon::now()->month)
-            ->sum('total_amount'); // Utilisation de 'total_amount'
+            ->sum('total_amount');
 
-        // Graphiques
+        // Fill missing months with 0 for Appointments and Revenue Data
+        $allMonths = range(1, 12);  // Represents months from January (1) to December (12)
+
+        // Appointments per Month
         $appointmentsPerMonth = Appointment::where('user_id', $userId)
             ->select(DB::raw('MONTH(appointment_date) as month'), DB::raw('COUNT(*) as count'))
             ->whereYear('appointment_date', Carbon::now()->year)
@@ -39,6 +42,10 @@ class DashboardController extends Controller
             ->pluck('count', 'month')
             ->toArray();
 
+        // Ensure all months are present in the appointments data
+        $appointmentsPerMonth = array_replace(array_fill_keys($allMonths, 0), $appointmentsPerMonth);
+
+        // Monthly Revenue Data
         $monthlyRevenueData = Invoice::where('user_id', $userId)
             ->select(DB::raw('MONTH(invoice_date) as month'), DB::raw('SUM(total_amount) as revenue'))
             ->whereYear('invoice_date', Carbon::now()->year)
@@ -46,6 +53,14 @@ class DashboardController extends Controller
             ->orderBy('month')
             ->pluck('revenue', 'month')
             ->toArray();
+
+        // Ensure all months are present in the revenue data
+        $monthlyRevenueData = array_replace(array_fill_keys($allMonths, 0), $monthlyRevenueData);
+
+        // Format month numbers to names in French
+        $months = collect(range(1, 12))->mapWithKeys(function($month) {
+            return [$month => Carbon::create()->month($month)->translatedFormat('F')];
+        })->toArray();
 
         // Derniers Rendez-vous
         $recentAppointments = Appointment::where('user_id', $userId)
@@ -68,6 +83,7 @@ class DashboardController extends Controller
             'monthlyRevenue',
             'appointmentsPerMonth',
             'monthlyRevenueData',
+            'months',
             'recentAppointments',
             'recentInvoices'
         ));
