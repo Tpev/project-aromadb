@@ -352,3 +352,9 @@
         </style>
     @endpush
 </x-app-layout>
+
+
+<script>
+    console.log(@json($appointmentsPerMonth));
+    console.log(@json($monthlyRevenueData));
+</script>
