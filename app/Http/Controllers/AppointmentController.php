@@ -93,7 +93,7 @@ public function store(Request $request)
 
         // Envoyer un e-mail au patient
         if ($patientEmail) {
-            Mail::to($patientEmail)->send(new AppointmentCreatedPatientMail($appointment));
+            Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
         }
 
         // Récupérer l'e-mail du thérapeute
@@ -101,7 +101,7 @@ public function store(Request $request)
 
         // Envoyer un e-mail au thérapeute
         if ($therapistEmail) {
-            Mail::to($therapistEmail)->send(new AppointmentCreatedTherapistMail($appointment));
+            Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
         }
     } catch (\Exception $e) {
         // Gérer l'exception (par exemple, enregistrer l'erreur)
@@ -233,7 +233,7 @@ public function update(Request $request, Appointment $appointment)
     // Send an email to the client about the updated appointment
     if ($appointment->clientProfile && $appointment->clientProfile->email) {
         Mail::to($appointment->clientProfile->email)
-            ->send(new AppointmentEditedClientMail($appointment));
+            ->queue(new AppointmentEditedClientMail($appointment));
     }
 
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous mis à jour avec succès.');

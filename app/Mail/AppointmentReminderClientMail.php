@@ -7,8 +7,9 @@ use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class AppointmentReminderClientMail extends Mailable
+class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
