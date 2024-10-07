@@ -217,110 +217,113 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // Vérifiez que les données existent avant d'initialiser les graphiques
-                @if(!empty($appointmentsPerMonth) && !empty($monthlyRevenueData))
-                    // Rendez-vous par Mois
-                    var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
-                    var appointmentsChart = new Chart(ctxAppointments, {
-                        type: 'bar',
-                        data: {
-                            labels: @json(array_map(function($month) {
-                                return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
-                            }, array_keys($appointmentsPerMonth))),
-                            datasets: [{
-                                label: '{{ __("Nombre de Rendez-vous") }}',
-                                data: @json(array_values($appointmentsPerMonth)),
-                                backgroundColor: 'rgba(100, 122, 11, 0.6)', // Couleur de votre marque
-                                borderColor: 'rgba(100, 122, 11, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    precision:0,
-                                    ticks: {
-                                        stepSize: 1
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0,0,0,0.7)',
-                                    titleColor: '#fff',
-                                    bodyColor: '#fff',
-                                    callbacks: {
-                                        label: function(context) {
-                                            return context.parsed.y + ' {{ __("Rendez-vous") }}';
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
+    @if(!empty($appointmentsPerMonth) && !empty($monthlyRevenueData))
+        // Parse the data to ensure it's numeric
+        const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);
+        const revenueData = @json(array_values($monthlyRevenueData)).map(Number);
 
-                    // Revenus Mensuels
-                    var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-                    var revenueChart = new Chart(ctxRevenue, {
-                        type: 'line',
-                        data: {
-                            labels: @json(array_map(function($month) {
-                                return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
-                            }, array_keys($monthlyRevenueData))),
-                            datasets: [{
-                                label: '{{ __("Revenus (€)") }}',
-                                data: @json(array_values($monthlyRevenueData)),
-                                backgroundColor: 'rgba(133, 79, 56, 0.2)', // Couleur de votre marque
-                                borderColor: 'rgba(133, 79, 56, 1)',
-                                borderWidth: 2,
-                                fill: true,
-                                tension: 0.4,
-                                pointBackgroundColor: 'rgba(133, 79, 56, 1)',
-                                pointBorderColor: '#fff',
-                                pointHoverBackgroundColor: '#fff',
-                                pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        callback: function(value) {
-                                            return value + '€';
-                                        }
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(0,0,0,0.7)',
-                                    titleColor: '#fff',
-                                    bodyColor: '#fff',
-                                    callbacks: {
-                                        label: function(context) {
-                                            return context.parsed.y + ' €';
-                                        }
-                                    }
-                                }
+        // Rendez-vous par Mois
+        var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
+        var appointmentsChart = new Chart(ctxAppointments, {
+            type: 'bar',
+            data: {
+                labels: @json(array_map(function($month) {
+                    return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
+                }, array_keys($appointmentsPerMonth))),
+                datasets: [{
+                    label: '{{ __("Nombre de Rendez-vous") }}',
+                    data: appointmentsData, // Ensure it's numeric
+                    backgroundColor: 'rgba(100, 122, 11, 0.6)',
+                    borderColor: 'rgba(100, 122, 11, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' {{ __("Rendez-vous") }}';
                             }
                         }
-                    });
-                @else
-                    console.warn('Les données pour les graphiques ne sont pas disponibles.');
-                @endif
-            });
+                    }
+                }
+            }
+        });
+
+        // Revenus Mensuels
+        var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+        var revenueChart = new Chart(ctxRevenue, {
+            type: 'line',
+            data: {
+                labels: @json(array_map(function($month) {
+                    return \Carbon\Carbon::create()->month($month)->translatedFormat('F');
+                }, array_keys($monthlyRevenueData))),
+                datasets: [{
+                    label: '{{ __("Revenus (€)") }}',
+                    data: revenueData, // Ensure it's numeric
+                    backgroundColor: 'rgba(133, 79, 56, 0.2)',
+                    borderColor: 'rgba(133, 79, 56, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '€';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' €';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    @else
+        console.warn('Les données pour les graphiques ne sont pas disponibles.');
+    @endif
+});
+
         </script>
     @endpush
 
