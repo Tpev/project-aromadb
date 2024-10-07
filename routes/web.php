@@ -20,9 +20,7 @@ use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicTherapistController;
 use App\Http\Controllers\UserLicenseController;
-use App\Http\Controllers\TestEmailController;
 
-Route::get('/send-test-email', [TestEmailController::class, 'sendTestEmail']);
 
 
 
