@@ -1,7 +1,7 @@
 @component('mail::message')
 # Rapport Quotidien des KPIs
 
-Bonjour Lapiz,
+Bonjour les Lapiz,
 
 Voici les KPIs pour le **{{ \Carbon\Carbon::now()->format('d/m/Y') }}** :
 
