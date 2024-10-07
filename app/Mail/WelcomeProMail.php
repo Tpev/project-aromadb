@@ -5,9 +5,8 @@ namespace App\Mail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class WelcomeProMail extends Mailable implements ShouldQueue
+class WelcomeProMail extends Mailable 
 {
     use Queueable, SerializesModels;
 
