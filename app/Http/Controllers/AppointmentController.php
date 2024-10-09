@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
+use App\Mail\AppointmentEditedClientMail;
 
 
 
