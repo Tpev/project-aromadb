@@ -355,6 +355,29 @@ public function storePatient(Request $request)
         'product_id' => $request->product_id,
     ]);
 
+
+    // Envoyer les notifications par e-mail
+    try {
+        // Récupérer l'e-mail du patient
+        $patientEmail = $appointment->clientProfile->email;
+
+        // Envoyer un e-mail au patient
+        if ($patientEmail) {
+            Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+        }
+
+        // Récupérer l'e-mail du thérapeute
+        $therapistEmail = Auth::user()->email;
+
+        // Envoyer un e-mail au thérapeute
+        if ($therapistEmail) {
+            Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+        }
+    } catch (\Exception $e) {
+        // Gérer l'exception (par exemple, enregistrer l'erreur)
+        Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
+    }
+
     // Redirect to the confirmation page using the token
     return redirect()->route('appointments.showPatient', $appointment->token)
                      ->with('success', 'Votre rendez-vous a été réservé avec succès.');
