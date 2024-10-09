@@ -131,7 +131,9 @@ Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.st
     
     // Supprimer une facture
     Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy')->middleware('can:delete,invoice');
-
+	// Route to send invoice via email
+    Route::post('/invoices/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])
+         ->name('invoices.sendEmail');
     Route::put('/invoices/{invoice}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
 
 });

@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PDF;
 use Illuminate\Support\Facades\DB; // Import DB facade
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvoiceMail;
+
 
 
 class InvoiceController extends Controller
@@ -287,5 +290,37 @@ public function markAsPaid(Invoice $invoice)
     
     return redirect()->route('invoices.show', $invoice)->with('success', 'La facture a été marquée comme payée.');
 }
+
+public function sendEmail(Invoice $invoice)
+{
+    // Ensure the user is authorized to send this invoice
+
+
+    // Retrieve the client profile
+    $client = $invoice->clientProfile;
+
+    // Ensure the client has an email
+    if (!$client->email) {
+        return redirect()->back()->with('error', 'Le client n\'a pas d\'adresse email.');
+    }
+
+    // Get the therapist's name (assuming User has 'name' attribute)
+    $therapistName = Auth::user()->name;
+
+    // Send the email
+    try {
+        Mail::to($client->email)->send(new InvoiceMail($invoice, $therapistName));
+
+        return redirect()->route('invoices.show', $invoice->id)
+                         ->with('success', 'Facture envoyée par email avec succès.');
+    } catch (\Exception $e) {
+        // Log the error or handle it as needed
+        \Log::error('Error sending invoice email: ' . $e->getMessage());
+
+        return redirect()->route('invoices.show', $invoice->id)
+                         ->with('error', 'Une erreur est survenue lors de l\'envoi de l\'email.');
+    }
+}
+
 
 }

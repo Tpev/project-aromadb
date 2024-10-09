@@ -138,14 +138,24 @@
                 </div>
             @endif
 
-            <!-- Boutons d'action -->
-            <div class="row mt-4">
-                <div class="col-md-12 text-center">
-                    <a href="{{ route('invoices.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
-                    <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-secondary">{{ __('Modifier la facture') }}</a>
-                    <a href="{{ route('invoices.pdf', $invoice->id) }}" class="btn-primary">{{ __('Télécharger le PDF') }}</a>
-                </div>
-            </div>
+           
+<!-- Boutons d'action -->
+<div class="row mt-4">
+    <div class="col-md-12 text-center">
+        <a href="{{ route('invoices.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
+        <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-secondary">{{ __('Modifier la facture') }}</a>
+        <a href="{{ route('invoices.pdf', $invoice->id) }}" class="btn-primary">{{ __('Télécharger le PDF') }}</a>
+        
+        <!-- New Email Button -->
+        <form action="{{ route('invoices.sendEmail', $invoice->id) }}" method="POST" style="display: inline-block;">
+            @csrf
+            <button type="submit" class="btn-secondary" onclick="return confirm('Voulez-vous vraiment envoyer cette facture par email ?')">
+                <i class="fas fa-envelope"></i> {{ __('Envoyer par Email') }}
+            </button>
+        </form>
+    </div>
+</div>
+
         </div>
     </div>
 
