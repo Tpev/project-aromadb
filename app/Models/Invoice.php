@@ -46,4 +46,9 @@ protected $fillable = [
     {
         return $this->hasMany(InvoiceItem::class);
     }
+		    protected $casts = [
+        'invoice_date' => 'date', // Cast to a date (Carbon instance)
+        'due_date' => 'date',      // Cast to a date (Carbon instance)
+        // Add other casts if necessary
+    ];
 }
