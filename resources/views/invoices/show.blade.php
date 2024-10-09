@@ -1,15 +1,25 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Détails de la facture') }} - #{{ $invoice->id }}
+            {{ __('Détails de la facture') }} - #{{ $invoice->invoice_number }}
         </h2>
     </x-slot>
 
-    <!-- Lien vers Font Awesome pour les icônes -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
+    <!-- Flash Messages -->
     <div class="container-fluid mt-5">
         <div class="details-container mx-auto p-4">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <h1 class="details-title">{{ __('Facture n°') }} {{ $invoice->invoice_number }}</h1>
             
             <!-- Bouton pour marquer comme payée -->
@@ -39,7 +49,7 @@
                         <i class="fas fa-calendar-alt icon"></i>
                         <div class="invoice-details">
                             <p class="invoice-label">{{ __('Date de Facture') }}</p>
-                            <p class="invoice-value">{{ \Carbon\Carbon::parse($invoice->invoice_date)->translatedFormat('d F Y') }}</p>
+                            <p class="invoice-value">{{ $invoice->invoice_date->translatedFormat('d F Y') }}</p>
                         </div>
                     </div>
                 </div>
@@ -49,7 +59,7 @@
                             <i class="fas fa-calendar-check icon"></i>
                             <div class="invoice-details">
                                 <p class="invoice-label">{{ __('Date d\'échéance') }}</p>
-                                <p class="invoice-value">{{ \Carbon\Carbon::parse($invoice->due_date)->translatedFormat('d F Y') }}</p>
+                                <p class="invoice-value">{{ $invoice->due_date->translatedFormat('d F Y') }}</p>
                             </div>
                         </div>
                     </div>
@@ -72,6 +82,17 @@
                         </div>
                     </div>
                 </div>
+                @if($invoice->sent_at)
+                    <div class="col-md-4">
+                        <div class="invoice-box d-flex align-items-center">
+                            <i class="fas fa-envelope icon"></i>
+                            <div class="invoice-details">
+                                <p class="invoice-label">{{ __('Facture Envoyée le') }}</p>
+                                <p class="invoice-value">{{ $invoice->sent_at->format('d/m/Y à H:i') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Articles de la facture -->
@@ -138,24 +159,29 @@
                 </div>
             @endif
 
-           
-<!-- Boutons d'action -->
-<div class="row mt-4">
-    <div class="col-md-12 text-center">
-        <a href="{{ route('invoices.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
-        <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-secondary">{{ __('Modifier la facture') }}</a>
-        <a href="{{ route('invoices.pdf', $invoice->id) }}" class="btn-primary">{{ __('Télécharger le PDF') }}</a>
-        
-        <!-- New Email Button -->
-        <form action="{{ route('invoices.sendEmail', $invoice->id) }}" method="POST" style="display: inline-block;">
-            @csrf
-            <button type="submit" class="btn-secondary" onclick="return confirm('Voulez-vous vraiment envoyer cette facture par email ?')">
-                <i class="fas fa-envelope"></i> {{ __('Envoyer par Email') }}
-            </button>
-        </form>
-    </div>
-</div>
-
+            <!-- Boutons d'action -->
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <a href="{{ route('invoices.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
+                    <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-secondary">{{ __('Modifier la facture') }}</a>
+                    <a href="{{ route('invoices.pdf', $invoice->id) }}" class="btn-primary">{{ __('Télécharger le PDF') }}</a>
+                    
+                    <!-- New Email Button or Sent Indicator -->
+                    @if(is_null($invoice->sent_at))
+                        <form action="{{ route('invoices.sendEmail', $invoice->id) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <button type="submit" class="btn-secondary" onclick="return confirm('Voulez-vous vraiment envoyer cette facture par email ?')">
+                                <i class="fas fa-envelope"></i> {{ __('Envoyer par Email') }}
+                            </button>
+                        </form>
+                    @else
+                        <div class="email-sent-indicator" style="display: inline-block; margin-left: 10px;">
+                            <i class="fas fa-check-circle"></i> 
+                            {{ __('Facture envoyée') }} le {{ $invoice->sent_at->format('d/m/Y à H:i') }}
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
@@ -303,6 +329,18 @@
             color: #fff;
         }
 
+        /* Email Sent Indicator */
+        .email-sent-indicator {
+            font-size: 1rem;
+            color: #28a745; /* Bootstrap's success color */
+            display: flex;
+            align-items: center;
+        }
+
+        .email-sent-indicator i {
+            margin-right: 5px;
+        }
+
         /* Responsiveness */
         @media (max-width: 992px) {
             .invoice-info-boxes .col-md-4 {
@@ -342,6 +380,10 @@
 
             .totals-container p.total {
                 font-size: 1rem;
+            }
+
+            .email-sent-indicator {
+                font-size: 0.9rem;
             }
         }
     </style>

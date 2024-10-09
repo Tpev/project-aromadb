@@ -309,7 +309,10 @@ public function sendEmail(Invoice $invoice)
 
     // Send the email
     try {
-        Mail::to($client->email)->send(new InvoiceMail($invoice, $therapistName));
+        Mail::to($client->email)->queue(new InvoiceMail($invoice, $therapistName));
+
+        // Update sent_at
+        $invoice->update(['sent_at' => now()]);
 
         return redirect()->route('invoices.show', $invoice->id)
                          ->with('success', 'Facture envoyée par email avec succès.');
@@ -321,6 +324,7 @@ public function sendEmail(Invoice $invoice)
                          ->with('error', 'Une erreur est survenue lors de l\'envoi de l\'email.');
     }
 }
+
 
 
 }

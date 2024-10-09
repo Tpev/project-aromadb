@@ -29,6 +29,8 @@
                         <th onclick="sortTable(2)">Date de Facture <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(3)">Montant Total TTC <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(4)">Statut <i class="fas fa-sort"></i></th>
+                        <!-- New Column for Email Sent Status -->
+                        <th onclick="sortTable(5)">Envoyée <i class="fas fa-sort"></i></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,9 +38,21 @@
                         <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('invoices.show', $invoice->id) }}');">
                             <td>{{ $invoice->id }}</td>
                             <td>{{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}</td>
-                            <td>{{ $invoice->invoice_date}}</td>
+                            <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}</td>
                             <td>{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €</td>
                             <td>{{ ucfirst($invoice->status) }}</td>
+                            <!-- Email Sent Status Cell -->
+                            <td>
+                                @if(is_null($invoice->sent_at))
+                                    <span class="badge badge-secondary">
+                                        <i class="fas fa-times-circle"></i> Non Envoyée
+                                    </span>
+                                @else
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check-circle"></i> Envoyée le {{ \Carbon\Carbon::parse($invoice->sent_at)->format('d/m/Y à H:i') }}
+                                    </span>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -134,6 +148,59 @@
         .justify-content-between {
             justify-content: space-between;
         }
+
+        /* Badge Styles */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .badge-secondary {
+            background-color: #6c757d;
+            color: #fff;
+        }
+
+        .badge-success {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .badge i {
+            margin-right: 5px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            #search {
+                max-width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .d-flex {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .justify-content-between {
+                justify-content: flex-start;
+            }
+
+            .btn-primary {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .table-responsive {
+                padding: 10px;
+            }
+        }
     </style>
 
     <!-- JavaScript pour le tri, le filtrage et la redirection -->
@@ -190,6 +257,20 @@
                     } else if (n === 2) { // Date de Facture
                         xContent = new Date(xContent.split('/').reverse().join('-'));
                         yContent = new Date(yContent.split('/').reverse().join('-'));
+                    } else if (n === 5) { // Envoyée (sent_at)
+                        if (xContent.includes('non envoyée')) {
+                            xContent = 0;
+                        } else {
+                            let dateStr = xContent.split('le ')[1];
+                            xContent = new Date(dateStr.split(' à ')[0] + 'T' + dateStr.split(' à ')[1]);
+                        }
+
+                        if (yContent.includes('non envoyée')) {
+                            yContent = 0;
+                        } else {
+                            let dateStr = yContent.split('le ')[1];
+                            yContent = new Date(dateStr.split(' à ')[0] + 'T' + dateStr.split(' à ')[1]);
+                        }
                     }
 
                     if (dir === 'asc') {

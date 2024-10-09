@@ -19,7 +19,8 @@ protected $fillable = [
     'total_amount_with_tax',
     'status',
     'notes',
-	'invoice_number', // Add this line
+	'invoice_number',
+	'sent_at',	// Add this line
 ];
 
 
@@ -46,9 +47,9 @@ protected $fillable = [
     {
         return $this->hasMany(InvoiceItem::class);
     }
-		    protected $casts = [
-        'invoice_date' => 'date', // Cast to a date (Carbon instance)
-        'due_date' => 'date',      // Cast to a date (Carbon instance)
-        // Add other casts if necessary
+    protected $casts = [
+        'invoice_date' => 'date',
+        'due_date' => 'date',
+        'sent_at' => 'datetime',
     ];
 }
