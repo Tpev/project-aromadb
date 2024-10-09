@@ -212,7 +212,7 @@ public function update(Request $request, Appointment $appointment)
 
     // Combine date and time into a single datetime
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
-
+	$therapistId = Auth::id();
     // Check availability using the product's duration
     if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId)) {
         return redirect()->back()->withErrors([
