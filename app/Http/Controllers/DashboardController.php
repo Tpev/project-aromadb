@@ -74,17 +74,7 @@ class DashboardController extends Controller
             ->orderBy('invoice_date', 'desc')
             ->take(5)
             ->get();
-    // Example onboarding steps
-    // Exemple d'étapes d'onboarding
-    $onboardingSteps = [
-        'informations_entreprise' => true,
-        'disponibilites' => false,
-        'prestations' => true,
-        'ajout_clients' => false,
-        'generer_rendez_vous' => false,
-        'generer_facture' => true,
-        'profil_client' => false,
-    ];
+
 
 
         return view('dashboard-pro', compact(
@@ -97,8 +87,8 @@ class DashboardController extends Controller
             'monthlyRevenueData',
             'months',
             'recentAppointments',
-            'recentInvoices',
-			 'onboardingSteps'
+            'recentInvoices'
+	
         ));
     }
 }
