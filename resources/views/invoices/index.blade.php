@@ -36,7 +36,7 @@
                 <tbody>
                     @foreach($invoices as $invoice)
                         <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('invoices.show', $invoice->id) }}');">
-                            <td>{{ $invoice->id }}</td>
+                            <td>{{ $invoice->invoice_number }}</td>
                             <td>{{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}</td>
                             <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}</td>
                             <td>{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €</td>
