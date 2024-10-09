@@ -84,6 +84,7 @@
                     week:     'Semaine',
                     day:      'Jour', 
                 },
+				firstDay: 1, // **Added this line to start the week on Monday**
                 events: @json($events),
                 eventClick: function(info) {
                     if (info.event.url) {
