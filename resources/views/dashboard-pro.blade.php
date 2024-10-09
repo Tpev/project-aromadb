@@ -8,83 +8,277 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            {{-- KPIs --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Total Clients -->
-                <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-green-100 text-green-500 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m5-8l3 3 7-7" />
-                            </svg>
+            
+            {{-- KPIs and Onboarding Checklist --}}
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                
+                {{-- KPIs Section --}}
+                <div class="col-span-1 lg:col-span-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Total Clients -->
+                        <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 text-green-500 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5V4H2v16h5m5-8l3 3 7-7" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-gray-800">{{ $totalClients }}</div>
+                                    <div class="text-sm text-gray-500">{{ __('Clients') }}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $totalClients }}</div>
-                            <div class="text-sm text-gray-500">{{ __('Clients') }}</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Rendez-vous à Venir -->
-                <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-blue-100 text-blue-500 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m5 4H3a2 2 0 01-2-2V7a2 2 0 012-2h3m16 14v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m16 0H3" />
-                            </svg>
+                        <!-- Rendez-vous à Venir -->
+                        <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 text-blue-500 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m5 4H3a2 2 0 01-2-2V7a2 2 0 012-2h3m16 14v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m16 0H3" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-gray-800">{{ $upcomingAppointments }}</div>
+                                    <div class="text-sm text-gray-500">{{ __('Rendez-vous à Venir') }}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $upcomingAppointments }}</div>
-                            <div class="text-sm text-gray-500">{{ __('Rendez-vous à Venir') }}</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Factures Émises -->
-                <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-500 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h3m4 0a2 2 0 012 2v6m-6 0v-6m0 0V9m0 2h.01" />
-                            </svg>
+                        <!-- Factures Émises -->
+                        <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 text-yellow-500 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6a2 2 0 012-2h3m4 0a2 2 0 012 2v6m-6 0v-6m0 0V9m0 2h.01" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-gray-800">{{ $totalInvoices }}</div>
+                                    <div class="text-sm text-gray-500">{{ __('Factures Émises') }}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $totalInvoices }}</div>
-                            <div class="text-sm text-gray-500">{{ __('Factures Émises') }}</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Factures en Attente -->
-                <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-red-100 text-red-500 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        <!-- Factures en Attente -->
+                        <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-red-100 text-red-500 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-gray-800">{{ $pendingInvoices }}</div>
+                                    <div class="text-sm text-gray-500">{{ __('Factures en Attente') }}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $pendingInvoices }}</div>
-                            <div class="text-sm text-gray-500">{{ __('Factures en Attente') }}</div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Revenus Ce Mois -->
-                <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300 col-span-1 sm:col-span-2">
-                    <div class="flex items-center">
-                        <div class="p-3 rounded-full bg-purple-100 text-purple-500 mr-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v4a3 3 0 006 0v-4c0-1.657-1.343-3-3-3z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h.01M18 12h.01M9 12h6" />
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="text-2xl font-bold text-gray-800">{{ number_format($monthlyRevenue, 2, ',', ' ') }} €</div>
-                            <div class="text-sm text-gray-500">{{ __('Revenus Ce Mois') }}</div>
+                        <!-- Revenus Ce Mois -->
+                        <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300 col-span-1 sm:col-span-2">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-purple-100 text-purple-500 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v4a3 3 0 006 0v-4c0-1.657-1.343-3-3-3z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h.01M18 12h.01M9 12h6" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-gray-800">{{ number_format($monthlyRevenue, 2, ',', ' ') }} €</div>
+                                    <div class="text-sm text-gray-500">{{ __('Revenus Ce Mois') }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
+                {{-- Onboarding Checklist --}}
+                <div class="col-span-1">
+                    <div id="onboardingChecklist" class="bg-white shadow rounded-lg p-6 relative hover:shadow-lg transition-shadow duration-300">
+                        {{-- Bouton de fermeture --}}
+                        <button id="closeChecklist" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">{{ __('Checklist d\'intégration') }}</h3>
+                        <ul class="space-y-4">
+                            {{-- Items de la Checklist --}}
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['informations_entreprise'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Les informations de votre entreprise') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Noms, coordonnées, description de vos services, photo de profil, mentions légales, prise de rdv via la plateforme ou non, partage de vos coordonnées avec les potentiels clients') }}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['disponibilites'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Les disponibilités') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Quelles sont vos horaires d’ouverture?') }}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['prestations'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6v6" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Les prestations') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Que proposez vous lors de vos rendez-vous? Où se déroule la séance (en visio, à domicile, en cabinet)? Les séances sont-elles individuelles et/ou en groupes?') }}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['ajout_clients'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Ajout de vos clients') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Vous pouvez entrer toutes les informations relatives à un client (nom, coordonnées, notes…) Toutes ces informations sont entièrement sécurisées et consultables uniquement par vous-même.') }}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['generer_rendez_vous'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6v6" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Générer un rendez-vous') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Lorsque vous êtes contacté par un client, vous pouvez créer vous-même vos rendez-vous sur la plateforme, à partir des prestation et disponibilités que vous avez renseignées. Ces rendez-vous se retrouveront directement dans un calendrier clair.') }}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['generer_facture'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6v6" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Générer une facture') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Grâce aux informations complétées dans la fiche client et aux informations relatives à un rendez-vous, vous pouvez générer automatiquement une facture et l’adresser directement par email à votre client.') }}
+                                    </span>
+                                </div>
+                            </li>
+
+                            <li class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    @if($onboardingSteps['profil_client'])
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6v6" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="ml-3">
+                                    <a href="{{ route('dashboard-pro') }}" class="font-bold text-blue-600 hover:underline">
+                                        {{ __('Comment les clients voient votre profil') }}:
+                                    </a>
+                                    <span class="ml-1 text-gray-500">
+                                        {{ __('Une page “portail” telle que les clients la verront, où ils verront votre contact, vos services, vos avis… et où ils pourront prendre rendez-vous eux-mêmes, si vous acceptez cette fonctionnalité.') }}
+                                    </span>
+                                </div>
+                            </li>
+                        </ul>
+                        {{-- Lien pour voir toutes les étapes (optionnel) --}}
+                        <div class="mt-6">
+                            <a href="{{ route('dashboard-pro') }}" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                                {{ __('Voir toutes les étapes') }}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
 
             {{-- Graphiques --}}
@@ -212,143 +406,157 @@
         </div>
     </div>
 
-    {{-- Scripts pour les Graphiques --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
+    {{-- Scripts pour les Graphiques et la Checklist --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-        // Dynamic data from backend
-        const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);  // Convert to numbers
-        const revenueData = @json(array_values($monthlyRevenueData)).map(Number);  // Convert to numbers
-        const monthLabels = @json(array_values($months));  // Use the translated month names from PHP
+            // Gestion de la fermeture de la checklist
+            const checklist = document.getElementById('onboardingChecklist');
+            const closeBtn = document.getElementById('closeChecklist');
 
-        // "Rendez-vous par Mois" Chart
-        var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
-        var appointmentsChart = new Chart(ctxAppointments, {
-            type: 'bar',
-            data: {
-                labels: monthLabels,  // Use month names
-                datasets: [{
-                    label: '{{ __("Nombre de Rendez-vous") }}',
-                    data: appointmentsData,
-                    backgroundColor: 'rgba(100, 122, 11, 0.6)',
-                    borderColor: 'rgba(100, 122, 11, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
+            // Vérifier si la checklist a été fermée précédemment
+            if (localStorage.getItem('checklistDismissed') === 'true') {
+                checklist.style.display = 'none';
+            }
+
+            // Ajouter un écouteur d'événement au bouton de fermeture
+            closeBtn.addEventListener('click', function () {
+                checklist.style.display = 'none';
+                localStorage.setItem('checklistDismissed', 'true');
+            });
+
+            // Dynamic data from backend
+            const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);  // Convert to numbers
+            const revenueData = @json(array_values($monthlyRevenueData)).map(Number);  // Convert to numbers
+            const monthLabels = @json(array_values($months));  // Use the translated month names from PHP
+
+            // "Rendez-vous par Mois" Chart
+            var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
+            var appointmentsChart = new Chart(ctxAppointments, {
+                type: 'bar',
+                data: {
+                    labels: monthLabels,  // Use month names
+                    datasets: [{
+                        label: '{{ __("Nombre de Rendez-vous") }}',
+                        data: appointmentsData,
+                        backgroundColor: 'rgba(100, 122, 11, 0.6)',
+                        borderColor: 'rgba(100, 122, 11, 1)',
+                        borderWidth: 1
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
                     },
-                    tooltip: {
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        callbacks: {
-                            label: function (context) {
-                                return context.parsed.y + ' {{ __("Rendez-vous") }}';
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function (context) {
+                                    return context.parsed.y + ' {{ __("Rendez-vous") }}';
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
 
-        // "Revenus Mensuels" Chart
-        var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-        var revenueChart = new Chart(ctxRevenue, {
-            type: 'line',
-            data: {
-                labels: monthLabels,  // Use month names
-                datasets: [{
-                    label: '{{ __("Revenus (€)") }}',
-                    data: revenueData,
-                    backgroundColor: 'rgba(133, 79, 56, 0.2)',
-                    borderColor: 'rgba(133, 79, 56, 1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: 'rgba(133, 79, 56, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function (value) {
-                                return value + '€';
+            // "Revenus Mensuels" Chart
+            var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+            var revenueChart = new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,  // Use month names
+                    datasets: [{
+                        label: '{{ __("Revenus (€)") }}',
+                        data: revenueData,
+                        backgroundColor: 'rgba(133, 79, 56, 0.2)',
+                        borderColor: 'rgba(133, 79, 56, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value + '€';
+                                }
                             }
                         }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
                     },
-                    tooltip: {
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        callbacks: {
-                            label: function (context) {
-                                return context.parsed.y + ' €';
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function (context) {
+                                    return context.parsed.y + ' €';
+                                }
                             }
                         }
                     }
                 }
-            }
+            });
+
         });
-
-    });
-</script>
-
-
-
+    </script>
 
     {{-- Styles personnalisés (si nécessaire) --}}
- 
-        <style>
-            /* Styles personnalisés adaptés à votre marque */
-            .bg-brand-green {
-                background-color: #647a0b; /* Couleur principale de votre marque */
-            }
+    <style>
+        /* Styles personnalisés adaptés à votre marque */
+        .bg-brand-green {
+            background-color: #647a0b; /* Couleur principale de votre marque */
+        }
 
-            .text-brand-green {
-                color: #647a0b; /* Couleur principale de votre marque */
-            }
+        .text-brand-green {
+            color: #647a0b; /* Couleur principale de votre marque */
+        }
 
-            .hover\:text-brand-orange:hover {
-                color: #854f38; /* Couleur d'accent de votre marque */
-            }
+        .hover\:text-brand-orange:hover {
+            color: #854f38; /* Couleur d'accent de votre marque */
+        }
 
-            /* Amélioration des tables */
-            table th, table td {
-                padding: 0.75rem 1rem;
-            }
+        /* Amélioration des tables */
+        table th, table td {
+            padding: 0.75rem 1rem;
+        }
 
-            /* Amélioration des graphiques */
-            canvas {
-                max-height: 300px;
-            }
-        </style>
+        /* Amélioration des graphiques */
+        canvas {
+            max-height: 300px;
+        }
+
+        /* Styles pour la checklist */
+        #onboardingChecklist a {
+            text-decoration: none;
+        }
+    </style>
 
 </x-app-layout>
-
-
