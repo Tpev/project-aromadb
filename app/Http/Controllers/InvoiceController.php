@@ -279,7 +279,7 @@ public function generatePDF(Invoice $invoice)
     $pdf = PDF::loadView('invoices.pdf', $data);
 
     // Télécharger le PDF avec un nom de fichier personnalisé
-    return $pdf->download('facture_' . $invoice->id . '.pdf');
+    return $pdf->download('facture_' . $invoice->invoice_number . '.pdf');
 }
 public function markAsPaid(Invoice $invoice)
 {
