@@ -8,6 +8,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PDF;
+use Illuminate\Support\Facades\DB; // Import DB facade
 
 
 class InvoiceController extends Controller
@@ -52,75 +53,93 @@ public function create(Request $request)
     /**
      * Stocke une nouvelle facture en base de données.
      */
-public function store(Request $request)
-{
-    // Validation des données
-    $validatedData = $request->validate([
-        'client_profile_id' => 'required|exists:client_profiles,id',
-        'invoice_date' => 'required|date',
-        'due_date' => 'nullable|date|after_or_equal:invoice_date',
-        'items.*.product_id' => 'required|exists:products,id',
-        'items.*.quantity' => 'required|integer|min:1',
-        'notes' => 'nullable|string',
-    ]);
-
-    // Créer la facture
-    $invoice = Invoice::create([
-        'client_profile_id' => $request->client_profile_id,
-        'user_id' => Auth::id(),
-        'invoice_date' => $request->invoice_date,
-        'due_date' => $request->due_date,
-        'total_amount' => 0, // Sera calculé
-        'total_tax_amount' => 0, // Sera calculé
-        'total_amount_with_tax' => 0, // Sera calculé
-        'status' => 'En attente',
-        'notes' => $request->notes,
-    ]);
-
-    $totalAmount = 0;
-    $totalTaxAmount = 0;
-
-    foreach ($request->items as $itemData) {
-        // Vérifie que le produit appartient à l'utilisateur
-        $product = Product::where('id', $itemData['product_id'])
-                          ->where('user_id', Auth::id())
-                          ->firstOrFail();
-
-        $quantity = $itemData['quantity'];
-        $unitPrice = $product->price;
-        $taxRate = $product->tax_rate;
-        $totalPrice = $unitPrice * $quantity;
-
-        $taxAmount = ($totalPrice * $taxRate) / 100;
-        $totalPriceWithTax = $totalPrice + $taxAmount;
-
-        $invoice->items()->create([
-            'product_id' => $product->id,
-            'description' => $product->name,
-            'quantity' => $quantity,
-            'unit_price' => $unitPrice,
-            'tax_rate' => $taxRate,
-            'tax_amount' => $taxAmount,
-            'total_price' => $totalPrice,
-            'total_price_with_tax' => $totalPriceWithTax,
+    public function store(Request $request)
+    {
+        // Validate the incoming request data
+        $validatedData = $request->validate([
+            'client_profile_id' => 'required|exists:client_profiles,id',
+            'invoice_date' => 'required|date',
+            'due_date' => 'nullable|date|after_or_equal:invoice_date',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'notes' => 'nullable|string',
         ]);
 
-        $totalAmount += $totalPrice;
-        $totalTaxAmount += $taxAmount;
+        // Use a transaction to ensure data integrity
+        $invoice = DB::transaction(function () use ($request) {
+            // Lock the invoices table for the current user to prevent race conditions
+            $lastInvoice = Invoice::where('user_id', Auth::id())
+                                  ->lockForUpdate()
+                                  ->orderBy('invoice_number', 'desc')
+                                  ->first();
+
+            // Determine the next invoice number
+            $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
+
+            // Create the invoice with the determined invoice_number
+            return Invoice::create([
+                'client_profile_id' => $request->client_profile_id,
+                'user_id' => Auth::id(),
+                'invoice_date' => $request->invoice_date,
+                'due_date' => $request->due_date,
+                'total_amount' => 0, // Will be calculated later
+                'total_tax_amount' => 0, // Will be calculated later
+                'total_amount_with_tax' => 0, // Will be calculated later
+                'status' => 'En attente',
+                'notes' => $request->notes,
+                'invoice_number' => $nextInvoiceNumber,
+            ]);
+        });
+
+        // Initialize totals
+        $totalAmount = 0;
+        $totalTaxAmount = 0;
+
+        // Iterate over each item in the invoice
+        foreach ($request->items as $itemData) {
+            // Ensure the product belongs to the authenticated user
+            $product = Product::where('id', $itemData['product_id'])
+                              ->where('user_id', Auth::id())
+                              ->firstOrFail();
+
+            $quantity = $itemData['quantity'];
+            $unitPrice = $product->price;
+            $taxRate = $product->tax_rate;
+            $totalPrice = $unitPrice * $quantity;
+
+            $taxAmount = ($totalPrice * $taxRate) / 100;
+            $totalPriceWithTax = $totalPrice + $taxAmount;
+
+            // Create the invoice item
+            $invoice->items()->create([
+                'product_id' => $product->id,
+                'description' => $product->name,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $taxAmount,
+                'total_price' => $totalPrice,
+                'total_price_with_tax' => $totalPriceWithTax,
+            ]);
+
+            // Accumulate totals
+            $totalAmount += $totalPrice;
+            $totalTaxAmount += $taxAmount;
+        }
+
+        // Calculate the total amount with tax
+        $totalAmountWithTax = $totalAmount + $totalTaxAmount;
+
+        // Update the invoice with the calculated totals
+        $invoice->update([
+            'total_amount' => $totalAmount,
+            'total_tax_amount' => $totalTaxAmount,
+            'total_amount_with_tax' => $totalAmountWithTax,
+        ]);
+
+        return redirect()->route('invoices.show', $invoice)
+                         ->with('success', 'Facture créée avec succès.');
     }
-
-    $totalAmountWithTax = $totalAmount + $totalTaxAmount;
-
-    // Mettre à jour le montant total
-    $invoice->update([
-        'total_amount' => $totalAmount,
-        'total_tax_amount' => $totalTaxAmount,
-        'total_amount_with_tax' => $totalAmountWithTax,
-    ]);
-
-    return redirect()->route('invoices.show', $invoice)
-                     ->with('success', 'Facture créée avec succès.');
-}
 
 
     /**

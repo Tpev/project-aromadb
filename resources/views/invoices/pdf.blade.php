@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Facture #{{ $invoice->id }}</title>
+    <title>Facture #{{ $invoice->invoice_number }}</title>
     <style>
         /* Styles pour le PDF */
         body {
@@ -85,7 +85,7 @@
     <div class="invoice-container">
         <!-- En-tête de la facture -->
         <div class="header">
-            <h1>Facture #{{ $invoice->id }}</h1>
+            <h1>Facture #{{ $invoice->invoice_number }}</h1>
         </div>
 
         <!-- Détails de l'entreprise et du client côte à côte -->
@@ -143,9 +143,9 @@
                     <th>Description</th>
                     <th>Qté</th>
                     <th>P.U. (€)</th>
-                    <th>Taxe (%)</th>
+                    <th>TVA (%)</th>
                     <th>Total HT (€)</th>
-                    <th>Montant Taxe (€)</th>
+                    <th>Montant TVA (€)</th>
                     <th>Total TTC (€)</th>
                 </tr>
             </thead>
@@ -167,7 +167,7 @@
 
         <!-- Montant total -->
         <p class="total"><strong>Total HT :</strong> {{ number_format($invoice->total_amount, 2, ',', ' ') }} €</p>
-        <p class="total"><strong>Total Taxe :</strong> {{ number_format($invoice->total_tax_amount, 2, ',', ' ') }} €</p>
+        <p class="total"><strong>Total TVA :</strong> {{ number_format($invoice->total_tax_amount, 2, ',', ' ') }} €</p>
         <p class="total"><strong>Total TTC :</strong> {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €</p>
 
         <!-- Notes -->

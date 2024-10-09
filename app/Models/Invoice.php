@@ -19,6 +19,7 @@ protected $fillable = [
     'total_amount_with_tax',
     'status',
     'notes',
+	'invoice_number', // Add this line
 ];
 
 

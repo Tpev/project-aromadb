@@ -10,7 +10,7 @@
 
     <div class="container-fluid mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Facture n°') }} {{ $invoice->id }}</h1>
+            <h1 class="details-title">{{ __('Facture n°') }} {{ $invoice->invoice_number }}</h1>
             
             <!-- Bouton pour marquer comme payée -->
             @if($invoice->status !== 'Payée')
