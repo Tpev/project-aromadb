@@ -154,11 +154,12 @@ public function show(Appointment $appointment)
 
         // Combine appointment date and time
         $appointmentDateTime = Carbon::parse($appointment->appointment_date);
-
+		$therapistId = Auth::id();
         // Get available slots for the current appointment date
         $date = $appointmentDateTime->format('Y-m-d');
-        $availableSlots = $this->getAvailableSlotsForEdit($date, $duration);
-
+        $availableSlots = $this->getAvailableSlotsForEdit($date, $duration, $therapistId );
+		
+		
         return view('appointments.edit', compact('appointment', 'clientProfiles', 'products', 'availableSlots'));
     }
 

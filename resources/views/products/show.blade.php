@@ -110,7 +110,7 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                             <tr>
-                                <th>{{ __('ID Facture') }}</th>
+                                <th>{{ __('Facture') }}</th>
                                 <th>{{ __('Client') }}</th>
                                 <th>{{ __('Date') }}</th>
                                 <th>{{ __('Montant Total (€)') }}</th>
@@ -120,7 +120,7 @@
                         <tbody>
                             @foreach($invoices as $invoice)
                                 <tr onclick="window.location='{{ route('invoices.show', $invoice->id) }}';">
-                                    <td>{{ $invoice->id }}</td>
+                                    <td>{{ $invoice->invoice_number }}</td>
                                     <td>{{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}</td>
                                     <td>{{ $invoice->invoice_date->format('d/m/Y') }}</td>
                                     <td>{{ number_format($invoice->total_amount, 2, ',', ' ') }}</td>
