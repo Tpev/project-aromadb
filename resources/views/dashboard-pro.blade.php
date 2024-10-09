@@ -227,20 +227,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            // Gestion de la fermeture de la checklist
-            const checklist = document.getElementById('onboardingChecklist');
-            const closeBtn = document.getElementById('closeChecklist');
 
-            // Vérifier si la checklist a été fermée précédemment
-            if (localStorage.getItem('checklistDismissed') === 'true') {
-                checklist.style.display = 'none';
-            }
-
-            // Ajouter un écouteur d'événement au bouton de fermeture
-            closeBtn.addEventListener('click', function () {
-                checklist.style.display = 'none';
-                localStorage.setItem('checklistDismissed', 'true');
-            });
 
             // Dynamic data from backend
             const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);  // Convert to numbers
