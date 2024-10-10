@@ -12,7 +12,7 @@ class InvoicePolicy
      */
     public function viewAny(User $user)
     {
-        return true;
+        return true; // Allow any authenticated user to view their invoices
     }
 
     /**
@@ -20,7 +20,7 @@ class InvoicePolicy
      */
     public function view(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id;
+        return $invoice->user_id === $user->id; // Only allow the owner to view the invoice
     }
 
     /**
@@ -28,7 +28,7 @@ class InvoicePolicy
      */
     public function create(User $user)
     {
-        return true; // Tous les utilisateurs authentifiés peuvent créer des factures
+        return true; // All authenticated users can create invoices
     }
 
     /**
@@ -36,7 +36,7 @@ class InvoicePolicy
      */
     public function update(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id;
+        return $invoice->user_id === $user->id; // Only allow the owner to update the invoice
     }
 
     /**
@@ -44,7 +44,7 @@ class InvoicePolicy
      */
     public function delete(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id;
+        return $invoice->user_id === $user->id; // Only allow the owner to delete the invoice
     }
 
     /**
@@ -52,7 +52,7 @@ class InvoicePolicy
      */
     public function restore(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id;
+        return $invoice->user_id === $user->id; // Only allow the owner to restore the invoice
     }
 
     /**
@@ -60,6 +60,6 @@ class InvoicePolicy
      */
     public function forceDelete(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id;
+        return $invoice->user_id === $user->id; // Only allow the owner to force delete the invoice
     }
 }
