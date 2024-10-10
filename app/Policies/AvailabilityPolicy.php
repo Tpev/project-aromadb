@@ -25,4 +25,9 @@ class AvailabilityPolicy
     {
         return $user->id === $availability->user_id;
     }
+		public function viewAny(User $user)
+{
+    // Only allow users who are therapists
+    return $user->is_therapist;
+}
 }

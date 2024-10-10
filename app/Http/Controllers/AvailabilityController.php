@@ -9,15 +9,19 @@ use Illuminate\Support\Facades\Auth;
 
 class AvailabilityController extends Controller
 {
+	use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
     /**
      * Affiche une liste des disponibilités de l'utilisateur authentifié.
      */
-    public function index()
-    {
-        $availabilities = Availability::where('user_id', Auth::id())->with('products')->get();
+public function index()
+{
+    $this->authorize('viewAny', Availability::class); // This checks if the user can view any availability
+    $availabilities = Availability::where('user_id', Auth::id())->with('products')->get();
 
-        return view('availabilities.index', compact('availabilities'));
-    }
+    return view('availabilities.index', compact('availabilities'));
+}
+
+
 
     /**
      * Affiche le formulaire pour créer une nouvelle disponibilité.
