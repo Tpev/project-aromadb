@@ -8,6 +8,7 @@ use App\Models\SessionNote;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Response;
 
 class ClientProfileController extends Controller
 {
@@ -81,8 +82,13 @@ class ClientProfileController extends Controller
         $appointments = $clientProfile->appointments; // Assuming the relation is defined
         $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
         $invoices = Invoice::where('client_profile_id', $clientProfile->id)->get();
+		// Fetch only the questionnaires belonging to the authenticated therapist
+		$responses = Response::with('questionnaire')
+		->where('client_profile_id', $clientProfile->id)
+		->get();
 
-        return view('client_profiles.show', compact('clientProfile', 'appointments', 'sessionNotes', 'invoices'));
+		
+		return view('client_profiles.show', compact('clientProfile', 'appointments', 'sessionNotes', 'invoices','responses'));
     }
 
     /**

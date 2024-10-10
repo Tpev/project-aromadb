@@ -141,6 +141,47 @@
                 </div>
             </div>
 
+<!-- Questionnaire Responses Section -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2 class="details-title">{{ __('Réponses aux Questionnaires de ce client') }}</h2>
+        <a href="{{ route('questionnaires.send.show', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Remplir / Envoyer un questionnaire') }}</a>
+        
+        @if($responses->isEmpty())
+            <p>Aucune réponse trouvée pour ce client.</p>
+        @else
+            <div class="table-responsive mx-auto">
+                <table class="table table-bordered table-hover" id="responsesTable">
+                    <thead>
+                        <tr>
+                            <th>Questionnaire</th>
+                            <th>Date de Soumission</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($responses as $response)
+                            <tr>
+                                <td>{{ $response->questionnaire->title }}</td>
+                                <td>{{ $response->created_at }}</td>
+                                <td>
+                                    @if($response->answers === '[]') <!-- Check if answers are empty -->
+                                        <span class="text-muted">{{ __('Pas encore rempli') }}</span>
+                                    @else
+                                        <a href="{{ route('questionnaires.responses.show', $response->id) }}" class="btn btn-primary">Voir Réponse</a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+</div>
+
+
+
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <a href="{{ route('client_profiles.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>

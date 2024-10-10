@@ -20,9 +20,36 @@ use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicTherapistController;
 use App\Http\Controllers\UserLicenseController;
+use App\Http\Controllers\QuestionnaireController;
 
 
 
+
+
+// Grouping routes that require authentication
+Route::middleware(['auth'])->group(function () {
+    Route::get('/questionnaires/send', [QuestionnaireController::class, 'showSendQuestionnaire'])->name('questionnaires.send.show');
+
+    // Define the route for sending a questionnaire
+    Route::post('/questionnaires/{questionnaire}/send', [QuestionnaireController::class, 'send'])->name('questionnaires.send');
+
+    // Define the route for storing responses
+    Route::post('/questionnaires/remplir/{token}/storeResponses', [QuestionnaireController::class, 'storeResponses'])->name('questionnaires.storeResponses');
+
+    // Route to view a specific response
+    Route::get('questionnaires/responses/{id}', [QuestionnaireController::class, 'showResponse'])->name('questionnaires.responses.show');
+
+    // Routes for managing questionnaires (CRUD operations)
+    Route::resource('questionnaires', QuestionnaireController::class); // All CRUD operations
+
+    Route::delete('questionnaires/{questionnaire}', [QuestionnaireController::class, 'destroy'])->name('questionnaires.destroy'); // Delete questionnaire
+
+    // Private access route to display all questionnaires (restricted to authenticated therapists)
+    Route::get('questionnaires', [QuestionnaireController::class, 'index'])->name('questionnaires.index'); // List all questionnaires
+});
+
+// Public access route for filling out a questionnaire using a token
+Route::get('questionnaires/remplir/{token}', [QuestionnaireController::class, 'fill'])->name('questionnaires.fill'); // Fill questionnaire
 
 
 // Routes publiques pour les pages des thérapeutes
