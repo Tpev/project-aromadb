@@ -14,17 +14,17 @@ class Product extends Model
         'name',
         'description',
         'price',
-        'tax_rate', // Ajout du champ tax_rate
-        'duration', // Duration in minutes
-        'can_be_booked_online', // Can be booked online
-        'visio', // Visio option
-        'adomicile', // At-home option
-        'dans_le_cabinet', // In-office option
-        'max_per_day', // Maximum bookings per day
+        'tax_rate',
+        'duration',
+        'can_be_booked_online',
+        'visio',
+        'adomicile',
+        'dans_le_cabinet',
+        'max_per_day',
     ];
 
     /**
-     * L'utilisateur (thérapeute) qui a créé le produit.
+     * The user (therapist) that created the product.
      */
     public function user()
     {
@@ -32,11 +32,18 @@ class Product extends Model
     }
 
     /**
-     * Obtenir les éléments de facture associés à ce produit.
+     * Get the invoice items associated with the product.
      */
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class);
     }
 
+    /**
+     * The availabilities associated with the product.
+     */
+    public function availabilities()
+    {
+        return $this->belongsToMany(Availability::class);
+    }
 }

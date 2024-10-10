@@ -168,7 +168,7 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
 
 
 // Public Routes for Patient Booking
-Route::get('/appointments/available-slots-patient', [AppointmentController::class, 'getAvailableSlotsForPatient'])->name('appointments.available-slots-patient');
+Route::post('/appointments/available-slots-patient', [AppointmentController::class, 'getAvailableSlotsForPatient'])->name('appointments.available-slots-patient');
 
 Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
    

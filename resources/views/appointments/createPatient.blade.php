@@ -263,57 +263,64 @@
 
     <!-- Custom Scripts -->
     <script>
-        $(document).ready(function() {
-            // Fetch available slots based on product selection and appointment date
-            function fetchAvailableSlots() {
-                let therapistId = $('input[name="therapist_id"]').val();
-                let date = $('#appointment_date').val();
-                let productId = $('#product_id').val();
-                let duration = $('#product_id option:selected').data('duration'); // Fetch duration from selected product
 
-                if (therapistId && date && duration) {
-                    $('#appointment_time').prop('disabled', true);
-                    $('.loading-spinner').show();
-                    $('#appointment_time').html('<option value="" disabled selected>Chargement...</option>');
+    $(document).ready(function() {
+        // Fonction pour récupérer les créneaux disponibles
+        function fetchAvailableSlots() {
+            let therapistId = $('input[name="therapist_id"]').val();
+            let date = $('#appointment_date').val();
+            let productId = $('#product_id').val();
+            // let duration = $('#product_id option:selected').data('duration'); // Pas nécessaire d'envoyer la durée
 
-                    $.ajax({
-                        url: '{{ route("appointments.available-slots-patient") }}',
-                        method: 'GET',
-                        data: {
-                            therapist_id: therapistId,
-                            date: date,
-                            duration: duration,
-                        },
-                        success: function(response) {
-                            $('.loading-spinner').hide();
-                            if (response.slots.length > 0) {
-                                let options = '<option value="" disabled selected>Sélectionner une heure</option>';
-                                response.slots.forEach(function(slot) {
-                                    options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
-                                });
-                                $('#appointment_time').html(options);
-                                $('#appointment_time').prop('disabled', false);
-                            } else {
-                                $('#appointment_time').html('<option value="" disabled selected>Aucun créneau disponible pour cette date.</option>');
-                            }
-                        },
-                        error: function(xhr) {
-                            $('.loading-spinner').hide();
-                            alert('Une erreur est survenue. Veuillez réessayer.');
+            if (therapistId && date && productId) {
+                $('#appointment_time').prop('disabled', true);
+                $('.loading-spinner').show();
+                $('#appointment_time').html('<option value="" disabled selected>Chargement...</option>');
+
+                $.ajax({
+                    url: '{{ route("appointments.available-slots-patient") }}',
+                    method: 'POST', // Changer de GET à POST
+                    data: {
+                        therapist_id: therapistId,
+                        date: date,
+                        product_id: productId, // Envoyer product_id au lieu de duration
+                        _token: '{{ csrf_token() }}' // Inclure le token CSRF
+                    },
+                    success: function(response) {
+                        $('.loading-spinner').hide();
+                        if(response.slots.length > 0){
+                            let options = '<option value="" disabled selected>Sélectionner une heure</option>';
+                            response.slots.forEach(function(slot){
+                                options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
+                            });
+                            $('#appointment_time').html(options);
+                            $('#appointment_time').prop('disabled', false);
+                        } else {
+                            $('#appointment_time').html('<option value="" disabled selected>Aucun créneau disponible pour cette date.</option>');
+                            $('#appointment_time').prop('disabled', true);
                         }
-                    });
-                } else {
-                    $('#appointment_time').html('<option value="" disabled selected>Sélectionner une heure</option>');
-                }
+                    },
+                    error: function(xhr){
+                        $('.loading-spinner').hide();
+                        console.error(xhr.responseText);
+                        alert('Une erreur est survenue lors de la récupération des créneaux disponibles.');
+                    }
+                });
+            } else {
+                $('#appointment_time').html('<option value="" disabled selected>Sélectionner une heure</option>');
+                $('#appointment_time').prop('disabled', true);
             }
+        }
 
-            // Trigger slot fetching when product or date changes
-            $('#product_id, #appointment_date').on('change', fetchAvailableSlots);
+        // Déclencher la récupération des créneaux lorsqu'il y a un changement dans la date ou la prestation
+        $('#product_id, #appointment_date').on('change', fetchAvailableSlots);
 
-            // Fetch slots if old input exists (e.g., after validation error)
-            @if(old('product_id') && old('appointment_date'))
-                fetchAvailableSlots();
-            @endif
-        });
-    </script>
+        // Récupérer les créneaux si des données anciennes existent (par exemple, après une erreur de validation)
+        @if(old('product_id') && old('appointment_date'))
+            fetchAvailableSlots();
+        @endif
+    });
+</script>
+
+ 
 </x-app-layout>
