@@ -44,6 +44,7 @@ class Product extends Model
      */
     public function availabilities()
     {
-        return $this->belongsToMany(Availability::class);
+        return $this->belongsToMany(Availability::class, 'availability_product');
     }
+	
 }

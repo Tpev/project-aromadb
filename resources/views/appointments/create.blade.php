@@ -134,6 +134,17 @@
             background: #854f38;
             color: white;
         }
+
+        .flatpickr-day.disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .flatpickr-day.disabled:hover {
+            background: #e9ecef;
+            color: #6c757d;
+        }
     </style>
 
     <div class="container mt-5">
@@ -259,80 +270,139 @@
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+    <!-- Flatpickr French Locale -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+
     <!-- Custom Scripts -->
-    <script>
-    $(document).ready(function() {
-        // Initialisation de Flatpickr sur le champ de date
-        flatpickr("#appointment_date", {
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            locale: {
-                firstDayOfWeek: 1, // Lundi comme premier jour de la semaine
-                weekdays: {
-                    shorthand: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
-                    longhand: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
-                },
-                months: {
-                    shorthand: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"],
-                    longhand: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+<!-- Custom Scripts -->
+<!-- Custom Scripts -->
+<!-- Custom Scripts -->
+<script>
+$(document).ready(function() {
+    // Initialisation de Flatpickr sur le champ de date
+    let availableDays = []; // Tableau pour stocker les jours disponibles (0 = Lundi, 6 = Dimanche)
+
+    const fp = flatpickr("#appointment_date", {
+        dateFormat: "Y-m-d", // Format de soumission (envoyé au serveur)
+        altInput: true, // Activer l'input alternatif pour l'affichage
+        altFormat: "d-m-Y", // Format d'affichage (dd mm yyyy)
+        minDate: "today",
+        locale: "fr",
+        disable: [], // Initialement, aucune date n'est désactivée
+        onChange: function(selectedDates, dateStr, instance) {
+            // Déclencher la récupération des créneaux disponibles
+            let productId = $('#product_id').val();
+            if (dateStr && productId) {
+                fetchAvailableSlots(dateStr, productId);
+            } else {
+                $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
+                $('#appointment_time').prop('disabled', true);
+            }
+        }
+    });
+
+    // Fonction pour récupérer les jours disponibles en fonction de la prestation sélectionnée
+    function loadAvailableDays(productId) {
+        $.ajax({
+            url: '{{ route("appointments.available-dates") }}',
+            method: 'POST',
+            data: {
+                product_id: productId,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.available_days && response.available_days.length > 0) {
+                    availableDays = response.available_days;
+                    console.log('Available Days:', availableDays); // Pour débogage
+
+                    // Mettre à jour Flatpickr pour désactiver les jours non disponibles
+                    fp.set('disable', [
+                        function(date) {
+                            // 0 = Lundi, 6 = Dimanche
+                            let dayOfWeek = (date.getDay() + 6) % 7; // Convertir les jours de JS en day_of_week
+                            return !availableDays.includes(dayOfWeek);
+                        }
+                    ]);
+                } else {
+                    // Si aucune date n'est disponible, désactiver toutes les dates
+                    fp.set('disable', [true]);
+                    alert('{{ __("Aucune date disponible pour cette prestation.") }}');
                 }
             },
-            onChange: function(selectedDates, dateStr, instance) {
-                // Déclencher la récupération des créneaux disponibles
-                let productId = $('#product_id').val();
-                if (dateStr && productId) {
-                    fetchAvailableSlots(dateStr, productId);
-                } else {
-                    $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
-                    $('#appointment_time').prop('disabled', true);
-                }
+            error: function(xhr, status, error) {
+                console.error('Error fetching available days:', error, xhr.responseText);
+                alert('{{ __("Une erreur est survenue lors de la récupération des jours disponibles. Veuillez réessayer.") }}');
             }
         });
+    }
 
-        // Fonction pour récupérer les créneaux disponibles
-        function fetchAvailableSlots(date, productId) {
-            $('#appointment_time').prop('disabled', true); // Désactiver le dropdown des heures pendant la récupération
-            $('.loading-spinner').show(); // Afficher le spinner de chargement
+    // Fonction pour récupérer les créneaux disponibles
+    function fetchAvailableSlots(date, productId) {
+        $('#appointment_time').prop('disabled', true); // Désactiver le dropdown des heures pendant la récupération
+        $('.loading-spinner').show(); // Afficher le spinner de chargement
 
-            $.ajax({
-                url: '{{ route("appointments.available-slots") }}', // Assurez-vous que cette route est bien définie en POST
-                method: 'POST', // Utiliser POST
-                data: {
-                    date: date,
-                    product_id: productId,
-                    _token: '{{ csrf_token() }}' // Inclure le token CSRF
-                },
-                success: function(response) {
-                    $('.loading-spinner').hide(); // Masquer le spinner après le succès
-                    if (response.slots && response.slots.length > 0) {
-                        let options = '<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>';
-                        response.slots.forEach(function(slot) {
-                            options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
-                        });
-                        $('#appointment_time').html(options); // Remplir le dropdown des heures
-                        $('#appointment_time').prop('disabled', false); // Activer le dropdown
-                    } else {
-                        $('#appointment_time').html('<option value="" disabled selected>{{ __("Aucun créneau disponible pour cette date.") }}</option>');
-                        $('#appointment_time').prop('disabled', true);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    $('.loading-spinner').hide(); // Masquer le spinner en cas d'erreur
-                    console.error('Error fetching available slots:', error, xhr.responseText);
-                    alert('{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles. Veuillez réessayer.") }}');
+        $.ajax({
+            url: '{{ route("appointments.available-slots") }}',
+            method: 'POST',
+            data: {
+                date: date,
+                product_id: productId,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                $('.loading-spinner').hide(); // Masquer le spinner après le succès
+                if (response.slots && response.slots.length > 0) {
+                    let options = '<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>';
+                    response.slots.forEach(function(slot) {
+                        options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
+                    });
+                    $('#appointment_time').html(options); // Remplir le dropdown des heures
+                    $('#appointment_time').prop('disabled', false); // Activer le dropdown
+                } else {
+                    $('#appointment_time').html('<option value="" disabled selected>{{ __("Aucun créneau disponible pour cette date.") }}</option>');
+                    $('#appointment_time').prop('disabled', true);
                 }
-            });
+            },
+            error: function(xhr, status, error) {
+                $('.loading-spinner').hide(); // Masquer le spinner en cas d'erreur
+                console.error('Error fetching available slots:', error, xhr.responseText);
+                alert('{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles. Veuillez réessayer.") }}');
+            }
+        });
+    }
+
+    // Déclencher le chargement des jours disponibles lorsque la prestation change
+    $('#product_id').change(function() {
+        let productId = $(this).val();
+        if (productId) {
+            loadAvailableDays(productId);
+            // Réinitialiser le champ date et les créneaux disponibles
+            fp.clear();
+            fp.setDate(null);
+            $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
+            $('#appointment_time').prop('disabled', true);
+        } else {
+            // Si aucune prestation n'est sélectionnée, réactiver toutes les dates
+            fp.set('disable', []);
+            $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
+            $('#appointment_time').prop('disabled', true);
         }
-
-        // Récupérer les créneaux si des données anciennes existent (par exemple après une erreur de validation)
-        @if(old('appointment_date') && old('product_id'))
-            fetchAvailableSlots('{{ old('appointment_date') }}', '{{ old('product_id') }}');
-        @endif
     });
-    </script>
 
-    <!-- Flatpickr French Locale (if not already handled in Flatpickr initialization) -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    // Charger les jours disponibles si une prestation et une date sont déjà sélectionnées (par exemple après une erreur de validation)
+    @if(old('product_id'))
+        loadAvailableDays('{{ old('product_id') }}');
+        @if(old('appointment_date'))
+            // Retarder l'appel pour s'assurer que Flatpickr est initialisé
+            setTimeout(function() {
+                fp.setDate('{{ old('appointment_date') }}', true);
+                fetchAvailableSlots('{{ old('appointment_date') }}', '{{ old('product_id') }}');
+            }, 500);
+        @endif
+    @endif
+});
+</script>
+
 
     <!-- Bootstrap JS (optional but recommended) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

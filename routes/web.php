@@ -169,11 +169,15 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
 
 // Public Routes for Patient Booking
 Route::post('/appointments/available-slots-patient', [AppointmentController::class, 'getAvailableSlotsForPatient'])->name('appointments.available-slots-patient');
+// Route AJAX pour récupérer les dates disponibles
+Route::post('/appointments/available-dates', [AppointmentController::class, 'getAvailableDates'])->name('appointments.available-dates');
+// Route pour récupérer les jours disponibles en fonction de la prestation et du thérapeute
+Route::post('/appointments/available-dates-patient', [AppointmentController::class, 'availableDatesPatient'])->name('appointments.available-dates-patient');
 
 Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
    
    
-    Route::get('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
+    Route::post('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
     Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/create', [App\Http\Controllers\AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/appointments', [App\Http\Controllers\AppointmentController::class, 'store'])->name('appointments.store');

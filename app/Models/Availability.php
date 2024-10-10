@@ -22,8 +22,10 @@ class Availability extends Model
     /**
      * The products associated with the availability.
      */
-    public function products()
+
+	
+	   public function products()
     {
-        return $this->belongsToMany(Product::class);
+        return $this->belongsToMany(Product::class, 'availability_product');
     }
 }

@@ -673,4 +673,52 @@ class AppointmentController extends Controller
 
         return response()->json(['slots' => $slots]);
     }
+
+
+
+    public function getAvailableDates(Request $request)
+    {
+        // Valider la requête
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+        $productId = $request->product_id;
+
+        // Récupérer les jours de la semaine disponibles pour la prestation sélectionnée
+        // Supposons que 'day_of_week' est un entier où 1 = Lundi, 7 = Dimanche
+        $availableDays = Availability::whereHas('products', function($query) use ($productId) {
+                                $query->where('products.id', $productId);
+                            })
+                            ->pluck('day_of_week')
+                            ->unique()
+                            ->toArray();
+
+        return response()->json(['available_days' => $availableDays]);
+    }
+
+    public function availableDatesPatient(Request $request)
+    {
+        // Valider la requête
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'therapist_id' => 'required|exists:users,id',
+        ]);
+
+        $productId = $request->product_id;
+        $therapistId = $request->therapist_id;
+
+        // Récupérer les disponibilités du thérapeute pour le produit sélectionné
+        $availableDays = Availability::whereHas('products', function($query) use ($productId) {
+                                $query->where('products.id', $productId);
+                            })
+                            ->where('user_id', $therapistId)
+                            ->pluck('day_of_week')
+                            ->unique()
+                            ->toArray();
+
+        return response()->json(['available_days' => $availableDays]);
+    }
+
+
 }

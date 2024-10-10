@@ -99,7 +99,7 @@ class RegisteredUserController extends Controller
     // Envoyer l'e-mail de bienvenue
     Mail::to($user->email)->send(new WelcomeProMail($user));
 
-    return redirect()->route('onboarding');
+    return redirect()->route('dashboard-pro');
 }
 
 }
