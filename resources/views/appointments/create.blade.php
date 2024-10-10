@@ -48,7 +48,8 @@
                 <!-- Appointment Date -->
                 <div class="details-box form-section">
                     <label class="details-label" for="appointment_date">{{ __('Date du Rendez-vous') }}</label>
-                    <input type="date" id="appointment_date" name="appointment_date" class="form-control" value="{{ old('appointment_date') }}" required>
+                                <input type="date" id="appointment_date" name="appointment_date" class="form-control" value="{{ old('appointment_date') }}" required
+                        min="{{ \Carbon\Carbon::today()->toDateString() }}">
                     @error('appointment_date')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -74,9 +75,9 @@
                 <div class="details-box form-section">
                     <label class="details-label" for="status">{{ __('Statut') }}</label>
                     <select id="status" name="status" class="form-control" required>
-                        <option value="scheduled" {{ old('status') == 'scheduled' ? 'selected' : '' }}>{{ __('Programmé') }}</option>
-                        <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>{{ __('Complété') }}</option>
-                        <option value="canceled" {{ old('status') == 'canceled' ? 'selected' : '' }}>{{ __('Annulé') }}</option>
+                        <option value="Programmé" {{ old('status') == 'Programmé' ? 'selected' : '' }}>{{ __('Programmé') }}</option>
+                        <option value="Complété" {{ old('status') == 'Complété' ? 'selected' : '' }}>{{ __('Complété') }}</option>
+                        <option value="Annulé" {{ old('status') == 'Annulé' ? 'selected' : '' }}>{{ __('Annulé') }}</option>
                     </select>
                     @error('status')
                         <p class="text-red-500">{{ $message }}</p>

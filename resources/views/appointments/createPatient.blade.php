@@ -151,7 +151,7 @@
                     <p>{{ $therapist->company_name }}</p>
                 </div>
 
-                <!-- Prestation (Optional, only prestations that can be booked online) -->
+                <!-- Prestation (Only prestations that can be booked online) -->
                 @if($products->count() > 0)
                     <div class="details-box form-section">
                         <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
@@ -210,7 +210,7 @@
                 <!-- Appointment Date -->
                 <div class="details-box form-section">
                     <label class="details-label" for="appointment_date">{{ __('Date du Rendez-vous') }}</label>
-                    <input type="date" id="appointment_date" name="appointment_date" class="form-control" value="{{ old('appointment_date') }}" required>
+                    <input type="date" id="appointment_date" name="appointment_date" class="form-control" value="{{ old('appointment_date') }}" required min="{{ date('Y-m-d') }}">
                     @error('appointment_date')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -322,5 +322,5 @@
     });
 </script>
 
- 
+
 </x-app-layout>

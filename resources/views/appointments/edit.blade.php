@@ -176,9 +176,9 @@
                 <div class="details-box form-section">
                     <label class="details-label" for="status">{{ __('Statut') }}</label>
                     <select id="status" name="status" class="form-control" required>
-                        <option value="scheduled" {{ old('status', $appointment->status) == 'scheduled' ? 'selected' : '' }}>{{ __('Programmé') }}</option>
-                        <option value="completed" {{ old('status', $appointment->status) == 'completed' ? 'selected' : '' }}>{{ __('Complété') }}</option>
-                        <option value="canceled" {{ old('status', $appointment->status) == 'canceled' ? 'selected' : '' }}>{{ __('Annulé') }}</option>
+                        <option value="Programmé" {{ old('status', $appointment->status) == 'Programmé' ? 'selected' : '' }}>{{ __('Programmé') }}</option>
+                        <option value="Complété" {{ old('status', $appointment->status) == 'Complété' ? 'selected' : '' }}>{{ __('Complété') }}</option>
+                        <option value="Annulé" {{ old('status', $appointment->status) == 'Annulé' ? 'selected' : '' }}>{{ __('Annulé') }}</option>
                     </select>
                     @error('status')
                         <p class="text-red-500">{{ $message }}</p>

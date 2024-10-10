@@ -500,7 +500,7 @@ class AppointmentController extends Controller
             'client_profile_id' => $clientProfile->id,
             'user_id' => $therapist->id, // Assign to the therapist
             'appointment_date' => $appointmentDateTime,
-            'status' => 'pending', // Default status
+            'status' => 'Programmé', // Default status
             'notes' => $request->notes,
             'type' => $request->type,
             'duration' => $duration,
