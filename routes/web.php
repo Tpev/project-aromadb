@@ -32,11 +32,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Define the route for sending a questionnaire
     Route::post('/questionnaires/{questionnaire}/send', [QuestionnaireController::class, 'send'])->name('questionnaires.send');
-
-    // Define the route for storing responses
-    Route::post('/questionnaires/remplir/{token}/storeResponses', [QuestionnaireController::class, 'storeResponses'])->name('questionnaires.storeResponses');
-
-    // Route to view a specific response
+ // Route to view a specific response
     Route::get('questionnaires/responses/{id}', [QuestionnaireController::class, 'showResponse'])->name('questionnaires.responses.show');
 
     // Routes for managing questionnaires (CRUD operations)
@@ -50,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
 
 // Public access route for filling out a questionnaire using a token
 Route::get('questionnaires/remplir/{token}', [QuestionnaireController::class, 'fill'])->name('questionnaires.fill'); // Fill questionnaire
+// Define the route for storing responses
+Route::post('/questionnaires/remplir/{token}/storeResponses', [QuestionnaireController::class, 'storeResponses'])->name('questionnaires.storeResponses');
 
 
 // Routes publiques pour les pages des thérapeutes
