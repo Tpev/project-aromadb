@@ -48,6 +48,9 @@ Route::middleware(['auth'])->group(function () {
 Route::get('questionnaires/remplir/{token}', [QuestionnaireController::class, 'fill'])->name('questionnaires.fill'); // Fill questionnaire
 // Define the route for storing responses
 Route::post('/questionnaires/remplir/{token}/storeResponses', [QuestionnaireController::class, 'storeResponses'])->name('questionnaires.storeResponses');
+Route::get('/thank-you', function () {
+    return view('thank_you'); 
+})->name('thank_you');
 
 
 // Routes publiques pour les pages des thérapeutes

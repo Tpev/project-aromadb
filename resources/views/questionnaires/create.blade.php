@@ -44,10 +44,8 @@
                                     <div class="col-md-4">
                                         <select name="questions[0][type]" class="form-control question-type" required onchange="updateQuestionType(this)">
                                             <option value="text">{{ __('Texte') }}</option>
-                                            <option value="number">{{ __('Numéro') }}</option>
                                             <option value="multiple_choice">{{ __('Choix multiple') }}</option>
-                                            <option value="date">{{ __('Date') }}</option>
-                                            <option value="true_false">{{ __('Vrai/Faux') }}</option>
+
                                         </select>
                                     </div>
                                     <div class="col-md-2">

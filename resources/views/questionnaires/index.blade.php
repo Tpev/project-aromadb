@@ -32,7 +32,7 @@
                 </thead>
                 <tbody>
                     @foreach($questionnaires as $questionnaire)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('questionnaires.show', $questionnaire->id) }}');">
+                        <tr>
                             <td>{{ $questionnaire->title }}</td>
                             <td>{{ $questionnaire->description ?? __('Aucune description') }}</td>
                             <td>{{ $questionnaire->created_at->format('d/m/Y') }}</td>
