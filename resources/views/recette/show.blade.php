@@ -193,6 +193,12 @@
             <div class="details-box">
                 <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Explication</label>
                 <p class="details-value">{{ $recette->Explication }}</p>
+            </div>            
+			
+			<!-- Explication section after ingredients and contre indications -->
+            <div class="details-box">
+                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Note</label>
+                <p class="details-value">{{ $recette->note }}</p>
             </div>
 
             <a href="{{ route('recettes.index') }}" class="btn btn-primary mt-4">&larr; Retour à la liste</a>

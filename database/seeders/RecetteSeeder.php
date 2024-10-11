@@ -68,6 +68,7 @@ class RecetteSeeder extends Seeder
                     'IngredientsHV' => $record['IngredientsHV'] ?? null,
                     'IngredientsTisane' => $record['IngredientsTisane'] ?? null,
                     'Explication' => $record['Explication'] ?? null,
+                    'note' => $record['Note'] ?? null,
                 ]);
             } catch (Exception $e) {
                 echo "Error inserting record: " . $e->getMessage() . PHP_EOL;
