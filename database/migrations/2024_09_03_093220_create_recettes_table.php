@@ -17,6 +17,7 @@ class CreateRecettesTable extends Migration
             $table->text('IngredientsHV');
             $table->text('IngredientsTisane');
             $table->text('Explication');
+			$table->text('note')->nullable(); // Add the 'note' field
             $table->timestamps();
         });
     }
