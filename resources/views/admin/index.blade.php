@@ -57,10 +57,10 @@
                 <th class="text-center">User ID</th>
                 <th class="text-center">Nom</th>
                 <th class="text-center">Email</th>
-                <th class="text-center">Therapist</th>
-                <th class="text-center">Appointments Count</th>
-                <th class="text-center">Client Profiles Count</th>
-                <th class="text-center">Questionnaires Count</th>
+                <th class="text-center">PRO</th>
+                <th class="text-center">RDV</th>
+                <th class="text-center">Client</th>
+                <th class="text-center">Questi</th>
                 <th class="text-center">Last Login</th>
             </tr>
         </thead>
