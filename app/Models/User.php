@@ -132,5 +132,8 @@ public function license()
 {
     return $this->hasOne(UserLicense::class);
 }
-
+public function questionnaires()
+{
+    return $this->hasMany(Questionnaire::class);
+}
 }
