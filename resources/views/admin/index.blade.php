@@ -50,27 +50,37 @@
 
         <h1 class="page-title">Liste des Utilisateurs</h1>
 
-        <div class="table-responsive mx-auto">
-            <table class="table table-bordered table-hover mx-auto" id="usersTable">
-                <thead>
-                    <tr>
-                        <th class="text-center">User ID</th>
-                        <th class="text-center">Nom</th>
-                        <th class="text-center">Email</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                        <tr class="text-center">
-                            <td title="{{ $user->id }}">{{ $user->id }}</td>
-                            <td title="{{ $user->name }}" class="text-wrap">{{ $user->name }}</td>
-                            <td title="{{ $user->email }}" class="text-wrap">{{ $user->email }}</td>
-                            <td title="{{ $user->is_therapist }}" class="text-wrap">{{ $user->is_therapist }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+<div class="table-responsive mx-auto">
+    <table class="table table-bordered table-hover mx-auto" id="usersTable">
+        <thead>
+            <tr>
+                <th class="text-center">User ID</th>
+                <th class="text-center">Nom</th>
+                <th class="text-center">Email</th>
+                <th class="text-center">Therapist</th>
+                <th class="text-center">Appointments Count</th>
+                <th class="text-center">Client Profiles Count</th>
+                <th class="text-center">Questionnaires Count</th>
+                <th class="text-center">Last Login</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($users as $user)
+                <tr class="text-center">
+                    <td title="{{ $user->id }}">{{ $user->id }}</td>
+                    <td title="{{ $user->name }}" class="text-wrap">{{ $user->name }}</td>
+                    <td title="{{ $user->email }}" class="text-wrap">{{ $user->email }}</td>
+                    <td title="{{ $user->is_therapist ? 'Yes' : 'No' }}" class="text-wrap">{{ $user->is_therapist ? 'Yes' : 'No' }}</td>
+                    <td title="{{ $user->appointments->count() }}">{{ $user->appointments->count() }}</td>
+                    <td title="{{ $user->clientProfiles->count() }}">{{ $user->clientProfiles->count() }}</td>
+                    <td title="{{ $user->questionnaires->count() }}">{{ $user->questionnaires->count() }}</td>
+                    <td title="{{ $user->last_login }}">{{ $user->last_login ? $user->last_login->format('d/m/Y H:i') : 'Never' }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
 
         <h1 class="page-title mt-5">Page Views Grouped by Session ID</h1>
 

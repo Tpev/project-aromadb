@@ -96,6 +96,8 @@ public function index()
         ->orderByDesc('last_viewed_at')
         ->get();
 
+$users = User::with(['appointments', 'clientProfiles', 'questionnaires'])->get();
+
     // Pass the counts to the view
     return view('admin.index', compact(
         'users',
