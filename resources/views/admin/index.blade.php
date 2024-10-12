@@ -74,7 +74,7 @@
                     <td title="{{ $user->appointments->count() }}">{{ $user->appointments->count() }}</td>
                     <td title="{{ $user->clientProfiles->count() }}">{{ $user->clientProfiles->count() }}</td>
                     <td title="{{ $user->questionnaires->count() }}">{{ $user->questionnaires->count() }}</td>
-                    <td title="{{ $user->last_login }}">{{ $user->last_login ? $user->last_login->format('d/m/Y H:i') : 'Never' }}</td>
+                    <td title="{{ $user->last_login }}">{{ $user->last_login ? 'Never' }}</td>
                 </tr>
             @endforeach
         </tbody>
