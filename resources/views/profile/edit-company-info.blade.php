@@ -61,6 +61,9 @@
                 <div class="details-box">
                     <label class="details-label" for="about">{{ __('À Propos') }}</label>
                     <textarea id="about" name="about" class="form-control">{{ old('about', auth()->user()->about) }}</textarea>
+						<!-- Helper text -->
+					<small class="text-gray-500">{{ __('Aidez vos clients à en savoir plus sur vous, vos méthodes, certifications, parcours. Ce texte apparaitra sur votre profile pro.') }}</small>
+				
                     @error('about')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -100,9 +103,12 @@
 
                 <!-- Profile Description -->
                 <div class="details-box">
-                    <label class="details-label" for="profile_description">{{ __('Description du Profil') }}</label>
+                    <label class="details-label" for="profile_description">{{ __('Votre spécialité') }}</label>
                     <textarea id="profile_description" name="profile_description" class="form-control">{{ old('profile_description', auth()->user()->profile_description) }}</textarea>
-                    @error('profile_description')
+                    	<!-- Helper text -->
+					<small class="text-gray-500">{{ __('Aromathérapeute, Ostéopathe etc.') }}</small>
+				
+					@error('profile_description')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -123,14 +129,19 @@
                     @enderror
                 </div>
 
-                <!-- Mentions Légales -->
-                <div class="details-box">
-                    <label class="details-label" for="legal_mentions">{{ __('Mentions Légales') }}</label>
-                    <textarea id="legal_mentions" name="legal_mentions" class="form-control">{{ old('legal_mentions', auth()->user()->legal_mentions) }}</textarea>
-                    @error('legal_mentions')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+				<!-- Mentions Légales -->
+				<div class="details-box">
+					<label class="details-label" for="legal_mentions">{{ __('Mentions Légales') }}</label>
+					<textarea id="legal_mentions" name="legal_mentions" class="form-control">{{ old('legal_mentions', auth()->user()->legal_mentions) }}</textarea>
+					
+					<!-- Helper text -->
+					<small class="text-gray-500">{{ __('Veuillez entrer les mentions légales de votre entreprise. Elles seront visible en bas de page sur vos factures. Siret,Capital,etc') }}</small>
+					
+					@error('legal_mentions')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+				</div>
+
 
 <!-- Willingness to Accept Online Appointments -->
 <div class="details-box">
@@ -139,6 +150,10 @@
         {{ old('accept_online_appointments', auth()->user()->accept_online_appointments) ? 'checked' : '' }}>
         <span class="ml-2 text-gray-700">{{ __('Accepter les rendez-vous en ligne') }}</span>
     </label>
+						
+<!-- Helper text -->
+<small class="text-gray-500">{{ __('Si vous souhaitez que vos clients puissent prendre rendez-vous en ligne de manière autonome via votre portail pro sur aromamade.com') }}</small>
+				
     @error('accept_online_appointments')
         <p class="text-red-500">{{ $message }}</p>
     @enderror
@@ -178,7 +193,9 @@
                         <span class="ml-2 text-gray-700">{{ __('Partager l\'email publiquement') }}</span>
                     </label>
                 </div>
-
+	<!-- Helper text -->
+					<small class="text-gray-500">{{ __('Ces informations apparaitrons sur votre portail pro, cliquez sur portail dans le menu pour voir votre portail.') }}</small>
+				
                 <!-- Submit and Cancel buttons -->
                 <button type="submit" class="btn-primary mt-4">{{ __('Enregistrer les Modifications') }}</button>
                 <a href="{{ route('profile.edit') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>

@@ -3,6 +3,9 @@
 namespace App\Mail;
 
 use App\Models\Appointment;
+use App\Models\Product;
+use App\Models\User;
+
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;

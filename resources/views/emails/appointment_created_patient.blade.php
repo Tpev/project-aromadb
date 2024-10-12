@@ -14,5 +14,5 @@ Votre rendez-vous a été programmé avec succès.
 Si vous avez des questions, n'hésitez pas à nous contacter.
 
 Merci,<br>
-{{ config('app.name') }}
+{{ $appointment->user->name }}
 @endcomponent
