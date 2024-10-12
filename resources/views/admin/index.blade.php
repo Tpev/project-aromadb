@@ -65,6 +65,7 @@
                             <td title="{{ $user->id }}">{{ $user->id }}</td>
                             <td title="{{ $user->name }}" class="text-wrap">{{ $user->name }}</td>
                             <td title="{{ $user->email }}" class="text-wrap">{{ $user->email }}</td>
+                            <td title="{{ $user->is_therapist }}" class="text-wrap">{{ $user->is_therapist }}</td>
                         </tr>
                     @endforeach
                 </tbody>
