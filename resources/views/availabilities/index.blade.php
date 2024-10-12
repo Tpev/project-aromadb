@@ -34,7 +34,9 @@
                 <i class="fas fa-plus mr-2"></i> {{ __('Ajouter une Disponibilité') }}
             </a>
         </div>
-
+			 <a href="{{ route('unavailabilities.create') }}" class="btn-primary" style="white-space: nowrap;">
+                <i class="fas fa-plus mr-2"></i> Ajouter une Indisponibilité temporaire
+            </a>
         <!-- Sortable and Filterable Table -->
         <div class="table-responsive mx-auto">
             <table class="table table-bordered table-hover" id="availabilityTable">

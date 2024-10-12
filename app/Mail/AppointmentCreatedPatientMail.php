@@ -23,10 +23,13 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
      * @param  \App\Models\Appointment  $appointment
      * @return void
      */
-    public function __construct(Appointment $appointment)
-    {
-        $this->appointment = $appointment;
-    }
+public function __construct(Appointment $appointment)
+{
+    // Load the product relationship if it's not already eager loaded
+    $appointment->load('product'); // Ensure the 'product' relationship is loaded
+    $this->appointment = $appointment;
+}
+
 
     /**
      * Construire le message.

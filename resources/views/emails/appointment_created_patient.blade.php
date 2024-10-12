@@ -8,7 +8,7 @@ Votre rendez-vous a été programmé avec succès.
 - **Date et heure :** {{ $appointment->appointment_date->format('d/m/Y à H:i') }}
 - **Durée :** {{ $appointment->duration }} minutes
 - **Prestation :** {{ $appointment->product->name }}
-- **Mode de consultation :** {{ $appointment->product->mode }} 
+- **Mode de consultation :** {{ $appointment->product->getConsultationModes() }}
 - **Thérapeute :** {{ $appointment->user->name }}
 
 Si vous avez des questions, n'hésitez pas à nous contacter.

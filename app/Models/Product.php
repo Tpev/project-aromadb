@@ -46,5 +46,22 @@ class Product extends Model
     {
         return $this->belongsToMany(Availability::class, 'availability_product');
     }
+	public function getConsultationModes()
+{
+    $modes = [];
+
+    if ($this->visio) {
+        $modes[] = 'En Visio';
+    }
+    if ($this->adomicile) {
+        $modes[] = 'À Domicile';
+    }
+    if ($this->dans_le_cabinet) {
+        $modes[] = 'Dans le Cabinet';
+    }
+
+    return empty($modes) ? 'Non spécifié' : implode(', ', $modes);
+}
+
 	
 }

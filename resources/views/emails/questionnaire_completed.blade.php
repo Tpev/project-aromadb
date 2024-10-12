@@ -16,7 +16,15 @@
     <h3>{{ __('Réponses') }}</h3>
     <ul>
         @foreach (json_decode($response->answers, true) as $questionId => $answer)
-            <li>{{ $questionId }}: {{ $answer }}</li>
+            @php
+                // Retrieve the question using the ID
+                $question = \App\Models\Question::find($questionId);
+            @endphp
+            <li>
+                <strong>{{ __('Question') }}: {{ $question->text ?? 'Question non trouvée' }}</strong>
+                <br>
+                {{ __('Réponse') }}: {{ $answer }}
+            </li>
         @endforeach
     </ul>
 

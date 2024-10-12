@@ -34,6 +34,9 @@
 					<div class="absolute left-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
 						<a href="{{ route('availabilities.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
 							{{ __('Disponibilités') }}
+						</a>						
+						<a href="{{ route('unavailabilities.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+							{{ __('Indisponibilités') }}
 						</a>
 						<a href="{{ route('products.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
 							{{ __('Prestations') }}
@@ -112,6 +115,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Disponibilités') }}
+            </x-responsive-nav-link>
+			            <x-responsive-nav-link :href="route('unavailabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Indisponibilités') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('questionnaires.index')" :active="request()->routeIs('questionnaires.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Questionnaires') }}

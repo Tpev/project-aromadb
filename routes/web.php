@@ -23,6 +23,21 @@ use App\Http\Controllers\UserLicenseController;
 use App\Http\Controllers\QuestionnaireController;
 
 
+// Unavailability Routes
+Route::middleware(['auth'])->group(function () {
+    // Show unavailability form
+    Route::get('/unavailability/create', [AppointmentController::class, 'createUnavailability'])->name('unavailabilities.create');
+
+    // Store unavailability
+    Route::post('/unavailability/store', [AppointmentController::class, 'storeUnavailability'])->name('unavailabilities.store');
+
+    // List unavailability
+    Route::get('/unavailability', [AppointmentController::class, 'indexUnavailability'])->name('unavailabilities.index');
+
+    // Delete unavailability
+    Route::delete('/unavailability/{id}', [AppointmentController::class, 'destroyUnavailability'])->name('unavailabilities.destroy');
+});
+
 
 //  EPICPP
 

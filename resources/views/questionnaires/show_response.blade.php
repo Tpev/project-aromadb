@@ -16,17 +16,24 @@
                 <p><strong>{{ __('Date de soumission') }}:</strong> {{ $response->created_at->format('d/m/Y à H:i') }}</p>
             </div>
 
-            <!-- Answers Section -->
-            <div class="details-box">
-                <h2>{{ __('Réponses') }}</h2>
-                <ul>
-                    @foreach (json_decode($response->answers, true) as $questionId => $answer)
-                        <li>
-                            <strong>{{ __('Question') }} {{ $questionId }}:</strong> {{ $answer }}
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
+<!-- Answers Section -->
+<div class="details-box">
+    <h2>{{ __('Réponses') }}</h2>
+    <ul>
+        @foreach (json_decode($response->answers, true) as $questionId => $answer)
+            @php
+                // Retrieve the question using the ID
+                $question = \App\Models\Question::find($questionId);
+            @endphp
+            <li>
+                <strong>{{ __('Question') }}: {{ $question->text ?? 'Question non trouvée' }}</strong>
+                <br>
+                {{ __('Réponse') }}: {{ $answer }}
+            </li>
+        @endforeach
+    </ul>
+</div>
+
 
             <div class="text-center mt-4">
                 <a href="{{ route('questionnaires.index') }}" class="btn btn-secondary">{{ __('Retour à la liste des questionnaires') }}</a>

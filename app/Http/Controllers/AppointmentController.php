@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
 use App\Mail\AppointmentEditedClientMail;
+use App\Models\Unavailability;
 
 class AppointmentController extends Controller
 {
@@ -23,26 +24,46 @@ class AppointmentController extends Controller
     /**
      * Display a listing of the appointments.
      */
-    public function index()
-    {
-        $appointments = Appointment::where('user_id', Auth::id())
-            ->with(['clientProfile', 'product'])
-            ->get();
+public function index()
+{
+    // Fetch appointments for the authenticated user
+    $appointments = Appointment::where('user_id', Auth::id())
+        ->with(['clientProfile', 'product'])
+        ->get();
 
-        $events = [];
-
-        foreach ($appointments as $appointment) {
-            $events[] = [
-                'title' => $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
-                'start' => $appointment->appointment_date->format('Y-m-d H:i:s'),
-                'end' => $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Y-m-d H:i:s'),
-                'url' => route('appointments.show', $appointment->id),
-                'color' => '#854f38',
-            ];
-        }
-
-        return view('appointments.index', compact('appointments', 'events'));
+    $events = [];
+    
+    // Fetch appointment events
+    foreach ($appointments as $appointment) {
+        $events[] = [
+            'title' => $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'start' => $appointment->appointment_date->format('Y-m-d H:i:s'),
+            'end' => $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Y-m-d H:i:s'),
+            'url' => route('appointments.show', $appointment->id),
+            'color' => '#854f38',
+        ];
     }
+
+    // Fetch unavailability periods for the logged-in user
+    $unavailabilities = Unavailability::where('user_id', Auth::id())
+        ->get()
+        ->map(function ($unavailability) {
+            return [
+                'title' => $unavailability->reason ?? 'Indisponible', // Use reason if exists, otherwise "Indisponible"
+                'start' => $unavailability->start_date->format('Y-m-d H:i:s'), // Format the start_date
+                'end' => $unavailability->end_date->format('Y-m-d H:i:s'), // Format the end_date
+                'color' => 'grey', // Set the color for the unavailability
+				'url' => route('unavailabilities.index'),
+            ];
+        });
+
+    // Merge unavailability events into the events array
+    $events = array_merge($events, $unavailabilities->toArray());
+
+    return view('appointments.index', compact('appointments', 'events'));
+}
+
+
 
     /**
      * Show the form for creating a new appointment.
@@ -346,68 +367,83 @@ class AppointmentController extends Controller
      * @param int|null $excludeAppointmentId
      * @return array
      */
-    private function getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $excludeAppointmentId = null)
-    {
-        $dayOfWeek = Carbon::createFromFormat('Y-m-d', $date)->dayOfWeekIso - 1; // Monday = 0
-        $availabilities = Availability::where('user_id', $therapistId)
-            ->where('day_of_week', $dayOfWeek)
-            ->where(function($query) use ($productId) {
-                $query->where('applies_to_all', true)
-                      ->orWhereHas('products', function($q) use ($productId) {
-                          $q->where('products.id', $productId);
-                      });
-            })
-            ->get();
+ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $excludeAppointmentId = null)
+{
+    $dayOfWeek = Carbon::createFromFormat('Y-m-d', $date)->dayOfWeekIso - 1; // Monday = 0
+    $availabilities = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek)
+        ->where(function($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        })
+        ->get();
 
-        if ($availabilities->isEmpty()) {
-            return [];
-        }
-
-        // Fetch existing appointments for the date
-        $existingAppointments = Appointment::where('user_id', $therapistId)
-            ->whereDate('appointment_date', $date)
-            ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
-                return $query->where('id', '!=', $excludeAppointmentId);
-            })
-            ->get();
-
-        $slots = [];
-
-        foreach ($availabilities as $availability) {
-            $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
-                ->setDate(Carbon::parse($date)->year, Carbon::parse($date)->month, Carbon::parse($date)->day);
-            $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
-                ->setDate(Carbon::parse($date)->year, Carbon::parse($date)->month, Carbon::parse($date)->day);
-
-            // Check for available slots every 15 minutes
-            while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
-                $slotStart = $availabilityStart->copy();
-                $slotEnd = $availabilityStart->copy()->addMinutes($duration);
-
-                // Check for overlapping appointments
-                $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
-                    $appointmentStart = Carbon::parse($appointment->appointment_date);
-                    $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
-
-                    // Check if the new slot overlaps with any existing appointment
-                    return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
-                });
-
-                // If the slot is not booked, add it to the available slots
-                if (!$isBooked) {
-                    $slots[] = [
-                        'start' => $slotStart->format('H:i'),
-                        'end' => $slotEnd->format('H:i'),
-                    ];
-                }
-
-                // Move to the next potential slot (increment by 15 minutes)
-                $availabilityStart->addMinutes(15);
-            }
-        }
-
-        return $slots;
+    if ($availabilities->isEmpty()) {
+        return [];
     }
+
+    // Fetch existing appointments for the date
+    $existingAppointments = Appointment::where('user_id', $therapistId)
+        ->whereDate('appointment_date', $date)
+        ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
+            return $query->where('id', '!=', $excludeAppointmentId);
+        })
+        ->get();
+
+    // Fetch unavailability periods for the therapist on the selected date
+    $unavailabilities = Unavailability::where('user_id', $therapistId)
+        ->whereDate('start_date', $date)
+        ->get();
+
+    $slots = [];
+
+    foreach ($availabilities as $availability) {
+        $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
+            ->setDate(Carbon::parse($date)->year, Carbon::parse($date)->month, Carbon::parse($date)->day);
+        $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
+            ->setDate(Carbon::parse($date)->year, Carbon::parse($date)->month, Carbon::parse($date)->day);
+
+        // Check for available slots every 15 minutes
+        while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
+            $slotStart = $availabilityStart->copy();
+            $slotEnd = $availabilityStart->copy()->addMinutes($duration);
+
+            // Check for overlapping appointments
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                // Check if the new slot overlaps with any existing appointment
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            // Check for overlapping unavailability
+            $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
+                $unavailabilityStart = Carbon::parse($unavailability->start_date);
+                $unavailabilityEnd = Carbon::parse($unavailability->end_date);
+
+                // Check if the new slot overlaps with any unavailability
+                return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
+            });
+
+            // If the slot is not booked and not unavailable, add it to the available slots
+            if (!$isBooked && !$isUnavailable) {
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end' => $slotEnd->format('H:i'),
+                ];
+            }
+
+            // Move to the next potential slot (increment by 15 minutes)
+            $availabilityStart->addMinutes(15);
+        }
+    }
+
+    return $slots;
+}
+
 
     /**
      * Show the form for creating a new appointment for a patient.
@@ -600,79 +636,94 @@ class AppointmentController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAvailableSlotsForPatient(Request $request)
-    {
-        // Validate the request
-        $request->validate([
-            'therapist_id' => 'required|exists:users,id',
-            'date' => 'required|date_format:Y-m-d',
-            'product_id' => 'required|exists:products,id',
-        ]);
+public function getAvailableSlotsForPatient(Request $request)
+{
+    // Validate the request
+    $request->validate([
+        'therapist_id' => 'required|exists:users,id',
+        'date' => 'required|date_format:Y-m-d',
+        'product_id' => 'required|exists:products,id',
+    ]);
 
-        $therapistId = $request->therapist_id;
-        $productId = $request->product_id;
-        $duration = Product::findOrFail($productId)->duration;
+    $therapistId = $request->therapist_id;
+    $productId = $request->product_id;
+    $duration = Product::findOrFail($productId)->duration;
 
-        // Get the day of the week
-        $dayOfWeek = Carbon::createFromFormat('Y-m-d', $request->date)->dayOfWeekIso - 1; // Monday = 0
+    // Get the day of the week
+    $dayOfWeek = Carbon::createFromFormat('Y-m-d', $request->date)->dayOfWeekIso - 1; // Monday = 0
 
-        // Fetch availabilities linked to the product
-        $availabilities = Availability::where('user_id', $therapistId)
-            ->where('day_of_week', $dayOfWeek)
-            ->where(function($query) use ($productId) {
-                $query->where('applies_to_all', true)
-                      ->orWhereHas('products', function($q) use ($productId) {
-                          $q->where('products.id', $productId);
-                      });
-            })
-            ->get();
+    // Fetch availabilities linked to the product
+    $availabilities = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek)
+        ->where(function($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        })
+        ->get();
 
-        if ($availabilities->isEmpty()) {
-            return response()->json(['slots' => []]);
-        }
-
-        // Fetch existing appointments for the therapist on the selected date
-        $existingAppointments = Appointment::where('user_id', $therapistId)
-            ->whereDate('appointment_date', $request->date)
-            ->get();
-
-        $slots = [];
-
-        foreach ($availabilities as $availability) {
-            $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
-                ->setDate(Carbon::parse($request->date)->year, Carbon::parse($request->date)->month, Carbon::parse($request->date)->day);
-            $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
-                ->setDate(Carbon::parse($request->date)->year, Carbon::parse($request->date)->month, Carbon::parse($request->date)->day);
-
-            // Check for available slots every 15 minutes
-            while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
-                $slotStart = $availabilityStart->copy();
-                $slotEnd = $availabilityStart->copy()->addMinutes($duration);
-
-                // Check for overlapping appointments
-                $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
-                    $appointmentStart = Carbon::parse($appointment->appointment_date);
-                    $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
-
-                    // Check if the new slot overlaps with any existing appointment
-                    return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
-                });
-
-                // If the slot is not booked, add it to the available slots
-                if (!$isBooked) {
-                    $slots[] = [
-                        'start' => $slotStart->format('H:i'),
-                        'end' => $slotEnd->format('H:i'),
-                    ];
-                }
-
-                // Move to the next potential slot (increment by 15 minutes)
-                $availabilityStart->addMinutes(15);
-            }
-        }
-
-        return response()->json(['slots' => $slots]);
+    if ($availabilities->isEmpty()) {
+        return response()->json(['slots' => []]);
     }
+
+    // Fetch existing appointments for the therapist on the selected date
+    $existingAppointments = Appointment::where('user_id', $therapistId)
+        ->whereDate('appointment_date', $request->date)
+        ->get();
+
+    // Fetch unavailability periods for the therapist on the selected date
+    $unavailabilities = Unavailability::where('user_id', $therapistId)
+        ->whereDate('start_date', $request->date)
+        ->get();
+
+    $slots = [];
+
+    foreach ($availabilities as $availability) {
+        $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
+            ->setDate(Carbon::parse($request->date)->year, Carbon::parse($request->date)->month, Carbon::parse($request->date)->day);
+        $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
+            ->setDate(Carbon::parse($request->date)->year, Carbon::parse($request->date)->month, Carbon::parse($request->date)->day);
+
+        // Check for available slots every 15 minutes
+        while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
+            $slotStart = $availabilityStart->copy();
+            $slotEnd = $availabilityStart->copy()->addMinutes($duration);
+
+            // Check for overlapping appointments
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                // Check if the new slot overlaps with any existing appointment
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            // Check for overlapping unavailability
+            $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
+                $unavailabilityStart = Carbon::parse($unavailability->start_date);
+                $unavailabilityEnd = Carbon::parse($unavailability->end_date);
+
+                // Check if the new slot overlaps with any unavailability
+                return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
+            });
+
+            // If the slot is not booked and not unavailable, add it to the available slots
+            if (!$isBooked && !$isUnavailable) {
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end' => $slotEnd->format('H:i'),
+                ];
+            }
+
+            // Move to the next potential slot (increment by 15 minutes)
+            $availabilityStart->addMinutes(15);
+        }
+    }
+
+    return response()->json(['slots' => $slots]);
+}
+
 
 
 
@@ -719,6 +770,73 @@ class AppointmentController extends Controller
 
         return response()->json(['available_days' => $availableDays]);
     }
+
+
+
+
+    // Show the form for creating unavailability
+    public function createUnavailability()
+    {
+        return view('unavailabilities.create');
+    }
+
+    // Store a newly created unavailability
+public function storeUnavailability(Request $request)
+{
+    $request->validate([
+        'start_date' => 'required|date',
+        'start_time' => 'required|date_format:H:i',
+        'end_date' => 'required|date|after:start_date',
+        'end_time' => 'required|date_format:H:i',
+        'reason' => 'nullable|string|max:255',
+    ]);
+
+    // Merge date and time into a single DateTime object
+    $startDateTime = Carbon::parse($request->start_date . ' ' . $request->start_time);
+    $endDateTime = Carbon::parse($request->end_date . ' ' . $request->end_time);
+
+    // Create and store unavailability
+    $unavailability = new Unavailability();
+    $unavailability->user_id = Auth::id();
+    $unavailability->start_date = $startDateTime; // Save as datetime
+    $unavailability->end_date = $endDateTime; // Save as datetime
+    $unavailability->reason = $request->reason;
+    $unavailability->save();
+
+    return redirect()->route('unavailabilities.index')->with('success', 'Indisponibilité ajoutée avec succès.');
+}
+
+
+    // Display all unavailability periods
+    public function indexUnavailability()
+    {
+        $unavailabilities = Unavailability::where('user_id', Auth::id())->get(); // Fetch user's unavailability
+
+        return view('unavailabilities.index', compact('unavailabilities'));
+    }
+
+public function destroyUnavailability($id)
+{
+    // Find the unavailability record or fail if it doesn't exist
+    $unavailability = Unavailability::findOrFail($id);
+
+    // Log the attempt for debugging purposes
+    \Log::info('Attempting to authorize delete for unavailability', [
+        'user_id' => Auth::id(),
+        'unavailability_user_id' => $unavailability->user_id,
+    ]);
+
+    // Check if the authenticated user is the owner of the unavailability
+    if (Auth::id() === $unavailability->user_id) {
+        $unavailability->delete(); // Delete the unavailability
+
+        return redirect()->route('unavailabilities.index')->with('success', 'Indisponibilité supprimée avec succès.');
+    } else {
+        // If the user is not authorized to delete this unavailability
+        return redirect()->route('unavailabilities.index')->with('error', 'Vous n\'êtes pas autorisé à supprimer cette indisponibilité.');
+    }
+}
+
 
 
 }

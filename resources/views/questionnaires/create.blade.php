@@ -36,7 +36,7 @@
                     <div class="details-box">
                         <label class="details-label">{{ __('Questions') }}</label>
                         <div id="questions-container">
-                            <div class="question-item">
+                            <div class="question-item mb-4">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <input type="text" name="questions[0][text]" class="form-control" placeholder="{{ __('Entrez la question') }}" required>
@@ -45,14 +45,14 @@
                                         <select name="questions[0][type]" class="form-control question-type" required onchange="updateQuestionType(this)">
                                             <option value="text">{{ __('Texte') }}</option>
                                             <option value="multiple_choice">{{ __('Choix multiple') }}</option>
-
                                         </select>
                                     </div>
+									  <div class="additional-fields"></div>
                                     <div class="col-md-2">
-                                        <button type="button" class="btn btn-danger remove-question" onclick="removeQuestion(this)">-</button>
+                                        <button type="button" class="btn btn-danger remove-question" onclick="removeQuestion(this)" title="Supprimer cette question">X</button>
                                     </div>
                                 </div>
-                                <div class="additional-fields"></div>
+                              
                             </div>
                         </div>
                         <button type="button" class="btn-primary mt-2" onclick="addQuestion()">{{ __('Ajouter une question') }}</button>
@@ -71,7 +71,7 @@
         function addQuestion() {
             const questionContainer = document.getElementById('questions-container');
             const newQuestion = document.createElement('div');
-            newQuestion.classList.add('question-item');
+            newQuestion.classList.add('question-item', 'mb-4'); // Add margin bottom for spacing
             newQuestion.innerHTML = `
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -80,14 +80,13 @@
                     <div class="col-md-4">
                         <select name="questions[${questionIndex}][type]" class="form-control question-type" required onchange="updateQuestionType(this)">
                             <option value="text">{{ __('Texte') }}</option>
-                            <option value="number">{{ __('Numéro') }}</option>
+
                             <option value="multiple_choice">{{ __('Choix multiple') }}</option>
-                            <option value="date">{{ __('Date') }}</option>
-                            <option value="true_false">{{ __('Vrai/Faux') }}</option>
+
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-danger remove-question" onclick="removeQuestion(this)">-</button>
+                        <button type="button" class="btn btn-danger remove-question" onclick="removeQuestion(this)" title="Supprimer cette question">X</button>
                     </div>
                 </div>
                 <div class="additional-fields"></div>
@@ -216,6 +215,7 @@
 
         .remove-question {
             margin-top: 31px; /* Adjust margin to center vertically with other inputs */
+            padding: 5px 10px; /* Add padding for a better button size */
         }
 
         @media (max-width: 768px) {

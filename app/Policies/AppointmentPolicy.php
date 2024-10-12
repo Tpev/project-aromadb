@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Appointment;
+use App\Models\Unavailability;
 use App\Models\User;
 
 class AppointmentPolicy
@@ -38,5 +39,12 @@ class AppointmentPolicy
 
         // Check if the authenticated user is the one who created the appointment
         return $user->id === $appointment->user_id;
+    }    
+    public function deleteUnavailability(User $user, Unavailability $unavailability)
+    {
+        \Log::info('Authorizing delete for unavailability', ['user_id' => $user->id, 'unavailability_user_id' => $unavailability->user_id]);
+
+        // Check if the authenticated user is the one who created the unavailability
+        return $user->id === $unavailability->user_id;
     }
 }
