@@ -116,7 +116,7 @@ public function index()
             'duration' => $duration,
         ]);
 
-        // Send email notifications
+        // queue email notifications
         try {
             // Patient email
             $patientEmail = $appointment->clientProfile->email;
@@ -227,7 +227,7 @@ public function index()
             'duration' => $duration,
         ]);
 
-        // Send email notification to the client about the update
+        // queue email notification to the client about the update
         if ($appointment->clientProfile && $appointment->clientProfile->email) {
             Mail::to($appointment->clientProfile->email)
                 ->queue(new AppointmentEditedClientMail($appointment));
@@ -543,7 +543,7 @@ public function index()
             'product_id' => $request->product_id,
         ]);
 
-        // Send email notifications
+        // queue email notifications
         try {
             // Patient email
             $patientEmail = $appointment->clientProfile->email;
