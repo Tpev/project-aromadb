@@ -114,7 +114,7 @@ class AdminController extends Controller
             'sessionsTotal' // Include sessionsTotal here
         ));
     }
-}
+
 
 	
 public function showLicenseManagement()
