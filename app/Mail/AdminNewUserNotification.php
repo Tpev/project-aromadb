@@ -13,7 +13,7 @@ use App\Models\User;
 class AdminNewUserNotification extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
-
+	public $user; 
     /**
      * Create a new message instance.
      */
