@@ -50,7 +50,7 @@
                 @include('layouts.navigation')
             @endif
 @stack('scripts')
-            <!-- Social Media Share Buttons (Globally accessible on all pages) -->
+        @guest
             <div class="fixed bottom-4 right-4 z-50 text-center">
                 <p class="text-gray-800 font-semibold mb-2">Partager cette page :</p>
                 <div class="flex space-x-3">
@@ -70,7 +70,7 @@
                     </a>
                 </div>
             </div>
-
+        @endguest
             <!-- Page Content -->
             <main>
                 {{ $slot }}
