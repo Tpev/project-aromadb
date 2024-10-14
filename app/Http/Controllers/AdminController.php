@@ -9,14 +9,6 @@ use App\Models\UserLicense;
 use App\Models\LicenseHistory;
 use App\Models\LicenseTier;
 
-<?php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\PageViewLog;
-use Carbon\Carbon;
 
 class AdminController extends Controller
 {
