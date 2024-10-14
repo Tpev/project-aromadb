@@ -24,9 +24,13 @@ class AdminNewUserNotification extends Mailable implements ShouldQueue
 
 
 
-	    public function build()
-    {
-        return $this->subject('Nouvelle Utilisateur')
-                    ->markdown('emails.admin_new_user_notification');
-    }
+public function build()
+{
+    return $this->subject('Nouvel Utilisateur')
+                ->markdown('emails.admin_new_user_notification')
+                ->with([
+                    'user' => $this->user,
+                ]);
+}
+
 }
