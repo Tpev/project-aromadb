@@ -96,10 +96,10 @@ class RegisteredUserController extends Controller
 
     event(new Registered($user));
     Auth::login($user);
-
+	$adminEmails = User::where('is_admin', true)->pluck('email')->toArray();
     // Envoyer l'e-mail de bienvenue
     Mail::to($user->email)->send(new WelcomeProMail($user));
-	Mail::to(['contact@aromamade.com'])->queue(new AdminNewUserNotification($user));
+	Mail::to($adminEmails)->queue(new AdminNewUserNotification($user));
 
 
     return redirect()->route('dashboard-pro');
