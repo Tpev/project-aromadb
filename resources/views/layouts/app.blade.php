@@ -40,6 +40,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+		@stack('styles')
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
@@ -48,7 +49,7 @@
             @else
                 @include('layouts.navigation')
             @endif
-
+@stack('scripts')
             <!-- Social Media Share Buttons (Globally accessible on all pages) -->
             <div class="fixed bottom-4 right-4 z-50 text-center">
                 <p class="text-gray-800 font-semibold mb-2">Partager cette page :</p>

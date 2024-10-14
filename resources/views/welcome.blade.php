@@ -54,6 +54,23 @@
                 <p class="text-lg mb-4">Découvrez des articles hebdomadaires sur l'aromathérapie, le bien-être, et les bonnes pratiques pour rester en bonne santé naturellement.</p>
                 <a href="{{ route('blog.index') }}" class="btn-primary">Lire les Articles</a>
             </div>
+<!-- Therapists Section -->
+<section class="py-12 bg-white">
+    <div class="container mx-auto text-center px-4">
+        <!-- Icon at the top -->
+        <i class="fas fa-user-md text-6xl mb-4" style="color: #854f38;"></i>
+        <h2 class="text-2xl font-bold mb-4" style="color: #647a0b;">Espace Thérapeutes</h2>
+        <p class="text-lg mb-4 text-gray-700 max-w-3xl mx-auto">
+            Vous êtes thérapeute ? Découvrez comment AromaMade PRO peut vous aider à optimiser votre pratique, élargir votre clientèle, et gagner du temps au quotidien grâce à nos outils dédiés.
+        </p>
+
+        <div class="mt-8">
+            <a href="{{ route('prolanding') }}" class="btn-primary">Découvrir l'Espace Thérapeutes</a>
+        </div>
+    </div>
+</section>
+
+
         </div>
     </div>
 </section>

@@ -315,6 +315,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/privacy-policy', function () {
         return view('privacypolicy');
     })->name('privacypolicy');
+    // Route to the pro landing page 
+    Route::get('/pro', function () {
+        return view('prolanding');
+    })->name('prolanding');
 
 
 
