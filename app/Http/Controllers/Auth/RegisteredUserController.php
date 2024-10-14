@@ -98,7 +98,7 @@ class RegisteredUserController extends Controller
 
     // Envoyer l'e-mail de bienvenue
     Mail::to($user->email)->send(new WelcomeProMail($user));
-	Mail::to('contact@aromamade.com')->queue(new AdminNewUserNotification($user));
+	Mail::to([contact@aromamade.com])->queue(new AdminNewUserNotification($user));
 
 
     return redirect()->route('dashboard-pro');
