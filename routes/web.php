@@ -69,7 +69,7 @@ Route::get('/thank-you', function () {
 
 
 // Routes publiques pour les pages des thérapeutes
-Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
+
 // routes/web.php
 
 // Routes pour l'onboarding
@@ -253,8 +253,9 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
     Route::get('/', function () {
         return view('welcome');
     })->name('welcome');
-
+		
     // Other routes
+	Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
     Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
     Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
     Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');
