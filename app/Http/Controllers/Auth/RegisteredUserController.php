@@ -15,6 +15,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Carbon\Carbon;
 use App\Mail\WelcomeProMail;
+use App\Mail\AdminNewUserNotification;
 use Illuminate\Support\Facades\Mail;
 
 
