@@ -86,9 +86,11 @@ class ClientProfileController extends Controller
 		$responses = Response::with('questionnaire')
 		->where('client_profile_id', $clientProfile->id)
 		->get();
-
+		// Récupérer la dernière demande de témoignage, s'il y en a une
+		$testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
+  
 		
-		return view('client_profiles.show', compact('clientProfile', 'appointments', 'sessionNotes', 'invoices','responses'));
+		return view('client_profiles.show', compact('clientProfile', 'appointments', 'sessionNotes', 'invoices','responses','testimonialRequest'));
     }
 
     /**

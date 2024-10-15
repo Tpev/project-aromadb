@@ -66,12 +66,28 @@
                     </div>
                 </div>
             </div>
-    @can('requestTestimonial', $clientProfile)
-        <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST">
+@can('requestTestimonial', $clientProfile)
+    @if(is_null($testimonialRequest))
+        {{-- Aucun demande envoyée --}}
+        <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST" class="mt-6">
             @csrf
-            <button type="submit" class="btn btn-primary">Demander un Témoignage</button>
+            <button type="submit" class="bg-green-500 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors duration-300">
+                {{ __('Demander un Témoignage') }}
+            </button>
         </form>
-    @endcan
+    @elseif($testimonialRequest->status === 'pending')
+        {{-- Demande envoyée --}}
+        <p class="mt-6 text-lg text-gray-600">
+            {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
+        </p>
+    @elseif($testimonialRequest->status === 'completed')
+        {{-- Témoignage fait --}}
+        <p class="mt-6 text-lg text-gray-600">
+            {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
+        </p>
+    @endif
+@endcan
+
             <!-- Appointments Section -->
             <div class="row mt-4">
                 <div class="col-md-12">
