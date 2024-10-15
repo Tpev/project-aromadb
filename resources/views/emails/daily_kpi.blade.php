@@ -5,11 +5,10 @@ Bonjour les Lapiz,
 
 {{-- Afficher un message festif si un nouveau record est atteint --}}
 @if($kpis['isNewHigh'])
-    <div style="text-align: center; margin-bottom: 20px;">
+
         {{-- GIF festif pour célébrer le nouveau record --}}
-        <img src="https://media.giphy.com/media/xT8qBepJQzUjXpeWU8/giphy.gif" alt="Félicitations!" width="300" />
-        <p><a href="https://giphy.com/gifs/olympics-shaun-the-sheep-aardman-xT8qBepJQzUjXpeWU8">via GIPHY</a></p>
-        <p style="font-size: 18px; color: #28a745; font-weight: bold;">🎉 Nouveau Record Atteint ! 🎉</p>
+	<img src="{{asset('images/congratz.webp')}}" style="width:100%" alt="Bravo">
+     🎉 Nouveau Record Atteint ! 🎉
         <p>Hier, vous avez atteint un nouveau record de **{{ $kpis['sessionsYesterday'] }}** sessions, dépassant l'ancien record de **{{ $kpis['lastHighCount'] }}** sessions (Le {{ \Carbon\Carbon::parse($kpis['lastHighDate'])->format('d/m/Y') }}).</p>
     </div>
 @endif
