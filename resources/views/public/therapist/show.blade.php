@@ -108,13 +108,33 @@
 		</div>
 
 
-            {{-- Témoignages Section --}}
-            <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h3 class="text-2xl font-semibold text-gray-700">{{ __('Témoignages') }}</h3>
-                <p class="mt-4 text-lg text-gray-600">
-                    {{ __('Les témoignages de mes clients seront bientôt disponibles ici.') }}
-                </p>
-            </div>
+{{-- Témoignages Section --}}
+<div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
+    <h3 class="text-2xl font-semibold text-gray-700">{{ __('Témoignages') }}</h3>
+
+    @if($testimonials->count() > 0)
+        <div class="mt-4 space-y-6">
+            @foreach($testimonials as $testimonial)
+                <div class="p-4 border-l-4 border-green-500 bg-gray-50 rounded-md">
+                    <p class="text-gray-700 italic">"{{ $testimonial->testimonial }}"</p>
+                    <p class="mt-2 text-sm text-gray-600">
+                        {{ $testimonial->clientProfile->first_name }}, {{ $testimonial->created_at->format('d/m/Y') }}
+                    </p>
+                </div>
+            @endforeach
+        </div>
+
+        {{-- Pagination --}}
+        <div class="mt-6">
+            {{ $testimonials->links() }}
+        </div>
+    @else
+        <p class="mt-4 text-lg text-gray-600">
+            {{ __('Les témoignages de mes clients seront bientôt disponibles ici.') }}
+        </p>
+    @endif
+</div>
+
 
         </div>
     </div>
