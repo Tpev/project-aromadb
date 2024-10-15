@@ -17,7 +17,7 @@
             <button id="joinBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300">Rejoindre</button>
         </div>
     </div>
-
+	
     @push('scripts')
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -97,6 +97,9 @@
                 })
                 .listen('pusher:subscription_error', (status) => {
                     console.error('Erreur de souscription au canal Pusher :', status);
+                })
+                .listen('pusher:subscription_succeeded', () => {
+                    console.log(`Souscription réussie au canal room.${room}`);
                 });
 
             // Créer une offre si c'est le premier à rejoindre la salle

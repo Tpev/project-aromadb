@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Events\SignalingEvent;
+use Illuminate\Support\Facades\Log;
 
 class SignalingController extends Controller
 {
@@ -26,8 +27,16 @@ class SignalingController extends Controller
             'room' => 'required|string',
         ]);
 
+        // Log des données reçues
+        Log::info("SignalingController: Diffusion de l'événement - Type: {$type}, Salle: {$room}");
+
         // Diffuser l'événement de signaling
-        broadcast(new SignalingEvent($type, $payload, $room))->toOthers();
+        try {
+            broadcast(new SignalingEvent($type, $payload, $room))->toOthers();
+            Log::info("SignalingController: Événement {$type} diffusé sur room.{$room}");
+        } catch (\Exception $e) {
+            Log::error("SignalingController: Erreur lors de la diffusion de l'événement - {$e->getMessage()}");
+        }
 
         return response()->json(['status' => 'Message envoyé']);
     }
