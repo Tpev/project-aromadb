@@ -8,7 +8,7 @@ import Pusher from 'pusher-js';
 window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-// Initialiser Laravel Echo
+// Initialiser Laravel Echod
 window.Pusher = Pusher;
 
 // Ajoutez un log pour vérifier les valeurs des variables d'environnement
