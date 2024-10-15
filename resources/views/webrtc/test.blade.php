@@ -17,196 +17,213 @@
             <button id="joinBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300">Rejoindre</button>
         </div>
     </div>
-    
+
     @push('scripts')
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('Page chargée et DOM prêt');
-        
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const joinBtn = document.getElementById('joinBtn');
-        const roomInput = document.getElementById('roomInput');
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Page chargée et DOM prêt');
 
-        let localStream;
-        let peerConnection;
-        let roomName;
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const joinBtn = document.getElementById('joinBtn');
+    const roomInput = document.getElementById('roomInput');
 
-        // Configure ICE servers (STUN/TURN)
-        const configuration = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },  // STUN server
-  {
-        urls: "turn:global.relay.metered.ca:80",
-        username: "973cd534a917cf4aad94e78d",
-        credential: "U0vCqXJ3Zj6GCso9",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80?transport=tcp",
-        username: "973cd534a917cf4aad94e78d",
-        credential: "U0vCqXJ3Zj6GCso9",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:443",
-        username: "973cd534a917cf4aad94e78d",
-        credential: "U0vCqXJ3Zj6GCso9",
-      },
-      {
-        urls: "turns:global.relay.metered.ca:443?transport=tcp",
-        username: "973cd534a917cf4aad94e78d",
-        credential: "U0vCqXJ3Zj6GCso9",
-      },
-            ]
-        };
+    let localStream;
+    let peerConnection;
+    let roomName;
+    let iceCandidatesQueue = []; // Queue for ICE candidates before remoteDescription is set
 
-        // Initialiser la capture vidéo locale
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(stream => {
-                console.log('Médias locaux capturés');
-                localStream = stream;
-                localVideo.srcObject = stream;
-            })
-            .catch(err => {
-                console.error('Erreur lors de la capture des médias :', err);
-                alert('Impossible d\'accéder à la caméra et au microphone.');
-            });
+    // Configure ICE servers (STUN/TURN)
+    const configuration = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },  // STUN server
+            {
+                urls: "turn:global.relay.metered.ca:80",
+                username: "973cd534a917cf4aad94e78d",
+                credential: "U0vCqXJ3Zj6GCso9",
+            },
+            {
+                urls: "turn:global.relay.metered.ca:443",
+                username: "973cd534a917cf4aad94e78d",
+                credential: "U0vCqXJ3Zj6GCso9",
+            },
+        ]
+    };
 
-        joinBtn.addEventListener('click', () => {
-            roomName = roomInput.value.trim();
-            if (!roomName) {
-                alert('Veuillez entrer un nom de salle.');
-                return;
-            }
-            console.log(`Rejoindre la salle : ${roomName}`);
-            joinRoom(roomName);
+    // Initialiser la capture vidéo locale
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+            console.log('Médias locaux capturés');
+            localStream = stream;
+            localVideo.srcObject = stream;
+        })
+        .catch(err => {
+            console.error('Erreur lors de la capture des médias :', err);
+            alert('Impossible d\'accéder à la caméra et au microphone.');
         });
 
-        function joinRoom(room) {
-            console.log(`Initialisation de la PeerConnection pour la salle : ${room}`);
-            peerConnection = new RTCPeerConnection(configuration);
-
-            // Ajouter les pistes locales à la PeerConnection
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
-                console.log(`Piste ajoutée : ${track.kind}`);
-            });
-
-            // Écouter les pistes distantes
-            peerConnection.addEventListener('track', event => {
-                console.log('Piste distante reçue');
-                if (remoteVideo.srcObject !== event.streams[0]) {
-                    remoteVideo.srcObject = event.streams[0];
-                    console.log('Flux distant défini');
-                }
-            });
-
-            // Gérer les candidats ICE
-            peerConnection.addEventListener('icecandidate', event => {
-                if (event.candidate) {
-                    console.log('Candidat ICE détecté et envoyé');
-                    sendSignalingData('ice-candidate', event.candidate);
-                }
-            });
-
-            // Écouter les événements de signaling via Echo
-            console.log(`Écoute du canal : room.${room}`);
-            window.Echo.channel('room.' + room)
-                .listen('.SignalingEvent', (e) => {
-                    console.log('SignalingEvent reçu :', e);
-                    handleSignalingData(e);
-                });
-
-            // Créer une offre si c'est le premier à rejoindre la salle
-            createOffer();
+    joinBtn.addEventListener('click', () => {
+        roomName = roomInput.value.trim();
+        if (!roomName) {
+            alert('Veuillez entrer un nom de salle.');
+            return;
         }
+        console.log(`Rejoindre la salle : ${roomName}`);
+        joinRoom(roomName);
+    });
 
-        function createOffer() {
-            console.log('Création d\'une offre');
-            peerConnection.createOffer()
-                .then(offer => {
-                    console.log('Offre créée');
-                    return peerConnection.setLocalDescription(offer);
-                })
-                .then(() => {
-                    console.log('Description locale définie');
-                    sendSignalingData('offer', peerConnection.localDescription);
-                })
-                .catch(err => {
-                    console.error('Erreur lors de la création de l\'offre :', err);
-                });
-        }
+    function joinRoom(room) {
+        console.log(`Initialisation de la PeerConnection pour la salle : ${room}`);
+        peerConnection = new RTCPeerConnection(configuration);
 
-        function handleSignalingData(data) {
-            if (!data || !data.type || !data.payload) {
-                console.warn('Données de signaling invalides :', data);
-                return;
+        // Ajouter les pistes locales à la PeerConnection
+        localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+            console.log(`Piste ajoutée : ${track.kind}`);
+        });
+
+        // Écouter les pistes distantes
+        peerConnection.addEventListener('track', event => {
+            console.log('Piste distante reçue');
+            if (remoteVideo.srcObject !== event.streams[0]) {
+                remoteVideo.srcObject = event.streams[0];
+                console.log('Flux distant défini');
             }
+        });
 
-            console.log(`Gestion du type de signaling : ${data.type}`);
-            switch(data.type) {
-                case 'offer':
-                    handleOffer(data.payload);
-                    break;
-                case 'answer':
-                    handleAnswer(data.payload);
-                    break;
-                case 'ice-candidate':
-                    handleIceCandidate(data.payload);
-                    break;
-                default:
-                    console.warn('Type de signaling inconnu :', data.type);
-                    break;
+        // Gérer les candidats ICE
+        peerConnection.addEventListener('icecandidate', event => {
+            if (event.candidate) {
+                console.log('Candidat ICE détecté et envoyé');
+                sendSignalingData('ice-candidate', event.candidate);
             }
+        });
+
+        // Écouter les événements de signaling via Echo
+        console.log(`Écoute du canal : room.${room}`);
+        window.Echo.channel('room.' + room)
+            .listen('.SignalingEvent', (e) => {
+                console.log('SignalingEvent reçu :', e);
+                handleSignalingData(e);
+            });
+
+        // Créer une offre si c'est le premier à rejoindre la salle
+        createOffer();
+    }
+
+    function createOffer() {
+        console.log('Création d\'une offre');
+        peerConnection.createOffer()
+            .then(offer => {
+                console.log('Offre créée');
+                return peerConnection.setLocalDescription(offer);
+            })
+            .then(() => {
+                console.log('Description locale définie');
+                sendSignalingData('offer', peerConnection.localDescription);
+            })
+            .catch(err => {
+                console.error('Erreur lors de la création de l\'offre :', err);
+            });
+    }
+
+    // Filter out problematic SDP lines
+    function filterSDP(sdp) {
+        return sdp.replace(/a=ssrc:[^\r\n]+/g, ''); // Remove all lines that start with 'a=ssrc'
+    }
+
+    function handleSignalingData(data) {
+        if (!data || !data.type || !data.payload) {
+            console.warn('Données de signaling invalides :', data);
+            return;
         }
 
-        function handleOffer(offer) {
-            console.log('Offre reçue, définition de la description distante');
-            peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
-                .then(() => {
-                    console.log('Description distante définie, création d\'une réponse');
-                    return peerConnection.createAnswer();
-                })
-                .then(answer => {
-                    console.log('Réponse créée');
-                    return peerConnection.setLocalDescription(answer);
-                })
-                .then(() => {
-                    console.log('Description locale définie avec la réponse');
-                    sendSignalingData('answer', peerConnection.localDescription);
-                })
-                .catch(err => {
-                    console.error('Erreur lors de la gestion de l\'offre :', err);
-                });
+        console.log(`Gestion du type de signaling : ${data.type}`);
+        switch(data.type) {
+            case 'offer':
+                handleOffer(data.payload);
+                break;
+            case 'answer':
+                handleAnswer(data.payload);
+                break;
+            case 'ice-candidate':
+                handleIceCandidate(data.payload);
+                break;
+            default:
+                console.warn('Type de signaling inconnu :', data.type);
+                break;
         }
+    }
 
-        function handleAnswer(answer) {
-            console.log('Réponse reçue, définition de la description distante');
-            peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-                .catch(err => {
-                    console.error('Erreur lors de la gestion de la réponse :', err);
-                });
-        }
+    function handleOffer(offer) {
+        console.log('Offre reçue, définition de la description distante');
+        const filteredSDP = filterSDP(offer.sdp);  // Apply the SDP filter
+        peerConnection.setRemoteDescription(new RTCSessionDescription({
+            type: 'offer',
+            sdp: filteredSDP
+        }))
+        .then(() => {
+            console.log('Description distante définie, création d\'une réponse');
+            return peerConnection.createAnswer();
+        })
+        .then(answer => {
+            console.log('Réponse créée');
+            return peerConnection.setLocalDescription(answer);
+        })
+        .then(() => {
+            console.log('Description locale définie avec la réponse');
+            sendSignalingData('answer', peerConnection.localDescription);
+            // Add queued ICE candidates after setting the remote description
+            iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
+            iceCandidatesQueue = []; // Clear the queue
+        })
+        .catch(err => {
+            console.error('Erreur lors de la gestion de l\'offre :', err);
+        });
+    }
 
-        function handleIceCandidate(candidate) {
+    function handleAnswer(answer) {
+        console.log('Réponse reçue, définition de la description distante');
+        peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+            .then(() => {
+                console.log('Description distante définie avec la réponse');
+                // Add queued ICE candidates after setting the remote description
+                iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
+                iceCandidatesQueue = []; // Clear the queue
+            })
+            .catch(err => {
+                console.error('Erreur lors de la gestion de la réponse :', err);
+            });
+    }
+
+    function handleIceCandidate(candidate) {
+        if (peerConnection.remoteDescription) {
             console.log('Candidat ICE reçu, ajout à la PeerConnection');
             peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+                .then(() => {
+                    console.log('Candidat ICE ajouté');
+                })
                 .catch(err => {
                     console.error('Erreur lors de l\'ajout du candidat ICE :', err);
                 });
+        } else {
+            console.log('Remote description non définie, mise en file d\'attente du candidat ICE');
+            iceCandidatesQueue.push(candidate);
         }
+    }
 
-        function sendSignalingData(type, data) {
-            console.log(`Envoi des données de signaling : ${type}`);
-            axios.post('/api/signaling', {
-                type: type,
-                payload: data,
-                room: roomName
-            }).then(response => {
-                console.log('Données de signaling envoyées :', response.data);
-            }).catch(err => {
-                console.error('Erreur lors de l\'envoi des données de signaling :', err);
-            });
-        }
+    function sendSignalingData(type, data) {
+        console.log(`Envoi des données de signaling : ${type}`);
+        axios.post('/api/signaling', {
+            type: type,
+            payload: data,
+            room: roomName
+        }).then(response => {
+            console.log('Données de signaling envoyées :', response.data);
+        }).catch(err => {
+            console.error('Erreur lors de l\'envoi des données de signaling :', err);
+        });
+    }
     });
     </script>
     @endpush
