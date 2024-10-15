@@ -25,6 +25,14 @@ use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TestimonialRequestController;
 
 
+
+
+Route::get('/webrtc/test', function () {
+    return view('webrtc.test');
+});
+
+
+
 // Routes accessibles publiquement via le lien dans l'email
 Route::get('/testimonials/submit/{token}', [TestimonialController::class, 'showSubmitForm'])->name('testimonials.submit');
 Route::post('/testimonials/submit/{token}', [TestimonialController::class, 'submit'])->name('testimonials.submit.post');

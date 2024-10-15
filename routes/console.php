@@ -8,6 +8,10 @@ use App\Console\Commands\SendDailyKpiEmail;
 use App\Console\Commands\CheckMilestones;
 use App\Console\Commands\SendAppointmentReminders;
 use App\Console\Commands\SendOneHourReminder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
+
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -23,3 +27,6 @@ Schedule::command(SendAppointmentReminders::class)->hourly();
 
 // Schedule the 1-hour appointment reminder command
 Schedule::command(SendOneHourReminder::class)->hourly();
+
+
+
