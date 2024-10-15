@@ -29,7 +29,7 @@ Voici les KPIs pour le **{{ \Carbon\Carbon::now()->format('d/m/Y') }}** :
 | **Record de Sessions**          | {{ $kpis['highestSessionCount'] }} (Le {{ \Carbon\Carbon::parse($kpis['highestSessionDate'])->format('d/m/Y') }}) |
 @endcomponent
 
-@component('mail::button', ['url' => route('admin.dashboard')])
+@component('mail::button', ['url' => route('admin.index')])
     Voir le Tableau de Bord
 @endcomponent
 
