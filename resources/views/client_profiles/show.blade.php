@@ -71,7 +71,7 @@
         {{-- Aucun demande envoyée --}}
         <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST" class="mt-6">
             @csrf
-            <button type="submit" class="bg-green-500 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors duration-300">
+            <button type="submit" class="btn btn-primary">
                 {{ __('Demander un Témoignage') }}
             </button>
         </form>
