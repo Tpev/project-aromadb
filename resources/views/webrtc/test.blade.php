@@ -33,10 +33,31 @@
         let roomName;
 
         const configuration = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                // Ajoutez des serveurs TURN ici si nécessaire
-            ]
+iceServers: [
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+  ]
         };
 
         // Initialiser la capture vidéo locale
@@ -90,17 +111,18 @@
 
             // Écouter les événements de signaling via Echo
             console.log(`Écoute du canal : room.${room}`);
-            window.Echo.channel('room.' + room)
-                .listen('.SignalingEvent', (e) => {
-                    console.log('SignalingEvent reçu :', e);
-                    handleSignalingData(e);
-                })
-                .listen('pusher:subscription_error', (status) => {
-                    console.error('Erreur de souscription au canal Pusher :', status);
-                })
-                .listen('pusher:subscription_succeeded', () => {
-                    console.log(`Souscription réussie au canal room.${room}`);
-                });
+           window.Echo.channel('room.' + room)
+    .listen('.SignalingEvent', (e) => {
+        console.log('SignalingEvent received:', e);
+        handleSignalingData(e);
+    })
+    .listen('pusher:subscription_error', (status) => {
+        console.error('Subscription error:', status);
+    })
+    .listen('pusher:subscription_succeeded', () => {
+        console.log(`Successfully subscribed to room.${room}`);
+    });
+
 
             // Créer une offre si c'est le premier à rejoindre la salle
             createOffer();
