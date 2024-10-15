@@ -7,7 +7,7 @@ Bonjour les Lapiz,
 @if($kpis['isNewHigh'])
 
         {{-- GIF festif pour célébrer le nouveau record --}}
-	<img src="{{asset('images/congratz.webp')}}" style="width:100%" alt="Bravo">
+	 ![Bravo](https://aromamade.com/images/congratz.webp)
      🎉 Nouveau Record Atteint ! 🎉
         <p>Hier, vous avez atteint un nouveau record de **{{ $kpis['sessionsYesterday'] }}** sessions, dépassant l'ancien record de **{{ $kpis['lastHighCount'] }}** sessions (Le {{ \Carbon\Carbon::parse($kpis['lastHighDate'])->format('d/m/Y') }}).</p>
     </div>
