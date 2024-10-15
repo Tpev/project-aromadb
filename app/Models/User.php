@@ -136,4 +136,16 @@ public function questionnaires()
 {
     return $this->hasMany(Questionnaire::class);
 }
+public function testimonialRequests()
+{
+    return $this->hasMany(TestimonialRequest::class, 'therapist_id');
+}
+
+/**
+ * Get the testimonials made by the therapist.
+ */
+public function testimonials()
+{
+    return $this->hasMany(Testimonial::class, 'therapist_id');
+}
 }

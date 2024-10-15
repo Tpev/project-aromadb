@@ -21,10 +21,19 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicTherapistController;
 use App\Http\Controllers\UserLicenseController;
 use App\Http\Controllers\QuestionnaireController;
+use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\TestimonialRequestController;
+
+
+// Routes accessibles publiquement via le lien dans l'email
+Route::get('/testimonials/submit/{token}', [TestimonialController::class, 'showSubmitForm'])->name('testimonials.submit');
+Route::post('/testimonials/submit/{token}', [TestimonialController::class, 'submit'])->name('testimonials.submit.post');
+Route::get('/testimonials/thankyou', [TestimonialController::class, 'thankYou'])->name('testimonials.thankyou');
 
 
 // Unavailability Routes
 Route::middleware(['auth'])->group(function () {
+	Route::post('/client-profiles/{clientProfile}/request-testimonial', [TestimonialRequestController::class, 'sendRequest'])->name('testimonial.request');
     // Show unavailability form
     Route::get('/unavailability/create', [AppointmentController::class, 'createUnavailability'])->name('unavailabilities.create');
 

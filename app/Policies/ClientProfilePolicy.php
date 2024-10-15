@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\ClientProfile;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ClientProfilePolicy
 {
@@ -38,5 +39,9 @@ public function view(User $user, ClientProfile $clientProfile)
     // Only allow users who are therapists
     return $user->is_therapist;
 }
-
+    public function requestTestimonial(User $user, ClientProfile $clientProfile)
+    {
+        // Vérifiez que l'utilisateur est un thérapeute et qu'il possède ce profil client
+        return $user->is_therapist && $user->id === $clientProfile->user_id;
+    }
 }

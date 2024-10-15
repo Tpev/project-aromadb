@@ -66,7 +66,12 @@
                     </div>
                 </div>
             </div>
-
+    @can('requestTestimonial', $clientProfile)
+        <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-primary">Demander un Témoignage</button>
+        </form>
+    @endcan
             <!-- Appointments Section -->
             <div class="row mt-4">
                 <div class="col-md-12">

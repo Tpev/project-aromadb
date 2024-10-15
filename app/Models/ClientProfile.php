@@ -48,4 +48,16 @@ class ClientProfile extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+	public function testimonialRequests()
+{
+    return $this->hasMany(TestimonialRequest::class);
+}
+
+/**
+ * Get the testimonials for the client profile.
+ */
+public function testimonials()
+{
+    return $this->hasMany(Testimonial::class);
+}
 }
