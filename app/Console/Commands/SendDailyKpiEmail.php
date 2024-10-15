@@ -76,10 +76,11 @@ class SendDailyKpiEmail extends Command
             ->distinct('session_id')
             ->count('session_id');
 
-        // Calculer le nombre maximal de sessions quotidiennes jamais enregistrées
+        // Calculer le nombre maximal de sessions quotidiennes jamais enregistrées (excluant hier)
         $maxDailySessionsRecord = PageViewLog::selectRaw('DATE(viewed_at) as date, COUNT(DISTINCT session_id) as session_count')
             ->whereNotNull('user_agent')
             ->where('user_agent', '!=', '')
+            ->whereDate('viewed_at', '!=', $yesterday) // Exclure hier
             ->where(function ($query) use ($botUserAgents) {
                 foreach ($botUserAgents as $bot) {
                     $query->where('user_agent', 'NOT LIKE', "%$bot%");
@@ -96,6 +97,7 @@ class SendDailyKpiEmail extends Command
         $previousHighRecord = PageViewLog::selectRaw('DATE(viewed_at) as date, COUNT(DISTINCT session_id) as session_count')
             ->whereNotNull('user_agent')
             ->where('user_agent', '!=', '')
+            ->whereDate('viewed_at', '!=', $yesterday) // Exclure hier
             ->where(function ($query) use ($botUserAgents) {
                 foreach ($botUserAgents as $bot) {
                     $query->where('user_agent', 'NOT LIKE', "%$bot%");
@@ -119,7 +121,9 @@ class SendDailyKpiEmail extends Command
             $lastHighCount = $highestSessionCount;
             $lastHighDate = $highestSessionDate;
 
-            // (Optionnel) Vous pouvez mettre à jour une table pour stocker ce record si nécessaire
+            // Mettre à jour le record actuel avec les données d'hier
+            $highestSessionCount = $sessionsYesterday;
+            $highestSessionDate = $yesterday->toDateString();
         }
 
         // Préparer les données KPI
@@ -137,6 +141,9 @@ class SendDailyKpiEmail extends Command
             'lastHighCount' => $lastHighCount,
             'lastHighDate' => $lastHighDate,
         ];
+
+        // Ajouter des logs pour déboguer
+        \Log::info('Daily KPI Report:', $kpis);
 
         // Récupérer les emails des administrateurs
         $adminEmails = User::where('is_admin', true)->pluck('email')->toArray();

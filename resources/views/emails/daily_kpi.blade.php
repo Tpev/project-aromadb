@@ -7,7 +7,7 @@ Bonjour les Lapiz,
 @if($kpis['isNewHigh'])
     <div style="text-align: center; margin-bottom: 20px;">
         {{-- GIF festif pour célébrer le nouveau record --}}
-        <img src="https://media.giphy.com/media/26n6WywJyh39n1pBu/giphy.gif" alt="Félicitations!" width="300" />
+        <div style="width:100%;height:0;padding-bottom:57%;position:relative;"><iframe src="https://giphy.com/embed/xT8qBepJQzUjXpeWU8" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/olympics-shaun-the-sheep-aardman-xT8qBepJQzUjXpeWU8">via GIPHY</a></p>
         <p style="font-size: 18px; color: #28a745; font-weight: bold;">🎉 Nouveau Record Atteint ! 🎉</p>
         <p>Hier, vous avez atteint un nouveau record de **{{ $kpis['sessionsYesterday'] }}** sessions, dépassant l'ancien record de **{{ $kpis['lastHighCount'] }}** sessions (Le {{ \Carbon\Carbon::parse($kpis['lastHighDate'])->format('d/m/Y') }}).</p>
     </div>
