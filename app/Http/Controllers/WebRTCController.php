@@ -28,13 +28,18 @@ class WebRTCController extends Controller
         $request->validate([
             'room' => 'required|string',
             'type' => 'required|string',
-            'data' => 'required|array',
+            'data' => 'required|array', // Signaling data, like offer, answer, or ice-candidate
             'senderId' => 'required|string',
         ]);
 
-        // Broadcast the signaling data to the room using Pusher
+        // Store 'offer' in cache so that late joiners can access it
+        if ($request->type === 'offer') {
+            cache()->forever('offer-' . $request->room, $request->data);
+        }
+
+        // Broadcast the signaling data (offer, answer, or ice-candidate) to all users in the room via Pusher
         $this->pusher->trigger('video-room.' . $request->room, 'client-signaling', [
-            'type' => $request->type,
+            'type' => $request->type,  // either 'offer', 'answer', or 'ice-candidate'
             'data' => $request->data,
             'senderId' => $request->senderId,
         ]);
@@ -44,17 +49,26 @@ class WebRTCController extends Controller
 
     public function joinRoom(Request $request)
     {
-        // Simulate a "first user" condition based on session or time (since no user count logic without auth)
+        // Simulate "first user" logic based on caching to determine the initiator
         $isFirstUser = cache()->has('room-' . $request->room) ? false : true;
 
-        // Cache the room to simulate "first user" logic for subsequent users
-        cache()->forever('room-' . $request->room, true);
+        // Cache the room to simulate that it's occupied for subsequent users
+        if ($isFirstUser) {
+            cache()->forever('room-' . $request->room, true);
+        }
 
-        // Broadcast that a user has joined the room
+        // Broadcast that a new user has joined the room
         $this->pusher->trigger('video-room.' . $request->room, 'client-joined', [
             'user_id' => $request->user_id,
         ]);
 
-        return response()->json(['status' => 'joined', 'isInitiator' => $isFirstUser]);
+        // Check if there's already an offer cached (i.e., if someone already initiated the room)
+        $offer = cache()->get('offer-' . $request->room);
+
+        return response()->json([
+            'status' => 'joined',
+            'isInitiator' => $isFirstUser, // Let the client know if they are the initiator
+            'offer' => $offer, // Send the cached offer if it exists
+        ]);
     }
 }

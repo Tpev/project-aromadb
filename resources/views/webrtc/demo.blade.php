@@ -18,6 +18,9 @@
     </div>
 
     @push('scripts')
+    <!-- Include SimplePeer from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
+
     <script type="module">
     document.addEventListener('DOMContentLoaded', function () {
         console.log('Page chargée et DOM prêt');
@@ -30,9 +33,7 @@
         let localStream;
         let peerConnection;
         let roomName;
-        let isInitiator = false;
         let senderId = generateUniqueId();
-        let iceCandidatesQueue = [];
 
         const configuration = {
             iceServers: [
@@ -56,6 +57,35 @@
                 alert('Impossible d\'accéder à la caméra et au microphone.');
             });
 
+        // Create a peer connection
+        function createPeer(initiator) {
+            const peer = new SimplePeer({
+                initiator: initiator,
+                trickle: false,
+                stream: localStream
+            });
+
+            peer.on('signal', data => {
+                console.log('SIGNAL', JSON.stringify(data));
+                sendSignalingData('signal', data);
+            });
+
+            peer.on('connect', () => {
+                console.log('Connected to peer!');
+            });
+
+            peer.on('data', data => {
+                console.log('Received data from peer:', data);
+            });
+
+            peer.on('stream', stream => {
+                console.log('Received remote stream');
+                remoteVideo.srcObject = stream;
+            });
+
+            return peer;
+        }
+
         // On "join" button click
         joinBtn.addEventListener('click', () => {
             roomName = roomInput.value.trim();
@@ -67,70 +97,24 @@
         });
 
         function joinRoom(room) {
-            peerConnection = new RTCPeerConnection(configuration);
+            let isInitiator = false;
+            let peer;
 
-            // Add local tracks to the peer connection
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
-            });
-
-            // Handle remote track
-            peerConnection.addEventListener('track', event => {
-                if (remoteVideo.srcObject !== event.streams[0]) {
-                    remoteVideo.srcObject = event.streams[0];
-                }
-            });
-
-            // Handle ICE candidates
-            peerConnection.addEventListener('icecandidate', event => {
-                if (event.candidate) {
-                    sendSignalingData('ice-candidate', event.candidate);
-                }
-            });
-
-            // Subscribe to the Pusher channel for signaling
-            window.Echo.channel('video-room.' + room)
-                .listen('.client-signaling', (data) => {
-                    handleSignalingData(data);
-                })
-                .listen('.client-joined', (data) => {
-                    console.log('Client joined:', data.user_id);
-                    if (!isInitiator) {
-                        console.log('Not the initiator, waiting for an offer...');
-                    }
-                });
-
-            // First user (initiator) creates the offer
-            sendJoinNotification(room);
-        }
-
-        function sendJoinNotification(room) {
+            // Call your signaling API to check if the user is the initiator
             axios.post('/webrtc/join-room', {
                 room: room,
                 user_id: senderId
             }).then(response => {
-                if (response.data.isInitiator) {
-                    isInitiator = true;
-                    console.log('This user is the initiator.');
-                    createOffer();  // Create an offer if this is the first user
-                } else {
-                    console.log("This user is NOT the initiator. Waiting for the offer.");
+                isInitiator = response.data.isInitiator;
+                peer = createPeer(isInitiator);  // Create the peer based on whether the user is the initiator
+
+                if (!isInitiator && response.data.offer) {
+                    console.log('Received offer from initiator:', response.data.offer);
+                    peer.signal(response.data.offer); // Respond to the cached offer
                 }
             }).catch(err => {
                 console.error('Error joining room:', err);
             });
-        }
-
-        function createOffer() {
-            peerConnection.createOffer()
-                .then(offer => peerConnection.setLocalDescription(offer))
-                .then(() => {
-                    console.log('Offer created and sent.');
-                    sendSignalingData('offer', peerConnection.localDescription);
-                })
-                .catch(err => {
-                    console.error('Erreur lors de la création de l\'offre :', err);
-                });
         }
 
         function sendSignalingData(type, data) {
@@ -140,98 +124,10 @@
                 room: roomName,
                 senderId: senderId
             }).then(response => {
-                console.log('Données de signaling envoyées :', response.data);
+                console.log('Signaling data sent:', response.data);
             }).catch(err => {
-                console.error('Erreur lors de l\'envoi des données de signaling :', err);
+                console.error('Error sending signaling data:', err);
             });
-        }
-
-        function handleSignalingData(data) {
-            if (data.senderId === senderId) {
-                return;
-            }
-
-            if (data.type === 'offer') {
-                handleOffer(data.data);
-            } else if (data.type === 'answer') {
-                handleAnswer(data.data);
-            } else if (data.type === 'ice-candidate') {
-                handleIceCandidate(data.data);
-            }
-        }
-
-        function cleanSDP(sdp) {
-            const sdpLines = sdp.split('\n');
-            const filteredSDP = [];
-
-            const allowedLines = [
-                /^v=0/,                               // Version
-                /^o=-/,                               // Origin
-                /^s=-/,                               // Session name
-                /^t=0 0/,                             // Time
-                /^a=group:BUNDLE/,                    // Group bundle
-                /^a=msid-semantic: WMS/,              // Media Stream Identification
-                /^m=audio/,                           // Audio media description
-                /^m=video/,                           // Video media description
-                /^c=IN IP4 0.0.0.0/,                  // Connection Information
-                /^a=rtcp:9 IN IP4 0.0.0.0/,           // RTCP connection
-                /^a=ice-ufrag:/,                      // ICE username fragment
-                /^a=ice-pwd:/,                        // ICE password
-                /^a=fingerprint:/,                    // DTLS fingerprint
-                /^a=setup:/,                          // Setup attribute
-                /^a=mid:/,                            // Media stream identification
-                /^a=sendrecv/,                        // Send/receive directions
-                /^a=msid:/,                           // Media stream ID
-                /^a=rtcp-mux/,                        // RTCP multiplexing
-                /^a=rtpmap:/,                         // Codec mappings
-            ];
-
-            sdpLines.forEach(line => {
-                for (let pattern of allowedLines) {
-                    if (pattern.test(line.trim())) {
-                        filteredSDP.push(line.trim());
-                        break;
-                    }
-                }
-            });
-
-            return filteredSDP.join('\n');
-        }
-
-        function handleOffer(offer) {
-            const filteredSDP = cleanSDP(offer.sdp);
-            peerConnection.setRemoteDescription(new RTCSessionDescription({
-                type: 'offer',
-                sdp: filteredSDP
-            }))
-            .then(() => peerConnection.createAnswer())
-            .then(answer => peerConnection.setLocalDescription(answer))
-            .then(() => {
-                console.log('Answer created and sent.');
-                sendSignalingData('answer', peerConnection.localDescription);
-                iceCandidatesQueue.forEach(candidate => {
-                    peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
-                        .catch(err => {
-                            console.error('Erreur lors de l\'ajout du candidat ICE :', err);
-                        });
-                });
-                iceCandidatesQueue = [];
-            })
-            .catch(err => {
-                console.error('Erreur lors de la gestion de l\'offre :', err);
-            });
-        }
-
-        function handleIceCandidate(candidate) {
-            if (peerConnection.remoteDescription) {
-                peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
-                    .catch(err => {
-                        console.error('Erreur lors de l\'ajout du candidat ICE :', err);
-                    });
-            } else {
-                iceCandidatesQueue.push(candidate);
-                console.log('Candidat ICE mis en file d\'attente');
-            }
         }
     });
     </script>
