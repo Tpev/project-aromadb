@@ -17,7 +17,7 @@
             <button id="joinBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300">Rejoindre</button>
         </div>
     </div>
-	
+    
     @push('scripts')
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -32,12 +32,11 @@
         let peerConnection;
         let roomName;
 
+        // Configure ICE servers (STUN/TURN)
         const configuration = {
-iceServers: [
-      {
-        urls: "stun:stun.relay.metered.ca:80",
-      },
-      {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },  // STUN server
+  {
         urls: "turn:global.relay.metered.ca:80",
         username: "973cd534a917cf4aad94e78d",
         credential: "U0vCqXJ3Zj6GCso9",
@@ -57,7 +56,7 @@ iceServers: [
         username: "973cd534a917cf4aad94e78d",
         credential: "U0vCqXJ3Zj6GCso9",
       },
-  ]
+            ]
         };
 
         // Initialiser la capture vidéo locale
@@ -111,18 +110,11 @@ iceServers: [
 
             // Écouter les événements de signaling via Echo
             console.log(`Écoute du canal : room.${room}`);
-           window.Echo.channel('room.' + room)
-    .listen('.SignalingEvent', (e) => {
-        console.log('SignalingEvent received:', e);
-        handleSignalingData(e);
-    })
-    .listen('pusher:subscription_error', (status) => {
-        console.error('Subscription error:', status);
-    })
-    .listen('pusher:subscription_succeeded', () => {
-        console.log(`Successfully subscribed to room.${room}`);
-    });
-
+            window.Echo.channel('room.' + room)
+                .listen('.SignalingEvent', (e) => {
+                    console.log('SignalingEvent reçu :', e);
+                    handleSignalingData(e);
+                });
 
             // Créer une offre si c'est le premier à rejoindre la salle
             createOffer();
@@ -169,11 +161,6 @@ iceServers: [
 
         function handleOffer(offer) {
             console.log('Offre reçue, définition de la description distante');
-            if (peerConnection.currentRemoteDescription) {
-                console.log('Description distante déjà définie, ignorer l\'offre');
-                return;
-            }
-
             peerConnection.setRemoteDescription(new RTCSessionDescription(offer))
                 .then(() => {
                     console.log('Description distante définie, création d\'une réponse');
@@ -195,9 +182,6 @@ iceServers: [
         function handleAnswer(answer) {
             console.log('Réponse reçue, définition de la description distante');
             peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-                .then(() => {
-                    console.log('Description distante définie avec la réponse');
-                })
                 .catch(err => {
                     console.error('Erreur lors de la gestion de la réponse :', err);
                 });
@@ -206,9 +190,6 @@ iceServers: [
         function handleIceCandidate(candidate) {
             console.log('Candidat ICE reçu, ajout à la PeerConnection');
             peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
-                .then(() => {
-                    console.log('Candidat ICE ajouté');
-                })
                 .catch(err => {
                     console.error('Erreur lors de l\'ajout du candidat ICE :', err);
                 });
