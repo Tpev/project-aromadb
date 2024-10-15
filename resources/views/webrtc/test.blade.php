@@ -167,46 +167,53 @@ iceServers: [
         }
     }
 
-    function handleOffer(offer) {
-        console.log('Offre reçue, définition de la description distante');
-        const filteredSDP = filterSDP(offer.sdp);  // Apply the SDP filter
-        peerConnection.setRemoteDescription(new RTCSessionDescription({
-            type: 'offer',
-            sdp: filteredSDP
-        }))
-        .then(() => {
-            console.log('Description distante définie, création d\'une réponse');
-            return peerConnection.createAnswer();
-        })
-        .then(answer => {
-            console.log('Réponse créée');
-            return peerConnection.setLocalDescription(answer);
-        })
-        .then(() => {
-            console.log('Description locale définie avec la réponse');
-            sendSignalingData('answer', peerConnection.localDescription);
-            // Add queued ICE candidates after setting the remote description
-            iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
-            iceCandidatesQueue = []; // Clear the queue
-        })
-        .catch(err => {
-            console.error('Erreur lors de la gestion de l\'offre :', err);
-        });
-    }
+  function handleOffer(offer) {
+    console.log('Offre reçue, définition de la description distante');
+    const filteredSDP = filterSDP(offer.sdp);  // Apply the SDP filter here
+    peerConnection.setRemoteDescription(new RTCSessionDescription({
+        type: 'offer',
+        sdp: filteredSDP  // Using the filtered SDP
+    }))
+    .then(() => {
+        console.log('Description distante définie, création d\'une réponse');
+        return peerConnection.createAnswer();
+    })
+    .then(answer => {
+        console.log('Réponse créée');
+        return peerConnection.setLocalDescription(answer);
+    })
+    .then(() => {
+        console.log('Description locale définie avec la réponse');
+        sendSignalingData('answer', peerConnection.localDescription);
 
-    function handleAnswer(answer) {
-        console.log('Réponse reçue, définition de la description distante');
-        peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
-            .then(() => {
-                console.log('Description distante définie avec la réponse');
-                // Add queued ICE candidates after setting the remote description
-                iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
-                iceCandidatesQueue = []; // Clear the queue
-            })
-            .catch(err => {
-                console.error('Erreur lors de la gestion de la réponse :', err);
-            });
-    }
+        // Add queued ICE candidates after setting the remote description
+        iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
+        iceCandidatesQueue = []; // Clear the queue
+    })
+    .catch(err => {
+        console.error('Erreur lors de la gestion de l\'offre :', err);
+    });
+}
+
+function handleAnswer(answer) {
+    console.log('Réponse reçue, définition de la description distante');
+    const filteredSDP = filterSDP(answer.sdp);  // Apply the SDP filter for answers as well
+    peerConnection.setRemoteDescription(new RTCSessionDescription({
+        type: 'answer',
+        sdp: filteredSDP  // Using the filtered SDP
+    }))
+    .then(() => {
+        console.log('Description distante définie avec la réponse');
+
+        // Add queued ICE candidates after setting the remote description
+        iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
+        iceCandidatesQueue = []; // Clear the queue
+    })
+    .catch(err => {
+        console.error('Erreur lors de la gestion de la réponse :', err);
+    });
+}
+
 
     function handleIceCandidate(candidate) {
         if (peerConnection.remoteDescription) {
