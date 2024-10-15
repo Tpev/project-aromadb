@@ -23,12 +23,12 @@ use App\Http\Controllers\UserLicenseController;
 use App\Http\Controllers\QuestionnaireController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TestimonialRequestController;
+use App\Http\Controllers\WebRTCController;
 
-
-
-
-Route::get('/webrtc/test', function () {
-    return view('webrtc.test');
+Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
+Route::post('/webrtc/join-room', [WebRTCController::class, 'joinRoom']);
+Route::get('/webrtc-demo', function () {
+    return view('webrtc.demo');
 });
 
 
