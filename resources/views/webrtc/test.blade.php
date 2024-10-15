@@ -140,9 +140,18 @@ iceServers: [
     }
 
     // Filter out problematic SDP lines
-    function filterSDP(sdp) {
-        return sdp.replace(/a=ssrc:[^\r\n]+/g, ''); // Remove all lines that start with 'a=ssrc'
-    }
+function filterSDP(sdp) {
+    console.log("Original SDP:", sdp);
+
+    // Remove all 'a=ssrc' lines and 'a=ssrc-group' lines
+    const filteredSDP = sdp
+        .replace(/a=ssrc:[^\r\n]+/g, '') // Remove ssrc lines
+        .replace(/a=ssrc-group:[^\r\n]+/g, ''); // Remove ssrc-group lines
+
+    console.log("Filtered SDP:", filteredSDP);
+    return filteredSDP;
+}
+
 
     function handleSignalingData(data) {
         if (!data || !data.type || !data.payload) {
@@ -169,7 +178,7 @@ iceServers: [
 
   function handleOffer(offer) {
     console.log('Offre reçue, définition de la description distante');
-    const filteredSDP = filterSDP(offer.sdp);  // Apply the SDP filter here
+    const filteredSDP = filterSDP(offer.sdp);  // Apply the SDP filter
     peerConnection.setRemoteDescription(new RTCSessionDescription({
         type: 'offer',
         sdp: filteredSDP  // Using the filtered SDP
@@ -185,15 +194,12 @@ iceServers: [
     .then(() => {
         console.log('Description locale définie avec la réponse');
         sendSignalingData('answer', peerConnection.localDescription);
-
-        // Add queued ICE candidates after setting the remote description
-        iceCandidatesQueue.forEach(candidate => peerConnection.addIceCandidate(new RTCIceCandidate(candidate)));
-        iceCandidatesQueue = []; // Clear the queue
     })
     .catch(err => {
         console.error('Erreur lors de la gestion de l\'offre :', err);
     });
 }
+
 
 function handleAnswer(answer) {
     console.log('Réponse reçue, définition de la description distante');
