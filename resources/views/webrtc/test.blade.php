@@ -35,19 +35,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configure ICE servers (STUN/TURN)
     const configuration = {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },  // STUN server
-            {
-                urls: "turn:global.relay.metered.ca:80",
-                username: "973cd534a917cf4aad94e78d",
-                credential: "U0vCqXJ3Zj6GCso9",
-            },
-            {
-                urls: "turn:global.relay.metered.ca:443",
-                username: "973cd534a917cf4aad94e78d",
-                credential: "U0vCqXJ3Zj6GCso9",
-            },
-        ]
+iceServers: [
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:eu.relay.metered.ca:80",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turn:eu.relay.metered.ca:80?transport=tcp",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turn:eu.relay.metered.ca:443",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turns:eu.relay.metered.ca:443?transport=tcp",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+  ]
     };
 
     // Initialiser la capture vidéo locale
