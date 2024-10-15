@@ -7,7 +7,8 @@ Bonjour les Lapiz,
 @if($kpis['isNewHigh'])
     <div style="text-align: center; margin-bottom: 20px;">
         {{-- GIF festif pour célébrer le nouveau record --}}
-        <div style="width:100%;height:0;padding-bottom:57%;position:relative;"><iframe src="https://giphy.com/embed/xT8qBepJQzUjXpeWU8" width="100%" height="100%" style="position:absolute" frameBorder="0" class="giphy-embed" allowFullScreen></iframe></div><p><a href="https://giphy.com/gifs/olympics-shaun-the-sheep-aardman-xT8qBepJQzUjXpeWU8">via GIPHY</a></p>
+        <img src="https://media.giphy.com/media/xT8qBepJQzUjXpeWU8/giphy.gif" alt="Félicitations!" width="300" />
+        <p><a href="https://giphy.com/gifs/olympics-shaun-the-sheep-aardman-xT8qBepJQzUjXpeWU8">via GIPHY</a></p>
         <p style="font-size: 18px; color: #28a745; font-weight: bold;">🎉 Nouveau Record Atteint ! 🎉</p>
         <p>Hier, vous avez atteint un nouveau record de **{{ $kpis['sessionsYesterday'] }}** sessions, dépassant l'ancien record de **{{ $kpis['lastHighCount'] }}** sessions (Le {{ \Carbon\Carbon::parse($kpis['lastHighDate'])->format('d/m/Y') }}).</p>
     </div>
@@ -16,19 +17,19 @@ Bonjour les Lapiz,
 Voici les KPIs pour le **{{ \Carbon\Carbon::now()->format('d/m/Y') }}** :
 
 @component('mail::table')
-| **KPI**                         | **Valeur**                              |
-| ------------------------------- | --------------------------------------- |
-| **Sessions Aujourd'hui**        | {{ $kpis['sessionsToday'] }}            |
-| **Sessions Hier**               | {{ $kpis['sessionsYesterday'] }}        |
-| **Sessions Cette Semaine**      | {{ $kpis['sessionsThisWeek'] }}         |
-| **Sessions Semaine Dernière**   | {{ $kpis['sessionsLastWeek'] }}         |
-| **Sessions Ce Mois**            | {{ $kpis['sessionsThisMonth'] }}        |
-| **Sessions Mois Dernier**       | {{ $kpis['sessionsLastMonth'] }}        |
-| **Total des Sessions**          | {{ $kpis['sessionsTotal'] }}            |
+| **KPI**                         | **Valeur**                                                           |
+| ------------------------------- | -------------------------------------------------------------------- |
+| **Sessions Aujourd'hui**        | {{ $kpis['sessionsToday'] }}                                         |
+| **Sessions Hier**               | {{ $kpis['sessionsYesterday'] }}                                     |
+| **Sessions Cette Semaine**      | {{ $kpis['sessionsThisWeek'] }}                                      |
+| **Sessions Semaine Dernière**   | {{ $kpis['sessionsLastWeek'] }}                                      |
+| **Sessions Ce Mois**            | {{ $kpis['sessionsThisMonth'] }}                                     |
+| **Sessions Mois Dernier**       | {{ $kpis['sessionsLastMonth'] }}                                     |
+| **Total des Sessions**          | {{ $kpis['sessionsTotal'] }}                                         |
 | **Record de Sessions**          | {{ $kpis['highestSessionCount'] }} (Le {{ \Carbon\Carbon::parse($kpis['highestSessionDate'])->format('d/m/Y') }}) |
 @endcomponent
 
-@component('mail::button', ['url' => route('admin.index')])
+@component('mail::button', ['url' => route('admin.dashboard')])
     Voir le Tableau de Bord
 @endcomponent
 
