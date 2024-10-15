@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\TestimonialRequest;
 use App\Models\Testimonial;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class TestimonialController extends Controller
 {
@@ -37,6 +37,10 @@ class TestimonialController extends Controller
         ]);
 
         if ($validator->fails()) {
+            Log::warning('Validation échouée lors de la soumission d\'un témoignage.', [
+                'token' => $token,
+                'errors' => $validator->errors(),
+            ]);
             return redirect()->back()
                              ->withErrors($validator)
                              ->withInput();
@@ -53,7 +57,19 @@ class TestimonialController extends Controller
         // Mettre à jour le statut de la demande
         $testimonialRequest->update(['status' => 'completed']);
 
-        return redirect()->route('testimonials.thankyou');
+        // Récupérer le thérapeute associé
+        $therapist = $testimonialRequest->therapist;
+
+        // Ajouter un log
+        Log::info('Témoignage soumis', [
+            'testimonial_id' => $testimonial->id,
+            'testimonial_request_id' => $testimonialRequest->id,
+            'therapist_id' => $testimonial->therapist_id,
+            'client_profile_id' => $testimonial->client_profile_id,
+        ]);
+
+        // Retourner la vue de remerciement avec le thérapeute
+        return view('testimonials.thankyou', compact('therapist'));
     }
 
     /**
@@ -61,6 +77,6 @@ class TestimonialController extends Controller
      */
     public function thankYou()
     {
-        return view('testimonials.thankyou');
+        // Cette méthode peut être vide ou rediriger vers une autre vue si nécessaire
     }
 }

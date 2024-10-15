@@ -20,7 +20,7 @@
                 </p>
 
                 <div class="mt-8">
-                    <a href="{{ route('public.therapist.show', ['therapist' => $testimonialRequest->therapist_id]) }}" class="inline-block bg-green-500 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors duration-300">
+                    <a href="{{ route('therapist.show', ['slug' => $therapist->slug]) }}" class="inline-block bg-green-500 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-600 transition-colors duration-300">
                         {{ __('Retour au Profil') }}
                     </a>
                 </div>
