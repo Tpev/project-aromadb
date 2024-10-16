@@ -25,9 +25,14 @@ use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TestimonialRequestController;
 use App\Http\Controllers\WebRTCController;
 
+// **WebRTC Static Routes**
 Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
 Route::get('/webrtc/get-offer', [WebRTCController::class, 'getOffer']);
 Route::get('/webrtc/get-answer', [WebRTCController::class, 'getAnswer']);
+
+// **WebRTC Dynamic Route (Must Be Last)**
+Route::get('/webrtc/{room}', [WebRTCController::class, 'room'])->name('webrtc.room');
+
 
 Route::get('/webrtc-demo', function () {
     return view('webrtc.demo');
