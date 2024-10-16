@@ -26,6 +26,33 @@
       const room = 'webrtc-room';  // Fixed room for demo
       const senderId = generateUniqueId();
 
+      // TURN and STUN servers
+      const iceServers = [
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:eu.relay.metered.ca:80",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turn:eu.relay.metered.ca:80?transport=tcp",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turn:eu.relay.metered.ca:443",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+      {
+        urls: "turns:eu.relay.metered.ca:443?transport=tcp",
+        username: "973cd534a917cf4aad94e78d",
+        credential: "U0vCqXJ3Zj6GCso9",
+      },
+  ];
+
       // Get user media (video and audio)
       navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
@@ -53,6 +80,7 @@
           initiator: initiator,
           trickle: false,  // Disable trickle ICE candidates
           stream: stream,
+          config: { iceServers }  // Add STUN and TURN servers here
         });
 
         // Send signaling data (offer or answer)
