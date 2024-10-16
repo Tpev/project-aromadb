@@ -1,135 +1,132 @@
-<x-app-layout>
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-2xl font-bold mb-4">Test de Visioconférence WebRTC</h1>
-        <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
-            <div>
-                <h2 class="text-xl font-semibold mb-2">Votre Vidéo</h2>
-                <video id="localVideo" autoplay muted class="w-64 h-48 bg-gray-200"></video>
-            </div>
-            <div>
-                <h2 class="text-xl font-semibold mb-2">Vidéo du Participant</h2>
-                <video id="remoteVideo" autoplay class="w-64 h-48 bg-gray-200"></video>
-            </div>
-        </div>
-        <div class="mt-6 text-center">
-            <input type="text" id="roomInput" placeholder="Nom de la salle" class="border border-gray-300 p-2 rounded-lg mr-2">
-            <button id="joinBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300">Rejoindre</button>
-        </div>
-    </div>
+<html>
+  <body>
+    <style>
+      video {
+        width: 300px;
+        height: 200px;
+        background-color: gray;
+      }
+    </style>
 
-    @push('scripts')
-    <!-- Include SimplePeer from CDN -->
+    <!-- Video elements for local and remote streams -->
+    <h2>Your Video</h2>
+    <video id="localVideo" autoplay muted></video>
+    <h2>Remote Video</h2>
+    <video id="remoteVideo" autoplay></video>
+
+    <!-- SimplePeer & Axios Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    <script type="module">
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log('Page chargée et DOM prêt');
+    <script>
+      let localStream;
+      let peer;
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+      const room = 'webrtc-room';  // Fixed room for demo
+      const senderId = generateUniqueId();
 
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const joinBtn = document.getElementById('joinBtn');
-        const roomInput = document.getElementById('roomInput');
+      // Get user media (video and audio)
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+          localStream = stream;
+          localVideo.srcObject = stream;  // Show local video
 
-        let localStream;
-        let peerConnection;
-        let roomName;
-        let senderId = generateUniqueId();
+          const isInitiator = location.hash === '#1';  // Determines if peer is the initiator
+          createPeer(isInitiator, stream);
 
-        const configuration = {
-            iceServers: [
-                { urls: "stun:stun.relay.metered.ca:80" },
-                { urls: "turn:eu.relay.metered.ca:80", username: "973cd534a917cf4aad94e78d", credential: "U0vCqXJ3Zj6GCso9" },
-            ]
-        };
-
-        function generateUniqueId() {
-            return Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
-        }
-
-        // Access media devices (camera and microphone)
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            .then(stream => {
-                localStream = stream;
-                localVideo.srcObject = stream;
-                console.log('Local media stream obtained.');
-            })
-            .catch(err => {
-                alert('Impossible d\'accéder à la caméra et au microphone.');
-            });
-
-        // Create a peer connection
-        function createPeer(initiator) {
-            const peer = new SimplePeer({
-                initiator: initiator,
-                trickle: false,
-                stream: localStream
-            });
-
-            peer.on('signal', data => {
-                console.log('SIGNAL', JSON.stringify(data));
-                sendSignalingData('signal', data);
-            });
-
-            peer.on('connect', () => {
-                console.log('Connected to peer!');
-            });
-
-            peer.on('data', data => {
-                console.log('Received data from peer:', data);
-            });
-
-            peer.on('stream', stream => {
-                console.log('Received remote stream');
-                remoteVideo.srcObject = stream;
-            });
-
-            return peer;
-        }
-
-        // On "join" button click
-        joinBtn.addEventListener('click', () => {
-            roomName = roomInput.value.trim();
-            if (!roomName) {
-                alert('Veuillez entrer un nom de salle.');
-                return;
-            }
-            joinRoom(roomName);
+          // If not initiator, check for the offer
+          if (!isInitiator) {
+            setTimeout(getOffer, 1000); // Give the initiator time to create an offer
+          }
+        })
+        .catch(error => {
+          console.error('Error accessing media devices.', error);
         });
 
-        function joinRoom(room) {
-            let isInitiator = false;
-            let peer;
+      function generateUniqueId() {
+        return Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+      }
 
-            // Call your signaling API to check if the user is the initiator
-            axios.post('/webrtc/join-room', {
-                room: room,
-                user_id: senderId
-            }).then(response => {
-                isInitiator = response.data.isInitiator;
-                peer = createPeer(isInitiator);  // Create the peer based on whether the user is the initiator
+      function createPeer(initiator, stream) {
+        peer = new SimplePeer({
+          initiator: initiator,
+          trickle: false,  // Disable trickle ICE candidates
+          stream: stream,
+        });
 
-                if (!isInitiator && response.data.offer) {
-                    console.log('Received offer from initiator:', response.data.offer);
-                    peer.signal(response.data.offer); // Respond to the cached offer
-                }
-            }).catch(err => {
-                console.error('Error joining room:', err);
-            });
-        }
+        // Send signaling data (offer or answer)
+        peer.on('signal', (data) => {
+          const type = data.type === 'offer' ? 'offer' : 'answer';
+          console.log(`Sending ${type}:`, data);
 
-        function sendSignalingData(type, data) {
-            axios.post('/webrtc/signaling', {
-                type: type,
-                data: data,
-                room: roomName,
-                senderId: senderId
-            }).then(response => {
-                console.log('Signaling data sent:', response.data);
-            }).catch(err => {
-                console.error('Error sending signaling data:', err);
-            });
-        }
-    });
+          axios.post('/webrtc/signaling', {
+            type: type,
+            data: JSON.stringify(data),  // Convert the SDP data into a string
+            room: room,
+            senderId: senderId
+          }).then(response => {
+            console.log('Signaling data sent:', response.data);
+
+            // If the type is offer, initiator will wait for an answer
+            if (type === 'offer') {
+              setTimeout(checkForAnswer, 1000); // Start checking for answer after sending the offer
+            }
+          }).catch(err => {
+            console.error('Error sending signaling data:', err);
+          });
+        });
+
+        // Receive remote stream
+        peer.on('stream', (stream) => {
+          console.log('Received remote stream.');
+          remoteVideo.srcObject = stream;
+        });
+
+        // Peer connected
+        peer.on('connect', () => {
+          console.log('Connected to peer!');
+        });
+
+        // Handle peer connection errors
+        peer.on('error', (err) => {
+          console.error('Error with peer connection:', err);
+        });
+      }
+
+      function getOffer() {
+        axios.get('/webrtc/get-offer', { params: { room: room } })
+          .then(response => {
+            const offer = response.data.offer;
+            if (offer) {
+              console.log('Received offer:', offer);
+              peer.signal(offer);  // Signal offer to the peer
+            } else {
+              console.log('No offer available.');
+            }
+          })
+          .catch(err => {
+            console.error('Error retrieving offer:', err);
+          });
+      }
+
+      function checkForAnswer() {
+        axios.get('/webrtc/get-answer', { params: { room: room } })
+          .then(response => {
+            const answer = response.data.answer;
+            if (answer) {
+              console.log('Received answer:', answer);
+              peer.signal(answer);  // Signal answer to the peer
+            } else {
+              console.log('No answer available yet. Retrying...');
+              setTimeout(checkForAnswer, 1000); // Retry after 1 second if no answer is available
+            }
+          })
+          .catch(err => {
+            console.error('Error retrieving answer:', err);
+            setTimeout(checkForAnswer, 1000); // Retry after 1 second if error occurs
+          });
+      }
     </script>
-    @endpush
-</x-app-layout>
+  </body>
+</html>

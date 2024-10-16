@@ -26,7 +26,9 @@ use App\Http\Controllers\TestimonialRequestController;
 use App\Http\Controllers\WebRTCController;
 
 Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
-Route::post('/webrtc/join-room', [WebRTCController::class, 'joinRoom']);
+Route::get('/webrtc/get-offer', [WebRTCController::class, 'getOffer']);
+Route::get('/webrtc/get-answer', [WebRTCController::class, 'getAnswer']);
+
 Route::get('/webrtc-demo', function () {
     return view('webrtc.demo');
 });

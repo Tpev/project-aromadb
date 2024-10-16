@@ -3,72 +3,51 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Pusher\Pusher;
 
 class WebRTCController extends Controller
 {
-    protected $pusher;
+public function signaling(Request $request)
+{
+    // Validate the incoming request
+    $request->validate([
+        'room' => 'required|string',
+        'type' => 'required|string',
+        'data' => 'required|string', // Ensure 'data' is treated as a string
+        'senderId' => 'required|string',
+    ]);
 
-    public function __construct()
-    {
-        $this->pusher = new Pusher(
-            env('PUSHER_APP_KEY'),
-            env('PUSHER_APP_SECRET'),
-            env('PUSHER_APP_ID'),
-            [
-                'cluster' => env('PUSHER_APP_CLUSTER'),
-                'useTLS' => true,
-            ]
-        );
+    // Store the offer or answer
+    $roomKey = 'webrtc-' . $request->room;
+
+    // Store offer or answer depending on type
+    if ($request->type === 'offer') {
+        cache()->put($roomKey . '-offer', $request->data, 300); // Store offer
+    } elseif ($request->type === 'answer') {
+        cache()->put($roomKey . '-answer', $request->data, 300); // Store answer
     }
 
-    public function signaling(Request $request)
+    return response()->json(['status' => 'success']);
+}
+
+
+
+public function getOffer(Request $request)
+{
+    $roomKey = 'webrtc-' . $request->room;
+
+    // Retrieve the offer from cache
+    $offer = cache()->get($roomKey . '-offer');
+
+    return response()->json(['offer' => $offer ? $offer : null]);
+}
+
+
+    public function getAnswer(Request $request)
     {
-        // Validate the incoming request
-        $request->validate([
-            'room' => 'required|string',
-            'type' => 'required|string',
-            'data' => 'required|array', // Signaling data, like offer, answer, or ice-candidate
-            'senderId' => 'required|string',
-        ]);
+        $roomKey = 'webrtc-' . $request->room;
 
-        // Store 'offer' in cache so that late joiners can access it
-        if ($request->type === 'offer') {
-            cache()->forever('offer-' . $request->room, $request->data);
-        }
-
-        // Broadcast the signaling data (offer, answer, or ice-candidate) to all users in the room via Pusher
-        $this->pusher->trigger('video-room.' . $request->room, 'client-signaling', [
-            'type' => $request->type,  // either 'offer', 'answer', or 'ice-candidate'
-            'data' => $request->data,
-            'senderId' => $request->senderId,
-        ]);
-
-        return response()->json(['status' => 'success']);
-    }
-
-    public function joinRoom(Request $request)
-    {
-        // Simulate "first user" logic based on caching to determine the initiator
-        $isFirstUser = cache()->has('room-' . $request->room) ? false : true;
-
-        // Cache the room to simulate that it's occupied for subsequent users
-        if ($isFirstUser) {
-            cache()->forever('room-' . $request->room, true);
-        }
-
-        // Broadcast that a new user has joined the room
-        $this->pusher->trigger('video-room.' . $request->room, 'client-joined', [
-            'user_id' => $request->user_id,
-        ]);
-
-        // Check if there's already an offer cached (i.e., if someone already initiated the room)
-        $offer = cache()->get('offer-' . $request->room);
-
-        return response()->json([
-            'status' => 'joined',
-            'isInitiator' => $isFirstUser, // Let the client know if they are the initiator
-            'offer' => $offer, // Send the cached offer if it exists
-        ]);
+        // Retrieve the answer from cache
+        $answer = cache()->get($roomKey . '-answer');
+        return response()->json(['answer' => $answer ? $answer : null]);
     }
 }

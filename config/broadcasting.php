@@ -47,6 +47,8 @@ return [
             ],
         ],
 
+
+
     'pusher' => [
         'driver' => 'pusher',
         'key' => env('PUSHER_APP_KEY'),
@@ -54,9 +56,20 @@ return [
         'app_id' => env('PUSHER_APP_ID'),
         'options' => [
             'cluster' => env('PUSHER_APP_CLUSTER'),
-            'useTLS' => true,  // Make sure TLS is enabled
+            'useTLS' => true,
+            'encrypted' => true,
+            // Remove or comment out 'auth' settings if present
+            // 'auth' => [
+            //     'headers' => [
+            //         'Authorization' => 'Bearer ' . env('PUSHER_APP_KEY'),
+            //     ],
+            // ],
         ],
     ],
+
+
+
+
 
         'ably' => [
             'driver' => 'ably',
