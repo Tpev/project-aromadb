@@ -29,7 +29,7 @@
         <link rel="canonical" href="{{ url()->current() }}" />
 
         <!-- Dynamic Meta Description -->
-        <meta name="description" content="@yield('meta_description', 'Default meta description for AromaMade')">
+        <meta name="description" content="@yield('meta_description', ' Informations fiables et vérifiées sur les huiles essentielles, les huiles végétales, les tisanes, et bien plus encore!')">
         
         <!-- Dynamic Page Title -->
         <title>@yield('title', config('app.name', 'AromaMade'))</title>
