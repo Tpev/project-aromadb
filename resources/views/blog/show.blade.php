@@ -22,6 +22,18 @@
                         <label class="details-label"><i class="fas fa-tags" style="color: #647a0b;"></i> Tags</label>
                         <p class="details-value">{{ $post->Tags }}</p>
                     </div>
+								@php
+
+				$imagePath = 'images/' . $post->slug . '.webp';
+			@endphp
+
+			<div class="col-md-6 text-center">
+				@if (File::exists(public_path($imagePath)))
+					<img src="{{ asset($imagePath) }}" alt="{{ $post->Title }}" class="img-fluid huile-image">
+				@else
+					<img src="{{ asset('images/default.webp') }}" alt="{{ $post->Title }}" class="img-fluid huile-image">
+				@endif
+			</div>
                     <div class="details-box">
                         <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Contenu</label>
                         <p class="details-value">{!! $post->Contents !!}</p>
@@ -153,6 +165,19 @@
             font-size: 1rem;
             font-weight: 500;
         }
+				.huile-image {
+    max-width: 50%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .huile-image {
+        max-width: 80%;
+    }
+}
     </style>
 
     <!-- Font Awesome for icons -->

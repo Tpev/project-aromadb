@@ -38,9 +38,18 @@
 
             <!-- Image and Info in Two Columns -->
             <div class="row align-items-center">
-                <div class="col-md-6 text-center">
-                    <img src="{{ asset('images/default.webp') }}" alt="{{ $huileHE->NomHE }}" class="img-fluid" style="max-width: 400px; height: auto; margin-bottom: 20px;">
-                </div>
+			@php
+				$imagePath = 'images/' . $huileHE->slug . '.webp';
+			@endphp
+
+			<div class="col-md-6 text-center">
+				@if (File::exists(public_path($imagePath)))
+					<img src="{{ asset($imagePath) }}" alt="{{ $huileHE->NomHE }}" class="img-fluid huile-image">
+				@else
+					<img src="{{ asset('images/default.webp') }}" alt="{{ $huileHE->NomHE }}" class="img-fluid huile-image">
+				@endif
+			</div>
+
                 <div class="col-md-6">
                     <div class="details-box">
                         <label class="details-label"><i class="fas fa-leaf" style="color: #647a0b;"></i> Latin Name</label>
@@ -304,6 +313,20 @@
             font-size: 1rem;
             font-weight: 500;
         }
+		.huile-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .huile-image {
+        max-width: 80%;
+    }
+}
+
     </style>
 
     <!-- Font Awesome for icons and Flag Icons for flags -->
