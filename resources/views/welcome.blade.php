@@ -1,10 +1,10 @@
 <x-app-layout>
 
     <!-- Hero Section with Logo -->
-    <div class="hero bg-cover bg-center flex items-center justify-center" style="background-image: url('{{ asset('images/hero-background.jpg') }}'); height: 60vh;">
+    <div class="hero bg-cover bg-center flex items-center justify-center" style="background-image: url('{{ asset('images/hero-background.webp') }}'); height: 60vh;">
         <div class="container mx-auto text-center">
             <!-- Display Logo -->
-            <img src="{{ asset('images/png-01.png') }}" alt="AromaMade Logo" class="mx-auto logo">
+            <img src="{{ asset('images/white-logo.png') }}" alt="AromaMade Logo" class="mx-auto logo">
         </div>
     </div>
 
