@@ -24,6 +24,11 @@ use App\Http\Controllers\QuestionnaireController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TestimonialRequestController;
 use App\Http\Controllers\WebRTCController;
+use App\Http\Controllers\SearchController;
+
+
+Route::get('/search', [SearchController::class, 'search'])->name('search');
+
 
 // **WebRTC Static Routes**
 Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
