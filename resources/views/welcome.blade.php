@@ -8,8 +8,8 @@
         </div>
 
         <!-- Search Bar -->
-        <div class="search-container relative w-full max-w-2xl">
-            <input type="text" id="search-input" class="search-input" placeholder="Rechercher des huiles, tisanes, recettes, articles..." autocomplete="off" aria-label="Recherche">
+        <div class="search-container absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-10 px-4">
+            <input type="text" id="search-input" class="search-input w-full" placeholder="Rechercher des huiles, tisanes, recettes, articles..." autocomplete="off" aria-label="Recherche">
             <div id="search-results" class="search-results"></div>
         </div>
     </div>
@@ -110,11 +110,11 @@
     </section>
 
     <!-- Custom Styles -->
-    <style>
+      <style>
         .hero {
             background-size: cover;
             background-position: center;
-            height: 60vh;
+            min-height: 60vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -136,7 +136,8 @@
         }
 
         /* Ensure content is above the overlay */
-        .hero > div {
+        .hero > .container,
+        .search-container {
             position: relative;
             z-index: 1;
         }
@@ -197,15 +198,19 @@
 
         /* Search Styles */
         .search-container {
-            position: relative;
+            position: absolute; /* Changed from relative to absolute */
+            bottom: 1rem; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
             width: 100%;
             max-width: 600px;
             margin: 0 auto;
+            padding: 0 1rem; /* Add some horizontal padding */
         }
 
         .search-input {
             width: 100%;
-            padding: 15px 20px;
+            padding: 15px 50px 15px 20px; /* Adjust padding to accommodate search icon */
             font-size: 1.2rem;
             border: 2px solid #fff;
             border-radius: 50px;
