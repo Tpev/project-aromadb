@@ -29,7 +29,7 @@ class SearchController extends Controller
             ->get(['id', 'NomHV', 'NomLatin', 'slug']);
 
         $tisanes = Tisane::where('Nom', 'like', "%{$query}%")
-            ->get(['id', 'Nom', 'slug']);
+            ->get(['id', 'NomTisane', 'slug']);
 
         $recettes = Recette::where('NomRecette', 'like', "%{$query}%")
             ->get(['id', 'NomRecette', 'slug']);
