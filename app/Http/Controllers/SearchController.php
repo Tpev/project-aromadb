@@ -28,7 +28,7 @@ class SearchController extends Controller
             ->orWhere('NomLatin', 'like', "%{$query}%")
             ->get(['id', 'NomHV', 'NomLatin', 'slug']);
 
-        $tisanes = Tisane::where('Nom', 'like', "%{$query}%")
+        $tisanes = Tisane::where('NomTisane', 'like', "%{$query}%")
             ->get(['id', 'NomTisane', 'slug']);
 
         $recettes = Recette::where('NomRecette', 'like', "%{$query}%")
