@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use App\Models\HuileHE;
 use App\Models\HuileHV;
 use App\Models\Tisane;
@@ -13,6 +14,16 @@ class SearchController extends Controller
 {
     public function search(Request $request)
     {
+		    $validator = Validator::make($request->all(), [
+        'query' => 'required|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => 'Invalid search query.'], 400);
+    }
+
+
+		
         $query = $request->input('query');
 
         if (!$query) {
