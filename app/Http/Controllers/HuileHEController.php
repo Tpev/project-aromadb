@@ -7,13 +7,39 @@ use Illuminate\Http\Request;
 
 class HuileHEController extends Controller
 {
-	public function index()
-	{
-		$huileHEs = HuileHE::all();
-		return view('huilehe.index', compact('huileHEs'));
-	}
+   public function index(Request $request)
+    {
+        // Start a query on the HuileHE model
+        $query = HuileHE::query();
 
+        // Handle Search
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('NomHE', 'like', '%' . $search . '%');
+        }
 
+        // Handle Filter by Indication
+        if ($request->filled('indication')) {
+            $indication = $request->input('indication');
+            $query->where('Indications', 'like', '%' . $indication . '%');
+        }
+
+        // Paginate the results with 12 items per page
+        $huileHEs = $query->orderBy('NomHE', 'asc')->paginate(12)->appends($request->only(['search', 'indication']));
+
+        // Gather all unique indications for the filter dropdown
+        $indications = HuileHE::pluck('Indications')
+            ->map(function($item) {
+                return explode(';', $item);
+            })
+            ->flatten()
+            ->unique()
+            ->filter()
+            ->sort();
+
+        return view('huilehe.index', compact('huileHEs', 'indications'));
+    
+    }
     public function create()
     {
         //
