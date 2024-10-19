@@ -359,7 +359,7 @@
                                         resultElement.classList.add('search-result');
 
                                         // Highlight matched query
-                                        let displayName = (result.NomHE || result.NomHV || result.Nom || result.NomRecette || result.Title);
+                                        let displayName = (result.NomHE || result.NomHV || result.NomTisane || result.NomRecette || result.Title);
                                         const regex = new RegExp(`(${query})`, 'gi');
                                         displayName = displayName.replace(regex, '<span class="highlight">$1</span>');
 
