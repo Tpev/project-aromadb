@@ -258,7 +258,7 @@ class AdminController extends Controller
         ksort($monthlyRevenueData);
 
         // Pass all data to the view
-        return view('admin.dashboard', compact(
+        return view('admin.index', compact(
             'users',
             'pageViews',
             'sessionsToday',
