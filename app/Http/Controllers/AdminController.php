@@ -17,7 +17,7 @@ class AdminController extends Controller
      * Display the admin dashboard with session KPIs.
      */
 
-     public function index()
+ public function index()
     {
         // Check if the user is an admin
         if (!auth()->user() || !auth()->user()->isAdmin()) {
@@ -89,13 +89,13 @@ class AdminController extends Controller
             $referrer = strtolower($referrer);
 
             // Check for Social Media sources
-            if (str_contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
+            if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
                 return 'Social Media';
             }
 
             // Check for Google sources
-            if (str_contains($referrer, 'google.com')) {
-                if (str_contains($referrer, ['gclid=', 'gad_source='])) {
+            if (Str::contains($referrer, 'google.com')) {
+                if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
                     return 'Paid';
                 } else {
                     return 'Organic';
