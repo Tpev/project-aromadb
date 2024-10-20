@@ -1,3 +1,4 @@
+{{-- resources/views/admin/dashboard.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-green-600 leading-tight">
@@ -8,79 +9,53 @@
     <div class="container mt-5">
         <h1 class="page-title">Session Statistics</h1>
 
-        <!-- Row for This Week's KPIs -->
+        <!-- Sessions KPIs with Traffic Source Breakdown -->
         <div class="stat-grid">
-            <div class="stat-box">
-                <h4>Sessions Today</h4>
-                <p>{{ $sessionsToday }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Sessions This Week</h4>
-                <p>{{ $sessionsThisWeek }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Sessions This Month</h4> <!-- Restored "This Month" statistic -->
-                <p>{{ $sessionsThisMonth }}</p>
-            </div>
-        </div>
-
-        <!-- Row for Last Period's KPIs -->
-        <div class="stat-grid">
-		            <div class="stat-box">
-                <h4>Sessions Yesterday</h4>
-                <p>{{ $sessionsYesterday }}</p>
-            </div>
-            <div class="stat-box">
-			
-                <h4>Sessions Last Week</h4>
-                <p>{{ $sessionsLastWeek }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Sessions Last Month</h4>
-                <p>{{ $sessionsLastMonth }}</p>
-            </div>
-        </div>        <!-- Row for Last Period's KPIs -->
-        <div class="stat-grid">
-		            <div class="stat-box">
-                <h4>Sessions Total</h4>
-                <p>{{ $sessionsTotal }}</p>
-            </div>
-
+            @foreach($sessionsData as $timeFrame => $data)
+                <div class="stat-box">
+                    <h4>{{ ucfirst(str_replace('_', ' ', $timeFrame)) }}</h4>
+                    <p><strong>Total Sessions:</strong> {{ $data['total'] }}</p>
+                    <ul class="list-disc list-inside">
+                        @foreach($data['sources'] as $source => $count)
+                            <li><strong>{{ $source }}:</strong> {{ $count }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endforeach
         </div>
 
         <h1 class="page-title">Liste des Utilisateurs</h1>
 
-<div class="table-responsive mx-auto">
-    <table class="table table-bordered table-hover mx-auto" id="usersTable">
-        <thead>
-            <tr>
-                <th class="text-center">User ID</th>
-                <th class="text-center">Nom</th>
-                <th class="text-center">Email</th>
-                <th class="text-center">PRO</th>
-                <th class="text-center">RDV</th>
-                <th class="text-center">Client</th>
-                <th class="text-center">Questi</th>
-                <th class="text-center">Last Login</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($users as $user)
-                <tr class="text-center">
-                    <td title="{{ $user->id }}">{{ $user->id }}</td>
-                    <td title="{{ $user->name }}" class="text-wrap">{{ $user->name }}</td>
-                    <td title="{{ $user->email }}" class="text-wrap">{{ $user->email }}</td>
-                    <td title="{{ $user->is_therapist ? 'Yes' : 'No' }}" class="text-wrap">{{ $user->is_therapist ? 'Yes' : 'No' }}</td>
-                    <td title="{{ $user->appointments->count() }}">{{ $user->appointments->count() }}</td>
-                    <td title="{{ $user->clientProfiles->count() }}">{{ $user->clientProfiles->count() }}</td>
-                    <td title="{{ $user->questionnaires->count() }}">{{ $user->questionnaires->count() }}</td>
-                    <td title="{{ $user->last_login }}">{{ $user->last_login_at ?? 'Never' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-
+        <div class="table-responsive mx-auto">
+            <table class="table table-bordered table-hover mx-auto" id="usersTable">
+                <thead>
+                    <tr>
+                        <th class="text-center">User ID</th>
+                        <th class="text-center">Nom</th>
+                        <th class="text-center">Email</th>
+                        <th class="text-center">PRO</th>
+                        <th class="text-center">RDV</th>
+                        <th class="text-center">Client</th>
+                        <th class="text-center">Questi</th>
+                        <th class="text-center">Last Login</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($users as $user)
+                        <tr class="text-center">
+                            <td title="{{ $user->id }}">{{ $user->id }}</td>
+                            <td title="{{ $user->name }}" class="text-wrap">{{ $user->name }}</td>
+                            <td title="{{ $user->email }}" class="text-wrap">{{ $user->email }}</td>
+                            <td title="{{ $user->is_therapist ? 'Yes' : 'No' }}" class="text-wrap">{{ $user->is_therapist ? 'Yes' : 'No' }}</td>
+                            <td title="{{ $user->appointments->count() }}">{{ $user->appointments->count() }}</td>
+                            <td title="{{ $user->clientProfiles->count() }}">{{ $user->clientProfiles->count() }}</td>
+                            <td title="{{ $user->questionnaires->count() }}">{{ $user->questionnaires->count() }}</td>
+                            <td title="{{ $user->last_login }}">{{ $user->last_login_at ?? 'Never' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
 
         <h1 class="page-title mt-5">Page Views Grouped by Session ID</h1>
 
