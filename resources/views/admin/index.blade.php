@@ -7,61 +7,84 @@
     </x-slot>
 
     <div class="container mt-5">
+        <!-- Session Statistics -->
         <h1 class="page-title">Session Statistics</h1>
 
-        <!-- Original Session KPIs -->
         <div class="stat-grid">
-            <div class="stat-box">
-                <h4>Sessions Today</h4>
-                <p>{{ $sessionsToday }}</p>
+            <!-- Today & Yesterday -->
+            <div class="stat-group">
+                <div class="stat-box">
+                    <h4>Sessions Today</h4>
+                    <p>{{ $sessionsToday }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Sessions Yesterday</h4>
+                    <p>{{ $sessionsYesterday }}</p>
+                </div>
             </div>
-            <div class="stat-box">
-                <h4>Sessions Yesterday</h4>
-                <p>{{ $sessionsYesterday }}</p>
+
+            <!-- This Week & Last Week -->
+            <div class="stat-group">
+                <div class="stat-box">
+                    <h4>Sessions This Week</h4>
+                    <p>{{ $sessionsThisWeek }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Sessions Last Week</h4>
+                    <p>{{ $sessionsLastWeek }}</p>
+                </div>
             </div>
-            <div class="stat-box">
-                <h4>Sessions This Week</h4>
-                <p>{{ $sessionsThisWeek }}</p>
+
+            <!-- This Month & Last Month -->
+            <div class="stat-group">
+                <div class="stat-box">
+                    <h4>Sessions This Month</h4>
+                    <p>{{ $sessionsThisMonth }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Sessions Last Month</h4>
+                    <p>{{ $sessionsLastMonth }}</p>
+                </div>
             </div>
-            <div class="stat-box">
-                <h4>Sessions Last Week</h4>
-                <p>{{ $sessionsLastWeek }}</p>
+
+            <!-- Total Sessions & Total Clients -->
+            <div class="stat-group">
+                <div class="stat-box">
+                    <h4>Total Sessions</h4>
+                    <p>{{ $sessionsTotal }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Total Clients</h4>
+                    <p>{{ $totalClients }}</p>
+                </div>
             </div>
-            <div class="stat-box">
-                <h4>Sessions This Month</h4>
-                <p>{{ $sessionsThisMonth }}</p>
+
+            <!-- Total Appointments & Upcoming Appointments -->
+            <div class="stat-group">
+                <div class="stat-box">
+                    <h4>Total Appointments</h4>
+                    <p>{{ $totalAppointments }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Upcoming Appointments</h4>
+                    <p>{{ $upcomingAppointments }}</p>
+                </div>
             </div>
-            <div class="stat-box">
-                <h4>Sessions Last Month</h4>
-                <p>{{ $sessionsLastMonth }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Total Sessions</h4>
-                <p>{{ $sessionsTotal }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Total Clients</h4>
-                <p>{{ $totalClients }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Total Appointments</h4>
-                <p>{{ $totalAppointments }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Upcoming Appointments</h4>
-                <p>{{ $upcomingAppointments }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Total Invoices</h4>
-                <p>{{ $totalInvoices }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Pending Invoices</h4>
-                <p>{{ $pendingInvoices }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Monthly Revenue (€)</h4>
-                <p>{{ number_format($monthlyRevenue, 2) }}</p>
+
+            <!-- Total Invoices, Pending Invoices & Monthly Revenue -->
+            <div class="stat-group">
+                <div class="stat-box">
+                    <h4>Total Invoices</h4>
+                    <p>{{ $totalInvoices }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Pending Invoices</h4>
+                    <p>{{ $pendingInvoices }}</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Monthly Revenue (€)</h4>
+                    <p>{{ number_format($monthlyRevenue, 2) }}</p>
+                </div>
             </div>
         </div>
 
@@ -81,6 +104,7 @@
             @endforeach
         </div>
 
+        <!-- Users Table -->
         <h1 class="page-title">Liste des Utilisateurs</h1>
 
         <div class="table-responsive mx-auto">
@@ -116,6 +140,7 @@
             </table>
         </div>
 
+        <!-- Page Views Table -->
         <h1 class="page-title mt-5">Page Views Grouped by Session ID</h1>
 
         <div class="table-responsive mx-auto">
@@ -150,47 +175,64 @@
     <style>
         .container {
             max-width: 1200px;
-            text-align: center;
+            margin: 0 auto;
+            padding: 0 15px;
         }
 
         .stat-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
             margin-bottom: 20px;
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .stat-box {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
             padding: 20px;
             text-align: center;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            flex: 1 1 calc(25% - 20px); /* Each box takes 25% of the row with space between */
-            margin-right: 10px;
-            margin-left: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .stat-box:last-child {
-            margin-right: 0; /* Ensure last box doesn't have extra margin */
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-box h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+
+        .stat-box p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d3748;
         }
 
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+            overflow-x: auto;
         }
 
         .table {
             width: 100%;
-            max-width: 1000px;
-            table-layout: fixed; /* Prevents table from expanding based on content */
-            word-wrap: break-word; /* Forces text to wrap in table cells */
+            max-width: 100%;
+            table-layout: auto;
+            word-wrap: break-word;
         }
 
         .table thead {
@@ -210,27 +252,31 @@
         .table th, .table td {
             vertical-align: middle;
             text-align: center;
-            overflow: hidden;
-            text-overflow: ellipsis; /* Adds "..." when text overflows */
-            white-space: nowrap; /* Prevents text from wrapping to a new line */
+            padding: 12px 8px;
         }
 
         .text-wrap {
-            white-space: normal; /* Allows wrapping for columns where text is long */
-            word-wrap: break-word; /* Breaks long words if necessary */
+            white-space: normal;
+            word-wrap: break-word;
         }
 
         .page-title {
             font-size: 2rem;
-            font-weight: 600;
-            color: #333333;
+            font-weight: 700;
+            color: #2d3748;
             margin-bottom: 20px;
+            text-align: left;
         }
 
         ul {
-            padding-left: 15px;
+            padding-left: 20px;
             text-align: left;
         }
-    </style>
 
+        @media (max-width: 768px) {
+            .stat-group {
+                flex-direction: column;
+            }
+        }
+    </style>
 </x-app-layout>
