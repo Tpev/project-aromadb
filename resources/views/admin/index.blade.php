@@ -50,7 +50,7 @@
                             <td title="{{ $user->appointments->count() }}">{{ $user->appointments->count() }}</td>
                             <td title="{{ $user->clientProfiles->count() }}">{{ $user->clientProfiles->count() }}</td>
                             <td title="{{ $user->questionnaires->count() }}">{{ $user->questionnaires->count() }}</td>
-                            <td title="{{ $user->last_login }}">{{ $user->last_login_at ?? 'Never' }}</td>
+                            <td title="{{ $user->last_login }}">{{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') : 'Never' }}</td>
                         </tr>
                     @endforeach
                 </tbody>

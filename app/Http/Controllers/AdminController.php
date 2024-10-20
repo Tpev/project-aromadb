@@ -16,17 +16,18 @@ class AdminController extends Controller
     /**
      * Display the admin dashboard with session KPIs.
      */
-    public function index()
+
+     public function index()
     {
         // Check if the user is an admin
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             return redirect('/')->with('error', 'Unauthorized access');
         }
 
-        // Get the list of users with related models
+        // Fetch all users with related models
         $users = User::with(['appointments', 'clientProfiles', 'questionnaires'])->get();
 
-        // Define common bot user agents
+        // Define common bot user agents to exclude from page views
         $botUserAgents = [
             'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'Googlebot',
             'Bingbot', 'Baiduspider', 'DuckDuckBot', 'YandexBot', 'Sogou',
@@ -51,6 +52,59 @@ class AdminController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
         $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
         $endOfLastMonth = (clone $startOfLastMonth)->endOfMonth();
+
+        // Calculate session counts for different time frames
+        $sessionsToday = PageViewLog::whereDate('viewed_at', '=', $today)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsYesterday = PageViewLog::whereDate('viewed_at', '=', $yesterday)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsThisWeek = PageViewLog::where('viewed_at', '>=', $startOfWeek)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsLastWeek = PageViewLog::whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek])
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsThisMonth = PageViewLog::where('viewed_at', '>=', $startOfMonth)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsLastMonth = PageViewLog::whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth])
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsTotal = PageViewLog::distinct('session_id')->count('session_id');
+
+        // Function to categorize referrer into traffic sources
+        $categorizeReferrer = function ($referrer) {
+            if (!$referrer) {
+                return 'Direct';
+            }
+
+            $referrer = strtolower($referrer);
+
+            // Check for Social Media sources
+            if (str_contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
+                return 'Social Media';
+            }
+
+            // Check for Google sources
+            if (str_contains($referrer, 'google.com')) {
+                if (str_contains($referrer, ['gclid=', 'gad_source='])) {
+                    return 'Paid';
+                } else {
+                    return 'Organic';
+                }
+            }
+
+            // If none of the above, categorize as Other
+            return 'Other';
+        };
 
         // Define time frames with their respective query conditions
         $timeFrames = [
@@ -105,7 +159,7 @@ class AdminController extends Controller
 
             // Categorize each session and increment counters
             foreach ($sessions as $session) {
-                $source = $this->categorizeReferrer($session->referrer);
+                $source = $categorizeReferrer($session->referrer);
                 if (array_key_exists($source, $trafficSources)) {
                     $trafficSources[$source]++;
                 } else {
@@ -131,38 +185,37 @@ class AdminController extends Controller
                 'ip_address',
                 'referrer',
                 'user_agent',
-                \DB::raw('COUNT(*) as view_count'),
-                \DB::raw('MAX(viewed_at) as last_viewed_at')
+                DB::raw('COUNT(*) as view_count'),
+                DB::raw('MAX(viewed_at) as last_viewed_at')
             )
             ->groupBy('url', 'session_id', 'ip_address', 'referrer', 'user_agent')
             ->orderByDesc('last_viewed_at')
             ->limit(100) // Limit the results to the last 100 entries
             ->get();
 
-        // Additional KPIs (Replace with your actual logic)
-        $totalClients = User::count(); // Example: Total number of clients
-        $upcomingAppointments = User::withCount(['appointments' => function ($query) {
-            $query->where('appointment_date', '>=', Carbon::now());
-        }])->where('is_therapist', true)->sum('appointments_count'); // Example: Total upcoming appointments
-        $totalInvoices = \App\Models\Invoice::count(); // Example: Total invoices issued
-        $pendingInvoices = \App\Models\Invoice::where('status', 'pending')->count(); // Example: Pending invoices
-        $monthlyRevenue = \App\Models\Invoice::whereMonth('invoice_date', Carbon::now()->month)
+        // Additional KPIs
+        $totalClients = ClientProfile::count(); // Total number of client profiles
+        $totalAppointments = Appointment::count(); // Total number of appointments
+        $upcomingAppointments = Appointment::where('appointment_date', '>=', Carbon::now())->count(); // Upcoming appointments
+        $totalInvoices = Invoice::count(); // Total invoices issued
+        $pendingInvoices = Invoice::where('status', 'pending')->count(); // Pending invoices
+        $monthlyRevenue = Invoice::whereMonth('invoice_date', Carbon::now()->month)
             ->where('status', 'paid')
-            ->sum('total_amount'); // Example: Revenue for the current month
+            ->sum('total_amount'); // Revenue for the current month
 
         // Prepare data for charts
-        $appointmentsPerMonth = \App\Models\Appointment::select(
-                \DB::raw('MONTH(appointment_date) as month'),
-                \DB::raw('COUNT(*) as count')
+        $appointmentsPerMonth = Appointment::select(
+                DB::raw('MONTH(appointment_date) as month'),
+                DB::raw('COUNT(*) as count')
             )
             ->whereYear('appointment_date', Carbon::now()->year)
             ->groupBy('month')
             ->pluck('count', 'month')
             ->toArray();
 
-        $monthlyRevenueData = \App\Models\Invoice::select(
-                \DB::raw('MONTH(invoice_date) as month'),
-                \DB::raw('SUM(total_amount) as revenue')
+        $monthlyRevenueData = Invoice::select(
+                DB::raw('MONTH(invoice_date) as month'),
+                DB::raw('SUM(total_amount) as revenue')
             )
             ->whereYear('invoice_date', Carbon::now()->year)
             ->where('status', 'paid')
@@ -171,23 +224,56 @@ class AdminController extends Controller
             ->toArray();
 
         // Define month labels (e.g., January, February, etc.)
-        $months = Carbon::create()->months()->mapWithKeys(function ($month) {
-            return [$month => ucfirst($month)];
-        })->toArray();
+        $months = [
+            1 => 'Janvier',
+            2 => 'Février',
+            3 => 'Mars',
+            4 => 'Avril',
+            5 => 'Mai',
+            6 => 'Juin',
+            7 => 'Juillet',
+            8 => 'Août',
+            9 => 'Septembre',
+            10 => 'Octobre',
+            11 => 'Novembre',
+            12 => 'Décembre',
+        ];
+
+        // Ensure all months are present in the data arrays
+        foreach ($months as $monthNumber => $monthName) {
+            if (!array_key_exists($monthNumber, $appointmentsPerMonth)) {
+                $appointmentsPerMonth[$monthNumber] = 0;
+            }
+            if (!array_key_exists($monthNumber, $monthlyRevenueData)) {
+                $monthlyRevenueData[$monthNumber] = 0;
+            }
+        }
+
+        // Sort the arrays by month number
+        ksort($appointmentsPerMonth);
+        ksort($monthlyRevenueData);
 
         // Pass all data to the view
         return view('admin.dashboard', compact(
             'users',
             'pageViews',
+            'sessionsToday',
+            'sessionsYesterday',
+            'sessionsThisWeek',
+            'sessionsLastWeek',
+            'sessionsThisMonth',
+            'sessionsLastMonth',
+            'sessionsTotal',
+            'sessionsData',
             'totalClients',
+            'totalAppointments',
             'upcomingAppointments',
             'totalInvoices',
             'pendingInvoices',
             'monthlyRevenue',
             'appointmentsPerMonth',
             'monthlyRevenueData',
-            'months',
-            'sessionsData'
+            'months'
         ));
     }
 
