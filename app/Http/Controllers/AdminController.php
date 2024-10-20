@@ -23,6 +23,9 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Unauthorized access');
         }
 
+        // Get the list of users with related models
+        $users = User::with(['appointments', 'clientProfiles', 'questionnaires'])->get();
+
         // Define common bot user agents
         $botUserAgents = [
             'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'Googlebot',
@@ -49,27 +52,83 @@ class AdminController extends Controller
         $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
         $endOfLastMonth = (clone $startOfLastMonth)->endOfMonth();
 
+        // Perform the date filtering and count unique sessions (distinct session_id) for each period
+        $sessionsToday = (clone $pageViewsQuery)
+            ->whereDate('viewed_at', '=', $today)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsYesterday = (clone $pageViewsQuery)
+            ->whereDate('viewed_at', '=', $yesterday)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsThisWeek = (clone $pageViewsQuery)
+            ->where('viewed_at', '>=', $startOfWeek)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsLastWeek = (clone $pageViewsQuery)
+            ->whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek])
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsThisMonth = (clone $pageViewsQuery)
+            ->where('viewed_at', '>=', $startOfMonth)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        $sessionsLastMonth = (clone $pageViewsQuery)
+            ->whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth])
+            ->distinct('session_id')
+            ->count('session_id');
+
+        // Add sessionsTotal
+        $sessionsTotal = (clone $pageViewsQuery)
+            ->distinct('session_id')
+            ->count('session_id');
+
+        // Function to categorize sessions based on referrer
+        $categorizeSession = function ($referrer) {
+            if (!$referrer) {
+                return 'Direct';
+            }
+
+            $referrer = strtolower($referrer);
+            if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
+                return 'Social Media';
+            } elseif (Str::contains($referrer, 'google.com')) {
+                if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
+                    return 'Paid';
+                } else {
+                    return 'Organic';
+                }
+            }
+
+            return 'Other';
+        };
+
         // Define time frames with their respective query conditions
         $timeFrames = [
-            'today' => function($query) use ($today) {
+            'today' => function ($query) use ($today) {
                 $query->whereDate('viewed_at', '=', $today);
             },
-            'yesterday' => function($query) use ($yesterday) {
+            'yesterday' => function ($query) use ($yesterday) {
                 $query->whereDate('viewed_at', '=', $yesterday);
             },
-            'this_week' => function($query) use ($startOfWeek) {
+            'this_week' => function ($query) use ($startOfWeek) {
                 $query->where('viewed_at', '>=', $startOfWeek);
             },
-            'last_week' => function($query) use ($startOfLastWeek, $endOfLastWeek) {
+            'last_week' => function ($query) use ($startOfLastWeek, $endOfLastWeek) {
                 $query->whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek]);
             },
-            'this_month' => function($query) use ($startOfMonth) {
+            'this_month' => function ($query) use ($startOfMonth) {
                 $query->where('viewed_at', '>=', $startOfMonth);
             },
-            'last_month' => function($query) use ($startOfLastMonth, $endOfLastMonth) {
+            'last_month' => function ($query) use ($startOfLastMonth, $endOfLastMonth) {
                 $query->whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth]);
             },
-            'total' => function($query) {
+            'total' => function ($query) {
                 // No date filter for total
             },
         ];
@@ -102,7 +161,7 @@ class AdminController extends Controller
 
             // Categorize each session and increment counters
             foreach ($sessions as $session) {
-                $source = $this->categorizeReferrer($session->referrer);
+                $source = $categorizeSession($session->referrer);
                 if (array_key_exists($source, $trafficSources)) {
                     $trafficSources[$source]++;
                 } else {
@@ -136,47 +195,65 @@ class AdminController extends Controller
             ->limit(100) // Limit the results to the last 100 entries
             ->get();
 
-        // Eager load related models
-        $users = User::with(['appointments', 'clientProfiles', 'questionnaires'])->get();
+        // Additional KPIs (Assuming these are defined elsewhere in your controller)
+        // Replace the following dummy data with your actual logic to compute these KPIs
+        $totalClients = User::count(); // Example: Total number of clients
+        $upcomingAppointments = User::withCount(['appointments' => function ($query) {
+            $query->where('appointment_date', '>=', Carbon::now());
+        }])->where('is_therapist', true)->sum('appointments_count'); // Example: Total upcoming appointments
+        $totalInvoices = \App\Models\Invoice::count(); // Example: Total invoices issued
+        $pendingInvoices = \App\Models\Invoice::where('status', 'pending')->count(); // Example: Pending invoices
+        $monthlyRevenue = \App\Models\Invoice::whereMonth('invoice_date', Carbon::now()->month)
+            ->where('status', 'paid')
+            ->sum('total_amount'); // Example: Revenue for the current month
 
-        // Pass the counts and traffic sources to the view
-        return view('admin.index', compact(
+        // Prepare data for charts
+        // Replace these with your actual logic to fetch data
+        $appointmentsPerMonth = \App\Models\Appointment::select(
+                \DB::raw('MONTH(appointment_date) as month'),
+                \DB::raw('COUNT(*) as count')
+            )
+            ->whereYear('appointment_date', Carbon::now()->year)
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+
+        $monthlyRevenueData = \App\Models\Invoice::select(
+                \DB::raw('MONTH(invoice_date) as month'),
+                \DB::raw('SUM(total_amount) as revenue')
+            )
+            ->whereYear('invoice_date', Carbon::now()->year)
+            ->where('status', 'paid')
+            ->groupBy('month')
+            ->pluck('revenue', 'month')
+            ->toArray();
+
+        // Define month labels (e.g., January, February, etc.)
+        $months = Carbon::create()->months()->mapWithKeys(function ($month) {
+            return [$month => ucfirst($month)];
+        })->toArray();
+
+        // Pass all data to the view
+        return view('dashboard-pro', compact(
             'users',
             'pageViews',
-            'sessionsData' // Pass sessionsData here
+            'sessionsToday',
+            'sessionsYesterday',
+            'sessionsThisWeek',
+            'sessionsLastWeek',
+            'sessionsThisMonth',
+            'sessionsLastMonth',
+            'sessionsTotal',
+            'sessionsData',
+            'totalClients',
+            'upcomingAppointments',
+            'totalInvoices',
+            'pendingInvoices',
+            'monthlyRevenue',
+            'appointmentsPerMonth',
+            'monthlyRevenueData',
+            'months'
         ));
-    }
-
-    /**
-     * Categorize a referrer into a traffic source category.
-     *
-     * @param string|null $referrer
-     * @return string
-     */
-    private function categorizeReferrer($referrer)
-    {
-        if (!$referrer) {
-            return 'Direct';
-        }
-
-        $referrer = strtolower($referrer);
-
-        // Check for Social Media sources
-        if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
-            return 'Social Media';
-        }
-
-        // Check for Google sources
-        if (Str::contains($referrer, 'google.com')) {
-            if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
-                return 'Paid';
-            } else {
-                return 'Organic';
-            }
-        }
-
-        // If none of the above, categorize as Other
-        return 'Other';
     }
 
     /**
