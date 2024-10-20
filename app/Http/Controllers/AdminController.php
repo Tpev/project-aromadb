@@ -10,6 +10,7 @@ use App\Models\UserLicense;
 use App\Models\LicenseHistory;
 use App\Models\LicenseTier;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
