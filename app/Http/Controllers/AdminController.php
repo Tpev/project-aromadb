@@ -104,8 +104,13 @@ class AdminController extends Controller
             'total' => $sessionsTotal,
         ];
 
-        // Function to categorize referrers into traffic sources based on all referrers in a session
-        $categorizeSessionTraffic = function ($sessionId) use ($pageViewsQuery, $categorizeReferrer) {
+        /**
+         * Categorize the traffic source based on all referrers in a session.
+         *
+         * @param string $sessionId
+         * @return string
+         */
+        $categorizeSessionTraffic = function ($sessionId) use ($pageViewsQuery) {
             // Retrieve all referrers for the given session
             $referrers = PageViewLog::where('session_id', $sessionId)
                 ->pluck('referrer')
@@ -122,6 +127,7 @@ class AdminController extends Controller
             $isOrganic = false;
             $isDirect = true; // Assume direct unless a referrer is found
 
+            // Check for Paid traffic indicators
             foreach ($referrers as $referrer) {
                 if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
                     $isPaid = true;
@@ -129,6 +135,7 @@ class AdminController extends Controller
                 }
             }
 
+            // If not Paid, check for Social Media sources
             if (!$isPaid) {
                 foreach ($referrers as $referrer) {
                     if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
@@ -138,6 +145,7 @@ class AdminController extends Controller
                 }
             }
 
+            // If not Paid or Social Media, check for Organic Google traffic
             if (!$isPaid && !$isSocialMedia) {
                 foreach ($referrers as $referrer) {
                     if (Str::contains($referrer, 'google.com')) {
@@ -147,7 +155,7 @@ class AdminController extends Controller
                 }
             }
 
-            // Check if there are any referrers
+            // Determine if the session is Direct (no referrers)
             if (!empty($referrers)) {
                 $isDirect = false;
             }
