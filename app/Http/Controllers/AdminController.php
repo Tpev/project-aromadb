@@ -111,68 +111,61 @@ class AdminController extends Controller
          * @return string
          */
         $categorizeSessionTraffic = function ($sessionId) use ($pageViewsQuery) {
-            // Retrieve all referrers for the given session
-            $referrers = PageViewLog::where('session_id', $sessionId)
-                ->pluck('referrer')
-                ->filter() // Remove null or empty referrers
-                ->map(function ($referrer) {
-                    return strtolower($referrer);
-                })
-                ->unique()
-                ->toArray();
+    // Retrieve all referrers and URLs for the given session
+    $pageViews = PageViewLog::where('session_id', $sessionId)
+        ->get(['referrer', 'url']);
 
-            // Initialize flags
-            $isPaid = false;
-            $isSocialMedia = false;
-            $isOrganic = false;
-            $isDirect = true; // Assume direct unless a referrer is found
+    // Initialize flags
+    $isPaid = false;
+    $isSocialMedia = false;
+    $isOrganic = false;
+    $isDirect = true; // Assume direct unless a referrer is found
 
-            // Check for Paid traffic indicators
-            foreach ($referrers as $referrer) {
-                if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
-                    $isPaid = true;
-                    break; // Paid takes precedence
-                }
-            }
+    foreach ($pageViews as $pageView) {
+        $referrer = strtolower($pageView->referrer);
+        $url = strtolower($pageView->url);
 
-            // If not Paid, check for Social Media sources
-            if (!$isPaid) {
-                foreach ($referrers as $referrer) {
-                    if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
-                        $isSocialMedia = true;
-                        break;
-                    }
-                }
-            }
+        // Check for Paid traffic indicators in referrers
+        if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
+            $isPaid = true;
+            break; // Paid takes precedence
+        }
 
-            // If not Paid or Social Media, check for Organic Google traffic
-            if (!$isPaid && !$isSocialMedia) {
-                foreach ($referrers as $referrer) {
-                    if (Str::contains($referrer, 'google.com')) {
-                        $isOrganic = true;
-                        break;
-                    }
-                }
-            }
+        // Check for UTM parameters indicating Paid traffic
+        if (Str::contains($url, 'utm_source=google') && Str::contains($url, 'utm_medium=cpc')) {
+            $isPaid = true;
+            break;
+        }
 
-            // Determine if the session is Direct (no referrers)
-            if (!empty($referrers)) {
-                $isDirect = false;
-            }
+        // Check for Social Media sources
+        if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
+            $isSocialMedia = true;
+        }
 
-            // Determine the traffic source based on flags
-            if ($isPaid) {
-                return 'Paid';
-            } elseif ($isSocialMedia) {
-                return 'Social Media';
-            } elseif ($isOrganic) {
-                return 'Organic';
-            } elseif ($isDirect) {
-                return 'Direct';
-            } else {
-                return 'Other';
-            }
-        };
+        // Check for Organic Google traffic
+        if (Str::contains($referrer, 'google.com')) {
+            $isOrganic = true;
+        }
+    }
+
+    // Determine if the session is Direct (no referrers)
+    if ($pageViews->pluck('referrer')->filter()->isNotEmpty()) {
+        $isDirect = false;
+    }
+
+    // Determine the traffic source based on flags
+    if ($isPaid) {
+        return 'Paid';
+    } elseif ($isSocialMedia) {
+        return 'Social Media';
+    } elseif ($isOrganic) {
+        return 'Organic';
+    } elseif ($isDirect) {
+        return 'Direct';
+    } else {
+        return 'Other';
+    }
+};
 
         // Define time frames with their respective query conditions
         $timeFrames = [
