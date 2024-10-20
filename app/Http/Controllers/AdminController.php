@@ -8,6 +8,10 @@ use App\Models\PageViewLog;
 use App\Models\Appointment;
 use App\Models\Invoice;
 use App\Models\ClientProfile;
+use App\Models\Questionnaire;
+use App\Models\LicenseTier;
+use App\Models\UserLicense;
+use App\Models\LicenseHistory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB; // Importing the DB facade
 use Illuminate\Support\Str;        // Importing the Str facade
@@ -15,7 +19,7 @@ use Illuminate\Support\Str;        // Importing the Str facade
 class AdminController extends Controller
 {
     /**
-     * Display the admin dashboard with session KPIs and other metrics.
+     * Display the admin dashboard with session KPIs and traffic source breakdowns.
      */
     public function index()
     {
@@ -29,9 +33,9 @@ class AdminController extends Controller
 
         // Define common bot user agents to exclude from page views
         $botUserAgents = [
-            'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'Googlebot',
-            'Bingbot', 'Baiduspider', 'DuckDuckBot', 'YandexBot', 'Sogou',
-            'Exabot', 'facebot', 'ia_archiver', 'MJ12bot', 'AsyncHttp', 'python'
+            'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'googlebot',
+            'bingbot', 'baiduspider', 'duckduckbot', 'yandexbot', 'sogou',
+            'exabot', 'facebot', 'ia_archiver', 'mj12bot', 'asynchttp', 'python'
         ];
 
         // Base query excluding null and empty user agents, and bot user agents
@@ -84,12 +88,12 @@ class AdminController extends Controller
             ->distinct('session_id')
             ->count('session_id');
 
-        // Add sessionsTotal
+        // Total sessions across all time frames
         $sessionsTotal = (clone $pageViewsQuery)
             ->distinct('session_id')
             ->count('session_id');
 
-        // Initialize an array to hold session counts and traffic sources per time frame
+        // Initialize an array to hold session counts per time frame
         $sessionsData = [
             'today' => $sessionsToday,
             'yesterday' => $sessionsYesterday,
@@ -100,30 +104,66 @@ class AdminController extends Controller
             'total' => $sessionsTotal,
         ];
 
-        // Function to categorize referrer into traffic sources
-        $categorizeReferrer = function ($referrer) {
-            if (!$referrer) {
-                return 'Direct';
-            }
+        // Function to categorize referrers into traffic sources based on all referrers in a session
+        $categorizeSessionTraffic = function ($sessionId) use ($pageViewsQuery, $categorizeReferrer) {
+            // Retrieve all referrers for the given session
+            $referrers = PageViewLog::where('session_id', $sessionId)
+                ->pluck('referrer')
+                ->filter() // Remove null or empty referrers
+                ->map(function ($referrer) {
+                    return strtolower($referrer);
+                })
+                ->unique()
+                ->toArray();
 
-            $referrer = strtolower($referrer);
+            // Initialize flags
+            $isPaid = false;
+            $isSocialMedia = false;
+            $isOrganic = false;
+            $isDirect = true; // Assume direct unless a referrer is found
 
-            // Check for Social Media sources
-            if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
-                return 'Social Media';
-            }
-
-            // Check for Google sources
-            if (Str::contains($referrer, 'google.com')) {
+            foreach ($referrers as $referrer) {
                 if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
-                    return 'Paid';
-                } else {
-                    return 'Organic';
+                    $isPaid = true;
+                    break; // Paid takes precedence
                 }
             }
 
-            // If none of the above, categorize as Other
-            return 'Other';
+            if (!$isPaid) {
+                foreach ($referrers as $referrer) {
+                    if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
+                        $isSocialMedia = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$isPaid && !$isSocialMedia) {
+                foreach ($referrers as $referrer) {
+                    if (Str::contains($referrer, 'google.com')) {
+                        $isOrganic = true;
+                        break;
+                    }
+                }
+            }
+
+            // Check if there are any referrers
+            if (!empty($referrers)) {
+                $isDirect = false;
+            }
+
+            // Determine the traffic source based on flags
+            if ($isPaid) {
+                return 'Paid';
+            } elseif ($isSocialMedia) {
+                return 'Social Media';
+            } elseif ($isOrganic) {
+                return 'Organic';
+            } elseif ($isDirect) {
+                return 'Direct';
+            } else {
+                return 'Other';
+            }
         };
 
         // Define time frames with their respective query conditions
@@ -163,23 +203,24 @@ class AdminController extends Controller
                 $filter($query);
             }
 
-            // Fetch distinct session_id and their referrers
-            $sessions = $query->select('session_id', 'referrer')
+            // Fetch distinct session_ids within the time frame
+            $sessions = $query->select('session_id')
                 ->distinct('session_id')
-                ->get();
+                ->pluck('session_id')
+                ->toArray();
 
             // Initialize traffic source counters
             $trafficSources = [
+                'Paid' => 0,
                 'Social Media' => 0,
                 'Organic' => 0,
-                'Paid' => 0,
                 'Direct' => 0,
                 'Other' => 0,
             ];
 
-            // Categorize each session and increment counters
-            foreach ($sessions as $session) {
-                $source = $categorizeReferrer($session->referrer);
+            // Categorize each session based on all its referrers
+            foreach ($sessions as $sessionId) {
+                $source = $categorizeSessionTraffic($sessionId);
                 if (array_key_exists($source, $trafficSources)) {
                     $trafficSources[$source]++;
                 } else {
@@ -218,7 +259,7 @@ class AdminController extends Controller
             ->sum('total_amount'); // Revenue for the current month
 
         // Pass all data to the view
-        return view('admin.index', compact(
+        return view('admin.dashboard', compact(
             'users',
             'pageViews',
             'sessionsToday',
