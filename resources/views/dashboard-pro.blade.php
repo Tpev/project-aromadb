@@ -92,8 +92,26 @@
                         </div>
                     </div>
                 </div>
-                
-               
+
+                {{-- Session KPIs Section --}}
+                <div class="col-span-1 lg:col-span-1">
+                    <div class="bg-white shadow rounded-lg p-5 hover:shadow-lg transition-shadow duration-300">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">{{ __('Sessions KPI') }}</h3>
+                        <div class="space-y-4">
+                            @foreach($sessionsData as $timeFrame => $data)
+                                <div>
+                                    <h4 class="text-md font-semibold text-gray-600">{{ ucfirst(str_replace('_', ' ', $timeFrame)) }}</h4>
+                                    <p class="text-sm text-gray-500"><strong>{{ __('Total Sessions') }}:</strong> {{ $data['total'] }}</p>
+                                    <ul class="list-disc list-inside text-sm text-gray-500">
+                                        @foreach($data['sources'] as $source => $count)
+                                            <li><strong>{{ $source }}:</strong> {{ $count }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
                 
             </div>
 
