@@ -1,17 +1,22 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\PageViewLog;
+use App\Models\Appointment;
+use App\Models\Invoice;
+use App\Models\ClientProfile;
 use Carbon\Carbon;
-use App\Models\UserLicense;
-use App\Models\LicenseHistory;
-use App\Models\LicenseTier;
-
+use Illuminate\Support\Facades\DB; // Importing the DB facade
+use Illuminate\Support\Str;        // Importing the Str facade
 
 class AdminController extends Controller
 {
+    /**
+     * Display the admin dashboard with session KPIs and other metrics.
+     */
     public function index()
     {
         // Check if the user is an admin
@@ -19,10 +24,10 @@ class AdminController extends Controller
             return redirect('/')->with('error', 'Unauthorized access');
         }
 
-        // Get the list of users
-        $users = User::all();
+        // Fetch all users with related models
+        $users = User::with(['appointments', 'clientProfiles', 'questionnaires'])->get();
 
-        // Define common bot user agents
+        // Define common bot user agents to exclude from page views
         $botUserAgents = [
             'bot', 'crawl', 'spider', 'slurp', 'mediapartners', 'Googlebot',
             'Bingbot', 'Baiduspider', 'DuckDuckBot', 'YandexBot', 'Sogou',
@@ -38,13 +43,15 @@ class AdminController extends Controller
                 }
             });
 
-        // Get current timestamps
+        // Define current timestamps
         $today = Carbon::today();
         $yesterday = Carbon::yesterday();
         $startOfWeek = Carbon::now()->startOfWeek();
         $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
+        $endOfLastWeek = (clone $startOfLastWeek)->endOfWeek();
         $startOfMonth = Carbon::now()->startOfMonth();
         $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
+        $endOfLastMonth = (clone $startOfLastMonth)->endOfMonth();
 
         // Perform the date filtering and count unique sessions (distinct session_id) for each period
         $sessionsToday = (clone $pageViewsQuery)
@@ -63,7 +70,7 @@ class AdminController extends Controller
             ->count('session_id');
 
         $sessionsLastWeek = (clone $pageViewsQuery)
-            ->whereBetween('viewed_at', [$startOfLastWeek, $startOfLastWeek->copy()->endOfWeek()])
+            ->whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek])
             ->distinct('session_id')
             ->count('session_id');
 
@@ -73,7 +80,7 @@ class AdminController extends Controller
             ->count('session_id');
 
         $sessionsLastMonth = (clone $pageViewsQuery)
-            ->whereBetween('viewed_at', [$startOfLastMonth, $startOfLastMonth->copy()->endOfMonth()])
+            ->whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth])
             ->distinct('session_id')
             ->count('session_id');
 
@@ -81,6 +88,108 @@ class AdminController extends Controller
         $sessionsTotal = (clone $pageViewsQuery)
             ->distinct('session_id')
             ->count('session_id');
+
+        // Initialize an array to hold session counts and traffic sources per time frame
+        $sessionsData = [
+            'today' => $sessionsToday,
+            'yesterday' => $sessionsYesterday,
+            'this_week' => $sessionsThisWeek,
+            'last_week' => $sessionsLastWeek,
+            'this_month' => $sessionsThisMonth,
+            'last_month' => $sessionsLastMonth,
+            'total' => $sessionsTotal,
+        ];
+
+        // Function to categorize referrer into traffic sources
+        $categorizeReferrer = function ($referrer) {
+            if (!$referrer) {
+                return 'Direct';
+            }
+
+            $referrer = strtolower($referrer);
+
+            // Check for Social Media sources
+            if (Str::contains($referrer, ['facebook.com', 'instagram.com', 'whatsapp.com'])) {
+                return 'Social Media';
+            }
+
+            // Check for Google sources
+            if (Str::contains($referrer, 'google.com')) {
+                if (Str::contains($referrer, ['gclid=', 'gad_source='])) {
+                    return 'Paid';
+                } else {
+                    return 'Organic';
+                }
+            }
+
+            // If none of the above, categorize as Other
+            return 'Other';
+        };
+
+        // Define time frames with their respective query conditions
+        $timeFrames = [
+            'today' => function ($query) use ($today) {
+                $query->whereDate('viewed_at', '=', $today);
+            },
+            'yesterday' => function ($query) use ($yesterday) {
+                $query->whereDate('viewed_at', '=', $yesterday);
+            },
+            'this_week' => function ($query) use ($startOfWeek) {
+                $query->where('viewed_at', '>=', $startOfWeek);
+            },
+            'last_week' => function ($query) use ($startOfLastWeek, $endOfLastWeek) {
+                $query->whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek]);
+            },
+            'this_month' => function ($query) use ($startOfMonth) {
+                $query->where('viewed_at', '>=', $startOfMonth);
+            },
+            'last_month' => function ($query) use ($startOfLastMonth, $endOfLastMonth) {
+                $query->whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth]);
+            },
+            'total' => function ($query) {
+                // No date filter for total
+            },
+        ];
+
+        // Initialize an array to hold traffic source counts per time frame
+        $trafficSourcesData = [];
+
+        foreach ($timeFrames as $label => $filter) {
+            // Clone the base query for each time frame
+            $query = (clone $pageViewsQuery);
+
+            // Apply the time frame filter if any
+            if (is_callable($filter)) {
+                $filter($query);
+            }
+
+            // Fetch distinct session_id and their referrers
+            $sessions = $query->select('session_id', 'referrer')
+                ->distinct('session_id')
+                ->get();
+
+            // Initialize traffic source counters
+            $trafficSources = [
+                'Social Media' => 0,
+                'Organic' => 0,
+                'Paid' => 0,
+                'Direct' => 0,
+                'Other' => 0,
+            ];
+
+            // Categorize each session and increment counters
+            foreach ($sessions as $session) {
+                $source = $categorizeReferrer($session->referrer);
+                if (array_key_exists($source, $trafficSources)) {
+                    $trafficSources[$source]++;
+                } else {
+                    $trafficSources['Other']++;
+                }
+            }
+
+            // Assign to trafficSourcesData
+            $trafficSourcesData[$label] = $trafficSources;
+        }
 
         // Get the page view stats: group by session_id and url, and retrieve the necessary fields
         $pageViews = $pageViewsQuery
@@ -90,18 +199,25 @@ class AdminController extends Controller
                 'ip_address',
                 'referrer',
                 'user_agent',
-                \DB::raw('COUNT(*) as view_count'),
-                \DB::raw('MAX(viewed_at) as last_viewed_at')
+                DB::raw('COUNT(*) as view_count'),
+                DB::raw('MAX(viewed_at) as last_viewed_at')
             )
             ->groupBy('url', 'session_id', 'ip_address', 'referrer', 'user_agent')
             ->orderByDesc('last_viewed_at')
             ->limit(100) // Limit the results to the last 100 entries
             ->get();
 
-        // Eager load related models
-        $users = User::with(['appointments', 'clientProfiles', 'questionnaires'])->get();
+        // Additional KPIs
+        $totalClients = ClientProfile::count(); // Total number of client profiles
+        $totalAppointments = Appointment::count(); // Total number of appointments
+        $upcomingAppointments = Appointment::where('appointment_date', '>=', Carbon::now())->count(); // Upcoming appointments
+        $totalInvoices = Invoice::count(); // Total invoices issued
+        $pendingInvoices = Invoice::where('status', 'pending')->count(); // Pending invoices
+        $monthlyRevenue = Invoice::whereMonth('invoice_date', Carbon::now()->month)
+            ->where('status', 'paid')
+            ->sum('total_amount'); // Revenue for the current month
 
-        // Pass the counts to the view
+        // Pass all data to the view
         return view('admin.index', compact(
             'users',
             'pageViews',
@@ -111,72 +227,79 @@ class AdminController extends Controller
             'sessionsLastWeek',
             'sessionsThisMonth',
             'sessionsLastMonth',
-            'sessionsTotal' // Include sessionsTotal here
+            'sessionsTotal',
+            'trafficSourcesData',
+            'totalClients',
+            'totalAppointments',
+            'upcomingAppointments',
+            'totalInvoices',
+            'pendingInvoices',
+            'monthlyRevenue'
         ));
     }
 
-
-	
-public function showLicenseManagement()
-{
-	        // Check if the user is an admin
+    /**
+     * Show the license management dashboard.
+     */
+    public function showLicenseManagement()
+    {
+        // Check if the user is an admin
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             return redirect('/')->with('error', 'Unauthorized access');
         }
-    // Get all therapists
-    $therapists = User::where('is_therapist', true)->get();
 
-    // Get all available licenses
-    $availableLicenses = LicenseTier::all();
+        // Get all therapists
+        $therapists = User::where('is_therapist', true)->get();
 
-    return view('admin.licenses.index', compact('therapists', 'availableLicenses'));
-}
+        // Get all available licenses
+        $availableLicenses = LicenseTier::all();
 
+        return view('admin.licenses.index', compact('therapists', 'availableLicenses'));
+    }
 
     /**
      * Assign a license manually to a therapist.
      */
-public function assignLicense(Request $request, $therapistId)
-{
-	        // Check if the user is an admin
+    public function assignLicense(Request $request, $therapistId)
+    {
+        // Check if the user is an admin
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             return redirect('/')->with('error', 'Unauthorized access');
         }
-    // Validate the request
-    $request->validate([
-        'license_tier_name' => 'required|exists:license_tiers,name',
-    ]);
 
-    // Find the therapist
-    $therapist = User::findOrFail($therapistId);
+        // Validate the request
+        $request->validate([
+            'license_tier_name' => 'required|exists:license_tiers,name',
+        ]);
 
-    // Find the license tier by name
-    $licenseTier = LicenseTier::where('name', $request->license_tier_name)->firstOrFail();
+        // Find the therapist
+        $therapist = User::findOrFail($therapistId);
 
-    // Calculate expiration date: now + duration_days from the license tier
-    $expirationDate = now()->addDays($licenseTier->duration_days);
+        // Find the license tier by name
+        $licenseTier = LicenseTier::where('name', $request->license_tier_name)->firstOrFail();
 
-    // Update or create a license for the therapist
-    $license = UserLicense::updateOrCreate(
-        ['user_id' => $therapist->id],
-        [
+        // Calculate expiration date: now + duration_days from the license tier
+        $expirationDate = now()->addDays($licenseTier->duration_days);
+
+        // Update or create a license for the therapist
+        $license = UserLicense::updateOrCreate(
+            ['user_id' => $therapist->id],
+            [
+                'license_tier_id' => $licenseTier->id,
+                'start_date' => now(),
+                'expiration_date' => $expirationDate,
+            ]
+        );
+
+        // Log the license history
+        LicenseHistory::create([
+            'user_id' => $therapist->id,
             'license_tier_id' => $licenseTier->id,
+            'assigned_by' => auth()->user()->id, // The admin assigning the license
+            'expires_at' => $expirationDate,
             'start_date' => now(),
-            'expiration_date' => $expirationDate,
-        ]
-    );
+        ]);
 
-    // Log the license history
-    LicenseHistory::create([
-        'user_id' => $therapist->id,
-        'license_tier_id' => $licenseTier->id,
-        'assigned_by' => auth()->user()->id, // The admin assigning the license
-        'expires_at' => $expirationDate,
-		'start_date' => now(),
-    ]);
-
-    return redirect()->route('admin.license')->with('success', 'License assigned successfully!');
-}
-
-
+        return redirect()->route('admin.license')->with('success', 'License assigned successfully!');
+    }
 }

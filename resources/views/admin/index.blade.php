@@ -9,14 +9,71 @@
     <div class="container mt-5">
         <h1 class="page-title">Session Statistics</h1>
 
-        <!-- Sessions KPIs with Traffic Source Breakdown -->
+        <!-- Original Session KPIs -->
         <div class="stat-grid">
-            @foreach($sessionsData as $timeFrame => $data)
+            <div class="stat-box">
+                <h4>Sessions Today</h4>
+                <p>{{ $sessionsToday }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Sessions Yesterday</h4>
+                <p>{{ $sessionsYesterday }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Sessions This Week</h4>
+                <p>{{ $sessionsThisWeek }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Sessions Last Week</h4>
+                <p>{{ $sessionsLastWeek }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Sessions This Month</h4>
+                <p>{{ $sessionsThisMonth }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Sessions Last Month</h4>
+                <p>{{ $sessionsLastMonth }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Total Sessions</h4>
+                <p>{{ $sessionsTotal }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Total Clients</h4>
+                <p>{{ $totalClients }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Total Appointments</h4>
+                <p>{{ $totalAppointments }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Upcoming Appointments</h4>
+                <p>{{ $upcomingAppointments }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Total Invoices</h4>
+                <p>{{ $totalInvoices }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Pending Invoices</h4>
+                <p>{{ $pendingInvoices }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Monthly Revenue (€)</h4>
+                <p>{{ number_format($monthlyRevenue, 2) }}</p>
+            </div>
+        </div>
+
+        <!-- Traffic Source Breakdown -->
+        <h1 class="page-title mt-5">Traffic Source Breakdown</h1>
+
+        <div class="stat-grid">
+            @foreach($trafficSourcesData as $timeFrame => $sources)
                 <div class="stat-box">
                     <h4>{{ ucfirst(str_replace('_', ' ', $timeFrame)) }}</h4>
-                    <p><strong>Total Sessions:</strong> {{ $data['total'] }}</p>
                     <ul class="list-disc list-inside">
-                        @foreach($data['sources'] as $source => $count)
+                        @foreach($sources as $source => $count)
                             <li><strong>{{ $source }}:</strong> {{ $count }}</li>
                         @endforeach
                     </ul>
@@ -27,7 +84,7 @@
         <h1 class="page-title">Liste des Utilisateurs</h1>
 
         <div class="table-responsive mx-auto">
-            <table class="table table-bordered table-hover mx-auto" id="usersTable">
+            <table class="table table-bordered table-hover mx-auto" id="usersTable" aria-label="Liste des Utilisateurs">
                 <thead>
                     <tr>
                         <th class="text-center">User ID</th>
@@ -50,7 +107,9 @@
                             <td title="{{ $user->appointments->count() }}">{{ $user->appointments->count() }}</td>
                             <td title="{{ $user->clientProfiles->count() }}">{{ $user->clientProfiles->count() }}</td>
                             <td title="{{ $user->questionnaires->count() }}">{{ $user->questionnaires->count() }}</td>
-                            <td title="{{ $user->last_login }}">{{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') : 'Never' }}</td>
+                            <td title="{{ $user->last_login }}">
+                                {{ $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') : 'Never' }}
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -60,7 +119,7 @@
         <h1 class="page-title mt-5">Page Views Grouped by Session ID</h1>
 
         <div class="table-responsive mx-auto">
-            <table class="table table-bordered table-hover mx-auto" id="pageViewsTable">
+            <table class="table table-bordered table-hover mx-auto" id="pageViewsTable" aria-label="Page Views Grouped by Session ID">
                 <thead>
                     <tr>
                         <th class="text-center">Page URL</th>
