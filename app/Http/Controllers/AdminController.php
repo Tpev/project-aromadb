@@ -267,7 +267,7 @@ class AdminController extends Controller
             ->sum('total_amount'); // Revenue for the current month
 
         // Pass all data to the view
-        return view('admin.dashboard', compact(
+        return view('admin.index', compact(
             'users',
             'pageViews',
             'sessionsToday',
