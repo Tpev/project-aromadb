@@ -600,7 +600,7 @@ public function show(Appointment $appointment)
 
         // Create the connection link using the meeting token
         $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
-
+	}
 
 
         // queue email notifications
