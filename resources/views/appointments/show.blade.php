@@ -69,6 +69,12 @@
                 <p><a href="{{ $meetingLink }}" class="text-blue-500 hover:underline">{{ $meetingLink }}</a></p>
             </div>
         @endif
+		@if($meetingLink)
+            <div class="mt-4">
+                <strong>Le lien de connexion de votre client :</strong>
+                <p><a href="{{ $meetingLinkPatient }}" class="text-blue-500 hover:underline">{{ $meetingLinkPatient }}</a></p>
+            </div>
+        @endif
                 <div class="row">
                     <div class="col-md-12">
                         <label class="details-label">{{ __('Notes') }}</label>
