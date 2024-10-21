@@ -186,7 +186,7 @@ public function show(Appointment $appointment)
     if ($appointment->meeting) {
         $meetingLink = route('webrtc.room', ['room' => $appointment->meeting->room_token]) . '#1'; // Construct the link
     }
-	dd($meetingLink);
+	
     return view('appointments.show', compact('appointment', 'mode', 'meetingLink'));
 }
 
