@@ -13,6 +13,7 @@ protected $fillable = [
     'participant_email',
     'client_profile_id',
     'room_token',
+	'appointment_id',
 
 ];
     public function appointment()
