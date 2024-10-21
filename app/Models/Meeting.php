@@ -15,4 +15,8 @@ protected $fillable = [
     'room_token',
 
 ];
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
+    }
 }
