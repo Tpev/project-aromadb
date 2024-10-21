@@ -53,6 +53,11 @@ public function product()
         return $this->belongsTo(ClientProfile::class);
     }
 	// In Appointment.php model
+	
+	    public function meeting()
+    {
+        return $this->hasOne(Meeting::class);
+    }
 public function invoice()
 {
     return $this->hasOne(Invoice::class);
