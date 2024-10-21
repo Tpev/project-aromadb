@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\Meeting;
 use App\Models\ClientProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -79,62 +80,86 @@ public function index()
     /**
      * Store a newly created appointment in storage.
      */
-    public function store(Request $request)
-    {
-        // Validate the request
-        $request->validate([
-            'client_profile_id' => 'required|exists:client_profiles,id',
-            'appointment_date' => 'required|date',
-            'appointment_time' => 'required|date_format:H:i',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
-            'product_id' => 'required|exists:products,id',
-        ]);
+public function store(Request $request)
+{
+    // Validate the request
+    $request->validate([
+        'client_profile_id' => 'required|exists:client_profiles,id',
+        'appointment_date' => 'required|date',
+        'appointment_time' => 'required|date_format:H:i',
+        'status' => 'required|string',
+        'notes' => 'nullable|string',
+        'product_id' => 'required|exists:products,id',
+    ]);
 
-        $therapistId = Auth::id();
+    $therapistId = Auth::id();
 
-        // Fetch the selected product and its duration
-        $product = Product::findOrFail($request->product_id);
-        $duration = $product->duration;
+    // Fetch the selected product and its duration
+    $product = Product::findOrFail($request->product_id);
+    $duration = $product->duration;
 
-        // Combine date and time
-        $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
+    // Combine date and time
+    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
 
-        // Check availability considering the product linkage
-        if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id)) {
-            return redirect()->back()->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])->withInput();
-        }
-
-        // Create the appointment
-        $appointment = Appointment::create([
-            'client_profile_id' => $request->client_profile_id,
-            'user_id' => $therapistId,
-            'appointment_date' => $appointmentDateTime,
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'product_id' => $request->product_id,
-            'duration' => $duration,
-        ]);
-
-        // queue email notifications
-        try {
-            // Patient email
-            $patientEmail = $appointment->clientProfile->email;
-            if ($patientEmail) {
-                Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
-            }
-
-            // Therapist email
-            $therapistEmail = Auth::user()->email;
-            if ($therapistEmail) {
-                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
-            }
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
-        }
-
-        return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
+    // Check availability considering the product linkage
+    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id)) {
+        return redirect()->back()->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])->withInput();
     }
+
+    // Create the appointment
+    $appointment = Appointment::create([
+        'client_profile_id' => $request->client_profile_id,
+        'user_id' => $therapistId,
+        'appointment_date' => $appointmentDateTime,
+        'status' => $request->status,
+        'notes' => $request->notes,
+        'product_id' => $request->product_id,
+        'duration' => $duration,
+    ]);
+
+    // Check if the product allows video calls
+    if ($product->visio) {
+        // Generate a secure token for the room
+        $token = Str::random(32);
+
+        // Create the meeting
+        $meeting = Meeting::create([
+            'name' => 'Réunion pour ' . $appointment->clientProfile->name, // Adjust as necessary
+            'start_time' => $appointmentDateTime,
+            'duration' => $duration,
+            'participant_email' => $appointment->clientProfile->email,
+            'client_profile_id' => $request->client_profile_id,
+            'room_token' => $token,
+            'appointment_id' => $appointment->id, // Link the meeting to the appointment
+        ]);
+
+        // Create the connection link using the meeting token
+        $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
+
+  
+      
+    }
+
+    // Queue email notifications
+    try {
+        // Patient email
+        $patientEmail = $appointment->clientProfile->email;
+        if ($patientEmail) {
+            Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+        }
+
+        // Therapist email
+        $therapistEmail = Auth::user()->email;
+        if ($therapistEmail) {
+            Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+        }
+    } catch (\Exception $e) {
+        Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
+    }
+
+    return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
+}
+
 
     /**
      * Display the specified appointment.
