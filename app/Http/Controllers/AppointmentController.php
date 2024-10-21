@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Str;   
 use App\Models\Appointment;
 use App\Models\Meeting;
 use App\Models\ClientProfile;
