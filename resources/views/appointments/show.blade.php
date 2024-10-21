@@ -63,7 +63,12 @@
                         <p class="details-value">{{ $mode }}</p>
                     </div>
                 </div>
-
+        @if($meetingLink)
+            <div class="mt-4">
+                <strong>Votre lien de connexion :</strong>
+                <p><a href="{{ $meetingLink }}" class="text-blue-500 hover:underline">{{ $meetingLink }}</a></p>
+            </div>
+        @endif
                 <div class="row">
                     <div class="col-md-12">
                         <label class="details-label">{{ __('Notes') }}</label>

@@ -164,25 +164,32 @@ public function store(Request $request)
     /**
      * Display the specified appointment.
      */
-    public function show(Appointment $appointment)
-    {
-        // Ensure the appointment belongs to the authenticated user
-        $this->authorize('view', $appointment);
+public function show(Appointment $appointment)
+{
+    // Ensure the appointment belongs to the authenticated user
+    $this->authorize('view', $appointment);
 
-        // Determine the mode based on the linked product
-        $mode = 'Non spécifié';
-        if ($appointment->product) {
-            if ($appointment->product->visio) {
-                $mode = 'En Visio';
-            } elseif ($appointment->product->adomicile) {
-                $mode = 'À Domicile';
-            } elseif ($appointment->product->dans_le_cabinet) {
-                $mode = 'Dans le Cabinet';
-            }
+    // Determine the mode based on the linked product
+    $mode = 'Non spécifié';
+    if ($appointment->product) {
+        if ($appointment->product->visio) {
+            $mode = 'En Visio';
+        } elseif ($appointment->product->adomicile) {
+            $mode = 'À Domicile';
+        } elseif ($appointment->product->dans_le_cabinet) {
+            $mode = 'Dans le Cabinet';
         }
-
-        return view('appointments.show', compact('appointment', 'mode'));
     }
+
+    // Get the associated meeting if it exists
+    $meetingLink = null;
+    if ($appointment->meeting) {
+        $meetingLink = route('webrtc.room', ['room' => $appointment->meeting->room_token]) . '#1'; // Construct the link
+    }
+
+    return view('appointments.show', compact('appointment', 'mode', 'meetingLink'));
+}
+
 
     /**
      * Show the form for editing the specified appointment.
