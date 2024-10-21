@@ -581,6 +581,28 @@ public function show(Appointment $appointment)
             'product_id' => $request->product_id,
         ]);
 
+
+  // Check if the product allows video calls
+    if ($product->visio) {
+        // Generate a secure token for the room
+        $token = Str::random(32);
+
+    // Create the meeting and link it to the appointment
+    $meeting = Meeting::create([
+        'name' => 'Réunion pour ' . $appointment->clientProfile->name, // Adjust as necessary
+        'start_time' => $appointmentDateTime,
+        'duration' => $duration,
+        'participant_email' => $appointment->clientProfile->email,
+        'client_profile_id' => $request->client_profile_id,
+        'room_token' => $token,
+        'appointment_id' => $appointment->id, // Link the meeting to the appointment
+    ]);
+
+        // Create the connection link using the meeting token
+        $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
+
+
+
         // queue email notifications
         try {
             // Patient email
