@@ -45,6 +45,8 @@ public function store(Request $request)
     // Send email with connection link
     Mail::to($request->participant_email)->send(new \App\Mail\MeetingInvitation($connectionLink));
 
+$connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Appending #1 for the initiator
+
     // Redirect to confirmation page
     return redirect()->route('meetings.confirmation', ['link' => $connectionLink]);
 }
