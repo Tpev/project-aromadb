@@ -25,10 +25,20 @@ use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\TestimonialRequestController;
 use App\Http\Controllers\WebRTCController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\MeetingController;
+
 
 
 Route::get('/search', [SearchController::class, 'search'])->name('search');
 
+// Meeting controller route
+
+Route::middleware(['auth'])->group(function () {
+Route::get('/meetings/create', [MeetingController::class, 'create'])->name('meetings.create');
+Route::post('/meetings/store', [MeetingController::class, 'store'])->name('meetings.store');
+Route::get('/meetings/confirmation', [MeetingController::class, 'confirmation'])->name('meetings.confirmation');
+
+});
 
 // **WebRTC Static Routes**
 Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
