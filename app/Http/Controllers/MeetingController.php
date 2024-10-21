@@ -11,7 +11,7 @@ class MeetingController extends Controller
     public function create()
     {
 		$clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
-        return view('meetings.create', compact('clientProfiles')0); // Create a view for the meeting form
+        return view('meetings.create', compact('clientProfiles')); // Create a view for the meeting form
     }
 
 public function store(Request $request)
