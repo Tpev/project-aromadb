@@ -6,10 +6,46 @@ use Illuminate\Http\Request;
 
 class HuileHVController extends Controller
 {
-    public function index()
+   public function index(Request $request)
     {
-        $huileHVs = HuileHV::all();
-        return view('huilehvs.index', compact('huileHVs'));
+        // Initialiser la requête
+        $query = HuileHV::query();
+
+        // Gestion de la recherche par nom
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('NomHV', 'like', '%' . $search . '%');
+        }
+
+        // Gestion du filtrage par indication
+        if ($request->filled('indication')) {
+            $indication = $request->input('indication');
+            $query->where('Indications', 'like', '%' . $indication . '%');
+        }
+
+        // Pagination avec 12 éléments par page
+        $huileHVs = $query->orderBy('NomHV', 'asc')->paginate(12)->appends($request->only(['search', 'indication']));
+
+        // Récupérer toutes les indications uniques pour le filtre
+        $indications = HuileHV::pluck('Indications')
+            ->map(function($item) {
+                return explode(';', $item);
+            })
+            ->flatten()
+            ->unique()
+            ->filter()
+            ->sort();
+
+        // Ajouter une propriété 'image_url' à chaque huile végétale
+        $huileHVs->getCollection()->transform(function($huileHV) {
+            $imagePath = 'images/' . $huileHV->slug . '.webp';
+            $defaultImage = 'images/default.webp';
+            $finalImage = file_exists(public_path($imagePath)) ? $imagePath : $defaultImage;
+            $huileHV->image_url = asset($finalImage);
+            return $huileHV;
+        });
+
+        return view('huilehvs.index', compact('huileHVs', 'indications'));
     }
 
     public function create()
