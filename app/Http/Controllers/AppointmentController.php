@@ -843,14 +843,17 @@ public function availableDatesPatient(Request $request)
     $productId = $request->product_id;
     $therapistId = $request->therapist_id;
 
-    // Fetch therapist's availabilities for the selected product
-    $availableDays = Availability::whereHas('products', function($query) use ($productId) {
-                                $query->where('products.id', $productId);
-                            })
-                            ->where('user_id', $therapistId)
-                            ->pluck('day_of_week')
-                            ->unique()
-                            ->toArray();
+    // Fetch available days considering 'applies_to_all' and product linkage
+    $availableDays = Availability::where('user_id', $therapistId)
+        ->where(function($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        })
+        ->pluck('day_of_week')
+        ->unique()
+        ->toArray();
 
     return response()->json(['available_days' => $availableDays]);
 }
