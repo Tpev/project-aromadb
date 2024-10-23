@@ -728,10 +728,18 @@ public function getAvailableSlotsForPatient(Request $request)
     $productId = $request->product_id;
     $duration = Product::findOrFail($productId)->duration;
 
+    // Get the therapist's minimum_notice_hours
+    $therapist = User::findOrFail($therapistId);
+    $minimumNoticeHours = $therapist->minimum_notice_hours ?? 0;
+
+    // Calculate the earliest allowable booking time
+    $currentDateTime = Carbon::now();
+    $minimumNoticeDateTime = $currentDateTime->copy()->addHours($minimumNoticeHours);
+
     // Get the day of the week
     $dayOfWeek = Carbon::createFromFormat('Y-m-d', $request->date)->dayOfWeekIso - 1; // Monday = 0
 
-    // Fetch availabilities linked to the product
+    // Fetch availabilities considering 'applies_to_all' and product linkage
     $availabilities = Availability::where('user_id', $therapistId)
         ->where('day_of_week', $dayOfWeek)
         ->where(function($query) use ($productId) {
@@ -746,12 +754,11 @@ public function getAvailableSlotsForPatient(Request $request)
         return response()->json(['slots' => []]);
     }
 
-    // Fetch existing appointments for the therapist on the selected date
+    // Fetch existing appointments and unavailabilities for the therapist on the selected date
     $existingAppointments = Appointment::where('user_id', $therapistId)
         ->whereDate('appointment_date', $request->date)
         ->get();
 
-    // Fetch unavailability periods for the therapist on the selected date
     $unavailabilities = Unavailability::where('user_id', $therapistId)
         ->whereDate('start_date', $request->date)
         ->get();
@@ -769,12 +776,18 @@ public function getAvailableSlotsForPatient(Request $request)
             $slotStart = $availabilityStart->copy();
             $slotEnd = $availabilityStart->copy()->addMinutes($duration);
 
+            // Check if the slotStart is at least minimum_notice_hours from now
+            if ($slotStart->lt($minimumNoticeDateTime)) {
+                // Skip this slot as it's within the minimum notice period
+                $availabilityStart->addMinutes(15);
+                continue;
+            }
+
             // Check for overlapping appointments
             $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
                 $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
 
-                // Check if the new slot overlaps with any existing appointment
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
@@ -783,7 +796,6 @@ public function getAvailableSlotsForPatient(Request $request)
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
                 $unavailabilityEnd = Carbon::parse($unavailability->end_date);
 
-                // Check if the new slot overlaps with any unavailability
                 return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
             });
 
@@ -802,6 +814,7 @@ public function getAvailableSlotsForPatient(Request $request)
 
     return response()->json(['slots' => $slots]);
 }
+
 
 
 
