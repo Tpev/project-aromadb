@@ -92,6 +92,14 @@
                     <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary mx-2">
                         <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
                     </a>
+					        <!-- Delete Button -->
+        <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST" style="display: inline-block;">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn-secondary mx-2" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous?') }}')">
+                <i class="fas fa-trash"></i> {{ __('Annuler le Rendez-vous') }}
+            </button>
+        </form>
                 </div>
             </div>
         </div>
