@@ -5,8 +5,8 @@
         </h2>
     </x-slot>
 
-    <div class="container mt-5">
-        <div class="details-container mx-auto p-4">
+<div class="container-fluid mt-5">
+    <div class="details-container p-4">
             <h1 class="details-title">
                 <i class="fas fa-calendar-alt"></i> 
                 {{ __('Rendez-vous avec ') }}{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
@@ -82,41 +82,57 @@
                     </div>
                 </div>
             </div>
+<!-- Action Buttons -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="button-group">
+            <a href="{{ route('appointments.index') }}" class="btn-primary">
+                <i class="fas fa-arrow-left"></i> {{ __('Retour à la liste') }}
+            </a>
+            <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary">
+                <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
+            </a>
+            <!-- Mark as Completed Button -->
+            @if($appointment->status !== 'Complété')
+                <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" style="display: inline-block;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn-secondary" onclick="return confirm('{{ __('Marquer ce rendez-vous comme complété?') }}')">
+                        <i class="fas fa-check-circle"></i> {{ __('Marquer comme Complété') }}
+                    </button>
+                </form>
+            @endif
+            <!-- Delete Button -->
+            <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST" style="display: inline-block;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn-secondary" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous?') }}')">
+                    <i class="fas fa-trash"></i> {{ __('Annuler le Rendez-vous') }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
 
-            <!-- Action Buttons -->
-            <div class="row mt-4 text-center">
-                <div class="col-md-12">
-                    <a href="{{ route('appointments.index') }}" class="btn-primary mx-2">
-                        <i class="fas fa-arrow-left"></i> {{ __('Retour à la liste') }}
-                    </a>
-                    <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary mx-2">
-                        <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
-                    </a>
-					        <!-- Delete Button -->
-        <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST" style="display: inline-block;">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn-secondary mx-2" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous?') }}')">
-                <i class="fas fa-trash"></i> {{ __('Annuler le Rendez-vous') }}
-            </button>
-        </form>
-                </div>
-            </div>
+
         </div>
     </div>
 
     <!-- Custom Styles -->
     <style>
-        .container {
-            max-width: 900px;
-        }
+/* Remove the max-width constraint */
+.container {
+    /* max-width: 900px; */
+}
 
-        .details-container {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+/* Adjust .details-container if necessary */
+.details-container {
+    width: 100%;
+    /* Adjust padding and margins as needed */
+    padding: 25px;
+    margin: 0;
+}
+
 
         .details-title {
             font-size: 1.75rem;
