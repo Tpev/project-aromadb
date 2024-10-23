@@ -77,22 +77,58 @@ public function index()
         return view('appointments.create', compact('clientProfiles', 'products'));
     }
 
-    /**
-     * Store a newly created appointment in storage.
-     */
 public function store(Request $request)
 {
-    // Validate the request
-    $request->validate([
-        'client_profile_id' => 'required|exists:client_profiles,id',
+    // Define base validation rules
+    $rules = [
+        'client_profile_id' => 'required',
         'appointment_date' => 'required|date',
         'appointment_time' => 'required|date_format:H:i',
         'status' => 'required|string',
         'notes' => 'nullable|string',
         'product_id' => 'required|exists:products,id',
-    ]);
+    ];
+
+    // Check if the user selected "Créer un nouveau client"
+    if ($request->client_profile_id == 'new') {
+        // Add validation rules for new client fields
+        $rules = array_merge($rules, [
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255|unique:client_profiles,email',
+            'phone' => 'nullable|string|max:15',
+            'birthdate' => 'nullable|date',
+            'address' => 'nullable|string|max:255',
+        ]);
+    } else {
+        // Ensure the client_profile_id exists in the database
+        $rules['client_profile_id'] .= '|exists:client_profiles,id';
+    }
+
+    // Validate the request
+    $validatedData = $request->validate($rules);
 
     $therapistId = Auth::id();
+
+    // Handle new client creation if needed
+    if ($request->client_profile_id == 'new') {
+        // Create the new client profile
+        $clientProfile = ClientProfile::create([
+            'user_id' => $therapistId,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'birthdate' => $request->birthdate,
+            'address' => $request->address,
+            // Include 'notes' if applicable
+            // 'notes' => $request->notes,
+        ]);
+
+        $clientProfileId = $clientProfile->id;
+    } else {
+        $clientProfileId = $request->client_profile_id;
+    }
 
     // Fetch the selected product and its duration
     $product = Product::findOrFail($request->product_id);
@@ -108,7 +144,7 @@ public function store(Request $request)
 
     // Create the appointment
     $appointment = Appointment::create([
-        'client_profile_id' => $request->client_profile_id,
+        'client_profile_id' => $clientProfileId,
         'user_id' => $therapistId,
         'appointment_date' => $appointmentDateTime,
         'status' => $request->status,
@@ -122,41 +158,24 @@ public function store(Request $request)
         // Generate a secure token for the room
         $token = Str::random(32);
 
-    // Create the meeting and link it to the appointment
-    $meeting = Meeting::create([
-        'name' => 'Réunion pour ' . $appointment->clientProfile->name, // Adjust as necessary
-        'start_time' => $appointmentDateTime,
-        'duration' => $duration,
-        'participant_email' => $appointment->clientProfile->email,
-        'client_profile_id' => $request->client_profile_id,
-        'room_token' => $token,
-        'appointment_id' => $appointment->id, // Link the meeting to the appointment
-    ]);
+        // Create the meeting and link it to the appointment
+        $meeting = Meeting::create([
+            'name' => 'Réunion pour ' . $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'start_time' => $appointmentDateTime,
+            'duration' => $duration,
+            'participant_email' => $appointment->clientProfile->email,
+            'client_profile_id' => $clientProfileId,
+            'room_token' => $token,
+            'appointment_id' => $appointment->id, // Link the meeting to the appointment
+        ]);
 
         // Create the connection link using the meeting token
         $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
 
-  
-      
+        // Optionally, send an email or notification with the connection link
     }
 
-    // Queue email notifications
-    try {
-        // Patient email
-        $patientEmail = $appointment->clientProfile->email;
-        if ($patientEmail) {
-            Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
-        }
-
-        // Therapist email
-        $therapistEmail = Auth::user()->email;
-        if ($therapistEmail) {
-            Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
-        }
-    } catch (\Exception $e) {
-        Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
-    }
-
+    // Redirect to the appointments index with a success message
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
 
