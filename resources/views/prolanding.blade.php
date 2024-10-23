@@ -187,7 +187,7 @@
                     <p class="text-xl mt-2">Utilisateurs satisfaits</p>
                 </div>
                 <div>
-                    <h3 class="text-5xl font-bold text-green-500 counter" data-count="10000">10,000+</h3>
+                    <h3 class="text-5xl font-bold text-green-500 counter" data-count="10000">100%</h3>
                     <p class="text-xl mt-2">Rendez-vous gérés</p>
                 </div>
                 <div>
