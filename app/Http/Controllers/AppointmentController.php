@@ -121,13 +121,12 @@ public function store(Request $request)
             'phone' => $request->phone,
             'birthdate' => $request->birthdate,
             'address' => $request->address,
-            // Include 'notes' if applicable
-            // 'notes' => $request->notes,
         ]);
 
         $clientProfileId = $clientProfile->id;
     } else {
         $clientProfileId = $request->client_profile_id;
+        $clientProfile = ClientProfile::findOrFail($clientProfileId);
     }
 
     // Fetch the selected product and its duration
@@ -160,10 +159,10 @@ public function store(Request $request)
 
         // Create the meeting and link it to the appointment
         $meeting = Meeting::create([
-            'name' => 'Réunion pour ' . $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'name' => 'Réunion pour ' . $clientProfile->first_name . ' ' . $clientProfile->last_name,
             'start_time' => $appointmentDateTime,
             'duration' => $duration,
-            'participant_email' => $appointment->clientProfile->email,
+            'participant_email' => $clientProfile->email,
             'client_profile_id' => $clientProfileId,
             'room_token' => $token,
             'appointment_id' => $appointment->id, // Link the meeting to the appointment
@@ -172,12 +171,31 @@ public function store(Request $request)
         // Create the connection link using the meeting token
         $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
 
-        // Optionally, send an email or notification with the connection link
+        // Optionally, include the connection link in the emails
+        $appointment->meeting_link = $connectionLink;
+    }
+
+    // Load necessary relationships for the appointment
+    $appointment->load('clientProfile', 'user', 'product');
+
+    // Send emails to both patient and therapist
+    $therapistEmail = $appointment->user->email;
+    $patientEmail = $appointment->clientProfile->email;
+
+    // Send email to patient if email exists
+    if (!empty($patientEmail)) {
+        Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+    }
+
+    // Send email to therapist if email exists
+    if (!empty($therapistEmail)) {
+        Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
     }
 
     // Redirect to the appointments index with a success message
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
+
 
 
     /**
