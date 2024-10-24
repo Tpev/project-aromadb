@@ -648,11 +648,12 @@ public function show(Appointment $appointment)
                 Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
             }
 
-            // Therapist email
-            $therapistEmail = Auth::user()->email;
-            if ($therapistEmail) {
-                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
-            }
+			// Therapist email
+			$therapistEmail = $therapist->email;
+			if ($therapistEmail) {
+				Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+			}
+
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
         }
