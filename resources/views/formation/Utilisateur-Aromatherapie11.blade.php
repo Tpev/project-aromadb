@@ -113,10 +113,9 @@
             </p>
 
             <!-- Image de félicitations (optionnel) -->
-            <img src="/images/congratulations.png" alt="Félicitations" style="width: 50%; margin-top: 30px;">
+            <img src="/images/congratulation.webp" alt="Félicitations" style="justify-content: center; width: 50%; margin-top: 30px;">
 
-            <!-- Bouton pour revenir à l'accueil ou au menu principal -->
-            <div class="navigation-buttons" style="justify-content: center; margin-top: 40px;">
+
             
             </div>
         </div>
