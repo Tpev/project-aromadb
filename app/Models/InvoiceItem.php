@@ -4,37 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
-class InvoiceItem extends Model
+class InventoryItem extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'user_id',
+        'name',
+        'reference',
+        'description',
+        'price',
+        'selling_price',
+        'quantity_in_stock',
+        'brand',
+    ];
 
-protected $fillable = [
-    'invoice_id',
-    'product_id',
-    'description',
-    'quantity',
-    'unit_price',
-    'tax_rate',
-    'tax_amount',
-    'total_price',
-    'total_price_with_tax',
-];
-
-
-    /**
-     * Obtenir la facture associée à cet élément.
-     */
-    public function invoice()
+    // Define the relationship to User
+    public function user()
     {
-        return $this->belongsTo(Invoice::class);
-    }
-
-    /**
-     * Obtenir le produit associé à cet élément (le cas échéant).
-     */
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(User::class);
     }
 }

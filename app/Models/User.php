@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use App\Models\InventoryItem;
 
 class User extends Authenticatable
 {
@@ -148,4 +149,8 @@ public function testimonials()
 {
     return $this->hasMany(Testimonial::class, 'therapist_id');
 }
+    public function inventoryItems()
+    {
+        return $this->hasMany(InventoryItem::class);
+    }
 }

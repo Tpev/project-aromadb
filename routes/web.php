@@ -26,7 +26,19 @@ use App\Http\Controllers\TestimonialRequestController;
 use App\Http\Controllers\WebRTCController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\InventoryItemController;
 
+
+
+
+
+
+Route::get('/formation/Utilisateur-Aromatherapie{numero}', [App\Http\Controllers\FormationController::class, 'show'])->name('formation.show');
+
+Route::middleware(['auth'])->group(function () {
+// Inventory Items Resource Routes
+Route::resource('inventory_items', InventoryItemController::class);
+});
 
 
 Route::get('/search', [SearchController::class, 'search'])->name('search');
