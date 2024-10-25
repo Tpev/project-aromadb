@@ -115,7 +115,17 @@
             <!-- Image de félicitations (optionnel) -->
             <img src="/images/congratulation.webp" alt="Félicitations" style="justify-content: center; width: 50%; margin-top: 30px;">
 
+        <!-- Boutons de navigation -->
+        <!-- Boutons de navigation -->
+        <div class="navigation-buttons">
+            <a href="{{ route('formation.show', ['numero' => $numero - 1]) }}" class="btn-slide">Précédent</a>
 
+            @if($numero < $totalSlides)
+                <a href="{{ route('formation.show', ['numero' => $numero + 1]) }}" class="btn-slide">Suivant</a>
+            @else
+                <span class="btn-slide btn-disabled">Suivant</span>
+            @endif
+        </div>
             
             </div>
         </div>
