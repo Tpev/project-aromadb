@@ -12,6 +12,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <div class="slide-container">
+	    <div class="slide-container">
+	    <!-- Progress Bar -->
+    @php
+        $currentSlide = $numero; // Replace with current slide number passed to the view
+        $totalSlides = 49;
+        $progressPercent = ($currentSlide / $totalSlides) * 100;
+    @endphp
+
+    <div class="progress-container" style="margin-bottom: 20px;">
+        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #647a0b; height: 20px;">
+            <span style="color: white; padding-left: 10px;">{{ round($progressPercent) }}%</span>
+        </div>
+    </div>
+<style>	
+	.progress-container {
+    width: 100%;
+    background-color: #ddd;
+    border-radius: 8px;
+}
+
+.progress-bar {
+    text-align: left;
+    padding-left: 5px;
+    line-height: 20px;
+    border-radius: 8px;
+}
+</style>
         <!-- Diapositive 49 : Félicitations et Clôture de la Formation -->
         <div class="slide-content" style="text-align: center;">
             <h1 class="slide-title" style="color: #16a34a;">Félicitations !</h1>

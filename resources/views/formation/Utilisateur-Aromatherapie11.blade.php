@@ -96,6 +96,33 @@
     </style>
 
     <div class="slide-container">
+	    <div class="slide-container">
+	    <!-- Progress Bar -->
+    @php
+        $currentSlide = $numero; // Replace with current slide number passed to the view
+        $totalSlides = 49;
+        $progressPercent = ($currentSlide / $totalSlides) * 100;
+    @endphp
+
+    <div class="progress-container" style="margin-bottom: 20px;">
+        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #647a0b; height: 20px;">
+            <span style="color: white; padding-left: 10px;">{{ round($progressPercent) }}%</span>
+        </div>
+    </div>
+<style>	
+	.progress-container {
+    width: 100%;
+    background-color: #ddd;
+    border-radius: 8px;
+}
+
+.progress-bar {
+    text-align: left;
+    padding-left: 5px;
+    line-height: 20px;
+    border-radius: 8px;
+}
+</style>
         <div class="slide-content" style="text-align: center;">
             <!-- Diapositive 11 : Félicitations -->
             <h1 class="slide-title">Félicitations !</h1>

@@ -10,6 +10,33 @@
     <link rel="stylesheet" href="{{ asset('css/formation.css') }}">
 
     <div class="slide-container">
+	    <div class="slide-container">
+	    <!-- Progress Bar -->
+    @php
+        $currentSlide = $numero; // Replace with current slide number passed to the view
+        $totalSlides = 49;
+        $progressPercent = ($currentSlide / $totalSlides) * 100;
+    @endphp
+
+    <div class="progress-container" style="margin-bottom: 20px;">
+        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #647a0b; height: 20px;">
+            <span style="color: white; padding-left: 10px;">{{ round($progressPercent) }}%</span>
+        </div>
+    </div>
+<style>	
+	.progress-container {
+    width: 100%;
+    background-color: #ddd;
+    border-radius: 8px;
+}
+
+.progress-bar {
+    text-align: left;
+    padding-left: 5px;
+    line-height: 20px;
+    border-radius: 8px;
+}
+</style>
         <!-- Diapositive 31 : Résumé des 3 méthodes d’application et des précautions -->
         <div class="slide-content">
             <h1 class="slide-title">Résumé des méthodes d’application et des précautions</h1>
