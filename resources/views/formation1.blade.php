@@ -123,7 +123,7 @@
             <p class="text-lg max-w-3xl mx-auto mb-6 text-gray-700">
                 En moins d’une heure, vous gagnerez en confiance et en autonomie pour utiliser les huiles essentielles de manière efficace et sécurisée. Prenez votre temps, progressez à votre rythme, et profitez de cette flexibilité pour adapter l’apprentissage à votre emploi du temps.
             </p>
-            <a href="{{ route('register') }}" class="btn-primary animate-pulse">Commencer à apprendre</a>
+            <a href="{{ route('formation.show',1) }}" class="btn-primary animate-pulse">Commencer à apprendre</a>
         </div>
     </section>
 

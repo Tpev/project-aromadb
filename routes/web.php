@@ -33,7 +33,6 @@ use App\Http\Controllers\InventoryItemController;
 
 
 
-Route::get('/formation/Utilisateur-Aromatherapie{numero}', [App\Http\Controllers\FormationController::class, 'show'])->name('formation.show');
 
 Route::middleware(['auth'])->group(function () {
 // Inventory Items Resource Routes
@@ -306,7 +305,8 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
     Route::get('/', function () {
         return view('welcome');
     })->name('welcome');
-		
+	Route::get('/formation/Utilisateur-Aromatherapie{numero}', [App\Http\Controllers\FormationController::class, 'show'])->name('formation.show');
+	
     // Other routes
 	Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
     Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');

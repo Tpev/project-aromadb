@@ -7,6 +7,7 @@
     </x-slot>
 
     <!-- Inclure les styles personnalisés -->
+    <link rel="stylesheet" href="{{ asset('css/formation.css') }}">
 
     <div class="slide-container">
         <!-- Diapositive 20 : Quiz rapide (Question 1) -->
