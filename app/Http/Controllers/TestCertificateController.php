@@ -18,7 +18,7 @@ class TestCertificateController extends Controller
         // Read image from the filesystem
         $image = $manager->make($certificatePath);
 
-        // Static full name for testing
+        // Static fullff name for testing
         $fullName = 'Jean Dupont';
 
         // Path to font file (ensure it exists in the specified location)
