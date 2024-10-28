@@ -126,8 +126,4 @@ return [
     ],
 
 
-'aliases' => [
-    // Other aliases...
-    'Image' => Intervention\Image\Facades\Image::class,
-],
 ];
