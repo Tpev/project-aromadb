@@ -27,9 +27,9 @@ use App\Http\Controllers\WebRTCController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\InventoryItemController;
+use App\Http\Controllers\TestCertificateController;	
 
-
-
+Route::get('/test-certificate', [TestCertificateController::class, 'generateTestCertificate']);
 
 
 
