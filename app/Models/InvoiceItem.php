@@ -5,23 +5,35 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\Product;
+use App\Models\Invoice;
 
-class InventoryItem extends Model
+class InvoiceItem extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id',
-        'name',
-        'reference',
+        'invoice_id',
+        'product_id',
         'description',
-        'price',
-        'selling_price',
-        'quantity_in_stock',
-        'brand',
+        'quantity',
+        'unit_price',
+        'total_price',
     ];
 
-    // Define the relationship to User
-    public function user()
+    /**
+     * Define the relationship to the Invoice model
+     */
+    public function invoice()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Invoice::class);
+    }
+
+    /**
+     * Define the relationship to the Product model
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 }

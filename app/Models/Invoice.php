@@ -5,25 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\InvoiceItem;
+use App\Models\User;
+use App\Models\ClientProfile;
 
 class Invoice extends Model
 {
     use HasFactory;
 
-protected $fillable = [
-    'client_profile_id',
-    'user_id',
-    'invoice_date',
-    'due_date',
-    'total_amount',
-    'total_tax_amount',
-    'total_amount_with_tax',
-    'status',
-    'notes',
-	'invoice_number',
-	'sent_at',	// Add this line
-];
-
+    protected $fillable = [
+        'client_profile_id',
+        'user_id',
+        'invoice_date',
+        'due_date',
+        'total_amount',
+        'total_tax_amount',
+        'total_amount_with_tax',
+        'status',
+        'notes',
+    	'invoice_number',
+    	'sent_at',	// Add this line
+    ];
 
     /**
      * L'utilisateur (thérapeute) qui a créé la facture.
@@ -48,6 +49,7 @@ protected $fillable = [
     {
         return $this->hasMany(InvoiceItem::class);
     }
+
     protected $casts = [
         'invoice_date' => 'date',
         'due_date' => 'date',
