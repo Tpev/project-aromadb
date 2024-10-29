@@ -7,6 +7,6 @@
 </head>
 <body>
     <h1>Generated Certificate</h1>
-    <img src="{{ $certificateUrl }}" alt="Generated Certificate" style="max-width: 100%; height: auto;">
+    <img src="{{ $image }}" alt="Generated Certificate" style="max-width: 100%; height: auto;">
 </body>
 </html>
