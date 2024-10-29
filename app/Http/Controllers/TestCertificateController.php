@@ -17,16 +17,16 @@ class TestCertificateController extends Controller
 $image = ImageManager::imagick()->read('images/certificat.png');
 
 // write text to image
-$image->text('The quick brown fox', 120, 100, function (FontFactory $font) {
+$image->text('Thibaud Peverelli', 800, 600, function (FontFactory $font) {
     $font->filename('images/Roboto-Regular.ttf');
     $font->size(70);
     $font->color('fff');
-    $font->stroke('ff5500', 2);
+    $font->stroke('ffffff', 1);
     $font->align('center');
     $font->valign('middle');
     $font->lineHeight(1.6);
-    $font->angle(10);
-    $font->wrap(250);
+
+
 });
 // Define the path to save the generated image
         $filename = 'certificates/generated_certificate.png';
