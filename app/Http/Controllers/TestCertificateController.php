@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Typography\FontFactory;
+use Illuminate\Http\Request;
 
 class TestCertificateController extends Controller
 {

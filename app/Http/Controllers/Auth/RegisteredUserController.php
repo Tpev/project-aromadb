@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
     {
         return view('auth.register');
     }
-    public function create(): View
+    public function createformation(): View
     {
         return view('auth.register-formation');
     }   	
@@ -130,7 +130,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('test.certificate', ['name' => $user->name], absolute: false));
+        return redirect(route('generateTestCertificate', ['name' => $user->name], absolute: false));
     } 
 
 

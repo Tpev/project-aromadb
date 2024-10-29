@@ -29,7 +29,7 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\TestCertificateController;	
 
-Route::get('/test-certificate', [TestCertificateController::class, 'generateTestCertificate']);
+Route::get('/test-certificate', [TestCertificateController::class, 'generateTestCertificate'])->name('generateTestCertificate');
 
 
 
