@@ -29,6 +29,6 @@ $image->text('The quick brown fox', 120, 100, function (FontFactory $font) {
     $font->wrap(250);
 });
         
-        return view('test.certificate', compact('$image'));
+        return view('test.certificate', compact('image'));
     }
 }
