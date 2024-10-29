@@ -8,16 +8,20 @@ use Intervention\Image\Typography\FontFactory;
 
 class TestCertificateController extends Controller
 {
-    public function generateTestCertificate()
+    public function generateTestCertificate(Request $request)
     {
-
+	        // Validate the incoming request
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+ $userName = $request->input('name');
 
 
 // create test image
 $image = ImageManager::imagick()->read('images/certificat.png');
 
 // write text to image
-$image->text('Thibaud Peverelli', 950, 600, function (FontFactory $font) {
+$image->text($userName, 950, 600, function (FontFactory $font) {
     $font->filename('images/Roboto-Regular.ttf');
     $font->size(70);
     $font->color('854f38');

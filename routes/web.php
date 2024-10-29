@@ -300,7 +300,10 @@ Route::get('/sitemap', [SitemapController::class, 'index']);
 
 
 Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function () {
-
+    // Route to the pro landing page 
+    Route::get('/pro', function () {
+        return view('prolanding');
+    })->name('prolanding');
     // Route to the welcome page directly returning the welcome view
     Route::get('/', function () {
         return view('welcome');
@@ -369,10 +372,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/privacy-policy', function () {
         return view('privacypolicy');
     })->name('privacypolicy');
-    // Route to the pro landing page 
-    Route::get('/pro', function () {
-        return view('prolanding');
-    })->name('prolanding');
+
 
 
 
