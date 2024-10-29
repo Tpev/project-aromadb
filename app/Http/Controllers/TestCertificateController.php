@@ -34,6 +34,6 @@ $image->text('The quick brown fox', 120, 100, function (FontFactory $font) {
 
         // Save the image to the public directory
         $image->save($path); 
-        return view('test.certificate', compact('image'));
+         return view('test.certificate', ['imagePath' => $filename]);
     }
 }
