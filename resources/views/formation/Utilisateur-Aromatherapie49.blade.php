@@ -64,7 +64,7 @@
 
 
                 <!-- Bouton Réclamer le certificat -->
-                <a href="{{ route('register') }}" class="btn-slide btn-certificate" style="margin-left: 10px;">
+                <a href="{{ route('register-formation') }}" class="btn-slide btn-certificate" style="margin-left: 10px;">
                     <i class="fas fa-award" style="margin-right: 8px;"></i> Réclamer mon certificat gratuit
                 </a>
             </div>
