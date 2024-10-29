@@ -18,32 +18,13 @@
         <div class="container mx-auto text-center px-4">
             <h2 class="text-3xl font-bold mb-8 text-primary">Votre Certificat de Complétion</h2>
             <div class="flex flex-col items-center">
-                <img src="{{ asset($imagePath) }}" alt="Certificat Généré" class="max-w-lg mx-auto mb-6 shadow-lg rounded-lg">
-                <a href="{{ asset($imagePath) }}" download="Certificat_{{ auth()->user()->name }}.png" class="btn-primary flex items-center">
+                <img src="{{ asset($imagePath) }}" alt="Certificat Généré" class="max-w-md mx-auto mb-6 shadow-lg rounded-lg">
+                <a href="{{ asset($imagePath) }}" download="Certificat_{{ auth()->user()->name }}.png" class="btn-primary flex items-center mt-4">
                     <i class="fas fa-download mr-2"></i>Télécharger le Certificat
                 </a>
             </div>
         </div>
     </section>
-
-    <!-- Footer (réutilisation de votre footer existant) -->
-    <footer class="bg-gray-800 text-white py-6">
-        <div class="container mx-auto text-center px-4">
-            <p>&copy; {{ date('Y') }} AromaMade PRO. Tous droits réservés.</p>
-            <!-- Icônes Sociales (optionnel) -->
-            <div class="social-icons flex justify-center space-x-4 mt-4">
-                <a href="#" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">
-                    <i class="fab fa-facebook-f"></i>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    <i class="fab fa-twitter"></i>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-pink-500 transition-colors duration-300">
-                    <i class="fab fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-    </footer>
 
     <!-- Scripts personnalisés -->
     @push('scripts')
@@ -74,9 +55,18 @@
     <style>
         /* Styles spécifiques à la page du certificat */
 
+        /* Définir les couleurs directement */
+        .text-primary {
+            color: #647a0b; /* Couleur primaire */
+        }
+
+        .text-secondary {
+            color: #854f38; /* Couleur secondaire */
+        }
+
         /* Bouton personnalisé */
         .btn-primary {
-            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: linear-gradient(90deg, #647a0b 0%, #854f38 100%);
             color: white;
             padding: 14px 28px;
             border-radius: 5px;
@@ -100,6 +90,12 @@
 
         .btn-primary:hover i {
             margin-right: 8px;
+        }
+
+        /* Centrer verticalement le contenu de la section */
+        .flex-col.items-center {
+            justify-content: center;
+            min-height: 50vh; /* Ajustez selon vos besoins */
         }
     </style>
 </x-app-layout>
