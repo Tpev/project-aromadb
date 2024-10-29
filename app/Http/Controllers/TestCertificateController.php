@@ -20,8 +20,8 @@ $image = ImageManager::imagick()->read('images/certificat.png');
 $image->text('Thibaud Peverelli', 800, 600, function (FontFactory $font) {
     $font->filename('images/Roboto-Regular.ttf');
     $font->size(70);
-    $font->color('fff');
-    $font->stroke('ffffff', 1);
+    $font->color('854f38');
+    $font->stroke('854f38', 2);
     $font->align('center');
     $font->valign('middle');
     $font->lineHeight(1.6);
