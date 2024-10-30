@@ -10,7 +10,7 @@
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
         <!-- Custom Styles for Loader, Chat, and Notifications -->
         <style>
-            /* Font Family for Roboto */
+       /* Font Family for Roboto */
             .font-roboto {
                 font-family: 'Roboto', sans-serif;
             }
@@ -236,7 +236,7 @@
         <script>
 document.addEventListener('DOMContentLoaded', function () {
     let localStream;
-    let peer;
+    let peer = null;
     let audioEnabled = true;
     let videoEnabled = true;
     const localVideo = document.getElementById('localVideo');
@@ -281,6 +281,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Determine if this client is the initiator based on URL hash
     const isInitiator = location.hash === '#1';
     console.log(`Le pair est initiateur : ${isInitiator}`);
+
+    // Retry Counters
+    let offerRetryCount = 0;
+    const MAX_OFFER_RETRIES = 100;
+
+    let answerRetryCount = 0;
+    const MAX_ANSWER_RETRIES = 100;
 
     // Initialize Media
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -393,22 +400,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Handle connection close
         peer.on('close', () => {
-            console.log('Connexion de pair fermée.');
+            console.log('Peer connection closed.');
+            
             if (connectionStatus) {
                 connectionStatus.innerText = 'Déconnecté';
                 connectionStatus.classList.remove('text-green-500');
                 connectionStatus.classList.add('text-red-500');
             }
+            
             alert('L\'appel a été terminé.');
+            
             // Cleanup peer and reset UI
             cleanupPeer();
-
-            // Show loading spinner for potential new connections
+            
+            // Show loading spinner to indicate readiness for new connections
             if (loadingOverlay) {
                 loadingOverlay.classList.remove('hidden');
-                console.log('Overlay de chargement affiché pour une nouvelle connexion.');
+                console.log('Loading overlay displayed for a new connection.');
             }
-
+            
             // Clear signaling data on the server
             axios.post('/webrtc/clear-signaling', {
                 room: room,
@@ -434,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (peer) {
             peer.destroy();
             peer = null;
-            console.log('Connexion de pair détruite et réinitialisée.');
+            console.log('Peer connection destroyed and reset.');
         }
 
         // Reset connection status
@@ -444,13 +454,19 @@ document.addEventListener('DOMContentLoaded', function () {
             connectionStatus.classList.add('text-red-500');
         }
 
+        // Reset retry counters
+        resetRetryCounts();
+        
         // Optionally reset other UI elements like chat, notifications, etc.
     }
 
-    // Retrieve Offer from Signaling Server
-    let offerRetryCount = 0;
-    const MAX_OFFER_RETRIES = 100;
+    // Reset Retry Counters
+    function resetRetryCounts() {
+        offerRetryCount = 0;
+        answerRetryCount = 0;
+    }
 
+    // Retrieve Offer from Signaling Server
     function getOffer() {
         if (offerRetryCount >= MAX_OFFER_RETRIES) {
             console.error('Nombre maximum de tentatives d\'offre atteint.');
@@ -479,9 +495,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Check for Answer from Signaling Server
-    let answerRetryCount = 0;
-    const MAX_ANSWER_RETRIES = 100;
-
     function checkForAnswer() {
         if (answerRetryCount >= MAX_ANSWER_RETRIES) {
             console.error('Nombre maximum de tentatives de réponse atteint.');
@@ -613,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function () {
         endCallButton.addEventListener('click', () => {
             if (peer) {
                 peer.destroy();
-                console.log('Connexion de pair détruite.');
+                console.log('Peer connection destroyed.');
             }
             // Clear signaling data on the server
             axios.post('/webrtc/clear-signaling', {
@@ -699,6 +712,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (peer) {
             peer.destroy();
+            peer = null;
         }
     }
 
@@ -732,7 +746,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000); // Check every 3 seconds
     }
 });
-
         </script>
     @endpush
 

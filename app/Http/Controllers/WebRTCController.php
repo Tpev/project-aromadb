@@ -45,14 +45,13 @@ class WebRTCController extends Controller
         Log::info("Received signaling data for room: {$request->room}, type: {$request->type}, senderId: {$request->senderId}");
 
         // Store offer or answer depending on type
-		if ($request->type === 'offer') {
-			cache()->put("{$roomKey}-offer", $request->data, 600); // Overwrite existing offer
-			Log::info("Stored offer for room: {$request->room}");
-		} elseif ($request->type === 'answer') {
-			cache()->put("{$roomKey}-answer", $request->data, 600); // Overwrite existing answer
-			Log::info("Stored answer for room: {$request->room}");
-		}
-
+        if ($request->type === 'offer') {
+            cache()->put("{$roomKey}-offer", $request->data, 600); // Overwrite existing offer, TTL 10 minutes
+            Log::info("Stored offer for room: {$request->room}");
+        } elseif ($request->type === 'answer') {
+            cache()->put("{$roomKey}-answer", $request->data, 600); // Overwrite existing answer, TTL 10 minutes
+            Log::info("Stored answer for room: {$request->room}");
+        }
 
         return response()->json(['status' => 'success']);
     }
@@ -63,54 +62,63 @@ class WebRTCController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-   public function getOffer(Request $request)
-{
-    $roomKey = 'webrtc-' . $request->room;
-    $offer = cache()->get("{$roomKey}-offer");
+    public function getOffer(Request $request)
+    {
+        $roomKey = 'webrtc-' . $request->room;
+        $offer = cache()->get("{$roomKey}-offer");
 
-    if ($offer) {
-        Log::info("Retrieved offer for room: {$request->room}");
-        cache()->forget("{$roomKey}-offer"); // Clear the offer after retrieval
-    } else {
-        Log::warning("No offer found for room: {$request->room}");
+        if ($offer) {
+            Log::info("Retrieved offer for room: {$request->room}");
+            cache()->forget("{$roomKey}-offer"); // Clear the offer after retrieval
+        } else {
+            Log::warning("No offer found for room: {$request->room}");
+        }
+
+        return response()->json(['offer' => $offer ?? null]);
     }
 
-    return response()->json(['offer' => $offer ?? null]);
-}
+    /**
+     * Retrieve the answer for a given room.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAnswer(Request $request)
+    {
+        $roomKey = 'webrtc-' . $request->room;
+        $answer = cache()->get("{$roomKey}-answer");
 
-public function getAnswer(Request $request)
-{
-    $roomKey = 'webrtc-' . $request->room;
-    $answer = cache()->get("{$roomKey}-answer");
+        if ($answer) {
+            Log::info("Retrieved answer for room: {$request->room}");
+            cache()->forget("{$roomKey}-answer"); // Clear the answer after retrieval
+        } else {
+            Log::warning("No answer found for room: {$request->room}");
+        }
 
-    if ($answer) {
-        Log::info("Retrieved answer for room: {$request->room}");
-        cache()->forget("{$roomKey}-answer"); // Clear the answer after retrieval
-    } else {
-        Log::warning("No answer found for room: {$request->room}");
+        return response()->json(['answer' => $answer ?? null]);
     }
 
-    return response()->json(['answer' => $answer ?? null]);
-}
+    /**
+     * Clear signaling data when a participant disconnects.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function clearSignaling(Request $request)
+    {
+        $request->validate([
+            'room' => 'required|string',
+            'senderId' => 'required|string',
+        ]);
 
-public function clearSignaling(Request $request)
-{
-    $request->validate([
-        'room' => 'required|string',
-        'senderId' => 'required|string',
-    ]);
+        $roomKey = 'webrtc-' . $request->room;
+        
+        // It's safer to clear both offer and answer when any participant disconnects
+        cache()->forget("{$roomKey}-offer");
+        cache()->forget("{$roomKey}-answer");
 
-    $roomKey = 'webrtc-' . $request->room;
-    
-    // It's safer to clear both offer and answer when any participant disconnects
-    cache()->forget("{$roomKey}-offer");
-    cache()->forget("{$roomKey}-answer");
+        Log::info("Cleared signaling data for room: {$request->room}, senderId: {$request->senderId}");
 
-    Log::info("Cleared signaling data for room: {$request->room}, senderId: {$request->senderId}");
-
-    return response()->json(['status' => 'signaling cleared']);
-}
-
-
-
+        return response()->json(['status' => 'signaling cleared']);
+    }
 }
