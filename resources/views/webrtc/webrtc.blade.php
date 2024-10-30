@@ -269,11 +269,11 @@
 
                 // ICE Servers Configuration
                 const iceServers = [
-                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:turn.aromamade.com:3478' },
                     {
-                        urls: 'turn:eu.relay.metered.ca:80',
-                        username: '973cd534a917cf4aad94e78d',
-                        credential: 'U0vCqXJ3Zj6GCso9',
+                        urls: 'turn:turn.aromamade.com:3478?transport=udp',
+                        username: 'userprod',
+                        credential: 'blablablatesttest',
                     },
                     // Add more TURN servers if needed
                 ];
