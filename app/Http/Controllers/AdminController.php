@@ -54,40 +54,40 @@ public function index()
     $startOfLastMonth = Carbon::now()->subMonth()->startOfMonth();
     $endOfLastMonth = (clone $startOfLastMonth)->endOfMonth();
 
-    // Perform the date filtering and count unique sessions (distinct session_id) for each period
-    $sessionsToday = (clone $pageViewsQuery)
-        ->whereDate('viewed_at', '=', $today)
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsToday = (clone $pageViewsQuery)
+    ->whereDate('viewed_at', '=', $today)
+    ->distinct('session_id')
+    ->count('session_id');
 
-    $sessionsYesterday = (clone $pageViewsQuery)
-        ->whereDate('viewed_at', '=', $yesterday)
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsYesterday = (clone $pageViewsQuery)
+    ->whereDate('viewed_at', '=', $yesterday)
+    ->distinct('session_id')
+    ->count('session_id');
 
-    $sessionsThisWeek = (clone $pageViewsQuery)
-        ->where('viewed_at', '>=', $startOfWeek)
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsThisWeek = (clone $pageViewsQuery)
+    ->where('viewed_at', '>=', $startOfWeek)
+    ->distinct('session_id')
+    ->count('session_id');
 
-    $sessionsLastWeek = (clone $pageViewsQuery)
-        ->whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek])
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsLastWeek = (clone $pageViewsQuery)
+    ->whereBetween('viewed_at', [$startOfLastWeek, $endOfLastWeek])
+    ->distinct('session_id')
+    ->count('session_id');
 
-    $sessionsThisMonth = (clone $pageViewsQuery)
-        ->where('viewed_at', '>=', $startOfMonth)
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsThisMonth = (clone $pageViewsQuery)
+    ->where('viewed_at', '>=', $startOfMonth)
+    ->distinct('session_id')
+    ->count('session_id');
 
-    $sessionsLastMonth = (clone $pageViewsQuery)
-        ->whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth])
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsLastMonth = (clone $pageViewsQuery)
+    ->whereBetween('viewed_at', [$startOfLastMonth, $endOfLastMonth])
+    ->distinct('session_id')
+    ->count('session_id');
 
-    $sessionsTotal = (clone $pageViewsQuery)
-        ->distinct('session_id')
-        ->count('session_id');
+$sessionsTotal = (clone $pageViewsQuery)
+    ->distinct('session_id')
+    ->count('session_id');
+
 
     $sessionsData = [
         'today' => $sessionsToday,
@@ -125,17 +125,24 @@ public function index()
         ->where('status', 'paid')
         ->sum('total_amount');
 
-    return view('admin.index', compact(
-        'users',
-        'pageViews',
-        'sessionsData',
-        'totalClients',
-        'totalAppointments',
-        'upcomingAppointments',
-        'totalInvoices',
-        'pendingInvoices',
-        'monthlyRevenue'
-    ));
+return view('admin.index', compact(
+    'users',
+    'pageViews',
+    'sessionsToday',
+    'sessionsYesterday',
+    'sessionsThisWeek',
+    'sessionsLastWeek',
+    'sessionsThisMonth',
+    'sessionsLastMonth',
+    'sessionsTotal',
+    'totalClients',
+    'totalAppointments',
+    'upcomingAppointments',
+    'totalInvoices',
+    'pendingInvoices',
+    'monthlyRevenue'
+));
+
 }
 
 
