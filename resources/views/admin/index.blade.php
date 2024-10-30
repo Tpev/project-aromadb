@@ -88,21 +88,8 @@
             </div>
         </div>
 
-        <!-- Traffic Source Breakdown -->
-        <h1 class="page-title mt-5">Traffic Source Breakdown</h1>
+}
 
-        <div class="stat-grid">
-            @foreach($trafficSourcesData as $timeFrame => $sources)
-                <div class="stat-box">
-                    <h4>{{ ucfirst(str_replace('_', ' ', $timeFrame)) }}</h4>
-                    <ul class="list-disc list-inside">
-                        @foreach($sources as $source => $count)
-                            <li><strong>{{ $source }}:</strong> {{ $count }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endforeach
-        </div>
 
         <!-- Users Table -->
         <h1 class="page-title">Liste des Utilisateurs</h1>
