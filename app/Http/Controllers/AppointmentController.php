@@ -36,12 +36,13 @@ public function index()
     
     // Fetch appointment events
     foreach ($appointments as $appointment) {
+		$isPast = Carbon::parse($appointment->appointment_date)->isPast();
         $events[] = [
             'title' => $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
             'start' => $appointment->appointment_date->format('Y-m-d H:i:s'),
             'end' => $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Y-m-d H:i:s'),
             'url' => route('appointments.show', $appointment->id),
-            'color' => '#854f38',
+             'color' => $isPast ? '#dc3545' : '#854f38', // Rouge pour les rdv passés, brun pour les à venir
         ];
     }
 

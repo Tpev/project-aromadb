@@ -42,7 +42,13 @@
                     @foreach($appointments as $appointment)
                         <tr class="table-row" data-url="{{ route('appointments.show', $appointment->id) }}">
                             <td>{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</td>
-                            <td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</td>
+                            <td>
+    <i class="fas fa-calendar-alt"></i>
+    {{ \Carbon\Carbon::parse($appointment->appointment_date)->translatedFormat('d/m/Y') }}
+    <br>
+    <i class="fas fa-clock"></i>
+    {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('H:i') }}
+</td>
                             <td>{{ $appointment->duration }} {{ __('min') }}</td>
                             <td>{{ $appointment->product->name ?? __('Aucun produit') }}</td>
                             <td id="status-{{ $appointment->id }}">{{ ucfirst($appointment->status) }}</td>
@@ -171,6 +177,18 @@
 
     <!-- Vos styles personnalisés -->
     <style>
+	/* Styles pour les icônes de date et d'heure */
+td i.fas.fa-calendar-alt,
+td i.fas.fa-clock {
+    margin-right: 5px;
+    color: #647a0b; /* Couleur cohérente avec le thème */
+}
+
+/* Ajustement des tooltips */
+[data-toggle="tooltip"] {
+    cursor: pointer;
+    text-decoration: underline dotted;
+}
         .container {
             max-width: 1200px;
             text-align: center;
