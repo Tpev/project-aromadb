@@ -968,5 +968,16 @@ public function markAsCompleted(Appointment $appointment)
     return redirect()->route('appointments.show', $appointment->id)->with('success', 'Le rendez-vous a été marqué comme complété.');
 }
 
+public function markAsCompletedIndex(Appointment $appointment)
+{
+    // Ensure the appointment belongs to the authenticated user
+    $this->authorize('update', $appointment);
+
+    // Update the status to 'Complété'
+    $appointment->status = 'Complété';
+    $appointment->save();
+
+    return redirect()->route('appointments.index')->with('success', 'Le rendez-vous a été marqué comme complété.');
+}
 
 }

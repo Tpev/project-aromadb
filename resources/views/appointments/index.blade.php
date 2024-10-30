@@ -6,8 +6,6 @@
         </h2>
     </x-slot>
 
-  
-
     <!-- Vos styles personnalisés -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
@@ -47,12 +45,24 @@
                             <td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y H:i') }}</td>
                             <td>{{ $appointment->duration }} {{ __('min') }}</td>
                             <td>{{ $appointment->product->name ?? __('Aucun produit') }}</td>
-                            <td>{{ ucfirst($appointment->status) }}</td>
+                            <td id="status-{{ $appointment->id }}">{{ ucfirst($appointment->status) }}</td>
                             <td>
                                 <!-- Bouton pour générer une facture -->
-                                <a href="{{ route('invoices.create', ['client_id' => $appointment->client_profile_id, 'product_id' => $appointment->product_id]) }}" class="btn btn-success">
+                                <a href="{{ route('invoices.create', ['client_id' => $appointment->client_profile_id, 'product_id' => $appointment->product_id]) }}" class="btn-invoice"">
                                     <i class="fas fa-file-invoice-dollar"></i> Générer une facture
                                 </a>
+
+                                <!-- Nouveau bouton pour marquer comme complété -->
+            <!-- Mark as Completed Button -->
+            @if($appointment->status !== 'Complété')
+                <form action="{{ route('appointments.completeindex', $appointment->id) }}" method="POST" style="display: inline-block;">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="btn-complete" onclick="return confirm('{{ __('Marquer ce rendez-vous comme complété?') }}')">
+                        <i class="fas fa-check-circle"></i> {{ __('Marquer comme Complété') }}
+                    </button>
+                </form>
+            @endif
                             </td>
                         </tr>
                     @endforeach
@@ -60,8 +70,6 @@
             </table>
         </div>
     </div>
-
- 
 
     <!-- Vos scripts personnalisés -->
     <script>
@@ -84,7 +92,7 @@
                     week:     'Semaine',
                     day:      'Jour', 
                 },
-				firstDay: 1, // **Added this line to start the week on Monday**
+                firstDay: 1, // Commencer la semaine le lundi
                 events: @json($events),
                 eventClick: function(info) {
                     if (info.event.url) {
@@ -99,11 +107,17 @@
             // Fonction pour gérer la redirection lors du clic sur une ligne de la table
             const rows = document.querySelectorAll('.table-row');
             rows.forEach(row => {
-                row.addEventListener('click', function() {
+                row.addEventListener('click', function(e) {
+                    // Empêcher la redirection si le clic est sur un bouton
+                    if(e.target.closest('button') || e.target.closest('a')) {
+                        return;
+                    }
                     const url = this.getAttribute('data-url');
                     window.location.href = url;
                 });
             });
+
+
         });
 
         // Fonction de filtrage pour la recherche
@@ -151,6 +165,9 @@
             }
         }
     </script>
+
+    <!-- Assurez-vous d'ajouter le meta CSRF token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Vos styles personnalisés -->
     <style>
@@ -281,6 +298,67 @@
             font-weight: bold;
             color: #647a0b;
             margin: 0 10px;
+        }
+
+/* Styles pour le bouton "Générer une facture" */
+.btn-invoice {
+    background-color: #647a0b; /* Vert vif */
+    border-color: #28a745;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.btn-invoice i {
+    margin-right: 5px;
+}
+
+/* Effet au survol pour le bouton "Générer une facture" */
+.btn-invoice:hover {
+    background-color: #647a0b;
+    transform: translateY(-2px);
+}
+
+/* Styles pour le bouton "Marquer comme complété" */
+.btn-complete {
+    background-color: #647a0b; /* Bleu vif */
+    border-color: #007bff;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.btn-complete i {
+    margin-right: 5px;
+}
+
+/* Effet au survol pour le bouton "Marquer comme complété" */
+.btn-complete:hover {
+    background-color: #647a0b;
+    transform: translateY(-2px);
+}
+
+/* Ajustement pour les formulaires contenant les boutons */
+.btn-complete-form {
+    display: inline-block;
+    margin-left: 5px;
+}
+
+		.btn-secondary {
+            background-color: transparent;
+            color: #854f38;
+            border: 1px solid #854f38;
         }
     </style>
 </x-app-layout>
