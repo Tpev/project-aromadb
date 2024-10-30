@@ -234,441 +234,505 @@
 
         <!-- JavaScript for WebRTC and Enhancements -->
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                let localStream;
-                let peer;
-                let audioEnabled = true;
-                let videoEnabled = true;
-                const localVideo = document.getElementById('localVideo');
-                const remoteVideo = document.getElementById('remoteVideo');
-                const loadingOverlay = document.getElementById('loadingOverlay');
-                const connectionStatus = document.getElementById('connectionStatus');
+document.addEventListener('DOMContentLoaded', function () {
+    let localStream;
+    let peer;
+    let audioEnabled = true;
+    let videoEnabled = true;
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const connectionStatus = document.getElementById('connectionStatus');
 
-                // Control Buttons
-                const toggleAudioButton = document.getElementById('toggleAudio');
-                const toggleVideoButton = document.getElementById('toggleVideo');
-                const endCallButton = document.getElementById('endCall');
-                const toggleFullScreenButton = document.getElementById('toggleFullScreen');
+    // Control Buttons
+    const toggleAudioButton = document.getElementById('toggleAudio');
+    const toggleVideoButton = document.getElementById('toggleVideo');
+    const endCallButton = document.getElementById('endCall');
+    const toggleFullScreenButton = document.getElementById('toggleFullScreen');
 
-                // Chat Elements
-                const chatPanel = document.getElementById('chatPanel');
-                const chatMessages = document.getElementById('chatMessages');
-                const chatInput = document.getElementById('chatInput');
-                const chatNotificationBadge = document.getElementById('chatNotificationBadge');
-                const toggleChatButton = document.getElementById('toggleChat');
-                const closeChatButton = document.getElementById('closeChat');
+    // Chat Elements
+    const chatPanel = document.getElementById('chatPanel');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatNotificationBadge = document.getElementById('chatNotificationBadge');
+    const toggleChatButton = document.getElementById('toggleChat');
+    const closeChatButton = document.getElementById('closeChat');
 
-                // Audio Notification Element
-                const notificationSound = document.getElementById('notificationSound');
+    // Audio Notification Element
+    const notificationSound = document.getElementById('notificationSound');
 
-                // Room and Sender ID
-                const room = @json($room);
-                const senderId = generateUniqueId();
+    // Room and Sender ID
+    const room = @json($room);
+    const senderId = generateUniqueId();
 
-                console.log(`WebRTC initialisé pour la salle : ${room}, senderId : ${senderId}`);
+    console.log(`WebRTC initialisé pour la salle : ${room}, senderId : ${senderId}`);
 
-                // ICE Servers Configuration
-                const iceServers = [
-                    { urls: 'stun:turn.aromamade.com:3478' },
-                    {
-                        urls: 'turn:turn.aromamade.com:3478?transport=udp',
-                        username: 'userprod',
-                        credential: 'blablablatesttest',
-                    },
-                    // Add more TURN servers if needed
-                ];
+    // ICE Servers Configuration
+    const iceServers = [
+        { urls: 'stun:turn.aromamade.com:3478' },
+        {
+            urls: 'turn:turn.aromamade.com:3478?transport=udp',
+            username: 'userprod',
+            credential: 'blablablatesttest',
+        },
+        // Add more TURN servers if needed
+    ];
 
-                // Determine if this client is the initiator based on URL hash
-                const isInitiator = location.hash === '#1';
-                console.log(`Le pair est initiateur : ${isInitiator}`);
+    // Determine if this client is the initiator based on URL hash
+    const isInitiator = location.hash === '#1';
+    console.log(`Le pair est initiateur : ${isInitiator}`);
 
-                // Initialize Media
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then(stream => {
-                        localStream = stream;
-                        localVideo.srcObject = stream;
-                        console.log('Flux local acquis.');
+    // Initialize Media
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+            localStream = stream;
+            localVideo.srcObject = stream;
+            console.log('Flux local acquis.');
 
-                        createPeer(isInitiator, stream);
+            initializePeerConnection(isInitiator, stream);
 
-                        // If not initiator, retrieve the offer
-                        if (!isInitiator) {
-                            console.log('Non-initiateur : Tentative de récupération de l\'offre.');
-                            setTimeout(getOffer, 1000);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erreur d\'accès aux appareils médias.', error);
-                        alert('Impossible d\'accéder à la caméra et au microphone. Veuillez vérifier les autorisations.');
-                        // Hide loading spinner on error
-                        if (loadingOverlay) {
-                            loadingOverlay.classList.add('hidden');
-                        }
-                    });
+            // Start monitoring signaling data
+            monitorSignaling();
+        })
+        .catch(error => {
+            console.error('Erreur d\'accès aux appareils médias.', error);
+            alert('Impossible d\'accéder à la caméra et au microphone. Veuillez vérifier les autorisations.');
+            // Hide loading spinner on error
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+            }
+        });
 
-                // Generate Unique ID
-                function generateUniqueId() {
-                    return Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+    // Generate Unique ID
+    function generateUniqueId() {
+        return Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+    }
+
+    // Initialize Peer Connection
+    function initializePeerConnection(initiator, stream) {
+        createPeer(initiator, stream);
+        
+        if (!initiator) {
+            console.log('Non-initiateur : Tentative de récupération de l\'offre.');
+            setTimeout(getOffer, 1000);
+        }
+    }
+
+    // Create WebRTC Peer
+    function createPeer(initiator, stream) {
+        peer = new SimplePeer({
+            initiator: initiator,
+            trickle: false,
+            stream: stream,
+            config: { iceServers }
+        });
+
+        // Handle signaling data
+        peer.on('signal', (data) => {
+            const type = data.type === 'offer' ? 'offer' : 'answer';
+            console.log(`Envoi ${type} :`, data);
+
+            axios.post('/webrtc/signaling', {
+                type: type,
+                data: JSON.stringify(data),
+                room: room,
+                senderId: senderId
+            }).then(response => {
+                console.log('Données de signalisation envoyées :', response.data);
+
+                if (type === 'offer') {
+                    console.log('Initiateur : En attente de réponse.');
+                    setTimeout(checkForAnswer, 1000);
                 }
-
-                // Create WebRTC Peer
-                function createPeer(initiator, stream) {
-                    peer = new SimplePeer({
-                        initiator: initiator,
-                        trickle: false,
-                        stream: stream,
-                        config: { iceServers }
-                    });
-
-                    // Handle signaling data
-                    peer.on('signal', (data) => {
-                        const type = data.type === 'offer' ? 'offer' : 'answer';
-                        console.log(`Envoi ${type} :`, data);
-
-                        axios.post('/webrtc/signaling', {
-                            type: type,
-                            data: JSON.stringify(data),
-                            room: room,
-                            senderId: senderId
-                        }).then(response => {
-                            console.log('Données de signalisation envoyées :', response.data);
-
-                            if (type === 'offer') {
-                                console.log('Initiateur : En attente de réponse.');
-                                setTimeout(checkForAnswer, 1000);
-                            }
-                        }).catch(err => {
-                            console.error('Erreur lors de l\'envoi des données de signalisation :', err);
-                        });
-                    });
-
-                    // Receive remote stream
-                    peer.on('stream', (stream) => {
-                        console.log('Flux distant reçu :', stream);
-                        remoteVideo.srcObject = stream;
-                        remoteVideo.play().then(() => {
-                            console.log('Vidéo distante en cours de lecture.');
-                            // Hide loading spinner
-                            if (loadingOverlay) {
-                                loadingOverlay.classList.add('hidden');
-                                console.log('Overlay de chargement caché (flux).');
-                            }
-                        }).catch(err => {
-                            console.error('Erreur lors de la lecture de la vidéo distante :', err);
-                        });
-                    });
-
-                    // Connection established
-                    peer.on('connect', () => {
-                        console.log('Connexion de pair établie.');
-                        if (connectionStatus) {
-                            connectionStatus.innerText = 'Connecté';
-                            connectionStatus.classList.remove('text-red-500', 'text-yellow-500');
-                            connectionStatus.classList.add('text-green-500');
-                        }
-                        // Hide loading spinner if visible
-                        if (loadingOverlay) {
-                            loadingOverlay.classList.add('hidden');
-                            console.log('Overlay de chargement caché (connexion).');
-                        }
-                    });
-
-                    // Handle errors
-                    peer.on('error', (err) => {
-                        console.error('Erreur de connexion de pair :', err);
-                        alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
-                        // Hide loading spinner
-                        if (loadingOverlay) {
-                            loadingOverlay.classList.add('hidden');
-                            console.log('Overlay de chargement caché (erreur).');
-                        }
-                    });
-
-                    // Handle connection close
-                    peer.on('close', () => {
-                        console.log('Connexion de pair fermée.');
-						    console.log('Peer connection closed.');
-							axios.post('/webrtc/clear-signaling', {
-								room: room,
-								senderId: senderId
-							}).then(response => {
-								console.log('Signaling data cleared.');
-							}).catch(err => {
-								console.error('Error clearing signaling data:', err);
-							});
-                        if (connectionStatus) {
-                            connectionStatus.innerText = 'Déconnecté';
-                            connectionStatus.classList.remove('text-green-500');
-                            connectionStatus.classList.add('text-red-500');
-                        }
-                        alert('L\'appel a été terminé.');
-                        // Redirect or reset UI
-                        window.location.href = '/'; // Redirect to home or a specific page
-                        // Hide loading spinner
-                        if (loadingOverlay) {
-                            loadingOverlay.classList.add('hidden');
-                            console.log('Overlay de chargement caché (fermeture).');
-                        }
-                    });
-
-                    // Handle incoming data (Chat messages)
-                    peer.on('data', (data) => {
-                        const message = data.toString();
-                        console.log('Message reçu :', message);
-                        appendMessage(`Participant : ${message}`, false);
-                        showNotification();
-                    });
-                }
-
-                // Retrieve Offer from Signaling Server
-                let offerRetryCount = 0;
-                const MAX_OFFER_RETRIES = 100;
-
-                function getOffer() {
-                    if (offerRetryCount >= MAX_OFFER_RETRIES) {
-                        console.error('Nombre maximum de tentatives d\'offre atteint.');
-                        alert('Impossible d\'établir une connexion. Veuillez réessayer plus tard.');
-                        loadingOverlay.classList.add('hidden');
-                        return;
-                    }
-
-                    offerRetryCount++;
-                    console.log(`Récupération de l'offre depuis le serveur de signalisation. Tentative ${offerRetryCount}`);
-                    axios.get('/webrtc/get-offer', { params: { room: room } })
-                        .then(response => {
-                            const offer = response.data.offer;
-                            if (offer) {
-                                console.log('Offre reçue :', offer);
-                                peer.signal(offer);
-                            } else {
-                                console.log('Aucune offre trouvée. Nouvelle tentative dans 2 secondes...');
-                                setTimeout(getOffer, 2000);
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Erreur lors de la récupération de l\'offre :', err);
-                            setTimeout(getOffer, 2000);
-                        });
-                }
-
-                // Check for Answer from Signaling Server
-                let answerRetryCount = 0;
-                const MAX_ANSWER_RETRIES = 100;
-
-                function checkForAnswer() {
-                    if (answerRetryCount >= MAX_ANSWER_RETRIES) {
-                        console.error('Nombre maximum de tentatives de réponse atteint.');
-                        alert('Aucune réponse reçue. Veuillez vous assurer que l\'autre participant est en ligne.');
-                        loadingOverlay.classList.add('hidden');
-                        return;
-                    }
-
-                    answerRetryCount++;
-                    console.log(`Vérification de la réponse depuis le serveur de signalisation. Tentative ${answerRetryCount}`);
-                    axios.get('/webrtc/get-answer', { params: { room: room } })
-                        .then(response => {
-                            const answer = response.data.answer;
-                            if (answer) {
-                                console.log('Réponse reçue :', answer);
-                                peer.signal(answer);
-                            } else {
-                                console.log('Aucune réponse trouvée pour le moment. Nouvelle tentative dans 2 secondes...');
-                                setTimeout(checkForAnswer, 2000);
-                            }
-                        })
-                        .catch(err => {
-                            console.error('Erreur lors de la récupération de la réponse :', err);
-                            setTimeout(checkForAnswer, 2000);
-                        });
-                }
-
-                // Append Message to Chat with Timestamp and Styling
-                function appendMessage(message, isSender = false) {
-                    const messageElement = document.createElement('p');
-                    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    messageElement.innerText = `[${timestamp}] ${message}`;
-                    messageElement.classList.add(isSender ? 'message-sender' : 'message-receiver');
-                    chatMessages.appendChild(messageElement);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                    // Highlight chat panel for visual notification
-                    if (!isSender) {
-                        if (chatPanel.classList.contains('hidden')) {
-                            showNotification();
-                        }
-                        chatPanel.classList.add('highlight');
-                        setTimeout(() => {
-                            chatPanel.classList.remove('highlight');
-                        }, 1000);
-                    }
-                }
-
-                // Handle Chat Input
-                chatInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        const message = chatInput.value;
-                        if (message.trim() !== '' && peer && peer.connected) {
-                            peer.send(message);
-                            appendMessage(`Vous : ${message}`, true);
-                            chatInput.value = '';
-                        }
-                    }
-                });
-
-                // Control Panel Button Handlers
-                if (toggleAudioButton && toggleVideoButton && endCallButton && toggleFullScreenButton) {
-                    // Toggle Audio
-                    toggleAudioButton.addEventListener('click', () => {
-                        audioEnabled = !audioEnabled;
-                        if (localStream && localStream.getAudioTracks().length > 0) {
-                            localStream.getAudioTracks()[0].enabled = audioEnabled;
-                            updateAudioIcon();
-                            console.log(`Audio ${audioEnabled ? 'activé' : 'désactivé'}.`);
-                        } else {
-                            console.warn('Aucun flux audio disponible.');
-                        }
-                    });
-
-                    function updateAudioIcon() {
-                        const audioIcon = document.getElementById('audioIcon');
-                        if (audioIcon) {
-                            if (audioEnabled) {
-                                audioIcon.classList.remove('fa-microphone-slash');
-                                audioIcon.classList.add('fa-microphone');
-                            } else {
-                                audioIcon.classList.remove('fa-microphone');
-                                audioIcon.classList.add('fa-microphone-slash');
-                            }
-                        } else {
-                            console.warn('Élément de l\'icône audio non trouvé.');
-                        }
-                    }
-
-                    // Toggle Video
-                    toggleVideoButton.addEventListener('click', () => {
-                        videoEnabled = !videoEnabled;
-                        if (localStream && localStream.getVideoTracks().length > 0) {
-                            localStream.getVideoTracks()[0].enabled = videoEnabled;
-                            updateVideoIcon();
-                            console.log(`Vidéo ${videoEnabled ? 'activée' : 'désactivée'}.`);
-                        } else {
-                            console.warn('Aucun flux vidéo disponible.');
-                        }
-                    });
-
-                    function updateVideoIcon() {
-                        const videoIcon = document.getElementById('videoIcon');
-                        if (videoIcon) {
-                            if (videoEnabled) {
-                                videoIcon.classList.remove('fa-video-slash');
-                                videoIcon.classList.add('fa-video');
-                            } else {
-                                videoIcon.classList.remove('fa-video');
-                                videoIcon.classList.add('fa-video-slash');
-                            }
-                        } else {
-                            console.warn('Élément de l\'icône vidéo non trouvé.');
-                        }
-                    }
-
-                    // Toggle Full-Screen Mode
-                    toggleFullScreenButton.addEventListener('click', () => {
-                        if (!document.fullscreenElement) {
-                            document.documentElement.requestFullscreen().catch(err => {
-                                console.error(`Erreur lors de la tentative d'activation du mode plein écran : ${err.message} (${err.name})`);
-                            });
-                        } else {
-                            document.exitFullscreen();
-                        }
-                    });
-
-                    // End Call
-                    endCallButton.addEventListener('click', () => {
-                        if (peer) {
-                            peer.destroy();
-                            console.log('Connexion de pair détruite.');
-                        }
-                        // Redirect to home or another page
-                        window.location.href = '/';
-                    });
-                } else {
-                    console.error('Un ou plusieurs boutons de contrôle manquent dans le DOM.');
-                }
-
-                // Chat Toggle Functionality
-                toggleChatButton.addEventListener('click', () => {
-                    const isVisible = !chatPanel.classList.contains('invisible');
-                    if (isVisible) {
-                        chatPanel.classList.add('invisible', 'opacity-0');
-                        chatPanel.classList.remove('transition-opacity', 'duration-300'); // Remove transition for instant effect
-                        toggleChatButton.classList.remove('bg-[#854f38]');
-                        toggleChatButton.classList.add('bg-[#647a0b]');
-                        console.log('Panneau de chat fermé.');
-                    } else {
-                        chatPanel.classList.remove('invisible', 'opacity-0');
-                        chatPanel.classList.add('transition-opacity', 'duration-300'); // Add transition for smooth effect
-                        resetNotificationBadge();
-                        console.log('Panneau de chat ouvert.');
-                    }
-                });
-
-                // Close Chat from Chat Panel
-                closeChatButton.addEventListener('click', () => {
-                    chatPanel.classList.add('invisible', 'opacity-0');
-                    toggleChatButton.classList.remove('bg-[#854f38]');
-                    toggleChatButton.classList.add('bg-[#647a0b]');
-                    console.log('Panneau de chat fermé via le bouton de fermeture.');
-                });
-
-                // Chat Notification System
-                let notificationCount = 0;
-
-                function showNotification() {
-                    // Increment notification count
-                    notificationCount += 1;
-                    updateNotificationBadge();
-
-                    // Play notification sound
-                    if (notificationSound) {
-                        notificationSound.play().catch(err => {
-                            console.error('Erreur lors de la lecture du son de notification :', err);
-                        });
-                    }
-
-                    console.log(`Nombre de notifications : ${notificationCount}`);
-                }
-
-                function updateNotificationBadge() {
-                    if (notificationCount > 0) {
-                        chatNotificationBadge.style.display = 'flex';
-                        chatNotificationBadge.innerText = notificationCount;
-                    } else {
-                        chatNotificationBadge.style.display = 'none';
-                    }
-                }
-
-                function resetNotificationBadge() {
-                    notificationCount = 0;
-                    updateNotificationBadge();
-                    console.log('Badge de notification réinitialisé.');
-                }
-
-                // Efficient Resource Management
-                function cleanup() {
-                    if (localStream) {
-                        localStream.getTracks().forEach(track => track.stop());
-                    }
-                    if (remoteVideo.srcObject) {
-                        remoteVideo.srcObject.getTracks().forEach(track => track.stop());
-                    }
-                    if (peer) {
-                        peer.destroy();
-                    }
-                }
-
-                // Cleanup on page unload
-                window.addEventListener('beforeunload', cleanup);
+            }).catch(err => {
+                console.error('Erreur lors de l\'envoi des données de signalisation :', err);
             });
+        });
+
+        // Receive remote stream
+        peer.on('stream', (stream) => {
+            console.log('Flux distant reçu :', stream);
+            remoteVideo.srcObject = stream;
+            remoteVideo.play().then(() => {
+                console.log('Vidéo distante en cours de lecture.');
+                // Hide loading spinner
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                    console.log('Overlay de chargement caché (flux).');
+                }
+            }).catch(err => {
+                console.error('Erreur lors de la lecture de la vidéo distante :', err);
+            });
+        });
+
+        // Connection established
+        peer.on('connect', () => {
+            console.log('Connexion de pair établie.');
+            if (connectionStatus) {
+                connectionStatus.innerText = 'Connecté';
+                connectionStatus.classList.remove('text-red-500', 'text-yellow-500');
+                connectionStatus.classList.add('text-green-500');
+            }
+            // Hide loading spinner if visible
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+                console.log('Overlay de chargement caché (connexion).');
+            }
+        });
+
+        // Handle errors
+        peer.on('error', (err) => {
+            console.error('Erreur de connexion de pair :', err);
+            alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
+            // Hide loading spinner
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+                console.log('Overlay de chargement caché (erreur).');
+            }
+        });
+
+        // Handle connection close
+        peer.on('close', () => {
+            console.log('Connexion de pair fermée.');
+            if (connectionStatus) {
+                connectionStatus.innerText = 'Déconnecté';
+                connectionStatus.classList.remove('text-green-500');
+                connectionStatus.classList.add('text-red-500');
+            }
+            alert('L\'appel a été terminé.');
+            // Cleanup peer and reset UI
+            cleanupPeer();
+
+            // Show loading spinner for potential new connections
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('hidden');
+                console.log('Overlay de chargement affiché pour une nouvelle connexion.');
+            }
+
+            // Clear signaling data on the server
+            axios.post('/webrtc/clear-signaling', {
+                room: room,
+                senderId: senderId
+            }).then(response => {
+                console.log('Signaling data cleared.');
+            }).catch(err => {
+                console.error('Error clearing signaling data:', err);
+            });
+        });
+
+        // Handle incoming data (Chat messages)
+        peer.on('data', (data) => {
+            const message = data.toString();
+            console.log('Message reçu :', message);
+            appendMessage(`Participant : ${message}`, false);
+            showNotification();
+        });
+    }
+
+    // Cleanup Peer Connection
+    function cleanupPeer() {
+        if (peer) {
+            peer.destroy();
+            peer = null;
+            console.log('Connexion de pair détruite et réinitialisée.');
+        }
+
+        // Reset connection status
+        if (connectionStatus) {
+            connectionStatus.innerText = 'Déconnecté';
+            connectionStatus.classList.remove('text-green-500');
+            connectionStatus.classList.add('text-red-500');
+        }
+
+        // Optionally reset other UI elements like chat, notifications, etc.
+    }
+
+    // Retrieve Offer from Signaling Server
+    let offerRetryCount = 0;
+    const MAX_OFFER_RETRIES = 100;
+
+    function getOffer() {
+        if (offerRetryCount >= MAX_OFFER_RETRIES) {
+            console.error('Nombre maximum de tentatives d\'offre atteint.');
+            alert('Impossible d\'établir une connexion. Veuillez réessayer plus tard.');
+            loadingOverlay.classList.add('hidden');
+            return;
+        }
+
+        offerRetryCount++;
+        console.log(`Récupération de l'offre depuis le serveur de signalisation. Tentative ${offerRetryCount}`);
+        axios.get('/webrtc/get-offer', { params: { room: room } })
+            .then(response => {
+                const offer = response.data.offer;
+                if (offer) {
+                    console.log('Offre reçue :', offer);
+                    peer.signal(offer);
+                } else {
+                    console.log('Aucune offre trouvée. Nouvelle tentative dans 2 secondes...');
+                    setTimeout(getOffer, 2000);
+                }
+            })
+            .catch(err => {
+                console.error('Erreur lors de la récupération de l\'offre :', err);
+                setTimeout(getOffer, 2000);
+            });
+    }
+
+    // Check for Answer from Signaling Server
+    let answerRetryCount = 0;
+    const MAX_ANSWER_RETRIES = 100;
+
+    function checkForAnswer() {
+        if (answerRetryCount >= MAX_ANSWER_RETRIES) {
+            console.error('Nombre maximum de tentatives de réponse atteint.');
+            alert('Aucune réponse reçue. Veuillez vous assurer que l\'autre participant est en ligne.');
+            loadingOverlay.classList.add('hidden');
+            return;
+        }
+
+        answerRetryCount++;
+        console.log(`Vérification de la réponse depuis le serveur de signalisation. Tentative ${answerRetryCount}`);
+        axios.get('/webrtc/get-answer', { params: { room: room } })
+            .then(response => {
+                const answer = response.data.answer;
+                if (answer) {
+                    console.log('Réponse reçue :', answer);
+                    peer.signal(answer);
+                } else {
+                    console.log('Aucune réponse trouvée pour le moment. Nouvelle tentative dans 2 secondes...');
+                    setTimeout(checkForAnswer, 2000);
+                }
+            })
+            .catch(err => {
+                console.error('Erreur lors de la récupération de la réponse :', err);
+                setTimeout(checkForAnswer, 2000);
+            });
+    }
+
+    // Append Message to Chat with Timestamp and Styling
+    function appendMessage(message, isSender = false) {
+        const messageElement = document.createElement('p');
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageElement.innerText = `[${timestamp}] ${message}`;
+        messageElement.classList.add(isSender ? 'message-sender' : 'message-receiver');
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Highlight chat panel for visual notification
+        if (!isSender) {
+            if (chatPanel.classList.contains('hidden')) {
+                showNotification();
+            }
+            chatPanel.classList.add('highlight');
+            setTimeout(() => {
+                chatPanel.classList.remove('highlight');
+            }, 1000);
+        }
+    }
+
+    // Handle Chat Input
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            const message = chatInput.value;
+            if (message.trim() !== '' && peer && peer.connected) {
+                peer.send(message);
+                appendMessage(`Vous : ${message}`, true);
+                chatInput.value = '';
+            }
+        }
+    });
+
+    // Control Panel Button Handlers
+    if (toggleAudioButton && toggleVideoButton && endCallButton && toggleFullScreenButton) {
+        // Toggle Audio
+        toggleAudioButton.addEventListener('click', () => {
+            audioEnabled = !audioEnabled;
+            if (localStream && localStream.getAudioTracks().length > 0) {
+                localStream.getAudioTracks()[0].enabled = audioEnabled;
+                updateAudioIcon();
+                console.log(`Audio ${audioEnabled ? 'activé' : 'désactivé'}.`);
+            } else {
+                console.warn('Aucun flux audio disponible.');
+            }
+        });
+
+        function updateAudioIcon() {
+            const audioIcon = document.getElementById('audioIcon');
+            if (audioIcon) {
+                if (audioEnabled) {
+                    audioIcon.classList.remove('fa-microphone-slash');
+                    audioIcon.classList.add('fa-microphone');
+                } else {
+                    audioIcon.classList.remove('fa-microphone');
+                    audioIcon.classList.add('fa-microphone-slash');
+                }
+            } else {
+                console.warn('Élément de l\'icône audio non trouvé.');
+            }
+        }
+
+        // Toggle Video
+        toggleVideoButton.addEventListener('click', () => {
+            videoEnabled = !videoEnabled;
+            if (localStream && localStream.getVideoTracks().length > 0) {
+                localStream.getVideoTracks()[0].enabled = videoEnabled;
+                updateVideoIcon();
+                console.log(`Vidéo ${videoEnabled ? 'activée' : 'désactivée'}.`);
+            } else {
+                console.warn('Aucun flux vidéo disponible.');
+            }
+        });
+
+        function updateVideoIcon() {
+            const videoIcon = document.getElementById('videoIcon');
+            if (videoIcon) {
+                if (videoEnabled) {
+                    videoIcon.classList.remove('fa-video-slash');
+                    videoIcon.classList.add('fa-video');
+                } else {
+                    videoIcon.classList.remove('fa-video');
+                    videoIcon.classList.add('fa-video-slash');
+                }
+            } else {
+                console.warn('Élément de l\'icône vidéo non trouvé.');
+            }
+        }
+
+        // Toggle Full-Screen Mode
+        toggleFullScreenButton.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Erreur lors de la tentative d'activation du mode plein écran : ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // End Call
+        endCallButton.addEventListener('click', () => {
+            if (peer) {
+                peer.destroy();
+                console.log('Connexion de pair détruite.');
+            }
+            // Clear signaling data on the server
+            axios.post('/webrtc/clear-signaling', {
+                room: room,
+                senderId: senderId
+            }).then(response => {
+                console.log('Signaling data cleared.');
+            }).catch(err => {
+                console.error('Error clearing signaling data:', err);
+            });
+            // Redirect to home or another page
+            window.location.href = '/';
+        });
+    } else {
+        console.error('Un ou plusieurs boutons de contrôle manquent dans le DOM.');
+    }
+
+    // Chat Toggle Functionality
+    toggleChatButton.addEventListener('click', () => {
+        const isVisible = !chatPanel.classList.contains('invisible');
+        if (isVisible) {
+            chatPanel.classList.add('invisible', 'opacity-0');
+            chatPanel.classList.remove('transition-opacity', 'duration-300'); // Remove transition for instant effect
+            toggleChatButton.classList.remove('bg-[#854f38]');
+            toggleChatButton.classList.add('bg-[#647a0b]');
+            console.log('Panneau de chat fermé.');
+        } else {
+            chatPanel.classList.remove('invisible', 'opacity-0');
+            chatPanel.classList.add('transition-opacity', 'duration-300'); // Add transition for smooth effect
+            resetNotificationBadge();
+            console.log('Panneau de chat ouvert.');
+        }
+    });
+
+    // Close Chat from Chat Panel
+    closeChatButton.addEventListener('click', () => {
+        chatPanel.classList.add('invisible', 'opacity-0');
+        toggleChatButton.classList.remove('bg-[#854f38]');
+        toggleChatButton.classList.add('bg-[#647a0b]');
+        console.log('Panneau de chat fermé via le bouton de fermeture.');
+    });
+
+    // Chat Notification System
+    let notificationCount = 0;
+
+    function showNotification() {
+        // Increment notification count
+        notificationCount += 1;
+        updateNotificationBadge();
+
+        // Play notification sound
+        if (notificationSound) {
+            notificationSound.play().catch(err => {
+                console.error('Erreur lors de la lecture du son de notification :', err);
+            });
+        }
+
+        console.log(`Nombre de notifications : ${notificationCount}`);
+    }
+
+    function updateNotificationBadge() {
+        if (notificationCount > 0) {
+            chatNotificationBadge.style.display = 'flex';
+            chatNotificationBadge.innerText = notificationCount;
+        } else {
+            chatNotificationBadge.style.display = 'none';
+        }
+    }
+
+    function resetNotificationBadge() {
+        notificationCount = 0;
+        updateNotificationBadge();
+        console.log('Badge de notification réinitialisé.');
+    }
+
+    // Efficient Resource Management
+    function cleanup() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        if (remoteVideo.srcObject) {
+            remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+        }
+        if (peer) {
+            peer.destroy();
+        }
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        cleanup();
+        // Additionally, clear signaling data
+        axios.post('/webrtc/clear-signaling', {
+            room: room,
+            senderId: senderId
+        }).catch(err => {
+            console.error('Error clearing signaling data on unload:', err);
+        });
+    });
+
+    // Monitor Signaling for New Offers
+    function monitorSignaling() {
+        setInterval(() => {
+            axios.get('/webrtc/get-offer', { params: { room: room } })
+                .then(response => {
+                    const offer = response.data.offer;
+                    if (offer && !peer) { // Ensure no existing peer connection
+                        console.log('Nouvelle offre reçue. Initialisation du pair.');
+                        initializePeerConnection(false, localStream);
+                        peer.signal(offer);
+                    }
+                })
+                .catch(err => {
+                    console.error('Erreur lors de la surveillance de l\'offre :', err);
+                });
+        }, 3000); // Check every 3 seconds
+    }
+});
+
         </script>
     @endpush
 

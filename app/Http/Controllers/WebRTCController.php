@@ -101,6 +101,8 @@ public function clearSignaling(Request $request)
     ]);
 
     $roomKey = 'webrtc-' . $request->room;
+    
+    // It's safer to clear both offer and answer when any participant disconnects
     cache()->forget("{$roomKey}-offer");
     cache()->forget("{$roomKey}-answer");
 
@@ -108,6 +110,7 @@ public function clearSignaling(Request $request)
 
     return response()->json(['status' => 'signaling cleared']);
 }
+
 
 
 }
