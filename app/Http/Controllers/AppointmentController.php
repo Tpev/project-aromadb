@@ -42,7 +42,8 @@ public function index()
             'start' => $appointment->appointment_date->format('Y-m-d H:i:s'),
             'end' => $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Y-m-d H:i:s'),
             'url' => route('appointments.show', $appointment->id),
-             'color' => $isPast ? '#854f38' : '#647a0b', // Rouge pour les rdv passés, brun pour les à venir
+            'color' => $isPast ? '#854f38' : '#647a0b',
+			'textColor' => $isPast ? '#ffffff' : '#636363', // Assurer une bonne lisibilité			// Rouge pour les rdv passés, brun pour les à venir
         ];
     }
 
