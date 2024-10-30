@@ -387,6 +387,15 @@
                     // Handle connection close
                     peer.on('close', () => {
                         console.log('Connexion de pair fermée.');
+						    console.log('Peer connection closed.');
+							axios.post('/webrtc/clear-signaling', {
+								room: room,
+								senderId: senderId
+							}).then(response => {
+								console.log('Signaling data cleared.');
+							}).catch(err => {
+								console.error('Error clearing signaling data:', err);
+							});
                         if (connectionStatus) {
                             connectionStatus.innerText = 'Déconnecté';
                             connectionStatus.classList.remove('text-green-500');

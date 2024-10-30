@@ -53,6 +53,7 @@ Route::get('/meetings/confirmation', [MeetingController::class, 'confirmation'])
 
 // **WebRTC Static Routes**
 Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
+Route::post('/webrtc/clear-signaling', [WebRTCController::class, 'clearSignaling']);
 Route::get('/webrtc/get-offer', [WebRTCController::class, 'getOffer']);
 Route::get('/webrtc/get-answer', [WebRTCController::class, 'getAnswer']);
 

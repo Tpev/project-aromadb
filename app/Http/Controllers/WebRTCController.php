@@ -45,13 +45,14 @@ class WebRTCController extends Controller
         Log::info("Received signaling data for room: {$request->room}, type: {$request->type}, senderId: {$request->senderId}");
 
         // Store offer or answer depending on type
-        if ($request->type === 'offer') {
-            cache()->put("{$roomKey}-offer", $request->data, 300); // Store offer
-            Log::info("Stored offer for room: {$request->room}");
-        } elseif ($request->type === 'answer') {
-            cache()->put("{$roomKey}-answer", $request->data, 300); // Store answer
-            Log::info("Stored answer for room: {$request->room}");
-        }
+		if ($request->type === 'offer') {
+			cache()->put("{$roomKey}-offer", $request->data, 600); // Overwrite existing offer
+			Log::info("Stored offer for room: {$request->room}");
+		} elseif ($request->type === 'answer') {
+			cache()->put("{$roomKey}-answer", $request->data, 600); // Overwrite existing answer
+			Log::info("Stored answer for room: {$request->room}");
+		}
+
 
         return response()->json(['status' => 'success']);
     }
@@ -62,37 +63,51 @@ class WebRTCController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getOffer(Request $request)
-    {
-        $roomKey = 'webrtc-' . $request->room;
-        $offer = cache()->get("{$roomKey}-offer");
+   public function getOffer(Request $request)
+{
+    $roomKey = 'webrtc-' . $request->room;
+    $offer = cache()->get("{$roomKey}-offer");
 
-        if ($offer) {
-            Log::info("Retrieved offer for room: {$request->room}");
-        } else {
-            Log::warning("No offer found for room: {$request->room}");
-        }
-
-        return response()->json(['offer' => $offer ?? null]);
+    if ($offer) {
+        Log::info("Retrieved offer for room: {$request->room}");
+        cache()->forget("{$roomKey}-offer"); // Clear the offer after retrieval
+    } else {
+        Log::warning("No offer found for room: {$request->room}");
     }
 
-    /**
-     * Retrieve the answer for a given room.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getAnswer(Request $request)
-    {
-        $roomKey = 'webrtc-' . $request->room;
-        $answer = cache()->get("{$roomKey}-answer");
+    return response()->json(['offer' => $offer ?? null]);
+}
 
-        if ($answer) {
-            Log::info("Retrieved answer for room: {$request->room}");
-        } else {
-            Log::warning("No answer found for room: {$request->room}");
-        }
+public function getAnswer(Request $request)
+{
+    $roomKey = 'webrtc-' . $request->room;
+    $answer = cache()->get("{$roomKey}-answer");
 
-        return response()->json(['answer' => $answer ?? null]);
+    if ($answer) {
+        Log::info("Retrieved answer for room: {$request->room}");
+        cache()->forget("{$roomKey}-answer"); // Clear the answer after retrieval
+    } else {
+        Log::warning("No answer found for room: {$request->room}");
     }
+
+    return response()->json(['answer' => $answer ?? null]);
+}
+
+public function clearSignaling(Request $request)
+{
+    $request->validate([
+        'room' => 'required|string',
+        'senderId' => 'required|string',
+    ]);
+
+    $roomKey = 'webrtc-' . $request->room;
+    cache()->forget("{$roomKey}-offer");
+    cache()->forget("{$roomKey}-answer");
+
+    Log::info("Cleared signaling data for room: {$request->room}, senderId: {$request->senderId}");
+
+    return response()->json(['status' => 'signaling cleared']);
+}
+
+
 }
