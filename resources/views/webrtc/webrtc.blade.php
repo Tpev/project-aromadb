@@ -391,23 +391,21 @@ peer.on('error', (err) => {
     console.error('Erreur de connexion de pair :', err);
     console.log('Peer error event triggered');
     
-    if (isInitiator) {
+
         alert('Une erreur est survenue avec la connexion. Rechargement de la page.');
         console.log('Initiator detected. Reloading the page...');
         // Adding a slight delay to ensure the alert is displayed
         setTimeout(() => {
             window.location.reload();
         }, 500);
-    } else {
-        alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
-        console.log('Non-initiator detected. Cleaning up...');
+
         cleanupPeer();
         
         if (loadingOverlay) {
             loadingOverlay.classList.add('hidden');
             console.log('Loading overlay hidden due to error.');
         }
-    }
+    
 });
 
 
