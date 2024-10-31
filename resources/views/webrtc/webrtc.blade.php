@@ -226,14 +226,8 @@
     </div>
 
     @push('scripts')
-        <!-- SimplePeer & Axios Scripts -->
-        <script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
 
-        <!-- Audio Notification -->
-
-        <!-- JavaScript for WebRTC and Enhancements -->
-        <script>
 document.addEventListener('DOMContentLoaded', function () {
     let localStream;
     let peer = null;
@@ -387,52 +381,53 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-peer.on('error', (err) => {
-    console.error('Erreur de connexion de pair :', err);
-    if (isInitiator) {
-        alert('Une erreur est survenue avec la connexion. Rechargement de la page.');
-        window.location.reload(); // Automatically reload the page
-    } else {
-        alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
-        cleanupPeer();
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('hidden');
-            console.log('Loading overlay hidden due to error.');
-        }
-    }
-});
-
-
-peer.on('close', () => {
-    console.log('Peer connection closed.');
-    
-    if (isInitiator) {
-        alert('L\'appel a été terminé. Rechargement de la page pour une nouvelle connexion.');
-        window.location.reload(); // Automatically reload the page
-    } else {
-        // Non-initiator behavior: clean up UI, etc.
-        if (connectionStatus) {
-            connectionStatus.innerText = 'Déconnecté';
-            connectionStatus.classList.remove('text-green-500');
-            connectionStatus.classList.add('text-red-500');
-        }
-        alert('L\'appel a été terminé.');
-        cleanupPeer();
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('hidden');
-            console.log('Loading overlay displayed for a new connection.');
-        }
-        // Clear signaling data on server
-        axios.post('/webrtc/clear-signaling', {
-            room: room,
-            senderId: senderId
-        }).then(response => {
-            console.log('Signaling data cleared.');
-        }).catch(err => {
-            console.error('Error clearing signaling data:', err);
+        // Handle errors
+        peer.on('error', (err) => {
+            console.error('Erreur de connexion de pair :', err);
+            if (isInitiator) {
+                alert('Une erreur est survenue avec la connexion. Rechargement de la page.');
+                window.location.reload(); // Automatically reload the page
+            } else {
+                alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
+                cleanupPeer();
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                    console.log('Loading overlay hidden due to error.');
+                }
+            }
         });
-    }
-});
+
+        // Handle connection close
+        peer.on('close', () => {
+            console.log('Peer connection closed.');
+            
+            if (isInitiator) {
+                alert('L\'appel a été terminé. Rechargement de la page pour une nouvelle connexion.');
+                window.location.reload(); // Automatically reload the page
+            } else {
+                // Non-initiator behavior: clean up UI, etc.
+                if (connectionStatus) {
+                    connectionStatus.innerText = 'Déconnecté';
+                    connectionStatus.classList.remove('text-green-500');
+                    connectionStatus.classList.add('text-red-500');
+                }
+                alert('L\'appel a été terminé.');
+                cleanupPeer();
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('hidden');
+                    console.log('Loading overlay displayed for a new connection.');
+                }
+                // Clear signaling data on server
+                axios.post('/webrtc/clear-signaling', {
+                    room: room,
+                    senderId: senderId
+                }).then(response => {
+                    console.log('Signaling data cleared.');
+                }).catch(err => {
+                    console.error('Error clearing signaling data:', err);
+                });
+            }
+        });
 
         // Handle incoming data (Chat messages)
         peer.on('data', (data) => {
@@ -750,6 +745,7 @@ peer.on('close', () => {
         }, 3000); // Check every 3 seconds
     }
 });
+
         </script>
     @endpush
 
