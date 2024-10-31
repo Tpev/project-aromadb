@@ -1,25 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-16709768048"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-
-          gtag('config', 'AW-16709768048');
-        </script>
-
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-0E0C9TV45Z"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-0E0C9TV45Z');
-        </script>
+     
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -44,14 +26,11 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
-@if(! request()->is('*webrtc*'))
-    @if(auth()->check() && auth()->user()->is_therapist)
-        @include('layouts.therapistnavigation')
-    @else
-        @include('layouts.navigation')
-    @endif
-@endif
-
+            @if(auth()->check() && auth()->user()->is_therapist)
+                @include('layouts.therapistnavigation')
+            @else
+                @include('layouts.navigation')
+            @endif
 @stack('scripts')
         @guest
             <div class="fixed bottom-4 right-4 z-50 text-center">
@@ -96,32 +75,9 @@
         </div>
 
         <!-- Include the Footer -->
-		@if(! request()->is('*webrtc*'))
-        @include('layouts.footer')
-		@endif
+ 
 
-		@if(! request()->is('*webrtc*'))
-        <!-- Social Share JavaScript -->
-        <script>
-            function shareToFacebook() {
-                const url = encodeURIComponent(window.location.href);
-                window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-            }
 
-            function shareToTwitter() {
-                const url = encodeURIComponent(window.location.href);
-                const text = encodeURIComponent(document.title);
-                window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
-            }
-
-            function shareToWhatsApp() {
-                const url = encodeURIComponent(window.location.href);
-                const text = encodeURIComponent(document.title);
-                const whatsappURL = `https://api.whatsapp.com/send?text=${text}%20${url}`;
-                window.open(whatsappURL, '_blank');
-            }
-        </script>
-	@endif
         <!-- Add FontAwesome CDN -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     </body>
