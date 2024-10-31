@@ -411,7 +411,7 @@
                     // Gérer les erreurs
                     peer.on('error', (err) => {
                         console.error('Erreur de connexion de pair :', err);
-                        alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
+                       // alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
                         // Cacher le spinner de chargement
                         if (loadingOverlay) {
                             loadingOverlay.classList.add('hidden');
@@ -429,7 +429,7 @@
                             connectionStatus.classList.remove('text-green-500');
                             connectionStatus.classList.add('text-red-500');
                         }
-                        alert('L\'appel a été terminé.');
+                     //   alert('L\'appel a été terminé.');
                         // Nettoyer le pair et réinitialiser l'UI
                         cleanupPeer();
 
