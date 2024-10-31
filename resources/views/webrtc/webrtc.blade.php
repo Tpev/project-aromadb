@@ -405,6 +405,15 @@ peer.on('error', (err) => {
             loadingOverlay.classList.add('hidden');
             console.log('Loading overlay hidden due to error.');
         }
+		        // Clear signaling data on server
+        axios.post('/webrtc/clear-signaling', {
+            room: room,
+            senderId: senderId
+        }).then(response => {
+            console.log('Signaling data cleared.');
+        }).catch(err => {
+            console.error('Error clearing signaling data:', err);
+        });
     
 });
 
