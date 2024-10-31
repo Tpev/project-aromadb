@@ -10,7 +10,7 @@
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
         <!-- Custom Styles for Loader, Chat, and Notifications -->
         <style>
-       /* Font Family for Roboto */
+            /* Font Family for Roboto */
             .font-roboto {
                 font-family: 'Roboto', sans-serif;
             }
@@ -230,11 +230,13 @@
         <script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
+        <!-- Audio Notification -->
+
         <!-- JavaScript for WebRTC and Enhancements -->
         <script>
 document.addEventListener('DOMContentLoaded', function () {
     let localStream;
-    let peer = null;
+    let peer;
     let audioEnabled = true;
     let videoEnabled = true;
     const localVideo = document.getElementById('localVideo');
@@ -259,23 +261,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Audio Notification Element
     const notificationSound = document.getElementById('notificationSound');
 
-    // Initialize Initiator Flag and Sender ID
-    if (location.hash === '#1') {
-        sessionStorage.setItem('isInitiator', 'true');
-    } else {
-        sessionStorage.setItem('isInitiator', 'false');
-    }
+    // Room and Sender ID
+    const room = @json($room);
+    const senderId = generateUniqueId();
 
-    const isInitiator = sessionStorage.getItem('isInitiator') === 'true';
-    console.log(`Le pair est initiateur : ${isInitiator}`);
-
-    // Persist Sender ID across reloads
-    let senderId = sessionStorage.getItem('senderId');
-    if (!senderId) {
-        senderId = generateUniqueId();
-        sessionStorage.setItem('senderId', senderId);
-    }
-    console.log(`Sender ID : ${senderId}`);
+    console.log(`WebRTC initialisé pour la salle : ${room}, senderId : ${senderId}`);
 
     // ICE Servers Configuration
     const iceServers = [
@@ -288,12 +278,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add more TURN servers if needed
     ];
 
-    // Retry Counters
-    let offerRetryCount = 0;
-    const MAX_OFFER_RETRIES = 100;
-
-    let answerRetryCount = 0;
-    const MAX_ANSWER_RETRIES = 100;
+    // Determine if this client is the initiator based on URL hash
+    const isInitiator = location.hash === '#1';
+    console.log(`Le pair est initiateur : ${isInitiator}`);
 
     // Initialize Media
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -318,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Generate Unique ID
     function generateUniqueId() {
-        return 'id-' + Math.random().toString(36).substr(2, 16);
+        return Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
     }
 
     // Initialize Peer Connection
@@ -393,29 +380,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Handle Peer Errors
+        // Handle errors
         peer.on('error', (err) => {
             console.error('Erreur de connexion de pair :', err);
-            console.log('Peer error event triggered');
+            alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
+            // Hide loading spinner
+            if (loadingOverlay) {
+                loadingOverlay.classList.add('hidden');
+                console.log('Overlay de chargement caché (erreur).');
+            }
+        });
 
-            if (isInitiator) {
-                alert('Une erreur est survenue avec la connexion. Rechargement de la page.');
-                console.log('Initiator detected. Reloading the page...');
-                // Adding a slight delay to ensure the alert is displayed
-                setTimeout(() => {
-                    // Reload while preserving the hash
-                    window.location.href = window.location.href.split('#')[0] + '#1';
-                }, 500);
-            } else {
-                alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
-                cleanupPeer();
-                if (loadingOverlay) {
-                    loadingOverlay.classList.add('hidden');
-                    console.log('Loading overlay hidden due to error.');
-                }
+        // Handle connection close
+        peer.on('close', () => {
+            console.log('Connexion de pair fermée.');
+            if (connectionStatus) {
+                connectionStatus.innerText = 'Déconnecté';
+                connectionStatus.classList.remove('text-green-500');
+                connectionStatus.classList.add('text-red-500');
+            }
+            alert('L\'appel a été terminé.');
+            // Cleanup peer and reset UI
+            cleanupPeer();
+
+            // Show loading spinner for potential new connections
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('hidden');
+                console.log('Overlay de chargement affiché pour une nouvelle connexion.');
             }
 
-            // Clear signaling data on server
+            // Clear signaling data on the server
             axios.post('/webrtc/clear-signaling', {
                 room: room,
                 senderId: senderId
@@ -424,38 +418,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }).catch(err => {
                 console.error('Error clearing signaling data:', err);
             });
-        });
-
-        // Handle Peer Closure
-        peer.on('close', () => {
-            console.log('Peer connection closed.');
-            
-            if (isInitiator) {
-                alert('L\'appel a été terminé. Rechargement de la page pour une nouvelle connexion.');
-                window.location.href = window.location.href.split('#')[0] + '#1'; // Reload with hash
-            } else {
-                // Non-initiator behavior: clean up UI, etc.
-                if (connectionStatus) {
-                    connectionStatus.innerText = 'Déconnecté';
-                    connectionStatus.classList.remove('text-green-500');
-                    connectionStatus.classList.add('text-red-500');
-                }
-                alert('L\'appel a été terminé.');
-                cleanupPeer();
-                if (loadingOverlay) {
-                    loadingOverlay.classList.remove('hidden');
-                    console.log('Loading overlay displayed for a new connection.');
-                }
-                // Clear signaling data on server
-                axios.post('/webrtc/clear-signaling', {
-                    room: room,
-                    senderId: senderId
-                }).then(response => {
-                    console.log('Signaling data cleared.');
-                }).catch(err => {
-                    console.error('Error clearing signaling data:', err);
-                });
-            }
         });
 
         // Handle incoming data (Chat messages)
@@ -472,7 +434,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (peer) {
             peer.destroy();
             peer = null;
-            console.log('Peer connection destroyed and reset.');
+            console.log('Connexion de pair détruite et réinitialisée.');
         }
 
         // Reset connection status
@@ -482,19 +444,13 @@ document.addEventListener('DOMContentLoaded', function () {
             connectionStatus.classList.add('text-red-500');
         }
 
-        // Reset retry counters
-        resetRetryCounts();
-        
         // Optionally reset other UI elements like chat, notifications, etc.
     }
 
-    // Reset Retry Counters
-    function resetRetryCounts() {
-        offerRetryCount = 0;
-        answerRetryCount = 0;
-    }
-
     // Retrieve Offer from Signaling Server
+    let offerRetryCount = 0;
+    const MAX_OFFER_RETRIES = 100;
+
     function getOffer() {
         if (offerRetryCount >= MAX_OFFER_RETRIES) {
             console.error('Nombre maximum de tentatives d\'offre atteint.');
@@ -523,6 +479,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Check for Answer from Signaling Server
+    let answerRetryCount = 0;
+    const MAX_ANSWER_RETRIES = 100;
+
     function checkForAnswer() {
         if (answerRetryCount >= MAX_ANSWER_RETRIES) {
             console.error('Nombre maximum de tentatives de réponse atteint.');
@@ -654,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function () {
         endCallButton.addEventListener('click', () => {
             if (peer) {
                 peer.destroy();
-                console.log('Peer connection destroyed.');
+                console.log('Connexion de pair détruite.');
             }
             // Clear signaling data on the server
             axios.post('/webrtc/clear-signaling', {
@@ -740,7 +699,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (peer) {
             peer.destroy();
-            peer = null;
         }
     }
 
@@ -774,8 +732,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000); // Check every 3 seconds
     }
 });
+
         </script>
     @endpush
-
 
 </x-app-layout>
