@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const room = @json($room);
     const senderId = generateUniqueId();
 
-    console.log(`WebRTC initialisé pour la salle : ${room}, senderId : ${senderId}`);
+    console.log(`WebRTC initialized for room: ${room}, senderId: ${senderId}`);
 
     // ICE Servers Configuration
     const iceServers = [
@@ -280,14 +280,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Determine if this client is the initiator based on URL hash
     const isInitiator = location.hash === '#1';
-    console.log(`Le pair est initiateur : ${isInitiator}`);
+    console.log(`Client is initiator: ${isInitiator}`);
 
     // Initialize Media
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(stream => {
             localStream = stream;
             localVideo.srcObject = stream;
-            console.log('Flux local acquis.');
+            console.log('Local stream acquired.');
 
             initializePeerConnection(isInitiator, stream);
 
@@ -295,8 +295,8 @@ document.addEventListener('DOMContentLoaded', function () {
             monitorSignaling();
         })
         .catch(error => {
-            console.error('Erreur d\'accès aux appareils médias.', error);
-            alert('Impossible d\'accéder à la caméra et au microphone. Veuillez vérifier les autorisations.');
+            console.error('Error accessing media devices.', error);
+            alert('Unable to access camera and microphone. Please check permissions.');
             // Hide loading spinner on error
             if (loadingOverlay) {
                 loadingOverlay.classList.add('hidden');
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
         createPeer(initiator, stream);
         
         if (!initiator) {
-            console.log('Non-initiateur : Tentative de récupération de l\'offre.');
+            console.log('Non-initiator: Attempting to retrieve offer.');
             setTimeout(getOffer, 1000);
         }
     }
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Handle signaling data
         peer.on('signal', (data) => {
             const type = data.type === 'offer' ? 'offer' : 'answer';
-            console.log(`Envoi ${type} :`, data);
+            console.log(`Sending ${type}:`, data);
 
             axios.post('/webrtc/signaling', {
                 type: type,
@@ -338,75 +338,75 @@ document.addEventListener('DOMContentLoaded', function () {
                 room: room,
                 senderId: senderId
             }).then(response => {
-                console.log('Données de signalisation envoyées :', response.data);
+                console.log('Signaling data sent:', response.data);
 
                 if (type === 'offer') {
-                    console.log('Initiateur : En attente de réponse.');
+                    console.log('Initiator: Waiting for answer.');
                     setTimeout(checkForAnswer, 1000);
                 }
             }).catch(err => {
-                console.error('Erreur lors de l\'envoi des données de signalisation :', err);
+                console.error('Error sending signaling data:', err);
             });
         });
 
         // Receive remote stream
         peer.on('stream', (stream) => {
-            console.log('Flux distant reçu :', stream);
+            console.log('Remote stream received:', stream);
             remoteVideo.srcObject = stream;
             remoteVideo.play().then(() => {
-                console.log('Vidéo distante en cours de lecture.');
+                console.log('Remote video playing.');
                 // Hide loading spinner
                 if (loadingOverlay) {
                     loadingOverlay.classList.add('hidden');
-                    console.log('Overlay de chargement caché (flux).');
+                    console.log('Loading overlay hidden (stream).');
                 }
             }).catch(err => {
-                console.error('Erreur lors de la lecture de la vidéo distante :', err);
+                console.error('Error playing remote video:', err);
             });
         });
 
         // Connection established
         peer.on('connect', () => {
-            console.log('Connexion de pair établie.');
+            console.log('Peer connection established.');
             if (connectionStatus) {
-                connectionStatus.innerText = 'Connecté';
+                connectionStatus.innerText = 'Connected';
                 connectionStatus.classList.remove('text-red-500', 'text-yellow-500');
                 connectionStatus.classList.add('text-green-500');
             }
             // Hide loading spinner if visible
             if (loadingOverlay) {
                 loadingOverlay.classList.add('hidden');
-                console.log('Overlay de chargement caché (connexion).');
+                console.log('Loading overlay hidden (connection).');
             }
         });
 
         // Handle errors
         peer.on('error', (err) => {
-            console.error('Erreur de connexion de pair :', err);
-            alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
+            console.error('Peer connection error:', err);
+            alert('An error occurred with the connection. Please try again.');
             // Hide loading spinner
             if (loadingOverlay) {
                 loadingOverlay.classList.add('hidden');
-                console.log('Overlay de chargement caché (erreur).');
+                console.log('Loading overlay hidden (error).');
             }
         });
 
         // Handle connection close
         peer.on('close', () => {
-            console.log('Connexion de pair fermée.');
+            console.log('Peer connection closed.');
             if (connectionStatus) {
-                connectionStatus.innerText = 'Déconnecté';
+                connectionStatus.innerText = 'Disconnected';
                 connectionStatus.classList.remove('text-green-500');
                 connectionStatus.classList.add('text-red-500');
             }
-            alert('L\'appel a été terminé.');
+            alert('The call has been ended.');
             // Cleanup peer and reset UI
             cleanupPeer();
 
             // Show loading spinner for potential new connections
             if (loadingOverlay) {
                 loadingOverlay.classList.remove('hidden');
-                console.log('Overlay de chargement affiché pour une nouvelle connexion.');
+                console.log('Loading overlay shown for new connection.');
             }
 
             // Clear signaling data on the server
@@ -423,8 +423,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Handle incoming data (Chat messages)
         peer.on('data', (data) => {
             const message = data.toString();
-            console.log('Message reçu :', message);
-            appendMessage(`Participant : ${message}`, false);
+            console.log('Message received:', message);
+            appendMessage(`Participant: ${message}`, false);
             showNotification();
         });
     }
@@ -434,12 +434,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (peer) {
             peer.destroy();
             peer = null;
-            console.log('Connexion de pair détruite et réinitialisée.');
+            console.log('Peer connection destroyed and reset.');
         }
 
         // Reset connection status
         if (connectionStatus) {
-            connectionStatus.innerText = 'Déconnecté';
+            connectionStatus.innerText = 'Disconnected';
             connectionStatus.classList.remove('text-green-500');
             connectionStatus.classList.add('text-red-500');
         }
@@ -453,27 +453,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getOffer() {
         if (offerRetryCount >= MAX_OFFER_RETRIES) {
-            console.error('Nombre maximum de tentatives d\'offre atteint.');
-            alert('Impossible d\'établir une connexion. Veuillez réessayer plus tard.');
+            console.error('Maximum offer retry attempts reached.');
+            alert('Unable to establish a connection. Please try again later.');
             loadingOverlay.classList.add('hidden');
             return;
         }
 
         offerRetryCount++;
-        console.log(`Récupération de l'offre depuis le serveur de signalisation. Tentative ${offerRetryCount}`);
+        console.log(`Retrieving offer from signaling server. Attempt ${offerRetryCount}`);
         axios.get('/webrtc/get-offer', { params: { room: room } })
             .then(response => {
                 const offer = response.data.offer;
                 if (offer) {
-                    console.log('Offre reçue :', offer);
+                    console.log('Offer received:', offer);
                     peer.signal(offer);
                 } else {
-                    console.log('Aucune offre trouvée. Nouvelle tentative dans 2 secondes...');
+                    console.log('No offer found. Retrying in 2 seconds...');
                     setTimeout(getOffer, 2000);
                 }
             })
             .catch(err => {
-                console.error('Erreur lors de la récupération de l\'offre :', err);
+                console.error('Error retrieving offer:', err);
                 setTimeout(getOffer, 2000);
             });
     }
@@ -484,27 +484,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function checkForAnswer() {
         if (answerRetryCount >= MAX_ANSWER_RETRIES) {
-            console.error('Nombre maximum de tentatives de réponse atteint.');
-            alert('Aucune réponse reçue. Veuillez vous assurer que l\'autre participant est en ligne.');
+            console.error('Maximum answer retry attempts reached.');
+            alert('No answer received. Please ensure the other participant is online.');
             loadingOverlay.classList.add('hidden');
             return;
         }
 
         answerRetryCount++;
-        console.log(`Vérification de la réponse depuis le serveur de signalisation. Tentative ${answerRetryCount}`);
+        console.log(`Checking for answer from signaling server. Attempt ${answerRetryCount}`);
         axios.get('/webrtc/get-answer', { params: { room: room } })
             .then(response => {
                 const answer = response.data.answer;
                 if (answer) {
-                    console.log('Réponse reçue :', answer);
+                    console.log('Answer received:', answer);
                     peer.signal(answer);
                 } else {
-                    console.log('Aucune réponse trouvée pour le moment. Nouvelle tentative dans 2 secondes...');
+                    console.log('No answer found yet. Retrying in 2 seconds...');
                     setTimeout(checkForAnswer, 2000);
                 }
             })
             .catch(err => {
-                console.error('Erreur lors de la récupération de la réponse :', err);
+                console.error('Error retrieving answer:', err);
                 setTimeout(checkForAnswer, 2000);
             });
     }
@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const message = chatInput.value;
             if (message.trim() !== '' && peer && peer.connected) {
                 peer.send(message);
-                appendMessage(`Vous : ${message}`, true);
+                appendMessage(`You: ${message}`, true);
                 chatInput.value = '';
             }
         }
@@ -550,9 +550,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (localStream && localStream.getAudioTracks().length > 0) {
                 localStream.getAudioTracks()[0].enabled = audioEnabled;
                 updateAudioIcon();
-                console.log(`Audio ${audioEnabled ? 'activé' : 'désactivé'}.`);
+                console.log(`Audio ${audioEnabled ? 'enabled' : 'disabled'}.`);
             } else {
-                console.warn('Aucun flux audio disponible.');
+                console.warn('No audio stream available.');
             }
         });
 
@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     audioIcon.classList.add('fa-microphone-slash');
                 }
             } else {
-                console.warn('Élément de l\'icône audio non trouvé.');
+                console.warn('Audio icon element not found.');
             }
         }
 
@@ -577,9 +577,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (localStream && localStream.getVideoTracks().length > 0) {
                 localStream.getVideoTracks()[0].enabled = videoEnabled;
                 updateVideoIcon();
-                console.log(`Vidéo ${videoEnabled ? 'activée' : 'désactivée'}.`);
+                console.log(`Video ${videoEnabled ? 'enabled' : 'disabled'}.`);
             } else {
-                console.warn('Aucun flux vidéo disponible.');
+                console.warn('No video stream available.');
             }
         });
 
@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     videoIcon.classList.add('fa-video-slash');
                 }
             } else {
-                console.warn('Élément de l\'icône vidéo non trouvé.');
+                console.warn('Video icon element not found.');
             }
         }
 
@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleFullScreenButton.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.error(`Erreur lors de la tentative d'activation du mode plein écran : ${err.message} (${err.name})`);
+                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
                 });
             } else {
                 document.exitFullscreen();
@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function () {
         endCallButton.addEventListener('click', () => {
             if (peer) {
                 peer.destroy();
-                console.log('Connexion de pair détruite.');
+                console.log('Peer connection destroyed.');
             }
             // Clear signaling data on the server
             axios.post('/webrtc/clear-signaling', {
@@ -628,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = '/';
         });
     } else {
-        console.error('Un ou plusieurs boutons de contrôle manquent dans le DOM.');
+        console.error('One or more control buttons are missing in the DOM.');
     }
 
     // Chat Toggle Functionality
@@ -639,12 +639,12 @@ document.addEventListener('DOMContentLoaded', function () {
             chatPanel.classList.remove('transition-opacity', 'duration-300'); // Remove transition for instant effect
             toggleChatButton.classList.remove('bg-[#854f38]');
             toggleChatButton.classList.add('bg-[#647a0b]');
-            console.log('Panneau de chat fermé.');
+            console.log('Chat panel closed.');
         } else {
             chatPanel.classList.remove('invisible', 'opacity-0');
             chatPanel.classList.add('transition-opacity', 'duration-300'); // Add transition for smooth effect
             resetNotificationBadge();
-            console.log('Panneau de chat ouvert.');
+            console.log('Chat panel opened.');
         }
     });
 
@@ -653,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function () {
         chatPanel.classList.add('invisible', 'opacity-0');
         toggleChatButton.classList.remove('bg-[#854f38]');
         toggleChatButton.classList.add('bg-[#647a0b]');
-        console.log('Panneau de chat fermé via le bouton de fermeture.');
+        console.log('Chat panel closed via close button.');
     });
 
     // Chat Notification System
@@ -667,11 +667,11 @@ document.addEventListener('DOMContentLoaded', function () {
         // Play notification sound
         if (notificationSound) {
             notificationSound.play().catch(err => {
-                console.error('Erreur lors de la lecture du son de notification :', err);
+                console.error('Error playing notification sound:', err);
             });
         }
 
-        console.log(`Nombre de notifications : ${notificationCount}`);
+        console.log(`Notification count: ${notificationCount}`);
     }
 
     function updateNotificationBadge() {
@@ -686,7 +686,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetNotificationBadge() {
         notificationCount = 0;
         updateNotificationBadge();
-        console.log('Badge de notification réinitialisé.');
+        console.log('Notification badge reset.');
     }
 
     // Efficient Resource Management
@@ -721,17 +721,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(response => {
                     const offer = response.data.offer;
                     if (offer && !peer) { // Ensure no existing peer connection
-                        console.log('Nouvelle offre reçue. Initialisation du pair.');
+                        console.log('New offer received. Initializing peer.');
                         initializePeerConnection(false, localStream);
                         peer.signal(offer);
                     }
                 })
                 .catch(err => {
-                    console.error('Erreur lors de la surveillance de l\'offre :', err);
+                    console.error('Error monitoring offer:', err);
                 });
         }, 3000); // Check every 3 seconds
     }
 });
+
 
         </script>
     @endpush

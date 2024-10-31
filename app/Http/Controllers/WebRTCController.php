@@ -42,15 +42,18 @@ class WebRTCController extends Controller
         ]);
 
         $roomKey = 'webrtc-' . $request->room;
-        Log::info("Received signaling data for room: {$request->room}, type: {$request->type}, senderId: {$request->senderId}");
+        $senderId = $request->senderId;
+        $type = $request->type;
 
-        // Store offer or answer depending on type
-        if ($request->type === 'offer') {
-            cache()->put("{$roomKey}-offer", $request->data, 600); // Overwrite existing offer, TTL 10 minutes
-            Log::info("Stored offer for room: {$request->room}");
-        } elseif ($request->type === 'answer') {
-            cache()->put("{$roomKey}-answer", $request->data, 600); // Overwrite existing answer, TTL 10 minutes
-            Log::info("Stored answer for room: {$request->room}");
+        if ($type === 'offer') {
+            // Store the offer and mark the sender as initiator
+            cache()->put("{$roomKey}-offer", $request->data, 600); // TTL 10 minutes
+            cache()->put("{$roomKey}-initiator", $senderId, 600);
+            Log::info("Stored offer for room: {$request->room} by senderId: {$senderId}");
+        } elseif ($type === 'answer') {
+            // Store the answer
+            cache()->put("{$roomKey}-answer", $request->data, 600); // TTL 10 minutes
+            Log::info("Stored answer for room: {$request->room} by senderId: {$senderId}");
         }
 
         return response()->json(['status' => 'success']);
@@ -69,7 +72,7 @@ class WebRTCController extends Controller
 
         if ($offer) {
             Log::info("Retrieved offer for room: {$request->room}");
-            cache()->forget("{$roomKey}-offer"); // Clear the offer after retrieval
+            // Do not forget the offer here to allow reconnections
         } else {
             Log::warning("No offer found for room: {$request->room}");
         }
@@ -112,12 +115,21 @@ class WebRTCController extends Controller
         ]);
 
         $roomKey = 'webrtc-' . $request->room;
-        
-        // It's safer to clear both offer and answer when any participant disconnects
-        cache()->forget("{$roomKey}-offer");
-        cache()->forget("{$roomKey}-answer");
+        $senderId = $request->senderId;
 
-        Log::info("Cleared signaling data for room: {$request->room}, senderId: {$request->senderId}");
+        $initiatorId = cache()->get("{$roomKey}-initiator");
+
+        if ($senderId === $initiatorId) {
+            // If initiator disconnects, clear offer and answer
+            cache()->forget("{$roomKey}-offer");
+            cache()->forget("{$roomKey}-answer");
+            cache()->forget("{$roomKey}-initiator");
+            Log::info("Cleared offer and answer for room: {$request->room} as initiator disconnected.");
+        } else {
+            // If non-initiator disconnects, only clear answer
+            cache()->forget("{$roomKey}-answer");
+            Log::info("Cleared answer for room: {$request->room} as non-initiator disconnected.");
+        }
 
         return response()->json(['status' => 'signaling cleared']);
     }
