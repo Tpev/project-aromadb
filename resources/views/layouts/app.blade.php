@@ -53,27 +53,30 @@
 @endif
 
 @stack('scripts')
-        @guest
-            <div class="fixed bottom-4 right-4 z-50 text-center">
-                <p class="text-gray-800 font-semibold mb-2">Partager cette page :</p>
-                <div class="flex space-x-3">
-                    <!-- Facebook Share -->
-                    <a href="javascript:void(0);" onclick="shareToFacebook()" class="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition" title="Partager sur Facebook">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
+@if(! request()->is('*webrtc*'))
+    @guest
+        <div class="fixed bottom-4 right-4 z-50 text-center">
+            <p class="text-gray-800 font-semibold mb-2">Partager cette page :</p>
+            <div class="flex space-x-3">
+                <!-- Facebook Share -->
+                <a href="javascript:void(0);" onclick="shareToFacebook()" class="bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition" title="Partager sur Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
 
-                    <!-- Twitter Share -->
-                    <a href="javascript:void(0);" onclick="shareToTwitter()" class="bg-blue-400 text-white p-3 rounded-full shadow-lg hover:bg-blue-500 transition" title="Partager sur Twitter">
-                        <i class="fab fa-twitter"></i>
-                    </a>
+                <!-- Twitter Share -->
+                <a href="javascript:void(0);" onclick="shareToTwitter()" class="bg-blue-400 text-white p-3 rounded-full shadow-lg hover:bg-blue-500 transition" title="Partager sur Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
 
-                    <!-- WhatsApp Share -->
-                    <a href="javascript:void(0);" onclick="shareToWhatsApp()" class="bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition" title="Partager sur WhatsApp">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
-                </div>
+                <!-- WhatsApp Share -->
+                <a href="javascript:void(0);" onclick="shareToWhatsApp()" class="bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition" title="Partager sur WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                </a>
             </div>
-        @endguest
+        </div>
+    @endguest
+@endif
+
             <!-- Page Content -->
             <main>
                 {{ $slot }}
@@ -100,7 +103,7 @@
         @include('layouts.footer')
 		@endif
 
-		@if(! request()->is('*webrtc*'))
+		
         <!-- Social Share JavaScript -->
         <script>
             function shareToFacebook() {
@@ -121,7 +124,7 @@
                 window.open(whatsappURL, '_blank');
             }
         </script>
-	@endif
+
         <!-- Add FontAwesome CDN -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     </body>
