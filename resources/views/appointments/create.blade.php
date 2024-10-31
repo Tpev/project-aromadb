@@ -356,7 +356,7 @@
             dateFormat: "Y-m-d", // Format de soumission (envoyé au serveur)
             altInput: true, // Activer l'input alternatif pour l'affichage
             altFormat: "d-m-Y", // Format d'affichage (dd mm yyyy)
-            minDate: "today",
+            minDate: "null",
             locale: "fr",
             disable: [], // Initialement, aucune date n'est désactivée
             onChange: function(selectedDates, dateStr, instance) {
