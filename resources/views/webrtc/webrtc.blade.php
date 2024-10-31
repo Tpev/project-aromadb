@@ -230,8 +230,6 @@
         <script src="https://cdn.jsdelivr.net/npm/simple-peer@9/simplepeer.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-        <!-- Audio Notification -->
-
         <!-- JavaScript for WebRTC and Enhancements -->
         <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -261,11 +259,23 @@ document.addEventListener('DOMContentLoaded', function () {
     // Audio Notification Element
     const notificationSound = document.getElementById('notificationSound');
 
-    // Room and Sender ID
-    const room = @json($room);
-    const senderId = generateUniqueId();
+    // Initialize Initiator Flag and Sender ID
+    if (location.hash === '#1') {
+        sessionStorage.setItem('isInitiator', 'true');
+    } else {
+        sessionStorage.setItem('isInitiator', 'false');
+    }
 
-    console.log(`WebRTC initialisé pour la salle : ${room}, senderId : ${senderId}`);
+    const isInitiator = sessionStorage.getItem('isInitiator') === 'true';
+    console.log(`Le pair est initiateur : ${isInitiator}`);
+
+    // Persist Sender ID across reloads
+    let senderId = sessionStorage.getItem('senderId');
+    if (!senderId) {
+        senderId = generateUniqueId();
+        sessionStorage.setItem('senderId', senderId);
+    }
+    console.log(`Sender ID : ${senderId}`);
 
     // ICE Servers Configuration
     const iceServers = [
@@ -277,10 +287,6 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         // Add more TURN servers if needed
     ];
-
-    // Determine if this client is the initiator based on URL hash
-    const isInitiator = location.hash === '#1';
-    console.log(`Le pair est initiateur : ${isInitiator}`);
 
     // Retry Counters
     let offerRetryCount = 0;
@@ -312,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Generate Unique ID
     function generateUniqueId() {
-        return Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36);
+        return 'id-' + Math.random().toString(36).substr(2, 16);
     }
 
     // Initialize Peer Connection
@@ -387,68 +393,70 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-peer.on('error', (err) => {
-    console.error('Erreur de connexion de pair :', err);
-    console.log('Peer error event triggered');
-    
+        // Handle Peer Errors
+        peer.on('error', (err) => {
+            console.error('Erreur de connexion de pair :', err);
+            console.log('Peer error event triggered');
 
-        alert('Une erreur est survenue avec la connexion. Rechargement de la page.');
-        console.log('Initiator detected. Reloading the page...');
-        // Adding a slight delay to ensure the alert is displayed
-        setTimeout(() => {
-            window.location.reload();
-        }, 500);
+            if (isInitiator) {
+                alert('Une erreur est survenue avec la connexion. Rechargement de la page.');
+                console.log('Initiator detected. Reloading the page...');
+                // Adding a slight delay to ensure the alert is displayed
+                setTimeout(() => {
+                    // Reload while preserving the hash
+                    window.location.href = window.location.href.split('#')[0] + '#1';
+                }, 500);
+            } else {
+                alert('Une erreur est survenue avec la connexion. Veuillez réessayer.');
+                cleanupPeer();
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                    console.log('Loading overlay hidden due to error.');
+                }
+            }
 
-        cleanupPeer();
-        
-        if (loadingOverlay) {
-            loadingOverlay.classList.add('hidden');
-            console.log('Loading overlay hidden due to error.');
-        }
-		        // Clear signaling data on server
-        axios.post('/webrtc/clear-signaling', {
-            room: room,
-            senderId: senderId
-        }).then(response => {
-            console.log('Signaling data cleared.');
-        }).catch(err => {
-            console.error('Error clearing signaling data:', err);
+            // Clear signaling data on server
+            axios.post('/webrtc/clear-signaling', {
+                room: room,
+                senderId: senderId
+            }).then(response => {
+                console.log('Signaling data cleared.');
+            }).catch(err => {
+                console.error('Error clearing signaling data:', err);
+            });
         });
-    
-});
 
-
-
-peer.on('close', () => {
-    console.log('Peer connection closed.');
-    
-    if (isInitiator) {
-        alert('L\'appel a été terminé. Rechargement de la page pour une nouvelle connexion.');
-        window.location.reload(); // Automatically reload the page
-    } else {
-        // Non-initiator behavior: clean up UI, etc.
-        if (connectionStatus) {
-            connectionStatus.innerText = 'Déconnecté';
-            connectionStatus.classList.remove('text-green-500');
-            connectionStatus.classList.add('text-red-500');
-        }
-        alert('L\'appel a été terminé.');
-        cleanupPeer();
-        if (loadingOverlay) {
-            loadingOverlay.classList.remove('hidden');
-            console.log('Loading overlay displayed for a new connection.');
-        }
-        // Clear signaling data on server
-        axios.post('/webrtc/clear-signaling', {
-            room: room,
-            senderId: senderId
-        }).then(response => {
-            console.log('Signaling data cleared.');
-        }).catch(err => {
-            console.error('Error clearing signaling data:', err);
+        // Handle Peer Closure
+        peer.on('close', () => {
+            console.log('Peer connection closed.');
+            
+            if (isInitiator) {
+                alert('L\'appel a été terminé. Rechargement de la page pour une nouvelle connexion.');
+                window.location.href = window.location.href.split('#')[0] + '#1'; // Reload with hash
+            } else {
+                // Non-initiator behavior: clean up UI, etc.
+                if (connectionStatus) {
+                    connectionStatus.innerText = 'Déconnecté';
+                    connectionStatus.classList.remove('text-green-500');
+                    connectionStatus.classList.add('text-red-500');
+                }
+                alert('L\'appel a été terminé.');
+                cleanupPeer();
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('hidden');
+                    console.log('Loading overlay displayed for a new connection.');
+                }
+                // Clear signaling data on server
+                axios.post('/webrtc/clear-signaling', {
+                    room: room,
+                    senderId: senderId
+                }).then(response => {
+                    console.log('Signaling data cleared.');
+                }).catch(err => {
+                    console.error('Error clearing signaling data:', err);
+                });
+            }
         });
-    }
-});
 
         // Handle incoming data (Chat messages)
         peer.on('data', (data) => {
@@ -768,5 +776,6 @@ peer.on('close', () => {
 });
         </script>
     @endpush
+
 
 </x-app-layout>
