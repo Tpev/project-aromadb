@@ -188,20 +188,23 @@
                         <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
                         <select id="product_id" name="product_id" class="form-control" required>
                             <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
-                            @foreach($products as $product)
-                                @if($product->can_be_booked_online)
-                                    <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }} data-duration="{{ $product->duration }}">
-                                        {{ $product->name }}
-                                    </option>
-                                @endif
-                            @endforeach
+							@foreach($products as $product)
+								@if($product->can_be_booked_online)
+									@php
+										$totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
+									@endphp
+									<option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }} data-duration="{{ $product->duration }}">
+										{{ $product->name }} - {{ rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.') }}€
+									</option>
+								@endif
+							@endforeach
                         </select>
                         @error('product_id')
                             <p class="text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
                 @endif
-
+			
                 <!-- Patient First Name -->
                 <div class="details-box form-section">
                     <label class="details-label" for="first_name">{{ __('Votre Prénom') }}</label>
