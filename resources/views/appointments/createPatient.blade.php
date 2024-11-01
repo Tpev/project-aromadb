@@ -56,6 +56,12 @@
             box-sizing: border-box;
         }
 
+        .form-control:focus {
+            border-color: #647a0b; /* Highlight border on focus */
+            outline: none;
+            box-shadow: 0 0 5px rgba(100, 122, 11, 0.5);
+        }
+
         .btn-primary {
             background-color: #647a0b;
             border: none;
@@ -115,6 +121,16 @@
 
             .details-title {
                 font-size: 1.5rem;
+            }
+
+            .d-flex.justify-content-center.mt-4 {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                margin-bottom: 10px;
             }
         }
 
@@ -188,23 +204,23 @@
                         <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
                         <select id="product_id" name="product_id" class="form-control" required>
                             <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
-							@foreach($products as $product)
-								@if($product->can_be_booked_online)
-									@php
-										$totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
-									@endphp
-									<option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }} data-duration="{{ $product->duration }}">
-										{{ $product->name }} - {{ rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.') }}€
-									</option>
-								@endif
-							@endforeach
+                            @foreach($products as $product)
+                                @if($product->can_be_booked_online)
+                                    @php
+                                        $totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
+                                    @endphp
+                                    <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }} data-duration="{{ $product->duration }}">
+                                        {{ $product->name }} - {{ rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.') }}€
+                                    </option>
+                                @endif
+                            @endforeach
                         </select>
                         @error('product_id')
                             <p class="text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
                 @endif
-			
+
                 <!-- Patient First Name -->
                 <div class="details-box form-section">
                     <label class="details-label" for="first_name">{{ __('Votre Prénom') }}</label>
@@ -254,11 +270,13 @@
                 <!-- Available Time Slots -->
                 <div class="details-box form-section">
                     <label class="details-label" for="appointment_time">{{ __('Heure du Rendez-vous') }}</label>
-                    <select id="appointment_time" name="appointment_time" class="form-control" required>
-                        <option value="" disabled selected>{{ __('Sélectionner une heure') }}</option>
-                    </select>
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
+                    <div class="d-flex align-items-center">
+                        <select id="appointment_time" name="appointment_time" class="form-control" required>
+                            <option value="" disabled selected>{{ __('Sélectionner une heure') }}</option>
+                        </select>
+                        <div class="loading-spinner">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
                     </div>
                     @error('appointment_time')
                         <p class="text-red-500">{{ $message }}</p>
@@ -302,21 +320,22 @@
     <!-- Bootstrap JS (optional but recommended) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Custom Scripts for slot fetching -->
+    <!-- Custom Scripts for Slot Fetching -->
     <script>
     $(document).ready(function() {
-        // Initialisation de Flatpickr sur le champ de date
-        let availableDays = []; // Tableau pour stocker les jours disponibles (0 = Lundi, 6 = Dimanche)
+        // Initialize Flatpickr with disableMobile set to true
+        let availableDays = []; // Array to store available days (0 = Monday, 6 = Sunday)
 
         const fp = flatpickr("#appointment_date", {
-            dateFormat: "Y-m-d", // Format de soumission (envoyé au serveur)
-            altInput: true, // Activer l'input alternatif pour l'affichage
-            altFormat: "d-m-Y", // Format d'affichage (dd mm yyyy)
+            dateFormat: "Y-m-d", // Format to submit to server
+            altInput: true, // Enable alternative input for display
+            altFormat: "d-m-Y", // Display format (dd-mm-yyyy)
             minDate: "today",
             locale: "fr",
-            disable: [], // Initialement, aucune date n'est désactivée
+            disableMobile: true, // Force Flatpickr to use its own calendar on mobile devices
+            disable: [], // Initially, no dates are disabled
             onChange: function(selectedDates, dateStr, instance) {
-                // Déclencher la récupération des créneaux disponibles
+                // Trigger fetching available slots
                 let therapistId = $('input[name="therapist_id"]').val();
                 let productId = $('#product_id').val();
                 if (dateStr && productId && therapistId) {
@@ -328,7 +347,7 @@
             }
         });
 
-        // Fonction pour récupérer les jours disponibles en fonction de la prestation sélectionnée et du thérapeute
+        // Function to fetch available days based on selected product and therapist
         function loadAvailableDays(productId, therapistId) {
             $.ajax({
                 url: '{{ route("appointments.available-dates-patient") }}',
@@ -341,18 +360,18 @@
                 success: function(response) {
                     if (response.available_days && response.available_days.length > 0) {
                         availableDays = response.available_days;
-                        console.log('Available Days:', availableDays); // Pour débogage
+                        console.log('Available Days:', availableDays); // For debugging
 
-                        // Mettre à jour Flatpickr pour désactiver les jours non disponibles
+                        // Update Flatpickr to disable days not available
                         fp.set('disable', [
                             function(date) {
-                                // 0 = Lundi, 6 = Dimanche
-                                let dayOfWeek = (date.getDay() + 6) % 7; // Convertir les jours de JS en day_of_week
+                                // 0 = Monday, 6 = Sunday
+                                let dayOfWeek = (date.getDay() + 6) % 7; // Convert JS day to your format
                                 return !availableDays.includes(dayOfWeek);
                             }
                         ]);
                     } else {
-                        // Si aucune date n'est disponible, désactiver toutes les dates
+                        // If no dates are available, disable all dates
                         fp.set('disable', [true]);
                         alert('{{ __("Aucune date disponible pour cette prestation.") }}');
                     }
@@ -364,10 +383,10 @@
             });
         }
 
-        // Fonction pour récupérer les créneaux disponibles
+        // Function to fetch available time slots based on selected date, product, and therapist
         function fetchAvailableSlots(date, productId, therapistId) {
-            $('#appointment_time').prop('disabled', true); // Désactiver le dropdown des heures pendant la récupération
-            $('.loading-spinner').show(); // Afficher le spinner de chargement
+            $('#appointment_time').prop('disabled', true); // Disable time dropdown while fetching
+            $('.loading-spinner').show(); // Show loading spinner
 
             $.ajax({
                 url: '{{ route("appointments.available-slots-patient") }}',
@@ -379,51 +398,51 @@
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(response) {
-                    $('.loading-spinner').hide(); // Masquer le spinner après le succès
+                    $('.loading-spinner').hide(); // Hide spinner after success
                     if (response.slots && response.slots.length > 0) {
                         let options = '<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>';
                         response.slots.forEach(function(slot) {
                             options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
                         });
-                        $('#appointment_time').html(options); // Remplir le dropdown des heures
-                        $('#appointment_time').prop('disabled', false); // Activer le dropdown
+                        $('#appointment_time').html(options); // Populate time dropdown
+                        $('#appointment_time').prop('disabled', false); // Enable time dropdown
                     } else {
                         $('#appointment_time').html('<option value="" disabled selected>{{ __("Aucun créneau disponible pour cette date.") }}</option>');
                         $('#appointment_time').prop('disabled', true);
                     }
                 },
                 error: function(xhr, status, error) {
-                    $('.loading-spinner').hide(); // Masquer le spinner en cas d'erreur
+                    $('.loading-spinner').hide(); // Hide spinner on error
                     console.error('Error fetching available slots:', error, xhr.responseText);
                     alert('{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles. Veuillez réessayer.") }}');
                 }
             });
         }
 
-        // Déclencher le chargement des jours disponibles lorsque la prestation change
+        // Trigger fetching available days when the product changes
         $('#product_id').change(function() {
             let productId = $(this).val();
             let therapistId = $('input[name="therapist_id"]').val();
             if (productId && therapistId) {
                 loadAvailableDays(productId, therapistId);
-                // Réinitialiser le champ date et les créneaux disponibles
+                // Reset date and time fields
                 fp.clear();
                 fp.setDate(null);
                 $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
                 $('#appointment_time').prop('disabled', true);
             } else {
-                // Si aucune prestation ou thérapeute n'est sélectionné, réactiver toutes les dates
+                // If no product or therapist is selected, reset Flatpickr and time dropdown
                 fp.set('disable', []);
                 $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
                 $('#appointment_time').prop('disabled', true);
             }
         });
 
-        // Déclencher la récupération des créneaux si des données anciennes existent (par exemple, après une erreur de validation)
+        // Trigger fetching slots if old input exists (e.g., after validation error)
         @if(old('product_id') && old('therapist_id'))
             loadAvailableDays('{{ old('product_id') }}', '{{ old('therapist_id') }}');
             @if(old('appointment_date'))
-                // Retarder l'appel pour s'assurer que Flatpickr est initialisé
+                // Delay to ensure Flatpickr is initialized
                 setTimeout(function() {
                     fp.setDate('{{ old('appointment_date') }}', true);
                     fetchAvailableSlots('{{ old('appointment_date') }}', '{{ old('product_id') }}', '{{ old('therapist_id') }}');
