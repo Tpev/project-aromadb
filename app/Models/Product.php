@@ -24,6 +24,8 @@ class Product extends Model
         'adomicile',
         'dans_le_cabinet',
         'max_per_day',
+        'image',       // Add this line
+        'brochure',    // Add this line
     ];
 
     /**

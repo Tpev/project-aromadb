@@ -10,6 +10,14 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
+
+            <!-- Display Product Image if it exists -->
+            @if($product->image)
+                <div class="product-image-container mb-4">
+                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="product-image">
+                </div>
+            @endif
+
             <h1 class="details-title">{{ $product->name }}</h1>
 
             <!-- Informations sur la prestation -->
@@ -73,12 +81,7 @@
                     <i class="fas fa-map-marker-alt icon"></i>
                     <div class="product-details">
                         <p class="product-label">{{ __('Mode de Prestation') }}</p>
-                        <p class="product-value">
-                            @if($product->visio) {{ __('Visio') }}
-                            @elseif($product->adomicile) {{ __('À domicile') }}
-                            @else {{ __('Dans le cabinet') }}
-                            @endif
-                        </p>
+                        <p class="product-value">{{ $product->getConsultationModes() }}</p>
                     </div>
                 </div>
 
@@ -90,6 +93,21 @@
                         <p class="product-value">{{ $product->max_per_day ?? 'N/A' }}</p>
                     </div>
                 </div>
+
+                <!-- Brochure Download Link -->
+                @if($product->brochure)
+                    <div class="product-box">
+                        <i class="fas fa-file-pdf icon"></i>
+                        <div class="product-details">
+                            <p class="product-label">{{ __('Brochure') }}</p>
+                            <p class="product-value">
+                                <a href="{{ asset('storage/' . $product->brochure) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800">
+                                    {{ __('Télécharger la brochure') }}
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Boutons d'action -->
@@ -161,6 +179,18 @@
             text-align: center;
         }
 
+        /* Product Image Styling */
+        .product-image-container {
+            text-align: center;
+        }
+
+        .product-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
         .product-info-boxes {
             display: flex;
             flex-wrap: wrap;
@@ -202,6 +232,7 @@
         .product-value {
             color: #333333;
             font-size: 1rem;
+            word-wrap: break-word;
         }
 
         .action-buttons {

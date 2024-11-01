@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Product;
 
 class PublicTherapistController extends Controller
 {
@@ -22,8 +23,9 @@ public function show($slug)
 
     // Charger les témoignages paginés
     $testimonials = $therapist->testimonials()->paginate(5); // 5 témoignages par page
+	$prestations = $therapist->products()->get();
 
     // Passer les données au vue
-    return view('public.therapist.show', compact('therapist', 'testimonials'));
+    return view('public.therapist.show', compact('therapist', 'testimonials','prestations'));
 }
 }

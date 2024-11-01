@@ -9,7 +9,8 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouvelle Prestation') }}</h1>
 
-            <form action="{{ route('products.store') }}" method="POST">
+            <!-- Updated form with enctype for file uploads -->
+            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <!-- Nom de la Prestation -->
@@ -57,7 +58,7 @@
                     @enderror
                 </div>
 
-                <!-- Mode de prestation (Visio, À domicile, Dans le cabinet) -->
+                <!-- Mode de prestation -->
                 <div class="details-box">
                     <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
                     <select id="mode" name="mode" class="form-control" required>
@@ -69,24 +70,42 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-<!-- Can Be Booked Online -->
-<div class="details-box">
-    <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
-    <!-- Hidden input to ensure a value is always sent -->
-    <input type="hidden" name="can_be_booked_online" value="0">
-    <!-- Checkbox input -->
-    <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online') ? 'checked' : '' }}>
-    @error('can_be_booked_online')
-        <p class="text-red-500">{{ $message }}</p>
-    @enderror
-</div>
 
+                <!-- Can Be Booked Online -->
+                <div class="details-box">
+                    <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
+                    <!-- Hidden input to ensure a value is always sent -->
+                    <input type="hidden" name="can_be_booked_online" value="0">
+                    <!-- Checkbox input -->
+                    <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online') ? 'checked' : '' }}>
+                    @error('can_be_booked_online')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <!-- Maximum séances par jour -->
                 <div class="details-box">
                     <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
                     <input type="number" id="max_per_day" name="max_per_day" class="form-control" value="{{ old('max_per_day') }}" min="1">
                     @error('max_per_day')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Image Upload -->
+                <div class="details-box">
+                    <label class="details-label" for="image">{{ __('Image') }}</label>
+                    <input type="file" id="image" name="image" class="form-control">
+                    @error('image')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Brochure Upload -->
+                <div class="details-box">
+                    <label class="details-label" for="brochure">{{ __('Brochure (PDF)') }}</label>
+                    <input type="file" id="brochure" name="brochure" class="form-control">
+                    @error('brochure')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>

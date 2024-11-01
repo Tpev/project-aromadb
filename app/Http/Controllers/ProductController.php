@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -37,42 +38,58 @@ class ProductController extends Controller
     /**
      * Store a newly created product in the database.
      */
-    public function store(Request $request)
-    {
-        // Validate the request
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'tax_rate' => 'required|numeric|min:0|max:100',
-            'duration' => 'nullable|integer|min:1',
-            'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
-            'max_per_day' => 'nullable|integer|min:1',
-            'can_be_booked_online' => 'required|boolean',  // Handle the new can_be_booked_online field
-        ]);
+  public function store(Request $request)
+{
+    // Validate the request
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric|min:0',
+        'tax_rate' => 'required|numeric|min:0|max:100',
+        'duration' => 'nullable|integer|min:1',
+        'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
+        'max_per_day' => 'nullable|integer|min:1',
+        'can_be_booked_online' => 'required|boolean',
+        'image' => 'nullable|image|max:4048',        // Validate image
+        'brochure' => 'nullable|mimes:pdf|max:5120', // Validate brochure (PDF)
+    ]);
 
-        // Set visio, adomicile, and dans_le_cabinet based on the selected mode
-        $visio = $validatedData['mode'] === 'visio';
-        $adomicile = $validatedData['mode'] === 'adomicile';
-        $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
-
-        // Create the product
-        $product = Product::create([
-            'user_id' => Auth::id(),
-            'name' => $validatedData['name'],
-            'description' => $validatedData['description'],
-            'price' => $validatedData['price'],
-            'tax_rate' => $validatedData['tax_rate'],
-            'duration' => $validatedData['duration'],
-            'can_be_booked_online' => $validatedData['can_be_booked_online'],  // Store the can_be_booked_online value
-            'visio' => $visio,
-            'adomicile' => $adomicile,
-            'dans_le_cabinet' => $dans_le_cabinet,
-            'max_per_day' => $validatedData['max_per_day'],
-        ]);
-
-        return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
+    // Handle file uploads
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('products/images', 'public');
+        $validatedData['image'] = $imagePath;
     }
+
+    if ($request->hasFile('brochure')) {
+        $brochurePath = $request->file('brochure')->store('products/brochures', 'public');
+        $validatedData['brochure'] = $brochurePath;
+    }
+
+    // Set consultation modes
+    $visio = $validatedData['mode'] === 'visio';
+    $adomicile = $validatedData['mode'] === 'adomicile';
+    $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
+
+    // Create the product
+    $product = Product::create([
+        'user_id' => Auth::id(),
+        'name' => $validatedData['name'],
+        'description' => $validatedData['description'],
+        'price' => $validatedData['price'],
+        'tax_rate' => $validatedData['tax_rate'],
+        'duration' => $validatedData['duration'],
+        'can_be_booked_online' => $validatedData['can_be_booked_online'],
+        'visio' => $visio,
+        'adomicile' => $adomicile,
+        'dans_le_cabinet' => $dans_le_cabinet,
+        'max_per_day' => $validatedData['max_per_day'],
+        'image' => $validatedData['image'] ?? null,
+        'brochure' => $validatedData['brochure'] ?? null,
+    ]);
+
+    return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
+}
+
 
     /**
      * Display a specific product along with its associated invoices.
@@ -99,41 +116,65 @@ class ProductController extends Controller
     /**
      * Update the specified product in the database.
      */
-    public function update(Request $request, Product $product)
-    {
-        // Validate the request
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'tax_rate' => 'required|numeric|min:0|max:100',
-            'duration' => 'nullable|integer|min:1',
-            'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',  // Updated to validate the mode
-            'max_per_day' => 'nullable|integer|min:1',
-            'can_be_booked_online' => 'required|boolean',  // Handle the can_be_booked_online field
-        ]);
+  public function update(Request $request, Product $product)
+{
+    // Validate the request
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric|min:0',
+        'tax_rate' => 'required|numeric|min:0|max:100',
+        'duration' => 'nullable|integer|min:1',
+        'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
+        'max_per_day' => 'nullable|integer|min:1',
+        'can_be_booked_online' => 'required|boolean',
+        'image' => 'nullable|image|max:2048',
+        'brochure' => 'nullable|mimes:pdf|max:5120',
+    ]);
 
-        // Set visio, adomicile, and dans_le_cabinet based on the selected mode
-        $visio = $validatedData['mode'] === 'visio';
-        $adomicile = $validatedData['mode'] === 'adomicile';
-        $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
-
-        // Update the product
-        $product->update([
-            'name' => $validatedData['name'],
-            'description' => $validatedData['description'],
-            'price' => $validatedData['price'],
-            'tax_rate' => $validatedData['tax_rate'],
-            'duration' => $validatedData['duration'],
-            'can_be_booked_online' => $validatedData['can_be_booked_online'],  // Update the can_be_booked_online value
-            'visio' => $visio,
-            'adomicile' => $adomicile,
-            'dans_le_cabinet' => $dans_le_cabinet,
-            'max_per_day' => $validatedData['max_per_day'],
-        ]);
-
-        return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
+    // Handle file uploads
+    if ($request->hasFile('image')) {
+        // Delete old image if exists
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+        $imagePath = $request->file('image')->store('products/images', 'public');
+        $validatedData['image'] = $imagePath;
     }
+
+    if ($request->hasFile('brochure')) {
+        // Delete old brochure if exists
+        if ($product->brochure) {
+            Storage::disk('public')->delete($product->brochure);
+        }
+        $brochurePath = $request->file('brochure')->store('products/brochures', 'public');
+        $validatedData['brochure'] = $brochurePath;
+    }
+
+    // Set consultation modes
+    $visio = $validatedData['mode'] === 'visio';
+    $adomicile = $validatedData['mode'] === 'adomicile';
+    $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
+
+    // Update the product
+    $product->update([
+        'name' => $validatedData['name'],
+        'description' => $validatedData['description'],
+        'price' => $validatedData['price'],
+        'tax_rate' => $validatedData['tax_rate'],
+        'duration' => $validatedData['duration'],
+        'can_be_booked_online' => $validatedData['can_be_booked_online'],
+        'visio' => $visio,
+        'adomicile' => $adomicile,
+        'dans_le_cabinet' => $dans_le_cabinet,
+        'max_per_day' => $validatedData['max_per_day'],
+        'image' => $validatedData['image'] ?? $product->image,
+        'brochure' => $validatedData['brochure'] ?? $product->brochure,
+    ]);
+
+    return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
+}
+
 
     /**
      * Remove the specified product from the database.

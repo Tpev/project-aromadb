@@ -9,7 +9,8 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Modifier la Prestation') }}</h1>
 
-            <form action="{{ route('products.update', $product->id) }}" method="POST">
+            <!-- Updated form with enctype for file uploads -->
+            <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -58,7 +59,7 @@
                     @enderror
                 </div>
 
-                <!-- Mode de prestation (Visio, À domicile, Dans le cabinet) -->
+                <!-- Mode de prestation -->
                 <div class="details-box">
                     <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
                     <select id="mode" name="mode" class="form-control" required>
@@ -71,19 +72,17 @@
                     @enderror
                 </div>
 
-<!-- Can Be Booked Online -->
-<div class="details-box">
-    <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
-    <!-- Hidden input to ensure a value is always sent -->
-    <input type="hidden" name="can_be_booked_online" value="0">
-    <!-- Checkbox input -->
-    <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online', $product->can_be_booked_online) ? 'checked' : '' }}>
-    @error('can_be_booked_online')
-        <p class="text-red-500">{{ $message }}</p>
-    @enderror
-</div>
-
-
+                <!-- Can Be Booked Online -->
+                <div class="details-box">
+                    <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
+                    <!-- Hidden input to ensure a value is always sent -->
+                    <input type="hidden" name="can_be_booked_online" value="0">
+                    <!-- Checkbox input -->
+                    <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online', $product->can_be_booked_online) ? 'checked' : '' }}>
+                    @error('can_be_booked_online')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <!-- Maximum séances par jour -->
                 <div class="details-box">
@@ -94,12 +93,39 @@
                     @enderror
                 </div>
 
+                <!-- Image Upload -->
+                <div class="details-box">
+                    <label class="details-label" for="image">{{ __('Image') }}</label>
+                    @if($product->image)
+                        <div class="mb-2">
+                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-32 h-32 object-cover">
+                        </div>
+                    @endif
+                    <input type="file" id="image" name="image" class="form-control">
+                    @error('image')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Brochure Upload -->
+                <div class="details-box">
+                    <label class="details-label" for="brochure">{{ __('Brochure (PDF)') }}</label>
+                    @if($product->brochure)
+                        <div class="mb-2">
+                            <a href="{{ asset('storage/' . $product->brochure) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800">{{ __('Voir la brochure existante') }}</a>
+                        </div>
+                    @endif
+                    <input type="file" id="brochure" name="brochure" class="form-control">
+                    @error('brochure')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour la Prestation') }}</button>
                 <a href="{{ route('products.show', $product->id) }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
         </div>
     </div>
-
     <!-- Styles personnalisés -->
     <style>
         .container {

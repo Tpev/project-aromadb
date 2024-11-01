@@ -106,6 +106,35 @@
 				@endif
 			</div>
 		</div>
+{{-- Prestations Section --}}
+<div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
+    <h3 class="text-2xl font-semibold text-gray-700">{{ __('Prestations') }}</h3>
+    @if($prestations->count() > 0)
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($prestations as $prestation)
+                <div class="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    @if($prestation->image)
+                        <img src="{{ asset('storage/' . $prestation->image) }}" alt="{{ $prestation->name }}" class="w-full h-48 object-cover">
+                    @endif
+                    <div class="p-4">
+                        <h4 class="text-xl font-semibold text-gray-800">{{ $prestation->name }}</h4>
+                        <h5 class="text-l font-semibold text-gray-600"> Durée: {{ $prestation->duration }} min</h5>
+                        <!-- Add 'break-words' class to handle long text -->
+                        <p class="mt-2 text-gray-600 break-words">{{ $prestation->description }}</p>
+                        @if($prestation->brochure)
+                            <a href="{{ asset('storage/' . $prestation->brochure) }}" target="_blank" class="mt-4 inline-block text-indigo-600 hover:text-indigo-800">
+                                {{ __('Télécharger la brochure') }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <p class="mt-4 text-gray-600">{{ __('Aucune prestation disponible pour le moment.') }}</p>
+    @endif
+</div>
+
 
 
 {{-- Témoignages Section --}}
@@ -143,6 +172,46 @@
     @push('styles')
         <style>
             /* Custom styles for the therapist's profile */
+/* Prestations Styling */
+.prestations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.prestations-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+.prestations-item:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.prestations-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.prestations-item h4 {
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.prestations-item p {
+    margin-top: 0.5rem;
+    color: #4a5568;
+}
+
+.prestations-item a {
+    margin-top: 1rem;
+    display: inline-block;
+    color: #5a67d8;
+    font-weight: 500;
+}
 
             /* Smooth fade-in animation for sections */
             .fade-in {
