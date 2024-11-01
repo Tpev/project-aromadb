@@ -52,8 +52,14 @@ class ProductController extends Controller
         'can_be_booked_online' => 'required|boolean',
         'image' => 'nullable|image|max:4048',        // Validate image
         'brochure' => 'nullable|mimes:pdf|max:5120', // Validate brochure (PDF)
+		 'display_order' => 'nullable|integer|min:0',
     ]);
 
+    // Set default display_order if not provided
+    if (!isset($validatedData['display_order'])) {
+        $maxOrder = Product::where('user_id', Auth::id())->max('display_order');
+        $validatedData['display_order'] = $maxOrder + 1;
+    }
     // Handle file uploads
     if ($request->hasFile('image')) {
         $imagePath = $request->file('image')->store('products/images', 'public');
@@ -85,6 +91,7 @@ class ProductController extends Controller
         'max_per_day' => $validatedData['max_per_day'],
         'image' => $validatedData['image'] ?? null,
         'brochure' => $validatedData['brochure'] ?? null,
+		'display_order' => $validatedData['display_order'],
     ]);
 
     return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
@@ -130,6 +137,7 @@ class ProductController extends Controller
         'can_be_booked_online' => 'required|boolean',
         'image' => 'nullable|image|max:2048',
         'brochure' => 'nullable|mimes:pdf|max:5120',
+		  'display_order' => 'nullable|integer|min:0',
     ]);
 
     // Handle file uploads
@@ -170,6 +178,7 @@ class ProductController extends Controller
         'max_per_day' => $validatedData['max_per_day'],
         'image' => $validatedData['image'] ?? $product->image,
         'brochure' => $validatedData['brochure'] ?? $product->brochure,
+		 'display_order' => $validatedData['display_order'] ?? $product->display_order,
     ]);
 
     return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');

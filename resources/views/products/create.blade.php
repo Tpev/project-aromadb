@@ -109,6 +109,15 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+				<!-- Display Order -->
+				<div class="details-box">
+					<label class="details-label" for="display_order">{{ __('Ordre d\'affichage') }}</label>
+					<input type="number" id="display_order" name="display_order" class="form-control" value="{{ old('display_order', 0) }}" min="0">
+					@error('display_order')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+					<small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
+				</div>
 
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer la Prestation') }}</button>
                 <a href="{{ route('products.index') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>

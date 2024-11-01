@@ -26,6 +26,7 @@ class Product extends Model
         'max_per_day',
         'image',       // Add this line
         'brochure',    // Add this line
+		'display_order', // Add this line
     ];
 
     /**
