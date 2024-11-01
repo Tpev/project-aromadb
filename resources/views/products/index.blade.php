@@ -5,29 +5,35 @@
         </h2>
     </x-slot>
 
-    <!-- Lien vers Font Awesome pour les icônes -->
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
     <div class="container mt-5">
         <h1 class="page-title">Liste des Prestations</h1>
 
-        <!-- Barre de recherche et bouton de création -->
-        <div class="mb-4 d-flex justify-content-between">
-            <input type="text" id="search" class="form-control" placeholder="Recherche par nom de la prestation..." onkeyup="filterTable()" style="border-color: #854f38; max-width: 300px;">
+        <!-- Search Bar and Create Button -->
+        <div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+            <input 
+                type="text" 
+                id="search" 
+                class="form-control mb-2 mb-md-0" 
+                placeholder="Recherche par nom de la prestation..." 
+                onkeyup="filterTable()" 
+                style="border-color: #854f38; max-width: 300px;"
+            >
 
-            <!-- Bouton pour créer une prestation -->
-            <a href="{{ route('products.create') }}" class="btn-primary" style="white-space: nowrap;">
+            <!-- Create Product Button -->
+            <a href="{{ route('products.create') }}" class="btn-primary">
                 <i class="fas fa-plus mr-2"></i> Créer une prestation
             </a>
         </div>
 
-        <!-- Table triable et filtrable -->
-        <div class="table-responsive mx-auto">
+        <!-- Responsive Table -->
+        <div class="table-responsive">
             <table class="table table-bordered table-hover" id="productTable">
                 <thead>
                     <tr>
                         <th onclick="sortTable(0)">Nom de la Prestation <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable(1)">Description <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(2)">Prix (€) <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(3)">Taux de Taxe (%) <i class="fas fa-sort"></i></th>
                         <th onclick="sortTable(4)">Durée (minutes) <i class="fas fa-sort"></i></th>
@@ -38,11 +44,27 @@
                 </thead>
                 <tbody>
                     @foreach($products as $product)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('products.show', $product->id) }}');">
+                        <tr 
+                            class="table-row" 
+                            onclick="animateAndRedirect(this, '{{ route('products.show', $product->id) }}');"
+                        >
                             <td>{{ $product->name }}</td>
-                            <td>{{ $product->description }}</td>
-                            <td>{{ number_format($product->price, 2, ',', ' ') }}</td>
-                            <td>{{ number_format($product->tax_rate, 2, ',', ' ') }}%</td>
+
+                            <td>
+                                @php
+                                    $totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
+                                    // Remove trailing zeros and use space as thousand separator and comma as decimal
+                                    $formattedPrice = rtrim(rtrim(number_format($totalPrice, 2, ',', ' '), '0'), ',');
+                                @endphp
+                                {{ $formattedPrice }}€
+                            </td>
+                            <td>
+                                @php
+                                    // Remove trailing zeros for tax rate
+                                    $formattedTax = rtrim(rtrim(number_format($product->tax_rate, 2, ',', ' '), '0'), ',');
+                                @endphp
+                                {{ $formattedTax }}%
+                            </td>
                             <td>{{ $product->duration }}</td>
                             <td>{{ $product->can_be_booked_online ? 'Oui' : 'Non' }}</td>
                             <td>
@@ -59,10 +81,12 @@
         </div>
     </div>
 
-    <!-- Styles personnalisés -->
+    <!-- Custom Styles -->
     <style>
         .container {
             max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px; /* Ensure some padding on smaller screens */
             text-align: center;
         }
 
@@ -74,7 +98,8 @@
             border-radius: 5px;
             text-decoration: none;
             transition: background-color 0.3s;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
         }
 
         .btn-primary:hover {
@@ -87,12 +112,15 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
+            overflow-x: auto; /* Enable horizontal scrolling */
         }
 
         .table {
             width: 100%;
-            max-width: 1000px;
+            min-width: 800px; /* Ensure table has a minimum width for smaller screens */
+            max-width: 100%;
+            margin: 0 auto;
+            font-size: 0.9rem; /* Slightly smaller font for better fit */
         }
 
         .table thead {
@@ -103,6 +131,9 @@
 
         .table thead th {
             text-align: center;
+            padding: 12px;
+            font-size: 1rem;
+            white-space: nowrap; /* Prevent text wrapping */
         }
 
         .table tbody tr {
@@ -119,6 +150,8 @@
         .table th, .table td {
             vertical-align: middle;
             text-align: center;
+            padding: 10px;
+            white-space: nowrap; /* Prevent text wrapping */
         }
 
         .page-title {
@@ -133,11 +166,13 @@
             border-radius: 5px;
             border: 1px solid #854f38;
             margin-right: 15px;
+            width: 100%;
+            max-width: 300px;
         }
 
         i.fas.fa-sort {
             margin-left: 5px;
-            color: #647a0b;
+            color: #ffffff; /* Improved contrast against header background */
         }
 
         .d-flex {
@@ -147,9 +182,38 @@
         .justify-content-between {
             justify-content: space-between;
         }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .table {
+                font-size: 0.8rem; /* Further reduce font size on very small screens */
+            }
+
+            .table thead th, .table tbody td {
+                padding: 8px;
+            }
+
+            .btn-primary {
+                padding: 8px 16px; /* Reduce button padding on small screens */
+            }
+
+            .page-title {
+                font-size: 1.5rem; /* Adjust page title size for smaller screens */
+            }
+        }
+
+        /* Active Row Animation */
+        .active {
+            animation: highlight 0.5s forwards;
+        }
+
+        @keyframes highlight {
+            from { background-color: #ffffff; }
+            to { background-color: #854f38; color: #ffffff; }
+        }
     </style>
 
-    <!-- JavaScript pour le tri, le filtrage et la redirection -->
+    <!-- JavaScript for Sorting, Filtering, and Redirection -->
     <script>
         function animateAndRedirect(row, url) {
             row.classList.add('active');
@@ -164,11 +228,12 @@
             let table = document.getElementById('productTable');
             let tr = table.getElementsByTagName('tr');
 
+            // Loop through all table rows, excluding the header
             for (let i = 1; i < tr.length; i++) {
                 let tdName = tr[i].getElementsByTagName('td')[0];
                 if (tdName) {
                     let txtValueName = tdName.textContent || tdName.innerText;
-                    if (txtValueName.toLowerCase().indexOf(filter) > -1) {
+                    if (txtValueName.toLowerCase().includes(filter)) {
                         tr[i].style.display = '';
                     } else {
                         tr[i].style.display = 'none';
@@ -179,23 +244,23 @@
 
         function sortTable(n) {
             let table = document.getElementById('productTable');
-            let rows = table.rows;
             let switching = true;
             let dir = 'asc';
             let switchcount = 0;
 
             while (switching) {
                 switching = false;
-                let rowsArray = Array.from(rows).slice(1); // Exclure l'en-tête
-                for (let i = 0; i < rowsArray.length - 1; i++) {
+                let rows = table.rows;
+                for (let i = 1; i < rows.length - 1; i++) { // Start from 1 to skip header
                     let shouldSwitch = false;
-                    let x = rowsArray[i].getElementsByTagName('td')[n];
-                    let y = rowsArray[i + 1].getElementsByTagName('td')[n];
+                    let x = rows[i].getElementsByTagName('td')[n];
+                    let y = rows[i + 1].getElementsByTagName('td')[n];
 
                     let xContent = x.innerHTML.toLowerCase();
                     let yContent = y.innerHTML.toLowerCase();
 
-                    if (n === 2 || n === 3 || n === 4 || n === 7) { // Colonnes Prix (€), Taux de Taxe (%), Durée, Max par jour
+                    // Parse numerical values for specific columns
+                    if ([2, 3, 4, 7].includes(n)) { // Columns: Price (€), Tax Rate (%), Durée, Max séances/jour
                         xContent = parseFloat(xContent.replace(',', '.').replace(/[^0-9.-]+/g, ""));
                         yContent = parseFloat(yContent.replace(',', '.').replace(/[^0-9.-]+/g, ""));
                     }
@@ -213,7 +278,7 @@
                     }
                 }
                 if (shouldSwitch) {
-                    rowsArray[i].parentNode.insertBefore(rowsArray[i + 1], rowsArray[i]);
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
                     switching = true;
                     switchcount++;
                 } else {
