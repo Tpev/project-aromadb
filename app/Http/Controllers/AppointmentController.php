@@ -558,7 +558,7 @@ public function show(Appointment $appointment)
             'appointment_time.required' => 'L’heure du rendez-vous est requise.',
             'product_id.exists' => 'Le produit sélectionné est invalide.',
         ];
-
+     $product = Product::findOrFail($request->product_id);
         // Validate the incoming request with custom error messages
         $request->validate([
             'therapist_id' => 'required|exists:users,id',
@@ -574,7 +574,9 @@ public function show(Appointment $appointment)
             'notes' => 'nullable|string',
             'type' => 'nullable|string',
         ], $messages);
-
+		if ($product->adomicile) {
+			$rules['address'] = 'required|string|max:255';
+		}
         // Retrieve the therapist
         $therapist = User::findOrFail($request->therapist_id);
 
@@ -582,7 +584,7 @@ public function show(Appointment $appointment)
         $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
 
         // Validate the product (prestation) and get its duration
-        $product = Product::findOrFail($request->product_id);
+   
         $duration = $product->duration;
 
         // Check therapist's availability considering the product linkage
@@ -591,7 +593,7 @@ public function show(Appointment $appointment)
                 'appointment_date' => 'Le créneau horaire est indisponible ou entre en conflit avec un autre rendez-vous.',
             ])->withInput();
         }
-
+		
         // Create or find the ClientProfile
         $clientProfile = ClientProfile::firstOrCreate(
             [
@@ -605,6 +607,7 @@ public function show(Appointment $appointment)
                 'address' => $request->address,
                 'birthdate' => $request->birthdate,
                 'notes' => $request->notes,
+				'address' => $request->address,
             ]
         );
 

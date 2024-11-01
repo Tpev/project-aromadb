@@ -198,28 +198,40 @@
                     <p>{{ $therapist->company_name }}</p>
                 </div>
 
-                <!-- Prestation (Only prestations that can be booked online) -->
-                @if($products->count() > 0)
-                    <div class="details-box form-section">
-                        <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
-                        <select id="product_id" name="product_id" class="form-control" required>
-                            <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
-                            @foreach($products as $product)
-                                @if($product->can_be_booked_online)
-                                    @php
-                                        $totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
-                                    @endphp
-                                    <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }} data-duration="{{ $product->duration }}">
-                                        {{ $product->name }} - {{ rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.') }}€
-                                    </option>
-                                @endif
-                            @endforeach
-                        </select>
-                        @error('product_id')
-                            <p class="text-red-500">{{ $message }}</p>
-                        @enderror
-                    </div>
+<!-- Prestation (Only prestations that can be booked online) -->
+@if($products->count() > 0)
+    <div class="details-box form-section">
+        <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
+        <select id="product_id" name="product_id" class="form-control" required>
+            <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
+            @foreach($products as $product)
+                @if($product->can_be_booked_online)
+                    @php
+                        $totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
+                        $formattedPrice = rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.');
+                    @endphp
+                    <option value="{{ $product->id }}"
+                            {{ old('product_id') == $product->id ? 'selected' : '' }}
+                            data-duration="{{ $product->duration }}"
+                            data-adomicile="{{ $product->adomicile ? '1' : '0' }}"
+                            data-dans_le_cabinet="{{ $product->dans_le_cabinet ? '1' : '0' }}">
+                        {{ $product->name }} - {{ $formattedPrice }}€ - {{ $product->getConsultationModes() }}
+                    </option>
                 @endif
+            @endforeach
+        </select>
+        @error('product_id')
+            <p class="text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+@endif
+
+<!-- Therapist Address (only show if the product is 'dans_le_cabinet') -->
+<div class="details-box form-section" id="therapist-address-section" style="display: none;">
+    <label class="details-label">{{ __('Adresse du Cabinet') }}</label>
+    <p class="form-control-static">{{ $therapist->company_address ?? __('Adresse non disponible.') }}</p>
+</div>
+
 
                 <!-- Patient First Name -->
                 <div class="details-box form-section">
@@ -256,6 +268,14 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+				<!-- Client Address (only show if the product is 'à domicile') -->
+				<div class="details-box form-section" id="client-address-section" style="display: none;">
+					<label class="details-label" for="address">{{ __('Votre adresse') }}</label>
+					<input type="text" id="address" name="address" class="form-control" value="{{ old('address', $clientProfile->address ?? '') }}">
+					@error('address')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+				</div>
 
                 <!-- Appointment Date -->
                 <div class="details-box form-section">
@@ -450,5 +470,47 @@
             @endif
         @endif
     });
+	
+	
+
+document.addEventListener('DOMContentLoaded', function () {
+    const productSelect = document.getElementById('product_id');
+    const addressSection = document.getElementById('client-address-section');
+    const therapistAddressSection = document.getElementById('therapist-address-section');
+
+    function checkProductMode() {
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        if (selectedOption) {
+            const isAdomicile = selectedOption.getAttribute('data-adomicile') === '1';
+            const isDansLeCabinet = selectedOption.getAttribute('data-dans_le_cabinet') === '1';
+
+            // Show client address section if 'à domicile'
+            if (isAdomicile) {
+                addressSection.style.display = 'block';
+            } else {
+                addressSection.style.display = 'none';
+            }
+
+            // Show therapist address section if 'dans le cabinet'
+            if (isDansLeCabinet) {
+                therapistAddressSection.style.display = 'block';
+            } else {
+                therapistAddressSection.style.display = 'none';
+            }
+        } else {
+            // Hide both sections if no product is selected
+            addressSection.style.display = 'none';
+            therapistAddressSection.style.display = 'none';
+        }
+    }
+
+    productSelect.addEventListener('change', checkProductMode);
+
+    // Call the function on page load in case a product is pre-selected
+    checkProductMode();
+});
+
+
+
     </script>
 </x-app-layout>

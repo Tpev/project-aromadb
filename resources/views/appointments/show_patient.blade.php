@@ -7,6 +7,7 @@
     </x-slot>
 
     <style>
+        /* Existing styles */
         .confirmation-container {
             background-color: #f0f8ec;
             padding: 30px;
@@ -125,8 +126,28 @@
 
         @if($appointment->product)
             <div class="confirmation-content">
-                <p><span class="confirmation-label">{{ __('Préstation') }}:</span> {{ $appointment->product->name }}</p>
+                <p><span class="confirmation-label">{{ __('Prestation') }}:</span> {{ $appointment->product->name }}</p>
             </div>
+
+            <!-- Display Consultation Mode -->
+            <div class="confirmation-content">
+                <p><span class="confirmation-label">{{ __('Mode de consultation') }}:</span> {{ $appointment->product->getConsultationModes() }}</p>
+            </div>
+
+            <!-- Conditional Messages Based on Consultation Mode -->
+            @if($appointment->product->visio)
+                <div class="confirmation-content">
+                    <p>{{ __('Vous recevrez le lien visio par email.') }}</p>
+                </div>
+            @elseif($appointment->product->dans_le_cabinet)
+                <div class="confirmation-content">
+                    <p><span class="confirmation-label">{{ __('Adresse du cabinet') }}:</span> {!! nl2br(e($appointment->user->company_address ?? __('Adresse non disponible'))) !!}</p>
+                </div>
+            @elseif($appointment->product->adomicile)
+                <div class="confirmation-content">
+                    <p><span class="confirmation-label">{{ __('Votre adresse') }}:</span> {!! nl2br(e($appointment->clientProfile->address ?? __('Adresse non disponible'))) !!}</p>
+                </div>
+            @endif
         @endif
 
         <div class="confirmation-content">
