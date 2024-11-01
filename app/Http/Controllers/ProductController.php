@@ -138,14 +138,17 @@ class ProductController extends Controller
     /**
      * Remove the specified product from the database.
      */
-    public function destroy(Product $product)
-    {
-        // Ensure the user is authorized to delete this product
-        $this->authorize('delete', $product);
-
-        // Delete the product
-        $product->delete();
-
-        return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès.');
+public function destroy(Product $product)
+{
+    // Check if the authenticated user owns the product
+    if ($product->user_id !== auth()->id()) {
+        return redirect()->route('products.index')->with('error', 'Vous n\'êtes pas autorisé à supprimer ce produit.');
     }
+
+    // Delete the product
+    $product->delete();
+
+    return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès.');
+}
+
 }
