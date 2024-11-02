@@ -23,13 +23,18 @@ class TrackPageViews
 
         // Only log the page view if the country is France ('FR')
         if ($country === 'FR') {
+            // Get the user agent and truncate it to fit into the database column
+            $userAgent = $request->header('User-Agent');
+            $maxLength = 255; // Adjust this value based on your database column size
+            $userAgent = substr($userAgent, 0, $maxLength);
+
             PageViewLog::create([
                 'url' => $request->path(),
                 'session_id' => $request->session()->getId(),
                 'ip_address' => $ipAddress,
                 'referrer' => $request->headers->get('referer'),
                 'viewed_at' => Carbon::now(),
-                'user_agent' => $request->header('User-Agent'),
+                'user_agent' => $userAgent,
                 'country' => $country, // Store the country
             ]);
         }
