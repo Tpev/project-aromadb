@@ -17,7 +17,7 @@ class CheckMilestones extends Command
     protected $description = 'Check if milestones have been reached and send emails';
 
     // Define the milestones you want to track
-    protected $milestones = [500, 1000, 2000, 5000, 10000];
+    protected $milestones = [500, 1000, 2000, 3000, 4000, 5000, 10000];
 
     public function handle()
     {
