@@ -33,7 +33,7 @@ class TestimonialController extends Controller
 
         // Valider les données
         $validator = Validator::make($request->all(), [
-            'testimonial' => 'required|string|min:10|max:1000',
+            'testimonial' => 'required|string|min:10|max:1500',
         ]);
 
         if ($validator->fails()) {

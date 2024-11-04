@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HuileHEController;
@@ -28,10 +28,24 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\TestCertificateController;	
+use App\Http\Controllers\EventController;
 
 Route::get('/test-certificate', [TestCertificateController::class, 'generateTestCertificate'])->name('generateTestCertificate');
 
 
+// Route to show the reservation form
+Route::get('events/{event}/reserve', [ReservationController::class, 'create'])->name('events.reserve.create');
+
+// Route to handle reservation form submission
+Route::post('events/{event}/reserve', [ReservationController::class, 'store'])->name('events.reserve.store');
+Route::get('events/{event}/reservation-success', [ReservationController::class, 'success'])->name('reservations.success');
+
+
+Route::middleware('auth')->group(function () {
+	Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
+
+    Route::resource('events', EventController::class);
+});
 
 
 Route::middleware(['auth'])->group(function () {

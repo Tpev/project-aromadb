@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Event;
+use Carbon\Carbon;
+
 
 class PublicTherapistController extends Controller
 {
@@ -24,8 +27,15 @@ public function show($slug)
     // Charger les témoignages paginés
     $testimonials = $therapist->testimonials()->paginate(5); // 5 témoignages par page
 	 $prestations = $therapist->products()->orderBy('display_order')->get();
-
+// Fetch upcoming events for the therapist
+    // Fetch upcoming events for the therapist that are set to be shown on the portal
+    $events = Event::where('user_id', $therapist->id)
+        ->where('start_date_time', '>=', Carbon::now())
+        ->where('showOnPortail', true)
+        ->orderBy('start_date_time', 'asc')
+        ->with('associatedProduct') // Eager load the associated product
+        ->get();
     // Passer les données au vue
-    return view('public.therapist.show', compact('therapist', 'testimonials','prestations'));
+    return view('public.therapist.show', compact('therapist', 'testimonials','prestations','events'));
 }
 }

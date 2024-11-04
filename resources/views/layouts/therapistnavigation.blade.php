@@ -40,6 +40,9 @@
 						</a>
 						<a href="{{ route('products.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
 							{{ __('Prestations') }}
+						</a>							
+						<a href="{{ route('events.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+							{{ __('Evénements') }}
 						</a>						
 						<a href="{{ route('questionnaires.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
 							{{ __('Questionnaires') }}
@@ -115,6 +118,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Prestations') }}
+            </x-responsive-nav-link>            
+			<x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Evénements') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Disponibilités') }}

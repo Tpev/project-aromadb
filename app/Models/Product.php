@@ -68,6 +68,9 @@ class Product extends Model
 
     return empty($modes) ? 'Non spécifié' : implode(', ', $modes);
 }
-
+    public function getPriceInclTaxAttribute()
+    {
+        return $this->price + ($this->price * $this->tax_rate / 100);
+    }
 	
 }
