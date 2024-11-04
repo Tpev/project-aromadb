@@ -207,6 +207,12 @@
                 <div class="col-md-12 text-center">
                     <a href="{{ route('client_profiles.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
                     <a href="{{ route('client_profiles.edit', $clientProfile->id) }}" class="btn-secondary">{{ __('Modifier le profil') }}</a>
+					<!-- Delete Button -->
+<form action="{{ route('client_profiles.destroy', $clientProfile->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer ce profil client ? Cette action est irréversible.') }}');">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn-danger">{{ __('Supprimer le profil') }}</button>
+</form>
                 </div>
             </div>
         </div>
@@ -214,6 +220,23 @@
 
     <!-- Custom Styles -->
     <style>
+	/* Delete Button */
+.btn-danger {
+    background-color: #e3342f;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.btn-danger:hover {
+    background-color: #cc1f1a;
+}
+
         .container {
             max-width: 900px;
         }
