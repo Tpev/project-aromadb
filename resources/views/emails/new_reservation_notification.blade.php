@@ -19,9 +19,7 @@ Vous avez une nouvelle réservation pour votre événement **{{ $event->name }}*
 - **Durée:** {{ $event->duration }} minutes
 - **Lieu:** {{ $event->location }}
 
-@component('mail::button', ['url' => route('events.show', $event->id)])
-Voir les détails de l'événement
-@endcomponent
+
 
 Cordialement,
 
