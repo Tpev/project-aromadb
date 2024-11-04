@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use App\Models\PageViewLog;
 use App\Models\User;
+use App\Models\FacebookMetric;
 
 class SendDailyKpiEmail extends Command
 {
@@ -125,6 +126,36 @@ class SendDailyKpiEmail extends Command
             $highestSessionCount = $sessionsYesterday;
             $highestSessionDate = $yesterday->toDateString();
         }
+		// Fetch the latest Facebook metrics
+$latestMetric = FacebookMetric::orderBy('created_at', 'desc')->first();
+
+// Fetch the Facebook metrics from 24 hours ago
+$metric24hAgo = FacebookMetric::where('created_at', '<=', Carbon::now()->subHours(24))
+    ->orderBy('created_at', 'desc')
+    ->first();
+
+// Prepare the Facebook metrics data
+$facebookMetrics = [
+    'latest' => [
+        'fan_count' => $latestMetric ? $latestMetric->fan_count : null,
+        'followers_count' => $latestMetric ? $latestMetric->followers_count : null,
+    ],
+    '24h_ago' => [
+        'fan_count' => $metric24hAgo ? $metric24hAgo->fan_count : null,
+        'followers_count' => $metric24hAgo ? $metric24hAgo->followers_count : null,
+    ],
+];
+// Calculate percentage growth for fan_count (Likes)
+$fanCountGrowth = null;
+if ($latestMetric && $metric24hAgo && $metric24hAgo->fan_count > 0) {
+    $fanCountGrowth = (($latestMetric->fan_count - $metric24hAgo->fan_count) / $metric24hAgo->fan_count) * 100;
+}
+
+// Calculate percentage growth for followers_count (Followers)
+$followersCountGrowth = null;
+if ($latestMetric && $metric24hAgo && $metric24hAgo->followers_count > 0) {
+    $followersCountGrowth = (($latestMetric->followers_count - $metric24hAgo->followers_count) / $metric24hAgo->followers_count) * 100;
+}
 
         // Préparer les données KPI
         $kpis = [
@@ -140,6 +171,11 @@ class SendDailyKpiEmail extends Command
             'isNewHigh' => $isNewHigh,
             'lastHighCount' => $lastHighCount,
             'lastHighDate' => $lastHighDate,
+			'facebookMetrics' => $facebookMetrics,
+			    'facebookGrowth' => [
+        'fan_count' => $fanCountGrowth,
+        'followers_count' => $followersCountGrowth,
+    ],
         ];
 
         // Ajouter des logs pour déboguer

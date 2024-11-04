@@ -28,6 +28,18 @@ Voici les KPIs pour le **{{ \Carbon\Carbon::now()->format('d/m/Y') }}** :
 | **Record de Sessions**          | {{ $kpis['highestSessionCount'] }} (Le {{ \Carbon\Carbon::parse($kpis['highestSessionDate'])->format('d/m/Y') }}) |
 @endcomponent
 
+{{-- New Facebook Metrics Section --}}
+## Statistiques Facebook 📊
+
+@component('mail::table')
+| **Facebook KPI**                   | **Dernières Valeurs**                                  | **Il y a 24h**                                      | **Croissance (%)**                       |
+| ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------- |
+| **Nombre de Likes (fan_count)**    | {{ $kpis['facebookMetrics']['latest']['fan_count'] ?? 'N/A' }}       | {{ $kpis['facebookMetrics']['24h_ago']['fan_count'] ?? 'N/A' }}       | {{ isset($kpis['facebookGrowth']['fan_count']) ? number_format($kpis['facebookGrowth']['fan_count'], 2) . '%' : 'N/A' }} |
+| **Nombre de Followers**            | {{ $kpis['facebookMetrics']['latest']['followers_count'] ?? 'N/A' }} | {{ $kpis['facebookMetrics']['24h_ago']['followers_count'] ?? 'N/A' }} | {{ isset($kpis['facebookGrowth']['followers_count']) ? number_format($kpis['facebookGrowth']['followers_count'], 2) . '%' : 'N/A' }} |
+@endcomponent
+
+
+
 @component('mail::button', ['url' => route('admin.index')])
     Voir le Tableau de Bord
 @endcomponent

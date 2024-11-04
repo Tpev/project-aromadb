@@ -8,6 +8,7 @@ use App\Console\Commands\SendDailyKpiEmail;
 use App\Console\Commands\CheckMilestones;
 use App\Console\Commands\SendAppointmentReminders;
 use App\Console\Commands\SendOneHourReminder;
+use App\Console\Commands\FetchFacebookMetrics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,9 @@ Schedule::command(SendAppointmentReminders::class)->hourly();
 
 // Schedule the 1-hour appointment reminder command
 Schedule::command(SendOneHourReminder::class)->hourly();
+
+// Fetch FB data
+Schedule::command(FetchFacebookMetrics::class)->hourly();
 
 
 
