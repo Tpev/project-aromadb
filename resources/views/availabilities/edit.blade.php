@@ -70,7 +70,7 @@
                     <label class="details-label" for="products">{{ __('Sélectionner les Produits') }}</label>
                     <select name="products[]" id="products" class="form-control select2" multiple>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}" @selected(is_array(old('products', $selectedProducts)) && in_array($product->id, old('products', $selectedProducts)))>{{ $product->name }}</option>
+                            <option value="{{ $product->id }}" @selected(is_array(old('products', $selectedProducts)) && in_array($product->id, old('products', $selectedProducts)))>    {{ $product->name }} - {{ $product->getConsultationModes() }}</option>
                         @endforeach
                     </select>
                     <small class="form-text text-muted">{{ __('Recherchez et sélectionnez un ou plusieurs produits.') }}</small>

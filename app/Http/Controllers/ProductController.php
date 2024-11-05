@@ -201,4 +201,75 @@ public function destroy(Product $product)
     return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès.');
 }
 
+public function duplicate(Product $product)
+{
+    // Vérifier si l'utilisateur est autorisé à dupliquer cette prestation
+    if ($product->user_id !== Auth::id()) {
+        return redirect()->route('products.index')->with('error', 'Vous n\'êtes pas autorisé à dupliquer cette prestation.');
+    }
+
+    // Retourner la vue de duplication avec les données de la prestation existante
+    return view('products.duplicate', compact('product'));
+}
+
+public function storeDuplicate(Request $request, Product $product)
+{
+    // Valider les données du formulaire
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric|min:0',
+        'tax_rate' => 'required|numeric|min:0|max:100',
+        'duration' => 'nullable|integer|min:1',
+        'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
+        'max_per_day' => 'nullable|integer|min:1',
+        'can_be_booked_online' => 'required|boolean',
+        'image' => 'nullable|image|max:4048',
+        'brochure' => 'nullable|mimes:pdf|max:5120',
+        'display_order' => 'nullable|integer|min:0',
+    ]);
+
+    // Gérer les uploads de fichiers
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('products/images', 'public');
+        $validatedData['image'] = $imagePath;
+    } else {
+        $validatedData['image'] = $product->image;
+    }
+
+    if ($request->hasFile('brochure')) {
+        $brochurePath = $request->file('brochure')->store('products/brochures', 'public');
+        $validatedData['brochure'] = $brochurePath;
+    } else {
+        $validatedData['brochure'] = $product->brochure;
+    }
+
+    // Déterminer les modes de prestation
+    $visio = $validatedData['mode'] === 'visio';
+    $adomicile = $validatedData['mode'] === 'adomicile';
+    $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
+
+    // Créer la nouvelle prestation
+    $newProduct = Product::create([
+        'user_id' => Auth::id(),
+        'name' => $validatedData['name'],
+        'description' => $validatedData['description'],
+        'price' => $validatedData['price'],
+        'tax_rate' => $validatedData['tax_rate'],
+        'duration' => $validatedData['duration'],
+        'can_be_booked_online' => $validatedData['can_be_booked_online'],
+        'visio' => $visio,
+        'adomicile' => $adomicile,
+        'dans_le_cabinet' => $dans_le_cabinet,
+        'max_per_day' => $validatedData['max_per_day'],
+        'image' => $validatedData['image'],
+        'brochure' => $validatedData['brochure'],
+        'display_order' => $validatedData['display_order'] ?? ($product->display_order + 1),
+    ]);
+
+    return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
+}
+
+
+
 }

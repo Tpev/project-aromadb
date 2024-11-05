@@ -73,7 +73,7 @@
                                 @if(is_array(old('products')) && in_array($product->id, old('products'))) 
                                     selected 
                                 @endif>
-                                {{ $product->name }}
+                                        {{ $product->name }} - {{ $product->getConsultationModes() }}
                             </option>
                         @endforeach
                     </select>

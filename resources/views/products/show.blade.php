@@ -119,7 +119,9 @@
                     <button type="submit" class="btn-secondary" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette prestation ?')">{{ __('Supprimer') }}</button>
                 </form>
                 <a href="{{ route('products.index') }}" class="btn-secondary">{{ __('Retour à la liste') }}</a>
-            </div>
+				<a href="{{ route('products.duplicate', $product->id) }}" class="btn-primary mt-4">{{ __('Dupliquer la Prestation') }}</a>
+
+		   </div>
 
             <!-- Factures associées -->
             @if($invoices->count() > 0)

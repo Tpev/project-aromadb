@@ -206,6 +206,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Supprimer un produit
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('can:delete,product');
+	// Duplicate un produit
+	Route::get('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
+	Route::post('products/{product}/duplicate', [ProductController::class, 'storeDuplicate'])->name('products.storeDuplicate');
+
 });
 
 
