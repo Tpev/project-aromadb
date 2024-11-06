@@ -11,7 +11,7 @@
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
 
-            <!-- Display Product Image if it exists -->
+            <!-- Afficher l'image du produit si elle existe -->
             @if($product->image)
                 <div class="product-image-container mb-4">
                     <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="product-image">
@@ -76,6 +76,17 @@
                     </div>
                 </div>
 
+                <!-- Collecter le Paiement -->
+                <div class="product-box">
+                    <i class="fas fa-money-check-alt icon"></i>
+                    <div class="product-details">
+                        <p class="product-label">{{ __('Collecter le Paiement') }}</p>
+                        <p class="product-value">
+                            {{ $product->collect_payment ? 'Oui, un paiement est requis lors de la réservation.' : 'Non, aucun paiement n\'est requis.' }}
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Mode de prestation -->
                 <div class="product-box">
                     <i class="fas fa-map-marker-alt icon"></i>
@@ -119,9 +130,8 @@
                     <button type="submit" class="btn-secondary" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette prestation ?')">{{ __('Supprimer') }}</button>
                 </form>
                 <a href="{{ route('products.index') }}" class="btn-secondary">{{ __('Retour à la liste') }}</a>
-				<a href="{{ route('products.duplicate', $product->id) }}" class="btn-primary mt-4">{{ __('Dupliquer la Prestation') }}</a>
-
-		   </div>
+                <a href="{{ route('products.duplicate', $product->id) }}" class="btn-primary mt-4">{{ __('Dupliquer la Prestation') }}</a>
+            </div>
 
             <!-- Factures associées -->
             @if($invoices->count() > 0)

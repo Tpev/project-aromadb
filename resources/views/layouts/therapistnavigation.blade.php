@@ -49,6 +49,9 @@
 						</a>						
 						<a href="{{ route('profile.editCompanyInfo') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
 							{{ __('Informations de l\'entreprise') }}
+						</a>						
+						<a href="{{ route('therapist.stripe') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+							{{ __('Paiement en ligne') }}
 						</a>
 					</div>
 				</div>
@@ -133,6 +136,9 @@
             </x-responsive-nav-link>
 			<x-responsive-nav-link :href="route('profile.editCompanyInfo')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('Informations de l\'entreprise') }}
+            </x-responsive-nav-link>			
+			<x-responsive-nav-link :href="route('therapist.stripe')" class="text-[#647a0b] hover:text-[#854f38]">
+                    {{ __('Paiement en ligne') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Factures') }}

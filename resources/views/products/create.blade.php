@@ -39,6 +39,17 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+				<!-- Collect Payment -->
+				<div class="details-box">
+					<label class="details-label" for="collect_payment">{{ __('Collecter le Paiement durant la prise de rdv sur votre portail') }}</label>
+					<!-- Hidden input to ensure a value is always sent -->
+					<input type="hidden" name="collect_payment" value="0">
+					<!-- Checkbox input -->
+					<input type="checkbox" id="collect_payment" name="collect_payment" value="1" {{ old('collect_payment') ? 'checked' : '' }}>
+					@error('collect_payment')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+				</div>
 
                 <!-- Taux de Taxe -->
                 <div class="details-box">

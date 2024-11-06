@@ -20,6 +20,7 @@ class Product extends Model
         'tax_rate',
         'duration',
         'can_be_booked_online',
+		'collect_payment', // Ajouté
         'visio',
         'adomicile',
         'dans_le_cabinet',

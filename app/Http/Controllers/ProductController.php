@@ -38,9 +38,9 @@ class ProductController extends Controller
     /**
      * Store a newly created product in the database.
      */
-  public function store(Request $request)
+ public function store(Request $request)
 {
-    // Validate the request
+    // Valider la requête
     $validatedData = $request->validate([
         'name' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -50,17 +50,19 @@ class ProductController extends Controller
         'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
         'max_per_day' => 'nullable|integer|min:1',
         'can_be_booked_online' => 'required|boolean',
-        'image' => 'nullable|image|max:4048',        // Validate image
-        'brochure' => 'nullable|mimes:pdf|max:5120', // Validate brochure (PDF)
-		 'display_order' => 'nullable|integer|min:0',
+        'collect_payment' => 'required|boolean', // Ajouté
+        'image' => 'nullable|image|max:4048',
+        'brochure' => 'nullable|mimes:pdf|max:5120',
+        'display_order' => 'nullable|integer|min:0',
     ]);
 
-    // Set default display_order if not provided
+    // Définir l'ordre d'affichage par défaut si non fourni
     if (!isset($validatedData['display_order'])) {
         $maxOrder = Product::where('user_id', Auth::id())->max('display_order');
         $validatedData['display_order'] = $maxOrder + 1;
     }
-    // Handle file uploads
+
+    // Gérer les uploads de fichiers
     if ($request->hasFile('image')) {
         $imagePath = $request->file('image')->store('products/images', 'public');
         $validatedData['image'] = $imagePath;
@@ -71,12 +73,12 @@ class ProductController extends Controller
         $validatedData['brochure'] = $brochurePath;
     }
 
-    // Set consultation modes
+    // Définir les modes de consultation
     $visio = $validatedData['mode'] === 'visio';
     $adomicile = $validatedData['mode'] === 'adomicile';
     $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
 
-    // Create the product
+    // Créer le produit
     $product = Product::create([
         'user_id' => Auth::id(),
         'name' => $validatedData['name'],
@@ -85,17 +87,19 @@ class ProductController extends Controller
         'tax_rate' => $validatedData['tax_rate'],
         'duration' => $validatedData['duration'],
         'can_be_booked_online' => $validatedData['can_be_booked_online'],
+        'collect_payment' => $validatedData['collect_payment'], // Ajouté
         'visio' => $visio,
         'adomicile' => $adomicile,
         'dans_le_cabinet' => $dans_le_cabinet,
         'max_per_day' => $validatedData['max_per_day'],
         'image' => $validatedData['image'] ?? null,
         'brochure' => $validatedData['brochure'] ?? null,
-		'display_order' => $validatedData['display_order'],
+        'display_order' => $validatedData['display_order'],
     ]);
 
     return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
 }
+
 
 
     /**
@@ -123,9 +127,9 @@ class ProductController extends Controller
     /**
      * Update the specified product in the database.
      */
-  public function update(Request $request, Product $product)
+public function update(Request $request, Product $product)
 {
-    // Validate the request
+    // Valider la requête
     $validatedData = $request->validate([
         'name' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -135,14 +139,15 @@ class ProductController extends Controller
         'mode' => 'required|string|in:visio,adomicile,dans_le_cabinet',
         'max_per_day' => 'nullable|integer|min:1',
         'can_be_booked_online' => 'required|boolean',
+        'collect_payment' => 'required|boolean', // Ajouté
         'image' => 'nullable|image|max:2048',
         'brochure' => 'nullable|mimes:pdf|max:5120',
-		  'display_order' => 'nullable|integer|min:0',
+        'display_order' => 'nullable|integer|min:0',
     ]);
 
-    // Handle file uploads
+    // Gérer les uploads de fichiers
     if ($request->hasFile('image')) {
-        // Delete old image if exists
+        // Supprimer l'ancienne image si elle existe
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
@@ -151,7 +156,7 @@ class ProductController extends Controller
     }
 
     if ($request->hasFile('brochure')) {
-        // Delete old brochure if exists
+        // Supprimer l'ancienne brochure si elle existe
         if ($product->brochure) {
             Storage::disk('public')->delete($product->brochure);
         }
@@ -159,12 +164,12 @@ class ProductController extends Controller
         $validatedData['brochure'] = $brochurePath;
     }
 
-    // Set consultation modes
+    // Définir les modes de consultation
     $visio = $validatedData['mode'] === 'visio';
     $adomicile = $validatedData['mode'] === 'adomicile';
     $dans_le_cabinet = $validatedData['mode'] === 'dans_le_cabinet';
 
-    // Update the product
+    // Mettre à jour le produit
     $product->update([
         'name' => $validatedData['name'],
         'description' => $validatedData['description'],
@@ -172,17 +177,19 @@ class ProductController extends Controller
         'tax_rate' => $validatedData['tax_rate'],
         'duration' => $validatedData['duration'],
         'can_be_booked_online' => $validatedData['can_be_booked_online'],
+        'collect_payment' => $validatedData['collect_payment'], // Ajouté
         'visio' => $visio,
         'adomicile' => $adomicile,
         'dans_le_cabinet' => $dans_le_cabinet,
         'max_per_day' => $validatedData['max_per_day'],
         'image' => $validatedData['image'] ?? $product->image,
         'brochure' => $validatedData['brochure'] ?? $product->brochure,
-		 'display_order' => $validatedData['display_order'] ?? $product->display_order,
+        'display_order' => $validatedData['display_order'] ?? $product->display_order,
     ]);
 
     return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
 }
+
 
 
     /**

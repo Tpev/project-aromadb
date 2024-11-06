@@ -19,6 +19,7 @@ protected $fillable = [
     'type',
     'duration',
     'product_id',
+	 'stripe_session_id', // Ajouté pour suivre la session Stripe
 ];
 
     // Automatically generate a token when creating a new appointment

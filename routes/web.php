@@ -29,6 +29,35 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\TestCertificateController;	
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\StripeController;
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/connect/stripe', [StripeController::class, 'connect'])->name('stripe.connect');
+    Route::get('/connect/stripe/refresh', [StripeController::class, 'refresh'])->name('stripe.refresh');
+    Route::get('/connect/stripe/return', [StripeController::class, 'return'])->name('stripe.return');
+    Route::get('/stripe/dashboard', [StripeController::class, 'redirectToStripeDashboard'])->name('stripe.dashboard')->middleware('auth');
+	Route::get('/therapist/stripe', [StripeController::class, 'portal'])->name('therapist.stripe')->middleware('auth');
+
+});
+
+// Routes de paiement Stripe (pour les patients)
+Route::post('/create-checkout-session/{token}', [StripeController::class, 'createCheckoutSession'])->name('checkout.create');
+Route::get('/checkout/success', [StripeController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/cancel', [StripeController::class, 'cancel'])->name('checkout.cancel');
+
+// Webhook Stripe (accessible publiquement)
+Route::post('/stripe/webhook', [StripeController::class, 'handleWebhook'])->name('stripe.webhook');
+
+
+// Route pour gérer le succès du paiement Stripe
+Route::get('/appointments/success', [AppointmentController::class, 'success'])->name('appointments.success');
+
+// Route pour gérer l'annulation du paiement Stripe
+Route::get('/appointments/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+
+
 
 Route::get('/test-certificate', [TestCertificateController::class, 'generateTestCertificate'])->name('generateTestCertificate');
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Str;   
 use App\Models\Appointment;
+use App\Models\Invoice;
 use App\Models\Meeting;
 use App\Models\ClientProfile;
 use Illuminate\Http\Request;
@@ -17,6 +18,9 @@ use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
 use App\Mail\AppointmentEditedClientMail;
 use App\Models\Unavailability;
+use Stripe\StripeClient;
+
+
 
 class AppointmentController extends Controller
 {
@@ -544,129 +548,221 @@ public function show(Appointment $appointment)
     /**
      * Store a newly created appointment from a patient.
      */
-    public function storePatient(Request $request)
-    {
-        // Custom error messages
-        $messages = [
-            'therapist_id.required' => 'Le thérapeute est requis.',
-            'therapist_id.exists' => 'Le thérapeute sélectionné est invalide.',
-            'first_name.required' => 'Le prénom est requis.',
-            'last_name.required' => 'Le nom est requis.',
-            'email.email' => 'Veuillez fournir une adresse e-mail valide.',
-            'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
-            'appointment_date.required' => 'La date du rendez-vous est requise.',
-            'appointment_time.required' => 'L’heure du rendez-vous est requise.',
-            'product_id.exists' => 'Le produit sélectionné est invalide.',
-        ];
-     $product = Product::findOrFail($request->product_id);
-        // Validate the incoming request with custom error messages
+public function storePatient(Request $request)
+{
+    // Messages d'erreur personnalisés
+    $messages = [
+        'therapist_id.required' => 'Le thérapeute est requis.',
+        'therapist_id.exists' => 'Le thérapeute sélectionné est invalide.',
+        'first_name.required' => 'Le prénom est requis.',
+        'last_name.required' => 'Le nom est requis.',
+        'email.email' => 'Veuillez fournir une adresse e-mail valide.',
+        'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
+        'appointment_date.required' => 'La date du rendez-vous est requise.',
+        'appointment_time.required' => 'L’heure du rendez-vous est requise.',
+        'product_id.exists' => 'Le produit sélectionné est invalide.',
+    ];
+
+    // Valider les données du formulaire
+    $request->validate([
+        'therapist_id' => 'required|exists:users,id',
+        'first_name' => 'required|string|max:255',
+        'last_name' => 'required|string|max:255',
+        'email' => 'nullable|email|max:255',
+        'phone' => 'nullable|string|max:20',
+        'address' => 'nullable|string',
+        'birthdate' => 'nullable|date',
+        'appointment_date' => 'required|date',
+        'appointment_time' => 'required|date_format:H:i',
+        'product_id' => 'required|exists:products,id',
+        'notes' => 'nullable|string',
+        'type' => 'nullable|string',
+    ], $messages);
+
+    // Si le produit nécessite une adresse, valider la présence de l'adresse
+    $product = Product::findOrFail($request->product_id);
+    if ($product->adomicile) {
         $request->validate([
-            'therapist_id' => 'required|exists:users,id',
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string',
-            'birthdate' => 'nullable|date',
-            'appointment_date' => 'required|date',
-            'appointment_time' => 'required|date_format:H:i',
-            'product_id' => 'required|exists:products,id',
-            'notes' => 'nullable|string',
-            'type' => 'nullable|string',
-        ], $messages);
-		if ($product->adomicile) {
-			$rules['address'] = 'required|string|max:255';
-		}
-        // Retrieve the therapist
-        $therapist = User::findOrFail($request->therapist_id);
-
-        // Combine date and time
-        $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
-
-        // Validate the product (prestation) and get its duration
-   
-        $duration = $product->duration;
-
-        // Check therapist's availability considering the product linkage
-        if (!$this->isAvailable($appointmentDateTime, $duration, $therapist->id, $product->id)) {
-            return redirect()->back()->withErrors([
-                'appointment_date' => 'Le créneau horaire est indisponible ou entre en conflit avec un autre rendez-vous.',
-            ])->withInput();
-        }
-		
-        // Create or find the ClientProfile
-        $clientProfile = ClientProfile::firstOrCreate(
-            [
-                'email' => $request->email,
-                'user_id' => $therapist->id,
-            ],
-            [
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'birthdate' => $request->birthdate,
-                'notes' => $request->notes,
-				'address' => $request->address,
-            ]
-        );
-
-        // Create the appointment
-        $appointment = Appointment::create([
-            'client_profile_id' => $clientProfile->id,
-            'user_id' => $therapist->id, // Assign to the therapist
-            'appointment_date' => $appointmentDateTime,
-            'status' => 'Programmé', // Default status
-            'notes' => $request->notes,
-            'type' => $request->type,
-            'duration' => $duration,
-            'product_id' => $request->product_id,
+            'address' => 'required|string|max:255',
         ]);
+    }
 
+    // Récupérer le thérapeute
+    $therapist = User::findOrFail($request->therapist_id);
 
-  // Check if the product allows video calls
-    if ($product->visio) {
-        // Generate a secure token for the room
-        $token = Str::random(32);
+    // Combiner la date et l'heure
+    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
 
-    // Create the meeting and link it to the appointment
-    $meeting = Meeting::create([
-        'name' => 'Réunion pour ' . $appointment->clientProfile->name, // Adjust as necessary
-        'start_time' => $appointmentDateTime,
-        'duration' => $duration,
-        'participant_email' => $appointment->clientProfile->email,
-        'client_profile_id' => $request->client_profile_id,
-        'room_token' => $token,
-        'appointment_id' => $appointment->id, // Link the meeting to the appointment
+    // Valider la disponibilité du thérapeute
+    if (!$this->isAvailable($appointmentDateTime, $product->duration, $therapist->id, $product->id)) {
+        return redirect()->back()->withErrors([
+            'appointment_date' => 'Le créneau horaire est indisponible ou entre en conflit avec un autre rendez-vous.',
+        ])->withInput();
+    }
+
+    // Créer ou trouver le ClientProfile
+    $clientProfile = ClientProfile::firstOrCreate(
+        [
+            'email' => $request->email,
+            'user_id' => $therapist->id,
+        ],
+        [
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'birthdate' => $request->birthdate,
+            'notes' => $request->notes,
+        ]
+    );
+
+    // Créer le rendez-vous avec le statut 'pending'
+    $appointment = Appointment::create([
+        'client_profile_id' => $clientProfile->id,
+        'user_id' => $therapist->id, // Assigné au thérapeute
+        'appointment_date' => $appointmentDateTime,
+        'status' => 'pending', // Statut initial
+        'notes' => $request->notes,
+        'type' => $request->type,
+        'duration' => $product->duration,
+        'product_id' => $request->product_id,
     ]);
 
-        // Create the connection link using the meeting token
-        $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
-	}
+    // Vérifier si le produit permet les appels vidéo
+    if ($product->visio) {
+        // Générer un token sécurisé pour la salle
+        $token = Str::random(32);
 
+        // Créer la réunion et la lier au rendez-vous
+        $meeting = Meeting::create([
+            'name' => 'Réunion pour ' . $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'start_time' => $appointmentDateTime,
+            'duration' => $product->duration,
+            'participant_email' => $appointment->clientProfile->email,
+            'client_profile_id' => $clientProfile->id,
+            'room_token' => $token,
+            'appointment_id' => $appointment->id, // Lier la réunion au rendez-vous
+        ]);
 
-        // queue email notifications
+        // Créer le lien de connexion en utilisant le token de la salle
+        $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Ajouter #1 pour l'initiateur
+    }
+
+    // Charger les relations nécessaires pour le rendez-vous
+    $appointment->load('clientProfile', 'user', 'product');
+
+    // Vérifier si le paiement est requis
+    if ($product->collect_payment) {
+        // Vérifier si le thérapeute a déjà configuré Stripe
+        if ($therapist->stripe_account_id) {
+            // Le thérapeute a configuré Stripe, procéder au paiement
+            // Initialiser Stripe
+            $stripeSecretKey = config('services.stripe.secret');
+
+            $stripe = new StripeClient($stripeSecretKey);
+
+            // Calculer le montant total (incluant la TVA)
+            $totalAmount = $product->price + ($product->price * $product->tax_rate / 100); // Assume currency is euros
+
+            // Créer la session Stripe Checkout
+            try {
+                $session = $stripe->checkout->sessions->create([
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'price_data' => [
+                            'currency' => 'eur',
+                            'product_data' => [
+                                'name' => $product->name,
+                            ],
+                            'unit_amount' => intval($totalAmount * 100), // montant en cents
+                        ],
+                        'quantity' => 1,
+                    ]],
+                    'mode' => 'payment',
+                    'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
+                    'cancel_url' => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+
+                    'payment_intent_data' => [
+                        'metadata' => [
+                            'appointment_id' => $appointment->id, // Assigné au PaymentIntent
+                            'patient_email' => $appointment->clientProfile->email,
+                        ],
+                    ],
+
+                ],
+                [
+                    'stripe_account' => $therapist->stripe_account_id, // Compte connecté du thérapeute
+                ]);
+
+                // Mettre à jour le rendez-vous avec l'ID de la session Stripe
+                $appointment->stripe_session_id = $session->id;
+                $appointment->save();
+
+                // Rediriger l'utilisateur vers Stripe Checkout
+                return redirect($session->url);
+
+            } catch (\Exception $e) {
+                Log::error('Stripe Checkout creation failed: ' . $e->getMessage());
+                return redirect()->back()->withErrors(['payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'])->withInput();
+            }
+        } else {
+            // Le thérapeute n'a pas configuré Stripe, traiter comme si aucun paiement n'était requis
+            Log::warning('Le thérapeute ID ' . $therapist->id . ' n\'a pas connecté son compte Stripe. Traitement sans paiement.');
+
+            // Définir le statut à 'confirmed'
+            $appointment->status = 'confirmed';
+            $appointment->save();
+
+            // Envoyer les emails immédiatement
+            try {
+                // Email au patient
+                $patientEmail = $appointment->clientProfile->email;
+                if ($patientEmail) {
+                    Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+                }
+
+                // Email au thérapeute
+                $therapistEmail = $therapist->email;
+                if ($therapistEmail) {
+                    Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+                }
+
+            } catch (\Exception $e) {
+                Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
+            }
+
+            // Rediriger vers la confirmation du rendez-vous
+            return redirect()->route('appointments.showPatient', $appointment->token)->with('success', 'Votre rendez-vous a été réservé avec succès.');
+        }
+    } else {
+        // Si aucun paiement n'est requis, définir le statut à 'confirmed' et envoyer les emails immédiatement
+        $appointment->status = 'confirmed';
+        $appointment->save();
+
+        // Envoyer les emails immédiatement
         try {
-            // Patient email
+            // Email au patient
             $patientEmail = $appointment->clientProfile->email;
             if ($patientEmail) {
                 Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
             }
 
-			// Therapist email
-			$therapistEmail = $therapist->email;
-			if ($therapistEmail) {
-				Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
-			}
+            // Email au thérapeute
+            $therapistEmail = $therapist->email;
+            if ($therapistEmail) {
+                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+            }
 
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
         }
 
-        // Redirect to the confirmation page using the token
-        return redirect()->route('appointments.showPatient', $appointment->token)
-                         ->with('success', 'Votre rendez-vous a été réservé avec succès.');
+        // Rediriger vers la confirmation du rendez-vous
+        return redirect()->route('appointments.showPatient', $appointment->token)->with('success', 'Votre rendez-vous a été réservé avec succès.');
     }
+}
+
+
 
     /**
      * Display the specified appointment for a patient using token.
@@ -984,5 +1080,320 @@ public function markAsCompletedIndex(Appointment $appointment)
 
     return redirect()->route('appointments.index')->with('success', 'Le rendez-vous a été marqué comme complété.');
 }
+
+
+public function success(Request $request)
+{
+    // Récupérer les paramètres de la requête
+    $session_id = $request->get('session_id');
+    $account_id = $request->get('account_id'); // Récupérer account_id
+
+    // Vérifier la présence des paramètres requis
+    if (!$session_id) {
+        Log::error('ID de session manquant dans la requête.');
+        return redirect()->route('welcome')->withErrors('ID de session manquant.');
+    }
+
+    if (!$account_id) {
+        Log::error('ID de compte manquant dans la requête.');
+        return redirect()->route('welcome')->withErrors('ID de compte manquant.');
+    }
+
+    // Initialiser Stripe
+    $stripeSecretKey = config('services.stripe.secret');
+    $stripe = new StripeClient($stripeSecretKey);
+
+    // Ajouter des logs pour le débogage
+    Log::info('Attempting to retrieve Stripe session', [
+        'session_id' => $session_id,
+        'account_id' => $account_id,
+    ]);
+
+    try {
+        // Récupérer la session Stripe Checkout en spécifiant le compte connecté
+        $session = $stripe->checkout->sessions->retrieve($session_id, [], [
+            'stripe_account' => $account_id,
+        ]);
+
+        Log::info('Stripe session retrieved successfully', [
+            'session_id' => $session->id,
+        ]);
+
+        // Récupérer le PaymentIntent en spécifiant le compte connecté
+        $paymentIntent = $stripe->paymentIntents->retrieve($session->payment_intent, [], [
+            'stripe_account' => $account_id,
+        ]);
+
+        Log::info('PaymentIntent retrieved successfully', [
+            'payment_intent_id' => $paymentIntent->id,
+        ]);
+
+        // Vérifier et logguer les métadonnées
+        Log::info('PaymentIntent metadata', [
+            'metadata' => $paymentIntent->metadata->toArray(),
+        ]);
+
+        // Obtenir les métadonnées
+        $appointment_id = $paymentIntent->metadata['appointment_id'] ?? null;
+        // Ou
+        // $appointment_id = $paymentIntent->metadata->get('appointment_id', null);
+
+        Log::info('Retrieved appointment_id from PaymentIntent metadata', [
+            'appointment_id' => $appointment_id,
+        ]);
+
+        // Mettre à jour le statut de la réservation
+        if ($appointment_id) {
+            $appointment = Appointment::find($appointment_id);
+            if ($appointment) {
+                $appointment->status = 'Payée';
+                $appointment->save();
+
+                Log::info('Appointment status updated to paid', [
+                    'appointment_id' => $appointment_id,
+                ]);
+
+                // Créer la facture
+                $invoice = $this->createInvoiceFromAppointment($appointment);
+
+                Log::info('Invoice created successfully', [
+                    'invoice_id' => $invoice->id,
+                    'appointment_id' => $appointment_id,
+                ]);
+
+                // Envoyer les emails après le paiement réussi
+                try {
+                    // Email au patient
+                    $patientEmail = $appointment->clientProfile->email;
+                    if ($patientEmail) {
+                        Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment, $invoice));
+                        Log::info('Email de confirmation envoyé au patient', [
+                            'patient_email' => $patientEmail,
+                        ]);
+                    }
+
+                    // Email au thérapeute
+                    $therapistEmail = $appointment->user->email;
+                    if ($therapistEmail) {
+                        Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment, $invoice));
+                        Log::info('Email de confirmation envoyé au thérapeute', [
+                            'therapist_email' => $therapistEmail,
+                        ]);
+                    }
+
+                } catch (\Exception $e) {
+                    Log::error('Erreur lors de l\'envoi des e-mails après paiement : ' . $e->getMessage());
+                    // Vous pouvez également informer l'utilisateur que les emails n'ont pas pu être envoyés
+                }
+            } else {
+                // Si l'appointment n'est pas trouvée
+                Log::warning('Rendez-vous non trouvé avec l\'ID : ' . $appointment_id);
+                return redirect()->route('welcome')->withErrors('Rendez-vous non trouvé.');
+            }
+        } else {
+            Log::error('Appointment ID est null dans les métadonnées.');
+            return redirect()->route('welcome')->withErrors('ID de rendez-vous manquant dans les informations de paiement.');
+        }
+
+   
+         // Rediriger vers la confirmation du rendez-vous
+        return redirect()->route('appointments.showPatient', $appointment->token)
+                         ->with('success', 'Paiement réussi ! Votre rendez-vous est confirmé.');
+    } catch (\Exception $e) {
+        Log::error('Erreur lors de la gestion du paiement : ' . $e->getMessage());
+
+        // Rediriger avec un message d'erreur générique
+        return redirect()->route('welcome')->withErrors('Erreur lors de la récupération des informations de paiement : ' . $e->getMessage());
+    }
+}
+
+
+
+
+
+
+
+    /**
+     * Gérer l'annulation du paiement.
+     */
+public function cancel(Request $request)
+{
+    // Récupérer l'ID du rendez-vous depuis les paramètres de la requête
+    $appointment_id = $request->get('appointment_id');
+
+    if ($appointment_id) {
+        $appointment = Appointment::find($appointment_id);
+        if ($appointment) {
+            // Récupérer le thérapeute associé au rendez-vous
+            $therapist = $appointment->user;
+
+            if ($therapist) {
+                // Supprimer le rendez-vous
+                $appointment->delete();
+
+                Log::info('Appointment deleted due to cancellation', [
+                    'appointment_id' => $appointment_id,
+                    'therapist_id' => $therapist->id,
+                ]);
+
+                // Rediriger vers le profil du thérapeute avec un message d'erreur
+                return redirect()->route('therapist.show', $therapist->slug)->with('error', 'Le paiement a été annulé et votre rendez-vous a été supprimé.');
+            } else {
+                Log::warning('Therapist not found for appointment', [
+                    'appointment_id' => $appointment_id,
+                ]);
+
+                // Rediriger avec un message d'erreur si le thérapeute n'est pas trouvé
+                return redirect()->route('welcome')->withErrors('Thérapeute non trouvé.');
+            }
+        } else {
+            Log::warning('Attempted to delete non-existent appointment', [
+                'appointment_id' => $appointment_id,
+            ]);
+
+            // Rediriger avec un message d'erreur si le rendez-vous n'existe pas
+            return redirect()->route('welcome')->withErrors('Rendez-vous introuvable.');
+        }
+    } else {
+        Log::warning('No appointment_id provided on cancellation.');
+
+        // Rediriger avec un message d'erreur si aucun appointment_id n'est fourni
+        return redirect()->route('welcome')->withErrors('ID de rendez-vous manquant.');
+    }
+}
+
+
+
+    /**
+     * Gérer les Webhooks Stripe (optionnel mais recommandé).
+     */
+  public function handleWebhook(Request $request)
+{
+    $payload = $request->getContent();
+    $sig_header = $request->header('Stripe-Signature');
+    $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+
+    try {
+        $event = \Stripe\Webhook::constructEvent(
+            $payload, $sig_header, $endpoint_secret
+        );
+    } catch(\UnexpectedValueException $e) {
+        // Invalid payload
+        return response('Invalid payload', 400);
+    } catch(\Stripe\Exception\SignatureVerificationException $e) {
+        // Invalid signature
+        return response('Invalid signature', 400);
+    }
+
+    // Handle the event
+    switch ($event->type) {
+        case 'checkout.session.completed':
+            $session = $event->data->object;
+            $this->handleCheckoutSessionCompleted($session);
+            break;
+        // ... handle other event types
+        default:
+            Log::info('Received unknown event type ' . $event->type);
+    }
+
+    return response('Webhook handled', 200);
+}
+
+/**
+ * Traitement après la complétion de la session de paiement.
+ */
+protected function handleCheckoutSessionCompleted($session)
+{
+    // Récupérer les métadonnées
+    $appointment_id = $session->metadata->appointment_id;
+
+    // Mettre à jour le statut de la réservation
+    $appointment = Appointment::find($appointment_id);
+    if ($appointment && $appointment->status !== 'paid') {
+        $appointment->status = 'paid';
+        $appointment->save();
+
+        // Envoyer les emails après le paiement réussi
+        try {
+            // Email au patient
+            $patientEmail = $appointment->clientProfile->email;
+            if ($patientEmail) {
+                Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+            }
+
+            // Email au thérapeute
+            $therapistEmail = $appointment->user->email;
+            if ($therapistEmail) {
+                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi des e-mails après paiement via webhook : ' . $e->getMessage());
+        }
+    }
+}
+
+
+protected function createInvoiceFromAppointment(Appointment $appointment)
+{
+    // Récupérer le thérapeute (User)
+    $therapist = $appointment->user;
+
+    // Récupérer le client (ClientProfile)
+    $client = $appointment->clientProfile;
+
+    // Récupérer le produit (Product)
+    $product = $appointment->product;
+
+    // Définir les dates de la facture
+    $invoiceDate = now();
+    $dueDate = $invoiceDate->copy()->addDays(30); // Par exemple, 30 jours après la date de facturation
+
+    // Calculer les montants
+    $unitPrice = $product->price;
+    $quantity = 1; // Puisqu'il s'agit d'un rendez-vous unique
+    $totalPrice = $unitPrice * $quantity;
+    $taxAmount = ($totalPrice * $product->tax_rate) / 100;
+    $totalPriceWithTax = $totalPrice + $taxAmount;
+
+    // Déterminer le numéro de facture
+    $lastInvoice = Invoice::where('user_id', $therapist->id)
+                          ->orderBy('invoice_number', 'desc')
+                          ->first();
+    $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
+
+    // Créer la facture
+    $invoice = Invoice::create([
+        'client_profile_id' => $client->id,
+        'user_id' => $therapist->id,
+        'invoice_date' => $invoiceDate,
+        'due_date' => $dueDate,
+        'total_amount' => $totalPrice,
+        'total_tax_amount' => $taxAmount,
+        'total_amount_with_tax' => $totalPriceWithTax,
+        'status' => 'Payée',
+        'notes' => $appointment->notes, // Vous pouvez personnaliser cela selon vos besoins
+        'invoice_number' => $nextInvoiceNumber,
+        'appointment_id' => $appointment->id, // Assurez-vous que la colonne existe dans la table invoices
+    ]);
+
+    // Créer l'élément de facture
+    $invoice->items()->create([
+        'product_id' => $product->id,
+        'description' => $product->name,
+        'quantity' => $quantity,
+        'unit_price' => $unitPrice,
+        'tax_rate' => $product->tax_rate,
+        'tax_amount' => $taxAmount,
+        'total_price' => $totalPrice,
+        'total_price_with_tax' => $totalPriceWithTax,
+    ]);
+
+    return $invoice;
+}
+
+
+
+
 
 }

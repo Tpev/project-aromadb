@@ -34,6 +34,7 @@ class User extends Authenticatable
 		'minimum_notice_hours', // Ensure this line is present
         'profile_picture',
 		'accept_online_appointments', // Ensure this line is present
+		'stripe_account_id',
 
     ];
 

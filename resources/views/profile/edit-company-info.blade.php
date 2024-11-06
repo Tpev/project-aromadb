@@ -10,12 +10,7 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Mettre à Jour les Informations de l\'Entreprise') }}</h1>
 
-            @if(session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
-            @endif
-
+          
             <!-- Updated Form with enctype for file uploads -->
             <form action="{{ route('profile.updateCompanyInfo') }}" method="POST" enctype="multipart/form-data">
                 @csrf
