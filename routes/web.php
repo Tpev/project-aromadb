@@ -31,10 +31,7 @@ use App\Http\Controllers\TestCertificateController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\LicenseTierController;
-use App\Http\Controllers\StripeWebhookController;
 
-
-Route::post('/subscription', [StripeWebhookController::class, 'handleWebhook']);
 
 
 Route::middleware(['auth'])->group(function () {
