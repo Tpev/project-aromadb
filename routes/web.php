@@ -34,7 +34,7 @@ use App\Http\Controllers\LicenseTierController;
 use App\Http\Controllers\StripeWebhookController;
 
 
-Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+Route::post('/subscription', [StripeWebhookController::class, 'handleWebhook']);
 
 
 Route::middleware(['auth'])->group(function () {
