@@ -39,7 +39,9 @@
 				<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
 				<stripe-pricing-table pricing-table-id="prctbl_1QIrQfE7cOnJl2vMrRRRmt3P"
 				publishable-key="pk_test_51Q9V2qE7cOnJl2vMaFwb2e4OH3kz5wdtkNFu4dc1Q5rNUkuRtPmeJlsKNS19c4Bg9COTipX5lq4NeW8hMMyP0rjJ00JketVLiv"
-				customer-email="{{ $customer_email }}">
+				customer-email="{{ $customer_email }}"
+				client-reference-id="{{$customer_stripe}}"
+				>
 				
 				</stripe-pricing-table>
             </div>

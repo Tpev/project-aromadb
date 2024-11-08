@@ -97,8 +97,8 @@ class LicenseTierController extends Controller
         */
         // Récupérer l'e-mail de l'utilisateur connecté
         $customer_email = Auth::user()->email;
-
+		$customer_stripe = Auth::user()->stripe_customer_id;
         // Passer l'e-mail à la vue
-        return view('license-tiers.pricing', compact('customer_email'));
+        return view('license-tiers.pricing', compact('customer_email','customer_stripe'));
     }
 }
