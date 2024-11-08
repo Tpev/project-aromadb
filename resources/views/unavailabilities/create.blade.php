@@ -15,7 +15,14 @@
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
 
     <style>
-        .container {
+        /* [Your existing CSS styles] */
+        /* ... */
+        .error-message {
+            color: #e3342f;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+		        .container {
             max-width: 800px;
         }
         .details-container {
@@ -75,7 +82,7 @@
             @if(session('success'))
                 <div class="alert alert-success text-center">{{ session('success') }}</div>
             @endif
-			
+            
             <!-- Error Message -->
             @if ($errors->any())
                 <div class="alert alert-danger text-center">
@@ -88,20 +95,20 @@
             @endif
 
             <!-- Unavailability Form -->
-            <form action="{{ route('unavailabilities.store') }}" method="POST">
+            <form id="unavailability-form" action="{{ route('unavailabilities.store') }}" method="POST">
                 @csrf
-				<div class="details-box">
-    <label class="details-label" for="reason">{{ __('Raison (optionnelle)') }}</label>
-    <textarea id="reason" name="reason" class="form-control" placeholder="{{ __('Indiquez une raison (facultatif)') }}">{{ old('reason') }}</textarea>
-    @error('reason')
-        <p class="text-red-500">{{ $message }}</p>
-    @enderror
-</div>
+                <div class="details-box">
+                    <label class="details-label" for="reason">{{ __('Raison (optionnelle)') }}</label>
+                    <textarea id="reason" name="reason" class="form-control" placeholder="{{ __('Indiquez une raison (facultatif)') }}">{{ old('reason') }}</textarea>
+                    @error('reason')
+                        <p class="error-message">{{ $message }}</p>
+                    @enderror
+                </div>
                 <div class="details-box">
                     <label class="details-label" for="start_date">{{ __('Date de début') }}</label>
                     <input type="text" id="start_date" name="start_date" class="form-control" required placeholder="Sélectionner une date">
                     @error('start_date')
-                        <p class="text-red-500">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -109,7 +116,7 @@
                     <label class="details-label" for="start_time">{{ __('Heure de début') }}</label>
                     <input type="text" id="start_time" name="start_time" class="form-control" required placeholder="Sélectionner une heure">
                     @error('start_time')
-                        <p class="text-red-500">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -117,7 +124,7 @@
                     <label class="details-label" for="end_date">{{ __('Date de fin') }}</label>
                     <input type="text" id="end_date" name="end_date" class="form-control" required placeholder="Sélectionner une date">
                     @error('end_date')
-                        <p class="text-red-500">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -125,9 +132,12 @@
                     <label class="details-label" for="end_time">{{ __('Heure de fin') }}</label>
                     <input type="text" id="end_time" name="end_time" class="form-control" required placeholder="Sélectionner une heure">
                     @error('end_time')
-                        <p class="text-red-500">{{ $message }}</p>
+                        <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- Custom Error Message -->
+                <div id="custom-error" class="error-message text-center"></div>
 
                 <div class="d-flex justify-content-center mt-4">
                     <button type="submit" class="btn-primary">
@@ -150,27 +160,27 @@
     <script>
         $(document).ready(function() {
             // Initialize Flatpickr for date inputs
-        const startDatePicker = flatpickr("#start_date", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d-m-Y",
-            locale: "fr",
-            minDate: "today",
-            onChange: function(selectedDates) {
-                // Set the minimum date of end_date to the selected start_date
-                const selectedDate = selectedDates[0];
-                endDatePicker.set('minDate', selectedDate); // Update the minDate for end_date
-            }
-        });
+            const startDatePicker = flatpickr("#start_date", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d-m-Y",
+                locale: "fr",
+                minDate: "today",
+                onChange: function(selectedDates) {
+                    // Set the minimum date of end_date to the selected start_date
+                    const selectedDate = selectedDates[0];
+                    endDatePicker.set('minDate', selectedDate); // Update the minDate for end_date
+                }
+            });
 
-        // Initialize Flatpickr for end date
-        const endDatePicker = flatpickr("#end_date", {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d-m-Y",
-            locale: "fr",
-            minDate: "today",
-        });
+            // Initialize Flatpickr for end date
+            const endDatePicker = flatpickr("#end_date", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d-m-Y",
+                locale: "fr",
+                minDate: "today",
+            });
 
             // Initialize Flatpickr for time inputs
             flatpickr("#start_time", {
@@ -180,7 +190,7 @@
                 altInput: true,
                 altFormat: "H:i",
                 locale: "fr",
-				time_24hr: true
+                time_24hr: true
             });
 
             flatpickr("#end_time", {
@@ -190,7 +200,34 @@
                 altInput: true,
                 altFormat: "H:i",
                 locale: "fr",
-				time_24hr: true
+                time_24hr: true
+            });
+
+            // Custom Validation on Form Submission
+            $('#unavailability-form').on('submit', function(e) {
+                // Clear previous custom error
+                $('#custom-error').text('');
+
+                // Get values
+                const startDate = $('#start_date').val();
+                const startTime = $('#start_time').val();
+                const endDate = $('#end_date').val();
+                const endTime = $('#end_time').val();
+
+                if (!startDate || !startTime || !endDate || !endTime) {
+                    $('#custom-error').text('Veuillez remplir toutes les dates et heures.');
+                    e.preventDefault();
+                    return;
+                }
+
+                // Combine date and time into Date objects
+                const startDateTime = new Date(`${startDate}T${startTime}`);
+                const endDateTime = new Date(`${endDate}T${endTime}`);
+
+                if (endDateTime < startDateTime) {
+                    $('#custom-error').text('La date et l\'heure de fin doivent être après la date et l\'heure de début.');
+                    e.preventDefault();
+                }
             });
         });
     </script>

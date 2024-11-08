@@ -1006,7 +1006,7 @@ public function storeUnavailability(Request $request)
     $request->validate([
         'start_date' => 'required|date',
         'start_time' => 'required|date_format:H:i',
-        'end_date' => 'required|date|after:start_date',
+        'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
         'end_time' => 'required|date_format:H:i',
         'reason' => 'nullable|string|max:255',
     ]);
