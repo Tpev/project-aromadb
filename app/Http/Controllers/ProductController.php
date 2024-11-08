@@ -140,8 +140,8 @@ public function update(Request $request, Product $product)
         'max_per_day' => 'nullable|integer|min:1',
         'can_be_booked_online' => 'required|boolean',
         'collect_payment' => 'required|boolean', // Ajouté
-        'image' => 'nullable|image|max:2048',
-        'brochure' => 'nullable|mimes:pdf|max:5120',
+        'image' => 'nullable|image|max:5048',
+        'brochure' => 'nullable|mimes:pdf|max:10120',
         'display_order' => 'nullable|integer|min:0',
     ]);
 
