@@ -13,7 +13,7 @@ class StripeWebhookController extends Controller
 {
     public function handleWebhook(Request $request)
     {
-        // Set your Stripe secret key
+        // Initialize Stripe with the secret key from config
         Stripe::setApiKey('sk_test_51Q9V2qE7cOnJl2vMpei30mAl1T6AKfJpehygPXiDBDdBKyTHQnH4KJhTfyAbGWT85o6hJbtxaAfdTIIFSB27shOO00K8QwYMFv');
 
 
@@ -82,15 +82,33 @@ class StripeWebhookController extends Controller
                 Log::info("Customer Email: {$email}");
                 Log::info("Product Selected: {$productName}");
 
-                // Link to your User model if you have a relation
+                // Attempt to find the user by stripe_customer_id
                 $user = User::where('stripe_customer_id', $customerId)->first();
+
+                if (!$user) {
+                    // If user not found by stripe_customer_id, attempt to find by email
+                    $user = User::where('email', $email)->first();
+
+                    if ($user) {
+                        // Associate stripe_customer_id with the user
+                        $user->stripe_customer_id = $customerId;
+                        $user->save();
+
+                        Log::info("Associated Stripe Customer ID {$customerId} with User ID {$user->id}");
+                    } else {
+                        // No user found with this email; log and possibly take other actions
+                        Log::warning("No user found with email: {$email} to associate with Stripe Customer ID: {$customerId}");
+                        // Optionally, you can create a new user or notify admins
+                        return response()->json(['error' => 'User not found'], 404);
+                    }
+                }
+
+                // Now that stripe_customer_id is associated, assign the license product
                 if ($user) {
                     // Update user license or perform other actions
                     $user->license_product = $productName;
                     $user->save();
                     Log::info("Updated User ID {$user->id} with license product: {$productName}");
-                } else {
-                    Log::warning("No user found with Stripe Customer ID: {$customerId}");
                 }
 
                 break;
