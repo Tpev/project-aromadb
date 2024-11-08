@@ -30,7 +30,11 @@ use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\TestCertificateController;	
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\LicenseTierController;
+use App\Http\Controllers\StripeWebhookController;
 
+
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 
 
 Route::middleware(['auth'])->group(function () {
@@ -422,7 +426,7 @@ Route::middleware('auth')->group(function () {
         return view('privacypolicy');
     })->name('privacypolicy');
 
-
+Route::get('/license-tiers/pricing', [LicenseTierController::class, 'pricing'])->name('license-tiers.pricing')->middleware('auth');
 
 
 

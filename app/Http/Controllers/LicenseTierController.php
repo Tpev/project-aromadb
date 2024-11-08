@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LicenseTier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LicenseTierController extends Controller
 {
@@ -75,5 +76,29 @@ class LicenseTierController extends Controller
     {
         $licenseTier->delete();
         return redirect()->route('license-tiers.index')->with('success', 'License tier deleted successfully.');
+    }
+	public function pricing()
+    {
+        // Vérifier si l'utilisateur est authentifié
+        if (!Auth::check()) {
+            return redirect()->route('login')->withErrors('Veuillez vous connecter pour accéder à cette page.');
+        }
+
+        // Optionnel : Vérifier si l'utilisateur a un rôle spécifique
+        // Par exemple, si vous utilisez Spatie Laravel Permission
+        /*
+        if (!Auth::user()->hasRole('therapist')) {
+            Log::warning('Utilisateur non autorisé tenté d\'accéder à la page des tarifs Stripe.', [
+                'user_id' => Auth::id(),
+                'roles' => Auth::user()->getRoleNames(),
+            ]);
+            return redirect()->route('welcome')->withErrors('Accès non autorisé.');
+        }
+        */
+        // Récupérer l'e-mail de l'utilisateur connecté
+        $customer_email = Auth::user()->email;
+
+        // Passer l'e-mail à la vue
+        return view('license-tiers.pricing', compact('customer_email'));
     }
 }
