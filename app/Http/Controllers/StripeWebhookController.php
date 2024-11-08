@@ -44,18 +44,19 @@ class StripeWebhookController extends Controller
                 // Retrieve Customer to get Email
                 $customer = \Stripe\Customer::retrieve($customerId);
                 $email = $customer->email;
-
+				Log::info("Customer Email: " . $email);
                 // Extract Product ID from Subscription Items
                 if (isset($subscription->items->data[0])) {
                     $subscriptionItem = $subscription->items->data[0];
                     $productId = $subscriptionItem->price->product;
-
+					Log::info("Customer Email: " . $subscriptionItem);
                     // Retrieve Product Details
                     $product = \Stripe\Product::retrieve($productId);
                     $productName = $product->name; // Or any other product attribute you need
                 } else {
                     // Handle cases where subscription items are not present
                     $productName = null;
+					 Log::info("Handle cases where subscription items are not present");
                 }
 
                 // Example: Log the information
