@@ -51,8 +51,8 @@ class ProductController extends Controller
         'max_per_day' => 'nullable|integer|min:1',
         'can_be_booked_online' => 'required|boolean',
         'collect_payment' => 'required|boolean', // Ajouté
-        'image' => 'nullable|image|max:4048',
-        'brochure' => 'nullable|mimes:pdf|max:5120',
+        'image' => 'nullable|image|max:8048',
+        'brochure' => 'nullable|mimes:pdf|max:10120',
         'display_order' => 'nullable|integer|min:0',
     ]);
 
