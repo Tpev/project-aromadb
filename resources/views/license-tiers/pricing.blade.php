@@ -34,16 +34,14 @@
         <div class="container mx-auto px-4">
             <div class="card shadow-sm p-6 bg-gray-50 rounded-lg" data-aos="fade-up">
                 <!-- Stripe Pricing Table -->
-	
-				
 				<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-				<stripe-pricing-table pricing-table-id="prctbl_1QIrQfE7cOnJl2vMrRRRmt3P"
-				publishable-key="pk_test_51Q9V2qE7cOnJl2vMaFwb2e4OH3kz5wdtkNFu4dc1Q5rNUkuRtPmeJlsKNS19c4Bg9COTipX5lq4NeW8hMMyP0rjJ00JketVLiv"
+				<stripe-pricing-table pricing-table-id="prctbl_1QIpr7E7cOnJl2vMyaJgW3Va"
+				publishable-key="pk_live_51Q9V2qE7cOnJl2vMLc5W3wsvncTnesV0vzuk3q1q84WeAQXdaByNKOSfGUSOHrH0XPLaGDn8iENfk4akaW6FFRkg00Tct8pxG8"
 				customer-email="{{ $customer_email }}"
 				client-reference-id="{{$customer_stripe}}"
 				>
-				
 				</stripe-pricing-table>
+				
             </div>
         </div>
     </section>

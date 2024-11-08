@@ -14,7 +14,7 @@ class StripeWebhookController extends Controller
     public function handleWebhook(Request $request)
     {
         // Initialize Stripe with the secret key from config
-        Stripe::setApiKey('sk_test_51Q9V2qE7cOnJl2vMpei30mAl1T6AKfJpehygPXiDBDdBKyTHQnH4KJhTfyAbGWT85o6hJbtxaAfdTIIFSB27shOO00K8QwYMFv');
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
