@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
-use App\Models\User; // Assuming you have a User model
+use App\Models\User;
 
 class StripeWebhookController extends Controller
 {
@@ -28,7 +28,12 @@ class StripeWebhookController extends Controller
             );
         } catch (SignatureVerificationException $e) {
             // Invalid signature
+            Log::error('Stripe Webhook Signature Verification Failed: ' . $e->getMessage());
             return response()->json(['error' => 'Invalid signature'], 400);
+        } catch (\UnexpectedValueException $e) {
+            // Invalid payload
+            Log::error('Stripe Webhook Invalid Payload: ' . $e->getMessage());
+            return response()->json(['error' => 'Invalid payload'], 400);
         }
 
         // Handle the event
@@ -42,34 +47,50 @@ class StripeWebhookController extends Controller
                 $customerId = $subscription->customer;
 
                 // Retrieve Customer to get Email
-                $customer = \Stripe\Customer::retrieve($customerId);
-                $email = $customer->email;
-				Log::info("Customer Email: " . $email);
-                // Extract Product ID from Subscription Items
-                if (isset($subscription->items->data[0])) {
-                    $subscriptionItem = $subscription->items->data[0];
-                    $productId = $subscriptionItem->price->product;
-					Log::info("Customer Email: " . $subscriptionItem);
-                    // Retrieve Product Details
-                    $product = \Stripe\Product::retrieve($productId);
-                    $productName = $product->name; // Or any other product attribute you need
-                } else {
-                    // Handle cases where subscription items are not present
-                    $productName = null;
-					 Log::info("Handle cases where subscription items are not present");
+                try {
+                    $customer = \Stripe\Customer::retrieve($customerId);
+                    $email = $customer->email ?? 'No email found';
+                } catch (\Exception $e) {
+                    Log::error('Stripe Customer Retrieval Failed: ' . $e->getMessage());
+                    $email = 'Unknown';
                 }
 
-                // Example: Log the information
-                Log::info("Stripe Webhook: Subscription Event");
-                Log::info("Customer Email: " . $email);
-                Log::info("Product Selected: " . $productName);
+                // Extract Product IDs from Subscription Items
+                $productNames = [];
+                if (isset($subscription->items->data) && count($subscription->items->data) > 0) {
+                    foreach ($subscription->items->data as $subscriptionItem) {
+                        $productId = $subscriptionItem->price->product;
 
-                // Optional: Link to your User model if you have a relation
+                        // Retrieve Product Details
+                        try {
+                            $product = \Stripe\Product::retrieve($productId);
+                            $productNames[] = $product->name ?? 'Unnamed Product';
+                        } catch (\Exception $e) {
+                            Log::error('Stripe Product Retrieval Failed: ' . $e->getMessage());
+                            $productNames[] = 'Unknown Product';
+                        }
+                    }
+                } else {
+                    $productNames[] = 'No products found';
+                }
+
+                // Convert product names array to a string if needed
+                $productName = implode(', ', $productNames);
+
+                // Log the information
+                Log::info("Stripe Webhook: {$event->type}");
+                Log::info("Customer Email: {$email}");
+                Log::info("Product Selected: {$productName}");
+
+                // Link to your User model if you have a relation
                 $user = User::where('stripe_customer_id', $customerId)->first();
                 if ($user) {
                     // Update user license or perform other actions
                     $user->license_product = $productName;
                     $user->save();
+                    Log::info("Updated User ID {$user->id} with license product: {$productName}");
+                } else {
+                    Log::warning("No user found with Stripe Customer ID: {$customerId}");
                 }
 
                 break;

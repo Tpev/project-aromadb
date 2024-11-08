@@ -36,6 +36,7 @@ class User extends Authenticatable
 		'accept_online_appointments', // Ensure this line is present
 		'stripe_account_id',
 		'stripe_customer_id', 
+		'license_product',
 
     ];
 
