@@ -327,7 +327,7 @@ public function createPaymentLink(Invoice $invoice)
 {
     // Authorization: Ensure the user can update the invoice
     $this->authorize('update', $invoice);
-
+	$invoice->load('user');
     // Check if the invoice already has a payment link
     if ($invoice->payment_link) {
         return redirect()->back()->with('error', 'Un lien de paiement a déjà été généré pour cette facture.');
