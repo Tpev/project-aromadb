@@ -17,9 +17,10 @@ Payer la Facture
 | {{ $item->product->name }} | {{ $item->quantity }}        | {{ number_format($item->product->price, 2, ',', ' ') }} €    | {{ number_format($item->quantity * $item->product->price, 2, ',', ' ') }} € |
 @endforeach
 
-| **Montant Total:**      |          |               | **{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €** |
-| **Date d'émission:**    |          |               | {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }} |
-| **Date d'échéance:**    |          |               | {{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }} |
+
+**Montant Total:**   **{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €** 
+**Date d'émission:**  {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }} 
+**Date d'échéance:**  {{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }} 
 
 Merci pour votre confiance.
 
