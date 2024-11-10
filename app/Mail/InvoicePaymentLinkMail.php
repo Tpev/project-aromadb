@@ -22,7 +22,7 @@ class InvoicePaymentLinkMail extends Mailable
     public function __construct(Invoice $invoice, $therapistName)
     {
         $this->invoice = $invoice;
-		$this->therapistName = $therapistName;
+        $this->therapistName = $therapistName;
     }
 
     /**
