@@ -11,6 +11,11 @@ use PDF;
 use Illuminate\Support\Facades\DB; // Import DB facade
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvoiceMail;
+use Stripe\Stripe;
+use Stripe\PaymentLink;
+use Illuminate\Support\Facades\Log;
+use App\Mail\InvoicePaymentLinkMail;
+use Stripe\StripeClient;
 
 class InvoiceController extends Controller
 {
@@ -318,4 +323,222 @@ class InvoiceController extends Controller
                              ->with('error', 'Une erreur est survenue lors de l\'envoi de l\'email.');
         }
     }
+public function createPaymentLink(Invoice $invoice)
+{
+    // Authorization: Ensure the user can update the invoice
+    $this->authorize('update', $invoice);
+
+    // Check if the invoice already has a payment link
+    if ($invoice->payment_link) {
+        return redirect()->back()->with('error', 'Un lien de paiement a déjà été généré pour cette facture.');
+    }
+
+    try {
+        // Retrieve the therapist (user) associated with the invoice
+        $user = $invoice->user;
+
+        // Ensure the user has a connected Stripe account
+        if (!$user->stripe_account_id) {
+            throw new \Exception('Le thérapeute n\'a pas de compte Stripe connecté.');
+        }
+
+        // Initialize Stripe with the platform's secret key
+        $stripe = new StripeClient(config('services.stripe.secret'));
+
+        // Retrieve all invoice items
+        $invoiceItems = $invoice->items; // Assuming 'items' relationship is defined
+
+        $lineItems = [];
+
+        foreach ($invoiceItems as $item) {
+            $product = $item->product;
+
+            // Ensure the product belongs to the authenticated user
+            if ($product->user_id !== Auth::id()) {
+                throw new \Exception('Produit non autorisé.');
+            }
+
+            // Synchronize product with Stripe
+            $stripeProductId = $this->syncProductWithStripe($stripe, $product, $user->stripe_account_id);
+
+            // Synchronize price with Stripe
+            $stripePriceId = $this->syncPriceWithStripe($stripe, $product, $user->stripe_account_id);
+
+            // Add to line items
+            $lineItems[] = [
+                'price' => $stripePriceId,
+                'quantity' => $item->quantity,
+            ];
+        }
+
+        // Create a Stripe Payment Link using the synchronized prices
+        $paymentLink = $stripe->paymentLinks->create([
+            'line_items' => $lineItems,
+            'metadata' => [
+                'invoice_id' => $invoice->id, // Embed Invoice ID in metadata
+                'user_id' => $invoice->user_id, // Optional: Embed User ID if needed
+            ],
+            'after_completion' => [
+                'type' => 'redirect',
+                'redirect' => [
+                     'url' => route('therapist.show', ['slug' => $user->slug]),
+                ],
+            ],
+        ], [
+            'stripe_account' => $user->stripe_account_id, // Use connected account
+        ]);
+
+        // Save the payment link URL to the invoice
+        $invoice->payment_link = $paymentLink->url;
+        $invoice->save();
+
+        // Optionally, send the payment link via email to the patient
+        $client = $invoice->clientProfile;
+        if ($client && $client->email) {
+            Mail::to($client->email)->queue(new InvoicePaymentLinkMail($invoice));
+        }
+
+        return redirect()->back()->with('success', 'Lien de paiement Stripe généré avec succès.');
+    } catch (\Exception $e) {
+        Log::error("Stripe Payment Link Creation Failed for Invoice ID {$invoice->id}: " . $e->getMessage(), [
+            'invoice_id' => $invoice->id,
+            'user_id' => $invoice->user_id,
+            'exception' => $e,
+        ]);
+        return redirect()->back()->with('error', 'Une erreur est survenue lors de la création du lien de paiement.');
+    }
+}
+
+
+    /**
+     * Synchronize a product with Stripe.
+     *
+     * @param  \Stripe\StripeClient  $stripe
+     * @param  \App\Models\Product  $product
+     * @param  string  $stripeAccountId
+     * @return string  Stripe Product ID
+     */
+protected function syncProductWithStripe(StripeClient $stripe, Product $product, string $stripeAccountId): string
+{
+    // If the product already has a Stripe Product ID, return it
+    if ($product->stripe_product_id) {
+        return $product->stripe_product_id;
+    }
+
+    // Prepare product data
+    $productData = [
+        'name' => $product->name,
+    ];
+
+    // Conditionally add 'description' if it's not empty
+    if (!empty($product->description)) {
+        $productData['description'] = $product->description;
+    }
+
+    // Create a new product in Stripe within the connected account
+    $stripeProduct = $stripe->products->create($productData, [
+        'stripe_account' => $stripeAccountId,
+    ]);
+
+    // Update the product with the Stripe Product ID
+    $product->stripe_product_id = $stripeProduct->id;
+    $product->save();
+
+    return $stripeProduct->id;
+}
+
+
+    /**
+     * Synchronize a price with Stripe.
+     *
+     * @param  \Stripe\StripeClient  $stripe
+     * @param  \App\Models\Product  $product
+     * @param  string  $stripeAccountId
+     * @return string  Stripe Price ID
+     */
+    protected function syncPriceWithStripe(StripeClient $stripe, Product $product, string $stripeAccountId): string
+    {
+        // If the product already has a Stripe Price ID, retrieve and compare
+        if ($product->stripe_price_id) {
+            try {
+                // Retrieve the current price from Stripe
+                $currentStripePrice = $stripe->prices->retrieve(
+                    $product->stripe_price_id,
+                    [],
+                    [
+                        'stripe_account' => $stripeAccountId,
+                    ]
+                );
+
+                // Calculate local price including tax
+                $localPriceInclTax = $product->price_incl_tax; // Accessor method
+
+                // Compare prices (Stripe uses cents)
+                if (intval($localPriceInclTax * 100) !== $currentStripePrice->unit_amount) {
+                    // Prices differ, create a new price in Stripe
+                    $newStripePrice = $stripe->prices->create([
+                        'unit_amount' => intval($localPriceInclTax * 100), // Convert to cents
+                        'currency' => 'eur',
+                        'product' => $product->stripe_product_id,
+                    ], [
+                        'stripe_account' => $stripeAccountId,
+                    ]);
+
+                    // Update the product with the new Stripe Price ID
+                    $product->stripe_price_id = $newStripePrice->id;
+                    $product->save();
+
+                    return $newStripePrice->id;
+                }
+
+                // Prices match, return existing Stripe Price ID
+                return $product->stripe_price_id;
+
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // Handle Stripe API errors
+                Log::error("Stripe API Error while retrieving/updating price: " . $e->getMessage(), [
+                    'product_id' => $product->id,
+                    'stripe_price_id' => $product->stripe_price_id,
+                    'stripe_account_id' => $stripeAccountId,
+                ]);
+                throw new \Exception('Erreur lors de la récupération ou de la mise à jour du prix depuis Stripe.');
+            }
+        }
+
+ 
+
+        // Calculate price including tax
+        $priceInclTax = $product->price_incl_tax; // Accessor method
+
+        if (empty($priceInclTax)) {
+            throw new \Exception('Le prix incluant la taxe n\'est pas défini pour le produit.');
+        }
+
+        try {
+            // Create a new price in Stripe within the connected account
+            $stripePrice = $stripe->prices->create([
+                'unit_amount' => intval($priceInclTax * 100), // Convert to cents
+                'currency' => 'eur', // Ensure currency is valid
+                'product' => $product->stripe_product_id,
+            ], [
+                'stripe_account' => $stripeAccountId,
+            ]);
+
+            // Update the product with the Stripe Price ID
+            $product->stripe_price_id = $stripePrice->id;
+            $product->save();
+
+            return $stripePrice->id;
+
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            // Handle Stripe API errors
+            Log::error("Stripe API Error while creating price: " . $e->getMessage(), [
+                'product_id' => $product->id,
+                'stripe_account_id' => $stripeAccountId,
+            ]);
+            throw new \Exception('Erreur lors de la création du prix dans Stripe.');
+        }
+    }
+
+
 }

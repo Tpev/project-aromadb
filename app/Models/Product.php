@@ -28,6 +28,8 @@ class Product extends Model
         'image',       // Add this line
         'brochure',    // Add this line
 		'display_order', // Add this line
+		'stripe_product_id', // Newly added
+        'stripe_price_id',  // Newly added
     ];
 
     /**

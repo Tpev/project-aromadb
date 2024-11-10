@@ -24,6 +24,7 @@ class Invoice extends Model
         'notes',
     	'invoice_number',
     	'sent_at',	// Add this line
+		'payment_link', // Add this line
     ];
 
     /**

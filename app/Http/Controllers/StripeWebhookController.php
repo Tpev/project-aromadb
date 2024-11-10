@@ -37,6 +37,9 @@ class StripeWebhookController extends Controller
 
         // Handle the event
         switch ($event->type) {
+			  case 'checkout.session.completed':
+                $this->handleCheckoutSessionCompleted($event->data->object, $connectedAccountId);
+                break;
             case 'customer.subscription.created':
             case 'customer.subscription.updated':
                 $this->handleSubscriptionCreatedOrUpdated($event->data->object);
@@ -183,6 +186,53 @@ class StripeWebhookController extends Controller
             $user->save();
 
             Log::info("Updated User ID {$user->id} to have no valid license (status: inactive)");
+        }
+    }
+	
+	    protected function handleCheckoutSessionCompleted($session, $connectedAccountId)
+    {
+        // Ensure that the session has the necessary metadata
+        if (!isset($session->metadata->invoice_id)) {
+            Log::warning("Checkout Session {$session->id} does not contain an invoice_id in metadata.");
+            return;
+        }
+
+        $invoiceId = $session->metadata->invoice_id;
+
+        // Retrieve the invoice from your database
+        $invoice = Invoice::find($invoiceId);
+
+        if (!$invoice) {
+            Log::warning("No invoice found with ID {$invoiceId} associated with Checkout Session {$session->id}.");
+            return;
+        }
+
+        // Update the invoice status to 'Payée'
+        $invoice->status = 'Payée';
+        $invoice->save();
+
+        Log::info("Invoice ID {$invoice->id} marked as 'Payée' due to Checkout Session {$session->id}.");
+
+        // Deactivate the Payment Link by deleting it
+        // Retrieve the Payment Link ID from the session
+        $paymentLinkId = $session->payment_link ?? null;
+
+        if ($paymentLinkId) {
+            try {
+                $stripe = new StripeClient(config('services.stripe.secret'));
+
+                $stripe->paymentLinks->delete($paymentLinkId, [], [
+                    'stripe_account' => $connectedAccountId, // Use the connected account context
+                ]);
+
+                Log::info("Payment Link {$paymentLinkId} has been deleted to prevent reuse.");
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                Log::error("Stripe API Error while deleting Payment Link {$paymentLinkId}: " . $e->getMessage());
+            } catch (\Exception $e) {
+                Log::error("Unexpected error while deleting Payment Link {$paymentLinkId}: " . $e->getMessage());
+            }
+        } else {
+            Log::warning("Checkout Session {$session->id} does not contain a payment_link ID.");
         }
     }
 }

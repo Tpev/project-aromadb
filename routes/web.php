@@ -261,7 +261,7 @@ Route::get('/client_profiles/{clientProfile}/invoices', [InvoiceController::clas
 
 Route::get('/invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
 Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-
+    Route::post('/invoices/{invoice}/create-payment-link', [InvoiceController::class, 'createPaymentLink'])->name('invoices.createPaymentLink');
     // Afficher une facture spécifique
     Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show')->middleware('can:view,invoice');
     

@@ -19,14 +19,18 @@ class StripeController extends Controller
         $stripe = new StripeClient($stripeSecretKey);
 
         $user = Auth::user();
-
+		
         try {
             if (!$user->stripe_account_id) {
                 // Créer un nouveau compte connecté
                 $account = $stripe->accounts->create([
                     'type' => 'express',
+					'business_profile' => [
+					'name' => $user->company_name,
+					'url' => 'https://aromamade.com/pro/' . auth()->user()->slug,
+					],
                 ]);
-
+				
                 // Sauvegarder l'ID du compte dans le profil de l'utilisateur
                 $user->stripe_account_id = $account->id;
                 $user->save();

@@ -32,6 +32,22 @@
                     </button>
                 </form>
             @endif
+    <div class="mb-4">
+	    @if($invoice->status !== 'Payée')
+        @if($invoice->payment_link)
+            <a href="{{ $invoice->payment_link }}" target="_blank" class="btn btn-success">
+                <i class="fas fa-link mr-2"></i> {{ __('Voir le Lien de Paiement') }}
+            </a>
+        @else
+            <form action="{{ route('invoices.createPaymentLink', $invoice) }}" method="POST" style="display: inline-block;">
+                @csrf
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-link mr-2"></i> {{ __('Créer un Lien de Paiement') }}
+                </button>
+            </form>
+        @endif
+		 @endif
+    </div>
 
             <!-- Informations de la facture -->
             <div class="invoice-info-boxes row mt-4">
