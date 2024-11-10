@@ -17,5 +17,5 @@ Payer la Facture
 Merci pour votre confiance.
 
 Cordialement,<br>
-{{ $therapistName }}
+{{ $therapistName }}  
 @endcomponent

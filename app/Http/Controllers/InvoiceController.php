@@ -391,11 +391,11 @@ public function createPaymentLink(Invoice $invoice)
         // Save the payment link URL to the invoice
         $invoice->payment_link = $paymentLink->url;
         $invoice->save();
-
+		$therapistName = Auth::user()->name;
         // Optionally, send the payment link via email to the patient
         $client = $invoice->clientProfile;
         if ($client && $client->email) {
-            Mail::to($client->email)->queue(new InvoicePaymentLinkMail($invoice));
+            Mail::to($client->email)->queue(new InvoicePaymentLinkMail($invoice,$therapistName));
         }
 
         return redirect()->back()->with('success', 'Lien de paiement Stripe généré avec succès.');
