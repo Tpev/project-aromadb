@@ -12,6 +12,7 @@ class InvoicePaymentLinkMail extends Mailable
     use Queueable, SerializesModels;
 
     public $invoice;
+	public $therapistName; // Add this property
 
     /**
      * Create a new message instance.
@@ -21,6 +22,7 @@ class InvoicePaymentLinkMail extends Mailable
     public function __construct(Invoice $invoice)
     {
         $this->invoice = $invoice;
+		$this->therapistName = $invoice->user->name; // Assign therapist's name
     }
 
     /**
