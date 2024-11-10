@@ -32,7 +32,7 @@ class InvoicePaymentLinkMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Votre lien de paiement pour la facture #' . $this->invoice->invoice_number)
+        return $this->subject($this->invoice->user->name . 'Votre lien de paiement pour la facture #' . $this->invoice->invoice_number)
                     ->markdown('emails.invoices.payment_link');
     }
 }
