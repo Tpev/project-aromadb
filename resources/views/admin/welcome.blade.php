@@ -59,31 +59,32 @@
             text-transform: uppercase;
             letter-spacing: 3px;
             position: relative;
-            animation: fadeInDown 1s ease-out;
+            overflow: hidden; /* For typing effect */
+            white-space: nowrap; /* Prevent text wrapping */
+            border-right: .15em solid orange; /* Cursor effect */
+            margin: 0 auto; /* Center the text */
         }
 
-        .welcome-title::after {
-            content: '';
-            width: 200px;
-            height: 4px;
-            background: linear-gradient(90deg, #ff512f, #dd2476);
-            display: block;
-            margin: 30px auto 0;
-            border-radius: 2px;
+        /* Typing Animation */
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
         }
 
-        /* Animation for Welcome Title */
-        @keyframes fadeInDown {
-            0% {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: orange; }
         }
 
+        .typing-animation {
+            display: inline-block;
+            animation: typing 4s steps(30, end), blink-caret .75s step-end infinite;
+            width: 0;
+        }
+
+        /* Rest of your styles remain the same */
+
+        /* Option Grid and Cards */
         .option-grid {
             display: flex;
             flex-wrap: wrap;
@@ -208,7 +209,9 @@
 
     <!-- Container -->
     <div class="container">
-        <h1 class="welcome-title">Welcome, Admin!</h1>
+        <h1 class="welcome-title">
+            <span class="typing-animation">Welcome, Admin!</span>
+        </h1>
 
         <div class="option-grid">
             <!-- Session Stats Card -->
