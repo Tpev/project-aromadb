@@ -28,7 +28,7 @@
                             <td>{{ $therapist->id }}</td>
                             <td class="text-wrap">
                                 <div class="therapist-info">
-                                    <img src="{{ $therapist->profile_picture_url ?? '/images/default-avatar.png' }}" alt="Avatar" class="avatar">
+                                    <img src="{{ $therapist->profile_picture ?? '/images/default-avatar.png' }}" alt="Avatar" class="avatar">
                                     <div class="name-email">
                                         <span class="name">{{ $therapist->name }}</span>
                                         <span class="email">{{ $therapist->email }}</span>
