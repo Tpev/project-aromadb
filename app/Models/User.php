@@ -60,6 +60,10 @@ class User extends Authenticatable
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }    
+	public function events()
+    {
+        return $this->hasMany(Event::class);
     }
 
     public function products()
