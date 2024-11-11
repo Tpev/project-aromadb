@@ -10,8 +10,8 @@
     <svg width="0" height="0">
         <defs>
             <linearGradient id="radialGradient" x1="1" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#00f260" />
-                <stop offset="100%" stop-color="#0575e6" />
+                <stop offset="0%" stop-color="#ff512f" />
+                <stop offset="100%" stop-color="#dd2476" />
             </linearGradient>
         </defs>
     </svg>
@@ -77,9 +77,9 @@
     <style>
         /* General Styles */
         body {
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-            color: #e0e0e0;
-            font-family: 'Poppins', sans-serif;
+            background: #1e1e2f;
+            color: #f0f0f0;
+            font-family: 'Montserrat', sans-serif;
             overflow-x: hidden;
         }
 
@@ -92,7 +92,7 @@
         .page-title {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #e0e0e0;
+            color: #fff;
             margin-bottom: 40px;
             text-align: center;
             text-transform: uppercase;
@@ -104,7 +104,7 @@
             content: '';
             width: 150px;
             height: 3px;
-            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            background: linear-gradient(90deg, #ff512f, #dd2476);
             display: block;
             margin: 20px auto 0;
             border-radius: 2px;
@@ -112,7 +112,7 @@
 
         /* Table Styles */
         .table-responsive {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #2a2a3c;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 40px;
@@ -122,13 +122,12 @@
 
         .table {
             width: 100%;
-            color: #e0e0e0;
+            color: #f0f0f0;
             border-collapse: collapse;
         }
 
         .table thead {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: #3a3a4f;
         }
 
         .table thead th {
@@ -136,7 +135,7 @@
             font-size: 1rem;
             text-transform: uppercase;
             position: relative;
-            color: #e0e0e0;
+            color: #f0f0f0;
         }
 
         .table thead th::after {
@@ -147,17 +146,17 @@
             transform: translateX(-50%);
             width: 50%;
             height: 2px;
-            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            background: linear-gradient(90deg, #ff512f, #dd2476);
             border-radius: 2px;
         }
 
         .table tbody tr {
             transition: background-color 0.3s, transform 0.3s;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #3a3a4f;
         }
 
         .table tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: #3a3a4f;
             transform: scale(1.01);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
@@ -180,8 +179,8 @@
             border-radius: 50%;
             margin-right: 15px;
             object-fit: cover;
-            border: 2px solid #e0e0e0;
-            box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
+            border: 2px solid #f0f0f0;
+            box-shadow: 0 0 10px rgba(255, 81, 47, 0.5);
         }
 
         .name-email {
@@ -191,18 +190,18 @@
         .name {
             font-weight: bold;
             font-size: 1.1rem;
-            color: #e0e0e0;
+            color: #f0f0f0;
         }
 
         .email {
             font-size: 0.9rem;
-            color: #a0a0a0;
+            color: #c0c0c0;
         }
 
         /* Progress Bar */
         .progress-bar {
             width: 100%;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: #3a3a4f;
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 5px;
@@ -211,7 +210,7 @@
 
         .progress {
             height: 100%;
-            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            background: linear-gradient(90deg, #ff512f, #dd2476);
             border-radius: 10px;
         }
 
@@ -235,7 +234,7 @@
         }
 
         .radial-progress circle:first-child {
-            stroke: rgba(255, 255, 255, 0.1);
+            stroke: #3a3a4f;
         }
 
         .radial-progress circle:last-child {
@@ -252,25 +251,25 @@
             transform: translate(-50%, -50%);
             font-size: 0.9rem;
             font-weight: bold;
-            color: #e0e0e0;
+            color: #f0f0f0;
         }
 
         /* Action Button */
         .action-btn {
             display: inline-block;
             padding: 10px 20px;
-            background: linear-gradient(90deg, #21d4fd, #b721ff);
+            background: linear-gradient(90deg, #ff512f, #dd2476);
             color: #fff;
             border-radius: 30px;
             text-decoration: none;
             transition: background 0.3s, transform 0.3s;
-            box-shadow: 0 0 10px rgba(33, 212, 253, 0.5);
+            box-shadow: 0 0 10px rgba(255, 81, 47, 0.5);
         }
 
         .action-btn:hover {
-            background: linear-gradient(90deg, #b721ff, #21d4fd);
+            background: linear-gradient(90deg, #dd2476, #ff512f);
             transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(33, 212, 253, 0.7);
+            box-shadow: 0 0 20px rgba(255, 81, 47, 0.7);
         }
 
         /* Scrollbar Styling */
@@ -279,12 +278,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #21d4fd, #b721ff);
+            background: linear-gradient(90deg, #ff512f, #dd2476);
             border-radius: 5px;
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
+            background: #2a2a3c;
         }
 
         /* Responsive Design */
@@ -304,7 +303,7 @@
 
             .table tr {
                 margin-bottom: 15px;
-                background: rgba(255, 255, 255, 0.05);
+                background: #2a2a3c;
                 border-radius: 10px;
                 padding: 10px;
             }
@@ -322,6 +321,7 @@
                 width: calc(50% - 30px);
                 font-weight: bold;
                 text-align: left;
+                color: #f0f0f0;
             }
 
             .therapist-info {
