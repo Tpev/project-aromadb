@@ -2,7 +2,7 @@
 <x-app-layout>
     <!-- Full-Screen Background Video -->
     <video autoplay muted loop id="bg-video">
-        <source src="images/bg01.mp4" type="video/mp4">
+        <source src="/images/bg01.mp4" type="video/mp4">
         Your browser does not support HTML5 video.
     </video>
 
