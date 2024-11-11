@@ -29,7 +29,7 @@
                             <td class="text-wrap">{{ $therapist->name }}</td>
                             <td class="text-wrap">{{ $therapist->email }}</td>
                             <td>{{ $therapist->onboarding_score }} / {{ $therapist->onboarding_total }}</td>
-							<td {{ $therapist->last_login_at ? \Carbon\Carbon::parse($therapist->last_login_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') : 'Never' }} </td>
+							<td class="text-wrap">{{ $therapist->last_login_at }}</td>
                             <td>
                                 <a href="{{ route('admin.therapists.show', $therapist->id) }}" class="text-blue-600 hover:text-blue-800">View Details</a>
                             </td>
