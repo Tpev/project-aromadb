@@ -13,6 +13,7 @@ use App\Models\LicenseTier;
 use App\Models\UserLicense;
 use App\Models\LicenseHistory;
 use App\Models\Product;
+use App\Models\Availability;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB; // Importing the DB facade
 use Illuminate\Support\Str;        // Importing the Str facade
@@ -252,7 +253,7 @@ return view('admin.index', compact(
             }
 
             // Disponibilité
-            if ($therapist->disponibilites()->exists()) {
+            if ($therapist->availabilities()->exists()) {
                 $score++;
             }
 
@@ -326,7 +327,7 @@ return view('admin.index', compact(
         }
 
         // Disponibilité
-        if ($therapist->disponibilites()->exists()) {
+        if ($therapist->availabilities()->exists()) {
             $score++;
         }
 
