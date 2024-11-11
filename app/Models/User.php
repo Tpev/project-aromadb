@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use App\Models\InventoryItem;
+use App\Models\Availability;
 
 class User extends Authenticatable
 {
@@ -74,6 +75,10 @@ class User extends Authenticatable
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
+    }    
+	public function availabilities()
+    {
+        return $this->hasMany(Availability::class);
     }
 
     // Add the missing clientProfiles relationship
