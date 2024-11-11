@@ -1,144 +1,17 @@
 {{-- resources/views/admin/therapists/show.blade.php --}}
-<x-app-layout>
-    <!-- Full-Screen Background Video -->
-    <video autoplay muted loop id="bg-video">
-        <source src="/images/bg01.mp4" type="video/mp4">
-        Your browser does not support HTML5 video.
-    </video>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Therapist Details</title>
+    <!-- Include necessary meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-100 leading-tight">
-            {{ __('Therapist Details') }}
-        </h2>
-    </x-slot>
+    <!-- Include the 'Montserrat' font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <!-- SVG Gradient Definition (for radial progress and other elements) -->
-    <svg width="0" height="0">
-        <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#ff512f" />
-                <stop offset="100%" stop-color="#dd2476" />
-            </linearGradient>
-        </defs>
-    </svg>
-
-    <div class="container mt-5">
-        <!-- Therapist Details -->
-        <h1 class="page-title">Therapist Details: {{ $therapist->name }}</h1>
-
-        <!-- Therapist Info -->
-        <div class="therapist-info-card">
-            <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="Avatar" class="avatar-large">
-            <div class="info">
-                <h2>{{ $therapist->name }}</h2>
-                <p><strong>Email:</strong> {{ $therapist->email }}</p>
-                <p><strong>Slug:</strong> {{ $therapist->slug ?? 'Not set' }}</p>
-                <p><strong>Stripe Account ID:</strong> {{ $therapist->stripe_account_id ?? 'Not set' }}</p>
-                <p><strong>Accepts Online Booking:</strong> {{ $therapist->accepts_online_booking ? 'Yes' : 'No' }}</p>
-            </div>
-        </div>
-
-        <!-- Onboarding Checklist -->
-        <h2 class="section-title">Onboarding Checklist</h2>
-        <ul class="checklist">
-            <li>
-                @if($therapist->slug)
-                    <span class="checkmark">&#10003;</span> Has a Slug
-                @else
-                    <span class="crossmark">&#10007;</span> Has a Slug
-                @endif
-            </li>
-            <li>
-                @if($therapist->stripe_account_id)
-                    <span class="checkmark">&#10003;</span> Has set up Stripe
-                @else
-                    <span class="crossmark">&#10007;</span> Has set up Stripe
-                @endif
-            </li>
-            <li>
-                @if($therapist->accept_online_appointments)
-                    <span class="checkmark">&#10003;</span> Accepts Online Booking
-                @else
-                    <span class="crossmark">&#10007;</span> Accepts Online Booking
-                @endif
-            </li>
-            <li>
-                @if($therapist->products()->exists())
-                    <span class="checkmark">&#10003;</span> Has created a Prestation
-                @else
-                    <span class="crossmark">&#10007;</span> Has created a Prestation
-                @endif
-            </li>
-            <li>
-                @if($therapist->availabilities()->exists())
-                    <span class="checkmark">&#10003;</span> Has created a Disponibilité
-                @else
-                    <span class="crossmark">&#10007;</span> Has created a Disponibilité
-                @endif
-            </li>
-            <li>
-                @if($therapist->appointments()->exists())
-                    <span class="checkmark">&#10003;</span> Has created an Appointment
-                @else
-                    <span class="crossmark">&#10007;</span> Has created an Appointment
-                @endif
-            </li>
-            <li>
-                @if($therapist->invoices()->exists())
-                    <span class="checkmark">&#10003;</span> Has created an Invoice
-                @else
-                    <span class="crossmark">&#10007;</span> Has created an Invoice
-                @endif
-            </li>
-            <li>
-                @if($therapist->clientProfiles()->exists())
-                    <span class="checkmark">&#10003;</span> Has created a Client Profile
-                @else
-                    <span class="crossmark">&#10007;</span> Has created a Client Profile
-                @endif
-            </li>
-            <li>
-                @if($therapist->events()->exists())
-                    <span class="checkmark">&#10003;</span> Has created an Event
-                @else
-                    <span class="crossmark">&#10007;</span> Has created an Event
-                @endif
-            </li>
-        </ul>
-
-        <!-- Onboarding Score -->
-        <h2 class="section-title">Onboarding Score</h2>
-        <div class="onboarding-score">
-            <div class="radial-progress" data-percentage="{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45"></circle>
-                    <circle cx="50" cy="50" r="45" style="stroke-dashoffset: {{ 282 - (282 * ($therapist->onboarding_score / $therapist->onboarding_total)) }};"></circle>
-                </svg>
-                <div class="percentage">{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}%</div>
-            </div>
-        </div>
-
-        <!-- Monthly Usage Statistics -->
-        <h2 class="section-title">Monthly Usage Statistics</h2>
-        <div class="stat-grid">
-            <div class="stat-box">
-                <h4>Appointments This Month</h4>
-                <p>{{ $appointmentsThisWeek }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Invoices This Month</h4>
-                <p>{{ $invoicesThisWeek }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Client Profiles This Month</h4>
-                <p>{{ $clientProfilesThisWeek }}</p>
-            </div>
-            <div class="stat-box">
-                <h4>Events This Month</h4>
-                <p>{{ $eventsThisWeek }}</p>
-            </div>
-        </div>
-    </div>
+    <!-- Include your main CSS file -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     <!-- Custom Styles -->
     <style>
@@ -160,12 +33,20 @@
             color: #f0f0f0;
             font-family: 'Montserrat', sans-serif;
             overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 
         .container {
             max-width: 1300px;
             margin: 0 auto;
             padding: 0 15px;
+            position: relative;
+            z-index: 1; /* Ensure content is above the video */
+        }
+
+        .mt-5 {
+            margin-top: 2rem;
         }
 
         .page-title {
@@ -336,13 +217,11 @@
             padding: 20px;
             text-align: center;
             border-radius: 12px;
-            /* Remove box-shadow for transparency */
             transition: transform 0.2s;
         }
 
         .stat-box:hover {
             transform: translateY(-5px);
-            /* Remove box-shadow on hover */
         }
 
         .stat-box h4 {
@@ -377,4 +256,114 @@
             }
         }
     </style>
-</x-app-layout>
+</head>
+<body>
+    <!-- Full-Screen Background Video -->
+    <video autoplay muted loop id="bg-video">
+        <source src="/images/bg01.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
+    <!-- SVG Gradient Definition (for radial progress and other elements) -->
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff512f" />
+                <stop offset="100%" stop-color="#dd2476" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <div class="container mt-5">
+        <!-- Therapist Details -->
+        <h1 class="page-title">Therapist Details: {{ $therapist->name }}</h1>
+
+        <!-- Therapist Info -->
+        <div class="therapist-info-card">
+            <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="Avatar" class="avatar-large">
+            <div class="info">
+                <h2>{{ $therapist->name }}</h2>
+                <p><strong>Email:</strong> {{ $therapist->email }}</p>
+                <p><strong>Slug:</strong> {{ $therapist->slug ?? 'Not set' }}</p>
+                <p><strong>Stripe Account ID:</strong> {{ $therapist->stripe_account_id ?? 'Not set' }}</p>
+                <p><strong>Accepts Online Booking:</strong> {{ $therapist->accepts_online_booking ? 'Yes' : 'No' }}</p>
+            </div>
+        </div>
+
+        <!-- Onboarding Checklist -->
+        <h2 class="section-title">Onboarding Checklist</h2>
+        <ul class="checklist">
+            <!-- Your checklist items -->
+            @foreach([
+                'slug' => 'Has a Slug',
+                'stripe_account_id' => 'Has set up Stripe',
+                'accept_online_appointments' => 'Accepts Online Booking',
+                'products' => 'Has created a Prestation',
+                'availabilities' => 'Has created a Disponibilité',
+                'appointments' => 'Has created an Appointment',
+                'invoices' => 'Has created an Invoice',
+                'clientProfiles' => 'Has created a Client Profile',
+                'events' => 'Has created an Event',
+            ] as $attribute => $description)
+                <li>
+                    @if($attribute === 'accept_online_appointments')
+                        @if($therapist->accept_online_appointments)
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @elseif(in_array($attribute, ['slug', 'stripe_account_id']))
+                        @if($therapist->$attribute)
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @else
+                        @if($therapist->$attribute()->exists())
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @endif
+                </li>
+            @endforeach
+        </ul>
+
+        <!-- Onboarding Score -->
+        <h2 class="section-title">Onboarding Score</h2>
+        <div class="onboarding-score">
+            <div class="radial-progress" data-percentage="{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45"></circle>
+                    <circle cx="50" cy="50" r="45" style="stroke-dashoffset: {{ 282 - (282 * ($therapist->onboarding_score / $therapist->onboarding_total)) }};"></circle>
+                </svg>
+                <div class="percentage">{{ round(($therapist->onboarding_score / $therapist->onboarding_total) * 100) }}%</div>
+            </div>
+        </div>
+
+        <!-- Monthly Usage Statistics -->
+        <h2 class="section-title">Monthly Usage Statistics</h2>
+        <div class="stat-grid">
+            <div class="stat-box">
+                <h4>Appointments This Month</h4>
+                <p>{{ $appointmentsThisWeek }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Invoices This Month</h4>
+                <p>{{ $invoicesThisWeek }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Client Profiles This Month</h4>
+                <p>{{ $clientProfilesThisWeek }}</p>
+            </div>
+            <div class="stat-box">
+                <h4>Events This Month</h4>
+                <p>{{ $eventsThisWeek }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include any necessary scripts -->
+    <script src="{{ asset('js/app.js') }}"></script>
+</body>
+</html>
