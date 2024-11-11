@@ -35,14 +35,14 @@
                 @endif
             </li>
             <li>
-                @if($therapist->prestations()->exists())
+                @if($therapist->products()->exists())
                     <span class="checkmark">&#10003;</span> Has created a Prestation
                 @else
                     <span class="crossmark">&#10007;</span> Has created a Prestation
                 @endif
             </li>
             <li>
-                @if($therapist->disponibilites()->exists())
+                @if($therapist->availabilities()->exists())
                     <span class="checkmark">&#10003;</span> Has created a Disponibilité
                 @else
                     <span class="crossmark">&#10007;</span> Has created a Disponibilité
