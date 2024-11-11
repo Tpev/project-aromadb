@@ -24,7 +24,7 @@
             min-height: 100%;
             z-index: -1;
             object-fit: cover;
-            filter: brightness(50%) blur(2px);
+            filter: brightness(50%) blur(1px);
         }
 
         /* General Styles */
