@@ -390,6 +390,8 @@ Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.s
 Route::get('/admin/users', [AdminController::class, 'index'])->name('admin.index');
 Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])->name('admin.license');
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
+Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
+Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/upgrade/license', [UserLicenseController::class, 'showUpgradePage'])->name('upgrade.license');
