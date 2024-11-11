@@ -10,8 +10,76 @@
         <!-- Therapist Details -->
         <h1 class="page-title">Therapist Details: {{ $therapist->name }}</h1>
 
+        <!-- Onboarding Checklist -->
+        <h2>Onboarding Checklist</h2>
+        <ul class="checklist">
+            <li>
+                @if($therapist->slug)
+                    <span class="checkmark">&#10003;</span> Has a Slug
+                @else
+                    <span class="crossmark">&#10007;</span> Has a Slug
+                @endif
+            </li>
+            <li>
+                @if($therapist->stripe_account_id)
+                    <span class="checkmark">&#10003;</span> Has set up Stripe
+                @else
+                    <span class="crossmark">&#10007;</span> Has set up Stripe
+                @endif
+            </li>
+            <li>
+                @if($therapist->accepts_online_booking)
+                    <span class="checkmark">&#10003;</span> Accepts Online Booking
+                @else
+                    <span class="crossmark">&#10007;</span> Accepts Online Booking
+                @endif
+            </li>
+            <li>
+                @if($therapist->prestations()->exists())
+                    <span class="checkmark">&#10003;</span> Has created a Prestation
+                @else
+                    <span class="crossmark">&#10007;</span> Has created a Prestation
+                @endif
+            </li>
+            <li>
+                @if($therapist->disponibilites()->exists())
+                    <span class="checkmark">&#10003;</span> Has created a Disponibilité
+                @else
+                    <span class="crossmark">&#10007;</span> Has created a Disponibilité
+                @endif
+            </li>
+            <li>
+                @if($therapist->appointments()->exists())
+                    <span class="checkmark">&#10003;</span> Has created an Appointment
+                @else
+                    <span class="crossmark">&#10007;</span> Has created an Appointment
+                @endif
+            </li>
+            <li>
+                @if($therapist->invoices()->exists())
+                    <span class="checkmark">&#10003;</span> Has created an Invoice
+                @else
+                    <span class="crossmark">&#10007;</span> Has created an Invoice
+                @endif
+            </li>
+            <li>
+                @if($therapist->clientProfiles()->exists())
+                    <span class="checkmark">&#10003;</span> Has created a Client Profile
+                @else
+                    <span class="crossmark">&#10007;</span> Has created a Client Profile
+                @endif
+            </li>
+            <li>
+                @if($therapist->events()->exists())
+                    <span class="checkmark">&#10003;</span> Has created an Event
+                @else
+                    <span class="crossmark">&#10007;</span> Has created an Event
+                @endif
+            </li>
+        </ul>
+
         <!-- Onboarding Score -->
-        <h2>Onboarding Score</h2>
+        <h2 class="mt-5">Onboarding Score</h2>
         <div class="stat-box">
             <p>{{ $therapist->onboarding_score }} / {{ $therapist->onboarding_total }}</p>
         </div>
@@ -53,6 +121,31 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 15px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+
+        .checklist li {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkmark {
+            color: green;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .crossmark {
+            color: red;
+            font-weight: bold;
+            margin-right: 10px;
         }
 
         .stat-grid {

@@ -294,7 +294,17 @@ return view('admin.index', compact(
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             return redirect('/')->with('error', 'Unauthorized access');
         }
-
+		
+		    // Eager load relationships
+    $therapist->load([
+        'products',
+        'availabilities',
+        'appointments',
+        'invoices',
+        'clientProfiles',
+        'events'
+    ]);
+		
         // Find the therapist
         $therapist = User::where('is_therapist', true)->findOrFail($id);
 
