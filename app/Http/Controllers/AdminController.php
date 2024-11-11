@@ -241,7 +241,7 @@ return view('admin.index', compact(
             }
 
             // Accepts booking online (assuming 'accepts_online_booking' property)
-            if ($therapist->accepts_online_booking) {
+            if ($therapist->accept_online_appointments) {
                 $score++;
             }
 
@@ -326,7 +326,7 @@ return view('admin.index', compact(
         }
 
         // Accepts booking online (assuming 'accepts_online_booking' property)
-        if ($therapist->accepts_online_booking) {
+        if ($therapist->accept_online_appointments) {
             $score++;
         }
 

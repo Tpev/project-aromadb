@@ -28,7 +28,7 @@
                 @endif
             </li>
             <li>
-                @if($therapist->accepts_online_booking)
+                @if($therapist->accept_online_appointments)
                     <span class="checkmark">&#10003;</span> Accepts Online Booking
                 @else
                     <span class="crossmark">&#10007;</span> Accepts Online Booking
