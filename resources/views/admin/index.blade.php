@@ -1,11 +1,178 @@
 {{-- resources/views/admin/dashboard.blade.php --}}
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-green-600 leading-tight">
-            {{ __('Admin Dashboard') }}
-        </h2>
-    </x-slot>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <!-- Include necessary meta tags -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Include the 'Montserrat' font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include your main CSS file -->
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+
+    <!-- Custom Styles -->
+    <style>
+        /* Full-Screen Background Video */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+            object-fit: cover;
+            filter: brightness(50%) blur(2px);
+        }
+
+        /* General Styles */
+        body {
+            background: transparent;
+            color: #f0f0f0;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 15px;
+            position: relative;
+            z-index: 1; /* Ensure content is above the video */
+        }
+
+        .mt-5 {
+            margin-top: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 40px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        .page-title::after {
+            content: '';
+            width: 150px;
+            height: 3px;
+            background: linear-gradient(90deg, #ff512f, #dd2476);
+            display: block;
+            margin: 20px auto 0;
+            border-radius: 2px;
+        }
+
+        /* Stat Grid */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-box {
+            background-color: transparent; /* Make transparent */
+            padding: 20px;
+            text-align: center;
+            border-radius: 12px;
+            transition: transform 0.2s;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-box h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #f0f0f0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .stat-box p {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff512f;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            background-color: rgba(42, 42, 60, 0.8); /* Semi-transparent */
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+            overflow-x: auto;
+            backdrop-filter: blur(5px);
+        }
+
+        .table {
+            width: 100%;
+            max-width: 100%;
+            table-layout: auto;
+            word-wrap: break-word;
+            color: #f0f0f0;
+        }
+
+        .table thead {
+            background-color: rgba(58, 58, 79, 0.8); /* Semi-transparent */
+            color: #f0f0f0;
+        }
+
+        .table tbody tr {
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(58, 58, 79, 0.8);
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+            padding: 12px 8px;
+        }
+
+        .text-wrap {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+
+        ul {
+            padding-left: 20px;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            .stat-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Full-Screen Background Video -->
+    <video autoplay muted loop id="bg-video">
+        <source src="/images/bg01.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
+    <!-- Container -->
     <div class="container mt-5">
         <!-- Session Statistics -->
         <h1 class="page-title">Session Statistics</h1>
@@ -88,9 +255,6 @@
             </div>
         </div>
 
-}
-
-
         <!-- Users Table -->
         <h1 class="page-title">Liste des Utilisateurs</h1>
 
@@ -158,112 +322,7 @@
         </div>
     </div>
 
-    <!-- Custom Styles -->
-    <style>
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .stat-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .stat-box {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            padding: 20px;
-            text-align: center;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .stat-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-box h4 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #4a5568;
-        }
-
-        .stat-box p {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #2d3748;
-        }
-
-        .table-responsive {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 40px;
-            overflow-x: auto;
-        }
-
-        .table {
-            width: 100%;
-            max-width: 100%;
-            table-layout: auto;
-            word-wrap: break-word;
-        }
-
-        .table thead {
-            background-color: #16a34a;
-            color: #ffffff;
-        }
-
-        .table tbody tr {
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .table tbody tr:hover {
-            background-color: #16a34a;
-            color: #ffffff;
-        }
-
-        .table th, .table td {
-            vertical-align: middle;
-            text-align: center;
-            padding: 12px 8px;
-        }
-
-        .text-wrap {
-            white-space: normal;
-            word-wrap: break-word;
-        }
-
-        .page-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        ul {
-            padding-left: 20px;
-            text-align: left;
-        }
-
-        @media (max-width: 768px) {
-            .stat-group {
-                flex-direction: column;
-            }
-        }
-    </style>
-</x-app-layout>
+    <!-- Include any necessary scripts -->
+    <script src="{{ asset('js/app.js') }}"></script>
+</body>
+</html>
