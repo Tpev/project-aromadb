@@ -88,19 +88,19 @@
         <h2 class="mt-5">Weekly Usage Statistics</h2>
         <div class="stat-grid">
             <div class="stat-box">
-                <h4>Appointments This Week</h4>
+                <h4>Appointments This Month</h4>
                 <p>{{ $appointmentsThisWeek }}</p>
             </div>
             <div class="stat-box">
-                <h4>Invoices This Week</h4>
+                <h4>Invoices This Month</h4>
                 <p>{{ $invoicesThisWeek }}</p>
             </div>
             <div class="stat-box">
-                <h4>Client Profiles This Week</h4>
+                <h4>Client Profiles This Month</h4>
                 <p>{{ $clientProfilesThisWeek }}</p>
             </div>
             <div class="stat-box">
-                <h4>Events This Week</h4>
+                <h4>Events This Month</h4>
                 <p>{{ $eventsThisWeek }}</p>
             </div>
         </div>
