@@ -1,10 +1,20 @@
 {{-- resources/views/admin/therapists/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-100 dark:text-green-600 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-100 leading-tight">
             {{ __('Therapist Management') }}
         </h2>
     </x-slot>
+
+    <!-- SVG Gradient Definition (for radial progress) -->
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="radialGradient" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00f260" />
+                <stop offset="100%" stop-color="#0575e6" />
+            </linearGradient>
+        </defs>
+    </svg>
 
     <div class="container mt-5">
         <!-- Therapist Onboarding Scores -->
@@ -25,26 +35,26 @@
                 <tbody>
                     @foreach($therapists as $therapist)
                         <tr class="text-center">
-                            <td>{{ $therapist->id }}</td>
-                            <td class="text-wrap">
+                            <td data-label="ID">{{ $therapist->id }}</td>
+                            <td data-label="Therapist" class="text-wrap">
                                 <div class="therapist-info">
-                                    <img src="{{ $therapist->profile_picture ?? '/images/default-avatar.png' }}" alt="Avatar" class="avatar">
+                                    <img src="{{ $therapist->profile_picture_url ?? '/images/default-avatar.png' }}" alt="Avatar" class="avatar">
                                     <div class="name-email">
                                         <span class="name">{{ $therapist->name }}</span>
                                         <span class="email">{{ $therapist->email }}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Onboarding Score">
                                 <div class="progress-bar">
                                     <div class="progress" style="width: {{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}%;"></div>
                                 </div>
                                 <span>{{ $therapist->onboarding_score }} / {{ $therapist->onboarding_total }}</span>
                             </td>
-                            <td class="text-wrap">
+                            <td data-label="Last Login" class="text-wrap">
                                 {{ $therapist->last_login_at ? \Carbon\Carbon::parse($therapist->last_login_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') : 'Never' }}
                             </td>
-                            <td>
+                            <td data-label="Engagement Score">
                                 <div class="radial-progress" data-percentage="{{ $therapist->engagement_score }}">
                                     <svg viewBox="0 0 100 100">
                                         <circle cx="50" cy="50" r="45"></circle>
@@ -53,7 +63,7 @@
                                     <div class="percentage">{{ $therapist->engagement_score }}%</div>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Actions">
                                 <a href="{{ route('admin.therapists.show', $therapist->id) }}" class="action-btn">View Details</a>
                             </td>
                         </tr>
@@ -67,9 +77,9 @@
     <style>
         /* General Styles */
         body {
-            background: radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d);
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: #e0e0e0;
+            font-family: 'Poppins', sans-serif;
             overflow-x: hidden;
         }
 
@@ -82,7 +92,7 @@
         .page-title {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #fff;
+            color: #e0e0e0;
             margin-bottom: 40px;
             text-align: center;
             text-transform: uppercase;
@@ -94,14 +104,15 @@
             content: '';
             width: 150px;
             height: 3px;
-            background: linear-gradient(90deg, #00f260, #0575e6);
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
             display: block;
             margin: 20px auto 0;
+            border-radius: 2px;
         }
 
         /* Table Styles */
         .table-responsive {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 40px;
@@ -111,12 +122,12 @@
 
         .table {
             width: 100%;
-            color: #fff;
+            color: #e0e0e0;
             border-collapse: collapse;
         }
 
         .table thead {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
 
@@ -125,6 +136,7 @@
             font-size: 1rem;
             text-transform: uppercase;
             position: relative;
+            color: #e0e0e0;
         }
 
         .table thead th::after {
@@ -136,6 +148,7 @@
             width: 50%;
             height: 2px;
             background: linear-gradient(90deg, #00c6ff, #0072ff);
+            border-radius: 2px;
         }
 
         .table tbody tr {
@@ -146,7 +159,7 @@
         .table tbody tr:hover {
             background-color: rgba(255, 255, 255, 0.1);
             transform: scale(1.01);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
 
         .table tbody td {
@@ -167,8 +180,8 @@
             border-radius: 50%;
             margin-right: 15px;
             object-fit: cover;
-            border: 2px solid #fff;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 0 10px rgba(0, 150, 255, 0.5);
         }
 
         .name-email {
@@ -178,11 +191,12 @@
         .name {
             font-weight: bold;
             font-size: 1.1rem;
+            color: #e0e0e0;
         }
 
         .email {
             font-size: 0.9rem;
-            color: #ddd;
+            color: #a0a0a0;
         }
 
         /* Progress Bar */
@@ -225,7 +239,7 @@
         }
 
         .radial-progress circle:last-child {
-            stroke: url(#gradient);
+            stroke: url(#radialGradient);
             stroke-dasharray: 282;
             stroke-dashoffset: 282;
             transition: stroke-dashoffset 1s ease-out;
@@ -238,24 +252,25 @@
             transform: translate(-50%, -50%);
             font-size: 0.9rem;
             font-weight: bold;
+            color: #e0e0e0;
         }
 
         /* Action Button */
         .action-btn {
             display: inline-block;
             padding: 10px 20px;
-            background: linear-gradient(90deg, #0575e6, #021b79);
+            background: linear-gradient(90deg, #21d4fd, #b721ff);
             color: #fff;
             border-radius: 30px;
             text-decoration: none;
             transition: background 0.3s, transform 0.3s;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(33, 212, 253, 0.5);
         }
 
         .action-btn:hover {
-            background: linear-gradient(90deg, #021b79, #0575e6);
+            background: linear-gradient(90deg, #b721ff, #21d4fd);
             transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+            box-shadow: 0 0 20px rgba(33, 212, 253, 0.7);
         }
 
         /* Scrollbar Styling */
@@ -264,17 +279,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #00f260, #0575e6);
+            background: linear-gradient(90deg, #21d4fd, #b721ff);
             border-radius: 5px;
         }
 
         ::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* SVG Gradient Definition */
-        svg defs {
-            position: absolute;
         }
 
         /* Responsive Design */
@@ -294,6 +304,9 @@
 
             .table tr {
                 margin-bottom: 15px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 10px;
+                padding: 10px;
             }
 
             .table td {
@@ -305,20 +318,19 @@
             .table td::before {
                 content: attr(data-label);
                 position: absolute;
-                left: 0;
-                width: 45%;
-                padding-left: 15px;
+                left: 15px;
+                width: calc(50% - 30px);
                 font-weight: bold;
                 text-align: left;
             }
 
             .therapist-info {
-                flex-direction: column;
-                align-items: flex-end;
+                flex-direction: row;
+                align-items: center;
             }
 
             .name-email {
-                text-align: right;
+                text-align: left;
             }
         }
     </style>
