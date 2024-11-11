@@ -2,7 +2,7 @@
 <x-app-layout>
     <!-- Full-Screen Background Video -->
     <video autoplay muted loop id="bg-video">
-        <source src="images/bg1.mp4" type="video/mp4">
+        <source src="images/bg01.mp4" type="video/mp4">
         Your browser does not support HTML5 video.
     </video>
 
@@ -28,7 +28,7 @@
 
         <!-- Therapist Info -->
         <div class="therapist-info-card">
-            <img src="{{ $therapist->profile_picture_url ?? '/images/default-avatar.png' }}" alt="Avatar" class="avatar-large">
+            <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="Avatar" class="avatar-large">
             <div class="info">
                 <h2>{{ $therapist->name }}</h2>
                 <p><strong>Email:</strong> {{ $therapist->email }}</p>
