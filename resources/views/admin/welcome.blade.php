@@ -59,6 +59,7 @@
             text-transform: uppercase;
             letter-spacing: 3px;
             position: relative;
+            animation: fadeInDown 1s ease-out;
         }
 
         .welcome-title::after {
@@ -71,6 +72,18 @@
             border-radius: 2px;
         }
 
+        /* Animation for Welcome Title */
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .option-grid {
             display: flex;
             flex-wrap: wrap;
@@ -80,17 +93,16 @@
         }
 
         .option-card {
-            background-color: rgba(42, 42, 60, 0.8);
-            backdrop-filter: blur(5px);
             width: 250px;
             height: 250px;
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
             position: relative;
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
             text-decoration: none;
+            color: #fff;
+            transition: transform 0.3s, box-shadow 0.3s;
+            perspective: 1000px;
         }
 
         .option-card:hover {
@@ -98,21 +110,46 @@
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
         }
 
-        .option-card::before {
-            content: '';
+        .option-card .card-content {
             position: absolute;
-            top: -100%;
-            left: -100%;
-            width: 300%;
-            height: 300%;
-            background: linear-gradient(45deg, transparent, transparent, rgba(255, 81, 47, 0.5));
-            transition: all 0.5s;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            transform: rotateY(0deg);
+            transition: transform 0.6s;
         }
 
-        .option-card:hover::before {
-            top: -200%;
-            left: -200%;
-            background: linear-gradient(45deg, transparent, transparent, rgba(221, 36, 118, 0.5));
+        .option-card:hover .card-content {
+            transform: rotateY(360deg);
+        }
+
+        .option-card .card-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(-45deg, #ff512f, #dd2476, #ff512f, #dd2476);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            border-radius: 20px;
+            filter: brightness(0.7);
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         .option-card h3 {
@@ -124,6 +161,7 @@
             color: #fff;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
             margin: 0;
+            z-index: 2;
         }
 
         .option-card .icon {
@@ -131,12 +169,13 @@
             top: 20px;
             right: 20px;
             font-size: 3rem;
-            color: #ff512f;
-            transition: color 0.3s;
+            color: #fff;
+            transition: transform 0.3s;
+            z-index: 2;
         }
 
         .option-card:hover .icon {
-            color: #dd2476;
+            transform: rotate(360deg);
         }
 
         /* Responsive Design */
@@ -173,15 +212,30 @@
 
         <div class="option-grid">
             <!-- Session Stats Card -->
-            <a href="{{ route('admin.index') }}" class="option-card">
-                <i class="icon fas fa-chart-line"></i>
-                <h3>Session Stats</h3>
+            <a href="{{ route('admin.dashboard') }}" class="option-card">
+                <div class="card-content">
+                    <div class="card-bg"></div>
+                    <i class="icon fas fa-chart-line"></i>
+                    <h3>Session Stats</h3>
+                </div>
             </a>
 
             <!-- Therapist Index Card -->
             <a href="{{ route('admin.therapists.index') }}" class="option-card">
-                <i class="icon fas fa-user-md"></i>
-                <h3>Therapist Index</h3>
+                <div class="card-content">
+                    <div class="card-bg"></div>
+                    <i class="icon fas fa-user-md"></i>
+                    <h3>Therapist Index</h3>
+                </div>
+            </a>
+
+            <!-- Additional Option Card (Example) -->
+            <a href="{{ route('admin.license') }}" class="option-card">
+                <div class="card-content">
+                    <div class="card-bg"></div>
+                    <i class="icon fas fa-id-card"></i>
+                    <h3>License Management</h3>
+                </div>
             </a>
         </div>
     </div>
@@ -191,5 +245,18 @@
 
     <!-- Include any necessary scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
+
+    <!-- Include Tilt.js for 3D tilt effect -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+
+    <script>
+        // Initialize Vanilla Tilt on option cards
+        VanillaTilt.init(document.querySelectorAll(".option-card"), {
+            max: 15,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.2,
+        });
+    </script>
 </body>
 </html>
