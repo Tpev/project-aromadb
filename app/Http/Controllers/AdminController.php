@@ -247,7 +247,7 @@ return view('admin.index', compact(
             // Has created one or more of the following:
 
             // Prestation
-            if ($therapist->prestations()->exists()) {
+            if ($therapist->products()->exists()) {
                 $score++;
             }
 
