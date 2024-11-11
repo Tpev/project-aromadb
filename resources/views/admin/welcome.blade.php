@@ -65,22 +65,22 @@
             margin: 0 auto; /* Center the text */
         }
 
-        /* Typing Animation */
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
 
-        @keyframes blink-caret {
-            from, to { border-color: transparent; }
-            50% { border-color: orange; }
-        }
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: orange; }
+}
 
-        .typing-animation {
-            display: inline-block;
-            animation: typing 4s steps(30, end), blink-caret .75s step-end infinite;
-            width: 0;
-        }
+
+		.typing-animation {
+			display: inline-block;
+			width: 0;
+			animation: typing 4s steps(30, end) forwards 2s, blink-caret .75s step-end infinite;
+		}
 
         /* Rest of your styles remain the same */
 
