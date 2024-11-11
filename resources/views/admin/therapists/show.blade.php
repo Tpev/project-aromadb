@@ -134,16 +134,7 @@
         </div>
 
         <!-- Engagement Score -->
-        <h2 class="section-title">Engagement Score</h2>
-        <div class="engagement-score">
-            <div class="radial-progress" data-percentage="{{ $engagementScore }}">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45"></circle>
-                    <circle cx="50" cy="50" r="45" style="stroke-dashoffset: {{ 282 - (282 * $engagementScore / 100) }};"></circle>
-                </svg>
-                <div class="percentage">{{ $engagementScore }}%</div>
-            </div>
-        </div>
+
     </div>
 
     <!-- Custom Styles -->
