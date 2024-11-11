@@ -1,5 +1,11 @@
 {{-- resources/views/admin/therapists/show.blade.php --}}
 <x-app-layout>
+    <!-- Full-Screen Background Video -->
+    <video autoplay muted loop id="bg-video">
+        <source src="images/bg1.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-100 leading-tight">
             {{ __('Therapist Details') }}
@@ -22,7 +28,7 @@
 
         <!-- Therapist Info -->
         <div class="therapist-info-card">
-            <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="Avatar" class="avatar-large">
+            <img src="{{ $therapist->profile_picture_url ?? '/images/default-avatar.png' }}" alt="Avatar" class="avatar-large">
             <div class="info">
                 <h2>{{ $therapist->name }}</h2>
                 <p><strong>Email:</strong> {{ $therapist->email }}</p>
@@ -133,15 +139,26 @@
             </div>
         </div>
 
-        <!-- Engagement Score -->
 
     </div>
 
     <!-- Custom Styles -->
     <style>
+        /* Full-Screen Background Video */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+            object-fit: cover;
+            filter: brightness(50%) blur(2px);
+        }
+
         /* General Styles */
         body {
-            background: #1e1e2f;
+            background: transparent;
             color: #f0f0f0;
             font-family: 'Montserrat', sans-serif;
             overflow-x: hidden;
@@ -178,11 +195,12 @@
         .therapist-info-card {
             display: flex;
             align-items: center;
-            background-color: #2a2a3c;
+            background-color: rgba(42, 42, 60, 0.8);
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 40px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
         }
 
         .avatar-large {
@@ -234,10 +252,11 @@
             list-style: none;
             padding-left: 0;
             margin-bottom: 40px;
-            background-color: #2a2a3c;
+            background-color: rgba(42, 42, 60, 0.8);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
         }
 
         .checklist li {
@@ -288,7 +307,7 @@
         }
 
         .radial-progress circle:first-child {
-            stroke: #3a3a4f;
+            stroke: rgba(58, 58, 79, 0.8);
         }
 
         .radial-progress circle:last-child {
@@ -317,12 +336,13 @@
         }
 
         .stat-box {
-            background-color: #2a2a3c;
+            background-color: rgba(42, 42, 60, 0.8);
             padding: 20px;
             text-align: center;
             border-radius: 12px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, box-shadow 0.2s;
+            backdrop-filter: blur(5px);
         }
 
         .stat-box:hover {
