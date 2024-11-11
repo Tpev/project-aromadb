@@ -244,7 +244,7 @@
     </div>
 
     <!-- Include Font Awesome Icons (for the icons) -->
-    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
     <!-- Include any necessary scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
