@@ -40,6 +40,9 @@ class AuthenticatedSessionController extends Controller
             if ($user->is_therapist) {
                 return redirect()->intended('/dashboard-pro');
             }
+			if ($user->is_admin) {
+                return redirect()->intended('/admin');
+            }
 
             return redirect()->intended('/dashboard');
         }
