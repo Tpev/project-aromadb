@@ -138,8 +138,6 @@
                 <p>{{ $eventsThisWeek }}</p>
             </div>
         </div>
-
-
     </div>
 
     <!-- Custom Styles -->
@@ -195,12 +193,11 @@
         .therapist-info-card {
             display: flex;
             align-items: center;
-            background-color: rgba(42, 42, 60, 0.8);
+            background-color: #2a2a3c; /* Solid background */
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 40px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
         }
 
         .avatar-large {
@@ -252,11 +249,10 @@
             list-style: none;
             padding-left: 0;
             margin-bottom: 40px;
-            background-color: rgba(42, 42, 60, 0.8);
+            background-color: #2a2a3c; /* Solid background */
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
         }
 
         .checklist li {
@@ -336,30 +332,31 @@
         }
 
         .stat-box {
-            background-color: rgba(42, 42, 60, 0.8);
+            background-color: transparent; /* Make transparent */
             padding: 20px;
             text-align: center;
             border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-            backdrop-filter: blur(5px);
+            /* Remove box-shadow for transparency */
+            transition: transform 0.2s;
         }
 
         .stat-box:hover {
             transform: translateY(-5px);
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            /* Remove box-shadow on hover */
         }
 
         .stat-box h4 {
             font-size: 1.2rem;
             margin-bottom: 10px;
             color: #f0f0f0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
         }
 
         .stat-box p {
             font-size: 2rem;
             font-weight: bold;
             color: #ff512f;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
         }
 
         /* Responsive Design */
