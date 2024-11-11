@@ -387,6 +387,7 @@ Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.s
 
 
 // Admin License routes
+Route::get('/admin', [AdminController::class, 'welcome'])->name('admin.welcome');
 Route::get('/admin/users', [AdminController::class, 'index'])->name('admin.index');
 Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])->name('admin.license');
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');

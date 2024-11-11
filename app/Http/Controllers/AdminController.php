@@ -393,4 +393,14 @@ return view('admin.index', compact(
             'eventsThisWeek'
         ));
     }
+	
+	    public function welcome()
+    {
+        // Check if the user is an admin
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return redirect('/')->with('error', 'Unauthorized access');
+        }
+
+        return view('admin.welcome');
+    }
 }
