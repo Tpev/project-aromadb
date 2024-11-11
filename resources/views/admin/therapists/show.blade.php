@@ -85,7 +85,7 @@
         </div>
 
         <!-- Weekly Usage Statistics -->
-        <h2 class="mt-5">Weekly Usage Statistics</h2>
+        <h2 class="mt-5">Monthly Usage Statistics</h2>
         <div class="stat-grid">
             <div class="stat-box">
                 <h4>Appointments This Month</h4>
