@@ -212,7 +212,7 @@
 
         <div class="option-grid">
             <!-- Session Stats Card -->
-            <a href="{{ route('admin.dashboard') }}" class="option-card">
+            <a href="{{ route('admin.index') }}" class="option-card">
                 <div class="card-content">
                     <div class="card-bg"></div>
                     <i class="icon fas fa-chart-line"></i>
