@@ -366,8 +366,8 @@ return view('admin.index', compact(
         $therapist->onboarding_total = $total;
 
         // Weekly usage statistics
-        $startOfWeek = Carbon::now()->startOfWeek();
-        $endOfWeek = Carbon::now()->endOfWeek();
+        $startOfWeek = Carbon::now()->startOfMonth();
+        $endOfWeek = Carbon::now()->endOfMonth();
 
         $appointmentsThisWeek = $therapist->appointments()
             ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
