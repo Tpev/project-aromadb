@@ -294,6 +294,8 @@ return view('admin.index', compact(
         if (!auth()->user() || !auth()->user()->isAdmin()) {
             return redirect('/')->with('error', 'Unauthorized access');
         }
+		        // Find the therapist
+        $therapist = User::where('is_therapist', true)->findOrFail($id);
 		
 		    // Eager load relationships
     $therapist->load([
@@ -305,8 +307,7 @@ return view('admin.index', compact(
         'events'
     ]);
 		
-        // Find the therapist
-        $therapist = User::where('is_therapist', true)->findOrFail($id);
+
 
         // Calculate onboarding score
         $score = 0;
