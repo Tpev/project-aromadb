@@ -30,8 +30,8 @@
     <div class="section">
         <h1 class="details-title">{{ __('Informations de Licence') }}</h1>
         <div class="section-content text-center">
-            @if(auth()->user()->license && auth()->user()->license->licenseTier)
-                <p><strong>{{ __('Licence Actuelle :') }}</strong> {{ auth()->user()->license->licenseTier->name }}</p>
+            @if(auth()->user()->license && auth()->user()->license_product)
+                <p><strong>{{ __('Licence Actuelle :') }}</strong> {{ auth()->user()->license_product }}</p>
                 <p><strong>{{ __('Expiration de la Licence :') }}</strong> 
                     {{ \Carbon\Carbon::parse(auth()->user()->license->expiration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}
                 </p>
