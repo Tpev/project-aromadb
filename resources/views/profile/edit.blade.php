@@ -37,6 +37,7 @@
                 </p>
             @else
                 <p>{{ __('Aucune licence n\'est actuellement attribuée.') }}</p>
+			 <a href="{{ route('license-tiers.pricing') }}" class="btn-primary mt-4">{{ __('Débloquer l\'accès illimité') }}</a>
             @endif
         </div>
     </div>
