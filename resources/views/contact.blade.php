@@ -2,7 +2,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Contactez-nous') }}
+            {{ __('Support Technique') }}
         </h2>
     </x-slot>
 
@@ -11,7 +11,10 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Nous Contacter') }}</h1>
+            <h1 class="details-title">{{ __('Besoin d\'aide ?') }}</h1>
+            <p class="support-text">
+                {{ __('Si vous rencontrez des problèmes ou avez des questions, n\'hésitez pas à contacter notre équipe de support en utilisant le formulaire ci-dessous.') }}
+            </p>
 
             <!-- Afficher le message de succès -->
             @if(Session::has('success'))
@@ -53,7 +56,15 @@
                 <!-- Sujet -->
                 <div class="details-box">
                     <label class="details-label" for="subject">{{ __('Sujet') }}</label>
-                    <input type="text" id="subject" name="subject" class="form-control" value="{{ old('subject') }}" required>
+                    <select id="subject" name="subject" class="form-control" required>
+                        <option value="" disabled selected>{{ __('Sélectionnez un sujet') }}</option>
+                        <option value="Bug" {{ old('subject') == 'Bug' ? 'selected' : '' }}>{{ __('Signaler un Bug') }}</option>
+                        <option value="Question" {{ old('subject') == 'Question' ? 'selected' : '' }}>{{ __('Question') }}</option>
+                        <option value="Licence" {{ old('subject') == 'Licence' ? 'selected' : '' }}>{{ __('Problème de Licence') }}</option>
+                        <option value="Paiement" {{ old('subject') == 'Paiement' ? 'selected' : '' }}>{{ __('Problème de Paiement') }}</option>
+                        <option value="Suggestion" {{ old('subject') == 'Suggestion' ? 'selected' : '' }}>{{ __('Suggestion d\'Amélioration') }}</option>
+                        <option value="Autre" {{ old('subject') == 'Autre' ? 'selected' : '' }}>{{ __('Autre') }}</option>
+                    </select>
                     @error('subject')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -98,7 +109,14 @@
             font-size: 2rem;
             font-weight: bold;
             color: #647a0b;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .support-text {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 30px;
             text-align: center;
         }
 
