@@ -31,8 +31,13 @@ use App\Http\Controllers\TestCertificateController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\LicenseTierController;
+use App\Http\Controllers\ContactController;
 
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');
+    Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
+    Route::get('/contact/confirmation', [ContactController::class, 'confirmation'])->name('contact.confirmation');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/connect/stripe', [StripeController::class, 'connect'])->name('stripe.connect');
