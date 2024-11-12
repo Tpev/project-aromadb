@@ -10,7 +10,7 @@
         <div class="details-container mx-auto p-4 text-center">
             <h1 class="details-title">{{ __('Merci de nous avoir contactés !') }}</h1>
             <p>{{ __('Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.') }}</p>
-            <a href="{{ route('dashboard') }}" class="btn-primary mt-4">
+            <a href="{{ route('dashboard-pro') }}" class="btn-primary mt-4">
                 <i class="fas fa-home mr-2"></i> {{ __('Retour à l\'accueil') }}
             </a>
         </div>

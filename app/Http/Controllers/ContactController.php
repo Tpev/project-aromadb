@@ -42,6 +42,10 @@ class ContactController extends Controller
         // (Optionnel) Stocker le message dans la base de données si vous le souhaitez
 
         // Rediriger avec un message de succès
-        return redirect()->route('contact.show')->with('success', 'Votre message a été envoyé avec succès !');
+        return redirect()->route('contact.confirmation');
+    }
+	    public function confirmation()
+    {
+        return view('contact-confirmation');
     }
 }
