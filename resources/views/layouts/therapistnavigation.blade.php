@@ -79,10 +79,6 @@
                         <!-- Profile -->
                         <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Profil') }}
-                        </x-dropdown-link>                        
-						
-						<x-dropdown-link :href="route('contact.show'')" class="text-[#647a0b] hover:text-[#854f38]">
-                            {{ __('Support') }}
                         </x-dropdown-link>
                         <div class="border-t border-gray-100"></div>
 
@@ -161,10 +157,6 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('Profil') }}
-                </x-responsive-nav-link>                
-				
-				<x-responsive-nav-link :href="route('contact.show'')" class="text-[#647a0b] hover:text-[#854f38]">
-                    {{ __('Support') }}
                 </x-responsive-nav-link>
 
 
