@@ -9,6 +9,7 @@ use App\Console\Commands\CheckMilestones;
 use App\Console\Commands\SendAppointmentReminders;
 use App\Console\Commands\SendOneHourReminder;
 use App\Console\Commands\FetchFacebookMetrics;
+use App\Console\Commands\UpdateLicenseStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,5 +33,8 @@ Schedule::command(SendOneHourReminder::class)->hourly();
 // Fetch FB data
 Schedule::command(FetchFacebookMetrics::class)->hourly();
 
+
+// Expired Trial
+Schedule::command(UpdateLicenseStatus::class)->daily();
 
 

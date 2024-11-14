@@ -182,7 +182,7 @@ Route::middleware(['auth'])->group(function () {
 });
 Route::middleware(['auth'])->group(function () {
 
-
+	 Route::get('/profile/license', [ProfileController::class, 'license'])->name('profile.license');
     Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
     Route::put('/profile/company-info', [ProfileController::class, 'updateCompanyInfo'])->name('profile.updateCompanyInfo');
 });

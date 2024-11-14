@@ -73,6 +73,14 @@ class ProfileController extends Controller
         }
 	 $user = auth()->user();
         return view('profile.edit-company-info', compact('user'));
+    }    
+	public function license()
+    {
+        if (!auth()->user()->isTherapist()) {
+            abort(403);
+        }
+	 $user = auth()->user();
+        return view('profile.license', compact('user'));
     }
 
     /**

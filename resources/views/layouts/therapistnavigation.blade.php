@@ -90,10 +90,14 @@
                         <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Profil') }}
                         </x-dropdown-link>
-
+						<x-dropdown-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
+                            {{ __('License') }}
+                        </x-dropdown-link>
                         <x-dropdown-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Support') }}
-                        </x-dropdown-link>
+                        </x-dropdown-link>                        
+						
+
                         <div class="border-t border-gray-100"></div>
 
                         <!-- Déconnexion -->
@@ -171,6 +175,9 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('Profil') }}
+                </x-responsive-nav-link>                
+				<x-responsive-nav-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
+                    {{ __('License') }}
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
@@ -190,58 +197,20 @@
     </div>
 </nav>
 
-<!-- Bannière d'essai gratuit -->
-@if(Auth::user()->isTherapist() && Auth::user()->license && Auth::user()->license->licenseTier->is_trial)
-    @php
-        $trialExpirationDate = \Carbon\Carbon::parse(Auth::user()->license->expiration_date);
-        $remainingDays = (int) $trialExpirationDate->diffInDays(now());
-        $remainingDays = -$remainingDays;
-    @endphp
+@php
+    $user = Auth::user();
+@endphp
 
-    <div id="trial-banner" class="bg-yellow-200 border-l-4 border-yellow-500 text-yellow-700 p-4 relative shadow-md mx-auto max-w-7xl mt-6 rounded-md" style="display: none;">
-        <button id="dismiss-trial-banner" class="absolute right-4 top-4 text-2xl text-yellow-700 hover:text-yellow-900">&times;</button>
-        <div class="flex justify-between items-center">
-            <div class="text-left">
-                <h3 class="font-semibold text-lg">{{ __('Version d\'essai') }}</h3>
-                <p class="mt-1">
-                    {{ __('Il vous reste') }}
-                    <span class="font-semibold">{{ $remainingDays }} {{ __('jours') }}</span>
-                    {{ __('dans votre version d\'essai.') }}
-                </p>
-            </div>
-            <div class="ml-6">
-                <a href="{{ route('license-tiers.pricing') }}" class="inline-block bg-blue-600 text-white font-semibold py-2 px-4 rounded-md shadow hover:bg-blue-700 transition duration-200">
-                    {{ __('Mettre à niveau') }}
-                </a>
-            </div>
-        </div>
-    </div>
-
+@if($user && $user->is_therapist && $user->license_status === 'expirée')
     <script>
-        // Fonction pour obtenir la date d'aujourd'hui au format YYYY-MM-DD
-        function getTodayDate() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = (today.getMonth() + 1).toString().padStart(2, '0');
-            const day = today.getDate().toString().padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        // Vérifie si l'utilisateur n'est pas déjà sur la page de mise à niveau
+        if (window.location.pathname !== "{{ route('license-tiers.pricing', [], false) }}") {
+            // Redirige l'utilisateur vers la page de mise à niveau
+            window.location.href = "{{ route('license-tiers.pricing') }}";
         }
-
-        // Vérifier si la bannière a été rejetée aujourd'hui
-        const lastDismissDate = localStorage.getItem('trial-banner-dismissed-date');
-        const today = getTodayDate();
-
-        if (lastDismissDate !== today) {
-            // Afficher la bannière si elle n'a pas été rejetée aujourd'hui
-            document.getElementById('trial-banner').style.display = 'block';
-        }
-
-        // Gérer le rejet de la bannière
-        document.getElementById('dismiss-trial-banner').addEventListener('click', function () {
-            // Cacher la bannière et enregistrer la date actuelle comme date de rejet
-            document.getElementById('trial-banner').style.display = 'none';
-            localStorage.setItem('trial-banner-dismissed-date', today);
-        });
     </script>
+    <!-- Optionnel : Afficher un message d'alerte dans la navbar -->
+    <div class="alert alert-warning">
+        Votre licence a expiré. Veuillez <a href="{{ route('license-tiers.pricing') }}">renouveler votre licence</a> pour continuer à utiliser l'application.
+    </div>
 @endif
-

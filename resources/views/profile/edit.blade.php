@@ -25,23 +25,7 @@
                     </div>
                 </div>
             @endif
-@if(auth()->user()->isTherapist())
-    <!-- Section : Licence actuelle -->
-    <div class="section">
-        <h1 class="details-title">{{ __('Informations de Licence') }}</h1>
-        <div class="section-content text-center">
-            @if(auth()->user()->license_product && auth()->user()->license_product)
-                <p><strong>{{ __('Licence Actuelle :') }}</strong> {{ auth()->user()->license_product }}</p>
-                <p><strong>{{ __('Expiration de la Licence :') }}</strong> 
-                    {{ \Carbon\Carbon::parse(auth()->user()->license->expiration_date)->locale('fr')->isoFormat('D MMMM YYYY') }}
-                </p>
-            @else
-                <p>{{ __('Aucune licence n\'est actuellement attribuée.') }}</p>
-			 <a href="{{ route('license-tiers.pricing') }}" class="btn-primary mt-4">{{ __('Débloquer l\'accès illimité') }}</a>
-            @endif
-        </div>
-    </div>
-@endif
+
 
 
 

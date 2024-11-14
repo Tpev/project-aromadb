@@ -93,6 +93,8 @@ class RegisteredUserController extends Controller
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
                 'is_therapist' => true,  // Set to true for therapist registration
+				'license_product' => 'essai',
+				'license_status' => 'actif',
             ]);
 
             // Initialize Stripe with the secret key from config
@@ -113,20 +115,6 @@ class RegisteredUserController extends Controller
 
             Log::info("Created Stripe customer for user: {$user->email} (Customer ID: {$customer->id})");
 
-            // Fetch the trial license tier
-            $trialLicenseTier = LicenseTier::where('is_trial', true)->first();
-
-            if ($trialLicenseTier) {
-                // Assign a trial license to the user
-                UserLicense::create([
-                    'user_id' => $user->id,
-                    'license_tier_id' => $trialLicenseTier->id,
-                    'start_date' => now(),
-                    'expiration_date' => now()->addDays($trialLicenseTier->trial_duration_days), // Set expiration based on trial duration
-                ]);
-
-                Log::info("Assigned trial license to user: {$user->email}");
-            }
 
             // Fire the Registered event
             event(new \Illuminate\Auth\Events\Registered($user));
