@@ -37,8 +37,10 @@
             </div>
 
             {{-- Section À Propos --}}
-            <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b]">{{ __('À Propos') }}</h3>
+            <div class="bg-[#f9fafb] shadow rounded-lg p-8">
+                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
+                </h3>
                 <p class="mt-6 text-gray-700 text-lg leading-relaxed">
                     {{ $therapist->about ?? __('Informations à propos non disponibles.') }}
                 </p>
@@ -46,7 +48,9 @@
 
             {{-- Section Services --}}
             <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b]">{{ __('Services') }}</h3>
+                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-concierge-bell text-[#854f38] mr-3"></i> {{ __('Services') }}
+                </h3>
                 
                 {{-- Decode services JSON string into an array --}}
                 @php
@@ -67,8 +71,10 @@
             </div>
 
             {{-- Section Contact --}}
-            <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b]">{{ __('Contact') }}</h3>
+            <div class="bg-[#f9fafb] shadow rounded-lg p-8">
+                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-address-book text-[#854f38] mr-3"></i> {{ __('Contact') }}
+                </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-6">
 
                     @if($therapist->share_address_publicly)
@@ -110,14 +116,16 @@
 
             {{-- Section Prestations --}}
             <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#854f38]">{{ __('Prestations') }}</h3>
+                <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">
+                    <i class="fas fa-spa text-[#854f38] mr-3"></i> {{ __('Prestations') }}
+                </h3>
                 @if($prestations->count() > 0)
                     <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($prestations as $prestation)
                             @php
                                 $truncatedDescription = \Illuminate\Support\Str::limit($prestation->description, 200);
                             @endphp
-                            <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item">
+                            <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item bg-[#f9fafb]">
                                 @if($prestation->image)
                                     <img src="{{ asset('storage/' . $prestation->image) }}" alt="{{ $prestation->name }}" class="w-full h-48 object-cover">
                                 @endif
@@ -147,12 +155,14 @@
             </div>
 
             {{-- Section Événements --}}
-            <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#854f38]">{{ __('Événements à Venir') }}</h3>
+            <div class="bg-[#f9fafb] shadow rounded-lg p-8">
+                <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">
+                    <i class="fas fa-calendar-alt text-[#854f38] mr-3"></i> {{ __('Événements à Venir') }}
+                </h3>
                 @if($events->count() > 0)
                     <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($events as $event)
-                            <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 event-item">
+                            <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 event-item bg-white">
                                 @if($event->image)
                                     <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-48 object-cover">
                                 @endif
@@ -202,12 +212,14 @@
 
             {{-- Section Témoignages --}}
             <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b]">{{ __('Témoignages') }}</h3>
+                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-comments text-[#854f38] mr-3"></i> {{ __('Témoignages') }}
+                </h3>
 
                 @if($testimonials->count() > 0)
                     <div class="mt-8 space-y-6">
                         @foreach($testimonials as $testimonial)
-                            <div class="p-6 border-l-4 border-[#8ea633] bg-[#f0f8e8] rounded-md">
+                            <div class="p-6 border-l-4 border-[#8ea633] bg-[#f9fafb] rounded-md">
                                 <p class="text-gray-700 italic text-lg">"{{ $testimonial->testimonial }}"</p>
                                 <p class="mt-4 text-sm text-gray-600">
                                     — {{ $testimonial->clientProfile->first_name }}, {{ $testimonial->created_at->format('d/m/Y') }}
@@ -279,7 +291,7 @@
             }
 
             /* Appliquer l'animation aux sections */
-            .bg-white {
+            .bg-white, .bg-[#f9fafb] {
                 animation: fadeIn 0.8s forwards;
             }
 
@@ -310,7 +322,7 @@
                 const voirMoinsText = '{{ __("Voir moins") }}';
 
                 // Animation d'apparition
-                const sections = document.querySelectorAll('.bg-white');
+                const sections = document.querySelectorAll('.bg-white, .bg-\\[\\#f9fafb\\]');
                 sections.forEach((section, index) => {
                     section.style.animationDelay = `${index * 0.2}s`;
                     section.classList.add('fade-in');
