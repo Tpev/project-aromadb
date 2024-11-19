@@ -19,6 +19,8 @@ use App\Mail\AppointmentCreatedTherapistMail;
 use App\Mail\AppointmentEditedClientMail;
 use App\Models\Unavailability;
 use Stripe\StripeClient;
+use App\Notifications\AppointmentBooked;
+use Illuminate\Support\Facades\Notification;
 
 
 
@@ -650,6 +652,13 @@ public function storePatient(Request $request)
 
     // Charger les relations nécessaires pour le rendez-vous
     $appointment->load('clientProfile', 'user', 'product');
+
+    // **Send Notification Here**
+    try {
+        $therapist->notify(new AppointmentBooked($appointment));
+    } catch (\Exception $e) {
+        Log::error('Failed to send appointment notification: ' . $e->getMessage());
+    }
 
     // Vérifier si le paiement est requis
     if ($product->collect_payment) {

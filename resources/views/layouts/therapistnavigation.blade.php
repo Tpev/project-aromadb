@@ -18,6 +18,7 @@
 
                 <!-- Liens de Navigation -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    <!-- Existing navigation links -->
                     <x-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Tableau de Bord') }}
                     </x-nav-link>
@@ -75,13 +76,60 @@
                 </div>
             </div>
 
-            <!-- Dropdown des Paramètres -->
-            <div class="hidden sm:flex sm:items-center sm:ml-6">
+            <!-- Dropdown des Paramètres et Notifications -->
+            <div class="hidden sm:flex sm:items-center sm:ml-6 space-x-4">
+                <!-- Notification Bell Icon -->
+                <div class="relative">
+                    <button id="notificationButton" class="relative text-gray-700 hover:text-[#854f38] focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
+                                {{ auth()->user()->unreadNotifications->count() }}
+                            </span>
+                        @endif
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notificationsDropdown" class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50 hidden">
+                        <div class="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
+                            <span class="font-semibold text-gray-700">Notifications</span>
+                            @if(auth()->user()->unreadNotifications->count() > 0)
+                                <form id="markAllAsReadForm" method="POST" action="{{ route('notifications.markAllAsRead') }}">
+                                    @csrf
+                                    <button type="submit" class="text-sm text-blue-600 hover:underline">Mark all as read</button>
+                                </form>
+                            @endif
+                        </div>
+                        <div class="max-h-60 overflow-y-auto">
+                            @forelse(auth()->user()->unreadNotifications as $notification)
+                                <a href="{{ $notification->data['url'] }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    {{ $notification->data['message'] }}
+                                    <br>
+                                    <small class="text-gray-500">{{ $notification->data['amount_paid'] ?? '' }} - {{ $notification->data['appointment_date'] ?? '' }}</small>
+
+                                </a>
+                            @empty
+                                <div class="px-4 py-2 text-sm text-gray-500">Aucune notification</div>
+                            @endforelse
+                        </div>
+                        <div class="px-4 py-2 border-t border-gray-200 text-center">
+                            <a href="{{ route('notifications.index') }}" class="text-sm text-blue-600 hover:underline">Tout voir</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Dropdown -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-[#647a0b] bg-white hover:text-[#854f38] focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
-                            <div class="ml-1"></div>
+                            <div class="ml-1">
+                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.354a.75.75 0 111.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
                         </button>
                     </x-slot>
 
@@ -90,13 +138,12 @@
                         <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Profil') }}
                         </x-dropdown-link>
-						<x-dropdown-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
+                        <x-dropdown-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('License') }}
                         </x-dropdown-link>
                         <x-dropdown-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Support') }}
                         </x-dropdown-link>                        
-						
 
                         <div class="border-t border-gray-100"></div>
 
@@ -118,7 +165,7 @@
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{ 'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{ 'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6L18 18" />
+                        <path :class="{ 'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -176,7 +223,7 @@
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('Profil') }}
                 </x-responsive-nav-link>                
-				<x-responsive-nav-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
+                <x-responsive-nav-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('License') }}
                 </x-responsive-nav-link>
 

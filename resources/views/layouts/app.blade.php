@@ -128,5 +128,105 @@
 
         <!-- Add FontAwesome CDN -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    </body>
+    <!-- Add this script at the bottom of your navbar Blade template -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notificationButton = document.getElementById('notificationButton');
+        const notificationsDropdown = document.getElementById('notificationsDropdown');
+        const markAllAsReadForm = document.getElementById('markAllAsReadForm');
+
+        // Toggle dropdown visibility
+        notificationButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            notificationsDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!notificationButton.contains(e.target) && !notificationsDropdown.contains(e.target)) {
+                notificationsDropdown.classList.add('hidden');
+            }
+        });
+
+        // Handle "Mark all as read" form submission via AJAX
+        if (markAllAsReadForm) {
+            markAllAsReadForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                fetch(markAllAsReadForm.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Remove unread badge
+                    const badge = notificationButton.querySelector('.badge');
+                    if (badge) {
+                        badge.remove();
+                    }
+                    // Update notifications dropdown
+                    notificationsDropdown.querySelector('.max-h-60').innerHTML = '<div class="px-4 py-2 text-sm text-gray-500">No new notifications</div>';
+                })
+                .catch(error => {
+                    console.error('Error marking all as read:', error);
+                });
+            });
+        }
+
+        // Polling for new notifications every 30 seconds
+        setInterval(function () {
+            fetch('{{ route("notifications.fetch") }}', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const badge = notificationButton.querySelector('.badge');
+                if (data.unreadCount > 0) {
+                    if (badge) {
+                        badge.textContent = data.unreadCount;
+                    } else {
+                        const newBadge = document.createElement('span');
+                        newBadge.classList.add('absolute', 'top-0', 'right-0', 'inline-flex', 'items-center', 'justify-center', 'px-2', 'py-1', 'text-xs', 'font-bold', 'leading-none', 'text-white', 'bg-red-600', 'rounded-full', 'transform', 'translate-x-1/2', '-translate-y-1/2');
+                        newBadge.textContent = data.unreadCount;
+                        notificationButton.appendChild(newBadge);
+                    }
+
+                    // Optionally, update the dropdown list with new notifications
+                    if (notificationsDropdown.querySelector('.max-h-60').children.length > 0) {
+                        let notificationsHtml = '';
+                        data.notifications.forEach(function (notification) {
+                            notificationsHtml += `
+                                <a href="${notification.data.url}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    ${notification.data.message}
+                                    <br>
+                                    <small class="text-gray-500">${notification.data.appointment_date}</small>
+                                </a>
+                            `;
+                        });
+                        notificationsDropdown.querySelector('.max-h-60').innerHTML = notificationsHtml;
+                    }
+                } else {
+                    if (badge) {
+                        badge.remove();
+                    }
+                    notificationsDropdown.querySelector('.max-h-60').innerHTML = '<div class="px-4 py-2 text-sm text-gray-500">Aucune notification</div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching notifications:', error);
+            });
+        }, 30000); // 30 seconds
+    });
+</script>
+
+	
+	</body>
 </html>

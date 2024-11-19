@@ -24,6 +24,8 @@ public function show($slug)
                      ->where('is_therapist', true)
                      ->firstOrFail();
 
+	        // Incrémenter le compteur de vues
+        $therapist->increment('view_count');	
     // Charger les témoignages paginés
     $testimonials = $therapist->testimonials()->paginate(5); // 5 témoignages par page
 	 $prestations = $therapist->products()->orderBy('display_order')->get();

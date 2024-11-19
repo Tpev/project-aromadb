@@ -42,6 +42,23 @@
                                 </div>
                             </div>
                         </a>
+				    <!-- Nombre de Vues du Portail Pro -->
+			
+					<div class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
+						<a href="#" class="block">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-white text-[#8ea633] mr-4">
+									<i class="fas fa-eye h-6 w-6"></i>
+									<!-- Optionnel : Utiliser SVG de Font Awesome si préférée -->
+								</div>
+								<div>
+									<div class="text-2xl font-bold">{{ $therapist->view_count }}</div>
+									<div class="text-sm">{{ __('Vues du Portail Pro') }}</div>
+								</div>
+							</div>
+						</a>
+					</div>
+
 
                         <!-- Factures Émises -->
                         <a href="{{ route('invoices.index') }}" class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
@@ -90,6 +107,7 @@
                         </a>
                     </div>
                 </div>
+
             </div>
 
             {{-- Graphiques --}}

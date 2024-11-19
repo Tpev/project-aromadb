@@ -32,6 +32,15 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\LicenseTierController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NotificationController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-as-read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::get('/notifications/fetch', [NotificationController::class, 'fetch'])->name('notifications.fetch');
+});
+
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/contact', [ContactController::class, 'show'])->name('contact.show');

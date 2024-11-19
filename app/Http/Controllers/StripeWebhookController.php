@@ -210,7 +210,10 @@ class StripeWebhookController extends Controller
         // Update the invoice status to 'Payée'
         $invoice->status = 'Payée';
         $invoice->save();
+ try {
+		$therapist->notify(new InvoicePaid($invoice));
 
+ }
         Log::info("Invoice ID {$invoice->id} marked as 'Payée' due to Checkout Session {$session->id}.");
 
         // Deactivate the Payment Link by deleting it

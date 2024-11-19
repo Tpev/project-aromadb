@@ -18,6 +18,8 @@ class DashboardController extends Controller
     public function index()
     {
         $userId = Auth::id();
+		$therapist = Auth::user();
+		//dd($therapist);
 
         // KPIs
         $totalClients = ClientProfile::where('user_id', $userId)->count();
@@ -87,7 +89,8 @@ class DashboardController extends Controller
             'monthlyRevenueData',
             'months',
             'recentAppointments',
-            'recentInvoices'
+            'recentInvoices',
+			'therapist'
 	
         ));
     }

@@ -39,6 +39,7 @@ class User extends Authenticatable
 		'stripe_customer_id', 
 		'license_product',
 		'license_status',
+		  'view_count',
 
     ];
 
