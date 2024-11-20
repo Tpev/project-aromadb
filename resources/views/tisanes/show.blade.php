@@ -1,254 +1,249 @@
+<!-- resources/views/tisane/show.blade.php -->
 <x-app-layout>
+    {{-- En-tête de la page --}}
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ $tisane->NomTisane }}
-        </h2>
-		@section('title', 'Tisane ' .  $tisane->NomTisane . ' (' . $tisane->NomLatin . ')')
+        @section('title', 'Tisane ' .  $tisane->NomTisane . ' (' . $tisane->NomLatin . ')')
     </x-slot>
 
-    <div class="container mt-5">
-        <div class="details-container mx-auto p-4">
-            <h1 class="details-title">Tisane {{ $tisane->NomTisane }}</h1>
+    {{-- Contenu principal --}}
+    <div class="py-12 bg-gray-50">
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
-            <!-- Favorites Button -->
-            <div class="text-center mb-4">
+            {{-- Nom de la Tisane --}}
+            <h1 class="text-4xl font-bold text-[#647a0b] text-center">
+                {{ $tisane->NomTisane }}
+            </h1>
+
+            {{-- Bouton Favoris --}}
+            <div class="text-center">
                 @auth
                     <form id="favorite-form" method="POST" action="{{ route('favorites.toggle', ['type' => 'tisane', 'id' => $tisane->id]) }}">
                         @csrf
-                        <button type="submit" class="btn btn-favorite" id="favorite-btn">
+                        <button type="submit" class="btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $tisane->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\Tisane'))
-                                <i class="fas fa-heart" style="color: #647a0b;"></i> <span>Retirer des Favoris</span>
+                                <i class="fas fa-heart" style="color: #854f38;"></i> <span>Retirer des Favoris</span>
                             @else
-                                <i class="far fa-heart" style="color: #647a0b;"></i> <span>Ajouter aux Favoris</span>
+                                <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
+                    <a href="{{ route('login') }}" class="btn-favorite" id="favorite-btn">
                         <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
 
-            <!-- Image and Info in Two Columns -->
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center">
-                    <img src="{{ asset('images/default.webp') }}" alt="{{ $tisane->NomTisane }}" class="img-fluid" style="max-width: 400px; height: auto; margin-bottom: 20px;">
+            {{-- Section principale --}}
+            <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row items-center">
+                {{-- Image --}}
+                <div class="md:w-1/2 text-center md:pr-8">
+                    <img src="{{ asset('images/default.webp') }}" alt="{{ $tisane->NomTisane }}" class="w-full h-auto rounded-lg shadow-md">
                 </div>
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-leaf" style="color: #647a0b;"></i> Nom Latin</label>
-                        <p class="details-value"><em>{{ $tisane->NomLatin }}</em></p>
-                    </div>
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance</label>
-                        <p class="details-value">{{ $tisane->Provenance }}</p>
+                {{-- Informations principales --}}
+                <div class="md:w-1/2 mt-6 md:mt-0">
+                    <div class="space-y-6">
+                        {{-- Nom Latin --}}
+                        <div>
+                            <h2 class="text-2xl font-bold text-[#647a0b] flex items-center">
+                                <i class="fas fa-leaf mr-2 text-[#854f38]"></i> Nom Latin
+                            </h2>
+                            <p class="mt-2 text-gray-700 italic">{{ $tisane->NomLatin }}</p>
+                        </div>
+                        {{-- Provenance --}}
+                        <div>
+                            <h2 class="text-2xl font-bold text-[#647a0b] flex items-center">
+                                <i class="fas fa-globe mr-2 text-[#854f38]"></i> Provenance
+                            </h2>
+                            <p class="mt-2 text-gray-700">{{ $tisane->Provenance }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Rest of the Information in Two Column Layout -->
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés</label>
-                        @php
-                            $properties = explode(';', $tisane->Properties);
-                        @endphp
-                        <ul class="details-list">
+            {{-- Propriétés et Indications côte à côte --}}
+            <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
+                {{-- Propriétés --}}
+                <div class="md:w-1/2">
+                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-capsules mr-2 text-[#854f38]"></i> Propriétés
+                    </h3>
+                    @php
+                        $properties = explode(';', $tisane->Properties);
+                    @endphp
+                    @if(!empty($properties))
+                        <ul class="mt-4 list-disc list-inside text-gray-700">
                             @foreach ($properties as $property)
                                 <li>{{ trim($property) }}</li>
                             @endforeach
                         </ul>
-                    </div>
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-seedling" style="color: #647a0b;"></i> Partie Utilisée</label>
-                        <p class="details-value">{{ $tisane->OrganeProducteur }}</p>
-                    </div>
+                    @else
+                        <p class="mt-4 text-gray-700">Aucune propriété spécifiée.</p>
+                    @endif
                 </div>
-
-                <div class="col-md-6">
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications</label>
-                        @php
-                            $indications = explode(';', $tisane->Indications);
-                        @endphp
-                        <ul class="details-list">
+                {{-- Indications --}}
+                <div class="md:w-1/2">
+                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-stethoscope mr-2 text-[#854f38]"></i> Indications
+                    </h3>
+                    @php
+                        $indications = explode(';', $tisane->Indications);
+                    @endphp
+                    @if(!empty($indications))
+                        <ul class="mt-4 list-disc list-inside text-gray-700">
                             @foreach ($indications as $indication)
                                 <li>{{ trim($indication) }}</li>
                             @endforeach
                         </ul>
-                    </div>
-                    <div class="details-box">
-                        <label class="details-label"><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications</label>
-                        <p class="details-value">{{ $tisane->ContreIndications ?? 'None' }}</p>
-                    </div>
+                    @else
+                        <p class="mt-4 text-gray-700">Aucune indication spécifiée.</p>
+                    @endif
                 </div>
             </div>
 
-            <div class="details-box mt-4">
-                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Description</label>
-                <p class="details-value">{{ $tisane->Description ?? 'None' }}</p>
+            {{-- Composition et Contre-indications côte à côte --}}
+            <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
+                {{-- Composition --}}
+                <div class="md:w-1/2">
+                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-flask mr-2 text-[#854f38]"></i> Composition
+                    </h3>
+                    @php
+                        $compositions = explode(';', $tisane->Sb);
+                    @endphp
+                    @if(!empty($compositions))
+                        <ul class="mt-4 list-disc list-inside text-gray-700">
+                            @foreach ($compositions as $composition)
+                                <li>{{ trim($composition) }}</li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="mt-4 text-gray-700">Non spécifiée.</p>
+                    @endif
+                </div>
+                {{-- Contre-indications --}}
+                <div class="md:w-1/2">
+                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2 text-[#854f38]"></i> Contre-indications
+                    </h3>
+                    @php
+                        $contreIndications = explode(';', $tisane->ContreIndications);
+                    @endphp
+                    @if(!empty($contreIndications))
+                        <ul class="mt-4 list-disc list-inside text-gray-700">
+                            @foreach ($contreIndications as $contreIndication)
+                                <li>{{ trim($contreIndication) }}</li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="mt-4 text-gray-700">Aucune contre-indication spécifiée.</p>
+                    @endif
+                </div>
             </div>
 
-            <!-- List of Recettes where this Tisane is used -->
-            <div class="details-box mt-4">
-                <label class="details-label"><i class="fas fa-book-open" style="color: #647a0b;"></i> Recettes avec {{ $tisane->NomTisane }}</label>
+            {{-- Partie Utilisée --}}
+            <div class="bg-white shadow rounded-lg p-8">
+                <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-seedling mr-2 text-[#854f38]"></i> Partie Utilisée
+                </h3>
+                <p class="mt-4 text-gray-700">{{ $tisane->OrganeProducteur }}</p>
+            </div>
+
+            {{-- Description et Note côte à côte --}}
+            <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
+                {{-- Description --}}
+                <div class="md:w-1/2">
+                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-align-left mr-2 text-[#854f38]"></i> Description
+                    </h3>
+                    <p class="mt-4 text-gray-700">{{ $tisane->Description ?? 'Aucune' }}</p>
+                </div>
+                {{-- Note --}}
+                <div class="md:w-1/2">
+                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-sticky-note mr-2 text-[#854f38]"></i> Note
+                    </h3>
+                    <p class="mt-4 text-gray-700">{{ $tisane->Note ?? 'Aucune note' }}</p>
+                </div>
+            </div>
+
+            {{-- Liste des Recettes --}}
+            <div class="bg-white shadow rounded-lg p-8">
+                <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-book-open mr-2 text-[#854f38]"></i> Recettes avec {{ $tisane->NomTisane }}
+                </h3>
                 @if($tisane->relatedRecettes()->isNotEmpty())
-                    <ul class="details-list">
+                    <ul class="mt-4 list-disc list-inside text-gray-700">
                         @foreach($tisane->relatedRecettes() as $recette)
                             <li class="mb-2">
-                                <a href="{{ route('recettes.show', $recette->slug) }}" class="recette-link">
+                                <a href="{{ route('recettes.show', $recette->slug) }}" class="text-[#854f38] hover:underline">
                                      {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
                                 </a>
                             </li>
                         @endforeach
                     </ul>
                 @else
-                    <p>Aucune recette trouvée utilisant cette tisane.</p>
+                    <p class="mt-4 text-gray-700">Aucune recette trouvée utilisant cette tisane.</p>
                 @endif
             </div>
 
-            <a href="{{ route('tisanes.index') }}" class="btn btn-primary mt-4">Retour à la liste</a>
+            {{-- Bouton Retour --}}
+            <div class="text-center mt-8">
+                <a href="{{ route('tisanes.index') }}" class="inline-block bg-[#854f38] text-white text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c] transition-colors duration-300">
+                    Retour à la liste
+                </a>
+            </div>
 
-            <!-- Warning Box -->
-            <div class="warning-box mt-5 p-4">
-                <p class="warning-text">
-                    <strong>Attention :</strong> L'auto-médication avec des produits naturels comporte des risques. L'usage inapproprié peut entraîner des effets secondaires. Les informations sur ce site ne constituent pas des conseils médicaux. Consultez un professionnel de santé avant utilisation.
-                </p>
+            {{-- Boîte d'avertissement --}}
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-8" role="alert">
+                <p class="font-bold">Attention</p>
+                <p>L'auto-médication avec des produits naturels comporte des risques. L'usage inapproprié peut entraîner des effets secondaires. Les informations sur ce site ne constituent pas des conseils médicaux. Consultez un professionnel de santé avant utilisation.</p>
             </div>
         </div>
     </div>
 
-    <!-- Custom Styles -->
+    {{-- Styles personnalisés --}}
+    @push('styles')
     <style>
-		.recette-link {
-            text-decoration: none;
-            color: #647a0b;
-		}
-
-		.recette-link:hover {
-			text-decoration: underline;
-			color: #854f38;
-		}
-
         .btn-favorite {
             background-color: transparent;
             border: none;
-            color: #ff5a5f;
-            font-size: 1.5rem;
+            color: #854f38;
+            font-size: 1.25rem;
             cursor: pointer;
+            transition: color 0.3s ease;
         }
 
         .btn-favorite:hover {
-            color: #ff0000;
+            color: #6a3f2c;
         }
 
-        .container {
-            max-width: 1200px;
+        .shadow {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
         }
 
-        .details-container {
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
-        }
-
-        .details-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .details-box {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .details-label {
-            font-weight: bold;
-            color: #555555;
-            margin-bottom: 10px;
-            display: block;
-            font-size: 1.1rem;
-        }
-
-        .details-value {
-            color: #333333;
-            font-size: 1rem;
-            margin: 0;
-        }
-
-        .details-list {
-            list-style-type: disc;
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .details-list li {
-            margin-bottom: 5px;
-            font-size: 1rem;
-            color: #333333;
-        }
-
-        .btn-primary {
-            background-color: #647a0b;
-            border-color: #647a0b;
-        }
-
-        .btn-primary:hover {
-            background-color: #854f38;
-            border-color: #854f38;
-        }
-
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .col-md-6 {
-            flex: 0 0 calc(50% - 10px);
-        }
-
-        .col-md-6 .details-box {
-            min-height: 150px;
-        }
-
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .col-md-6 {
-                flex: 100%;
+            .md\:flex-row {
+                flex-direction: column;
+            }
+            .md\:mt-0 {
+                margin-top: 1.5rem;
+            }
+            .md\:pr-8 {
+                padding-right: 0;
+            }
+            .md\:space-x-8 > :not([hidden]) ~ :not([hidden]) {
+                --tw-space-x-reverse: 0;
+                margin-right: calc(2rem * var(--tw-space-x-reverse));
+                margin-left: calc(2rem * calc(1 - var(--tw-space-x-reverse)));
             }
         }
-
-        img.img-fluid {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Warning Box */
-        .warning-box {
-            background-color: #fff3cd;
-            border: 1px solid #ffeeba;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            text-align: center;
-        }
-
-        .warning-text {
-            color: #856404;
-            font-size: 1rem;
-            font-weight: 500;
-        }
     </style>
+    @endpush
 
-    <!-- Font Awesome for icons and Flag Icons for flags -->
+    {{-- Font Awesome pour les icônes --}}
+    @push('head')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    @endpush
 </x-app-layout>
