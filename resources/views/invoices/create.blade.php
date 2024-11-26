@@ -66,14 +66,14 @@
                         <table class="table table-bordered" id="invoice-items-table">
                             <thead>
                                 <tr>
-      <th style="width: 35%;">{{ __('Produit') }}</th>
-        <th style="width: 40%;">{{ __('Description') }}</th>
-        <th style="width: 5%;">{{ __('Quantité') }}</th>
-        <th style="width: 10%;">{{ __('Prix Unitaire') }}</th>
-        <th style="width: 5%;">{{ __('Taxe (%)') }}</th>
-        <th style="width: 10%;">{{ __('Montant Taxe') }}</th>
-        <th style="width: 10%;">{{ __('Prix Total TTC') }}</th>
-        <th style="width: 5%;">{{ __('Action') }}</th>
+                                    <th style="width: 35%;">{{ __('Produit') }}</th>
+                                    <th style="width: 40%;">{{ __('Description') }}</th>
+                                    <th style="width: 5%;">{{ __('Quantité') }}</th>
+                                    <th style="width: 10%;">{{ __('Prix Unitaire') }}</th>
+                                    <th style="width: 5%;">{{ __('Taxe (%)') }}</th>
+                                    <th style="width: 10%;">{{ __('Montant Taxe') }}</th>
+                                    <th style="width: 10%;">{{ __('Prix Total TTC') }}</th>
+                                    <th style="width: 5%;">{{ __('Action') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -91,13 +91,13 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="text" name="items[0][description]" class="form-control description-input">
+                                        <input type="text" name="items[0][description]" class="form-control description-input" value="{{ old('items.0.description') }}" placeholder="{{ __('Entrez la description') }}">
                                     </td>
                                     <td>
-                                        <input type="number" name="items[0][quantity]" class="form-control quantity-input" min="1" value="1" onchange="updateItem(this)">
+                                        <input type="number" name="items[0][quantity]" class="form-control quantity-input" min="1" value="{{ old('items.0.quantity', 1) }}" onchange="updateItem(this)">
                                     </td>
                                     <td>
-                                        <input type="number" name="items[0][unit_price]" class="form-control unit-price-input" step="0.01" onchange="updateItem(this)">
+                                        <input type="number" name="items[0][unit_price]" class="form-control unit-price-input" step="0.01" min="0" value="{{ old('items.0.unit_price') }}" onchange="updateItem(this)" data-manual="{{ old('items.0.unit_price') ? 'true' : 'false' }}">
                                     </td>
                                     <td>
                                         <input type="number" name="items[0][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly>
@@ -106,7 +106,7 @@
                                         <input type="number" name="items[0][tax_amount]" class="form-control tax-amount-input" readonly>
                                     </td>
                                     <td>
-                                        <input type="number" name="items[0][total_price_with_tax]" class="form-control total-price-with-tax-input" readonly>
+                                        <input type="number" name="items[0][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly>
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button>
@@ -144,13 +144,13 @@
                     </select>
                 </td>
                 <td>
-                    <input type="text" name="items[\${itemIndex}][description]" class="form-control description-input">
+                    <input type="text" name="items[\${itemIndex}][description]" class="form-control description-input" placeholder="{{ __('Entrez la description') }}">
                 </td>
                 <td>
                     <input type="number" name="items[\${itemIndex}][quantity]" class="form-control quantity-input" min="1" value="1" onchange="updateItem(this)">
                 </td>
                 <td>
-                    <input type="number" name="items[\${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" onchange="updateItem(this)">
+                    <input type="number" name="items[\${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" value="" onchange="updateItem(this)" data-manual="false">
                 </td>
                 <td>
                     <input type="number" name="items[\${itemIndex}][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly>
@@ -159,7 +159,7 @@
                     <input type="number" name="items[\${itemIndex}][tax_amount]" class="form-control tax-amount-input" readonly>
                 </td>
                 <td>
-                    <input type="number" name="items[\${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input" readonly>
+                    <input type="number" name="items[\${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly>
                 </td>
                 <td>
                     <button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button>
@@ -173,6 +173,7 @@
         function removeItem(button) {
             const row = button.closest('tr');
             row.remove();
+            recalculateTotals(); // Optional: Recalculate invoice totals if you have a summary
         }
 
         function updateItem(element) {
@@ -185,17 +186,27 @@
             const taxAmountInput = row.querySelector('.tax-amount-input');
             const totalPriceWithTaxInput = row.querySelector('.total-price-with-tax-input');
 
-            // Mettre à jour le prix unitaire, la description et le taux de taxe lorsque le produit est sélectionné
+            // Update unit price, description, and tax rate when a product is selected
             if (element.classList.contains('product-select')) {
                 const selectedOption = productSelect.options[productSelect.selectedIndex];
-                const price = selectedOption.getAttribute('data-price') || 0;
-                const taxRate = selectedOption.getAttribute('data-tax-rate') || 0;
-                unitPriceInput.value = price;
+                const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+                const taxRate = parseFloat(selectedOption.getAttribute('data-tax-rate')) || 0;
                 descriptionInput.value = selectedOption.text;
-                taxRateInput.value = taxRate;
+
+                // Only set unit price if it's not manually changed
+                if (unitPriceInput.dataset.manual !== 'true') {
+                    unitPriceInput.value = price.toFixed(2);
+                }
+
+                taxRateInput.value = taxRate.toFixed(2);
             }
 
-            // Calculer le prix total, le montant de la taxe et le prix total TTC
+            // Mark unit price as manually edited if user changes it
+            unitPriceInput.addEventListener('input', function() {
+                this.dataset.manual = 'true';
+            }, { once: true });
+
+            // Calculate tax amount and total price with tax
             const quantity = parseFloat(quantityInput.value) || 1;
             const unitPrice = parseFloat(unitPriceInput.value) || 0;
             const taxRate = parseFloat(taxRateInput.value) || 0;
@@ -206,6 +217,30 @@
 
             taxAmountInput.value = taxAmount.toFixed(2);
             totalPriceWithTaxInput.value = totalPriceWithTax.toFixed(2);
+
+            recalculateTotals(); // Optional: Recalculate invoice totals if you have a summary
+        }
+
+        function recalculateTotals() {
+            // Implement this function if you have a summary section to display total invoice amounts
+            // Example:
+            /*
+            let totalAmount = 0;
+            let totalTaxAmount = 0;
+            let totalWithTax = 0;
+
+            document.querySelectorAll('#invoice-items-table tbody tr').forEach(function(row) {
+                const taxAmount = parseFloat(row.querySelector('.tax-amount-input').value) || 0;
+                const totalPriceWithTax = parseFloat(row.querySelector('.total-price-with-tax-input').value) || 0;
+
+                totalTaxAmount += taxAmount;
+                totalWithTax += totalPriceWithTax;
+            });
+
+            // Update summary fields
+            document.getElementById('total_tax_amount').innerText = totalTaxAmount.toFixed(2);
+            document.getElementById('total_with_tax').innerText = totalWithTax.toFixed(2);
+            */
         }
 
         // Trigger product selection to preload data
@@ -217,126 +252,148 @@
         };
     </script>
 
-  <style>
-    .container-fluid {
-        max-width: 1200px;
-    }
+    <!-- Styles Personnalisés -->
+    <style>
+        .container-fluid {
+            max-width: 1200px;
+        }
 
-    .input-section {
-        max-width: 600px;
-        margin-bottom: 30px;
-    }
+        .input-section {
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
 
-    .details-container {
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        margin: 0 auto;
-    }
+        .details-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+        }
 
-    .details-title {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #647a0b;
-        margin-bottom: 20px;
-        text-align: center;
-    }
+        .details-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #647a0b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-    .details-box {
-        margin-bottom: 15px;
-    }
+        .details-box {
+            margin-bottom: 15px;
+        }
 
-    .details-label {
-        font-weight: bold;
-        color: #647a0b;
-        display: block;
-        margin-bottom: 5px;
-    }
+        .details-label {
+            font-weight: bold;
+            color: #647a0b;
+            display: block;
+            margin-bottom: 5px;
+        }
 
-    .form-control {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
 
-    .btn-primary {
-        background-color: #647a0b;
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        display: inline-block;
-        cursor: pointer;
-    }
+        .btn-primary {
+            background-color: #647a0b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+        }
 
-    .btn-primary:hover {
-        background-color: #854f38;
-    }
+        .btn-primary:hover {
+            background-color: #854f38;
+        }
 
-    .btn-secondary {
-        background-color: transparent;
-        color: #854f38;
-        padding: 10px 20px;
-        border: 1px solid #854f38;
-        border-radius: 5px;
-        text-decoration: none;
-        display: inline-block;
-    }
+        .btn-secondary {
+            background-color: transparent;
+            color: #854f38;
+            padding: 10px 20px;
+            border: 1px solid #854f38;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
 
-    .btn-secondary:hover {
-        background-color: #854f38;
-        color: #fff;
-    }
+        .btn-secondary:hover {
+            background-color: #854f38;
+            color: #fff;
+        }
 
-    .text-red-500 {
-        color: #e3342f;
-        font-size: 0.875rem;
-    }
+        .text-red-500 {
+            color: #e3342f;
+            font-size: 0.875rem;
+        }
 
-    /* Styles pour la table des articles */
-    #invoice-items-table {
-        width: 100%;
-        margin-bottom: 15px;
-        table-layout: auto; /* Added for better layout */
-    }
+        /* Styles pour la table des articles */
+        #invoice-items-table {
+            width: 100%;
+            margin-bottom: 15px;
+            table-layout: auto; /* Better layout */
+        }
 
-    #invoice-items-table th, #invoice-items-table td {
-        padding: 8px;
-        text-align: left;
-    }
+        #invoice-items-table th, #invoice-items-table td {
+            padding: 8px;
+            text-align: left;
+        }
 
-    #invoice-items-table th {
-        background-color: #647a0b;
-        color: #fff;
-        white-space: nowrap;
-    }
+        #invoice-items-table th {
+            background-color: #647a0b;
+            color: #fff;
+            white-space: nowrap;
+        }
 
-    #invoice-items-table td {
-        border-bottom: 1px solid #ccc;
-    }
+        #invoice-items-table td {
+            border-bottom: 1px solid #ccc;
+        }
 
-    #invoice-items-table td input,
-    #invoice-items-table td select {
-        width: 100%; /* Ensure full width */
-        /* Removed or adjusted max-width */
-    }
+        #invoice-items-table td input,
+        #invoice-items-table td select {
+            width: 100%; /* Ensure full width */
+            /* Removed or adjusted max-width */
+        }
 
-    .btn-danger {
-        background-color: #e3342f;
-        color: #fff;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
+        .btn-danger {
+            background-color: #e3342f;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    .btn-danger:hover {
-        background-color: #cc1f1a;
-    }
+        .btn-danger:hover {
+            background-color: #cc1f1a;
+        }
 
+        /* Custom class to grey out readonly fields */
+        .readonly-field {
+            background-color: #e9ecef; /* Light grey background */
+            cursor: not-allowed; /* Indicate non-editable */
+        }
 
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .details-title {
+                font-size: 1.5rem;
+            }
+
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            #invoice-items-table th, #invoice-items-table td {
+                padding: 6px;
+            }
+        }
     </style>
 </x-app-layout>

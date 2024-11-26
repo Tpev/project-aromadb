@@ -19,6 +19,7 @@ class InvoiceItem extends Model
         'quantity',
         'unit_price',
         'total_price',
+		'total_price_with_tax', // Ensure this line is present
     ];
 
     /**

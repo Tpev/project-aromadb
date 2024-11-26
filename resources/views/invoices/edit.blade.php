@@ -92,7 +92,7 @@
                                             <input type="number" name="items[{{ $index }}][quantity]" class="form-control quantity-input" min="1" value="{{ old("items.$index.quantity", $item->quantity) }}" onchange="updateItem(this)">
                                         </td>
                                         <td>
-                                            <input type="number" name="items[{{ $index }}][unit_price]" class="form-control unit-price-input" step="0.01" value="{{ old("items.$index.unit_price", $item->unit_price) }}" onchange="updateItem(this)">
+                                            <input type="number" name="items[{{ $index }}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" value="{{ old("items.$index.unit_price", $item->unit_price) }}" onchange="updateItem(this)" data-manual="{{ old("items.$index.unit_price") ? 'true' : 'false' }}">
                                         </td>
                                         <td>
                                             <input type="number" name="items[{{ $index }}][tax_rate]" class="form-control tax-rate-input" step="0.01" value="{{ old("items.$index.tax_rate", $item->tax_rate) }}" readonly>
@@ -101,7 +101,7 @@
                                             <input type="number" name="items[{{ $index }}][tax_amount]" class="form-control tax-amount-input" value="{{ old("items.$index.tax_amount", $item->tax_amount) }}" readonly>
                                         </td>
                                         <td>
-                                            <input type="number" name="items[{{ $index }}][total_price_with_tax]" class="form-control total-price-with-tax-input" value="{{ old("items.$index.total_price_with_tax", $item->total_price_with_tax) }}" readonly>
+                                            <input type="number" name="items[{{ $index }}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" value="{{ old("items.$index.total_price_with_tax", $item->total_price_with_tax) }}" readonly>
                                         </td>
                                         <td>
                                             <button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button>
@@ -146,7 +146,7 @@
                     <input type="number" name="items[\${itemIndex}][quantity]" class="form-control quantity-input" min="1" value="1" onchange="updateItem(this)">
                 </td>
                 <td>
-                    <input type="number" name="items[\${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" onchange="updateItem(this)">
+                    <input type="number" name="items[\${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" value="" onchange="updateItem(this)" data-manual="false">
                 </td>
                 <td>
                     <input type="number" name="items[\${itemIndex}][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly>
@@ -155,7 +155,7 @@
                     <input type="number" name="items[\${itemIndex}][tax_amount]" class="form-control tax-amount-input" readonly>
                 </td>
                 <td>
-                    <input type="number" name="items[\${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input" readonly>
+                    <input type="number" name="items[\${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly>
                 </td>
                 <td>
                     <button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button>
@@ -184,12 +184,22 @@
             // Mettre à jour le prix unitaire, la description et le taux de taxe lorsque le produit est sélectionné
             if (element.classList.contains('product-select')) {
                 const selectedOption = productSelect.options[productSelect.selectedIndex];
-                const price = selectedOption.getAttribute('data-price') || 0;
-                const taxRate = selectedOption.getAttribute('data-tax-rate') || 0;
-                unitPriceInput.value = price;
+                const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
+                const taxRate = parseFloat(selectedOption.getAttribute('data-tax-rate')) || 0;
                 descriptionInput.value = selectedOption.text;
-                taxRateInput.value = taxRate;
+
+                // Only set unit price if it's not manually changed
+                if (unitPriceInput.dataset.manual !== 'true') {
+                    unitPriceInput.value = price.toFixed(2);
+                }
+
+                taxRateInput.value = taxRate.toFixed(2);
             }
+
+            // Mark unit price as manually edited if user changes it
+            unitPriceInput.addEventListener('input', function() {
+                this.dataset.manual = 'true';
+            });
 
             // Calculer le prix total, le montant de la taxe et le prix total TTC
             const quantity = parseFloat(quantityInput.value) || 1;
@@ -298,7 +308,7 @@
         #invoice-items-table {
             width: 100%;
             margin-bottom: 15px;
-            table-layout: auto; /* Added for better layout */
+            table-layout: auto; /* Better layout */
         }
 
         #invoice-items-table th, #invoice-items-table td {
@@ -333,6 +343,12 @@
 
         .btn-danger:hover {
             background-color: #cc1f1a;
+        }
+
+        /* Custom class to grey out readonly fields */
+        .readonly-field {
+            background-color: #e9ecef; /* Light grey background */
+            cursor: not-allowed; /* Indicate non-editable */
         }
 
         /* Responsive adjustments */
