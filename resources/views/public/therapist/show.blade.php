@@ -20,8 +20,10 @@
                         {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
                     </div>
                 @endif
-                <div class="mt-6 md:mt-0 md:ml-8 text-center md:text-left">
-                    <h1 class="text-5xl font-bold text-white">{{ $therapist->company_name }}</h1>
+                <div class="mt-6 md:mt-0 md:ml-8 text-center md:text-left w-full">
+                    <h1 class="text-3xl md:text-5xl font-bold text-white break-words whitespace-normal px-4">
+                        {{ $therapist->company_name }}
+                    </h1>
                     <p class="mt-4 text-xl text-white leading-relaxed">
                         {{ $therapist->profile_description ?? '' }}
                     </p>
