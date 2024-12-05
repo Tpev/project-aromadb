@@ -128,7 +128,8 @@
                 align-items: stretch;
             }
 
-            .btn-primary, .btn-secondary {
+            .btn-primary,
+            .btn-secondary {
                 width: 100%;
                 margin-bottom: 10px;
             }
@@ -198,40 +199,100 @@
                     <p>{{ $therapist->company_name }}</p>
                 </div>
 
-<!-- Prestation (Only prestations that can be booked online) -->
-@if($products->count() > 0)
-    <div class="details-box form-section">
-        <label class="details-label" for="product_id">{{ __('Prestation') }}</label>
-        <select id="product_id" name="product_id" class="form-control" required>
-            <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
-            @foreach($products as $product)
-                @if($product->can_be_booked_online)
-                    @php
-                        $totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
-                        $formattedPrice = rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.');
-                    @endphp
-                    <option value="{{ $product->id }}"
-                            {{ old('product_id') == $product->id ? 'selected' : '' }}
-                            data-duration="{{ $product->duration }}"
-                            data-adomicile="{{ $product->adomicile ? '1' : '0' }}"
-                            data-dans_le_cabinet="{{ $product->dans_le_cabinet ? '1' : '0' }}">
-                        {{ $product->name }} - {{ $formattedPrice }}€ - {{ $product->getConsultationModes() }}
-                    </option>
+                <!-- Prepare product modes considering 'can_be_booked_online' -->
+                @php
+                    // Filter products that can be booked online
+                    $onlineProducts = $products->filter(function($product) {
+                        return $product->can_be_booked_online;
+                    });
+
+                    // Group online products by name
+                    $productsByName = $onlineProducts->groupBy('name');
+
+                    // Prepare an array to map product names to their available consultation modes and products
+                    $productModes = [];
+                    foreach($productsByName as $productName => $productsGroup) {
+                        $modes = [];
+                        foreach($productsGroup as $product) {
+                            if($product->adomicile) {
+                                $modes[] = [
+                                    'mode' => 'À Domicile',
+                                    'product' => $product
+                                ];
+                            }
+                            if($product->dans_le_cabinet) {
+                                $modes[] = [
+                                    'mode' => 'Dans le Cabinet',
+                                    'product' => $product
+                                ];
+                            }
+                            if($product->visio || $product->en_visio) {
+                                $modes[] = [
+                                    'mode' => 'En Visio',
+                                    'product' => $product
+                                ];
+                            }
+                        }
+                        if (!empty($modes)) {
+                            $productModes[$productName] = $modes;
+                        }
+                    }
+                @endphp
+
+                <!-- Prestation (Unique products by name that can be booked online) -->
+                @if(count($productModes) > 0)
+                    <div class="details-box form-section">
+                        <label class="details-label" for="product_name">{{ __('Prestation') }}</label>
+                        <select id="product_name" name="product_name" class="form-control" required>
+                            <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
+                            @foreach($productModes as $productName => $modes)
+                                @php
+                                    $product = $modes[0]['product']; // Get the first product for price display
+                                    $totalPrice = $product->price + ($product->price * $product->tax_rate / 100);
+                                    $formattedPrice = rtrim(rtrim(number_format($totalPrice, 2, '.', ''), '0'), '.');
+                                @endphp
+                                <option value="{{ $productName }}"
+                                        {{ old('product_name') == $productName ? 'selected' : '' }}>
+                                    {{ $productName }} - {{ $formattedPrice }}€
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('product_name')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @else
+                    <p>{{ __('Aucune prestation disponible pour la réservation en ligne.') }}</p>
                 @endif
-            @endforeach
-        </select>
-        @error('product_id')
-            <p class="text-red-500">{{ $message }}</p>
-        @enderror
-    </div>
-@endif
 
-<!-- Therapist Address (only show if the product is 'dans_le_cabinet') -->
-<div class="details-box form-section" id="therapist-address-section" style="display: none;">
-    <label class="details-label">{{ __('Adresse du Cabinet') }}</label>
-    <p class="form-control-static">{{ $therapist->company_address ?? __('Adresse non disponible.') }}</p>
-</div>
+                <!-- Mode de Consultation -->
+                <div class="details-box form-section" id="consultation-mode-section" style="display: none;">
+                    <label class="details-label" for="consultation_mode">{{ __('Mode de Consultation') }}</label>
+                    <select id="consultation_mode" name="consultation_mode" class="form-control" required>
+                        <option value="" disabled selected>{{ __('Sélectionner un mode de consultation') }}</option>
+                    </select>
+                    @error('consultation_mode')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
 
+                <!-- Hidden input to store the selected product ID -->
+                <input type="hidden" name="product_id" id="product_id" value="{{ old('product_id') }}">
+
+                <!-- Therapist Address (only show if the product is 'Dans le Cabinet') -->
+                <div class="details-box form-section" id="therapist-address-section" style="display: none;">
+                    <label class="details-label">{{ __('Adresse du Cabinet') }}</label>
+                    <p class="form-control-static">{{ $therapist->company_address ?? __('Adresse non disponible.') }}</p>
+                </div>
+
+                <!-- Client Address (only show if the product is 'À Domicile') -->
+                <div class="details-box form-section" id="client-address-section" style="display: none;">
+                    <label class="details-label" for="address">{{ __('Votre adresse') }}</label>
+                    <input type="text" id="address" name="address" class="form-control" value="{{ old('address', $clientProfile->address ?? '') }}">
+                    @error('address')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <!-- Patient First Name -->
                 <div class="details-box form-section">
@@ -268,14 +329,6 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-				<!-- Client Address (only show if the product is 'à domicile') -->
-				<div class="details-box form-section" id="client-address-section" style="display: none;">
-					<label class="details-label" for="address">{{ __('Votre adresse') }}</label>
-					<input type="text" id="address" name="address" class="form-control" value="{{ old('address', $clientProfile->address ?? '') }}">
-					@error('address')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-				</div>
 
                 <!-- Appointment Date -->
                 <div class="details-box form-section">
@@ -291,7 +344,7 @@
                 <div class="details-box form-section">
                     <label class="details-label" for="appointment_time">{{ __('Heure du Rendez-vous') }}</label>
                     <div class="d-flex align-items-center">
-                        <select id="appointment_time" name="appointment_time" class="form-control" required>
+                        <select id="appointment_time" name="appointment_time" class="form-control" required disabled>
                             <option value="" disabled selected>{{ __('Sélectionner une heure') }}</option>
                         </select>
                         <div class="loading-spinner">
@@ -340,177 +393,223 @@
     <!-- Bootstrap JS (optional but recommended) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Custom Scripts for Slot Fetching -->
+    <!-- Pass the product modes to JavaScript -->
     <script>
-    $(document).ready(function() {
-        // Initialize Flatpickr with disableMobile set to true
-        let availableDays = []; // Array to store available days (0 = Monday, 6 = Sunday)
+        var productModes = @json($productModes);
+    </script>
 
-        const fp = flatpickr("#appointment_date", {
-            dateFormat: "Y-m-d", // Format to submit to server
-            altInput: true, // Enable alternative input for display
-            altFormat: "d-m-Y", // Display format (dd-mm-yyyy)
-            minDate: "today",
-            locale: "fr",
-            disableMobile: true, // Force Flatpickr to use its own calendar on mobile devices
-            disable: [], // Initially, no dates are disabled
-            onChange: function(selectedDates, dateStr, instance) {
-                // Trigger fetching available slots
-                let therapistId = $('input[name="therapist_id"]').val();
-                let productId = $('#product_id').val();
-                if (dateStr && productId && therapistId) {
-                    fetchAvailableSlots(dateStr, productId, therapistId);
-                } else {
-                    $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
-                    $('#appointment_time').prop('disabled', true);
-                }
-            }
-        });
+    <!-- Custom Scripts for Slot Fetching and Dynamic Fields -->
+    <script>
+        $(document).ready(function() {
+            // Initialize Flatpickr with disableMobile set to true
+            let availableDays = []; // Array to store available days (0 = Monday, 6 = Sunday)
 
-        // Function to fetch available days based on selected product and therapist
-        function loadAvailableDays(productId, therapistId) {
-            $.ajax({
-                url: '{{ route("appointments.available-dates-patient") }}',
-                method: 'POST',
-                data: {
-                    product_id: productId,
-                    therapist_id: therapistId,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    if (response.available_days && response.available_days.length > 0) {
-                        availableDays = response.available_days;
-                        console.log('Available Days:', availableDays); // For debugging
-
-                        // Update Flatpickr to disable days not available
-                        fp.set('disable', [
-                            function(date) {
-                                // 0 = Monday, 6 = Sunday
-                                let dayOfWeek = (date.getDay() + 6) % 7; // Convert JS day to your format
-                                return !availableDays.includes(dayOfWeek);
-                            }
-                        ]);
+            const fp = flatpickr("#appointment_date", {
+                dateFormat: "Y-m-d", // Format to submit to server
+                altInput: true, // Enable alternative input for display
+                altFormat: "d-m-Y", // Display format (dd-mm-yyyy)
+                minDate: "today",
+                locale: "fr",
+                disableMobile: true, // Force Flatpickr to use its own calendar on mobile devices
+                disable: [], // Initially, no dates are disabled
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Trigger fetching available slots
+                    var therapistId = $('input[name="therapist_id"]').val();
+                    var productId = $('#product_id').val();
+                    if (dateStr && productId && therapistId) {
+                        fetchAvailableSlots(dateStr, productId, therapistId);
                     } else {
-                        // If no dates are available, disable all dates
-                        fp.set('disable', [true]);
-                        alert('{{ __("Aucune date disponible pour cette prestation.") }}');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error fetching available days:', error, xhr.responseText);
-                    alert('{{ __("Une erreur est survenue lors de la récupération des jours disponibles. Veuillez réessayer.") }}');
-                }
-            });
-        }
-
-        // Function to fetch available time slots based on selected date, product, and therapist
-        function fetchAvailableSlots(date, productId, therapistId) {
-            $('#appointment_time').prop('disabled', true); // Disable time dropdown while fetching
-            $('.loading-spinner').show(); // Show loading spinner
-
-            $.ajax({
-                url: '{{ route("appointments.available-slots-patient") }}',
-                method: 'POST',
-                data: {
-                    date: date,
-                    product_id: productId,
-                    therapist_id: therapistId,
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                    $('.loading-spinner').hide(); // Hide spinner after success
-                    if (response.slots && response.slots.length > 0) {
-                        let options = '<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>';
-                        response.slots.forEach(function(slot) {
-                            options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
-                        });
-                        $('#appointment_time').html(options); // Populate time dropdown
-                        $('#appointment_time').prop('disabled', false); // Enable time dropdown
-                    } else {
-                        $('#appointment_time').html('<option value="" disabled selected>{{ __("Aucun créneau disponible pour cette date.") }}</option>');
+                        $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
                         $('#appointment_time').prop('disabled', true);
                     }
-                },
-                error: function(xhr, status, error) {
-                    $('.loading-spinner').hide(); // Hide spinner on error
-                    console.error('Error fetching available slots:', error, xhr.responseText);
-                    alert('{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles. Veuillez réessayer.") }}');
                 }
             });
-        }
 
-        // Trigger fetching available days when the product changes
-        $('#product_id').change(function() {
-            let productId = $(this).val();
-            let therapistId = $('input[name="therapist_id"]').val();
-            if (productId && therapistId) {
-                loadAvailableDays(productId, therapistId);
-                // Reset date and time fields
+            // Function to fetch available days based on selected product and therapist
+            function loadAvailableDays(productId, therapistId) {
+                $.ajax({
+                    url: '{{ route("appointments.available-dates-patient") }}',
+                    method: 'POST',
+                    data: {
+                        product_id: productId,
+                        therapist_id: therapistId,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.available_days && response.available_days.length > 0) {
+                            availableDays = response.available_days;
+                            console.log('Available Days:', availableDays); // For debugging
+
+                            // Update Flatpickr to disable days not available
+                            fp.set('disable', [
+                                function(date) {
+                                    // 0 = Monday, 6 = Sunday
+                                    let dayOfWeek = (date.getDay() + 6) % 7; // Convert JS day to your format
+                                    return !availableDays.includes(dayOfWeek);
+                                }
+                            ]);
+                        } else {
+                            // If no dates are available, disable all dates
+                            fp.set('disable', [true]);
+                            alert('{{ __("Aucune date disponible pour cette prestation.") }}');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching available days:', error, xhr.responseText);
+                        alert('{{ __("Une erreur est survenue lors de la récupération des jours disponibles. Veuillez réessayer.") }}');
+                    }
+                });
+            }
+
+            // Function to fetch available time slots based on selected date, product, and therapist
+            function fetchAvailableSlots(date, productId, therapistId) {
+                $('#appointment_time').prop('disabled', true); // Disable time dropdown while fetching
+                $('.loading-spinner').show(); // Show loading spinner
+
+                $.ajax({
+                    url: '{{ route("appointments.available-slots-patient") }}',
+                    method: 'POST',
+                    data: {
+                        date: date,
+                        product_id: productId,
+                        therapist_id: therapistId,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        $('.loading-spinner').hide(); // Hide spinner after success
+                        if (response.slots && response.slots.length > 0) {
+                            let options = '<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>';
+                            response.slots.forEach(function(slot) {
+                                options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
+                            });
+                            $('#appointment_time').html(options); // Populate time dropdown
+                            $('#appointment_time').prop('disabled', false); // Enable time dropdown
+                        } else {
+                            $('#appointment_time').html('<option value="" disabled selected>{{ __("Aucun créneau disponible pour cette date.") }}</option>');
+                            $('#appointment_time').prop('disabled', true);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $('.loading-spinner').hide(); // Hide spinner on error
+                        console.error('Error fetching available slots:', error, xhr.responseText);
+                        alert('{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles. Veuillez réessayer.") }}');
+                    }
+                });
+            }
+
+            // When product_name changes
+            $('#product_name').on('change', function() {
+                var productName = $(this).val();
+                if(productName) {
+                    var modes = productModes[productName];
+                    if(modes && modes.length > 0) {
+                        // Clear and populate the consultation_mode dropdown
+                        var consultationModeSelect = $('#consultation_mode');
+                        consultationModeSelect.empty();
+                        consultationModeSelect.append('<option value="" disabled selected>{{ __("Sélectionner un mode de consultation") }}</option>');
+                        modes.forEach(function(modeData) {
+                            var mode = modeData.mode;
+                            var productId = modeData.product.id;
+                            consultationModeSelect.append('<option value="'+productId+'">'+mode+'</option>');
+                        });
+                        $('#consultation-mode-section').show();
+                        // Reset product_id hidden input
+                        $('#product_id').val('');
+                        // Hide address sections
+                        $('#client-address-section').hide();
+                        $('#therapist-address-section').hide();
+                    } else {
+                        $('#consultation-mode-section').hide();
+                        $('#product_id').val('');
+                    }
+                } else {
+                    $('#consultation-mode-section').hide();
+                    $('#product_id').val('');
+                }
+                // Reset other fields if necessary
                 fp.clear();
                 fp.setDate(null);
                 $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
                 $('#appointment_time').prop('disabled', true);
-            } else {
-                // If no product or therapist is selected, reset Flatpickr and time dropdown
-                fp.set('disable', []);
-                $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
-                $('#appointment_time').prop('disabled', true);
-            }
-        });
+            });
 
-        // Trigger fetching slots if old input exists (e.g., after validation error)
-        @if(old('product_id') && old('therapist_id'))
-            loadAvailableDays('{{ old('product_id') }}', '{{ old('therapist_id') }}');
-            @if(old('appointment_date'))
-                // Delay to ensure Flatpickr is initialized
+            // When consultation_mode changes
+            $('#consultation_mode').on('change', function() {
+                var productId = $(this).val();
+                // Set the hidden product_id input
+                $('#product_id').val(productId);
+                var therapistId = $('input[name="therapist_id"]').val();
+                if (productId && therapistId) {
+                    loadAvailableDays(productId, therapistId);
+                    // Reset date and time fields
+                    fp.clear();
+                    fp.setDate(null);
+                    $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>');
+                    $('#appointment_time').prop('disabled', true);
+                }
+                // Show or hide address sections based on the selected mode
+                checkProductMode();
+            });
+
+            // Function to check the selected mode and show/hide address sections
+            function checkProductMode() {
+                var consultationModeSelect = document.getElementById('consultation_mode');
+                var selectedOption = consultationModeSelect.options[consultationModeSelect.selectedIndex];
+                var addressSection = document.getElementById('client-address-section');
+                var therapistAddressSection = document.getElementById('therapist-address-section');
+                if (selectedOption) {
+                    var mode = selectedOption.text;
+                    // Show client address section if 'À Domicile'
+                    if (mode === 'À Domicile') {
+                        addressSection.style.display = 'block';
+                        therapistAddressSection.style.display = 'none';
+                    } else if (mode === 'Dans le Cabinet') {
+                        therapistAddressSection.style.display = 'block';
+                        addressSection.style.display = 'none';
+                    } else {
+                        // Hide both address sections for 'En Visio' and other modes
+                        addressSection.style.display = 'none';
+                        therapistAddressSection.style.display = 'none';
+                    }
+                } else {
+                    // Hide both sections if no mode is selected
+                    addressSection.style.display = 'none';
+                    therapistAddressSection.style.display = 'none';
+                }
+            }
+
+            // If old input exists (e.g., after validation error), populate the consultation_mode dropdown
+            @if(old('product_name'))
+                var oldProductName = "{{ old('product_name') }}";
+                var modes = productModes[oldProductName];
+                if(modes && modes.length > 0) {
+                    var consultationModeSelect = $('#consultation_mode');
+                    consultationModeSelect.empty();
+                    consultationModeSelect.append('<option value="" disabled selected>{{ __("Sélectionner un mode de consultation") }}</option>');
+                    modes.forEach(function(modeData) {
+                        var mode = modeData.mode;
+                        var productId = modeData.product.id;
+                        var selected = '';
+                        if(productId == "{{ old('product_id') }}") {
+                            selected = 'selected';
+                        }
+                        consultationModeSelect.append('<option value="'+productId+'" '+selected+'>'+mode+'</option>');
+                    });
+                    $('#consultation-mode-section').show();
+                    // Set product_id hidden input
+                    $('#product_id').val("{{ old('product_id') }}");
+                    // Call checkProductMode to show/hide address sections
+                    checkProductMode();
+                }
+            @endif
+
+            // If old appointment_date exists, set it
+            @if(old('appointment_date') && old('product_id') && old('therapist_id'))
                 setTimeout(function() {
                     fp.setDate('{{ old('appointment_date') }}', true);
                     fetchAvailableSlots('{{ old('appointment_date') }}', '{{ old('product_id') }}', '{{ old('therapist_id') }}');
                 }, 500);
             @endif
-        @endif
-    });
-	
-	
-
-document.addEventListener('DOMContentLoaded', function () {
-    const productSelect = document.getElementById('product_id');
-    const addressSection = document.getElementById('client-address-section');
-    const therapistAddressSection = document.getElementById('therapist-address-section');
-
-    function checkProductMode() {
-        const selectedOption = productSelect.options[productSelect.selectedIndex];
-        if (selectedOption) {
-            const isAdomicile = selectedOption.getAttribute('data-adomicile') === '1';
-            const isDansLeCabinet = selectedOption.getAttribute('data-dans_le_cabinet') === '1';
-
-            // Show client address section if 'à domicile'
-            if (isAdomicile) {
-                addressSection.style.display = 'block';
-            } else {
-                addressSection.style.display = 'none';
-            }
-
-            // Show therapist address section if 'dans le cabinet'
-            if (isDansLeCabinet) {
-                therapistAddressSection.style.display = 'block';
-            } else {
-                therapistAddressSection.style.display = 'none';
-            }
-        } else {
-            // Hide both sections if no product is selected
-            addressSection.style.display = 'none';
-            therapistAddressSection.style.display = 'none';
-        }
-    }
-
-    productSelect.addEventListener('change', checkProductMode);
-
-    // Call the function on page load in case a product is pre-selected
-    checkProductMode();
-});
-
-
-
+        });
     </script>
 </x-app-layout>
