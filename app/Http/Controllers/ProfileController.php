@@ -103,7 +103,7 @@ public function updateCompanyInfo(Request $request)
         'minimum_notice_hours' => 'nullable|integer|min:0', // Updated validation rule
         'services' => 'nullable|string', // Expect services as a JSON string
         'profile_description' => 'nullable|string|max:1000',
-        'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Max 2MB
+        'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg,heic|max:3048', // Max 2MB
         //'accept_online_appointments' => 'sometimes|boolean', // Validation rule for boolean
     ]);
 
@@ -176,7 +176,7 @@ public function submitOnboarding(Request $request)
         'minimum_notice_hours' => 'nullable|integer|min:0',
         'services' => 'nullable|string', // Expect services as a JSON string
         'profile_description' => 'nullable|string|max:1000',
-        'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Max 2MB
+        'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,heic|max:3048', // Max 2MB
         // 'accept_online_appointments' => 'sometimes|boolean',
     ]);
 
