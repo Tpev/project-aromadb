@@ -8,6 +8,12 @@
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Remplir le Questionnaire : ') }} {{ $questionnaire->title }}</h1>
+			
+			            <!-- Questionnaire Description -->
+            <div class="details-box mb-4">
+                <h3 class="details-subtitle">{{ __('Description') }}</h3>
+                <p class="description-text">{{ $questionnaire->description ?? __('Aucune description fournie.') }}</p>
+            </div>
 
             <form action="{{ route('questionnaires.storeResponses', ['token' => $token]) }}" method="POST">
                 @csrf
