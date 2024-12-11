@@ -7,9 +7,11 @@ Ce questionnaire a été envoyé par : **{{ $therapistName }}**.
 
 Pour remplir le questionnaire, cliquez sur le bouton ci-dessous :
 
+
 @component('mail::button', ['url' => $link])
-Remplir le Questionnaire
+    Remplir le questionnaire
 @endcomponent
+
 
 Si vous rencontrez des problèmes, copiez et collez le lien suivant dans votre navigateur :
 

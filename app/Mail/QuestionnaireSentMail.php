@@ -48,12 +48,12 @@ class QuestionnaireSentMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.questionnaire_sent', // Adjust the view name as needed
+            markdown: 'emails.questionnaire_sent', // Specify the Markdown template
             with: [
                 'therapistName' => $this->therapistName,
                 'questionnaireTitle' => $this->questionnaireTitle,
                 'link' => $this->link,
-				'client_profile_name' => $this->client_profile_name,
+                'client_profile_name' => $this->client_profile_name,
             ],
         );
     }
