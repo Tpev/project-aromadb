@@ -11,7 +11,7 @@
 			
 			            <!-- Questionnaire Description -->
             <div class="details-box mb-4">
-                <h3 class="details-subtitle">{{ __('Description') }}</h3>
+
                 <p class="description-text">{{ $questionnaire->description ?? __('Aucune description fournie.') }}</p>
             </div>
 
