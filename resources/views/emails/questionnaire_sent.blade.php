@@ -1,15 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Questionnaire Envoyé</title>
-</head>
-<body>
-    <h1>Bonjour, {{ $client_profile_name }},</h1>
-    <p>Vous avez reçu un nouveau questionnaire intitulé : <strong>{{ $questionnaireTitle }}</strong>.</p>
-    <p>Ce questionnaire a été envoyé par : <strong>{{ $therapistName }}</strong>.</p>
-    <p>Pour remplir le questionnaire, cliquez sur le lien suivant :</p>
-    <p><a href="{{ $link }}">{{ $link }}</a></p>
-    <p>Merci !</p>
-</body>
-</html>
+@component('mail::message')
+# Bonjour {{ $client_profile_name }},
+
+Vous avez reçu un nouveau questionnaire intitulé : **{{ $questionnaireTitle }}**.
+
+Ce questionnaire a été envoyé par : **{{ $therapistName }}**.
+
+Pour remplir le questionnaire, cliquez sur le bouton ci-dessous :
+
+@component('mail::button', ['url' => $link])
+Remplir le Questionnaire
+@endcomponent
+
+Si vous rencontrez des problèmes, copiez et collez le lien suivant dans votre navigateur :
+
+{{ $link }}
+
+Merci et à bientôt !
+
+Cordialement,  
+{{ $therapistName }}
+@endcomponent
