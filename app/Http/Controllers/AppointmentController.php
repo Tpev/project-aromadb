@@ -528,24 +528,34 @@ public function show(Appointment $appointment)
 }
 
 
-    /**
-     * Show the form for creating a new appointment for a patient.
-     */
-    public function createPatient($therapistId)
-    {
-        // Validate the therapist_id parameter
-        if (!User::where('id', $therapistId)->where('accept_online_appointments', true)->exists()) {
-            return redirect()->back()->withErrors(['therapist_id' => 'Thérapeute invalide ou ne prend pas de rendez-vous en ligne.']);
-        }
+/**
+ * Show the form for creating a new appointment for a patient.
+ */
+public function createPatient($therapistId)
+{
+    // Validate that the therapist exists and accepts online appointments
+    $therapistExists = User::where('id', $therapistId)
+                           ->where('accept_online_appointments', true)
+                           ->exists();
 
-        // Fetch therapist details
-        $therapist = User::findOrFail($therapistId);
-
-        // Fetch products associated with the therapist
-        $products = Product::where('user_id', $therapistId)->get();
-
-        return view('appointments.createPatient', compact('therapist', 'products'));
+    if (!$therapistExists) {
+        return redirect()->back()->withErrors([
+            'therapist_id' => 'Thérapeute invalide ou ne prend pas de rendez-vous en ligne.'
+        ]);
     }
+
+    // Retrieve the therapist's details
+    $therapist = User::findOrFail($therapistId);
+
+    // Retrieve and order the therapist's products by display_order in ascending order
+    $products = Product::where('user_id', $therapistId)
+                       ->orderBy('display_order', 'asc') // Change to 'desc' for descending order
+                       ->get();
+
+    // Return the view with the therapist and ordered products
+    return view('appointments.createPatient', compact('therapist', 'products'));
+}
+
 
     /**
      * Store a newly created appointment from a patient.
