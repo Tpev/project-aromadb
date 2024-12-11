@@ -289,7 +289,20 @@
                 <p><strong>Accepts Online Booking:</strong> {{ $therapist->accepts_online_booking ? 'Yes' : 'No' }}</p>
             </div>
         </div>
+<!-- Form to update the therapist's profile picture -->
+@if(session('success'))
+    <div style="color: green; margin-bottom: 20px;">
+        {{ session('success') }}
+    </div>
+@endif
 
+<form action="{{ route('admin.therapists.updatePicture', $therapist->id) }}" method="POST" enctype="multipart/form-data" style="margin-bottom:40px;">
+    @csrf
+    @method('PUT')
+    <label for="profile_picture">Change Profile Picture:</label><br><br>
+    <input type="file" name="profile_picture" required><br><br>
+    <button type="submit" style="padding:10px 20px; background:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Update Picture</button>
+</form>
         <!-- Onboarding Checklist -->
         <h2 class="section-title">Onboarding Checklist</h2>
         <ul class="checklist">

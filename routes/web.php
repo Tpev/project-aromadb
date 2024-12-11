@@ -33,6 +33,22 @@ use App\Http\Controllers\StripeController;
 use App\Http\Controllers\LicenseTierController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\HelpController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\ConseilController;
+
+
+
+
+Route::middleware(['auth'])->group(function () {
+Route::resource('conseils', ConseilController::class);
+});
+Route::prefix('help')->group(function () {
+    Route::get('/', [HelpController::class, 'index'])->name('help.index');
+    Route::get('/search', [HelpController::class, 'search'])->name('help.search');
+    Route::get('/{category}', [HelpController::class, 'category'])->name('help.category');
+    Route::get('/{category}/{slug}', [HelpController::class, 'show'])->name('help.show');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
@@ -181,14 +197,7 @@ Route::get('/thank-you', function () {
 
 // routes/web.php
 
-// Routes pour l'onboarding
-Route::middleware(['auth'])->group(function () {
-    // Route pour afficher le formulaire d'onboarding
-    Route::get('/onboarding', [ProfileController::class, 'showOnboardingForm'])->name('onboarding');
 
-    // Route pour soumettre le formulaire d'onboarding
-    Route::post('/onboarding/submit', [ProfileController::class, 'submitOnboarding'])->name('onboarding.submit');
-});
 Route::middleware(['auth'])->group(function () {
 
 	 Route::get('/profile/license', [ProfileController::class, 'license'])->name('profile.license');
@@ -256,6 +265,12 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
+Route::prefix('onboarding')->middleware('auth')->group(function () {
+    Route::get('/step/{step}', [OnboardingController::class, 'showStep'])->name('onboarding.step');
+    Route::post('/step/{step}', [OnboardingController::class, 'submitStep'])->name('onboarding.submit');
+    Route::get('/skip/{step}', [OnboardingController::class, 'skipStep'])->name('onboarding.skip');
+    Route::get('/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
+});
 
 
 // Invoice Routes
@@ -407,6 +422,8 @@ Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])-
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
 Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
+Route::put('/admin/therapists/{id}/picture', [AdminController::class, 'updateTherapistPicture'])->name('admin.therapists.updatePicture');
+
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/upgrade/license', [UserLicenseController::class, 'showUpgradePage'])->name('upgrade.license');
