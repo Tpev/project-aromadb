@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class DashboardController extends Controller
 {
@@ -93,5 +94,29 @@ class DashboardController extends Controller
 			'therapist'
 	
         ));
+    }
+    public function generateQrCode()
+    {
+        $therapist = auth()->user();
+
+        if (!$therapist->slug) {
+            return response()->json(['error' => 'Slug not found'], 400);
+        }
+
+        $url = route('therapist.show', ['slug' => $therapist->slug]);
+        
+        try {
+            // Générer le QR Code au format PNG
+            $qrCode = QrCode::format('png')->size(200)->generate($url);
+            // Encoder l'image en base64
+            $qrCodeBase64 = base64_encode($qrCode);
+            // Créer une data URL
+            $qrCodeDataUrl = 'data:image/png;base64,' . $qrCodeBase64;
+
+            return response()->json(['qrCode' => $qrCodeDataUrl]);
+        } catch (\Exception $e) {
+            // En cas d'erreur, renvoyer un message d'erreur
+            return response()->json(['error' => 'Erreur lors de la génération du QR Code'], 500);
+        }
     }
 }

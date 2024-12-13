@@ -42,23 +42,22 @@
                                 </div>
                             </div>
                         </a>
-				    <!-- Nombre de Vues du Portail Pro -->
-			
-					<div class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
-						<a href="#" class="block">
-                            <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#8ea633] mr-4">
-									<i class="fas fa-eye h-6 w-6"></i>
-									<!-- Optionnel : Utiliser SVG de Font Awesome si préférée -->
-								</div>
-								<div>
-									<div class="text-2xl font-bold">{{ $therapist->view_count }}</div>
-									<div class="text-sm">{{ __('Vues du Portail Pro') }}</div>
-								</div>
-							</div>
-						</a>
-					</div>
 
+                        <!-- Nombre de Vues du Portail Pro -->
+                        <div class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
+                            <a href="#" class="block">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-white text-[#8ea633] mr-4">
+                                        <i class="fas fa-eye h-6 w-6"></i>
+                                        <!-- Optionnel : Utiliser SVG de Font Awesome si préférée -->
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold">{{ $therapist->view_count }}</div>
+                                        <div class="text-sm">{{ __('Vues du Portail Pro') }}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
 
                         <!-- Factures Émises -->
                         <a href="{{ route('invoices.index') }}" class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
@@ -107,10 +106,9 @@
                         </a>
                     </div>
                 </div>
-
             </div>
 
-            {{-- Graphiques --}}
+            {{-- Graphiques, Prochains Rendez-vous, Dernières Factures --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Rendez-vous par Mois -->
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
@@ -125,7 +123,7 @@
                 </div>
             </div>
 
-            {{-- Prochains Rendez-vous --}}
+            <!-- Prochains Rendez-vous -->
             <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold text-[#647a0b]">{{ __('Prochains Rendez-vous') }}</h3>
@@ -179,7 +177,7 @@
                 </div>
             </div>
 
-            {{-- Dernières Factures --}}
+            <!-- Dernières Factures -->
             <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-semibold text-[#854f38]">{{ __('Dernières Factures') }}</h3>
@@ -234,6 +232,62 @@
             </div>
         </div>
     </div>
+
+    {{-- QR Code Section --}}
+    @if($therapist->slug)
+        <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <h3 class="text-xl font-semibold text-[#647a0b] mb-4">{{ __('QR Code pour votre Portail') }}</h3>
+            
+            {{-- Ajout du texte explicatif en français --}}
+            <p class="text-sm text-gray-600 mb-4">
+                {{ __('Ce QR Code peut être utilisé sur vos cartes de visite, vos supports de communication, etc.') }}
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <button id="generate-qrcode" class="btn bg-[#647a0b] text-white py-2 px-4 rounded hover:bg-[#8ea633]">
+                    {{ __('Générer le QR Code') }}
+                </button>
+                <a id="download-qrcode" href="#" download="qrcode.png" class="btn bg-[#a96b56] text-white py-2 px-4 rounded hover:bg-[#854f38] hidden">
+                    {{ __('Télécharger le QR Code') }}
+                </a>
+            </div>
+            <div id="qrcode-container" class="mt-6 flex justify-center">
+                <!-- QR Code will be displayed here -->
+            </div>
+        </div>
+    @endif
+
+    {{-- QR Code Script --}}
+    <script>
+        document.getElementById('generate-qrcode')?.addEventListener('click', function () {
+            fetch('{{ route("dashboard-pro.qrcode") }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if(data.qrCode){
+                        // Display QR Code
+                        const qrcodeContainer = document.getElementById('qrcode-container');
+                        qrcodeContainer.innerHTML = `<img src="${data.qrCode}" alt="QR Code" class="w-48 h-48">`;
+
+                        // Update download link
+                        const downloadLink = document.getElementById('download-qrcode');
+                        downloadLink.href = data.qrCode;
+                        downloadLink.classList.remove('hidden');
+                    } else {
+                        console.error('QR Code not generated:', data.error);
+                        alert('Erreur lors de la génération du QR Code.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la génération du QR Code:', error);
+                    alert('Erreur lors de la génération du QR Code.');
+                });
+        });
+    </script>
 
     {{-- Scripts pour les Graphiques --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -383,6 +437,32 @@
         }
         .hover\:bg-[#fdece6]:hover {
             background-color: #fdece6;
+        }
+
+        /* Styles pour les boutons QR Code */
+        .btn {
+            display: inline-block;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .btn:hover {
+            text-decoration: none;
+        }
+
+        /* Ajustement de l'image QR Code */
+        #qrcode-container img {
+            max-width: 200px;
+            height: auto;
         }
     </style>
 

@@ -208,7 +208,8 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/dashboard-pro', [DashboardController::class, 'index'])->name('dashboard-pro');
-   
+    Route::get('/dashboard-pro/qrcode', [DashboardController::class, 'generateQrCode'])->name('dashboard-pro.qrcode');
+
 });
 
 
