@@ -48,11 +48,9 @@ class ClientConseilController extends Controller
             'token' => $token
         ]);
 
-        // Build the secure link
-        $link = route('public.conseil.view', [
-            'clientProfile' => $clientProfile->id,
-            'conseil' => $conseil->id,
-        ]).'?token='.$token;
+     $link = route('public.conseil.view', [
+    // No route parameters here
+]) . '?clientProfile=' . $clientProfile->id . '&conseil=' . $conseil->id . '&token=' . $token;
 
         // Send the email to the client if they have an email
         if ($clientProfile->email) {
@@ -62,25 +60,36 @@ class ClientConseilController extends Controller
         return redirect()->route('client_profiles.show', $clientProfile->id)->with('success', 'Conseil envoyé avec succès. Un email contenant le lien a été envoyé au client.');
     }
 
-    /**
-     * Display the conseil to the client via a secure tokenized link.
-     */
-    public function viewConseil(Request $request, ClientProfile $clientProfile, Conseil $conseil)
-    {
-        $token = $request->query('token');
+public function viewConseil(Request $request)
+{
+    $clientProfileId = $request->query('clientProfile');
+    $conseilId = $request->query('conseil');
+    $token = $request->query('token');
 
-        // Check that the conseil is actually sent to this client and the token matches
-        $record = $clientProfile->conseilsSent()
-                    ->where('conseil_id', $conseil->id)
-                    ->wherePivot('token', $token)
-                    ->first();
-
-        if (!$record) {
-            // Invalid token or not found
-            abort(403, 'Lien invalide ou expiré.');
-        }
-
-        // Display the conseil
-        return view('public_conseil', compact('clientProfile', 'conseil'));
+    // Validate that these query parameters exist
+    if (!$clientProfileId || !$conseilId || !$token) {
+        abort(404, 'Paramètres manquants.');
     }
+
+    $clientProfile = \App\Models\ClientProfile::find($clientProfileId);
+    $conseil = \App\Models\Conseil::find($conseilId);
+
+    if (!$clientProfile || !$conseil) {
+        abort(404, 'Client ou conseil introuvable.');
+    }
+
+    // Check that the conseil is actually sent to this client and the token matches
+    $record = $clientProfile->conseilsSent()
+                ->where('conseil_id', $conseil->id)
+                ->wherePivot('token', $token)
+                ->first();
+
+    if (!$record) {
+        abort(403, 'Lien invalide ou expiré.');
+    }
+
+    // Display the conseil
+    return view('public_conseil', compact('clientProfile', 'conseil'));
+}
+
 }

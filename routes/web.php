@@ -40,8 +40,7 @@ use App\Http\Controllers\ClientConseilController;
 
 
 // Public route to view the conseil via token
-Route::get('client_profiles/{clientProfile}/conseils/{conseil}/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
-
+Route::get('conseil/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
 
 
 Route::middleware(['auth'])->group(function () {

@@ -3,10 +3,6 @@
 
 Votre thérapeute vous a envoyé un nouveau conseil : **{{ $conseil->name }}**.
 
-@if($conseil->tag)
-**Tag :** {{ $conseil->tag }}
-@endif
-
 Vous pouvez accéder à ce conseil en cliquant sur le bouton ci-dessous :
 
 @component('mail::button', ['url' => $link])
