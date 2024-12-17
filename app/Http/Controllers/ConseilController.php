@@ -59,23 +59,29 @@ class ConseilController extends Controller
     /**
      * Display the specified conseil.
      */
-    public function show(Conseil $conseil)
-    {
-        // Ensure the user owns the conseil
-      //  $this->authorize('view', $conseil);
-
-        return view('conseils.show', compact('conseil'));
+public function show(Conseil $conseil)
+{
+    // Check that the conseil belongs to the currently authenticated user
+    if ($conseil->user_id !== Auth::id()) {
+        abort(403, 'Accès refusé. Ce conseil ne vous appartient pas.');
     }
 
-    /**
-     * Show the form for editing the specified conseil.
-     */
-    public function edit(Conseil $conseil)
-    {
-      //  $this->authorize('update', $conseil);
+    return view('conseils.show', compact('conseil'));
+}
 
-        return view('conseils.edit', compact('conseil'));
+/**
+ * Show the form for editing the specified conseil.
+ */
+public function edit(Conseil $conseil)
+{
+    // Check that the conseil belongs to the currently authenticated user
+    if ($conseil->user_id !== Auth::id()) {
+        abort(403, 'Accès refusé. Ce conseil ne vous appartient pas.');
     }
+
+    return view('conseils.edit', compact('conseil'));
+}
+
 
     /**
      * Update the specified conseil in storage.
@@ -83,7 +89,10 @@ class ConseilController extends Controller
     public function update(Request $request, Conseil $conseil)
     {
       //  $this->authorize('update', $conseil);
-
+    // Check that the conseil belongs to the currently authenticated user
+    if ($conseil->user_id !== Auth::id()) {
+        abort(403, 'Accès refusé. Ce conseil ne vous appartient pas.');
+    }
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'content' => 'nullable|string',
@@ -111,7 +120,10 @@ class ConseilController extends Controller
     public function destroy(Conseil $conseil)
     {
       //  $this->authorize('delete', $conseil);
-
+    // Check that the conseil belongs to the currently authenticated user
+    if ($conseil->user_id !== Auth::id()) {
+        abort(403, 'Accès refusé. Ce conseil ne vous appartient pas.');
+    }
         $conseil->delete();
 
         return redirect()->route('conseils.index')->with('success', 'Conseil supprimé avec succès.');
