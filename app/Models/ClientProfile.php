@@ -60,4 +60,12 @@ public function testimonials()
 {
     return $this->hasMany(Testimonial::class);
 }
+public function conseilsSent()
+{
+    return $this->belongsToMany(\App\Models\Conseil::class, 'client_conseil', 'client_profile_id', 'conseil_id')
+                ->withPivot('sent_at', 'token')
+                ->withTimestamps();
+}
+	
+
 }

@@ -36,12 +36,20 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HelpController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ConseilController;
+use App\Http\Controllers\ClientConseilController;
 
+
+// Public route to view the conseil via token
+Route::get('client_profiles/{clientProfile}/conseils/{conseil}/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
 
 
 
 Route::middleware(['auth'])->group(function () {
 Route::resource('conseils', ConseilController::class);
+
+Route::get('client_profiles/{clientProfile}/conseils/send', [ClientConseilController::class, 'sendForm'])->name('client_profiles.conseils.sendform');
+Route::post('client_profiles/{clientProfile}/conseils/send', [ClientConseilController::class, 'send'])->name('client_profiles.conseils.send');
+
 });
 Route::prefix('help')->group(function () {
     Route::get('/', [HelpController::class, 'index'])->name('help.index');

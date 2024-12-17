@@ -66,27 +66,28 @@
                     </div>
                 </div>
             </div>
-@can('requestTestimonial', $clientProfile)
-    @if(is_null($testimonialRequest))
-        {{-- Aucun demande envoyée --}}
-        <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST" class="mt-6">
-            @csrf
-            <button type="submit" class="btn btn-primary">
-                {{ __('Demander un Témoignage') }}
-            </button>
-        </form>
-    @elseif($testimonialRequest->status === 'pending')
-        {{-- Demande envoyée --}}
-        <p class="mt-6 text-lg text-gray-600">
-            {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
-        </p>
-    @elseif($testimonialRequest->status === 'completed')
-        {{-- Témoignage fait --}}
-        <p class="mt-6 text-lg text-gray-600">
-            {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
-        </p>
-    @endif
-@endcan
+
+            @can('requestTestimonial', $clientProfile)
+                @if(is_null($testimonialRequest))
+                    {{-- Aucun demande envoyée --}}
+                    <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST" class="mt-6">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            {{ __('Demander un Témoignage') }}
+                        </button>
+                    </form>
+                @elseif($testimonialRequest->status === 'pending')
+                    {{-- Demande envoyée --}}
+                    <p class="mt-6 text-lg text-gray-600">
+                        {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
+                    </p>
+                @elseif($testimonialRequest->status === 'completed')
+                    {{-- Témoignage fait --}}
+                    <p class="mt-6 text-lg text-gray-600">
+                        {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
+                    </p>
+                @endif
+            @endcan
 
             <!-- Appointments Section -->
             <div class="row mt-4">
@@ -162,57 +163,102 @@
                 </div>
             </div>
 
-<!-- Questionnaire Responses Section -->
-<div class="row mt-4">
-    <div class="col-md-12">
-        <h2 class="details-title">{{ __('Réponses aux Questionnaires de ce client') }}</h2>
-        <a href="{{ route('questionnaires.send.show', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Remplir / Envoyer un questionnaire') }}</a>
-        
-        @if($responses->isEmpty())
-            <p>Aucune réponse trouvée pour ce client.</p>
-        @else
-            <div class="table-responsive mx-auto">
-                <table class="table table-bordered table-hover" id="responsesTable">
-                    <thead>
-                        <tr>
-                            <th>Questionnaire</th>
-                            <th>Date de Soumission</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($responses as $response)
-                            <tr>
-                                <td>{{ $response->questionnaire->title }}</td>
-                                <td>{{ $response->created_at }}</td>
-                                <td>
-                                    @if($response->answers === '[]') <!-- Check if answers are empty -->
-                                        <span class="text-muted">{{ __('Pas encore rempli') }}</span>
-                                    @else
-                                        <a href="{{ route('questionnaires.responses.show', $response->id) }}" class="btn btn-primary">Voir Réponse</a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <!-- Questionnaire Responses Section -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h2 class="details-title">{{ __('Réponses aux Questionnaires de ce client') }}</h2>
+                    <a href="{{ route('questionnaires.send.show', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Remplir / Envoyer un questionnaire') }}</a>
+                    
+                    @if($responses->isEmpty())
+                        <p>Aucune réponse trouvée pour ce client.</p>
+                    @else
+                        <div class="table-responsive mx-auto">
+                            <table class="table table-bordered table-hover" id="responsesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Questionnaire</th>
+                                        <th>Date de Soumission</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($responses as $response)
+                                        <tr>
+                                            <td>{{ $response->questionnaire->title }}</td>
+                                            <td>{{ $response->created_at }}</td>
+                                            <td>
+                                                @if($response->answers === '[]')
+                                                    <span class="text-muted">{{ __('Pas encore rempli') }}</span>
+                                                @else
+                                                    <a href="{{ route('questionnaires.responses.show', $response->id) }}" class="btn btn-primary">Voir Réponse</a>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
             </div>
-        @endif
-    </div>
-</div>
 
+
+            <!-- Conseils Envoyés Section -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h2 class="details-title">{{ __('Conseils Envoyés à ce client') }}</h2>
+                    <!-- Bouton pour envoyer un nouveau conseil -->
+                    <a href="{{ route('client_profiles.conseils.sendform', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Envoyer un Conseil') }}</a>
+                    
+                    @php
+                        // Assuming the relationship is $clientProfile->conseilsSent or something similar
+                        $conseilsSent = $clientProfile->conseilsSent ?? collect(); 
+                        // Adjust if you have a different relationship
+                    @endphp
+
+                    @if($conseilsSent->isEmpty())
+                        <p>Aucun conseil envoyé à ce client pour le moment.</p>
+                    @else
+                        <div class="table-responsive mx-auto">
+                            <table class="table table-bordered table-hover" id="conseilsSentTable">
+                                <thead>
+                                    <tr>
+                                        <th>Nom du Conseil</th>
+                                        <th>Tag</th>
+                                        <th>Date d'Envoi</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($conseilsSent as $conseil)
+                                        <tr>
+                                            <td>{{ $conseil->name }}</td>
+                                            <td>{{ $conseil->tag ?? '—' }}</td>
+                                            <td>{{ $conseil->pivot->created_at->format('d/m/Y') ?? '—' }}</td>
+                                            <td>
+                                                <a href="{{ route('conseils.show', $conseil->id) }}" class="btn btn-primary">Voir Conseil</a>
+                                                <!-- If you want a way to re-send or remove this conseil, add actions here -->
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
 
 
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <a href="{{ route('client_profiles.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
                     <a href="{{ route('client_profiles.edit', $clientProfile->id) }}" class="btn-secondary">{{ __('Modifier le profil') }}</a>
-					<!-- Delete Button -->
-<form action="{{ route('client_profiles.destroy', $clientProfile->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer ce profil client ? Cette action est irréversible.') }}');">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="btn-danger">{{ __('Supprimer le profil') }}</button>
-</form>
+                    <!-- Delete Button -->
+                    <form action="{{ route('client_profiles.destroy', $clientProfile->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer ce profil client ? Cette action est irréversible.') }}');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-danger">{{ __('Supprimer le profil') }}</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -220,22 +266,22 @@
 
     <!-- Custom Styles -->
     <style>
-	/* Delete Button */
-.btn-danger {
-    background-color: #e3342f;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    display: inline-block;
-    cursor: pointer;
-    margin-bottom: 10px;
-}
+        /* Delete Button */
+        .btn-danger {
+            background-color: #e3342f;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
 
-.btn-danger:hover {
-    background-color: #cc1f1a;
-}
+        .btn-danger:hover {
+            background-color: #cc1f1a;
+        }
 
         .container {
             max-width: 900px;
