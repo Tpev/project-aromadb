@@ -86,11 +86,7 @@
 <body>
     <h1>{{ $conseil->name }}</h1>
 
-    @if($conseil->tag)
-        <div class="tag-section">
-            <p><strong>Tag :</strong> {{ $conseil->tag }}</p>
-        </div>
-    @endif
+
 
     @if($conseil->image)
         <div style="margin-top:20px; text-align:center;">
