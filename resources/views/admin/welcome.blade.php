@@ -239,11 +239,11 @@
                     <i class="icon fas fa-id-card"></i>
                     <h3>License Management</h3>
                 </div>
-            </a>            <
+            </a>            
 			<a href="{{ route('admin.marketing.emails') }}" class="option-card">
                 <div class="card-content">
                     <div class="card-bg"></div>
-                    <i class="icon fas fa-id-mail"></i>
+                    <i class="icon fas fa-envelope"></i>
                     <h3>License Management</h3>
                 </div>
             </a>
