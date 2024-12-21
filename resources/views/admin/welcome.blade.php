@@ -240,7 +240,7 @@
                     <h3>License Management</h3>
                 </div>
             </a>            <
-			a href="{{ route('admin.marketing.emails') }}" class="option-card">
+			<a href="{{ route('admin.marketing.emails') }}" class="option-card">
                 <div class="card-content">
                     <div class="card-bg"></div>
                     <i class="icon fas fa-id-mail"></i>
