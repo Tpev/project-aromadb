@@ -6,5 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarketingEmail extends Model
 {
-    //
+    protected $fillable = ['email', 'firstname', 'lastname', 'tags'];
+
 }
