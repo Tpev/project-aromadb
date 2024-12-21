@@ -244,7 +244,7 @@
                 <div class="card-content">
                     <div class="card-bg"></div>
                     <i class="icon fas fa-envelope"></i>
-                    <h3>License Management</h3>
+                    <h3>Marketing Management</h3>
                 </div>
             </a>
         </div>
