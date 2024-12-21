@@ -14,7 +14,7 @@ class MarketingController extends Controller
         return redirect('/')->with('error', 'Unauthorized access');
     }
 	
-        return view('admin.upload_csv');
+        return view('admin.marketing.upload_csv');
     }
 
     // Handle the CSV upload
@@ -71,6 +71,6 @@ class MarketingController extends Controller
         return redirect('/')->with('error', 'Unauthorized access');
     }
         $emails = MarketingEmail::all();
-        return view('admin.marketing_emails', compact('emails'));
+        return view('admin.marketing.emails', compact('emails'));
     }
 }
