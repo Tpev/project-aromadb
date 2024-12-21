@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Marketing Emails</title>
+    <title>Upload Marketing Emails</title>
     <!-- Include necessary meta tags -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -14,7 +14,7 @@
 
     <!-- Custom Styles -->
     <style>
-          /* Full-Screen Background Video */
+        /* Full-Screen Background Video */
         #bg-video {
             position: fixed;
             top: 0;
@@ -294,25 +294,6 @@
                 text-align: left;
             }
         }
-		        /* Button Styles */
-        .upload-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #ff512f, #dd2476);
-            color: #fff;
-            border-radius: 30px;
-            text-decoration: none;
-            text-align: center;
-            transition: background 0.3s, transform 0.3s;
-            box-shadow: 0 0 10px rgba(255, 81, 47, 0.5);
-        }
-
-        .upload-btn:hover {
-            background: linear-gradient(90deg, #dd2476, #ff512f);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 81, 47, 0.7);
-        }
     </style>
 </head>
 <body>
@@ -322,34 +303,22 @@
     </video>
 
     <div class="container mt-5">
-        <h1 class="page-title">Marketing Emails</h1>
-        
-        <!-- Upload Button -->
-        <a href="{{ route('admin.marketing.upload.form') }}" class="upload-btn">Upload New Emails</a>
-        
+        <h1 class="page-title">Upload Marketing Emails</h1>
         <div class="table-responsive mx-auto">
-            <table class="table mx-auto">
-                <thead>
-                    <tr>
-                        <th>Firstname</th>
-                        <th>Lastname</th>
-                        <th>Email</th>
-                        <th>Tags</th>
-                        <th>Last Emailed</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($emails as $email)
-                        <tr>
-                            <td data-label="Firstname">{{ $email->firstname }}</td>
-                            <td data-label="Lastname">{{ $email->lastname }}</td>
-                            <td data-label="Email">{{ $email->email }}</td>
-                            <td data-label="Tags">{{ $email->tags }}</td>
-                            <td data-label="Last Emailed">{{ $email->last_emailed_at ? \Carbon\Carbon::parse($email->last_emailed_at)->format('d/m/Y H:i') : 'Never' }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <form action="{{ route('admin.marketing.upload') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div>
+                    <label for="csv_file" style="color: #f0f0f0;">Upload CSV File</label>
+                    <input type="file" name="csv_file" id="csv_file" accept=".csv" required>
+                </div>
+                <button type="submit" class="action-btn mt-4">Upload</button>
+            </form>
+            @if(session('success'))
+                <p style="color: green; margin-top: 15px;">{{ session('success') }}</p>
+            @endif
+            @if($errors->any())
+                <p style="color: red; margin-top: 15px;">{{ $errors->first() }}</p>
+            @endif
         </div>
     </div>
 

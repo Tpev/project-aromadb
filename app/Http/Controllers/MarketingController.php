@@ -14,7 +14,7 @@ class MarketingController extends Controller
         return redirect('/')->with('error', 'Unauthorized access');
     }
 	
-        return view('admin.marketing.upload_csv');
+        return view('admin.marketing.upload-csv');
     }
 
     // Handle the CSV upload
