@@ -37,7 +37,7 @@ use App\Http\Controllers\HelpController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ConseilController;
 use App\Http\Controllers\ClientConseilController;
-
+use App\Http\Controllers\MarketingController;
 
 // Public route to view the conseil via token
 Route::get('conseil/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
@@ -432,6 +432,14 @@ Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->na
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
 Route::put('/admin/therapists/{id}/picture', [AdminController::class, 'updateTherapistPicture'])->name('admin.therapists.updatePicture');
 
+// Route to display the form for uploading the CSV
+Route::get('/admin/marketing/upload', [MarketingController::class, 'showUploadForm'])->name('admin.marketing.upload.form');
+
+// Route to handle the uploaded CSV
+Route::post('/admin/marketing/upload', [MarketingController::class, 'uploadCsv'])->name('admin.marketing.upload');
+
+// Route to view the list of marketing emails
+Route::get('/admin/marketing/emails', [MarketingController::class, 'viewEmails'])->name('admin.marketing.emails');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/upgrade/license', [UserLicenseController::class, 'showUpgradePage'])->name('upgrade.license');
