@@ -3,318 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <title>Email Templates</title>
-    <!-- Include necessary styles and scripts -->
+    <!-- Font and CSS -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-    <style>
-        /* Full-Screen Background Video */
-        #bg-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            min-width: 100%;
-            min-height: 100%;
-            z-index: -1;
-            object-fit: cover;
-            filter: brightness(50%) blur(2px);
-        }
 
+    <style>
         /* General Styles */
         body {
-            background: transparent;
-            color: #f0f0f0;
-            font-family: 'Montserrat', sans-serif;
-            overflow-x: hidden;
             margin: 0;
             padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            color: #f0f0f0;
+            background: linear-gradient(135deg, #1f1f33, #282846);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 0 15px;
-            position: relative;
-            z-index: 1; /* Ensure content is above the video */
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 20px;
+            background: rgba(42, 42, 60, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .mt-5 {
-            margin-top: 2rem;
-        }
-
-        .page-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 40px;
+        h1, h2 {
             text-align: center;
             text-transform: uppercase;
             letter-spacing: 2px;
-            position: relative;
+            margin-bottom: 20px;
+            color: #fff;
         }
 
-        .page-title::after {
+        h1::after, h2::after {
             content: '';
-            width: 150px;
-            height: 3px;
-            background: linear-gradient(90deg, #ff512f, #dd2476);
             display: block;
-            margin: 20px auto 0;
-            border-radius: 2px;
-        }
-
-        /* Table Styles */
-        .table-responsive {
-            background-color: rgba(42, 42, 60, 0.8); /* Semi-transparent background */
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 40px;
-            overflow-x: auto;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-        }
-
-        .table {
-            width: 100%;
-            color: #f0f0f0;
-            border-collapse: collapse;
-        }
-
-        .table thead {
-            background: rgba(58, 58, 79, 0.8); /* Semi-transparent */
-        }
-
-        .table thead th {
-            padding: 15px;
-            font-size: 1rem;
-            text-transform: uppercase;
-            position: relative;
-            color: #f0f0f0;
-        }
-
-        .table thead th::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: -10px;
-            transform: translateX(-50%);
-            width: 50%;
-            height: 2px;
+            width: 120px;
+            height: 3px;
+            margin: 10px auto 0;
             background: linear-gradient(90deg, #ff512f, #dd2476);
             border-radius: 2px;
         }
 
-        .table tbody tr {
-            transition: background-color 0.3s, transform 0.3s;
+        /* Button Styles */
+        .upload-btn, .save-btn {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff512f, #dd2476);
+            color: #fff;
+            font-weight: 600;
+            border-radius: 30px;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 5px 15px rgba(255, 81, 47, 0.5);
+        }
+
+        .upload-btn:hover, .save-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: linear-gradient(90deg, #dd2476, #ff512f);
+            box-shadow: 0 8px 20px rgba(255, 81, 47, 0.7);
+        }
+
+        /* Table Styling */
+        .table-responsive {
+            margin: 30px auto;
+            background: rgba(58, 58, 79, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            overflow-x: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #f0f0f0;
+        }
+
+        thead {
+            background: rgba(58, 58, 79, 0.95);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ddd;
+        }
+
+        tbody tr {
+            transition: background 0.2s, transform 0.2s;
             border-bottom: 1px solid rgba(58, 58, 79, 0.8);
         }
 
-        .table tbody tr:hover {
-            background-color: rgba(58, 58, 79, 0.8);
-            transform: scale(1.01);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        tbody tr:hover {
+            background: rgba(58, 58, 79, 0.8);
+            transform: translateX(3px);
         }
 
-        .table tbody td {
-            padding: 15px;
-            vertical-align: middle;
-            position: relative;
+        /* Form Styling */
+        form {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(58, 58, 79, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* Therapist Info */
-        .therapist-info {
-            display: flex;
-            align-items: center;
+        form label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #ddd;
+            font-size: 1rem;
         }
 
-        .avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 15px;
-            object-fit: cover;
-            border: 2px solid #f0f0f0;
-            box-shadow: 0 0 10px rgba(255, 81, 47, 0.5);
-        }
-
-        .name-email {
-            text-align: left;
-        }
-
-        .name {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #f0f0f0;
-        }
-
-        .email {
-            font-size: 0.9rem;
-            color: #c0c0c0;
-        }
-
-        /* Progress Bar */
-        .progress-bar {
+        form input, form textarea {
             width: 100%;
-            background-color: rgba(58, 58, 79, 0.8); /* Semi-transparent */
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 5px;
-            height: 15px;
-        }
-
-        .progress {
-            height: 100%;
-            background: linear-gradient(90deg, #ff512f, #dd2476);
-            border-radius: 10px;
-        }
-
-        /* Radial Progress */
-        .radial-progress {
-            position: relative;
-            width: 60px;
-            height: 60px;
-            margin: 0 auto;
-        }
-
-        .radial-progress svg {
-            transform: rotate(-90deg);
-            width: 100%;
-            height: 100%;
-        }
-
-        .radial-progress circle {
-            fill: none;
-            stroke-width: 10;
-        }
-
-        .radial-progress circle:first-child {
-            stroke: rgba(58, 58, 79, 0.8); /* Semi-transparent */
-        }
-
-        .radial-progress circle:last-child {
-            stroke: url(#radialGradient);
-            stroke-dasharray: 282;
-            stroke-dashoffset: 282;
-            transition: stroke-dashoffset 1s ease-out;
-        }
-
-        .radial-progress .percentage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #f0f0f0;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-        }
-
-        /* Action Button */
-        .action-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #ff512f, #dd2476);
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: rgba(42, 42, 60, 0.9);
             color: #fff;
-            border-radius: 30px;
-            text-decoration: none;
-            transition: background 0.3s, transform 0.3s;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        form textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        form input:focus, form textarea:focus {
             box-shadow: 0 0 10px rgba(255, 81, 47, 0.5);
-        }
-
-        .action-btn:hover {
-            background: linear-gradient(90deg, #dd2476, #ff512f);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 81, 47, 0.7);
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #ff512f, #dd2476);
-            border-radius: 5px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(42, 42, 60, 0.8); /* Semi-transparent */
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-
-            .table thead {
-                display: none;
-            }
-
-            .table, .table tbody, .table tr, .table td {
-                display: block;
-                width: 100%;
-            }
-
-            .table tr {
-                margin-bottom: 15px;
-                background: rgba(42, 42, 60, 0.8); /* Semi-transparent */
-                border-radius: 10px;
+            .container {
                 padding: 10px;
             }
 
-            .table td {
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
+            h1, h2 {
+                font-size: 1.8rem;
             }
 
-            .table td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 15px;
-                width: calc(50% - 30px);
-                font-weight: bold;
-                text-align: left;
-                color: #f0f0f0;
+            th, td {
+                font-size: 0.8rem;
             }
 
-            .therapist-info {
-                flex-direction: row;
-                align-items: center;
+            form {
+                padding: 10px;
             }
 
-            .name-email {
-                text-align: left;
+            form label {
+                font-size: 0.9rem;
             }
-        }
-		        /* Button Styles */
-        .upload-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #ff512f, #dd2476);
-            color: #fff;
-            border-radius: 30px;
-            text-decoration: none;
-            text-align: center;
-            transition: background 0.3s, transform 0.3s;
-            box-shadow: 0 0 10px rgba(255, 81, 47, 0.5);
-        }
 
-        .upload-btn:hover {
-            background: linear-gradient(90deg, #dd2476, #ff512f);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 81, 47, 0.7);
+            form input, form textarea {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="page-title">Email Templates</h1>
+    <div class="container">
+        <!-- Page Title -->
+        <h1>Email Templates</h1>
+        
+        <!-- Create Button -->
         <a href="#create-template" class="upload-btn">Create New Template</a>
 
-        <div class="table-responsive mx-auto">
-            <table class="table mx-auto">
+        <!-- Templates Table -->
+        <div class="table-responsive">
+            <table>
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -326,7 +200,7 @@
                         <tr>
                             <td>{{ $template->name }}</td>
                             <td>
-                                <a href="{{ route('admin.marketing.templates.edit', $template->id) }}" class="action-btn">Edit</a>
+                                <a href="{{ route('admin.marketing.templates.edit', $template->id) }}" class="save-btn">Edit</a>
                             </td>
                         </tr>
                     @endforeach
@@ -334,18 +208,17 @@
             </table>
         </div>
 
-        <h2 id="create-template" class="page-title">Create Template</h2>
+        <!-- Create Template Form -->
+        <h2 id="create-template">Create Template</h2>
         <form action="{{ route('admin.marketing.templates.store') }}" method="POST">
             @csrf
-            <div>
-                <label for="name" style="color: #f0f0f0;">Template Name</label>
-                <input type="text" name="name" id="name" required>
-            </div>
-            <div>
-                <label for="content" style="color: #f0f0f0;">Template Content (Markdown)</label>
-                <textarea name="content" id="content" rows="10" required></textarea>
-            </div>
-            <button type="submit" class="upload-btn mt-4">Save Template</button>
+            <label for="name">Template Name</label>
+            <input type="text" name="name" id="name" placeholder="Enter template name" required>
+
+            <label for="content">Template Content (Markdown)</label>
+            <textarea name="content" id="content" placeholder="Enter markdown content here..." required></textarea>
+
+            <button type="submit" class="save-btn">Save Template</button>
         </form>
     </div>
 </body>
