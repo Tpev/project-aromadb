@@ -38,6 +38,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ConseilController;
 use App\Http\Controllers\ClientConseilController;
 use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\EmailTemplateController;
 
 // Public route to view the conseil via token
 Route::get('conseil/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
@@ -440,6 +441,13 @@ Route::post('/admin/marketing/upload', [MarketingController::class, 'uploadCsv']
 
 // Route to view the list of marketing emails
 Route::get('/admin/marketing/emails', [MarketingController::class, 'viewEmails'])->name('admin.marketing.emails');
+
+
+Route::get('/admin/marketing/templates', [EmailTemplateController::class, 'index'])->name('admin.marketing.templates');
+Route::post('/admin/marketing/templates', [EmailTemplateController::class, 'store'])->name('admin.marketing.templates.store');
+Route::get('/admin/marketing/templates/{id}', [EmailTemplateController::class, 'edit'])->name('admin.marketing.templates.edit');
+Route::put('/admin/marketing/templates/{id}', [EmailTemplateController::class, 'update'])->name('admin.marketing.templates.update');
+
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/upgrade/license', [UserLicenseController::class, 'showUpgradePage'])->name('upgrade.license');
