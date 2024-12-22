@@ -326,6 +326,7 @@
         
         <!-- Upload Button -->
         <a href="{{ route('admin.marketing.upload.form') }}" class="upload-btn">Upload New Emails</a>
+        <a href="{{ route('admin.marketing.templates.index') }}" class="upload-btn">Templates Emails</a>
         
         <div class="table-responsive mx-auto">
             <table class="table mx-auto">
