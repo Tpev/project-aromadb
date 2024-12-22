@@ -176,6 +176,33 @@
                 font-size: 0.8rem;
             }
         }
+		        /* Preview Pane */
+        .preview-container {
+            margin-top: 20px;
+            background: rgba(58, 58, 79, 0.9);
+            padding: 15px;
+            border-radius: 12px;
+            color: #f0f0f0;
+            font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-container h2 {
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .preview-content {
+            padding: 10px;
+            background: rgba(42, 42, 60, 0.8);
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 300px;
+            font-size: 1rem;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -208,18 +235,39 @@
             </table>
         </div>
 
-        <!-- Create Template Form -->
-        <h2 id="create-template">Create Template</h2>
-        <form action="{{ route('admin.marketing.templates.store') }}" method="POST">
+        <!-- Form -->
+        <form id="template-form" action="{{ route('admin.marketing.templates.store') }}" method="POST">
             @csrf
             <label for="name">Template Name</label>
-            <input type="text" name="name" id="name" placeholder="Enter template name" required>
+            <input type="text" id="name" name="name" placeholder="Enter template name" required>
 
             <label for="content">Template Content (Markdown)</label>
-            <textarea name="content" id="content" placeholder="Enter markdown content here..." required></textarea>
+            <textarea id="content" name="content" placeholder="Enter markdown content here..." required></textarea>
 
             <button type="submit" class="save-btn">Save Template</button>
         </form>
+
+        <!-- Live Preview -->
+        <div class="preview-container">
+            <h2>Email Preview</h2>
+            <div id="preview" class="preview-content">
+                <p>Start typing your email content to see the live preview here...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Markdown Rendering Library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Live Preview for Markdown Content
+        const contentInput = document.getElementById('content');
+        const preview = document.getElementById('preview');
+
+        contentInput.addEventListener('input', () => {
+            const markdown = contentInput.value;
+            preview.innerHTML = marked(markdown);
+        });
+    </script>
     </div>
 </body>
 </html>
