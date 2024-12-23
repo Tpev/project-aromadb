@@ -71,10 +71,15 @@ class EmailTemplateController extends Controller
         $email = $request->input('email');
         $content = $request->input('content');
 
+        // Convert Markdown to HTML
+        $parsedown = new Parsedown();
+        $htmlContent = $parsedown->text($content);
+
         try {
-            Mail::raw($content, function ($message) use ($email) {
+            Mail::send([], [], function ($message) use ($email, $htmlContent) {
                 $message->to($email)
-                        ->subject('Test Email');
+                        ->subject('Test Email')
+                        ->setBody($htmlContent, 'text/html'); // Send as HTML
             });
 
             return response()->json(['message' => 'Test mail sent successfully!'], 200);
