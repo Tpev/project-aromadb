@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <title>Email Templates</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-
     <style>
-        /* General Styling */
         body {
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(135deg, #1f1f33, #282846);
@@ -28,7 +25,7 @@
             font-weight: 600;
             color: #ddd;
         }
-        form input, form textarea {
+        form textarea {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
@@ -52,13 +49,9 @@
 <body>
     <div class="container">
         <h1>Create Email Template</h1>
-        <form action="{{ route('admin.marketing.templates.store') }}" method="POST">
-            @csrf
-            <label for="name">Template Name</label>
-            <input type="text" id="name" name="name" required>
+        <form>
             <label for="content">Template Content (Markdown)</label>
-            <textarea id="content" name="content" required></textarea>
-            <button type="submit">Save Template</button>
+            <textarea id="content" placeholder="Enter markdown content here..."></textarea>
         </form>
 
         <div class="preview-container">
@@ -69,7 +62,7 @@
         </div>
     </div>
 
-    <!-- Marked.js -->
+    <!-- Include Marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 
     <!-- Custom Script -->
@@ -78,13 +71,13 @@
             const contentInput = document.getElementById('content');
             const preview = document.getElementById('preview');
 
-            if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            if (contentInput && typeof marked.parse === 'function') {
                 contentInput.addEventListener('input', () => {
                     const markdown = contentInput.value;
                     preview.innerHTML = marked.parse(markdown);
                 });
             } else {
-                console.error('Marked.js is not loaded correctly or the version is incompatible.');
+                console.error('Content input or marked library is not available.');
             }
         });
     </script>
