@@ -7,7 +7,7 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.0",
-        "erusev/parsedown": "*",
+        "erusev/parsedown": "^1.7",
         "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^3.9",
         "laravel/framework": "^11.9",
