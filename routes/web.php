@@ -40,6 +40,8 @@ use App\Http\Controllers\ClientConseilController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\EmailTemplateController;
 
+
+
 // Public route to view the conseil via token
 Route::get('conseil/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
 
@@ -447,6 +449,7 @@ Route::get('/admin/marketing/templates', [EmailTemplateController::class, 'index
 Route::post('/admin/marketing/templates', [EmailTemplateController::class, 'store'])->name('admin.marketing.templates.store');
 Route::get('/admin/marketing/templates/{id}', [EmailTemplateController::class, 'edit'])->name('admin.marketing.templates.edit');
 Route::put('/admin/marketing/templates/{id}', [EmailTemplateController::class, 'update'])->name('admin.marketing.templates.update');
+Route::post('/admin/marketing/templates/send-test-mail', [EmailTemplateController::class, 'sendTestMail'])->name('send.test.mail');
 
 
 Route::middleware(['auth'])->group(function () {

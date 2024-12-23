@@ -44,6 +44,24 @@
             padding: 10px;
             border-radius: 8px;
         }
+        .test-mail-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(90deg, #ff512f, #dd2476);
+            color: #fff;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 30px;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+        .test-mail-btn:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(90deg, #dd2476, #ff512f);
+        }
     </style>
 </head>
 <body>
@@ -60,6 +78,9 @@
                 Start typing your content to see the preview...
             </div>
         </div>
+
+        <!-- Test Mail Button -->
+        <button class="test-mail-btn" id="sendTestMail">Send Test Mail</button>
     </div>
 
     <!-- Include Marked.js -->
@@ -70,7 +91,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const contentInput = document.getElementById('content');
             const preview = document.getElementById('preview');
+            const testMailButton = document.getElementById('sendTestMail');
 
+            // Markdown Preview
             if (contentInput && typeof marked.parse === 'function') {
                 contentInput.addEventListener('input', () => {
                     const markdown = contentInput.value;
@@ -79,6 +102,28 @@
             } else {
                 console.error('Content input or marked library is not available.');
             }
+
+            // Test Mail Trigger
+            testMailButton.addEventListener('click', async () => {
+                const content = contentInput.value; // Grab Markdown content
+                const response = await fetch('/send-test-mail', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}' // Ensure CSRF Token is included
+                    },
+                    body: JSON.stringify({
+                        email: 'peverelli.t@gmail.com',
+                        content
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Test mail sent successfully!');
+                } else {
+                    alert('Failed to send test mail.');
+                }
+            });
         });
     </script>
 </body>
