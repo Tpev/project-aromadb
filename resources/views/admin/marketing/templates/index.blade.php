@@ -106,7 +106,7 @@
             // Test Mail Trigger
             testMailButton.addEventListener('click', async () => {
                 const content = contentInput.value; // Grab Markdown content
-                const response = await fetch('/send-test-mail', {
+                const response = await fetch('/admin/marketing/templates/send-test-mail', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
