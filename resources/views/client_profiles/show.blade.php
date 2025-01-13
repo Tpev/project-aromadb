@@ -7,10 +7,13 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Profil de ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}</h1>
+            <h1 class="details-title">
+                {{ __('Profil de ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
+            </h1>
 
             <!-- Compact Boxed Profile Information -->
             <div class="profile-info-boxes row mt-4">
+                <!-- First Name -->
                 <div class="col-md-6">
                     <div class="profile-box">
                         <i class="fas fa-user-circle icon"></i>
@@ -20,6 +23,8 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Last Name -->
                 <div class="col-md-6">
                     <div class="profile-box">
                         <i class="fas fa-user icon"></i>
@@ -29,6 +34,8 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Email -->
                 <div class="col-md-6">
                     <div class="profile-box">
                         <i class="fas fa-envelope icon"></i>
@@ -38,6 +45,8 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Phone -->
                 <div class="col-md-6">
                     <div class="profile-box">
                         <i class="fas fa-phone icon"></i>
@@ -47,15 +56,21 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Birthdate -->
                 <div class="col-md-6">
                     <div class="profile-box">
                         <i class="fas fa-birthday-cake icon"></i>
                         <div class="profile-details">
                             <p class="profile-label">{{ __('Date de naissance') }}</p>
-                            <p class="profile-value">{{ $clientProfile->birthdate ? $clientProfile->birthdate : 'Non spécifié' }}</p>
+                            <p class="profile-value">
+                                {{ $clientProfile->birthdate ? $clientProfile->birthdate : 'Non spécifié' }}
+                            </p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Address -->
                 <div class="col-md-6">
                     <div class="profile-box">
                         <i class="fas fa-map-marker-alt icon"></i>
@@ -65,11 +80,40 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> <!-- End first row of info boxes -->
+
+            <!-- New row for Billing Names -->
+            <div class="profile-info-boxes row mt-4">
+                <!-- First Name (Billing) -->
+                <div class="col-md-6">
+                    <div class="profile-box">
+                        <i class="fas fa-file-invoice icon"></i>
+                        <div class="profile-details">
+                            <p class="profile-label">{{ __('Prénom (Facturation)') }}</p>
+                            <p class="profile-value">
+                                {{ $clientProfile->first_name_billing ?? 'Non spécifié' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Name (Billing) -->
+                <div class="col-md-6">
+                    <div class="profile-box">
+                        <i class="fas fa-file-invoice-dollar icon"></i>
+                        <div class="profile-details">
+                            <p class="profile-label">{{ __('Nom (Facturation)') }}</p>
+                            <p class="profile-value">
+                                {{ $clientProfile->last_name_billing ?? 'Non spécifié' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End row for Billing Names -->
 
             @can('requestTestimonial', $clientProfile)
                 @if(is_null($testimonialRequest))
-                    {{-- Aucun demande envoyée --}}
+                    <!-- Aucun demande envoyée -->
                     <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}" method="POST" class="mt-6">
                         @csrf
                         <button type="submit" class="btn btn-primary">
@@ -77,12 +121,12 @@
                         </button>
                     </form>
                 @elseif($testimonialRequest->status === 'pending')
-                    {{-- Demande envoyée --}}
+                    <!-- Demande envoyée -->
                     <p class="mt-6 text-lg text-gray-600">
                         {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
                     </p>
                 @elseif($testimonialRequest->status === 'completed')
-                    {{-- Témoignage fait --}}
+                    <!-- Témoignage fait -->
                     <p class="mt-6 text-lg text-gray-600">
                         {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
                     </p>
@@ -93,7 +137,9 @@
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h2 class="details-title">{{ __('Rendez-vous de ce client') }}</h2>
-                    <a href="{{ route('appointments.create', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Créer un Rendez-vous') }}</a>
+                    <a href="{{ route('appointments.create', $clientProfile->id) }}" class="btn btn-primary mb-3">
+                        {{ __('Créer un Rendez-vous') }}
+                    </a>
                     
                     @if($appointments->isEmpty())
                         <p>Aucun rendez-vous trouvé pour ce client.</p>
@@ -131,7 +177,9 @@
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h2 class="details-title">{{ __('Notes de Séance de ce client') }}</h2>
-                    <a href="{{ route('session_notes.create', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Créer une Note de Séance') }}</a>
+                    <a href="{{ route('session_notes.create', $clientProfile->id) }}" class="btn btn-primary mb-3">
+                        {{ __('Créer une Note de Séance') }}
+                    </a>
                     
                     @if($sessionNotes->isEmpty())
                         <p>Aucune note trouvée pour ce client.</p>
@@ -167,7 +215,9 @@
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h2 class="details-title">{{ __('Réponses aux Questionnaires de ce client') }}</h2>
-                    <a href="{{ route('questionnaires.send.show', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Remplir / Envoyer un questionnaire') }}</a>
+                    <a href="{{ route('questionnaires.send.show', $clientProfile->id) }}" class="btn btn-primary mb-3">
+                        {{ __('Remplir / Envoyer un questionnaire') }}
+                    </a>
                     
                     @if($responses->isEmpty())
                         <p>Aucune réponse trouvée pour ce client.</p>
@@ -202,13 +252,14 @@
                 </div>
             </div>
 
-
             <!-- Conseils Envoyés Section -->
             <div class="row mt-4">
                 <div class="col-md-12">
                     <h2 class="details-title">{{ __('Conseils Envoyés à ce client') }}</h2>
                     <!-- Bouton pour envoyer un nouveau conseil -->
-                    <a href="{{ route('client_profiles.conseils.sendform', $clientProfile->id) }}" class="btn btn-primary mb-3">{{ __('Envoyer un Conseil') }}</a>
+                    <a href="{{ route('client_profiles.conseils.sendform', $clientProfile->id) }}" class="btn btn-primary mb-3">
+                        {{ __('Envoyer un Conseil') }}
+                    </a>
                     
                     @php
                         // Assuming the relationship is $clientProfile->conseilsSent or something similar
@@ -234,7 +285,7 @@
                                         <tr>
                                             <td>{{ $conseil->name }}</td>
                                             <td>{{ $conseil->tag ?? '—' }}</td>
-                                            <td>{{ $conseil->pivot->created_at->format('d/m/Y') ?? '—' }}</td>
+                                            <td>{{ optional($conseil->pivot)->created_at ? $conseil->pivot->created_at->format('d/m/Y') : '—' }}</td>
                                             <td>
                                                 <a href="{{ route('conseils.show', $conseil->id) }}" class="btn btn-primary">Voir Conseil</a>
                                                 <!-- If you want a way to re-send or remove this conseil, add actions here -->
@@ -248,13 +299,16 @@
                 </div>
             </div>
 
-
+            <!-- Action Buttons (Bottom) -->
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <a href="{{ route('client_profiles.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
                     <a href="{{ route('client_profiles.edit', $clientProfile->id) }}" class="btn-secondary">{{ __('Modifier le profil') }}</a>
                     <!-- Delete Button -->
-                    <form action="{{ route('client_profiles.destroy', $clientProfile->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer ce profil client ? Cette action est irréversible.') }}');">
+                    <form action="{{ route('client_profiles.destroy', $clientProfile->id) }}"
+                          method="POST"
+                          style="display: inline-block;"
+                          onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer ce profil client ? Cette action est irréversible.') }}');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn-danger">{{ __('Supprimer le profil') }}</button>
@@ -278,7 +332,6 @@
             cursor: pointer;
             margin-bottom: 10px;
         }
-
         .btn-danger:hover {
             background-color: #cc1f1a;
         }
@@ -318,7 +371,6 @@
             padding: 20px;
             transition: transform 0.3s;
         }
-
         .profile-box:hover {
             transform: scale(1.05);
         }
@@ -384,7 +436,6 @@
             display: inline-block;
             cursor: pointer;
         }
-
         .btn-primary:hover {
             background-color: #854f38;
         }
@@ -398,7 +449,6 @@
             text-decoration: none;
             display: inline-block;
         }
-
         .btn-secondary:hover {
             background-color: #854f38;
             color: #fff;

@@ -5,6 +5,18 @@
         </h2>
     </x-slot>
 
+    @php
+        // Check if first_name_billing and last_name_billing match the main ones
+        $isSame = (
+            $clientProfile->first_name === $clientProfile->first_name_billing &&
+            $clientProfile->last_name === $clientProfile->last_name_billing &&
+            // Optional: ensure they aren't null/empty, 
+            // but if you want them to be "same" even if they're empty, remove this condition
+            !empty($clientProfile->first_name_billing) &&
+            !empty($clientProfile->last_name_billing)
+        );
+    @endphp
+
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Modifier le Profil Client') }}</h1>
@@ -16,7 +28,12 @@
                 <!-- First Name -->
                 <div class="details-box">
                     <label class="details-label" for="first_name">{{ __('Prénom') }}</label>
-                    <input type="text" id="first_name" name="first_name" class="form-control" value="{{ old('first_name', $clientProfile->first_name) }}" required>
+                    <input type="text"
+                           id="first_name"
+                           name="first_name"
+                           class="form-control"
+                           value="{{ old('first_name', $clientProfile->first_name) }}"
+                           required>
                     @error('first_name')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -25,7 +42,12 @@
                 <!-- Last Name -->
                 <div class="details-box">
                     <label class="details-label" for="last_name">{{ __('Nom') }}</label>
-                    <input type="text" id="last_name" name="last_name" class="form-control" value="{{ old('last_name', $clientProfile->last_name) }}" required>
+                    <input type="text"
+                           id="last_name"
+                           name="last_name"
+                           class="form-control"
+                           value="{{ old('last_name', $clientProfile->last_name) }}"
+                           required>
                     @error('last_name')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -34,7 +56,11 @@
                 <!-- Email -->
                 <div class="details-box">
                     <label class="details-label" for="email">{{ __('Email') }}</label>
-                    <input type="email" id="email" name="email" class="form-control" value="{{ old('email', $clientProfile->email) }}">
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-control"
+                           value="{{ old('email', $clientProfile->email) }}">
                     @error('email')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -43,7 +69,11 @@
                 <!-- Phone -->
                 <div class="details-box">
                     <label class="details-label" for="phone">{{ __('Téléphone') }}</label>
-                    <input type="text" id="phone" name="phone" class="form-control" value="{{ old('phone', $clientProfile->phone) }}">
+                    <input type="text"
+                           id="phone"
+                           name="phone"
+                           class="form-control"
+                           value="{{ old('phone', $clientProfile->phone) }}">
                     @error('phone')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -52,7 +82,11 @@
                 <!-- Birthdate -->
                 <div class="details-box">
                     <label class="details-label" for="birthdate">{{ __('Date de naissance') }}</label>
-                    <input type="date" id="birthdate" name="birthdate" class="form-control" value="{{ old('birthdate', $clientProfile->birthdate) }}">
+                    <input type="date"
+                           id="birthdate"
+                           name="birthdate"
+                           class="form-control"
+                           value="{{ old('birthdate', $clientProfile->birthdate) }}">
                     @error('birthdate')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -61,20 +95,121 @@
                 <!-- Address -->
                 <div class="details-box">
                     <label class="details-label" for="address">{{ __('Adresse') }}</label>
-                    <input type="text" id="address" name="address" class="form-control" value="{{ old('address', $clientProfile->address) }}">
+                    <input type="text"
+                           id="address"
+                           name="address"
+                           class="form-control"
+                           value="{{ old('address', $clientProfile->address) }}">
                     @error('address')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Checkbox: Use same names for billing -->
+                <div class="details-box">
+                    <input type="checkbox"
+                           id="use_same_names"
+                           name="use_same_names"
+                           class="form-checkbox h-5 w-5"
+                           @if($isSame) checked @endif>
+                    <label for="use_same_names" class="ml-2 details-label">
+                        {{ __('Utiliser les mêmes noms pour la facturation ?') }}
+                    </label>
+                    <small class="text-gray-500 block">
+                        {{ __('Cochez cette case pour copier automatiquement le prénom et le nom ci-dessus dans les champs de facturation.') }}
+                    </small>
+                </div>
+
+                <!-- Billing First Name -->
+                <div class="details-box">
+                    <label class="details-label" for="first_name_billing">{{ __('Prénom (Facturation)') }}</label>
+                    <input type="text"
+                           id="first_name_billing"
+                           name="first_name_billing"
+                           class="form-control"
+                           value="{{ old('first_name_billing', $clientProfile->first_name_billing) }}">
+                    @error('first_name_billing')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Billing Last Name -->
+                <div class="details-box">
+                    <label class="details-label" for="last_name_billing">{{ __('Nom (Facturation)') }}</label>
+                    <input type="text"
+                           id="last_name_billing"
+                           name="last_name_billing"
+                           class="form-control"
+                           value="{{ old('last_name_billing', $clientProfile->last_name_billing) }}">
+                    @error('last_name_billing')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Buttons -->
                 <div class="details-box mt-4 d-flex justify-content-between">
-                    <button type="submit" class="btn-primary">{{ __('Mettre à jour le Profil') }}</button>
-                    <a href="{{ route('client_profiles.index') }}" class="btn-secondary">{{ __('Retour à la liste') }}</a>
+                    <button type="submit" class="btn-primary">
+                        {{ __('Mettre à jour le Profil') }}
+                    </button>
+                    <a href="{{ route('client_profiles.index') }}" class="btn-secondary">
+                        {{ __('Retour à la liste') }}
+                    </a>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Optional JavaScript to auto-copy names to billing fields -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const useSameNames      = document.getElementById('use_same_names');
+            const firstNameInput    = document.getElementById('first_name');
+            const lastNameInput     = document.getElementById('last_name');
+            const firstNameBilling  = document.getElementById('first_name_billing');
+            const lastNameBilling   = document.getElementById('last_name_billing');
+
+            // Function to set read-only & copy data
+            function enableSameNames() {
+                firstNameBilling.value = firstNameInput.value;
+                lastNameBilling.value  = lastNameInput.value;
+                firstNameBilling.setAttribute('readonly', true);
+                lastNameBilling.setAttribute('readonly', true);
+            }
+
+            // Function to remove read-only & allow editing
+            function disableSameNames() {
+                firstNameBilling.removeAttribute('readonly');
+                lastNameBilling.removeAttribute('readonly');
+            }
+
+            // Check or uncheck on page load
+            if (useSameNames.checked) {
+                enableSameNames();
+            }
+
+            // Event listener on the checkbox
+            useSameNames.addEventListener('change', function() {
+                if (this.checked) {
+                    enableSameNames();
+                } else {
+                    disableSameNames();
+                }
+            });
+
+            // If user changes first_name or last_name while checkbox is active,
+            // automatically update billing names
+            firstNameInput.addEventListener('input', function() {
+                if (useSameNames.checked) {
+                    firstNameBilling.value = this.value;
+                }
+            });
+            lastNameInput.addEventListener('input', function() {
+                if (useSameNames.checked) {
+                    lastNameBilling.value = this.value;
+                }
+            });
+        });
+    </script>
 
     <!-- Custom Styles -->
     <style>
@@ -103,7 +238,7 @@
 
         .details-box {
             margin-bottom: 15px;
-            text-align: left; /* Align labels and inputs to the left for better readability */
+            text-align: left; /* Align labels & inputs left for readability */
         }
 
         .details-label {
@@ -118,13 +253,17 @@
             padding: 10px;
             border: 1px solid #854f38; /* Consistent border color */
             border-radius: 5px;
-            box-sizing: border-box; /* Ensure padding doesn't affect width */
+            box-sizing: border-box;
         }
 
         .form-control:focus {
             border-color: #647a0b; /* Highlight border on focus */
             outline: none;
             box-shadow: 0 0 5px rgba(100, 122, 11, 0.5);
+        }
+
+        .form-checkbox {
+            border-radius: 3px;
         }
 
         .btn-primary {
@@ -173,7 +312,8 @@
                 padding: 20px;
             }
 
-            .btn-primary, .btn-secondary {
+            .btn-primary,
+            .btn-secondary {
                 width: 100%;
                 margin-bottom: 10px;
             }

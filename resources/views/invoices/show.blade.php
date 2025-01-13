@@ -32,34 +32,57 @@
                     </button>
                 </form>
             @endif
-    <div class="mb-4">
-	    @if($invoice->status !== 'Payée')
-        @if($invoice->payment_link)
-            <a href="{{ $invoice->payment_link }}" target="_blank" class="btn btn-success">
-                <i class="fas fa-link mr-2"></i> {{ __('Voir le Lien de Paiement') }}
-            </a>
-        @else
-            <form action="{{ route('invoices.createPaymentLink', $invoice) }}" method="POST" style="display: inline-block;">
-                @csrf
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-link mr-2"></i> {{ __('Créer un Lien de Paiement') }}
-                </button>
-            </form>
-        @endif
-		 @endif
-    </div>
+
+            <div class="mb-4">
+                @if($invoice->status !== 'Payée')
+                    @if($invoice->payment_link)
+                        <a href="{{ $invoice->payment_link }}" target="_blank" class="btn btn-success">
+                            <i class="fas fa-link mr-2"></i> {{ __('Voir le Lien de Paiement') }}
+                        </a>
+                    @else
+                        <form action="{{ route('invoices.createPaymentLink', $invoice->id) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-link mr-2"></i> {{ __('Créer un Lien de Paiement') }}
+                            </button>
+                        </form>
+                    @endif
+                @endif
+            </div>
 
             <!-- Informations de la facture -->
             <div class="invoice-info-boxes row mt-4">
+                <!-- Client (always showing the actual client’s name) -->
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-user icon"></i>
                         <div class="invoice-details">
                             <p class="invoice-label">{{ __('Client') }}</p>
-                            <p class="invoice-value">{{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}</p>
+                            <p class="invoice-value">
+                                {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                            </p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Billing name or fallback to normal name -->
+                <div class="col-md-4">
+                    <div class="invoice-box d-flex align-items-center">
+                        <i class="fas fa-file-invoice icon"></i>
+                        <div class="invoice-details">
+                            <p class="invoice-label">{{ __('Facturé à') }}</p>
+                            <p class="invoice-value">
+                                @if($invoice->clientProfile->first_name_billing || $invoice->clientProfile->last_name_billing)
+                                    {{ $invoice->clientProfile->first_name_billing }} {{ $invoice->clientProfile->last_name_billing }}
+                                @else
+                                    {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Date -->
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-calendar-alt icon"></i>
@@ -69,6 +92,8 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Due Date (if any) -->
                 @if($invoice->due_date)
                     <div class="col-md-4">
                         <div class="invoice-box d-flex align-items-center">
@@ -80,15 +105,21 @@
                         </div>
                     </div>
                 @endif
+
+                <!-- Total Amount With Tax -->
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-money-bill-wave icon"></i>
                         <div class="invoice-details">
                             <p class="invoice-label">{{ __('Montant Total TTC') }}</p>
-                            <p class="invoice-value">{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €</p>
+                            <p class="invoice-value">
+                                {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €
+                            </p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Status -->
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-info-circle icon"></i>
@@ -98,6 +129,8 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Sent At (if any) -->
                 @if($invoice->sent_at)
                     <div class="col-md-4">
                         <div class="invoice-box d-flex align-items-center">
@@ -155,9 +188,18 @@
                             <div class="col-md-6"></div> <!-- Colonne vide pour l'alignement -->
                             <div class="col-md-6">
                                 <div class="totals-container">
-                                    <p class="total"><strong>{{ __('Total HT') }} :</strong> {{ number_format($invoice->total_amount, 2, ',', ' ') }} €</p>
-                                    <p class="total"><strong>{{ __('Total Taxe') }} :</strong> {{ number_format($invoice->total_tax_amount, 2, ',', ' ') }} €</p>
-                                    <p class="total"><strong>{{ __('Total TTC') }} :</strong> {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €</p>
+                                    <p class="total">
+                                        <strong>{{ __('Total HT') }} :</strong>
+                                        {{ number_format($invoice->total_amount, 2, ',', ' ') }} €
+                                    </p>
+                                    <p class="total">
+                                        <strong>{{ __('Total Taxe') }} :</strong>
+                                        {{ number_format($invoice->total_tax_amount, 2, ',', ' ') }} €
+                                    </p>
+                                    <p class="total">
+                                        <strong>{{ __('Total TTC') }} :</strong>
+                                        {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -329,7 +371,6 @@
             color: #fff;
             border: none;
         }
-
         .btn-primary:hover {
             background-color: #854f38;
         }
@@ -339,7 +380,6 @@
             color: #854f38;
             border: 1px solid #854f38;
         }
-
         .btn-secondary:hover {
             background-color: #854f38;
             color: #fff;
@@ -352,7 +392,6 @@
             display: flex;
             align-items: center;
         }
-
         .email-sent-indicator i {
             margin-right: 5px;
         }

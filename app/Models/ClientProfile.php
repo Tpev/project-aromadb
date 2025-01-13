@@ -11,7 +11,7 @@ class ClientProfile extends Model
     use HasFactory;
 
     // Allow mass assignment for these fields
-    protected $fillable = ['user_id', 'first_name', 'last_name', 'email', 'phone', 'address', 'birthdate', 'notes'];
+    protected $fillable = ['user_id', 'first_name', 'last_name', 'email', 'phone', 'address', 'birthdate', 'notes', 'first_name_billing', 'last_name_billing'];
 	   // Register policy
     protected static $policies = [
         ClientProfile::class => ClientProfilePolicy::class,

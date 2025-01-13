@@ -12,7 +12,8 @@ use App\Models\Response;
 
 class ClientProfileController extends Controller
 {
-	use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     /**
      * Display a listing of the client profiles.
      *
@@ -44,28 +45,35 @@ class ClientProfileController extends Controller
      */
     public function store(Request $request)
     {
+        // Include first_name_billing and last_name_billing in the validation
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:15',
-            'birthdate' => 'nullable|date',
-            'address' => 'nullable|string|max:255',
+            'first_name'         => 'required|string|max:255',
+            'last_name'          => 'required|string|max:255',
+            'email'              => 'nullable|email|max:255',
+            'phone'              => 'nullable|string|max:15',
+            'birthdate'          => 'nullable|date',
+            'address'            => 'nullable|string|max:255',
+            'notes'              => 'nullable|string',
+            'first_name_billing' => 'nullable|string|max:255',
+            'last_name_billing'  => 'nullable|string|max:255',
         ]);
 
-        // Create the new client profile
+        // Create the new client profile, including the new billing fields
         ClientProfile::create([
-            'user_id' => Auth::id(),
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'birthdate' => $request->birthdate,
-            'address' => $request->address,
-            'notes' => $request->notes,
+            'user_id'            => Auth::id(),
+            'first_name'         => $request->first_name,
+            'last_name'          => $request->last_name,
+            'email'              => $request->email,
+            'phone'              => $request->phone,
+            'birthdate'          => $request->birthdate,
+            'address'            => $request->address,
+            'notes'              => $request->notes,
+            'first_name_billing' => $request->first_name_billing,
+            'last_name_billing'  => $request->last_name_billing,
         ]);
 
-        return redirect()->route('client_profiles.index')->with('success', 'Client profile created successfully.');
+        return redirect()->route('client_profiles.index')
+                         ->with('success', 'Client profile created successfully.');
     }
 
     /**
@@ -79,18 +87,26 @@ class ClientProfileController extends Controller
         $this->authorize('view', $clientProfile);
 
         // Get related appointments, session notes, and invoices
-        $appointments = $clientProfile->appointments; // Assuming the relation is defined
+        $appointments = $clientProfile->appointments; 
         $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
-        $invoices = Invoice::where('client_profile_id', $clientProfile->id)->get();
-		// Fetch only the questionnaires belonging to the authenticated therapist
-		$responses = Response::with('questionnaire')
-		->where('client_profile_id', $clientProfile->id)
-		->get();
-		// Récupérer la dernière demande de témoignage, s'il y en a une
-		$testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
-  
-		
-		return view('client_profiles.show', compact('clientProfile', 'appointments', 'sessionNotes', 'invoices','responses','testimonialRequest'));
+        $invoices     = Invoice::where('client_profile_id', $clientProfile->id)->get();
+
+        // Fetch only the questionnaires belonging to the authenticated therapist
+        $responses = Response::with('questionnaire')
+            ->where('client_profile_id', $clientProfile->id)
+            ->get();
+
+        // Récupérer la dernière demande de témoignage, s'il y en a une
+        $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
+
+        return view('client_profiles.show', compact(
+            'clientProfile',
+            'appointments',
+            'sessionNotes',
+            'invoices',
+            'responses',
+            'testimonialRequest'
+        ));
     }
 
     /**
@@ -117,19 +133,34 @@ class ClientProfileController extends Controller
     {
         $this->authorize('update', $clientProfile);
 
+        // Include first_name_billing and last_name_billing in the validation
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:15',
-            'birthdate' => 'nullable|date',
-            'address' => 'nullable|string|max:255',
+            'first_name'         => 'required|string|max:255',
+            'last_name'          => 'required|string|max:255',
+            'email'              => 'nullable|email|max:255',
+            'phone'              => 'nullable|string|max:15',
+            'birthdate'          => 'nullable|date',
+            'address'            => 'nullable|string|max:255',
+            'notes'              => 'nullable|string',
+            'first_name_billing' => 'nullable|string|max:255',
+            'last_name_billing'  => 'nullable|string|max:255',
         ]);
 
-        // Update the client profile
-        $clientProfile->update($request->all());
+        // Update the client profile, including billing fields
+        $clientProfile->update([
+            'first_name'         => $request->first_name,
+            'last_name'          => $request->last_name,
+            'email'              => $request->email,
+            'phone'              => $request->phone,
+            'birthdate'          => $request->birthdate,
+            'address'            => $request->address,
+            'notes'              => $request->notes,
+            'first_name_billing' => $request->first_name_billing,
+            'last_name_billing'  => $request->last_name_billing,
+        ]);
 
-        return redirect()->route('client_profiles.index')->with('success', 'Client profile updated successfully.');
+        return redirect()->route('client_profiles.index')
+                         ->with('success', 'Client profile updated successfully.');
     }
 
     /**
@@ -145,6 +176,7 @@ class ClientProfileController extends Controller
         // Delete the client profile
         $clientProfile->delete();
 
-        return redirect()->route('client_profiles.index')->with('success', 'Client profile deleted successfully.');
+        return redirect()->route('client_profiles.index')
+                         ->with('success', 'Client profile deleted successfully.');
     }
 }

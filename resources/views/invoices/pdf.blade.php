@@ -112,13 +112,28 @@
                 <!-- Détails du client -->
                 <div class="client-details">
                     <h2>Facturé à :</h2>
-                    <p>{{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}</p>
+                    <!-- If billing names exist, use them, otherwise fallback to normal names -->
+                    @if($invoice->clientProfile->first_name_billing || $invoice->clientProfile->last_name_billing)
+                        <p>
+                            {{ $invoice->clientProfile->first_name_billing }} {{ $invoice->clientProfile->last_name_billing }}
+                        </p>
+                    @else
+                        <p>
+                            {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                        </p>
+                    @endif
+
+                    <!-- Adresse (toujours la même, si vous avez un champ d'adresse de facturation distinct, adaptez) -->
                     @if($invoice->clientProfile->address)
                         <p>{{ $invoice->clientProfile->address }}</p>
                     @endif
+
+                    <!-- Email -->
                     @if($invoice->clientProfile->email)
                         <p>Email : {{ $invoice->clientProfile->email }}</p>
                     @endif
+
+                    <!-- Téléphone -->
                     @if($invoice->clientProfile->phone)
                         <p>Téléphone : {{ $invoice->clientProfile->phone }}</p>
                     @endif
