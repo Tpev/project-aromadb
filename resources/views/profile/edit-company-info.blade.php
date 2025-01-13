@@ -52,17 +52,24 @@
                     @enderror
                 </div>
 
-                <!-- About Us -->
-                <div class="details-box">
-                    <label class="details-label" for="about">{{ __('À Propos') }}</label>
-                    <textarea id="about" name="about" class="form-control">{{ old('about', auth()->user()->about) }}</textarea>
-						<!-- Helper text -->
+				<!-- About Us (Replaced text area with Quill) -->
+				<div class="details-box">
+					<label class="details-label" for="about">{{ __('À Propos') }}</label>
+
+					<!-- Hidden input to store the HTML content Quill produces -->
+					<input type="hidden" name="about" id="about-input" />
+
+					<!-- Quill Editor Container -->
+					<div id="quill-editor" style="height: 200px;"></div>
+
+					<!-- Helper text -->
 					<small class="text-gray-500">{{ __('Aidez vos clients à en savoir plus sur vous, vos méthodes, certifications, parcours. Ce texte apparaitra sur votre profile pro.') }}</small>
-				
-                    @error('about')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+
+					@error('about')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+				</div>
+
 
                 <!-- Services (Enhanced User-Friendly Input) -->
                 <div class="details-box">
@@ -401,4 +408,50 @@
             object-fit: cover;
         }
     </style>
+	
+	<!-- Quill.js CDN -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize Quill
+    var quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        placeholder: 'Rédigez votre texte ici...',
+        modules: {
+            toolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['blockquote'],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    // If we have old data (e.g. coming back from a validation error) or existing data in `auth()->user()->about`, 
+    // load it into Quill
+    @if(old('about', auth()->user()->about))
+        quill.root.innerHTML = `{!! addslashes(old('about', auth()->user()->about)) !!}`;
+    @endif
+
+    // Function to update hidden input from Quill
+    function updateHiddenInput() {
+        document.getElementById('about-input').value = quill.root.innerHTML;
+    }
+
+    // Update hidden input on text-change
+    quill.on('text-change', function() {
+        updateHiddenInput();
+    });
+
+    // Also update hidden input just before form submit (extra safety)
+    var form = document.querySelector('form[action="{{ route('profile.updateCompanyInfo') }}"]');
+    form.addEventListener('submit', function() {
+        updateHiddenInput();
+    });
+});
+</script>
+
 </x-app-layout>

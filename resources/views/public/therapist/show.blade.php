@@ -44,7 +44,7 @@
                     <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
                 </h3>
                 <p class="mt-6 text-gray-700 text-lg leading-relaxed">
-                    {{ $therapist->about ?? __('Informations à propos non disponibles.') }}
+					{!! $therapist->about ?? __('Informations à propos non disponibles.') !!}
                 </p>
             </div>
 
