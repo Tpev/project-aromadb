@@ -9764,6 +9764,86 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
     </p>
 </div>
 
+<style>
+.blog-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #647a0b;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.blog-intro {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #333;
+    line-height: 1.7;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: #647a0b;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.highlight-title {
+    font-size: 1.6rem;
+    color: #854f38;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.highlight-list {
+    list-style-type: disc;
+    margin-left: 20px;
+    color: #333;
+}
+
+.highlight-list li {
+    margin-bottom: 5px;
+}
+
+.recipe-box {
+    background-color: #f9f9f9;
+    border-left: 5px solid #647a0b;
+    padding: 10px 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.recipe {
+    font-size: 1rem;
+    color: #333;
+    font-style: italic;
+}
+
+.warning-box {
+    background-color: #fff3cd;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    border-left: 5px solid #856404;
+}
+
+.warning-text {
+    color: #856404;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.highlight-link {
+    color: #1a73e8;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.highlight-link:hover {
+    color: #0c47a1;
+}
+</style>
 ","35,24,34,33","Découvrez comment les huiles essentielles peuvent améliorer vos performances, prévenir les inconforts et favoriser la récupération lors de vos sports d’hiver. Recettes et conseils inclus."
 37,"Brûlures d’Estomac : Soulager Naturellement avec les Hydrolats, Huiles Essentielles et Tisanes","brûlures d’estomac, huiles essentielles digestion, hydrolats apaisants, tisanes digestives","<h1 class=""blog-title"">Brûlures d’Estomac : Soulager Naturellement avec les Hydrolats, Huiles Essentielles et Tisanes</h1>
 
@@ -9889,6 +9969,87 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
         Alors, prêt(e) à préparer votre mélange naturel pour apaiser vos brûlures d’estomac ? Laissez la nature prendre soin de vous, une tasse et un massage à la fois !
     </p>
 </div>
+
+<style>
+.blog-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #647a0b;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.blog-intro {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #333;
+    line-height: 1.7;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: #647a0b;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.highlight-title {
+    font-size: 1.6rem;
+    color: #854f38;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.highlight-list {
+    list-style-type: disc;
+    margin-left: 20px;
+    color: #333;
+}
+
+.highlight-list li {
+    margin-bottom: 5px;
+}
+
+.recipe-box {
+    background-color: #f9f9f9;
+    border-left: 5px solid #647a0b;
+    padding: 10px 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.recipe {
+    font-size: 1rem;
+    color: #333;
+    font-style: italic;
+}
+
+.warning-box {
+    background-color: #fff3cd;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    border-left: 5px solid #856404;
+}
+
+.warning-text {
+    color: #856404;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.highlight-link {
+    color: #1a73e8;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.highlight-link:hover {
+    color: #0c47a1;
+}
+</style>
 ","36,31,21","Soulagez naturellement les brûlures d’estomac avec des hydrolats, huiles essentielles et tisanes. Découvrez des solutions apaisantes pour une digestion harmonieuse."
 38,Boostez Votre Mémoire avec la Phytothérapie et les Huiles Essentielles,"mémoire phytothérapie, huiles essentielles concentration, ginkgo biloba mémoire, plantes booster mémoire","<h1 class=""blog-title"">Articulations : Soulager Naturellement avec les Tisanes et Huiles Essentielles</h1>
 
