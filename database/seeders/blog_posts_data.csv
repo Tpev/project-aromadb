@@ -10319,4 +10319,83 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
         Prêt(e) à intégrer ces solutions naturelles dans votre quotidien ? Une tisane chaude et quelques gouttes d’huiles essentielles pourraient bien transformer vos journées, une inspiration à la fois. 🌿
     </p>
 </div>
-","39,38,37,14",Découvrez des solutions naturelles contre la dépression avec des tisanes et huiles essentielles. Recettes et conseils pour apaiser l'esprit et améliorer l'humeur.
+<style>
+.blog-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #647a0b;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.blog-intro {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: #333;
+    line-height: 1.7;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: #647a0b;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.highlight-title {
+    font-size: 1.6rem;
+    color: #854f38;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.highlight-list {
+    list-style-type: disc;
+    margin-left: 20px;
+    color: #333;
+}
+
+.highlight-list li {
+    margin-bottom: 5px;
+}
+
+.recipe-box {
+    background-color: #f9f9f9;
+    border-left: 5px solid #647a0b;
+    padding: 10px 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.recipe {
+    font-size: 1rem;
+    color: #333;
+    font-style: italic;
+}
+
+.warning-box {
+    background-color: #fff3cd;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    border-left: 5px solid #856404;
+}
+
+.warning-text {
+    color: #856404;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.highlight-link {
+    color: #1a73e8;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.highlight-link:hover {
+    color: #0c47a1;
+}
+</style>","39,38,37,14",Découvrez des solutions naturelles contre la dépression avec des tisanes et huiles essentielles. Recettes et conseils pour apaiser l'esprit et améliorer l'humeur.
