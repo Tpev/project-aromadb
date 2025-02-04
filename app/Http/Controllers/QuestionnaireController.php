@@ -191,4 +191,21 @@ public function storeResponses(Request $request, $token)
 
         return view('questionnaires.show', compact('questionnaire'));
     }
+	public function destroyQuestion(Questionnaire $questionnaire, Question $question)
+{
+    // Ensure that the question belongs to the provided questionnaire
+    if ($questionnaire->id !== $question->questionnaire_id) {
+        abort(404, 'Question not found in this questionnaire.');
+    }
+
+    // Authorize that the logged-in user can update (modify) this questionnaire
+    $this->authorize('update', $questionnaire);
+
+    // Delete the question
+    $question->delete();
+
+    // Redirect back to the questionnaire details page with a success message
+    return redirect()->route('questionnaires.show', $questionnaire->id)
+                     ->with('success', 'Question removed successfully.');
+}
 }

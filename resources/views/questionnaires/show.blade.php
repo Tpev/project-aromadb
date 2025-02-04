@@ -26,7 +26,8 @@
                             <tr>
                                 <th>{{ __('Texte de la Question') }}</th>
                                 <th>{{ __('Type de Question') }}</th>
-								<th>{{ __('Options') }}</th>
+                                <th>{{ __('Options') }}</th>
+                                <th>{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -34,7 +35,16 @@
                                 <tr>
                                     <td>{{ $question->text }}</td>
                                     <td>{{ __(ucfirst(str_replace('_', ' ', $question->type))) }}</td>
-									<td>{{ $question->options }}</td>
+                                    <td>{{ $question->options }}</td>
+                                    <td>
+                                        <form action="{{ route('question.destroy', ['questionnaire' => $questionnaire->id, 'question' => $question->id]) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cette question ?') }}')">
+                                                {{ __('Supprimer') }}
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -123,6 +133,21 @@
 
         .btn-primary:hover {
             background-color: #854f38;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
         }
 
         @media (max-width: 768px) {

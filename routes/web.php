@@ -189,7 +189,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('questionnaires', QuestionnaireController::class); // All CRUD operations
 
     Route::delete('questionnaires/{questionnaire}', [QuestionnaireController::class, 'destroy'])->name('questionnaires.destroy'); // Delete questionnaire
-
+	Route::delete(
+    '/questionnaires/{questionnaire}/questions/{question}', 
+    [QuestionnaireController::class, 'destroyQuestion']
+)->name('question.destroy');
     // Private access route to display all questionnaires (restricted to authenticated therapists)
     Route::get('questionnaires', [QuestionnaireController::class, 'index'])->name('questionnaires.index'); // List all questionnaires
 });
