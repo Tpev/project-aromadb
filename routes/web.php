@@ -187,6 +187,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Routes for managing questionnaires (CRUD operations)
     Route::resource('questionnaires', QuestionnaireController::class); // All CRUD operations
+Route::get('/questionnaires/{questionnaire}/edit', [QuestionnaireController::class, 'edit'])
+    ->name('questionnaires.edit');
 
     Route::delete('questionnaires/{questionnaire}', [QuestionnaireController::class, 'destroy'])->name('questionnaires.destroy'); // Delete questionnaire
 	Route::delete(
@@ -196,6 +198,7 @@ Route::middleware(['auth'])->group(function () {
     // Private access route to display all questionnaires (restricted to authenticated therapists)
     Route::get('questionnaires', [QuestionnaireController::class, 'index'])->name('questionnaires.index'); // List all questionnaires
 });
+
 
 // Public access route for filling out a questionnaire using a token
 Route::get('questionnaires/remplir/{token}', [QuestionnaireController::class, 'fill'])->name('questionnaires.fill'); // Fill questionnaire

@@ -208,4 +208,76 @@ public function storeResponses(Request $request, $token)
     return redirect()->route('questionnaires.show', $questionnaire->id)
                      ->with('success', 'Question removed successfully.');
 }
+public function edit(Questionnaire $questionnaire)
+{
+    // Optionally authorize that the current user can edit this questionnaire.
+    $this->authorize('update', $questionnaire);
+
+    // Load the edit view and pass the questionnaire instance.
+    return view('questionnaires.edit', compact('questionnaire'));
+}
+
+    public function update(Request $request, Questionnaire $questionnaire)
+    {
+        // Validate the incoming data.
+        $request->validate([
+            'title'                 => 'required|string|max:255',
+            'description'           => 'nullable|string',
+            'questions'             => 'required|array',
+            'questions.*.text'      => 'required|string',
+            'questions.*.type'      => 'required|string',
+            // You can add validation rules for options, true_false, etc. as needed.
+        ]);
+
+        // Update the questionnaire's title and description.
+        $questionnaire->update($request->only('title', 'description'));
+
+        // Get the IDs of the existing questions for this questionnaire.
+        $existingQuestionIds = $questionnaire->questions()->pluck('id')->toArray();
+        $updatedQuestionIds = [];
+
+        // Loop through each submitted question.
+        foreach ($request->questions as $questionData) {
+            // If an ID exists in the question data, update the existing question.
+            if (isset($questionData['id'])) {
+                $question = Question::find($questionData['id']);
+                if ($question && $question->questionnaire_id === $questionnaire->id) {
+                    $question->text = $questionData['text'];
+                    $question->type = $questionData['type'];
+
+                    // Update additional fields for certain question types.
+                    if ($questionData['type'] === 'multiple_choice' && isset($questionData['options'])) {
+                        $question->options = $questionData['options'];
+                    }
+                    // Add handling for other types (true_false, date, number, etc.) if needed.
+
+                    $question->save();
+                    $updatedQuestionIds[] = $question->id;
+                }
+            } else {
+                // Create a new question.
+                $newQuestion = new Question();
+                $newQuestion->questionnaire_id = $questionnaire->id;
+                $newQuestion->text = $questionData['text'];
+                $newQuestion->type = $questionData['type'];
+
+                if ($questionData['type'] === 'multiple_choice' && isset($questionData['options'])) {
+                    $newQuestion->options = $questionData['options'];
+                }
+                // Add additional handling for other types if needed.
+
+                $newQuestion->save();
+                $updatedQuestionIds[] = $newQuestion->id;
+            }
+        }
+
+        // Determine which questions have been removed from the form and delete them.
+        $questionsToDelete = array_diff($existingQuestionIds, $updatedQuestionIds);
+        if (!empty($questionsToDelete)) {
+            Question::destroy($questionsToDelete);
+        }
+
+        return redirect()->route('questionnaires.index')
+                         ->with('success', 'Questionnaire updated successfully.');
+    }
 }
