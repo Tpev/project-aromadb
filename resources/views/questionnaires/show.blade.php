@@ -6,7 +6,15 @@
     </x-slot>
 
     <div class="container mt-5">
-        <div class="details-container mx-auto p-4">
+        <!-- The details container is set to relative positioning so that the absolute-positioned button is placed correctly -->
+        <div class="details-container mx-auto p-4" style="position: relative;">
+            <!-- Edit button positioned on the top right -->
+            <div style="position: absolute; top: 10px; right: 10px;">
+                <a href="{{ route('questionnaires.edit', $questionnaire->id) }}" class="btn btn-secondary">
+                    {{ __('Modifier') }}
+                </a>
+            </div>
+
             <h1 class="details-title">{{ __('Questionnaire : ') }}{{ $questionnaire->title }}</h1>
 
             <!-- Questionnaire Description -->
@@ -148,6 +156,22 @@
 
         .btn-danger:hover {
             background-color: #c82333;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #854f38;
+            padding: 10px 20px;
+            border: 1px solid #854f38;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #854f38;
+            color: #fff;
         }
 
         @media (max-width: 768px) {
