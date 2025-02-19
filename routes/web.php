@@ -39,6 +39,14 @@ use App\Http\Controllers\ConseilController;
 use App\Http\Controllers\ClientConseilController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\TherapistSearchController;
+
+Route::match(['get', 'post'], '/recherche-practicien', [TherapistSearchController::class, 'index'])
+    ->name('therapists.search');
+
+Route::get('/nos-practiciens', function () {
+    return view('nos-practiciens');
+})->name('nos-practiciens');
 
 
 
