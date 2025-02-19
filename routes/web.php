@@ -40,14 +40,15 @@ use App\Http\Controllers\ClientConseilController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\TherapistSearchController;
+use App\Models\BlogPost;
 
 Route::match(['get', 'post'], '/recherche-practicien', [TherapistSearchController::class, 'index'])
     ->name('therapists.search');
 
 Route::get('/nos-practiciens', function () {
-    return view('nos-practiciens');
+    $blogPosts = BlogPost::latest()->take(3)->get();
+    return view('nos-practiciens', compact('blogPosts'));
 })->name('nos-practiciens');
-
 
 
 // Public route to view the conseil via token
