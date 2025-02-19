@@ -216,7 +216,7 @@
         @forelse($blogPosts as $post)
           <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
             @if(isset($post->image) && $post->image)
-              <img src="{{ asset('storage/' . $post->image) }}" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
+              <img src="{{ asset('images/' . $post->slug . '.webp') }}" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
             @else
               <img src="https://via.placeholder.com/600x400" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
             @endif
