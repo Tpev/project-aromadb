@@ -89,14 +89,14 @@
               </p>
               <!-- Rating and Call-to-Action -->
               <div class="mt-4 flex flex-col items-center space-y-2">
-                <div class="flex items-center space-x-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.24 3.807a1 1 0 00.95.69h4.012c.969 0 1.371 1.24.588 1.81l-3.244 2.353a1 1 0 00-.364 1.118l1.24 3.807c.3.921-.755 1.688-1.54 1.118l-3.244-2.353a1 1 0 00-1.175 0l-3.244 2.353c-.785.57-1.84-.197-1.54-1.118l1.24-3.807a1 1 0 00-.364-1.118L2.343 9.234c-.783-.57-.38-1.81.588-1.81h4.012a1 1 0 00.95-.69l1.24-3.807z"/>
-                  </svg>
-                  <span class="text-sm text-[#647a0b]">
-                    {{ number_format($therapist->rating ?? 0, 1) }}
-                  </span>
-                </div>
+<div class="flex items-center space-x-1">
+  <i class="fas fa-comment-alt text-[#647a0b]"></i>
+  <span class="text-sm text-[#647a0b]">
+    {{ $therapist->testimonials()->count() }} témoignages
+  </span>
+</div>
+
+
                 <a href="{{ route('therapist.show', $therapist->slug) }}" class="btn btn-primary text-xs w-full">
                   Voir profil
                 </a>
