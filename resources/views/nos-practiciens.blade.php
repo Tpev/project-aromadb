@@ -197,15 +197,15 @@
   </section>
 
   <!-- ARTICLES / BLOG SECTION -->
-  <section class="py-12 bg-[#f8f8f8]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" 
-         x-data="{ revealBlog: false }" 
-         x-init="setTimeout(() => revealBlog = true, 400)">
+  <section class="py-12 bg-[#f8f8f8]" 
+           x-data="{ revealBlog: false }" 
+           x-init="setTimeout(() => revealBlog = true, 400)">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center mb-8">
         <h2 class="text-3xl font-bold text-[#6a3f2c]">
           Actualités & Conseils Bien-Être
         </h2>
-        <a href="#" class="text-[#854f38] hover:text-[#6a3f2c] font-semibold flex items-center">
+        <a href="{{ route('blog.index') }}" class="text-[#854f38] hover:text-[#6a3f2c] font-semibold flex items-center">
           Voir tous les articles
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-1" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9 5l7 7-7 7" />
@@ -213,66 +213,33 @@
         </a>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8" x-show="revealBlog" x-transition.duration.700ms>
-        <!-- Article Card #1 -->
-        <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-          <img src="https://images.unsplash.com/photo-1614756337748-ffdaf6b635b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-               alt="Article Sophrologie"
-               class="w-full h-48 object-cover">
-          <div class="p-6 space-y-3">
-            <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
-              Sophrologie
-            </span>
-            <h3 class="text-2xl font-semibold text-[#854f38]">
-              5 exercices simples pour gérer le stress
-            </h3>
-            <p class="text-xl text-[#647a0b]">
-              Découvrez des techniques simples et efficaces pour retrouver calme et sérénité au quotidien.
-            </p>
-            <a href="#" class="text-[#854f38] font-medium hover:underline">
-              Lire l’article
-            </a>
+        @forelse($blogPosts as $post)
+          <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+            @if(isset($post->image) && $post->image)
+              <img src="{{ asset('storage/' . $post->image) }}" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
+            @else
+              <img src="https://via.placeholder.com/600x400" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
+            @endif
+            <div class="p-6 space-y-3">
+              @if($post->Tags)
+                <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
+                  {{ $post->Tags }}
+                </span>
+              @endif
+              <h3 class="text-2xl font-semibold text-[#854f38]">
+                {{ $post->Title }}
+              </h3>
+              <p class="text-xl text-[#647a0b]">
+                {{ Str::limit(strip_tags($post->Contents), 100) }}
+              </p>
+              <a href="{{ route('blog.show', $post->slug) }}" class="text-[#854f38] font-medium hover:underline">
+                Lire l’article
+              </a>
+            </div>
           </div>
-        </div>
-        <!-- Article Card #2 -->
-        <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-          <img src="https://images.unsplash.com/photo-1606377718049-d71ec0b0cae0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-               alt="Article Naturopathie"
-               class="w-full h-48 object-cover">
-          <div class="p-6 space-y-3">
-            <span class="inline-block bg-[#854f38] text-white text-xs px-3 py-1 rounded-full">
-              Naturopathie
-            </span>
-            <h3 class="text-2xl font-semibold text-[#647a0b]">
-              Détox de Printemps : revitalisez votre organisme
-            </h3>
-            <p class="text-xl text-[#647a0b]">
-              Des conseils pratiques pour purifier votre corps et booster votre énergie naturellement.
-            </p>
-            <a href="#" class="text-[#854f38] font-medium hover:underline">
-              Lire l’article
-            </a>
-          </div>
-        </div>
-        <!-- Article Card #3 -->
-        <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-          <img src="https://images.unsplash.com/photo-1633060496809-d42ab80e38e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
-               alt="Article Réflexologie"
-               class="w-full h-48 object-cover">
-          <div class="p-6 space-y-3">
-            <span class="inline-block bg-[#a96b56] text-white text-xs px-3 py-1 rounded-full">
-              Réflexologie
-            </span>
-            <h3 class="text-2xl font-semibold text-[#854f38]">
-              Harmonisez votre énergie avec la réflexologie plantaire
-            </h3>
-            <p class="text-xl text-[#647a0b]">
-              Apprenez comment cette technique ancestrale peut soulager les tensions et améliorer votre bien-être.
-            </p>
-            <a href="#" class="text-[#854f38] font-medium hover:underline">
-              Lire l’article
-            </a>
-          </div>
-        </div>
+        @empty
+          <p class="text-center text-xl text-[#647a0b]">Aucun article disponible.</p>
+        @endforelse
       </div>
     </div>
   </section>
