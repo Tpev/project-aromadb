@@ -46,7 +46,7 @@
           <div class="bg-white shadow-xl rounded-xl overflow-hidden transform hover:-translate-y-1 transition-all duration-300 flex flex-col">
             <!-- Header Banner -->
             <div class="relative h-40 bg-[#647a0b]">
-              @if($therapist->verified ?? true)
+              @if($therapist->verified ?? false)
                 <div class="absolute top-2 right-2">
                   <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                     Vérifié
