@@ -25,7 +25,8 @@ public function index(Request $request)
     $query = User::query()
         ->where('is_therapist', true)
         ->whereNotNull('slug')
-        ->where('slug', '!=', '');
+        ->where('slug', '!=', '')
+		->where('visible_annuarire_admin_set', true);
 
     // Filter by specialty if provided.
     // Assuming that the 'services' field holds the specialties.
