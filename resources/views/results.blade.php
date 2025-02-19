@@ -1,7 +1,9 @@
 <x-app-layout>
   <!-- Head Slot -->
   <x-slot name="head">
-    <meta name="description" content="Résultats de recherche pour les praticiens en médecines douces">
+    <meta name="description" content="Trouvez les meilleurs praticiens en médecines douces. Recherchez par spécialité et localisation pour consulter des professionnels certifiés du bien-être.">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pVgOFDHlfxgzlRfVWYW52IGgh3FQxF71+oR4U77wCQuQ0+NfjVul2Oo+5hC5R9fGhO+I3Ff9Nd36/6V6G4a2ug==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
       /* Custom button styles */
       .btn {
@@ -68,10 +70,12 @@
                   <p class="text-sm text-[#647a0b]">{{ $therapist->company_name }}</p>
                 @endif
                 @if($therapist->city_setByAdmin)
-                  <p class="text-sm text-[#647a0b]">{{ $therapist->city_setByAdmin }}</p>
+                  <p class="text-sm text-[#647a0b]">
+                    <i class="fas fa-map-marker-alt"></i> {{ $therapist->city_setByAdmin }}
+                  </p>
                 @endif
               </div>
-              <!-- Specialty Badge (using profile_description here as an example) -->
+              <!-- Specialty Badge (using profile_description as an example) -->
               <div class="mt-2 text-center">
                 @if(isset($therapist->profile_description))
                   <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
@@ -112,6 +116,7 @@
   <x-slot name="footer">
     @include('layouts.footer')
   </x-slot>
+
   <style>
       /* Custom button styles */
       .btn {
