@@ -289,24 +289,40 @@
                 <p><strong>Accepts Online Booking:</strong> {{ $therapist->accepts_online_booking ? 'Yes' : 'No' }}</p>
             </div>
         </div>
-<!-- Form to update the therapist's profile picture -->
-@if(session('success'))
-    <div style="color: green; margin-bottom: 20px;">
-        {{ session('success') }}
-    </div>
-@endif
 
-<form action="{{ route('admin.therapists.updatePicture', $therapist->id) }}" method="POST" enctype="multipart/form-data" style="margin-bottom:40px;">
-    @csrf
-    @method('PUT')
-    <label for="profile_picture">Change Profile Picture:</label><br><br>
-    <input type="file" name="profile_picture" required><br><br>
-    <button type="submit" style="padding:10px 20px; background:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Update Picture</button>
-</form>
+        @if(session('success'))
+            <div style="color: green; margin-bottom: 20px;">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Form to update the therapist's profile picture -->
+        <form action="{{ route('admin.therapists.updatePicture', $therapist->id) }}" method="POST" enctype="multipart/form-data" style="margin-bottom:40px;">
+            @csrf
+            @method('PUT')
+            <label for="profile_picture">Change Profile Picture:</label><br><br>
+            <input type="file" name="profile_picture" required><br><br>
+            <button type="submit" style="padding:10px 20px; background:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Update Picture</button>
+        </form>
+
+        <!-- New Form to Update Admin Settings (Verified and Visible Annuaire Admin Set) -->
+        <form action="{{ route('admin.therapists.updateSettings', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+            @csrf
+            @method('PUT')
+            <div style="margin-bottom: 15px;">
+                <label for="verified" style="font-size: 1.2rem; color: #f0f0f0;">Verified:</label>
+                <input type="checkbox" name="verified" id="verified" value="1" {{ $therapist->verified ? 'checked' : '' }}>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="visible_annuarire_admin_set" style="font-size: 1.2rem; color: #f0f0f0;">Visible in Admin Annuaire:</label>
+                <input type="checkbox" name="visible_annuarire_admin_set" id="visible_annuarire_admin_set" value="1" {{ $therapist->visible_annuarire_admin_set ? 'checked' : '' }}>
+            </div>
+            <button type="submit" style="padding:10px 20px; background:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Update Settings</button>
+        </form>
+
         <!-- Onboarding Checklist -->
         <h2 class="section-title">Onboarding Checklist</h2>
         <ul class="checklist">
-            <!-- Your checklist items -->
             @foreach([
                 'slug' => 'Has a Slug',
                 'stripe_account_id' => 'Has set up Stripe',

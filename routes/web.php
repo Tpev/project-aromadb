@@ -448,6 +448,7 @@ Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicens
 Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
 Route::put('/admin/therapists/{id}/picture', [AdminController::class, 'updateTherapistPicture'])->name('admin.therapists.updatePicture');
+Route::put('/admin/therapists/{id}/settings', [AdminController::class, 'updateTherapistSettings'])->name('admin.therapists.updateSettings');
 
 // Route to display the form for uploading the CSV
 Route::get('/admin/marketing/upload', [MarketingController::class, 'showUploadForm'])->name('admin.marketing.upload.form');

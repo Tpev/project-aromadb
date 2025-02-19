@@ -431,4 +431,25 @@ return view('admin.index', compact(
     return redirect()->route('admin.therapists.show', $id)->with('success', 'Profile picture updated successfully!');
 }
 
+public function updateTherapistSettings(Request $request, $id)
+{
+    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+
+    // Find the therapist by ID
+    $therapist = User::where('is_therapist', true)->findOrFail($id);
+
+    // Since checkboxes only send a value when checked, use has() to determine their state.
+    $therapist->verified = $request->has('verified');
+    $therapist->visible_annuarire_admin_set = $request->has('visible_annuarire_admin_set');
+
+    $therapist->save();
+
+    return redirect()->route('admin.therapists.show', $id)
+                     ->with('success', 'Settings updated successfully!');
+}
+
+
 }
