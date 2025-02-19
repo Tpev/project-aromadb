@@ -55,20 +55,23 @@
               @endif
             </div>
             <!-- Profile Image (overlapping the banner) -->
-            <div class="relative flex justify-center -mt-10">
-              <img class="w-20 h-20 rounded-full border-4 border-white object-cover"
+            <div class="relative flex justify-center -mt-16">
+              <img class="w-32 h-32 rounded-full border-4 border-white object-cover"
                    src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/150' }}"
                    alt="{{ $therapist->name }}">
             </div>
             <!-- Card Details -->
             <div class="flex flex-col flex-grow px-4 pt-2 pb-4">
               <div class="text-center">
-                <h4 class="text-xl font-bold text-[#647a0b]">{{ $therapist->name }}</h4>
+                <h4 class="text-2xl font-bold text-[#647a0b]">{{ $therapist->name }}</h4>
                 @if($therapist->company_name)
                   <p class="text-sm text-[#647a0b]">{{ $therapist->company_name }}</p>
                 @endif
+                @if($therapist->city_setByAdmin)
+                  <p class="text-sm text-[#647a0b]">{{ $therapist->city_setByAdmin }}</p>
+                @endif
               </div>
-              <!-- Specialty Badge -->
+              <!-- Specialty Badge (using profile_description here as an example) -->
               <div class="mt-2 text-center">
                 @if(isset($therapist->profile_description))
                   <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
@@ -76,10 +79,10 @@
                   </span>
                 @endif
               </div>
-			<p class="mt-4 text-sm text-[#647a0b] text-center">
-			   {!! Str::limit($therapist->about ?? __('Informations à propos non disponibles.'), 100) !!}
-			</p>
-
+              <!-- Short Description -->
+              <p class="mt-4 text-sm text-[#647a0b] text-center">
+                {!! Str::limit($therapist->about ?? __('Informations à propos non disponibles.'), 100) !!}
+              </p>
               <!-- Rating and Call-to-Action -->
               <div class="mt-4 flex flex-col items-center space-y-2">
                 <div class="flex items-center space-x-1">
@@ -109,7 +112,7 @@
   <x-slot name="footer">
     @include('layouts.footer')
   </x-slot>
-        <style>
+  <style>
       /* Custom button styles */
       .btn {
         font-weight: 600;
@@ -133,5 +136,5 @@
         background-color: #854f38;
       }
       [x-cloak] { display: none !important; }
-    </style>
+  </style>
 </x-app-layout>
