@@ -450,6 +450,34 @@ public function updateTherapistSettings(Request $request, $id)
     return redirect()->route('admin.therapists.show', $id)
                      ->with('success', 'Settings updated successfully!');
 }
+public function updateTherapistAddress(Request $request, $id)
+{
+    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+
+    // Find the therapist by ID
+    $therapist = User::where('is_therapist', true)->findOrFail($id);
+
+    // Validate the incoming request
+    $data = $request->validate([
+        'street_address_setByAdmin' => 'nullable|string|max:255',
+        'address_line2_setByAdmin'  => 'nullable|string|max:255',
+        'city_setByAdmin'           => 'nullable|string|max:100',
+        'state_setByAdmin'          => 'nullable|string|max:100',
+        'postal_code_setByAdmin'    => 'nullable|string|max:20',
+        'country_setByAdmin'        => 'nullable|string|max:100',
+        'latitude_setByAdmin'       => 'nullable|numeric',
+        'longitude_setByAdmin'      => 'nullable|numeric',
+    ]);
+
+    // Update the therapist with the validated address fields
+    $therapist->update($data);
+
+    return redirect()->route('admin.therapists.show', $id)
+                     ->with('success', 'Address updated successfully!');
+}
 
 
 }

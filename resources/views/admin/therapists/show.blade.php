@@ -238,6 +238,32 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
         }
 
+        /* Basic Form Styles */
+        form div {
+            margin-bottom: 15px;
+        }
+        form label {
+            font-size: 1.2rem;
+            color: #f0f0f0;
+            display: block;
+            margin-bottom: 5px;
+        }
+        form input[type="text"],
+        form select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: none;
+        }
+        form button {
+            padding: 10px 20px;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .therapist-info-card {
@@ -278,7 +304,7 @@
         <!-- Therapist Details -->
         <h1 class="page-title">Therapist Details: {{ $therapist->name }}</h1>
 
-        <!-- Therapist Info -->
+        <!-- Therapist Info Card -->
         <div class="therapist-info-card">
             <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="Avatar" class="avatar-large">
             <div class="info">
@@ -300,24 +326,77 @@
         <form action="{{ route('admin.therapists.updatePicture', $therapist->id) }}" method="POST" enctype="multipart/form-data" style="margin-bottom:40px;">
             @csrf
             @method('PUT')
-            <label for="profile_picture">Change Profile Picture:</label><br><br>
-            <input type="file" name="profile_picture" required><br><br>
-            <button type="submit" style="padding:10px 20px; background:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Update Picture</button>
+            <label for="profile_picture">Change Profile Picture:</label>
+            <input type="file" name="profile_picture" id="profile_picture" required>
+            <button type="submit">Update Picture</button>
         </form>
 
-        <!-- New Form to Update Admin Settings (Verified and Visible Annuaire Admin Set) -->
+        <!-- Form to update Admin Settings (Verified & Visible Annuaire) -->
         <form action="{{ route('admin.therapists.updateSettings', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
             @csrf
             @method('PUT')
-            <div style="margin-bottom: 15px;">
-                <label for="verified" style="font-size: 1.2rem; color: #f0f0f0;">Verified:</label>
+            <div>
+                <label for="verified">Verified:</label>
                 <input type="checkbox" name="verified" id="verified" value="1" {{ $therapist->verified ? 'checked' : '' }}>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label for="visible_annuarire_admin_set" style="font-size: 1.2rem; color: #f0f0f0;">Visible in Admin Annuaire:</label>
+            <div>
+                <label for="visible_annuarire_admin_set">Visible in Admin Annuaire:</label>
                 <input type="checkbox" name="visible_annuarire_admin_set" id="visible_annuarire_admin_set" value="1" {{ $therapist->visible_annuarire_admin_set ? 'checked' : '' }}>
             </div>
-            <button type="submit" style="padding:10px 20px; background:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">Update Settings</button>
+            <button type="submit">Update Settings</button>
+        </form>
+
+        <!-- New Form to Update Address Fields (Set By Admin) -->
+        <form action="{{ route('admin.therapists.updateAddress', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+            @csrf
+            @method('PUT')
+            <h2 class="section-title">Update Address Information</h2>
+            <div>
+                <label for="street_address_setByAdmin">Street Address:</label>
+                <input type="text" name="street_address_setByAdmin" id="street_address_setByAdmin" value="{{ old('street_address_setByAdmin', $therapist->street_address_setByAdmin) }}">
+            </div>
+            <div>
+                <label for="address_line2_setByAdmin">Address Line 2:</label>
+                <input type="text" name="address_line2_setByAdmin" id="address_line2_setByAdmin" value="{{ old('address_line2_setByAdmin', $therapist->address_line2_setByAdmin) }}">
+            </div>
+            <div>
+                <label for="city_setByAdmin">City:</label>
+                <input type="text" name="city_setByAdmin" id="city_setByAdmin" value="{{ old('city_setByAdmin', $therapist->city_setByAdmin) }}">
+            </div>
+            <div>
+                <label for="state_setByAdmin">Region:</label>
+                <select name="state_setByAdmin" id="state_setByAdmin">
+                    <option value="">Select Region</option>
+                    <option value="Île-de-France" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Île-de-France') ? 'selected' : '' }}>Île-de-France</option>
+                    <option value="Provence-Alpes-Côte d'Azur" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == "Provence-Alpes-Côte d'Azur") ? 'selected' : '' }}>Provence-Alpes-Côte d'Azur</option>
+                    <option value="Nouvelle-Aquitaine" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Nouvelle-Aquitaine') ? 'selected' : '' }}>Nouvelle-Aquitaine</option>
+                    <option value="Occitanie" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Occitanie') ? 'selected' : '' }}>Occitanie</option>
+                    <option value="Hauts-de-France" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Hauts-de-France') ? 'selected' : '' }}>Hauts-de-France</option>
+                    <option value="Grand Est" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Grand Est') ? 'selected' : '' }}>Grand Est</option>
+                    <option value="Bretagne" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Bretagne') ? 'selected' : '' }}>Bretagne</option>
+                    <option value="Normandie" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Normandie') ? 'selected' : '' }}>Normandie</option>
+                    <option value="Pays de la Loire" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Pays de la Loire') ? 'selected' : '' }}>Pays de la Loire</option>
+                    <option value="Centre-Val de Loire" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Centre-Val de Loire') ? 'selected' : '' }}>Centre-Val de Loire</option>
+                    <option value="Corse" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Corse') ? 'selected' : '' }}>Corse</option>
+                </select>
+            </div>
+            <div>
+                <label for="postal_code_setByAdmin">Postal Code:</label>
+                <input type="text" name="postal_code_setByAdmin" id="postal_code_setByAdmin" value="{{ old('postal_code_setByAdmin', $therapist->postal_code_setByAdmin) }}">
+            </div>
+            <div>
+                <label for="country_setByAdmin">Country:</label>
+                <input type="text" name="country_setByAdmin" id="country_setByAdmin" value="{{ old('country_setByAdmin', $therapist->country_setByAdmin) }}">
+            </div>
+            <div>
+                <label for="latitude_setByAdmin">Latitude:</label>
+                <input type="text" name="latitude_setByAdmin" id="latitude_setByAdmin" value="{{ old('latitude_setByAdmin', $therapist->latitude_setByAdmin) }}">
+            </div>
+            <div>
+                <label for="longitude_setByAdmin">Longitude:</label>
+                <input type="text" name="longitude_setByAdmin" id="longitude_setByAdmin" value="{{ old('longitude_setByAdmin', $therapist->longitude_setByAdmin) }}">
+            </div>
+            <button type="submit">Update Address</button>
         </form>
 
         <!-- Onboarding Checklist -->

@@ -42,6 +42,15 @@ class User extends Authenticatable
 		 'view_count',
         'verified',
         'visible_annuarire_admin_set',
+		 // New Address Fields set by Admin
+        'street_address_setByAdmin',
+        'address_line2_setByAdmin',
+        'city_setByAdmin',
+        'state_setByAdmin',
+        'postal_code_setByAdmin',
+        'country_setByAdmin',
+        'latitude_setByAdmin',
+        'longitude_setByAdmin',
 
     ];
 
