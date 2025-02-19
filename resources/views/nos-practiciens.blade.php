@@ -215,11 +215,9 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8" x-show="revealBlog" x-transition.duration.700ms>
         @forelse($blogPosts as $post)
           <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-            @if(isset($post->image) && $post->image)
+
               <img src="{{ asset('images/' . $post->slug . '.webp') }}" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
-            @else
-              <img src="https://via.placeholder.com/600x400" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
-            @endif
+
             <div class="p-6 space-y-3">
               @if($post->Tags)
                 <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
