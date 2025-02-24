@@ -77,11 +77,19 @@
               </div>
               <!-- Specialty Badge (using profile_description as an example) -->
               <div class="mt-2 text-center">
-                @if(isset($therapist->profile_description))
-                  <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
-                    {{ $therapist->profile_description }}
-                  </span>
-                @endif
+				@if(isset($therapist->services))
+				  @php
+					// If services is not already an array, attempt to decode it
+					$services = is_array($therapist->services) ? $therapist->services : json_decode($therapist->services, true);
+				  @endphp
+				  @if($services)
+					@foreach($services as $service)
+					  <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
+						{{ $service }}
+					  </span>
+					@endforeach
+				  @endif
+				@endif
               </div>
               <!-- Short Description -->
               <p class="mt-4 text-sm text-[#647a0b] text-center">
