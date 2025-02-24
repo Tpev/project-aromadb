@@ -38,7 +38,24 @@
 
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
-
+       <!-- Accept Terms & Privacy Policy -->
+        <div class="mt-4">
+            <label for="terms" class="flex items-center">
+                <input id="terms" type="checkbox" class="form-checkbox" name="terms" required>
+                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                    {{ __('J\'accepte les') }}
+                    <a href="{{ route('cgu') }}" target="_blank" class="underline text-blue-600">
+                        {{ __('Conditions Générales d’Utilisation') }}
+                    </a>
+                    {{ __('et la') }}
+                    <a href="{{ route('privacypolicy') }}" target="_blank" class="underline text-blue-600">
+                        {{ __('Politique de Confidentialité') }}
+                    </a>
+                    {{ __('.') }}
+                </span>
+            </label>
+            <x-input-error :messages="$errors->get('terms')" class="mt-2" />
+        </div>
         <!-- Hidden field to set user as therapist -->
         <input type="hidden" name="is_therapist" value="true">
 

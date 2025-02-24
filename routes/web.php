@@ -500,7 +500,12 @@ Route::middleware('auth')->group(function () {
     // Route to the privacy policy page 
     Route::get('/privacy-policy', function () {
         return view('privacypolicy');
-    })->name('privacypolicy');
+    })->name('privacypolicy');    
+	
+	// Route to the CGU page 
+    Route::get('/cgu', function () {
+        return view('cgu');
+    })->name('cgu');
 
 Route::get('/license-tiers/pricing', [LicenseTierController::class, 'pricing'])->name('license-tiers.pricing')->middleware('auth');
 

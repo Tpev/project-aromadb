@@ -3,7 +3,7 @@
 
     <!-- Meta Description for SEO -->
     @section('meta_description')
-        Découvrez la politique de confidentialité d'AromaMade concernant la collecte et le traitement de vos données personnelles, conformément au RGPD.
+        Découvrez la politique de protection des données d'AromaMade concernant la collecte et le traitement de vos données personnelles, ainsi que les droits dont vous disposez.
     @endsection
 
     <!-- Big Page Title Section -->
@@ -11,124 +11,190 @@
         <div class="container mx-auto text-center">
             <!-- Big H1 Title with Custom Large Font Size -->
             <h1 class="font-bold text-center mb-8 animate-fade-in" style="color: #647a0b; font-size: 2.5rem;">
-                Politique de confidentialité
+                Politique de protection des données
             </h1>
         </div>
     </section>
 
-    <!-- Main Privacy Policy Content -->
+    <!-- Main Content -->
     <section class="py-12 bg-gray-100">
         <div class="container mx-auto max-w-4xl text-left">
             <article class="bg-white p-8 rounded-lg shadow-lg">
-                <h2 class="text-xl font-bold mb-4" style="color: #647a0b;">Aromamade.com</h2>
 
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">ARTICLE 1 : PRÉAMBULE</h3>
-                <p class="text-gray-700">
-                    La présente politique de confidentialité a pour but d’informer les utilisateurs du site :
+                <p class="text-gray-700 mb-4">
+                    La présente Politique de Confidentialité décrit les engagements et pratiques d’AromaMade en matière de protection des données personnelles. Elle précise les conditions de collecte et d’utilisation de vos données ainsi que les droits dont vous disposez à leur égard.
                 </p>
-                <ul class="list-disc list-inside text-gray-700">
-                    <li>Sur la manière dont sont collectées leurs données personnelles.</li>
-                    <li>Sur les droits dont ils disposent concernant ces données.</li>
-                    <li>Sur la personne responsable du traitement des données à caractère personnel collectées et traitées.</li>
-                    <li>Sur les destinataires de ces données personnelles.</li>
-                    <li>Sur la politique du site en matière de cookies.</li>
+                <p class="text-gray-700 mb-4">
+                    Cette Politique de Confidentialité complète les Conditions Générales d’Utilisation (CGU). Les termes utilisés ci-après avec une majuscule renvoient aux définitions établies dans ces CGU.
+                </p>
+
+                <!-- 1. Qui est responsable du traitement... -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    1. Qui est responsable du traitement de vos données personnelles ?
+                </h3>
+                <p class="text-gray-700">
+                    AromaMade, auto-entrepreneur dont le siège social est situé 22a rue du Pfoeller, 67100 Barr et immatriculée au Registre du Commerce et des Sociétés sous le numéro 93129781600015 est responsable du traitement de vos données personnelles dans le cadre de la mise à disposition de la Plateforme et des Services.
+                </p>
+                <p class="text-gray-700">
+                    Le Professionnel agissant sur la Plateforme est, quant à lui, responsable du traitement des données personnelles de l’Utilisateur lorsqu’il fournit ses prestations via ou grâce à la Plateforme. Dans ce cas, AromaMade intervient en qualité de sous-traitant pour le Professionnel.
+                </p>
+
+                <!-- 2. Quelles données collectons-nous ? -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    2. Quelles données collectons-nous ?
+                </h3>
+                <p class="text-gray-700">
+                    Nous recueillons uniquement les informations nécessaires lors de la création de votre compte, personnel ou professionnel, ainsi que lors de l’utilisation des Services.
+                </p>
+                <p class="text-gray-700 font-semibold mt-4">Création d’un Compte Personnel :</p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Données d’identification (nom, prénom, adresse e-mail, adresse postale, numéro de téléphone)</li>
+                    <li>Données de connexion (identifiants de connexion)</li>
+                </ul>
+                <p class="text-gray-700 font-semibold mt-4">Création d’un Compte Professionnel :</p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Données d’identification (nom, prénom, adresse e-mail, adresse postale, numéro de téléphone, informations professionnelles, photo d’identité)</li>
+                    <li>Données de connexion (identifiants de connexion)</li>
                 </ul>
                 <p class="text-gray-700">
-                    Cette politique complète les mentions légales et les Conditions Générales d’Utilisation consultables par les utilisateurs à l’adresse suivante : En construction.
+                    Le fait de ne pas fournir certaines de ces données peut vous empêcher d’accéder à l’intégralité des Services de la Plateforme.
                 </p>
-
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">ARTICLE 2 : PRINCIPES RELATIFS À LA COLLECTE ET AU TRAITEMENT DES DONNÉES PERSONNELLES</h3>
                 <p class="text-gray-700">
-                    Conformément à l’article 5 du Règlement européen 2016/679, les données à caractère personnel sont :
+                    Nous utilisons également des cookies. Pour en savoir plus, veuillez consulter notre Politique de gestion des cookies.
                 </p>
-                <ul class="list-disc list-inside text-gray-700">
-                    <li>Traitées de manière licite, loyale et transparente.</li>
-                    <li>Collectées pour des finalités déterminées, explicites et légitimes.</li>
-                    <li>Adéquates, pertinentes et limitées à ce qui est nécessaire.</li>
-                    <li>Exactes et, si nécessaire, tenues à jour.</li>
-                    <li>Conservées sous une forme permettant l'identification pendant une durée limitée.</li>
-                    <li>Traitées avec des mesures de sécurité appropriées.</li>
-                </ul>
                 <p class="text-gray-700">
-                    Le traitement n'est licite que si au moins une des conditions suivantes est remplie :
+                    Le Professionnel peut également collecter, via la Plateforme, les données personnelles des Utilisateurs.
                 </p>
-                <ul class="list-disc list-inside text-gray-700">
-                    <li>Consentement de la personne concernée.</li>
-                    <li>Traitement nécessaire à l'exécution d'un contrat.</li>
-                    <li>Obligation légale à laquelle le responsable est soumis.</li>
-                    <li>Sauvegarde des intérêts vitaux de la personne concernée.</li>
-                    <li>Mission d'intérêt public ou autorité publique.</li>
-                    <li>Intérêts légitimes poursuivis par le responsable du traitement ou un tiers.</li>
+                <p class="text-gray-700 font-semibold mt-4">
+                    Dans le cadre des échanges avec l’Utilisateur :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Données d’identification (nom, prénom, adresse e-mail et postale, téléphone, etc.)</li>
+                    <li>Notes ou informations prises par le Professionnel</li>
+                    <li>Historique des rendez-vous</li>
                 </ul>
 
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">ARTICLE 3 : DONNÉES À CARACTÈRE PERSONNEL COLLECTÉES ET TRAITÉES DANS LE CADRE DE LA NAVIGATION SUR LE SITE</h3>
-                <h4 class="text-lg font-semibold mt-4" style="color: #647a0b;">Article 3.1 : Données collectées</h4>
+                <!-- 3. Pourquoi collectons-nous... -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    3. Pourquoi collectons-nous et traitons-nous vos données ?
+                </h3>
                 <p class="text-gray-700">
-                    Les données personnelles collectées dans le cadre de notre activité sont les suivantes :
+                    Vos données personnelles sont traitées pour :
                 </p>
-                <ul class="list-disc list-inside text-gray-700">
-                    <li>Adresse IP</li>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Exécuter les CGU et CGUA, et permettre votre accès à la Plateforme ainsi qu’aux Services.</li>
+                    <li>Respecter nos obligations légales, notamment en répondant à vos demandes d’exercice de droits.</li>
+                    <li>Avec votre consentement, pour la prospection commerciale ou l’utilisation de cookies.</li>
+                    <li>Poursuivre notre intérêt légitime, par exemple pour lutter contre la fraude, améliorer nos Services et notre Plateforme, ou encore vous communiquer des informations sur nos Services existants ou à venir.</li>
                 </ul>
                 <p class="text-gray-700">
-                    La collecte et le traitement de ces données répond à la finalité suivante : statistiques d’utilisation du site.
+                    Par ailleurs, le Professionnel traite les données personnelles des Utilisateurs afin de fournir ses prestations dans le cadre des CGU.
                 </p>
 
-                <h4 class="text-lg font-semibold mt-4" style="color: #647a0b;">Article 3.2 : Mode de collecte des données</h4>
+                <!-- 4. Combien de temps conservons-nous vos données ? -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    4. Combien de temps conservons-nous vos données ?
+                </h3>
                 <p class="text-gray-700">
-                    Lorsque vous utilisez notre site, sont automatiquement collectées les données suivantes :
+                    Nous conservons vos informations personnelles uniquement pour la durée nécessaire aux finalités visées et, en particulier, tant que votre Compte (Personnel ou Professionnel) demeure actif. Lorsque ces données ne sont plus utiles, nous les supprimons ou les rendons anonymes.
                 </p>
-                <ul class="list-disc list-inside text-gray-700">
-                    <li>Adresse IP</li>
+                <p class="text-gray-700">
+                    Après la clôture de votre Compte, vos données sont conservées en base « inactive » pendant la durée légale requise pour permettre la constatation, l’exercice ou la défense de droits en justice, soit une période de 5 ans.
+                </p>
+                <p class="text-gray-700">
+                    Une fois ce délai écoulé, elles sont définitivement supprimées de nos serveurs et seules des statistiques anonymisées pourront être conservées.
+                </p>
+
+                <!-- 5. Qui a accès à vos données personnelles ? -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    5. Qui a accès à vos données personnelles ?
+                </h3>
+                <p class="text-gray-700">
+                    <strong>Données liées aux Comptes :</strong>
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Les membres du personnel d’AromaMade habilités, uniquement dans la mesure de leurs fonctions.</li>
+                    <li>Les membres du personnel des sous-traitants d’AromaMade, également tenus de respecter la confidentialité et la finalité des traitements.</li>
+                    <li>Les tiers autorisés par la loi.</li>
                 </ul>
                 <p class="text-gray-700">
-                    Ces données sont conservées pour une durée de 12 mois. Nous pouvons conserver certaines données pour des obligations légales.
+                    <strong>Données d’Utilisateurs collectées par le Professionnel :</strong>
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Seul le Professionnel concerné a accès aux informations collectées au cours des prestations.</li>
+                </ul>
+                <p class="text-gray-700">
+                    Nous ne transmettons pas vos données à des entités commerciales ou publicitaires sans votre consentement.
+                    <br />
+                    Enfin, AromaMade ne réalise aucun transfert de données personnelles hors de l’Union européenne.
                 </p>
 
-                <h4 class="text-lg font-semibold mt-4" style="color: #647a0b;">Article 3.3 : Hébergement des données</h4>
+                <!-- 6. Quelles mesures de sécurité... -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    6. Quelles mesures de sécurité sont mises en place ?
+                </h3>
                 <p class="text-gray-700">
-                    Le site Aromamade.com est hébergé par : OVH SAS, 2 rue Kellermann, 59100 Roubaix, France.
+                    AromaMade applique des mesures techniques et organisationnelles adéquates pour protéger la confidentialité et l’intégrité de vos données personnelles. Nous veillons notamment à :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Désigner un Délégué à la Protection des Données (DPO).</li>
+                    <li>Chiffrer les données sensibles lorsque cela est nécessaire.</li>
+                    <li>Sensibiliser régulièrement nos équipes et nos sous-traitants à la protection des données personnelles.</li>
+                    <li>Procéder à des audits réguliers de nos procédures et dispositifs de sécurité.</li>
+                    <li>Sécuriser l’accès à nos locaux et à nos serveurs.</li>
+                </ul>
+
+                <!-- 7. Quels sont vos droits ? -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    7. Quels sont vos droits ?
+                </h3>
+                <p class="text-gray-700">
+                    En vertu de la réglementation applicable, vous disposez des droits suivants sur vos données personnelles :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li><strong>Droit d’accès :</strong> savoir si nous traitons des données vous concernant et en obtenir une copie.</li>
+                    <li><strong>Droit de rectification :</strong> demander la correction ou la mise à jour de vos informations.</li>
+                    <li><strong>Droit à l’effacement (droit à l’oubli) :</strong> solliciter la suppression de vos données dans certains cas.</li>
+                    <li><strong>Droit à la limitation du traitement :</strong> demander le gel d’un traitement dans certaines circonstances.</li>
+                    <li><strong>Droit d’opposition :</strong> vous opposer à tout moment à un traitement fondé sur l’intérêt légitime d’AromaMade (sauf motifs légitimes et impérieux prévalant sur vos droits).</li>
+                    <li><strong>Droit de définir le sort de vos données après votre décès :</strong> établir des directives sur la conservation, l’effacement ou la communication de vos données.</li>
+                    <li><strong>Droit de retirer votre consentement :</strong> à tout moment pour les traitements basés sur celui-ci.</li>
+                </ul>
+                <p class="text-gray-700">
+                    Vous pouvez également exercer :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li><strong>Le droit à la portabilité :</strong> recevoir vos données dans un format structuré, couramment utilisé et lisible par machine, ou demander leur transfert à un tiers.</li>
+                    <li><strong>Le droit de réclamation :</strong> introduire une plainte auprès de l’autorité de contrôle compétente (en France, la CNIL).</li>
+                </ul>
+
+                <!-- 8. Comment nous contacter ? -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    8. Comment nous contacter ?
+                </h3>
+                <p class="text-gray-700">
+                    Pour exercer vos droits ou pour toute question concernant la protection de vos données, vous pouvez écrire à :
+                </p>
+                <p class="text-gray-700">
+                    <strong>AromaMade – Délégué à la Protection des Données (DPO)</strong><br>
+                    <a href="mailto:contact@aromamade.com" class="text-blue-500">contact@aromamade.com</a>
+                </p>
+                <p class="text-gray-700">
+                    Pour faciliter le traitement de votre demande, merci de joindre :
+                </p>
+                <ul class="list-disc list-inside text-gray-700 mb-4">
+                    <li>Une copie d’un document d’identité (passeport, carte d’identité, ou autre justificatif permettant de confirmer votre identité).</li>
+                    <li>Une adresse e-mail ou postale pour que nous puissions vous répondre.</li>
+                </ul>
+
+                <!-- 9. Modifications de la Politique de Confidentialité -->
+                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                    9. Modifications de la Politique de Confidentialité
+                </h3>
+                <p class="text-gray-700">
+                    Il est possible que cette Politique soit modifiée, notamment pour prendre en compte les évolutions législatives, réglementaires ou technologiques. Vous serez informé de tout changement majeur affectant le traitement de vos données personnelles.
                 </p>
 
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">ARTICLE 4 : RESPONSABLE DU TRAITEMENT DES DONNÉES ET DÉLÉGUÉ À LA PROTECTION DES DONNÉES</h3>
-                <p class="text-gray-700">
-                    Les données à caractère personnelles sont collectées par Olivia B Coaching, Autoentrepreneur.
-                </p>
-                <p class="text-gray-700">
-                    Le responsable du traitement des données peut être contacté par mail à : contact@aromamade.com.
-                </p>
-
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">ARTICLE 5 : DROITS DE L’UTILISATEUR</h3>
-                <p class="text-gray-700">
-                Tout utilisateur concerné par le traitement de ses données personnelles peut se prévaloir des droits suivants, en application du règlement européen 2016/679 et de la Loi Informatique et Liberté (Loi 78-17 du 6 janvier 1978) :   
-Droit d’accès, de rectification et droit à l’effacement des données (posés respectivement aux articles 15, 16 et 17 du RGPD) ;  
-
-
-Droit à la portabilité des données (article 20 du RGPD) ; 
-
-
-Droit à la limitation (article 18 du RGPD) et à l’opposition du traitement des données (article 21 du RGPD) ;  
-
-
-Droit de ne pas faire l’objet d’une décision fondée exclusivement sur un procédé automatisé ;  
-
-
-Droit de déterminer le sort des données après la mort ;  
-
-
-Droit de saisir l’autorité de contrôle compétente (article 77 du RGPD).  
-Pour exercer vos droits, veuillez adresser par mail à contact@aromamade.com.  
-Afin que le responsable du traitement des données puisse faire droit à sa demande, l’utilisateur peut être tenu de lui communiquer certaines informations telles que : ses noms et prénoms, son adresse e-mail ainsi que son numéro de compte, d’espace personnel ou d’abonné.  
-Consultez le site cnil.fr pour plus d’informations sur vos droits. 
-</p>
-
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">ARTICLE 6 : CONDITIONS DE MODIFICATION DE LA POLITIQUE DE CONFIDENTIALITÉ</h3>
-                <p class="text-gray-700">
-                   L’éditeur du site Aromamade.com se réserve le droit de pouvoir modifier la présente Politique à tout moment afin d’assurer aux utilisateurs du site sa conformité avec le droit en vigueur.  
-Les éventuelles modifications ne sauraient avoir d’incidence sur les achats antérieurement effectués sur le site, lesquels restent soumis à la Politique en vigueur au moment de l’achat et telle qu’acceptée par l’utilisateur lors de la validation de l’achat.  
-L’utilisateur est invité à prendre connaissance de cette Politique à chaque fois qu’il utilise nos services, sans qu’il soit nécessaire de l’en prévenir formellement.  
-La présente politique, éditée le 26/09/2024, a été mise à jour le 26/09/2024.
-
-                </p>
             </article>
         </div>
     </section>
