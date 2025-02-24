@@ -260,7 +260,7 @@
                  class="w-12 h-12 rounded-full mr-4">
             <div>
               <p class="font-semibold text-[#647a0b]">Sophie L.</p>
-              <p class="text-sm text-[#647a0b]">Patiente</p>
+              <p class="text-sm text-[#647a0b]"></p>
             </div>
           </div>
         </div>
@@ -275,7 +275,7 @@
                  class="w-12 h-12 rounded-full mr-4">
             <div>
               <p class="font-semibold text-[#647a0b]">Marc D.</p>
-              <p class="text-sm text-[#647a0b]">Patient</p>
+              <p class="text-sm text-[#647a0b]"></p>
             </div>
           </div>
         </div>
@@ -290,7 +290,7 @@
                  class="w-12 h-12 rounded-full mr-4">
             <div>
               <p class="font-semibold text-[#647a0b]">Isabelle R.</p>
-              <p class="text-sm text-[#647a0b]">Patiente</p>
+              <p class="text-sm text-[#647a0b]"></p>
             </div>
           </div>
         </div>
