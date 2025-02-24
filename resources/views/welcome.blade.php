@@ -60,6 +60,16 @@
                     <p class="text-lg mb-4">Découvrez des articles hebdomadaires sur l'aromathérapie, le bien-être, et les bonnes pratiques pour rester en bonne santé naturellement.</p>
                     <a href="{{ route('blog.index') }}" class="btn-primary">Lire les Articles</a>
                 </div>
+				<!-- Thérapeutes -->
+				<div class="text-center bg-gray-100 p-6 rounded-lg shadow">
+					<i class="fas fa-user-md text-6xl mb-4" style="color: #854f38;"></i>
+					<h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Thérapeutes</h3>
+					<p class="text-lg mb-4">
+						Découvrez des praticiens certifiés en médecines douces, soigneusement sélectionnés pour vous accompagner vers un bien-être optimal.
+					</p>
+					<a href="{{ route('nos-practiciens') }}" class="btn-primary">Voir les Thérapeutes</a>
+				</div>
+
             </div>
         </div>
     </section>
