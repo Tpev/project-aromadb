@@ -83,13 +83,13 @@
         </a>
         @guest
           <a href="{{ route('login') }}"
-             class="ml-4 text-sm text-gray-500 hover:text-[#647a0b]">Login</a>
+             class="ml-4 text-sm text-gray-500 hover:text-[#647a0b]">Se Connecter</a>
           <a href="{{ route('register') }}"
-             class="ml-4 text-sm text-gray-500 hover:text-[#647a0b]">Register</a>
+             class="ml-4 text-sm text-gray-500 hover:text-[#647a0b]">S'inscrire</a>
         @else
           <a href="{{ route('logout') }}"
              onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-             class="ml-4 text-sm text-gray-500 hover:text-[#647a0b]">Logout</a>
+             class="ml-4 text-sm text-gray-500 hover:text-[#647a0b]">Se déconnecter</a>
           <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
             @csrf
           </form>
@@ -172,17 +172,17 @@
       @guest
         <a href="{{ route('login') }}"
            class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
-          Login
+          Se Connecter
         </a>
         <a href="{{ route('register') }}"
            class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
-          Register
+          S'inscrire
         </a>
       @else
         <a href="{{ route('logout') }}"
            onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();"
            class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
-          Logout
+          Se déconnecter
         </a>
         <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" class="hidden">
           @csrf
