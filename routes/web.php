@@ -51,7 +51,7 @@ Route::get('/sitemap-practicien.xml', function () {
 
 //// SEO PAGE FOR ANNUAIRE
 // Filtrer par région uniquement (ex : /region-ile-de-france)
-
+Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function () {
 // Combined filter: specialty and region
 Route::get('/practicien-{specialty}-region-{region}', [TherapistSearchController::class, 'filterBySpecialtyRegion'])
     ->name('therapists.filter.specialty-region');
@@ -65,11 +65,6 @@ Route::get('/practicien-{specialty}', [TherapistSearchController::class, 'filter
     ->name('therapists.filter.specialty');
 
 
-
-
-
-
-
 Route::match(['get', 'post'], '/recherche-practicien', [TherapistSearchController::class, 'index'])
     ->name('therapists.search');
 
@@ -78,6 +73,7 @@ Route::get('/nos-practiciens', function () {
     return view('nos-practiciens', compact('blogPosts'));
 })->name('nos-practiciens');
 
+});
 
 // Public route to view the conseil via token
 Route::get('conseil/view', [ClientConseilController::class, 'viewConseil'])->name('public.conseil.view');
@@ -257,7 +253,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
     Route::put('/profile/company-info', [ProfileController::class, 'updateCompanyInfo'])->name('profile.updateCompanyInfo');
 });
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\TrackPageViews::class])->group(function () {
 
 
     Route::get('/dashboard-pro', [DashboardController::class, 'index'])->name('dashboard-pro');
@@ -418,14 +414,14 @@ Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(functi
 });
 
 
-
+Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function () {
 
 Route::get('/book-appointment/{therapist}', [AppointmentController::class, 'createPatient'])->name('appointments.createPatient');
 Route::post('/book-appointment', [AppointmentController::class, 'storePatient'])->name('appointments.storePatient');
 Route::get('/appointment-confirmation/{token}', [AppointmentController::class, 'showPatient'])->name('appointments.showPatient');
 Route::get('/appointment-ics/{token}', [AppointmentController::class, 'downloadICS'])->name('appointments.downloadICS');
 
-
+});
 
 
 
