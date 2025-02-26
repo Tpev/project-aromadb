@@ -205,13 +205,13 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Testimonial 1 -->
                 <div class="testimonial-card" data-aos="fade-up">
-                    <p class="text-lg italic">"AromaMade PRO a véritablement simplifié la gestion quotidienne de mon cabinet. Je me sens plus organisée et sereine dans mon travail."</p>
-                    <h4 class="mt-4 font-bold">— Camille, Naturopathe</h4>
+                    <p class="text-lg italic">"En tant que naturopathe praticienne, je trouve la plate-forme Aromamade hyper pratique ! Très intuitive ! Et tout ce dont on a besoin, Aromamade y a pensé ou y pensera pour nous combler.! Je suis ravie d'avoir la chance de gérer plus facilement mes rendez-vous et mon répertoire clients ainsi que d'autres fonctionnalités pratiques. Un grand merci à l'équipe qui gère 100% !!"</p>
+                    <h4 class="mt-4 font-bold">— Ludivine, Naturopathe</h4>
                 </div>
                 <!-- Testimonial 2 -->
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
-                    <p class="text-lg italic">"Depuis que j'utilise AromaMade PRO, j'ai constaté une augmentation notable de ma clientèle. C'est devenu un outil indispensable pour mon activité."</p>
-                    <h4 class="mt-4 font-bold">— Pierre, Hypnothérapeute</h4>
+                    <p class="text-lg italic">"Étant thérapeute certifiée, je conseille fortement cette plate-forme pour les thérapeutes qui sont à la recherche d'une plate-forme entièrement dédiée à eux avec toutes les fonctionnalités à un prix très attractif. Prise de rendez-vous présentiel et visio, paiement en ligne, mise en avant des événements, facturation, visio intégrée... une équipe à l'écoute et super professionnelle"</p>
+                    <h4 class="mt-4 font-bold">— Marie-louise, Naturopathe</h4>
                 </div>
                 <!-- Add more testimonials if needed -->
             </div>
