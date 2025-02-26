@@ -247,7 +247,7 @@ Route::get('/thank-you', function () {
 // routes/web.php
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(function () {
 
 	 Route::get('/profile/license', [ProfileController::class, 'license'])->name('profile.license');
     Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
@@ -262,7 +262,7 @@ Route::middleware(['auth', \App\Http\Middleware\TrackPageViews::class])->group(f
 });
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(function () {
     // Liste des disponibilités de l'utilisateur authentifié
     Route::get('/availabilities', [AvailabilityController::class, 'index'])->name('availabilities.index');
 
@@ -288,7 +288,7 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:delete,availability');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(function () {
     // Liste des produits de l'utilisateur authentifié
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
@@ -329,7 +329,7 @@ Route::prefix('onboarding')->middleware('auth')->group(function () {
 
 
 
-Route::middleware(['auth', 'can:viewAny,App\Models\Invoice'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class, 'can:viewAny,App\Models\Invoice'])->group(function () {
     // Liste de toutes les factures de l'utilisateur connecté
    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'generatePDF'])->name('invoices.pdf')->middleware('can:view,invoice');
 
@@ -362,7 +362,7 @@ Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.st
 
 // Session Notes Routes
 
-Route::middleware(['auth', 'can:viewAny,App\Models\ClientProfile'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class, 'can:viewAny,App\Models\ClientProfile'])->group(function () {
     Route::get('/client_profiles/{clientProfile}/session_notes', [SessionNoteController::class, 'index'])->name('session_notes.index');
     Route::get('/client_profiles/{clientProfile}/session_notes/create', [SessionNoteController::class, 'create'])->name('session_notes.create');
     Route::post('/client_profiles/{clientProfile}/session_notes', [SessionNoteController::class, 'store'])->name('session_notes.store');
@@ -377,7 +377,7 @@ Route::middleware(['auth', 'can:viewAny,App\Models\ClientProfile'])->group(funct
 
 
 // Client Profiles Routes
-Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAny,App\Models\ClientProfile'])->group(function () {
     Route::get('/client_profiles', [ClientProfileController::class, 'index'])->name('client_profiles.index'); // Show all client profiles
     Route::get('/client_profiles/create', [ClientProfileController::class, 'create'])->name('client_profiles.create'); // Show form to create a client profile
     Route::post('/client_profiles', [ClientProfileController::class, 'store'])->name('client_profiles.store'); // Handle form submission for creating a client profile
@@ -395,7 +395,7 @@ Route::post('/appointments/available-dates', [AppointmentController::class, 'get
 // Route pour récupérer les jours disponibles en fonction de la prestation et du thérapeute
 Route::post('/appointments/available-dates-patient', [AppointmentController::class, 'availableDatesPatient'])->name('appointments.available-dates-patient');
 
-Route::middleware(['auth','can:viewAny,App\Models\ClientProfile'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAny,App\Models\ClientProfile'])->group(function () {
    
    
     Route::post('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
@@ -499,7 +499,7 @@ Route::put('/admin/marketing/templates/{id}', [EmailTemplateController::class, '
 Route::post('/admin/marketing/templates/send-test-mail', [EmailTemplateController::class, 'sendTestMail'])->name('send.test.mail');
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(function () {
     Route::get('/upgrade/license', [UserLicenseController::class, 'showUpgradePage'])->name('upgrade.license');
     Route::post('/upgrade/license/process', [UserLicenseController::class, 'processLicenseUpgrade'])->name('upgrade.license.process');
 });
