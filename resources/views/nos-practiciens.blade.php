@@ -118,7 +118,7 @@
               Disponibilité & Flexibilité
             </h3>
             <p class="text-[#647a0b]">
-              Prenez rendez-vous en quelques clics, que ce soit en cabinet ou en téléconsultation, selon vos disponibilités.
+              Prenez rendez-vous en quelques clics, que ce soit en cabinet, à domicile ou en téléconsultation, selon vos disponibilités.
             </p>
           </div>
         </div>
