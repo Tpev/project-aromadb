@@ -64,4 +64,85 @@ public function index(Request $request)
 
         return view('therapists.show', compact('therapist'));
     }
+	
+
+    /**
+     * Filter by specialty only.
+     *
+     * URL: /practicien-{specialty}
+     * Example: /practicien-hypnothérapeute
+     */
+    public function filterBySpecialty($specialty)
+    {
+        // Convert hyphens to spaces (e.g. "hypnothérapeute" => "hypnothérapeute")
+        $specialtySearch = str_replace('-', ' ', $specialty);
+
+        $therapists = User::query()
+            ->where('is_therapist', true)
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '')
+            ->where('visible_annuarire_admin_set', true)
+            ->where('services', 'like', '%' . $specialtySearch . '%')
+            ->get();
+
+        return view('results', compact('therapists', 'specialty'));
+    }
+
+    /**
+     * Filter by region only.
+     *
+     * URL: /region-{region}
+     * Example: /region-ile-de-france
+     */
+    public function filterByRegion($region)
+    {
+        // Replace hyphens with spaces and convert to title case to match DB values.
+        $regionSearch = str_replace('-', ' ', $region);
+        $regionSearch = mb_convert_case($regionSearch, MB_CASE_TITLE, 'UTF-8');
+
+        $therapists = User::query()
+            ->where('is_therapist', true)
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '')
+            ->where('visible_annuarire_admin_set', true)
+            ->where(function($q) use ($regionSearch) {
+                $q->where('city_setByAdmin', 'like', '%' . $regionSearch . '%')
+                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%');
+            })
+            ->get();
+
+        return view('results', compact('therapists', 'region'));
+    }
+
+    /**
+     * Filter by both specialty and region.
+     *
+     * URL: /practicien-{specialty}-region-{region}
+     * Example: /practicien-hypnothérapeute-region-ile-de-france
+     */
+    public function filterBySpecialtyRegion($specialty, $region)
+    {
+        $specialtySearch = str_replace('-', ' ', $specialty);
+        $regionSearch = str_replace('-', ' ', $region);
+        $regionSearch = mb_convert_case($regionSearch, MB_CASE_TITLE, 'UTF-8');
+
+        $therapists = User::query()
+            ->where('is_therapist', true)
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '')
+            ->where('visible_annuarire_admin_set', true)
+            ->where('services', 'like', '%' . $specialtySearch . '%')
+            ->where(function($q) use ($regionSearch) {
+                $q->where('city_setByAdmin', 'like', '%' . $regionSearch . '%')
+                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%');
+            })
+            ->get();
+
+        return view('results', compact('therapists', 'specialty', 'region'));
+    }
+
+
+
+	
+	
 }

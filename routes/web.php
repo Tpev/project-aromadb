@@ -42,6 +42,34 @@ use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\TherapistSearchController;
 use App\Models\BlogPost;
 
+Route::get('/sitemap-practicien.xml', function () {
+    return response()
+        ->view('sitemap-test')
+        ->header('Content-Type', 'application/xml');
+})->name('sitemap-test');
+
+
+//// SEO PAGE FOR ANNUAIRE
+// Filtrer par région uniquement (ex : /region-ile-de-france)
+
+// Combined filter: specialty and region
+Route::get('/practicien-{specialty}-region-{region}', [TherapistSearchController::class, 'filterBySpecialtyRegion'])
+    ->name('therapists.filter.specialty-region');
+
+// Filter by region only
+Route::get('/region-{region}', [TherapistSearchController::class, 'filterByRegion'])
+    ->name('therapists.filter.region');
+
+// Filter by specialty only
+Route::get('/practicien-{specialty}', [TherapistSearchController::class, 'filterBySpecialty'])
+    ->name('therapists.filter.specialty');
+
+
+
+
+
+
+
 Route::match(['get', 'post'], '/recherche-practicien', [TherapistSearchController::class, 'index'])
     ->name('therapists.search');
 
@@ -414,6 +442,7 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
         return view('welcome');
     })->name('welcome');
 	Route::get('/formation/Utilisateur-Aromatherapie{numero}', [App\Http\Controllers\FormationController::class, 'show'])->name('formation.show');
+	Route::get('/formation/Therapeute-Sales{numero}', [App\Http\Controllers\FormationController::class, 'show1'])->name('formation.show1');
 	
     // Other routes
 	Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
@@ -429,7 +458,11 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
 	
 	    Route::get('/IntroductionAromatherapie', function () {
         return view('formation1');
-    })->name('formation1');
+    })->name('formation1');	    
+	
+	Route::get('/IntroductionSales', function () {
+        return view('formation2');
+    })->name('formation2');
 	
 	 Route::get('/huilehe/proprietes', [HuileHEController::class, 'showhuilehepropriete'])->name('huilehes.showhuilehepropriete');
 	// Route for displaying all blog posts in the index page

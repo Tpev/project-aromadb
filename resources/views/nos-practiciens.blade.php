@@ -37,76 +37,49 @@
         <p class="max-w-3xl mx-auto text-lg sm:text-xl mb-8 text-[#647a0b]">
           Sophrologie, naturopathie, ostéopathie… Parcourez notre sélection rigoureuse de professionnels du bien-être pour prendre soin de vous en toute sérénité.
         </p>
-        <!-- Two-Step Responsive Search Form -->
-        <div class="bg-white border border-gray-200 rounded-full p-4 sm:p-6 inline-block shadow-xl">
-          <form action="{{ route('therapists.search') }}" method="POST" class="flex flex-wrap items-center gap-4">
-            @csrf
-            <!-- Specialty Dropdown with Autocomplete -->
-            <div class="w-full sm:w-64">
-              <input type="text" name="specialty" id="specialty" 
-                     class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-                     placeholder="Spécialité" 
-                     list="specialties">
-              <datalist id="specialties">
-                <option value="Hypnothérapeute"></option>
-                <option value="Sophrologue"></option>
-                <option value="Massage bien-être"></option>
-                <option value="Réflexologue"></option>
-                <option value="Naturopathe"></option>
-                <option value="Psychopraticien"></option>
-                <option value="Coach de vie"></option>
-                <option value="Ostéopathe"></option>
-                <option value="Diététicien Nutritionniste"></option>
-                <option value="Chiropracteur"></option>
-                <option value="Médecin acupuncteur"></option>
-                <option value="Psychologue"></option>
-                <option value="Coach PNL"></option>
-                <option value="Coach professionnel"></option>
-                <option value="Enseignant en méditation"></option>
-                <option value="Professeur de Yoga"></option>
-                <option value="Praticien EFT"></option>
-                <option value="Kinésiologue"></option>
-                <option value="Relaxologue"></option>
-                <option value="Aromathérapeute"></option>
-                <option value="Énergétique Traditionnelle Chinoise"></option>
-                <option value="Sexologue"></option>
-                <option value="Sonothérapeute"></option>
-                <option value="Fasciathérapeute"></option>
-                <option value="Neurothérapeute"></option>
-                <option value="Herboriste"></option>
-                <option value="Psychanalyste"></option>
-                <option value="Art-thérapeute"></option>
-                <option value="Psychomotricien"></option>
-                <option value="Phytothérapeute"></option>
-                <option value="Etiopathe"></option>
-                <option value="Posturologue"></option>
-                <option value="Professeur de Pilates"></option>
-                <option value="Coach parental et familial"></option>
-                <option value="Danse-thérapeute"></option>
-                <option value="Musicothérapeute"></option>
-                <option value="Praticien en Ayurvéda"></option>
-                <option value="Praticien en Gestalt"></option>
-                <option value="Praticien en thérapies brèves"></option>
-                <option value="Yoga thérapie"></option>
-                <option value="Somatopathe"></option>
-                <option value="Praticien massage Shiatsu"></option>
-              </datalist>
-            </div>
-            <!-- Location Input -->
-            <div class="w-full sm:w-64">
-              <input type="text" name="location" id="location" 
-                     class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-                     placeholder="Lieu (ville ou région)">
-            </div>
-            <!-- Search Button with Icon -->
-            <button type="submit" class="btn btn-primary inline-flex items-center whitespace-nowrap">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <span class="inline-block">Rechercher</span>
-            </button>
-          </form>
-        </div>
+    <!-- Search Form Container -->
+<div class="flex justify-center mb-8 px-4">
+  <div class="w-full max-w-3xl bg-white border border-gray-200 rounded-lg sm:rounded-full p-3 sm:p-6 shadow-xl">
+    <form action="{{ route('therapists.search') }}" method="POST" class="flex flex-col sm:flex-row gap-4 w-full">
+      @csrf
+      <!-- Specialty Dropdown (with Autocomplete) -->
+      <div class="flex-1">
+        <label for="specialty" class="sr-only">Spécialité</label>
+        <input 
+          type="text" 
+          name="specialty" 
+          id="specialty" 
+          class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
+          placeholder="Spécialité" 
+          list="specialties"
+        >
+        <datalist id="specialties">
+          <!-- Options... -->
+        </datalist>
+      </div>
+
+      <!-- Location Input -->
+      <div class="flex-1">
+        <label for="location" class="sr-only">Lieu</label>
+        <input 
+          type="text" 
+          name="location" 
+          id="location" 
+          class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
+          placeholder="Lieu (ville ou région)"
+        >
+      </div>
+
+      <!-- Search Button with Icon -->
+      <div class="flex-shrink-0 flex items-center">
+        <button type="submit" class="btn btn-primary w-full sm:w-auto">
+          <i class="fas fa-search"></i>
+          <span>Rechercher</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
       </div>
     </div>
   </section>
