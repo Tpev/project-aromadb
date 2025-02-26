@@ -21,20 +21,14 @@ public function index(Request $request)
         'location'  => 'nullable|string',
     ]);
 
-    // Start the query for therapists only and filter out those without a slug,
-    // and only show those that are set visible by admin.
+    // Base query for therapists
     $query = User::query()
         ->where('is_therapist', true)
         ->whereNotNull('slug')
         ->where('slug', '!=', '')
         ->where('visible_annuarire_admin_set', true);
 
-    // Filter by specialty if provided.
-    // if (!empty($data['specialty'])) {
-    //     $query->where('services', 'like', '%' . $data['specialty'] . '%');
-    // }
-
-    // Filter by location if provided, checking both city and region.
+    // Apply location filter if provided (checks both city and region)
     if (!empty($data['location'])) {
         $query->where(function($q) use ($data) {
             $q->where('city_setByAdmin', 'like', '%' . $data['location'] . '%')
@@ -42,11 +36,24 @@ public function index(Request $request)
         });
     }
 
-    // Get all matching therapist users
+    // (Optional) You can add a specialty filter here if needed:
+    // if (!empty($data['specialty'])) {
+    //     $query->where('services', 'like', '%' . $data['specialty'] . '%');
+    // }
+
+    // Get all matching therapists
     $therapists = $query->get();
 
-    return view('results', compact('therapists'));
+    // Map input fields to variables expected in the view
+    $specialty = $data['specialty'] ?? null;
+    // Use 'location' as 'region' for your blade logic
+    $region = $data['location'] ?? null;
+
+    return view('results', compact('therapists', 'specialty', 'region'));
 }
+
+
+
 
 
 

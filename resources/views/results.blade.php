@@ -96,47 +96,50 @@
         </h2>
     </x-slot>
 
-    <!-- Dynamic H1 Section -->
-    @php
-        if(isset($specialty) && isset($region)) {
-            $h1Text = "Trouvez les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region));
-        } elseif(isset($specialty)) {
-            $h1Text = "Trouvez les meilleurs " . ucfirst(str_replace('-', ' ', $specialty));
-        } elseif(isset($region)) {
-            $h1Text = "Trouvez les praticiens dans la région " . ucfirst(str_replace('-', ' ', $region));
-        } else {
-            // $h1Text = "Trouvez les meilleurs praticiens en médecines douces";
-        }
-    @endphp
+<!-- Dynamic H1 Section -->
+@php
+    if (isset($specialty) && isset($region)) {
+        $h1Text = "Trouvez les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region));
+    } elseif (isset($specialty)) {
+        $h1Text = "Trouvez les meilleurs " . ucfirst(str_replace('-', ' ', $specialty));
+    } elseif (isset($region)) {
+        $h1Text = "Trouvez les praticiens dans la région " . ucfirst(str_replace('-', ' ', $region));
+    } else {
+        // Fallback when no criteria are provided
+        $h1Text = "Trouvez les meilleurs praticiens en médecines douces";
+    }
+@endphp
 
-    <div class="py-4 px-4 sm:px-6 lg:px-8">
-        <h1 class="font-bold text-center mb-4 text-3xl md:text-5xl" style="color: #647a0b;">
-            <i class="fas fa-trophy mr-2"></i> {{ $h1Text }}
-        </h1>
-    </div>
+<div class="py-4 px-4 sm:px-6 lg:px-8">
+    <h1 class="font-bold text-center mb-4 text-3xl md:text-5xl" style="color: #647a0b;">
+        <i class="fas fa-trophy mr-2"></i> {{ $h1Text }}
+    </h1>
+</div>
 
-    <!-- Subheading (Dynamic H2) -->
-    @php
-        if(isset($specialty) && isset($region)) {
-            $spec = ucfirst(str_replace('-', ' ', $specialty));
-            $reg  = ucfirst(str_replace('-', ' ', $region));
-            $h2Text = "Annuaire de {$spec} dans la {$reg} : consultez les prix et avis, posez vos questions et prenez rendez-vous. Rechercher un bon {$spec} sérieux à proximité autour de moi.";
-        } elseif(isset($specialty)) {
-            $spec = ucfirst(str_replace('-', ' ', $specialty));
-            $h2Text = "Annuaire de {$spec} : consultez les prix et avis, posez vos questions et prenez rendez-vous. Rechercher un bon {$spec} sérieux à proximité autour de moi.";
-        } elseif(isset($region)) {
-            $reg = ucfirst(str_replace('-', ' ', $region));
-            $h2Text = "Annuaire des praticiens dans la {$reg} : consultez les prix et avis, posez vos questions et prenez rendez-vous.";
-        } else {
-            $h2Text = "Annuaire des praticiens en médecines douces : consultez les prix et avis, posez vos questions et prenez rendez-vous.";
-        }
-    @endphp
 
-    <div class="py-2 px-4 sm:px-6 lg:px-8">
-        <h2 class="font-semibold text-center mb-8 text-xl md:text-2xl" style="color: #854f38;">
-            {{ $h2Text }}
-        </h2>
-    </div>
+<!-- Dynamic H2 Section -->
+@php
+    if (isset($specialty) && isset($region)) {
+        $spec = ucfirst(str_replace('-', ' ', $specialty));
+        $reg  = ucfirst(str_replace('-', ' ', $region));
+        $h2Text = "Annuaire de {$spec} dans la {$reg} : consultez les prix et avis, posez vos questions et prenez rendez-vous. Recherchez un bon {$spec} sérieux à proximité autour de moi.";
+    } elseif (isset($specialty)) {
+        $spec = ucfirst(str_replace('-', ' ', $specialty));
+        $h2Text = "Annuaire de {$spec} : consultez les prix et avis, posez vos questions et prenez rendez-vous. Recherchez un bon {$spec} sérieux à proximité autour de moi.";
+    } elseif (isset($region)) {
+        $reg = ucfirst(str_replace('-', ' ', $region));
+        $h2Text = "Annuaire des praticiens dans la {$reg} : consultez les prix et avis, posez vos questions et prenez rendez-vous.";
+    } else {
+        $h2Text = "Annuaire des praticiens en médecines douces : consultez les prix et avis, posez vos questions et prenez rendez-vous.";
+    }
+@endphp
+
+<div class="py-2 px-4 sm:px-6 lg:px-8">
+    <h2 class="font-semibold text-center mb-8 text-xl md:text-2xl" style="color: #854f38;">
+        <i class="fas fa-address-book mr-2"></i> {{ $h2Text }}
+    </h2>
+</div>
+
 
     <!-- Search Form Container -->
     <div class="flex justify-center mb-8 px-4">
