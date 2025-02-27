@@ -1,5 +1,7 @@
 <x-app-layout>
-
+    @section('meta_description')
+        Bienvenue sur AromaMade, le portail tout-en-un dédié au bien-être : découvrez un annuaire de thérapeutes certifiés, des ressources expertes, des événements inspirants, des formations.
+    @endsection
     <!-- Hero Section with Logo and Search Bar -->
     <div class="hero bg-cover bg-center flex flex-col items-center justify-center text-white" style="background-image: url('{{ asset('images/hero-background.webp') }}'); height: 60vh;">
         <div class="container mx-auto text-center">
