@@ -123,12 +123,23 @@
             <!-- Single-row horizontal scroll -->
             <div class="flex overflow-x-auto space-x-4">
                 @foreach($events as $event)
-                    <div class="flex-shrink-0 w-80 border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
+                    <!-- Event Card -->
+                    <div class="flex-shrink-0 w-80 border border-gray-200 rounded-lg
+                                overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white
+                                flex flex-col">
+                        <!-- Event Image -->
                         @if($event->image)
-                            <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-48 object-cover">
+                            <img src="{{ asset('storage/' . $event->image) }}"
+                                 alt="{{ $event->name }}"
+                                 class="w-full h-48 object-cover">
                         @endif
-                        <div class="p-6">
-                            <h4 class="text-2xl font-semibold text-[#854f38]">{{ $event->name }}</h4>
+
+                        <!-- Event Content -->
+                        <div class="p-6 flex-grow flex flex-col">
+                            <!-- Title & Date -->
+                            <h4 class="text-2xl font-semibold text-[#854f38]">
+                                {{ $event->name }}
+                            </h4>
                             <p class="mt-2 text-gray-600">
                                 <i class="fas fa-calendar-alt mr-1 text-[#854f38]"></i>
                                 {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
@@ -138,7 +149,7 @@
                                 {{ $event->location }}
                             </p>
 
-                            <!-- Mention of the user responsible for the event, clickable -->
+                            <!-- Organizer -->
                             @if($event->user)
                                 <p class="text-gray-600 mt-1">
                                     <i class="fas fa-user mr-1 text-[#854f38]"></i>
@@ -146,11 +157,12 @@
                                     <a href="{{ route('therapist.show', $event->user->slug) }}"
                                        class="text-blue-600 underline"
                                        title="Voir le profil de {{ $event->user->name }}">
-                                       {{ $event->user->name }}
+                                        {{ $event->user->name }}
                                     </a>
                                 </p>
                             @endif
 
+                            <!-- Spots / Price -->
                             @if($event->limited_spot)
                                 <p class="text-gray-600 mt-1">
                                     <i class="fas fa-users mr-1 text-[#854f38]"></i>
@@ -158,42 +170,29 @@
                                     {{ $event->number_of_spot - $event->reservations->count() }}
                                 </p>
                             @endif
-                            
+
                             @if($event->associatedProduct && $event->associatedProduct->price > 0)
                                 <p class="text-gray-600 mt-1">
                                     <i class="fas fa-tag mr-1 text-[#854f38]"></i>
-                                    {{ __('Prix :') }} 
+                                    {{ __('Prix :') }}
                                     {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
                                 </p>
                             @endif
-                            
-							<!-- Event Description with "Lire plus" toggle -->
-							<div x-data="{ showFull: false }" class="mt-4 text-gray-700">
-								<!-- Short excerpt shown when showFull = false -->
-								<p x-show="!showFull">{{ Str::limit($event->description, 80) }}</p>
 
-								<!-- Full description shown when showFull = true -->
-								<p x-show="showFull">{{ $event->description }}</p>
-
-								@if(strlen($event->description) > 80)
-									<!-- Toggle button -->
-									<button
-										@click="showFull = !showFull"
-										class="text-blue-600 underline text-sm mt-2"
-									>
-										<span x-show="!showFull">Lire plus</span>
-										<span x-show="showFull">Réduire</span>
-									</button>
-								@endif
-							</div>
+                            <!-- Description -->
+                            <p class="mt-4 text-gray-700">
+                                {{ Str::limit($event->description, 80) }}
+                            </p>
 
                             @php
                                 $spotsLeft = $event->limited_spot
                                     ? $event->number_of_spot - $event->reservations->count()
                                     : null;
                             @endphp
-                            @if($event->booking_required)
-                                <div class="mt-6">
+
+                            <!-- Booking Button aligned at bottom -->
+                            <div class="mt-auto pt-4">
+                                @if($event->booking_required)
                                     @if(!$event->limited_spot || ($spotsLeft > 0))
                                         <a href="{{ route('events.reserve.create', $event->id) }}"
                                            class="inline-block bg-[#854f38] text-white text-sm px-6 py-2 rounded-full
@@ -201,19 +200,20 @@
                                             {{ __('Réserver') }}
                                         </a>
                                     @else
-                                        <p class="text-red-500 font-semibold">{{ __('Complet') }}</p>
+                                        <p class="text-red-500 font-semibold text-sm">{{ __('Complet') }}</p>
                                     @endif
-                                </div>
-                            @endif
-                        </div>
-                    </div>
+                                @endif
+                            </div>
+                        </div> <!-- .p-6 .flex-grow -->
+                    </div> <!-- .flex-shrink-0 -->
                 @endforeach
-            </div>
+            </div> <!-- .flex overflow-x-auto -->
         @else
             <p class="mt-6 text-gray-600">{{ __('Aucun événement à venir pour le moment.') }}</p>
         @endif
     </div>
 </section>
+
 
 
     <!-- New Section for Additional Features -->
