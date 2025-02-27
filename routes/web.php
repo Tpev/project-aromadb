@@ -41,6 +41,7 @@ use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\TherapistSearchController;
 use App\Models\BlogPost;
+use App\Models\Event;
 
 Route::get('/sitemap-practicien.xml', function () {
     return response()
@@ -434,9 +435,19 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
         return view('prolanding');
     })->name('prolanding');
     // Route to the welcome page directly returning the welcome view
-    Route::get('/', function () {
-        return view('welcome');
-    })->name('welcome');
+Route::get('/', function () {
+    // Fetch upcoming events from users with visible_annuarire_admin_set = true
+    $events = Event::with('user')
+        ->whereHas('user', function($query) {
+            $query->where('visible_annuarire_admin_set', true);
+        })
+        ->where('start_date_time', '>', now())
+        ->orderBy('start_date_time', 'asc')
+        ->take(5)
+        ->get();
+
+    return view('welcome', compact('events'));
+})->name('welcome');
 	Route::get('/formation/Utilisateur-Aromatherapie{numero}', [App\Http\Controllers\FormationController::class, 'show'])->name('formation.show');
 	Route::get('/formation/Therapeute-Sales{numero}', [App\Http\Controllers\FormationController::class, 'show1'])->name('formation.show1');
 	
