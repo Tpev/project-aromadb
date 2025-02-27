@@ -37,7 +37,7 @@
             margin: 0 auto;
             padding: 0 15px;
             position: relative;
-            z-index: 1; /* Ensure content is above the video */
+            z-index: 1;
         }
         .mt-5 {
             margin-top: 2rem;
@@ -63,7 +63,7 @@
         }
         /* Table Styles */
         .table-responsive {
-            background-color: rgba(42, 42, 60, 0.8); /* Semi-transparent background */
+            background-color: rgba(42, 42, 60, 0.8);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 40px;
@@ -77,7 +77,7 @@
             border-collapse: collapse;
         }
         .table thead {
-            background: rgba(58, 58, 79, 0.8); /* Semi-transparent */
+            background: rgba(58, 58, 79, 0.8);
         }
         .table thead th {
             padding: 15px;
@@ -145,7 +145,7 @@
         /* Progress Bar */
         .progress-bar {
             width: 100%;
-            background-color: rgba(58, 58, 79, 0.8); /* Semi-transparent */
+            background-color: rgba(58, 58, 79, 0.8);
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 5px;
@@ -173,7 +173,7 @@
             stroke-width: 10;
         }
         .radial-progress circle:first-child {
-            stroke: rgba(58, 58, 79, 0.8); /* Semi-transparent */
+            stroke: rgba(58, 58, 79, 0.8);
         }
         .radial-progress circle:last-child {
             stroke: url(#radialGradient);
@@ -216,7 +216,7 @@
             border-radius: 5px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(42, 42, 60, 0.8); /* Semi-transparent */
+            background: rgba(42, 42, 60, 0.8);
         }
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -232,7 +232,7 @@
             }
             .table tr {
                 margin-bottom: 15px;
-                background: rgba(42, 42, 60, 0.8); /* Semi-transparent */
+                background: rgba(42, 42, 60, 0.8);
                 border-radius: 10px;
                 padding: 10px;
             }
@@ -298,6 +298,13 @@
                 </thead>
                 <tbody>
                     @foreach($therapists as $therapist)
+                        @php
+                            // Calculate days differences using Carbon (absolute value)
+                            $daysSinceSignup = \Carbon\Carbon::now()->diffInDays($therapist->created_at);
+                            $daysSinceLogin = $therapist->last_login_at 
+                                ? \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($therapist->last_login_at))
+                                : null;
+                        @endphp
                         <tr class="text-center">
                             <td data-label="ID">{{ $therapist->id }}</td>
                             <td data-label="Therapist" class="text-wrap">
@@ -321,12 +328,12 @@
                             <td data-label="Created At" class="text-wrap">
                                 {{ $therapist->created_at->setTimezone('Europe/Paris')->format('d/m/Y') }}
                             </td>
-                            <td data-label="Days Since Sign-up">
-                                {{ \Carbon\Carbon::now()->diffInDays($therapist->created_at) }}
+                            <td data-label="Days Since Sign-up" data-sort="{{ $daysSinceSignup }}">
+                                {{ $daysSinceSignup }}
                             </td>
-                            <td data-label="Days Since Last Login">
-                                @if($therapist->last_login_at)
-                                    {{ \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($therapist->last_login_at)) }}
+                            <td data-label="Days Since Last Login" data-sort="{{ $daysSinceLogin ?? 99999 }}">
+                                @if($daysSinceLogin !== null)
+                                    {{ $daysSinceLogin }}
                                 @else
                                     N/A
                                 @endif
@@ -354,19 +361,16 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const table = document.getElementById("therapistsTable");
-            // Get header elements for sorting
             const sortLastLoginHeader = document.getElementById("sortLastLogin");
             const sortCreatedAtHeader = document.getElementById("sortCreatedAt");
             const sortDaysSinceSignupHeader = document.getElementById("sortDaysSinceSignup");
             const sortDaysSinceLoginHeader = document.getElementById("sortDaysSinceLogin");
 
-            // Sorting flags for each sortable column
             let ascLastLogin = true;
             let ascCreatedAt = true;
             let ascDaysSinceSignup = true;
             let ascDaysSinceLogin = true;
 
-            // Event listeners
             sortLastLoginHeader.addEventListener("click", function() {
                 sortTableByColumn(table, 3, ascLastLogin, parseDate);
                 ascLastLogin = !ascLastLogin;
@@ -388,9 +392,12 @@
                 const tbody = table.tBodies[0];
                 const rows = Array.from(tbody.querySelectorAll("tr"));
                 rows.sort((a, b) => {
-                    const aText = a.querySelectorAll("td")[columnIndex].textContent.trim();
-                    const bText = b.querySelectorAll("td")[columnIndex].textContent.trim();
-                    return asc ? parseFn(aText) - parseFn(bText) : parseFn(bText) - parseFn(aText);
+                    // Try to read data-sort attribute first, fallback to cell text
+                    const aCell = a.querySelectorAll("td")[columnIndex];
+                    const bCell = b.querySelectorAll("td")[columnIndex];
+                    const aVal = aCell.getAttribute("data-sort") || aCell.textContent.trim();
+                    const bVal = bCell.getAttribute("data-sort") || bCell.textContent.trim();
+                    return asc ? parseFn(aVal) - parseFn(bVal) : parseFn(bVal) - parseFn(aVal);
                 });
                 rows.forEach(row => tbody.appendChild(row));
             }
@@ -410,7 +417,7 @@
             }
 
             function parseNumber(text) {
-                return text === "N/A" ? -1 : parseFloat(text);
+                return parseFloat(text);
             }
         });
     </script>
