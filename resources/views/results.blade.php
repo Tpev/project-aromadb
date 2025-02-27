@@ -141,49 +141,54 @@
 </div>
 
 
-    <!-- Search Form Container -->
-    <div class="flex justify-center mb-8 px-4">
-        <div class="w-full max-w-3xl bg-white border border-gray-200 rounded-lg sm:rounded-full p-3 sm:p-6 shadow-xl">
+        <!-- Search Form Container -->
+        <div class="flex justify-center mb-8 px-4">
+          <div class="w-full max-w-3xl bg-white border border-gray-200 rounded-lg sm:rounded-full p-3 sm:p-6 shadow-xl">
             <form action="{{ route('therapists.search') }}" method="POST" class="flex flex-col sm:flex-row gap-4 w-full">
-                @csrf
-                <!-- Specialty Dropdown (with Autocomplete) -->
-                <div class="flex-1">
-                    <label for="specialty" class="sr-only">Spécialité</label>
-                    <input 
-                        type="text" 
-                        name="specialty" 
-                        id="specialty" 
-                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-                        placeholder="Spécialité" 
-                        list="specialties"
-                    >
-                    <datalist id="specialties">
-                        <!-- Options... -->
-                    </datalist>
-                </div>
+              @csrf
+              <!-- Specialty Dropdown (with Autocomplete) -->
+              <div class="flex-1">
+                <label for="specialty" class="sr-only">Spécialité</label>
+                <input 
+                  type="text" 
+                  name="specialty" 
+                  id="specialty" 
+                  class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
+                  placeholder="Spécialité" 
+                  list="specialties"
+                >
+                <datalist id="specialties">
+                  <!-- Populated dynamically by JavaScript -->
+                </datalist>
+              </div>
 
-                <!-- Location Input -->
-                <div class="flex-1">
-                    <label for="location" class="sr-only">Lieu</label>
-                    <input 
-                        type="text" 
-                        name="location" 
-                        id="location" 
-                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-                        placeholder="Lieu (ville ou région)"
-                    >
-                </div>
+   <!-- Location Autocomplete -->
+              <div class="flex-1">
+                <label for="location" class="sr-only">Lieu</label>
+                <input 
+                  type="text"
+                  name="location"
+                  id="location"
+                  class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
+                  placeholder="Lieu (ville ou région)"
+                  list="regions" <!-- new datalist for regions -->
+                
+                <datalist id="regions">
+                  <!-- Populated by JS for regions -->
+                </datalist>
+              </div>
 
-                <!-- Search Button with Icon -->
-                <div class="flex-shrink-0 flex items-center">
-                    <button type="submit" class="btn btn-primary w-full sm:w-auto">
-                        <i class="fas fa-search"></i>
-                        <span>Rechercher</span>
-                    </button>
-                </div>
+
+              <!-- Search Button with Icon -->
+              <div class="flex-shrink-0 flex items-center">
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                  <i class="fas fa-search"></i>
+                  <span>Rechercher</span>
+                </button>
+              </div>
             </form>
+          </div>
         </div>
-    </div>
 
     <!-- Page Content -->
     <div class="py-8">
@@ -303,6 +308,69 @@
       }
       [x-cloak] { display: none !important; }
   </style>
+    <!-- Autocomplete Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const specialtyInput = document.getElementById('specialty');
+      const dataList = document.getElementById('specialties');
+
+      specialtyInput.addEventListener('input', function () {
+        const term = this.value.trim();
+
+        if (term.length > 0) {
+          fetch('{{ route('autocomplete.specialties') }}?term=' + encodeURIComponent(term))
+            .then(response => response.json())
+            .then(data => {
+              // Clear previous options
+              dataList.innerHTML = '';
+
+              // Populate the datalist with new options
+              data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                dataList.appendChild(option);
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching specialties:', error);
+            });
+        } else {
+          // Clear if input is empty
+          dataList.innerHTML = '';
+        }
+      });
+    });
+	
+	      // ========== REGION AUTOCOMPLETE ==========
+      const regionInput = document.getElementById('location');
+      const regionsDataList = document.getElementById('regions');
+
+      regionInput.addEventListener('input', function () {
+        const term = this.value.trim();
+
+        if (term.length > 0) {
+          fetch('{{ route('autocomplete.regions') }}?term=' + encodeURIComponent(term))
+            .then(response => response.json())
+            .then(data => {
+              // Clear existing options
+              regionsDataList.innerHTML = '';
+
+              // Populate new options
+              data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                regionsDataList.appendChild(option);
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching regions:', error);
+            });
+        } else {
+          regionsDataList.innerHTML = '';
+        }
+      });
+
+  </script>
     <!-- Footer Slot -->
     <x-slot name="footer">
         @include('layouts.footer')

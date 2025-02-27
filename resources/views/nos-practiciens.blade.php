@@ -3,8 +3,11 @@
   <x-slot name="head">
     <meta name="description" content="Découvrez des praticiens certifiés en médecines douces pour votre bien-être. Sophrologie, naturopathie, ostéopathie et plus encore.">
     <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pVgOFDHlfxgzlRfVWYW52IGgh3FQxF71+oR4U77wCQuQ0+NfjVul2Oo+5hC5R9fGhO+I3Ff9Nd36/6V6G4a2ug==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <link rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+          integrity="sha512-pVgOFDHlfxgzlRfVWYW52IGgh3FQxF71+oR4U77wCQuQ0+NfjVul2Oo+5hC5R9fGhO+I3Ff9Nd36/6V6G4a2ug==" 
+          crossorigin="anonymous" 
+          referrerpolicy="no-referrer" />
   </x-slot>
 
   <!-- Header Slot -->
@@ -37,49 +40,55 @@
         <p class="max-w-3xl mx-auto text-lg sm:text-xl mb-8 text-[#647a0b]">
           Sophrologie, naturopathie, ostéopathie… Parcourez notre sélection rigoureuse de professionnels du bien-être pour prendre soin de vous en toute sérénité.
         </p>
-    <!-- Search Form Container -->
-<div class="flex justify-center mb-8 px-4">
-  <div class="w-full max-w-3xl bg-white border border-gray-200 rounded-lg sm:rounded-full p-3 sm:p-6 shadow-xl">
-    <form action="{{ route('therapists.search') }}" method="POST" class="flex flex-col sm:flex-row gap-4 w-full">
-      @csrf
-      <!-- Specialty Dropdown (with Autocomplete) -->
-      <div class="flex-1">
-        <label for="specialty" class="sr-only">Spécialité</label>
-        <input 
-          type="text" 
-          name="specialty" 
-          id="specialty" 
-          class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-          placeholder="Spécialité" 
-          list="specialties"
-        >
-        <datalist id="specialties">
-          <!-- Options... -->
-        </datalist>
-      </div>
 
-      <!-- Location Input -->
-      <div class="flex-1">
-        <label for="location" class="sr-only">Lieu</label>
-        <input 
-          type="text" 
-          name="location" 
-          id="location" 
-          class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-          placeholder="Lieu (ville ou région)"
-        >
-      </div>
+        <!-- Search Form Container -->
+        <div class="flex justify-center mb-8 px-4">
+          <div class="w-full max-w-3xl bg-white border border-gray-200 rounded-lg sm:rounded-full p-3 sm:p-6 shadow-xl">
+            <form action="{{ route('therapists.search') }}" method="POST" class="flex flex-col sm:flex-row gap-4 w-full">
+              @csrf
+              <!-- Specialty Dropdown (with Autocomplete) -->
+              <div class="flex-1">
+                <label for="specialty" class="sr-only">Spécialité</label>
+                <input 
+                  type="text" 
+                  name="specialty" 
+                  id="specialty" 
+                  class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
+                  placeholder="Spécialité" 
+                  list="specialties"
+                >
+                <datalist id="specialties">
+                  <!-- Populated dynamically by JavaScript -->
+                </datalist>
+              </div>
 
-      <!-- Search Button with Icon -->
-      <div class="flex-shrink-0 flex items-center">
-        <button type="submit" class="btn btn-primary w-full sm:w-auto">
-          <i class="fas fa-search"></i>
-          <span>Rechercher</span>
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+   <!-- Location Autocomplete -->
+              <div class="flex-1">
+                <label for="location" class="sr-only">Lieu</label>
+                <input 
+                  type="text"
+                  name="location"
+                  id="location"
+                  class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
+                  placeholder="Lieu (ville ou région)"
+                  list="regions" <!-- new datalist for regions -->
+                
+                <datalist id="regions">
+                  <!-- Populated by JS for regions -->
+                </datalist>
+              </div>
+
+
+              <!-- Search Button with Icon -->
+              <div class="flex-shrink-0 flex items-center">
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">
+                  <i class="fas fa-search"></i>
+                  <span>Rechercher</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -188,9 +197,9 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8" x-show="revealBlog" x-transition.duration.700ms>
         @forelse($blogPosts as $post)
           <div class="bg-white shadow-xl rounded-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300">
-
-              <img src="{{ asset('images/' . $post->slug . '.webp') }}" alt="{{ $post->Title }}" class="w-full h-48 object-cover">
-
+            <img src="{{ asset('images/' . $post->slug . '.webp') }}" 
+                 alt="{{ $post->Title }}" 
+                 class="w-full h-48 object-cover">
             <div class="p-6 space-y-3">
               @if($post->Tags)
                 <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">
@@ -203,7 +212,8 @@
               <p class="text-xl text-[#647a0b]">
                 {{ Str::limit(strip_tags($post->Contents), 100) }}
               </p>
-              <a href="{{ route('blog.show', $post->slug) }}" class="text-[#854f38] font-medium hover:underline">
+              <a href="{{ route('blog.show', $post->slug) }}" 
+                 class="text-[#854f38] font-medium hover:underline">
                 Lire l’article
               </a>
             </div>
@@ -281,7 +291,10 @@
         Abonnez-vous à notre newsletter et recevez nos conseils exclusifs pour améliorer votre bien-être et rester informé(e) de nos actualités.
       </p>
       <form action="#" method="POST" class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
-        <input type="email" placeholder="Ex: jane.doe@gmail.com" class="border border-gray-300 rounded-full px-4 py-2 focus:ring-[#647a0b] focus:border-[#647a0b] w-full sm:w-auto" required>
+        <input type="email" 
+               placeholder="Ex: jane.doe@gmail.com" 
+               class="border border-gray-300 rounded-full px-4 py-2 focus:ring-[#647a0b] focus:border-[#647a0b] w-full sm:w-auto" 
+               required>
         <button type="submit" class="btn btn-primary">
           S’abonner
         </button>
@@ -304,43 +317,75 @@
             <span class="font-semibold text-lg text-[#647a0b]">
               Comment se déroule la vérification des praticiens ?
             </span>
-            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#647a0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" 
+                 class="h-6 w-6 text-[#647a0b]" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    stroke-width="2" 
+                    d="M12 4v16m8-8H4"/>
             </svg>
-            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#647a0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" 
+                 class="h-6 w-6 text-[#647a0b]" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    stroke-width="2" 
+                    d="M20 12H4"/>
             </svg>
           </button>
           <div x-show="open" x-transition class="mt-4 text-[#647a0b]">
             Chaque praticien est soumis à un contrôle strict de ses diplômes et certifications pour assurer un service de qualité.
           </div>
         </div>
+
         <div x-data="{ open: false }" class="border border-gray-200 rounded-lg p-4">
           <button @click="open = !open" class="w-full text-left flex justify-between items-center focus:outline-none">
             <span class="font-semibold text-lg text-[#647a0b]">
               Puis-je consulter un praticien en téléconsultation ?
             </span>
-            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#647a0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" 
+                 class="h-6 w-6 text-[#647a0b]" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    stroke-width="2" 
+                    d="M12 4v16m8-8H4"/>
             </svg>
-            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#647a0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" 
+                 class="h-6 w-6 text-[#647a0b]" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    stroke-width="2" 
+                    d="M20 12H4"/>
             </svg>
           </button>
           <div x-show="open" x-transition class="mt-4 text-[#647a0b]">
             Oui, notre réseau regroupe des praticiens disponibles pour des consultations en cabinet et en téléconsultation, selon vos préférences.
           </div>
         </div>
+
         <div x-data="{ open: false }" class="border border-gray-200 rounded-lg p-4">
           <button @click="open = !open" class="w-full text-left flex justify-between items-center focus:outline-none">
             <span class="font-semibold text-lg text-[#647a0b]">
               Comment protéger mes données personnelles ?
             </span>
-            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#647a0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" 
+                 class="h-6 w-6 text-[#647a0b]" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    stroke-width="2" 
+                    d="M12 4v16m8-8H4"/>
             </svg>
-            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#647a0b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+            <svg x-show="open" xmlns="http://www.w3.org/2000/svg" 
+                 class="h-6 w-6 text-[#647a0b]" 
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" 
+                    stroke-linejoin="round" 
+                    stroke-width="2" 
+                    d="M20 12H4"/>
             </svg>
           </button>
           <div x-show="open" x-transition class="mt-4 text-[#647a0b]">
@@ -351,12 +396,13 @@
     </div>
   </section>
 
-
-  <!-- FAQ SECTION -->
+  <!-- FOOTER SLOT -->
   <x-slot name="footer">
     @include('layouts.footer')
   </x-slot>
-      <style>
+
+  <!-- Custom Styles & Alpine fallback for hidden -->
+  <style>
       /* Custom button styles */
       .btn {
         font-weight: 600;
@@ -379,6 +425,73 @@
       .btn-secondary:hover {
         background-color: #854f38;
       }
-      [x-cloak] { display: none !important; }
-    </style>
+      [x-cloak] {
+        display: none !important;
+      }
+  </style>
+
+  <!-- Autocomplete Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const specialtyInput = document.getElementById('specialty');
+      const dataList = document.getElementById('specialties');
+
+      specialtyInput.addEventListener('input', function () {
+        const term = this.value.trim();
+
+        if (term.length > 0) {
+          fetch('{{ route('autocomplete.specialties') }}?term=' + encodeURIComponent(term))
+            .then(response => response.json())
+            .then(data => {
+              // Clear previous options
+              dataList.innerHTML = '';
+
+              // Populate the datalist with new options
+              data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                dataList.appendChild(option);
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching specialties:', error);
+            });
+        } else {
+          // Clear if input is empty
+          dataList.innerHTML = '';
+        }
+      });
+    });
+	
+	      // ========== REGION AUTOCOMPLETE ==========
+      const regionInput = document.getElementById('location');
+      const regionsDataList = document.getElementById('regions');
+
+      regionInput.addEventListener('input', function () {
+        const term = this.value.trim();
+
+        if (term.length > 0) {
+          fetch('{{ route('autocomplete.regions') }}?term=' + encodeURIComponent(term))
+            .then(response => response.json())
+            .then(data => {
+              // Clear existing options
+              regionsDataList.innerHTML = '';
+
+              // Populate new options
+              data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                regionsDataList.appendChild(option);
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching regions:', error);
+            });
+        } else {
+          regionsDataList.innerHTML = '';
+        }
+      });
+
+  </script>
+
 </x-app-layout>

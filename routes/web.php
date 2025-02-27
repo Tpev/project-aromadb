@@ -42,12 +42,102 @@ use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\TherapistSearchController;
 use App\Models\BlogPost;
 use App\Models\Event;
+use Illuminate\Http\Request;
 
 Route::get('/sitemap-practicien.xml', function () {
     return response()
         ->view('sitemap-test')
         ->header('Content-Type', 'application/xml');
 })->name('sitemap-test');
+
+
+
+Route::get('/autocomplete/regions', function (Request $request) {
+$regions = [
+        "Auvergne-Rhône-Alpes",
+        "Bourgogne-Franche-Comté",
+        "Bretagne",
+        "Centre-Val de Loire",
+        "Corse",
+        "Grand Est",
+        "Hauts-de-France",
+        "Ile-de-France",
+        "Normandie",
+        "Nouvelle-Aquitaine",
+        "Occitanie",
+        "Pays de la Loire",
+        "Provence Alpes Côte d’Azur",
+    ];
+
+    $term = $request->query('term', '');
+    
+    // Filter regions by the typed term (case-insensitive)
+    $filtered = array_filter($regions, function ($region) use ($term) {
+        return stripos($region, $term) !== false;
+    });
+
+    return response()->json(array_values($filtered));
+})->name('autocomplete.regions');
+
+
+
+Route::get('/autocomplete/specialties', function (Request $request) {
+    $allSpecialties = [
+        "Hypnothérapeute",
+        "Sophrologue",
+        "Massage bien-être",
+        "Réflexologue",
+        "Naturopathe",
+        "Psychopraticien",
+        "Coach de vie",
+        "Ostéopathe",
+        "Diététicien Nutritionniste",
+        "Chiropracteur",
+        "Médecin acupuncteur",
+        "Psychologue",
+        "Coach PNL",
+        "Coach professionnel",
+        "Enseignant en méditation",
+        "Professeur de Yoga",
+        "Praticien EFT",
+        "Kinésiologue",
+        "Relaxologue",
+        "Aromathérapeute",
+        "Énergétique Traditionnelle Chinoise",
+        "Sexologue",
+        "Sonothérapeute",
+        "Fasciathérapeute",
+        "Neurothérapeute",
+        "Herboriste",
+        "Psychanalyste",
+        "Art-thérapeute",
+        "Psychomotricien",
+        "Phytothérapeute",
+        "Etiopathe",
+        "Posturologue",
+        "Professeur de Pilates",
+        "Coach parental et familial",
+        "Danse-thérapeute",
+        "Musicothérapeute",
+        "Praticien en Ayurvéda",
+        "Praticien en Gestalt",
+        "Praticien en thérapies brèves",
+        "Yoga thérapie",
+        "Somatopathe",
+        "Praticien massage Shiatsu"
+    ];
+
+    // Grab the 'term' from query string: e.g. ?term=Mas
+    $term = $request->query('term', '');
+
+    // Filter out specialties that contain the typed term (case-insensitive)
+    $filtered = array_filter($allSpecialties, function ($specialty) use ($term) {
+        return stripos($specialty, $term) !== false;
+    });
+
+    return response()->json(array_values($filtered));
+})->name('autocomplete.specialties');
+
 
 
 //// SEO PAGE FOR ANNUAIRE
