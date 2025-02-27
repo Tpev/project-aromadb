@@ -87,7 +87,6 @@
             color: #f0f0f0;
             cursor: default;
         }
-        /* Mark sortable columns with pointer */
         .sortable {
             cursor: pointer;
         }
@@ -299,10 +298,10 @@
                 <tbody>
                     @foreach($therapists as $therapist)
                         @php
-                            // Calculate days differences using Carbon (absolute value)
-                            $daysSinceSignup = \Carbon\Carbon::now()->diffInDays($therapist->created_at);
+                            // Calculate days differences as absolute positive integers
+                            $daysSinceSignup = (int) \Carbon\Carbon::now()->diffInDays($therapist->created_at, true);
                             $daysSinceLogin = $therapist->last_login_at 
-                                ? \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($therapist->last_login_at))
+                                ? (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($therapist->last_login_at), true)
                                 : null;
                         @endphp
                         <tr class="text-center">
@@ -417,7 +416,7 @@
             }
 
             function parseNumber(text) {
-                return parseFloat(text);
+                return parseInt(text, 10);
             }
         });
     </script>
