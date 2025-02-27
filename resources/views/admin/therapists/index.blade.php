@@ -87,7 +87,7 @@
             color: #f0f0f0;
             cursor: default;
         }
-        /* Add a pointer for sortable columns */
+        /* Mark sortable columns with pointer */
         .sortable {
             cursor: pointer;
         }
@@ -288,8 +288,10 @@
                         <th class="text-center">ID</th>
                         <th class="text-center">Therapist</th>
                         <th class="text-center">Onboarding Score</th>
-                        <!-- Add the sortable class and an id for the Last Login column header -->
                         <th class="text-center sortable" id="sortLastLogin">Last Login</th>
+                        <th class="text-center sortable" id="sortCreatedAt">Created At</th>
+                        <th class="text-center sortable" id="sortDaysSinceSignup">Days Since Sign-up</th>
+                        <th class="text-center sortable" id="sortDaysSinceLogin">Days Since Last Login</th>
                         <th class="text-center">Engagement Score</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -316,6 +318,19 @@
                             <td data-label="Last Login" class="text-wrap">
                                 {{ $therapist->last_login_at ? \Carbon\Carbon::parse($therapist->last_login_at)->setTimezone('Europe/Paris')->format('d/m/Y H:i') : 'Never' }}
                             </td>
+                            <td data-label="Created At" class="text-wrap">
+                                {{ $therapist->created_at->setTimezone('Europe/Paris')->format('d/m/Y') }}
+                            </td>
+                            <td data-label="Days Since Sign-up">
+                                {{ \Carbon\Carbon::now()->diffInDays($therapist->created_at) }}
+                            </td>
+                            <td data-label="Days Since Last Login">
+                                @if($therapist->last_login_at)
+                                    {{ \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($therapist->last_login_at)) }}
+                                @else
+                                    N/A
+                                @endif
+                            </td>
                             <td data-label="Engagement Score">
                                 <div class="radial-progress" data-percentage="{{ $therapist->engagement_score }}">
                                     <svg viewBox="0 0 100 100">
@@ -339,22 +354,43 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const table = document.getElementById("therapistsTable");
-            const header = document.getElementById("sortLastLogin");
-            let asc = true;
-            header.addEventListener("click", function() {
-                sortTableByColumn(table, 3, asc);
-                asc = !asc;
+            // Get header elements for sorting
+            const sortLastLoginHeader = document.getElementById("sortLastLogin");
+            const sortCreatedAtHeader = document.getElementById("sortCreatedAt");
+            const sortDaysSinceSignupHeader = document.getElementById("sortDaysSinceSignup");
+            const sortDaysSinceLoginHeader = document.getElementById("sortDaysSinceLogin");
+
+            // Sorting flags for each sortable column
+            let ascLastLogin = true;
+            let ascCreatedAt = true;
+            let ascDaysSinceSignup = true;
+            let ascDaysSinceLogin = true;
+
+            // Event listeners
+            sortLastLoginHeader.addEventListener("click", function() {
+                sortTableByColumn(table, 3, ascLastLogin, parseDate);
+                ascLastLogin = !ascLastLogin;
+            });
+            sortCreatedAtHeader.addEventListener("click", function() {
+                sortTableByColumn(table, 4, ascCreatedAt, parseDate);
+                ascCreatedAt = !ascCreatedAt;
+            });
+            sortDaysSinceSignupHeader.addEventListener("click", function() {
+                sortTableByColumn(table, 5, ascDaysSinceSignup, parseNumber);
+                ascDaysSinceSignup = !ascDaysSinceSignup;
+            });
+            sortDaysSinceLoginHeader.addEventListener("click", function() {
+                sortTableByColumn(table, 6, ascDaysSinceLogin, parseNumber);
+                ascDaysSinceLogin = !ascDaysSinceLogin;
             });
 
-            function sortTableByColumn(table, columnIndex, asc = true) {
+            function sortTableByColumn(table, columnIndex, asc = true, parseFn = parseDate) {
                 const tbody = table.tBodies[0];
                 const rows = Array.from(tbody.querySelectorAll("tr"));
                 rows.sort((a, b) => {
                     const aText = a.querySelectorAll("td")[columnIndex].textContent.trim();
                     const bText = b.querySelectorAll("td")[columnIndex].textContent.trim();
-                    const aDate = parseDate(aText);
-                    const bDate = parseDate(bText);
-                    return asc ? aDate - bDate : bDate - aDate;
+                    return asc ? parseFn(aText) - parseFn(bText) : parseFn(bText) - parseFn(aText);
                 });
                 rows.forEach(row => tbody.appendChild(row));
             }
@@ -363,11 +399,18 @@
                 if(text === "Never") {
                     return new Date(0);
                 }
-                // Expected format: "d/m/Y H:i"
-                const [datePart, timePart] = text.split(" ");
-                const [day, month, year] = datePart.split("/").map(num => parseInt(num, 10));
-                const [hour, minute] = timePart.split(":").map(num => parseInt(num, 10));
-                return new Date(year, month - 1, day, hour, minute);
+                // Supports "d/m/Y" and "d/m/Y H:i"
+                const parts = text.split(" ");
+                const dateParts = parts[0].split("/").map(num => parseInt(num, 10));
+                let hours = 0, minutes = 0;
+                if (parts.length > 1) {
+                    [hours, minutes] = parts[1].split(":").map(num => parseInt(num, 10));
+                }
+                return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], hours, minutes);
+            }
+
+            function parseNumber(text) {
+                return text === "N/A" ? -1 : parseFloat(text);
             }
         });
     </script>
