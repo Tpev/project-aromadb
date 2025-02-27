@@ -167,9 +167,26 @@
                                 </p>
                             @endif
                             
-                            <p class="mt-4 text-gray-700">
-                                {{ Str::limit($event->description, 80) }}
-                            </p>
+							<!-- Event Description with "Lire plus" toggle -->
+							<div x-data="{ showFull: false }" class="mt-4 text-gray-700">
+								<!-- Short excerpt shown when showFull = false -->
+								<p x-show="!showFull">{{ Str::limit($event->description, 80) }}</p>
+
+								<!-- Full description shown when showFull = true -->
+								<p x-show="showFull">{{ $event->description }}</p>
+
+								@if(strlen($event->description) > 80)
+									<!-- Toggle button -->
+									<button
+										@click="showFull = !showFull"
+										class="text-blue-600 underline text-sm mt-2"
+									>
+										<span x-show="!showFull">Lire plus</span>
+										<span x-show="showFull">Réduire</span>
+									</button>
+								@endif
+							</div>
+
                             @php
                                 $spotsLeft = $event->limited_spot
                                     ? $event->number_of_spot - $event->reservations->count()
