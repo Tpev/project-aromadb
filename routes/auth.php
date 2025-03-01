@@ -22,7 +22,7 @@ Route::middleware('guest',\App\Http\Middleware\TrackPageViews::class)->group(fun
 
 
     // Therapist Register (register-pro)
-    Route::get('register-pro', [RegisteredUserController::class, 'createpro'])
+	Route::get('register-pro/{extra?}', [RegisteredUserController::class, 'createpro'])
                 ->name('register-pro');
     Route::post('register-pro', [RegisteredUserController::class, 'storepro']);
 
