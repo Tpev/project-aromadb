@@ -38,9 +38,22 @@
               <a href="{{ route('blog.index') }}"
                  class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Articles</a>
               <div class="border-t border-gray-200 my-2"></div>              
-			  <a href="{{ route('formation1') }}"
-                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Apprendre</a>
-              <div class="border-t border-gray-200 my-2"></div>
+
+				<!-- Parent Menu Item -->
+				<a href="{{ route('formation1') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+					Apprendre
+				</a>
+				<!-- Sub-menu items -->
+				<div class="pl-6">
+					<a href="{{ route('formation1') }}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">
+						 Introduction à l'aromathérapie
+					</a>
+					<a href="{{ route('formation3') }}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">
+						Lancer et développer votre activité de thérapeute
+					</a>
+				</div>
+				<div class="border-t border-gray-200 my-2"></div>
+
               <!-- Huiles Essentielles Nested Dropdown -->
               <div x-data="{ subDropdown: false }" class="relative" x-cloak>
                 <button @click="subDropdown = !subDropdown"
@@ -142,10 +155,24 @@
          class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
         Articles
       </a>      
-	  <a href="{{ route('formation1') }}"
-         class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
-        Apprendre
-      </a>
+<!-- Parent Mobile Menu Item -->
+<a href="{{ route('formation1') }}"
+   class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
+   Apprendre
+</a>
+<!-- Mobile Sub-menu Items -->
+<div class="pl-6">
+    <a href="{{ route('formation1') }}"
+       class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-500 hover:text-[#647a0b] hover:bg-gray-50">
+       Introduction à l'aromathérapie
+    </a>
+    <a href="{{ route('formation3') }}"
+       class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-500 hover:text-[#647a0b] hover:bg-gray-50">
+       Lancer et développer votre activité de thérapeute
+    </a>
+</div>
+<div class="border-t border-gray-200 my-2"></div>
+
       <a href="{{ route('huilehes.index') }}"
          class="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">
         Huiles Essentielles

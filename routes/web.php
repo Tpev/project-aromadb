@@ -43,6 +43,11 @@ use App\Http\Controllers\TherapistSearchController;
 use App\Models\BlogPost;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use App\Http\Controllers\TrainingController;
+
+
+
+
 
 Route::get('/sitemap-practicien.xml', function () {
     return response()
@@ -567,6 +572,18 @@ Route::get('/article', [BlogPostController::class, 'index'])->name('blog.index')
 
 // Route for displaying individual blog posts using slug
 Route::get('/article/{slug}', [BlogPostController::class, 'show'])->name('blog.show');
+
+
+Route::get('/trainings', [TrainingController::class, 'index'])->name('trainings.index');
+Route::get('/trainings/{training}', [TrainingController::class, 'show'])->name('trainings.show');
+
+Route::get('/trainings/{training}/lesson/{lesson}', [TrainingController::class, 'showLesson'])
+    ->name('trainings.show-lesson');
+
+	    Route::get('/Formation-Pro', function () {
+        return view('pro-training');
+    })->name('formation3');
+
 });
 
 
