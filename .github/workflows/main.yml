@@ -23,6 +23,18 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
            cd /var/www/project-aromadb && sudo git pull origin master
           EOF
+          
+      - name: Backup MySQL Database
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
+            # Create a backup filename with date and time
+            BACKUP_FILE="/var/www/project-aromadb/backups/backup_$(date +'%Y-%m-%d_%H-%M-%S').sql"
+            # Create backups directory if it doesn't exist
+            sudo mkdir -p /var/www/project-aromadb/backups
+            # Run mysqldump to backup the full database
+            sudo mysqldump -u root yourdatabase > $BACKUP_FILE
+            echo "Backup saved to $BACKUP_FILE"
+          EOF
       - name: Update specific tables for data
         run: |
            ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
