@@ -365,20 +365,33 @@
             </div>
             <div>
                 <label for="state_setByAdmin">Region:</label>
-                <select name="state_setByAdmin" id="state_setByAdmin">
-                    <option value="">Select Region</option>
-                    <option value="Île-de-France" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Île-de-France') ? 'selected' : '' }}>Île-de-France</option>
-                    <option value="Provence-Alpes-Côte d'Azur" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == "Provence-Alpes-Côte d'Azur") ? 'selected' : '' }}>Provence-Alpes-Côte d'Azur</option>
-                    <option value="Nouvelle-Aquitaine" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Nouvelle-Aquitaine') ? 'selected' : '' }}>Nouvelle-Aquitaine</option>
-                    <option value="Occitanie" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Occitanie') ? 'selected' : '' }}>Occitanie</option>
-                    <option value="Hauts-de-France" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Hauts-de-France') ? 'selected' : '' }}>Hauts-de-France</option>
-                    <option value="Grand Est" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Grand Est') ? 'selected' : '' }}>Grand Est</option>
-                    <option value="Bretagne" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Bretagne') ? 'selected' : '' }}>Bretagne</option>
-                    <option value="Normandie" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Normandie') ? 'selected' : '' }}>Normandie</option>
-                    <option value="Pays de la Loire" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Pays de la Loire') ? 'selected' : '' }}>Pays de la Loire</option>
-                    <option value="Centre-Val de Loire" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Centre-Val de Loire') ? 'selected' : '' }}>Centre-Val de Loire</option>
-                    <option value="Corse" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == 'Corse') ? 'selected' : '' }}>Corse</option>
-                </select>
+				<select name="state_setByAdmin" id="state_setByAdmin">
+					<option value="">Select Region</option>
+					@php
+						$regions = [
+							"Auvergne-Rhône-Alpes",
+							"Bourgogne-Franche-Comté",
+							"Bretagne",
+							"Centre-Val de Loire",
+							"Corse",
+							"Grand Est",
+							"Hauts-de-France",
+							"Ile-de-France",
+							"Normandie",
+							"Nouvelle-Aquitaine",
+							"Occitanie",
+							"Pays de la Loire",
+							"Provence Alpes Côte d’Azur",
+						];
+					@endphp
+
+					@foreach($regions as $region)
+						<option value="{{ $region }}" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == $region) ? 'selected' : '' }}>
+							{{ $region }}
+						</option>
+					@endforeach
+				</select>
+
             </div>
             <div>
                 <label for="postal_code_setByAdmin">Postal Code:</label>
