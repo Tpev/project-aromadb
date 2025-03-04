@@ -479,18 +479,18 @@ public function updateTherapistAddress(Request $request, $id)
                      ->with('success', 'Address updated successfully!');
 }
 
-public function editContent($id)
+public function editLesson($id)
 {
 	    // Check if the user is an admin
     if (!auth()->user() || !auth()->user()->isAdmin()) {
         return redirect('/')->with('error', 'Unauthorized access');
     }
-    // This route is under /admin, and we assume user check is already in place in your AdminController.
-    $content = \App\Models\Content::findOrFail($id);
-    return view('admin.content.edit', compact('content'));
+    // Assumes the admin check is already handled in this controller.
+    $lesson = \App\Models\Lesson::findOrFail($id);
+    return view('admin.lesson.edit', compact('lesson'));
 }
 
-public function updateContent(Request $request, $id)
+public function updateLesson(Request $request, $id)
 {
 	    // Check if the user is an admin
     if (!auth()->user() || !auth()->user()->isAdmin()) {
@@ -500,12 +500,13 @@ public function updateContent(Request $request, $id)
         'content' => 'required',
     ]);
 
-    $content = \App\Models\Content::findOrFail($id);
-    $content->update([
+    $lesson = \App\Models\Lesson::findOrFail($id);
+    $lesson->update([
         'content' => $request->input('content'),
     ]);
 
-    return redirect()->back()->with('success', 'Contenu mis à jour avec succès.');
+    return redirect()->back()->with('success', 'Le contenu de la leçon a été mis à jour avec succès.');
 }
+
 
 }

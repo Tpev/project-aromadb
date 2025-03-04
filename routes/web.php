@@ -47,10 +47,10 @@ use App\Http\Controllers\TrainingController;
 
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
-    // Only admins should access these; since you already check in AdminController, no need for extra middleware here.
-    Route::get('/content/{id}/edit', [AdminController::class, 'editContent'])->name('admin.content.edit');
-    Route::put('/content/{id}', [AdminController::class, 'updateContent'])->name('admin.content.update');
+    Route::get('/lesson/{id}/edit', [AdminController::class, 'editLesson'])->name('admin.lesson.edit');
+    Route::put('/lesson/{id}', [AdminController::class, 'updateLesson'])->name('admin.lesson.update');
 });
+
 
 
 
