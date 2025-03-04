@@ -479,5 +479,33 @@ public function updateTherapistAddress(Request $request, $id)
                      ->with('success', 'Address updated successfully!');
 }
 
+public function editContent($id)
+{
+	    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+    // This route is under /admin, and we assume user check is already in place in your AdminController.
+    $content = \App\Models\Content::findOrFail($id);
+    return view('admin.content.edit', compact('content'));
+}
+
+public function updateContent(Request $request, $id)
+{
+	    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+    $request->validate([
+        'content' => 'required',
+    ]);
+
+    $content = \App\Models\Content::findOrFail($id);
+    $content->update([
+        'content' => $request->input('content'),
+    ]);
+
+    return redirect()->back()->with('success', 'Contenu mis à jour avec succès.');
+}
 
 }

@@ -44,6 +44,13 @@ use App\Models\BlogPost;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Http\Controllers\TrainingController;
+use App\Http\Controllers\AdminController;
+
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+    // Only admins should access these; since you already check in AdminController, no need for extra middleware here.
+    Route::get('/content/{id}/edit', [AdminController::class, 'editContent'])->name('admin.content.edit');
+    Route::put('/content/{id}', [AdminController::class, 'updateContent'])->name('admin.content.update');
+});
 
 
 
