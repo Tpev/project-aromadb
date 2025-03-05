@@ -219,8 +219,10 @@ return view('admin.index', compact(
             return redirect('/')->with('error', 'Unauthorized access');
         }
 
-        // Get all therapists
-        $therapists = User::where('is_therapist', true)->get();
+    // Get all therapists and count information requests in one query
+    $therapists = User::where('is_therapist', true)
+                      ->withCount('informationRequests')
+                      ->get();
 
         // For each therapist, calculate onboarding score
         foreach ($therapists as $therapist) {

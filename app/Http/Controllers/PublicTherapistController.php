@@ -9,6 +9,7 @@ use App\Models\Event;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InformationRequestMail;
+use App\Models\InformationRequest;
 
 class PublicTherapistController extends Controller
 {
@@ -42,24 +43,34 @@ public function show($slug)
     return view('public.therapist.show', compact('therapist', 'testimonials','prestations','events'));
 }
 
+
 public function sendInformationRequest(Request $request, $slug)
 {
-    // Valider les données
     $request->validate([
         'first_name' => 'required|string|max:100',
         'last_name'  => 'required|string|max:100',
         'email'      => 'required|email',
-        'phone'      => 'nullable|string|max:50',
+        'phone'      => ['nullable','regex:/^[0-9\-\+\(\)\s]+$/','min:8'],
         'message'    => 'required|string|max:2000',
     ]);
 
-    // Récupérer le thérapeute
+    // Retrieve therapist
     $therapist = User::where('slug', $slug)
                      ->where('is_therapist', true)
                      ->firstOrFail();
 
-    // Envoyer l’email au thérapeute
-    Mail::to($therapist->email)->queue(
+    // 1) Store the request in DB
+    InformationRequest::create([
+        'therapist_id' => $therapist->id,
+        'first_name'   => $request->first_name,
+        'last_name'    => $request->last_name,
+        'email'        => $request->email,
+        'phone'        => $request->phone,
+        'message'      => $request->message,
+    ]);
+
+    // 2) Send the email
+    Mail::to($therapist->company_email)->send(
         new InformationRequestMail(
             $request->first_name,
             $request->last_name,
@@ -69,11 +80,10 @@ public function sendInformationRequest(Request $request, $slug)
         )
     );
 
-    // Ou, s’il faut envoyer à l’adresse principale du thérapeute :
-    // Mail::to($therapist->email)->send(...);
+    // (Optional) Send a confirmation email to the user as well
 
-    // On peut faire un petit message flash et une redirection
     return redirect()->back()->with('success', 'Votre demande a bien été envoyée !');
 }
+
 
 }

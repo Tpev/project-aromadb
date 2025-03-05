@@ -292,6 +292,7 @@
                         <th class="text-center sortable" id="sortDaysSinceSignup">Days Since Sign-up</th>
                         <th class="text-center sortable" id="sortDaysSinceLogin">Days Since Last Login</th>
                         <th class="text-center">Engagement Score</th>
+                        <th class="text-center">Info Requests</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -346,6 +347,12 @@
                                     <div class="percentage">{{ $therapist->engagement_score }}%</div>
                                 </div>
                             </td>
+                            
+							<!-- NEW CELL FOR INFO REQUESTS COUNT -->
+                            <td data-label="Info Requests">
+                                {{ $therapist->information_requests_count }}
+                            </td>
+							
                             <td data-label="Actions">
                                 <a href="{{ route('admin.therapists.show', $therapist->id) }}" class="action-btn">View Details</a>
                             </td>
