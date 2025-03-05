@@ -178,4 +178,9 @@ public function testimonials()
     {
         return $this->hasMany(InventoryItem::class);
     }
+	public function informationRequests()
+{
+    return $this->hasMany(\App\Models\InformationRequest::class, 'therapist_id');
+}
+
 }
