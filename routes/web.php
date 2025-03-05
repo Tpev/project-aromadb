@@ -555,6 +555,9 @@ Route::get('/', function () {
 	
     // Other routes
 	Route::get('/pro/{slug}', [PublicTherapistController::class, 'show'])->name('therapist.show');
+	Route::post('/therapist/{slug}/request-info', [PublicTherapistController::class, 'sendInformationRequest'])
+    ->name('therapist.sendInformationRequest');
+
     Route::get('tisanes', [TisaneController::class, 'index'])->name('tisanes.index');
     Route::get('/recettes', [RecetteController::class, 'index'])->name('recettes.index');
     Route::get('/huilehes', [HuileHEController::class, 'index'])->name('huilehes.index');

@@ -7,7 +7,8 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Event;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InformationRequestMail;
 
 class PublicTherapistController extends Controller
 {
@@ -40,4 +41,39 @@ public function show($slug)
     // Passer les données au vue
     return view('public.therapist.show', compact('therapist', 'testimonials','prestations','events'));
 }
+
+public function sendInformationRequest(Request $request, $slug)
+{
+    // Valider les données
+    $request->validate([
+        'first_name' => 'required|string|max:100',
+        'last_name'  => 'required|string|max:100',
+        'email'      => 'required|email',
+        'phone'      => 'nullable|string|max:50',
+        'message'    => 'required|string|max:2000',
+    ]);
+
+    // Récupérer le thérapeute
+    $therapist = User::where('slug', $slug)
+                     ->where('is_therapist', true)
+                     ->firstOrFail();
+
+    // Envoyer l’email au thérapeute
+    Mail::to($therapist->email)->queue(
+        new InformationRequestMail(
+            $request->first_name,
+            $request->last_name,
+            $request->email,
+            $request->phone,
+            $request->message
+        )
+    );
+
+    // Ou, s’il faut envoyer à l’adresse principale du thérapeute :
+    // Mail::to($therapist->email)->send(...);
+
+    // On peut faire un petit message flash et une redirection
+    return redirect()->back()->with('success', 'Votre demande a bien été envoyée !');
+}
+
 }

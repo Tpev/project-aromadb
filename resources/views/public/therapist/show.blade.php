@@ -10,7 +10,12 @@
     {{-- Contenu principal --}}
     <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-12">
-            
+            @if (session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+        {{ session('success') }}
+    </div>
+@endif
+
             {{-- Section Hero --}}
             <div class="bg-[#8ea633] shadow-lg rounded-lg p-8 flex flex-col md:flex-row items-center">
                 @if($therapist->profile_picture)
@@ -27,14 +32,26 @@
                     <p class="mt-4 text-xl text-white leading-relaxed">
                         {{ $therapist->profile_description ?? '' }}
                     </p>
-                    {{-- Bouton d'appel à l'action --}}
-                    @if($therapist->accept_online_appointments)
-                        <div class="mt-6">
-                            <a href="{{ route('appointments.createPatient', $therapist->id) }}" class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition-colors duration-300">
-                                {{ __('Prendre Rendez-vous') }}
-                            </a>
-                        </div>
-                    @endif
+					{{-- Bouton d’appel à l’action --}}
+					@if($therapist->accept_online_appointments)
+						<div class="mt-6 flex gap-4">
+							{{-- Bouton Rendez-vous existant --}}
+							<a href="{{ route('appointments.createPatient', $therapist->id) }}"
+							   class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition-colors duration-300">
+								{{ __('Prendre Rendez-vous') }}
+							</a>
+
+							{{-- Nouveau bouton pour demander des informations --}}
+							<button
+								class="inline-block bg-[#854f38] text-white font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c] transition-colors duration-300"
+								x-data="{}"
+								x-on:click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))"
+							>
+								{{ __('Demander des informations') }}
+							</button>
+						</div>
+					@endif
+
                 </div>
             </div>
 
@@ -247,6 +264,129 @@
 
         </div>
     </div>
+{{-- Modal de demande d’information --}}
+<div
+    x-data="{ open: false }"
+    x-on:open-request-modal.window="open = true"
+    x-on:close-request-modal.window="open = false"
+    x-show="open"
+    style="display: none;"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+>
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg mx-auto p-6 relative">
+        {{-- Bouton pour fermer le modal --}}
+        <button
+            class="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            x-on:click="open = false"
+        >
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2 class="text-2xl font-semibold text-[#647a0b] mb-4">
+            {{ __('Demande d\'information') }}
+        </h2>
+
+        {{-- Formulaire qui enverra les données à la route POST --}}
+        <form method="POST" action="{{ route('therapist.sendInformationRequest', $therapist->slug) }}">
+            @csrf
+
+            <div class="mb-4">
+                <label class="block font-medium text-gray-700" for="first_name">
+                    {{ __('Prénom') }}
+                </label>
+                <input
+                    type="text"
+                    name="first_name"
+                    id="first_name"
+                    required
+                    class="mt-1 w-full border border-gray-300 rounded-md p-2"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label class="block font-medium text-gray-700" for="last_name">
+                    {{ __('Nom') }}
+                </label>
+                <input
+                    type="text"
+                    name="last_name"
+                    id="last_name"
+                    required
+                    class="mt-1 w-full border border-gray-300 rounded-md p-2"
+                >
+            </div>
+
+            <div class="mb-4">
+                <label class="block font-medium text-gray-700" for="email">
+                    {{ __('Adresse Email') }}
+                </label>
+                <input
+                    type="email"
+                    name="email"
+                    id="email"
+                    required
+                    class="mt-1 w-full border border-gray-300 rounded-md p-2"
+                >
+            </div>
+
+            <div class="mb-4">
+			<label class="block font-medium text-gray-700" for="phone">
+				{{ __('Téléphone') }}
+			</label>
+			<input
+				type="tel"
+				name="phone"
+				id="phone"
+				class="mt-1 w-full border border-gray-300 rounded-md p-2"
+				pattern="^[0-9\-\+\(\)\s]+$"
+				placeholder="0612345614"
+			/>
+			@error('phone')
+				<p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+			@enderror
+            </div>
+
+            <div class="mb-4">
+                <label class="block font-medium text-gray-700" for="message">
+                    {{ __('Message') }}
+                </label>
+                <textarea
+                    name="message"
+                    id="message"
+                    rows="4"
+                    class="mt-1 w-full border border-gray-300 rounded-md p-2"
+                    placeholder="{{ __('Décrivez brièvement votre demande...') }}"
+                    required
+                ></textarea>
+            </div>
+                <!-- Accept Terms & Privacy Policy -->
+                <div class="mb-4">
+                    <label for="terms" class="flex items-center text-sm text-gray-600">
+                        <input id="terms" type="checkbox" class="form-checkbox h-4 w-4 text-[#647a0b]" name="terms" required>
+                        <span class="ml-2">
+                            {{ __('J\'accepte les') }} 
+                            <a href="{{ route('cgu') }}" target="_blank" class="underline text-blue-600 hover:text-blue-800">
+                                {{ __('Conditions Générales d’Utilisation') }}
+                            </a>
+                            {{ __('et la') }}
+                            <a href="{{ route('privacypolicy') }}" target="_blank" class="underline text-blue-600 hover:text-blue-800">
+                                {{ __('Politique de Confidentialité') }}
+                            </a>.
+                        </span>
+                    </label>
+                    <x-input-error :messages="$errors->get('terms')" class="mt-2 text-red-600" />
+                </div>
+            <div class="text-right">
+                <button
+                    type="submit"
+                    class="bg-[#647a0b] text-white font-semibold py-2 px-4 rounded-full hover:bg-[#8ea633] transition-colors duration-300"
+                >
+                    {{ __('Envoyer') }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
     {{-- Styles personnalisés --}}
     @push('styles')
@@ -282,12 +422,7 @@
                 transform: translateY(-2px);
             }
 
-            /* Animation d'apparition */
-            .fade-in {
-                opacity: 0;
-                transform: translateY(20px);
-                animation: fadeIn 0.8s forwards;
-            }
+  
 
             @keyframes fadeIn {
                 to {
@@ -296,10 +431,7 @@
                 }
             }
 
-            /* Appliquer l'animation aux sections */
-            .bg-white, .bg-[#f9fafb] {
-                animation: fadeIn 0.8s forwards;
-            }
+
 
             /* Ajustements responsives */
             @media (max-width: 768px) {
