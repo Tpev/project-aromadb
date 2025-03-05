@@ -24,21 +24,10 @@ jobs:
            cd /var/www/project-aromadb && sudo git pull origin master
           EOF
           
-      - name: Backup MySQL Database
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
-            # Create a backup filename with date and time
-            BACKUP_FILE="/var/www/project-aromadb/backups/backup_$(date +'%Y-%m-%d_%H-%M-%S').sql"
-            # Create backups directory if it doesn't exist
-            sudo mkdir -p /var/www/project-aromadb/backups
-            # Run mysqldump to backup the full database
-            sudo mysqldump -u root yourdatabase > $BACKUP_FILE
-            echo "Backup saved to $BACKUP_FILE"
-          EOF
+
       - name: Update specific tables for data
         run: |
            ssh -o StrictHostKeyChecking=no ubuntu@16.16.13.99 << 'EOF'
-            sudo mysql -u root yourdatabase -e "DROP TABLE IF EXISTS recettes, huile_hes, huile_hvs, tisanes;"
             cd /var/www/project-aromadb
             sudo php artisan migrate
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_02_172024_create_huile_h_e_s_table.php
@@ -46,10 +35,7 @@ jobs:
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_05_104212_create_huile_h_v_s_table.php
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_08_103726_create_tisanes_table.php
             sudo php artisan migrate:refresh --path=/database/migrations/2024_09_18_151847_create_blog_posts_table.php
-            sudo php artisan migrate:refresh --path=/database/migrations/2025_03_03_115225_create_user_lesson_progress_table
-            sudo php artisan migrate:refresh --path=/database/migrations/2025_03_03_115224_create_lessons_table.php
-            sudo php artisan migrate:refresh --path=/database/migrations/2025_03_03_115224_create_chapters_table.php
-            sudo php artisan migrate:refresh --path=/database/migrations/2025_03_03_115223_create_trainings_table.php
+
 
            
             sudo php artisan db:seed --class=RecetteSeeder
