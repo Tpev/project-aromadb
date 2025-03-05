@@ -70,7 +70,7 @@ public function sendInformationRequest(Request $request, $slug)
     ]);
 
     // 2) Send the email
-    Mail::to($therapist->company_email)->send(
+    Mail::to($therapist->email)->send(
         new InformationRequestMail(
             $request->first_name,
             $request->last_name,
