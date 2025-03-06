@@ -2,6 +2,8 @@
     @section('meta_description')
        Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédiée aux thérapeutes. Boostez votre visibilité, gérez facilement vos rendez-vous et dossiers clients, et profitez d’un essai gratuit de 14 jours pour découvrir toutes nos fonctionnalités.
     @endsection
+  @section('title', 'AromaMade PRO : Annuaire Thérapeute et Logiciel de Gestion en Ligne')
+
 
     <!-- Registration Form Container -->
     <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-lg shadow-lg">
