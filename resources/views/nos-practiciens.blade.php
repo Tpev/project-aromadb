@@ -1,7 +1,13 @@
 <x-app-layout>
   <!-- Head Slot -->
+  
+  
+  @section('title', 'Annuaire Thérapeute en Ligne | Trouvez votre praticien de médecine douce')
+    @section('meta_description')
+Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie, naturopathie, ostéopathie : trouvez le professionnel certifié idéal pour votre bien-être
+    @endsection
+
   <x-slot name="head">
-    <meta name="description" content="Découvrez des praticiens certifiés en médecines douces pour votre bien-être. Sophrologie, naturopathie, ostéopathie et plus encore.">
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 

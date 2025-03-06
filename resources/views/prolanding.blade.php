@@ -9,9 +9,9 @@
         <!-- Custom Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
     @endpush
-
+@section('title', 'AromaMade PRO  L’application de gestion pour les thérapeutes')
     @section('meta_description')
-        Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des thérapeutes du bien-être. Gérez vos rendez-vous, vos clients, et développez votre pratique avec des outils puissants et faciles à utiliser.
+Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des thérapeutes du bien-être. Gérez vos rendez-vous, vos clients, et développez votre pratique avec des outils puissants et faciles à utiliser.
     @endsection
 
     <!-- Hero Section with Background Video -->
