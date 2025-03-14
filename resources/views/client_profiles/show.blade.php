@@ -23,7 +23,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Last Name -->
                 <div class="col-md-6">
                     <div class="profile-box">
@@ -262,9 +262,8 @@
                     </a>
                     
                     @php
-                        // Assuming the relationship is $clientProfile->conseilsSent or something similar
-                        $conseilsSent = $clientProfile->conseilsSent ?? collect(); 
-                        // Adjust if you have a different relationship
+                        // Relationship name may vary:
+                        $conseilsSent = $clientProfile->conseilsSent ?? collect();
                     @endphp
 
                     @if($conseilsSent->isEmpty())
@@ -285,10 +284,14 @@
                                         <tr>
                                             <td>{{ $conseil->name }}</td>
                                             <td>{{ $conseil->tag ?? '—' }}</td>
-                                            <td>{{ optional($conseil->pivot)->created_at ? $conseil->pivot->created_at->format('d/m/Y') : '—' }}</td>
+                                            <td>
+                                                {{ optional($conseil->pivot)->created_at
+                                                    ? $conseil->pivot->created_at->format('d/m/Y')
+                                                    : '—' 
+                                                }}
+                                            </td>
                                             <td>
                                                 <a href="{{ route('conseils.show', $conseil->id) }}" class="btn btn-primary">Voir Conseil</a>
-                                                <!-- If you want a way to re-send or remove this conseil, add actions here -->
                                             </td>
                                         </tr>
                                     @endforeach
@@ -299,11 +302,186 @@
                 </div>
             </div>
 
+<!-- ======================= METRICS SECTION ADDED HERE ======================= -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2 class="details-title">{{ __('Mesures du client') }}</h2>
+
+        <a href="{{ route('client_profiles.metrics.create', $clientProfile->id) }}" class="btn btn-primary mb-3">
+            {{ __('Créer une Nouvelle Mesure') }}
+        </a>
+
+        @if($clientProfile->metrics->isEmpty())
+            <p>Aucune mesure trouvée pour ce client.</p>
+        @else
+            <div class="table-responsive mx-auto">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Objectif</th>
+                          
+                            <th>Dernière Entrée</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($clientProfile->metrics as $metric)
+                            @php
+                                // Get the last entry by sorting descending or using a relationship method
+                                // Here we'll do a quick sort in Blade:
+                                $lastEntry = $metric->entries->sortByDesc('entry_date')->first();
+                            @endphp
+
+                            <tr>
+                                <td>{{ $metric->name }}</td>
+                                <td>{{ $metric->goal ?? 'N/A' }}</td>
+                    
+
+                                <td>
+                                    @if($lastEntry)
+                                        <!-- Show the date and value of the most recent entry -->
+                                         {{ $lastEntry->value }}  ( {{ $lastEntry->entry_date }} )
+                                    @else
+                                        Aucune entrée
+                                    @endif
+                                </td>
+
+                                <td>
+                                    <!-- "Show" route for viewing entries for this metric -->
+                                    <a href="{{ route('client_profiles.metrics.show', [$clientProfile->id, $metric->id]) }}"
+                                       class="btn btn-primary">
+                                        Voir
+                                    </a>
+
+                                    <!-- "Edit" route for this metric -->
+                                    <a href="{{ route('client_profiles.metrics.edit', [$clientProfile->id, $metric->id]) }}"
+                                       class="btn btn-secondary">
+                                        Modifier
+                                    </a>
+
+                                    <!-- Delete form -->
+                                    <form action="{{ route('client_profiles.metrics.destroy', [$clientProfile->id, $metric->id]) }}"
+                                          method="POST"
+                                          style="display: inline-block;"
+                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette mesure ?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+</div>
+<!-- ======================= END METRICS SECTION ======================= -->
+<!-- ======================= FILE UPLOAD SECTION STARTS ======================= -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2 class="details-title">Fichiers du Client</h2>
+
+        <!-- Form to upload a new file -->
+        <form 
+            action="{{ route('client_profiles.files.store', $clientProfile->id) }}" 
+            method="POST" 
+            enctype="multipart/form-data"
+            class="mb-4"
+        >
+            @csrf
+            <div class="form-group">
+                <label for="file">Choisir un fichier</label>
+                <input 
+                    type="file" 
+                    name="file" 
+                    id="file"
+                    class="form-control" 
+                    required
+                >
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">
+                Importer
+            </button>
+        </form>
+
+        @if (session('success'))
+            <div class="mb-4 text-green-600 font-bold">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Table of existing files -->
+        @if($clientProfile->clientFiles->isEmpty())
+            <p>Aucun fichier n’a encore été téléchargé pour ce client.</p>
+        @else
+            <div class="table-responsive mx-auto">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nom du Fichier</th>
+                            <th>Taille</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($clientProfile->clientFiles as $file)
+                            <tr>
+                                <td>{{ $file->original_name }}</td>
+                                <td>
+                                    @if($file->size)
+                                        {{ round($file->size / 1024, 2) }} KB
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td>
+                                    <!-- Download link (if you have a download route) -->
+                                    <a 
+                                        href="{{ route('client_profiles.files.download', [$clientProfile->id, $file->id]) }}" 
+                                        class="btn btn-primary"
+                                    >
+                                        Télécharger
+                                    </a>
+
+                                    <!-- Delete form -->
+                                    <form 
+                                        action="{{ route('client_profiles.files.destroy', [$clientProfile->id, $file->id]) }}"
+                                        method="POST"
+                                        style="display:inline-block;"
+                                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?');"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-danger">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+    </div>
+</div>
+<!-- ======================= FILE UPLOAD SECTION ENDS ======================= -->
+
             <!-- Action Buttons (Bottom) -->
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
-                    <a href="{{ route('client_profiles.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
-                    <a href="{{ route('client_profiles.edit', $clientProfile->id) }}" class="btn-secondary">{{ __('Modifier le profil') }}</a>
+                    <a href="{{ route('client_profiles.index') }}" class="btn-primary">
+                        {{ __('Retour à la liste') }}
+                    </a>
+                    <a href="{{ route('client_profiles.edit', $clientProfile->id) }}" class="btn-secondary">
+                        {{ __('Modifier le profil') }}
+                    </a>
                     <!-- Delete Button -->
                     <form action="{{ route('client_profiles.destroy', $clientProfile->id) }}"
                           method="POST"
@@ -421,8 +599,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: #854f38;
-            color: #ffffff;
+                  
             transform: scale(1.02);
         }
 

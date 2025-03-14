@@ -44,6 +44,20 @@ use App\Models\BlogPost;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use App\Http\Controllers\TrainingController;
+use App\Http\Controllers\MetricController;
+use App\Http\Controllers\MetricEntryController;
+use App\Http\Controllers\ClientFileController;
+
+Route::get('/client_profiles/{client_profile}/files/{file}/download', 
+    [ClientFileController::class, 'download']
+)->name('client_profiles.files.download');
+
+Route::resource('client_profiles.files', ClientFileController::class)
+    ->parameters(['files' => 'file']); 
+
+
+
+
 
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
@@ -488,6 +502,15 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAn
     Route::get('/client_profiles/{clientProfile}/edit', [ClientProfileController::class, 'edit'])->name('client_profiles.edit'); // Show form to edit a client profile
     Route::put('/client_profiles/{clientProfile}', [ClientProfileController::class, 'update'])->name('client_profiles.update'); // Handle form submission for updating a client profile
     Route::delete('/client_profiles/{clientProfile}', [ClientProfileController::class, 'destroy'])->name('client_profiles.destroy'); // Handle the deletion of a client profile
+
+Route::resource('client_profiles.metrics', MetricController::class);
+
+Route::resource('client_profiles.metrics.entries', MetricEntryController::class)
+     ->parameters([
+         'entries' => 'metricEntry', // rename the {entry} param to {metricEntry}
+     ]);
+
+
 });
 
 

@@ -67,5 +67,15 @@ public function conseilsSent()
                 ->withTimestamps();
 }
 	
+public function metrics()
+{
+    // If your foreign key is client_profile_id
+    return $this->hasMany(Metric::class, 'client_profile_id');
+}
+public function clientFiles()
+{
+    return $this->hasMany(ClientFile::class);
+}
+
 
 }
