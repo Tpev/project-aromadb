@@ -48,15 +48,6 @@ use App\Http\Controllers\MetricController;
 use App\Http\Controllers\MetricEntryController;
 use App\Http\Controllers\ClientFileController;
 
-Route::get('/client_profiles/{client_profile}/files/{file}/download', 
-    [ClientFileController::class, 'download']
-)->name('client_profiles.files.download');
-
-Route::resource('client_profiles.files', ClientFileController::class)
-    ->parameters(['files' => 'file']); 
-
-
-
 
 
 
@@ -509,6 +500,15 @@ Route::resource('client_profiles.metrics.entries', MetricEntryController::class)
      ->parameters([
          'entries' => 'metricEntry', // rename the {entry} param to {metricEntry}
      ]);
+Route::get('/client_profiles/{client_profile}/files/{file}/download', 
+    [ClientFileController::class, 'download']
+)->name('client_profiles.files.download');
+
+Route::resource('client_profiles.files', ClientFileController::class)
+    ->parameters(['files' => 'file']); 
+
+
+
 
 
 });
