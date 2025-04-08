@@ -28,7 +28,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                         placeholder="Ex: AromaMade Inc." 
                         :value="old('company_name')" 
                         class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2" 
-                        required 
+                         
                     />
                     <x-input-error :messages="$errors->get('company_name')" class="mt-2 text-red-600" />
                 </div>
@@ -42,7 +42,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                         placeholder="Ex: Naturopathe" 
                         :value="old('services')" 
                         class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2" 
-                        required 
+                         
                     />
                     <x-input-error :messages="$errors->get('services')" class="mt-2 text-red-600" />
                 </div>
@@ -54,7 +54,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                         name="about" 
                         placeholder="Ex: Nous offrons des services de naturopathie pour améliorer votre bien-être." 
                         class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2" 
-                        required
+                        
                     >{{ old('about') }}</textarea>
                     <x-input-error :messages="$errors->get('about')" class="mt-2 text-red-600" />
                 </div>

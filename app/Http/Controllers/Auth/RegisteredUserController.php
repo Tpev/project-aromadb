@@ -108,7 +108,7 @@ public function storepro(Request $request): RedirectResponse
         $user->slug = User::createUniqueSlug($request->company_name, $user->id);
         $user->save();
 
-       // Stripe integration can be added here if needed.
+/*        // Stripe integration can be added here if needed.
         Stripe::setApiKey(config('services.stripe.secret'));
         $customer = Customer::create([
             'email' => $user->email,
@@ -117,7 +117,7 @@ public function storepro(Request $request): RedirectResponse
                 'user_id' => $user->id,
             ],
         ]);
-        $user->stripe_customer_id = $customer->id;
+        $user->stripe_customer_id = $customer->id; */
        
 
         // Fire the Registered event
