@@ -9,6 +9,9 @@ use App\Models\ClientProfile;
 use App\Policies\ClientProfilePolicy;
 use Carbon\Carbon;
 use App\Services\IpInfoService;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
