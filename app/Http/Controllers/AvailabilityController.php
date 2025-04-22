@@ -15,6 +15,9 @@ class AvailabilityController extends Controller
      */
 public function index()
 {
+	    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
     $this->authorize('viewAny', Availability::class); // This checks if the user can view any availability
     $availabilities = Availability::where('user_id', Auth::id())->with('products')->get();
 

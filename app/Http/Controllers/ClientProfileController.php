@@ -21,6 +21,9 @@ class ClientProfileController extends Controller
      */
     public function index()
     {
+		    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
         // Get all client profiles for the logged-in therapist
         $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
 

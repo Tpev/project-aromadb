@@ -21,6 +21,9 @@ class ProductController extends Controller
      */
     public function index()
     {
+		    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
         // Fetch products for the logged-in user
         $products = Product::where('user_id', Auth::id())->get();
 

@@ -31,6 +31,9 @@ class InvoiceController extends Controller
      */
     public function index()
     {
+		    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
         $this->authorize('viewAny', Invoice::class); // Check permission to view any invoice
         
         // Retrieve all invoices for the authenticated user
