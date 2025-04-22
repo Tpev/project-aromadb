@@ -18,6 +18,9 @@ class DashboardController extends Controller
      */
     public function index()
     {
+		    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
         $userId = Auth::id();
 		$therapist = Auth::user();
 		//dd($therapist);
