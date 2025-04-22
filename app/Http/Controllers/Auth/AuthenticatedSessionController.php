@@ -35,7 +35,9 @@ class AuthenticatedSessionController extends Controller
 
             // Récupérer l'utilisateur authentifié
             $user = Auth::user();
-
+			if (Auth::user()->license_status === 'inactive') {
+				return redirect('/license-tiers/pricing');
+			}
             // Redirection conditionnelle basée sur le rôle de l'utilisateur
             if ($user->is_therapist) {
                 return redirect()->intended('/dashboard-pro');

@@ -9,9 +9,6 @@ use App\Models\ClientProfile;
 use App\Policies\ClientProfilePolicy;
 use Carbon\Carbon;
 use App\Services\IpInfoService;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,19 +39,6 @@ class AppServiceProvider extends ServiceProvider
             $user->save();
         });
 		
-		Route::middleware('web')->group(function () {
-        app('router')->matched(function ($event) {
-            if (
-                Auth::check() &&
-                Auth::user()->license_status === 'inactive' &&
-                !Request::is('license-tiers/pricing') &&
-                !Request::is('logout') &&
-                !Request::is('sanctum/*')
-            ) {
-                redirect('/license-tiers/pricing')->send();
-                exit; // important to halt further route handling
-            }
-        });
-    });
+		
     }
 }
