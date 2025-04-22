@@ -523,6 +523,12 @@ Route::post('/appointments/available-dates-patient', [AppointmentController::cla
 
 Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAny,App\Models\ClientProfile'])->group(function () {
    
+       // Redirect to /upgrade if license is inactive
+    Route::before(function () {
+        if (Auth::check() && Auth::user()->license_status === 'inactive' && request()->path() !== 'upgrade') {
+            return redirect('/license-tiers/pricing');
+        }
+    });
    
     Route::post('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
     Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
