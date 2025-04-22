@@ -49,14 +49,7 @@ use App\Http\Controllers\MetricEntryController;
 use App\Http\Controllers\ClientFileController;
 
 
-if (Auth::check() 
-    && Auth::user()->license_status === 'inactive' 
-    && !request()->is('/license-tiers/pricing') 
-    && !request()->is('logout') 
-    && !request()->is('sanctum/*') // allow auth/token endpoints if using Sanctum
-) {
-    return redirect('/license-tiers/pricing')->send(); // stop further route processing
-}
+
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('/lesson/{id}/edit', [AdminController::class, 'editLesson'])->name('admin.lesson.edit');

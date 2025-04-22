@@ -38,5 +38,20 @@ class AppServiceProvider extends ServiceProvider
             $user->last_login_at = Carbon::now();
             $user->save();
         });
+		
+		Route::middleware('web')->group(function () {
+        app('router')->matched(function ($event) {
+            if (
+                Auth::check() &&
+                Auth::user()->license_status === 'inactive' &&
+                !Request::is('license-tiers/pricing') &&
+                !Request::is('logout') &&
+                !Request::is('sanctum/*')
+            ) {
+                redirect('/license-tiers/pricing')->send();
+                exit; // important to halt further route handling
+            }
+        });
+    });
     }
 }
