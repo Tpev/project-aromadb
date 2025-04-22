@@ -33,6 +33,9 @@ class AppointmentController extends Controller
      */
 public function index()
 {
+	    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
     // Fetch appointments for the authenticated user
     $appointments = Appointment::where('user_id', Auth::id())
         ->with(['clientProfile', 'product'])
