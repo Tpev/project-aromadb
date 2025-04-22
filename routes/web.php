@@ -49,7 +49,14 @@ use App\Http\Controllers\MetricEntryController;
 use App\Http\Controllers\ClientFileController;
 
 
-
+if (Auth::check() 
+    && Auth::user()->license_status === 'inactive' 
+    && !request()->is('/license-tiers/pricing') 
+    && !request()->is('logout') 
+    && !request()->is('sanctum/*') // allow auth/token endpoints if using Sanctum
+) {
+    return redirect('/license-tiers/pricing')->send(); // stop further route processing
+}
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('/lesson/{id}/edit', [AdminController::class, 'editLesson'])->name('admin.lesson.edit');
@@ -523,12 +530,7 @@ Route::post('/appointments/available-dates-patient', [AppointmentController::cla
 
 Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAny,App\Models\ClientProfile'])->group(function () {
    
-       // Redirect to /upgrade if license is inactive
-    Route::before(function () {
-        if (Auth::check() && Auth::user()->license_status === 'inactive' && request()->path() !== 'upgrade') {
-            return redirect('/license-tiers/pricing');
-        }
-    });
+   
    
     Route::post('/appointments/available-slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots'])->name('appointments.available-slots');
     Route::get('/appointments', [App\Http\Controllers\AppointmentController::class, 'index'])->name('appointments.index');
