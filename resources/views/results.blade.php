@@ -172,7 +172,7 @@
                   class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
                   placeholder="Lieu (ville ou région)"
                   list="regions" <!-- new datalist for regions -->
-                
+                >
                 <datalist id="regions">
                   <!-- Populated by JS for regions -->
                 </datalist>
