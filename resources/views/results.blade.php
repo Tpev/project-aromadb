@@ -203,8 +203,9 @@
             <!-- Therapist Cards Grid -->
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 			@forelse($therapists as $therapist)
-				<div class="w-full">
+		
             <div class="bg-white shadow-xl rounded-xl overflow-hidden transform hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+
 
                         <!-- Header Banner -->
                         <div class="relative h-40 bg-[#647a0b]">
