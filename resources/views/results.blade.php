@@ -162,21 +162,26 @@
                 </datalist>
               </div>
 
-   <!-- Location Autocomplete -->
-              <div class="flex-1">
-                <label for="location" class="sr-only">Lieu</label>
-                <input 
-                  type="text"
-                  name="location"
-                  id="location"
-                  class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
-                  placeholder="Lieu (ville ou région)"
-                  list="regions" <!-- new datalist for regions -->
-                >
-                <datalist id="regions">
-                  <!-- Populated by JS for regions -->
-                </datalist>
-              </div>
+<!-- Location Autocomplete -->
+<div class="flex-1">
+    <label for="location" class="sr-only">Lieu</label>
+
+    <input
+        type="text"
+        name="location"
+        id="location"
+        class="w-full rounded-full border-gray-300 shadow-sm
+               focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
+        placeholder="Lieu (ville ou région)"
+        list="regions"
+    > <!-- ── the tag is now closed here -->
+
+    <!-- new datalist for regions -->
+    <datalist id="regions">
+        <!-- Populated by JS for regions -->
+    </datalist>
+</div>
+
 
 
               <!-- Search Button with Icon -->
