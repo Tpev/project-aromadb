@@ -263,10 +263,14 @@
                                 @endif
                             </div>
 
-                            <!-- Short Description -->
-                            <p class="mt-4 text-sm text-[#647a0b] text-center">
-                                {!! Str::limit($therapist->about ?? 'Informations à propos non disponibles.', 100) !!}
-                            </p>
+							@php
+								// Texte brut sans balises
+								$aboutPlain = strip_tags($therapist->about ?? 'Informations à propos non disponibles.');
+							@endphp
+
+							<p class="mt-4 text-sm text-[#647a0b] text-center">
+								{{ Str::limit($aboutPlain, 100) }}
+							</p>
 
                             <!-- Rating and Call-to-Action -->
                             <div class="mt-4 flex flex-col items-center space-y-2">
