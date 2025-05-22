@@ -47,17 +47,39 @@ use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\MetricController;
 use App\Http\Controllers\MetricEntryController;
 use App\Http\Controllers\ClientFileController;
+use App\Http\Controllers\ClientInviteController;
+use App\Http\Controllers\ClientPasswordSetupController;
+use App\Http\Controllers\ClientAuthController;
 
-
-
+Route::get ('client/setup/{token}', [ClientPasswordSetupController::class, 'show'])
+     ->name('client.setup.show');
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('/lesson/{id}/edit', [AdminController::class, 'editLesson'])->name('admin.lesson.edit');
     Route::put('/lesson/{id}', [AdminController::class, 'updateLesson'])->name('admin.lesson.update');
 });
 
+Route::prefix('client')->group(function () {
+    Route::get ('login',  [ClientAuthController::class,'showLogin'])->name('client.login');
+    Route::post('login',  [ClientAuthController::class,'login'])    ->name('client.login.post');
+
+    Route::middleware('auth:client')->group(function () {
+        Route::get ('home', fn() => view('client.home'))->name('client.home');
+        Route::post('logout', [ClientAuthController::class,'logout'])->name('client.logout');
+        // future “espace client” routes here
+    });
+});
 
 
+// routes/web.php
+Route::post('client_profiles/{clientProfile}/invite',
+            [ClientInviteController::class,'store'])->name('client.invite')->middleware('auth');
+
+Route::get ('client/setup/{token}', [ClientPasswordSetupController::class, 'show'])
+     ->name('client.setup.show');
+
+Route::post('client/setup/{token}', [ClientPasswordSetupController::class, 'store'])
+     ->name('client.setup.store');
 
 
 

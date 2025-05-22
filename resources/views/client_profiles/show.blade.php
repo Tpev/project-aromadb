@@ -10,6 +10,9 @@
             <h1 class="details-title">
                 {{ __('Profil de ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
             </h1>
+<form action="{{ route('client.invite', $clientProfile) }}" method="POST">
+    @csrf <button class="btn btn-primary">Envoyer l’invitation</button>
+</form>
 
             <!-- Compact Boxed Profile Information -->
             <div class="profile-info-boxes row mt-4">

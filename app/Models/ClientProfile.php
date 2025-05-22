@@ -3,15 +3,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Policies\ClientProfilePolicy;
+use Illuminate\Notifications\Notifiable;
 
-class ClientProfile extends Model
+class ClientProfile extends Authenticatable 
 {
-    use HasFactory;
+        use HasFactory, Notifiable;
 
-    // Allow mass assignment for these fields
-    protected $fillable = ['user_id', 'first_name', 'last_name', 'email', 'phone', 'address', 'birthdate', 'notes', 'first_name_billing', 'last_name_billing'];
+    protected $fillable = [
+        'user_id','first_name','last_name','email','phone',
+        'address','birthdate','notes',
+        'first_name_billing','last_name_billing',
+        'password',                    // new
+        'password_setup_token_hash',   // coming next
+        'password_setup_expires_at',
+    ];
+
+    protected $hidden = ['password','remember_token'];
+    protected $casts = [
+    'password'      => 'hashed',
+    'last_login_at' => 'datetime',   // add this line
+];
+
+
 	   // Register policy
     protected static $policies = [
         ClientProfile::class => ClientProfilePolicy::class,

@@ -39,8 +39,13 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+			
         ],
-    ],
+            'client' => [
+            'driver'   => 'session',            // normal session guard
+            'provider' => 'client_profiles',    // defined below
+        ],
+	],
 
     /*
     |--------------------------------------------------------------------------
@@ -64,6 +69,7 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
         ],
+		'client_profiles' => ['driver'=>'eloquent','model'=>App\Models\ClientProfile::class],
 
         // 'users' => [
         //     'driver' => 'database',
