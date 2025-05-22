@@ -135,7 +135,7 @@ public function storepro(Request $request): RedirectResponse
         Log::info("Sent WelcomeProMail to user: {$user->email}");
 
         // Notify admins about the new user
-        Mail::to($adminEmails)->queue(new AdminNewUserNotification($user));
+        Mail::to($adminEmails)->send(new AdminNewUserNotification($user));
         Log::info("Queued AdminNewUserNotification for admins.");
 
         // Commit the transaction
