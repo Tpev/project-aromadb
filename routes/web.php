@@ -284,6 +284,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->group(function () {
 // Inventory Items Resource Routes
 Route::resource('inventory_items', InventoryItemController::class);
+Route::post('/inventory_items/{inventoryItem}/consume', [InventoryItemController::class, 'consume'])->name('inventory_items.consume');
+Route::post('/inventory-items/{inventoryItem}/consume-unit', [InventoryItemController::class, 'consumeUnit'])
+    ->name('inventory_items.consume.unit');
+
 });
 
 

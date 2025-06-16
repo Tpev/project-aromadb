@@ -1,143 +1,231 @@
-{{-- resources/views/inventory_items/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Gestoin de l\'inventaire') }}
+        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+            {{ __('Gestion de l\'inventaire') }}
         </h2>
     </x-slot>
 
-    <!-- Assurez-vous que les icônes Font Awesome sont chargées -->
     <head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
 
-    <div class="container-fluid mt-5">
-        <h1 class="page-title">Gestion de l'Inventaire</h1>
+    <div class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+                {{ __('Inventaire des Articles') }}
+            </h1>
 
-        <!-- Section de Description -->
-        <div class="description-box">
-            <p class="description-text">
-                Bienvenue sur votre tableau de bord de gestion d'inventaire. Ici, vous pouvez visualiser tous vos articles d'inventaire, gérer les niveaux de stock et suivre les détails des produits. Utilisez les filtres pour trier les articles par marque ou recherchez par nom ou référence pour trouver rapidement des produits spécifiques. Cet outil vous aide à gérer efficacement votre stock et à vous assurer d'avoir toujours les bons produits disponibles pour vos clients.
-            </p>
+            <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
+                <select id="brandFilter" class="form-control mb-2" onchange="filterByBrand()" style="width: 200px;">
+                    <option value="">Filtrer par Marque</option>
+                    @php
+                        $brands = $inventoryItems->pluck('brand')->unique()->filter()->sort();
+                    @endphp
+                    @foreach($brands as $brand)
+                        <option value="{{ trim($brand) }}">{{ trim($brand) }}</option>
+                    @endforeach
+                </select>
+
+                <input type="text" id="search" class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-[#854f38]" placeholder="Recherche par nom ou référence..." onkeyup="filterTable()">
+
+                <a href="{{ route('inventory_items.create') }}" class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                    </svg>
+                    {{ __('Ajouter un Article') }}
+                </a>
+            </div>
+
+            <div class="bg-white shadow overflow-hidden rounded-lg">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200" id="inventoryTable">
+                        <thead class="bg-[#647a0b] text-white">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nom</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Référence</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix Achat</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix Vente</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Stock</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Unité</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Marque</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+<tbody>
+    @foreach($inventoryItems as $item)
+        @php
+            $lowStock = false;
+            if (in_array($item->unit_type, ['ml', 'drop']) && $item->quantity_per_unit > 0) {
+                $percentRemaining = ($item->quantity_remaining / $item->quantity_per_unit) * 100;
+                $lowStock = $percentRemaining <= 10;
+            } elseif ($item->unit_type === 'unit' && $item->quantity_in_stock <= 0) {
+                $lowStock = true;
+            }
+        @endphp
+        <tr class="border-b border-gray-200">
+
+                            <td class="px-4 py-2">{{ $item->name }}</td>
+
+                            <td class="px-4 py-2">{{ $item->reference }}</td>
+                            <td class="px-4 py-2">{{ Str::limit($item->description, 50) }}</td>
+                            <td class="px-4 py-2">{{ number_format($item->price, 2) }}€</td>
+                            <td class="px-4 py-2">{{ number_format($item->selling_price, 2) }}€</td>
+<td>
+    @if(in_array($item->unit_type, ['ml', 'drop']))
+        {{ number_format($item->quantity_remaining, 2) }} {{ $item->unit_type }}
+        @php
+            $percentRemaining = $item->quantity_per_unit > 0
+                ? ($item->quantity_remaining / $item->quantity_per_unit) * 100
+                : 0;
+
+            $barColor = 'bg-success';
+            if ($percentRemaining <= 10) {
+                $barColor = 'bg-danger';
+            } elseif ($percentRemaining <= 30) {
+                $barColor = 'bg-warning';
+            }
+        @endphp
+        <div class="progress mt-2" style="height: 10px;">
+            <div class="progress-bar {{ $barColor }}" role="progressbar"
+                 style="width: {{ number_format($percentRemaining, 0) }}%;"
+                 aria-valuenow="{{ number_format($percentRemaining, 0) }}"
+                 aria-valuemin="0" aria-valuemax="100"
+                 title="{{ number_format($percentRemaining, 1) }}% restant">
+            </div>
         </div>
+    @else
+        {{ $item->quantity_in_stock }}
+        @if($item->quantity_in_stock <= 0)
+            <i class="fas fa-exclamation-triangle ms-2" style="color: #e3342f;" title="Hors Stock"></i>
+        @endif
+    @endif
+</td>
 
-        <!-- Bouton pour ajouter un nouvel article -->
-        <div class="mb-4 text-end">
-            <a href="{{ route('inventory_items.create') }}" class="btn-add">
-                <i class="fas fa-plus mr-2"></i> Ajouter un Article
-            </a>
-        </div>
+                            <td class="px-4 py-2">{{ ucfirst($item->unit_type) }}</td>
+                            <td class="px-4 py-2">{{ $item->brand }}</td>
+							<td>
+@if($item->unit_type === 'unit')
+    <button
+        class="btn btn-outline-primary btn-sm"
+        data-bs-toggle="modal"
+        data-bs-target="#consumeUnitModal{{ $item->id }}"
+        @if($item->quantity_in_stock < 1) disabled @endif
+    >
+        <i class="fas fa-box-open me-1"></i>
+        Consommer 1 unité
+    </button>
+@endif
 
-        <!-- Barre de Filtre et de Recherche -->
-        <div class="mb-4 text-end">
-            <select id="brandFilter" class="form-control mb-2" onchange="filterByBrand()" style="border-color: #647a0b; width: 200px; display: inline-block;">
-                <option value="">Filtrer par Marque</option>
-                @php
-                    // Récupérer toutes les marques uniques, supprimer les doublons
-                    $brands = $inventoryItems->pluck('brand')->unique()->filter()->sort();
-                @endphp
-                @foreach($brands as $brand)
-                    <option value="{{ trim($brand) }}">{{ trim($brand) }}</option>
-                @endforeach
-            </select>
 
-            <input type="text" id="search" class="form-control" placeholder="Rechercher par nom ou référence..." onkeyup="filterTable()" style="border-color: #854f38; width: 300px; display: inline-block;">
-        </div>
+															@if(in_array($item->unit_type, ['ml', 'drop']))
+									<button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#consumeModal{{ $item->id }}">
+										<i class="fas fa-vial me-1"></i> Consommer
+									</button>
+								@endif
+								<a href="{{ route('inventory_items.edit', $item->id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+								<form action="{{ route('inventory_items.destroy', $item->id) }}" method="POST" style="display: inline-block;">
+									@csrf
+									@method('DELETE')
+									<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer cet article ?');">
+										<i class="fas fa-trash"></i>
+									</button>
+								</form>
 
-        <div class="table-responsive mx-auto">
-            <table class="table table-bordered table-hover" id="inventoryTable">
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Référence</th>
-                        <th>Description</th>
-                        <th>Prix d'Achat</th>
-                        <th>Prix de Vente</th>
-                        <th>Quantité en Stock</th>
-                        <th>Marque</th>
-                        <th>Actions</th>
-                        <!-- Colonne Marque Cachée pour le Filtrage -->
-                        <th class="d-none">Marque</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($inventoryItems as $item)
-                        <tr>
-                            <td>{{ $item->name }}</td>
-                            <td>{{ $item->reference }}</td>
-                            <td>{{ Str::limit($item->description, 50) }}</td>
-                            <td>{{ number_format($item->price, 2) }}€</td>
-                            <td>{{ number_format($item->selling_price, 2) }}€</td>
-                            <td>
-                                {{ $item->quantity_in_stock }}
-                                @if($item->quantity_in_stock <= 5)
-                                    <i class="fas fa-exclamation-triangle ms-2" style="color: #e3342f;" title="Stock faible"></i>
-                                @endif
-                            </td>
-                            <td>{{ $item->brand }}</td>
-                            <td>
-                                <a href="{{ route('inventory_items.show', $item->id) }}" class="btn btn-info btn-sm" title="Voir">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('inventory_items.edit', $item->id) }}" class="btn btn-warning btn-sm" title="Éditer">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <form action="{{ route('inventory_items.destroy', $item->id) }}" method="POST" style="display: inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Supprimer"
-                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
-                            <!-- Colonne Marque Cachée pour le Filtrage -->
+							</td>
+
                             <td class="d-none">{{ $item->brand }}</td>
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
+        <!-- All modals below table -->
+        @foreach($inventoryItems as $item)
+            @if(in_array($item->unit_type, ['ml', 'drop']))
+                <div class="modal fade" id="consumeModal{{ $item->id }}" tabindex="-1" aria-labelledby="consumeModalLabel{{ $item->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content text-start">
+                            <form action="{{ route('inventory_items.consume', $item->id) }}" method="POST">
+                                @csrf
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="consumeModalLabel{{ $item->id }}">Consommer {{ $item->unit_type === 'ml' ? 'des ml' : 'des gouttes' }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                </div>
+<div class="modal-body">
+    <p>Vous pouvez consommer une quantité en gouttes ou en millilitres :</p>
 
-    <!-- Styles Personnalisés -->
+    <div class="mb-3">
+        <label for="amount_ml_{{ $item->id }}" class="form-label">Quantité (ml)</label>
+        <input type="number" step="0.01" name="amount_ml" id="amount_ml_{{ $item->id }}" class="form-control">
+    </div>
+
+    <div class="mb-3">
+        <label for="amount_drops_{{ $item->id }}" class="form-label">Quantité (gouttes)</label>
+        <input type="number" step="1" name="amount_drops" id="amount_drops_{{ $item->id }}" class="form-control">
+    </div>
+</div>
+
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-primary">Confirmer</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    </div>
+@if($item->unit_type === 'unit')
+    <div class="modal fade" id="consumeUnitModal{{ $item->id }}" tabindex="-1" aria-labelledby="consumeUnitModalLabel{{ $item->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-start">
+                <form action="{{ route('inventory_items.consume.unit', $item->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="consumeUnitModalLabel{{ $item->id }}">Confirmer la consommation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Voulez-vous consommer une unité de <strong>{{ $item->name }}</strong> ?</p>
+                        <p class="text-muted">Il reste actuellement {{ $item->quantity_in_stock }} unité(s).</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Oui, consommer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endif
     <style>
-        .container-fluid {
-            max-width: 100%;
-            text-align: center;
+        .rotate-180 {
+            transform: rotate(180deg);
         }
-
-        .table-responsive {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
+        .form-control {
+            border: 1px solid #647a0b;
         }
-
-        .table {
-            width: 100%;
-        }
-
-        .table thead {
+		        .btn-add {
             background-color: #647a0b;
+            border: none;
             color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.3s;
+            font-size: 1rem;
         }
 
-        .table tbody tr {
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .table tbody tr:hover {
+        .btn-add:hover {
             background-color: #854f38;
-            color: #ffffff;
-        }
-
-        .table th, .table td {
-            vertical-align: middle;
-            text-align: center;
-            word-wrap: break-word;
-            white-space: normal;
         }
 
         .page-title {
@@ -148,95 +236,33 @@
             text-align: center;
         }
 
-        #search, #brandFilter {
-            padding: 8px;
-            border-radius: 5px;
-            margin-right: 15px;
-        }
-
-        #search {
-            border: 1px solid #854f38;
-        }
-
-        #brandFilter {
-            border: 1px solid #647a0b;
-        }
-
-        .text-end {
-            padding-right: 15px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .text-end > * {
-            margin-left: 10px;
-        }
-
-        .ms-2 {
-            margin-left: 8px;
-        }
-
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 0.875rem;
-        }
-
-        .btn-add {
-            background-color: #647a0b;
-            border: none;
-            color: #ffffff;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-size: 1rem;
-        }
-
-        .btn-add:hover {
-            background-color: #854f38;
-        }
-
-        .btn-add i {
-            margin-right: 5px;
-        }
     </style>
 
-    <!-- JavaScript pour le filtrage -->
     <script>
         function filterTable() {
-            let input = document.getElementById('search');
-            let filter = input.value.toLowerCase();
-            let table = document.getElementById('inventoryTable');
-            let tr = table.getElementsByTagName('tr');
+            const input = document.getElementById('search');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('inventoryTable');
+            const rows = table.getElementsByTagName('tr');
 
-            for (let i = 1; i < tr.length; i++) {
-                let tdName = tr[i].getElementsByTagName('td')[0];
-                let tdReference = tr[i].getElementsByTagName('td')[1];
-                if (tdName || tdReference) {
-                    let txtValueName = tdName.textContent || tdName.innerText;
-                    let txtValueReference = tdReference.textContent || tdReference.innerText;
-                    tr[i].style.display = (txtValueName.toLowerCase().indexOf(filter) > -1 || txtValueReference.toLowerCase().indexOf(filter) > -1) ? '' : 'none';
-                }
+            for (let i = 1; i < rows.length; i++) {
+                const name = rows[i].getElementsByTagName('td')[0]?.innerText.toLowerCase();
+                const ref = rows[i].getElementsByTagName('td')[1]?.innerText.toLowerCase();
+                rows[i].style.display = (name.includes(filter) || ref.includes(filter)) ? '' : 'none';
             }
         }
 
         function filterByBrand() {
-            let select = document.getElementById('brandFilter');
-            let filter = select.value.toLowerCase();
-            let table = document.getElementById('inventoryTable');
-            let tr = table.getElementsByTagName('tr');
+            const select = document.getElementById('brandFilter');
+            const filter = select.value.toLowerCase();
+            const table = document.getElementById('inventoryTable');
+            const rows = table.getElementsByTagName('tr');
 
-            for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName('td')[8]; // Index de la colonne Marque cachée
-                if (td) {
-                    let brand = td.textContent.toLowerCase().trim();
-                    tr[i].style.display = brand === filter || filter === '' ? '' : 'none';
-                }
+            for (let i = 1; i < rows.length; i++) {
+                const brand = rows[i].getElementsByTagName('td')[7]?.innerText.toLowerCase().trim();
+                rows[i].style.display = (brand === filter || filter === '') ? '' : 'none';
             }
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </x-app-layout>
