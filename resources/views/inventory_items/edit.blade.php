@@ -104,12 +104,12 @@
 
                 <div class="details-box form-section">
                     <label class="details-label" for="price">Prix d'Achat (€)</label>
-                    <input type="number" id="price" name="price" step="0.01" class="form-control" value="{{ old('price', $inventoryItem->price) }}" required>
+                    <input type="number" id="price" name="price" step="0.01" class="form-control" value="{{ old('price', $inventoryItem->price) }}">
                 </div>
 
                 <div class="details-box form-section">
                     <label class="details-label" for="selling_price">Prix de Vente (€)</label>
-                    <input type="number" id="selling_price" name="selling_price" step="0.01" class="form-control" value="{{ old('selling_price', $inventoryItem->selling_price) }}" required>
+                    <input type="number" id="selling_price" name="selling_price" step="0.01" class="form-control" value="{{ old('selling_price', $inventoryItem->selling_price) }}">
                 </div>
 
                 <div class="details-box form-section">
@@ -118,6 +118,7 @@
                         <option value="unit" {{ old('unit_type', $inventoryItem->unit_type) == 'unit' ? 'selected' : '' }}>Unité</option>
                         <option value="ml" {{ old('unit_type', $inventoryItem->unit_type) == 'ml' ? 'selected' : '' }}>Millilitre (ml)</option>
                         <option value="drop" {{ old('unit_type', $inventoryItem->unit_type) == 'drop' ? 'selected' : '' }}>Goutte</option>
+                        <option value="gramme" {{ old('unit_type', $inventoryItem->unit_type) == 'gramme' ? 'selected' : '' }}>Gramme (g)</option>
                     </select>
                 </div>
 
@@ -127,12 +128,12 @@
                 </div>
 
                 <div class="details-box form-section" id="ml_fields_box" style="display: none;">
-                    <label class="details-label" for="quantity_per_unit">Contenu Total (ml ou gouttes)</label>
+                    <label class="details-label" for="quantity_per_unit">Contenu Total (ml ou g)</label>
                     <input type="number" step="0.01" name="quantity_per_unit" id="quantity_per_unit" class="form-control" value="{{ old('quantity_per_unit', $inventoryItem->quantity_per_unit) }}">
                 </div>
 
                 <div class="details-box form-section" id="ml_fields_remaining" style="display: none;">
-                    <label class="details-label" for="quantity_remaining">Quantité Restante (ml ou gouttes)</label>
+                    <label class="details-label" for="quantity_remaining">Quantité Restante (ml ou g)</label>
                     <input type="number" step="0.01" name="quantity_remaining" id="quantity_remaining" class="form-control" value="{{ old('quantity_remaining', $inventoryItem->quantity_remaining) }}">
                 </div>
 
@@ -157,9 +158,9 @@
         function updateVisibility() {
             const unitType = document.getElementById('unit_type').value;
             document.getElementById('stock_quantity_box').style.display = unitType === 'unit' ? 'block' : 'none';
-            const showMlFields = (unitType === 'ml' || unitType === 'drop');
-            document.getElementById('ml_fields_box').style.display = showMlFields ? 'block' : 'none';
-            document.getElementById('ml_fields_remaining').style.display = showMlFields ? 'block' : 'none';
+            const showFields = (unitType === 'ml' || unitType === 'drop' || unitType === 'gramme');
+            document.getElementById('ml_fields_box').style.display = showFields ? 'block' : 'none';
+            document.getElementById('ml_fields_remaining').style.display = showFields ? 'block' : 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {

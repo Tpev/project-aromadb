@@ -73,7 +73,8 @@
                             <td class="px-4 py-2">{{ number_format($item->price, 2) }}€</td>
                             <td class="px-4 py-2">{{ number_format($item->selling_price, 2) }}€</td>
 <td>
-    @if(in_array($item->unit_type, ['ml', 'drop']))
+    @if(in_array($item->unit_type, ['ml', 'drop', 'gramme']))
+
         {{ number_format($item->quantity_remaining, 2) }} {{ $item->unit_type }}
         @php
             $percentRemaining = $item->quantity_per_unit > 0
@@ -119,7 +120,7 @@
 @endif
 
 
-															@if(in_array($item->unit_type, ['ml', 'drop']))
+															@if(in_array($item->unit_type, ['ml', 'drop', 'gramme']))
 									<button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#consumeModal{{ $item->id }}">
 										<i class="fas fa-vial me-1"></i> Consommer
 									</button>
@@ -147,39 +148,53 @@
 @if($inventoryItems->isNotEmpty())	
         <!-- All modals below table -->
         @foreach($inventoryItems as $item)
-            @if(in_array($item->unit_type, ['ml', 'drop']))
-                <div class="modal fade" id="consumeModal{{ $item->id }}" tabindex="-1" aria-labelledby="consumeModalLabel{{ $item->id }}" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content text-start">
-                            <form action="{{ route('inventory_items.consume', $item->id) }}" method="POST">
-                                @csrf
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="consumeModalLabel{{ $item->id }}">Consommer {{ $item->unit_type === 'ml' ? 'des ml' : 'des gouttes' }}</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
-                                </div>
-<div class="modal-body">
-    <p>Vous pouvez consommer une quantité en gouttes ou en millilitres :</p>
-
-    <div class="mb-3">
-        <label for="amount_ml_{{ $item->id }}" class="form-label">Quantité (ml)</label>
-        <input type="number" step="0.01" name="amount_ml" id="amount_ml_{{ $item->id }}" class="form-control">
-    </div>
-
-    <div class="mb-3">
-        <label for="amount_drops_{{ $item->id }}" class="form-label">Quantité (gouttes)</label>
-        <input type="number" step="1" name="amount_drops" id="amount_drops_{{ $item->id }}" class="form-control">
-    </div>
-</div>
-
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-primary">Confirmer</button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                </div>
-                            </form>
-                        </div>
+ @if(in_array($item->unit_type, ['ml', 'drop', 'gramme']))
+    <div class="modal fade" id="consumeModal{{ $item->id }}" tabindex="-1" aria-labelledby="consumeModalLabel{{ $item->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-start">
+                <form action="{{ route('inventory_items.consume', $item->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="consumeModalLabel{{ $item->id }}">
+                            Consommer 
+                            @if($item->unit_type === 'ml') des ml
+                            @elseif($item->unit_type === 'drop') des gouttes
+                            @else des grammes
+                            @endif
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                     </div>
-                </div>
-            @endif
+                    <div class="modal-body">
+                        @if($item->unit_type === 'gramme')
+                            <div class="mb-3">
+                                <label for="amount_gramme_{{ $item->id }}" class="form-label">Quantité (g)</label>
+                                <input type="number" step="0.01" name="amount_gramme" id="amount_gramme_{{ $item->id }}" class="form-control">
+                            </div>
+                        @else
+                            <p>Vous pouvez consommer une quantité en gouttes ou en millilitres :</p>
+
+                            <div class="mb-3">
+                                <label for="amount_ml_{{ $item->id }}" class="form-label">Quantité (ml)</label>
+                                <input type="number" step="0.01" name="amount_ml" id="amount_ml_{{ $item->id }}" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="amount_drops_{{ $item->id }}" class="form-label">Quantité (gouttes)</label>
+                                <input type="number" step="1" name="amount_drops" id="amount_drops_{{ $item->id }}" class="form-control">
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Confirmer</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endif
+
         @endforeach
     </div>
 @if($item->unit_type === 'unit')

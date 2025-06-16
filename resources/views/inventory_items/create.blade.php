@@ -1,4 +1,3 @@
-{{-- resources/views/inventory_items/create.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -111,14 +110,14 @@
                 <!-- Prix Achat -->
                 <div class="details-box form-section">
                     <label class="details-label" for="price">Prix d'Achat (€)</label>
-                    <input type="number" id="price" name="price" step="0.01" class="form-control" value="{{ old('price') }}" required>
+                    <input type="number" id="price" name="price" step="0.01" class="form-control" value="{{ old('price') }}">
                     @error('price') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Prix Vente -->
                 <div class="details-box form-section">
                     <label class="details-label" for="selling_price">Prix de Vente (€)</label>
-                    <input type="number" id="selling_price" name="selling_price" step="0.01" class="form-control" value="{{ old('selling_price') }}" required>
+                    <input type="number" id="selling_price" name="selling_price" step="0.01" class="form-control" value="{{ old('selling_price') }}">
                     @error('selling_price') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
@@ -128,6 +127,7 @@
                     <select name="unit_type" id="unit_type" class="form-control" required>
                         <option value="unit" {{ old('unit_type') == 'unit' ? 'selected' : '' }}>Unité</option>
                         <option value="ml" {{ old('unit_type') == 'ml' ? 'selected' : '' }}>Millilitre (ml)</option>
+                        <option value="gramme" {{ old('unit_type') == 'gramme' ? 'selected' : '' }}>Gramme (g)</option>
                     </select>
                 </div>
 
@@ -140,13 +140,13 @@
 
                 <!-- Quantité par unité -->
                 <div class="details-box form-section" id="ml_fields_box" style="display: none;">
-                    <label class="details-label" for="quantity_per_unit">Contenu Total (ml)</label>
+                    <label class="details-label" for="quantity_per_unit">Contenu Total (ml ou g)</label>
                     <input type="number" step="0.01" name="quantity_per_unit" id="quantity_per_unit" class="form-control" value="{{ old('quantity_per_unit') }}">
                 </div>
 
                 <!-- Quantité restante -->
                 <div class="details-box form-section" id="ml_fields_remaining" style="display: none;">
-                    <label class="details-label" for="quantity_remaining">Quantité Restante (ml)</label>
+                    <label class="details-label" for="quantity_remaining">Quantité Restante (ml ou g)</label>
                     <input type="number" step="0.01" name="quantity_remaining" id="quantity_remaining" class="form-control" value="{{ old('quantity_remaining') }}">
                 </div>
 
@@ -174,9 +174,9 @@
         function updateVisibility() {
             const unitType = document.getElementById('unit_type').value;
             document.getElementById('stock_quantity_box').style.display = unitType === 'unit' ? 'block' : 'none';
-            const showMlFields = (unitType === 'ml' || unitType === 'drop');
-            document.getElementById('ml_fields_box').style.display = showMlFields ? 'block' : 'none';
-            document.getElementById('ml_fields_remaining').style.display = showMlFields ? 'block' : 'none';
+            const showFields = (unitType === 'ml' || unitType === 'drop' || unitType === 'gramme');
+            document.getElementById('ml_fields_box').style.display = showFields ? 'block' : 'none';
+            document.getElementById('ml_fields_remaining').style.display = showFields ? 'block' : 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {

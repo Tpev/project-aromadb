@@ -69,6 +69,9 @@
                             </a>                            
 							<a href="{{ route('conseils.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Biblio Conseils') }}
+                            </a>							
+							<a href="{{ route('inventory_items.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                {{ __('Inventaire') }}
                             </a>
                         </div>
                     </div>
@@ -210,6 +213,9 @@
             </x-responsive-nav-link>            
 			<x-responsive-nav-link :href="route('conseils.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Biblio Conseils') }}
+            </x-responsive-nav-link>			
+			<x-responsive-nav-link :href="route('inventory_items.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Inventaire') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Factures') }}
