@@ -144,6 +144,7 @@
             </div>
         </div>
     </div>
+@if($inventoryItems->isNotEmpty())	
         <!-- All modals below table -->
         @foreach($inventoryItems as $item)
             @if(in_array($item->unit_type, ['ml', 'drop']))
@@ -203,6 +204,7 @@
             </div>
         </div>
     </div>
+@endif
 @endif
     <style>
         .rotate-180 {
