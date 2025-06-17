@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class ClientPasswordSetupController extends Controller
 {
     /* ---------------------------------------------------------
-       Show the “choose password” form
+       Show the “choose password” forms
     --------------------------------------------------------- */
     public function show(string $token)
     {
