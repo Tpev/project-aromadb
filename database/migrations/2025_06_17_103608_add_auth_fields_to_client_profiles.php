@@ -15,7 +15,8 @@ return new class extends Migration
 Schema::table('client_profiles', function (Blueprint $table) {
     $table->string('password')->nullable();
     $table->rememberToken();                 // adds remember_token
-    $table->unique('email');                 // clients log in by e-mail
+    $table->string('email')->nullable();
+            
 });
 
     }
