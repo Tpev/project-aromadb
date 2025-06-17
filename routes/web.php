@@ -50,9 +50,59 @@ use App\Http\Controllers\ClientFileController;
 use App\Http\Controllers\ClientInviteController;
 use App\Http\Controllers\ClientPasswordSetupController;
 use App\Http\Controllers\ClientAuthController;
+use App\Http\Controllers\ClientMessageController;
+use App\Http\Controllers\Auth\ClientPasswordResetController;
+
+Route::prefix('client')->name('client.')->group(function () {
+    Route::get('forgot-password', [ClientPasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('forgot-password', [ClientPasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+
+    Route::get('reset-password/{token}', [ClientPasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('reset-password', [ClientPasswordResetController::class, 'reset'])->name('password.update');
+});
+
+
+
+
+Route::middleware('auth:client')->group(function () {
+    Route::get('/client/files/{file}/download', [ClientFileController::class, 'downloadClient'])
+        ->name('client_files.download');
+});
+
+// Therapist-only (protected by auth middleware)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/client_profiles/{clientProfile}/files/{file}/download', [ClientFileController::class, 'downloadForTherapist'])
+        ->name('client_profiles.files.download');
+});
+
+Route::get('/dashboard/client-profiles/{clientProfile}/messages/fetch', [ClientMessageController::class, 'fetchLatestTherapist'])
+    ->name('therapist.messages.fetch')
+    ->middleware('auth'); // or a more specific therapist guard
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/messages/{clientProfile}/from-therapist', [ClientMessageController::class, 'storeTherapist'])
+        ->name('messages.therapist.store');
+});
+Route::get('/client/messages/fetch', [ClientMessageController::class, 'fetchLatest'])
+    ->name('client.messages.fetch')
+    ->middleware('auth:client');
+
+
+Route::middleware('auth:client')->prefix('client')->group(function () {
+    Route::get('/messages', [ClientMessageController::class, 'index'])->name('client.messages.index');
+    Route::post('/messages', [ClientMessageController::class, 'store'])->name('client.messages.store');
+});
+Route::post('/client_profiles/{clientProfile}/messages', [\App\Http\Controllers\MessageController::class, 'store'])
+    ->name('messages.store');
+
 
 Route::get ('client/setup/{token}', [ClientPasswordSetupController::class, 'show'])
      ->name('client.setup.show');
+Route::post('/client/documents/upload', [ClientProfileController::class, 'uploadDocument'])->name('client.documents.upload');
+Route::post('/client/files/upload', [ClientFileController::class, 'clientUpload'])
+    ->name('client.files.upload');
+Route::get('/client/invoices/{invoice}/pdf', [InvoiceController::class, 'clientPdf'])
+    ->name('client.invoices.pdf');
 
 Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('/lesson/{id}/edit', [AdminController::class, 'editLesson'])->name('admin.lesson.edit');
@@ -64,7 +114,8 @@ Route::prefix('client')->group(function () {
     Route::post('login',  [ClientAuthController::class,'login'])    ->name('client.login.post');
 
     Route::middleware('auth:client')->group(function () {
-        Route::get ('home', fn() => view('client.home'))->name('client.home');
+        Route::get('home', [ClientProfileController::class, 'home'])->name('client.home');
+
         Route::post('logout', [ClientAuthController::class,'logout'])->name('client.logout');
         // future “espace client” routes here
     });

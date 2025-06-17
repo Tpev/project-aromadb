@@ -10,6 +10,28 @@ use Illuminate\Support\Facades\Storage;
 
 class ClientFileController extends Controller
 {
+	public function clientUpload(Request $request)
+{
+    $clientProfile = auth('client')->user(); // ClientProfile is the user model
+
+    $data = $request->validate([
+        'document' => 'required|file|max:20480', // 20MB
+    ]);
+
+    $uploadedFile = $data['document'];
+
+    $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
+
+    $clientProfile->clientFiles()->create([
+        'file_path'     => $path,
+        'original_name' => $uploadedFile->getClientOriginalName(),
+        'mime_type'     => $uploadedFile->getMimeType(),
+        'size'          => $uploadedFile->getSize(),
+    ]);
+
+    return response()->json(['success' => true, 'message' => 'Fichier enregistré', 'path' => $path]);
+}
+
     /**
      * Store the uploaded file in storage and record it in DB.
      * (Called from the upload form in the client profile show page)
@@ -29,7 +51,8 @@ class ClientFileController extends Controller
         $uploadedFile = $data['file'];
 
         // Store the file in 'client_files' directory on the 'public' disk
-        $path = $uploadedFile->store('client_files', 'public');
+        $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'local');
+
 
         // Save in DB
         $clientFile = $clientProfile->clientFiles()->create([
@@ -57,8 +80,33 @@ class ClientFileController extends Controller
             abort(403, 'Accès refusé.');
         }
 
-        return Storage::download('public/' . $file->file_path, $file->original_name);
+        return Storage::disk('local')->download($file->file_path, $file->original_name);
+
     }
+public function downloadClient(ClientFile $file)
+{
+    $client = auth('client')->user();
+
+    if ($file->client_profile_id !== $client->id) {
+        abort(403, 'Accès refusé.');
+    }
+
+    return Storage::download('public/' . $file->file_path, $file->original_name);
+}
+public function downloadForTherapist(ClientProfile $clientProfile, ClientFile $file)
+{
+    // Ownership check
+    if ($file->client_profile_id !== $clientProfile->id) {
+        abort(403, 'Fichier invalide.');
+    }
+
+    // Optional: only allow the assigned therapist
+    if ($clientProfile->user_id !== auth()->id()) {
+        abort(403, 'Accès refusé.');
+    }
+
+    return Storage::download('public/' . $file->file_path, $file->original_name);
+}
 
     /**
      * Delete a file from the database & storage,

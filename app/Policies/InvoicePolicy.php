@@ -18,10 +18,21 @@ class InvoicePolicy
     /**
      * Détermine si l'utilisateur peut voir la facture.
      */
-    public function view(User $user, Invoice $invoice)
-    {
-        return $invoice->user_id === $user->id; // Only allow the owner to view the invoice
+public function view($user, Invoice $invoice)
+{
+    // Therapist (admin) can view their own invoices
+    if ($user instanceof \App\Models\User && $invoice->user_id === $user->id) {
+        return true;
     }
+
+    // Client (ClientProfile) can view their own invoice
+    if ($user instanceof \App\Models\ClientProfile && $invoice->client_profile_id === $user->id) {
+        return true;
+    }
+
+    return false;
+}
+
 
     /**
      * Détermine si l'utilisateur peut créer une facture.

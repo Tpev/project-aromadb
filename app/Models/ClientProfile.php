@@ -24,7 +24,8 @@ class ClientProfile extends Authenticatable
     protected $hidden = ['password','remember_token'];
     protected $casts = [
     'password'      => 'hashed',
-    'last_login_at' => 'datetime',   // add this line
+    'last_login_at' => 'datetime',   
+	'password_setup_expires_at' => 'datetime',
 ];
 
 
@@ -91,6 +92,10 @@ public function metrics()
 public function clientFiles()
 {
     return $this->hasMany(ClientFile::class);
+}
+public function messages()
+{
+    return $this->hasMany(\App\Models\Message::class);
 }
 
 

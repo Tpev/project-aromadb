@@ -10,9 +10,42 @@
             <h1 class="details-title">
                 {{ __('Profil de ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
             </h1>
-<form action="{{ route('client.invite', $clientProfile) }}" method="POST">
-    @csrf <button class="btn btn-primary">Envoyer l’invitation</button>
-</form>
+<!-- SECTION: Invitation au compte -->
+<section class="bg-white p-6 rounded-2xl shadow mt-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">🧾 Invitation à l’espace client</h2>
+
+    @if(!$clientProfile->email)
+        <p class="text-red-600 font-semibold">Ce client n’a pas d’adresse email, l’invitation ne peut pas être envoyée.</p>
+    @elseif($clientProfile->password)
+        <p class="text-green-700 font-semibold">
+            ✅ Ce client a déjà activé son compte.
+        </p>
+    @elseif($clientProfile->password_setup_token_hash && $clientProfile->password_setup_expires_at && $clientProfile->password_setup_expires_at->isFuture())
+        <p class="text-yellow-700">
+            🔁 Une invitation a déjà été envoyée le 
+            <strong>{{ $clientProfile->password_setup_expires_at->subDays(3)->format('d/m/Y H:i') }}</strong>. <br>
+            Elle est valable jusqu’au <strong>{{ $clientProfile->password_setup_expires_at->format('d/m/Y H:i') }}</strong>.
+        </p>
+
+        <form action="{{ route('client.invite', $clientProfile) }}" method="POST" class="mt-4">
+            @csrf
+            <button type="submit" class="btn-secondary">
+                ❗Renvoyer une nouvelle invitation
+            </button>
+        </form>
+    @else
+        <p class="text-gray-600">Ce client n’a pas encore été invité à créer son compte.</p>
+
+        <form action="{{ route('client.invite', $clientProfile) }}" method="POST" class="mt-4">
+            @csrf
+            <button type="submit" class="btn-primary">
+                📩 Envoyer une invitation
+            </button>
+        </form>
+    @endif
+</section>
+
+
 
             <!-- Compact Boxed Profile Information -->
             <div class="profile-info-boxes row mt-4">
@@ -385,6 +418,105 @@
 </div>
 <!-- ======================= END METRICS SECTION ======================= -->
 <!-- ======================= FILE UPLOAD SECTION STARTS ======================= -->
+
+<section class="bg-white p-6 rounded-2xl shadow">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">💬 Messagerie</h2>
+
+    <div id="messageList" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
+        @foreach($clientProfile->messages->sortBy('created_at') as $msg)
+            <div class="text-sm {{ $msg->sender_type === 'client' ? 'text-right' : 'text-left' }}" data-id="{{ $msg->id }}">
+                <div class="inline-block px-3 py-2 rounded-lg {{ $msg->sender_type === 'client' ? 'bg-indigo-100' : 'bg-gray-100' }}">
+                    {{ $msg->content }}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                    {{ $msg->created_at->format('d/m/Y H:i') }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+
+    <form id="therapistMessageForm">
+        @csrf
+        <textarea name="content" id="therapistMessageContent" rows="2" class="w-full border rounded px-3 py-2" placeholder="Écrivez un message..."></textarea>
+        <button type="submit" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded">Envoyer</button>
+    </form>
+</section>
+
+<script>
+document.getElementById('therapistMessageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const content = document.getElementById('therapistMessageContent').value;
+    const csrf = document.querySelector('input[name="_token"]').value;
+
+    fetch("{{ route('messages.therapist.store', $clientProfile->id) }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrf,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content })
+    }).then(res => res.json())
+    .then(res => {
+        if (res.success) {
+            const list = document.getElementById('messageList');
+            const now = new Date().toLocaleString('fr-FR');
+            const bubble = `
+                <div class="text-sm text-left">
+                    <div class="inline-block px-3 py-2 rounded-lg bg-gray-100">
+                        ${content}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">${now}</div>
+                </div>`;
+            list.insertAdjacentHTML('beforeend', bubble);
+            document.getElementById('therapistMessageContent').value = '';
+            list.scrollTop = list.scrollHeight;
+        }
+    });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    const messageList = document.getElementById('messageList');
+    if (messageList) {
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+});
+
+
+    function fetchLatestMessages() {
+        fetch("{{ route('therapist.messages.fetch', $clientProfile->id) }}")
+            .then(res => res.json())
+            .then(messages => {
+                const list = document.getElementById('messageList');
+                list.innerHTML = ''; // On vide la liste
+
+                messages.forEach(msg => {
+                    const bubble = `
+                        <div class="text-sm ${msg.sender_type === 'client' ? 'text-right' : 'text-left'}">
+                            <div class="inline-block px-3 py-2 rounded-lg ${msg.sender_type === 'client' ? 'bg-indigo-100' : 'bg-gray-100'}">
+                                ${msg.content}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">${msg.timestamp}</div>
+                        </div>`;
+                    list.insertAdjacentHTML('beforeend', bubble);
+                });
+
+                // Auto-scroll to bottom
+                list.scrollTop = list.scrollHeight;
+            });
+    }
+
+    // Chargement initial
+    window.addEventListener('DOMContentLoaded', fetchLatestMessages);
+
+    // Rafraîchissement toutes les 10 secondes
+    setInterval(fetchLatestMessages, 10000);
+
+
+</script>
+
+
 <div class="row mt-4">
     <div class="col-md-12">
         <h2 class="details-title">Fichiers du Client</h2>
@@ -417,7 +549,6 @@
                 {{ session('success') }}
             </div>
         @endif
-
         <!-- Table of existing files -->
         @if($clientProfile->clientFiles->isEmpty())
             <p>Aucun fichier n’a encore été téléchargé pour ce client.</p>
@@ -445,7 +576,8 @@
                                 <td>
                                     <!-- Download link (if you have a download route) -->
                                     <a 
-                                        href="{{ route('client_profiles.files.download', [$clientProfile->id, $file->id]) }}" 
+                                        href="{{ route('client_profiles.files.download', [$clientProfile->id, $file->id]) }}"
+
                                         class="btn btn-primary"
                                     >
                                         Télécharger

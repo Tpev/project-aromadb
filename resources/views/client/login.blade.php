@@ -13,4 +13,7 @@
 
         @error('email') <p class="text-red-600 mt-2">{{ $message }}</p> @enderror
     </form>
+	
+	<a href="{{ route('client.password.request') }}">Mot de passe oublié ?</a>
+
 </x-client-app-layout>

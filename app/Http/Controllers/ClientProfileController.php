@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\ClientProfile;
 use App\Models\Appointment;
 use App\Models\SessionNote;
+use App\Models\Message;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ClientProfileController extends Controller
 {
@@ -19,6 +22,30 @@ class ClientProfileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+
+public function uploadDocument(Request $request)
+{
+$clientProfile = auth('client')->user();
+
+if (!$clientProfile) {
+    return response()->json(['success' => false, 'message' => 'Profil client introuvable.'], 404);
+}
+
+
+    $request->validate([
+        'document' => 'required|file|max:5120', // 5MB max
+    ]);
+
+    $file = $request->file('document');
+    $path = $file->store('client_documents/' . auth()->id(), 'public');
+
+    // Optional: save record to a `client_documents` table here
+    // e.g., ClientDocument::create([...]);
+
+    return response()->json(['success' => true, 'path' => $path]);
+}
+	 
     public function index()
     {
 		    if (Auth::user()->license_status === 'inactive') {
@@ -98,7 +125,11 @@ class ClientProfileController extends Controller
         $responses = Response::with('questionnaire')
             ->where('client_profile_id', $clientProfile->id)
             ->get();
+			
+		$clientProfile = ClientProfile::findOrFail($clientProfile->id);
+		$clientProfile->load('messages');
 
+			
         // Récupérer la dernière demande de témoignage, s'il y en a une
         $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
 
@@ -182,4 +213,24 @@ class ClientProfileController extends Controller
         return redirect()->route('client_profiles.index')
                          ->with('success', 'Client profile deleted successfully.');
     }
+public function home()
+{
+    $clientProfile = auth('client')->user();
+
+    $appointments = $clientProfile->appointments()
+        ->where('appointment_date', '>=', now())
+        ->orderBy('appointment_date')
+        ->get();
+
+    $invoices = $clientProfile->invoices()->latest()->get();
+
+    $messages = Message::where('client_profile_id', $clientProfile->id)
+        ->orderBy('created_at', 'asc')
+        ->get();
+
+    return view('client.home', compact('clientProfile', 'appointments', 'invoices', 'messages'));
+}
+
+
+	
 }

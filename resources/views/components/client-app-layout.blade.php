@@ -2,30 +2,41 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <title>{{ $title ?? 'Espace Client' }}</title>
-    @vite(['resources/css/app.css','resources/js/app.js'])
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ $title ?? 'Espace Client – AromaMade Pro' }}</title>
+    <meta name="description" content="Espace sécurisé pour les clients AromaMade Pro : messagerie, documents, rendez-vous, et factures.">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-gray-50 flex flex-col">
-<header class="bg-lime-700 text-white p-4">
-    <div class="container mx-auto flex justify-between">
-        <span class="font-bold">Mon Espace Client</span>
-        @auth('client')
-            <form method="POST" action="{{ route('client.logout') }}">
-                @csrf <button>Déconnexion</button>
-            </form>
-        @endauth
-    </div>
-</header>
+<body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 antialiased">
 
-<main class="flex-1 container mx-auto p-6">
-    @if(session('success'))
-        <p class="mb-4 text-green-700 font-semibold">{{ session('success') }}</p>
-    @endif
-    {{ $slot }}
-</main>
+    <!-- Header -->
+    <header class="bg-lime-700 text-white shadow">
+        <div class="container mx-auto flex justify-between items-center p-4">
+            <h1 class="text-lg font-semibold tracking-wide">AromaMade Pro – Espace Client</h1>
+            @auth('client')
+                <form method="POST" action="{{ route('client.logout') }}" class="ml-4">
+                    @csrf
+                    <button type="submit" class="text-white hover:underline text-sm">Déconnexion</button>
+                </form>
+            @endauth
+        </div>
+    </header>
 
-<footer class="bg-gray-200 text-center p-4 text-sm">
-    &copy; {{ date('Y') }} Votre Cabinet
-</footer>
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto p-6 space-y-4">
+        @if(session('success'))
+            <div class="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded shadow-sm">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        {{ $slot }}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 text-center py-4 text-sm text-gray-500 mt-10 border-t">
+        &copy; {{ date('Y') }} AromaMade Pro — Espace Client Sécurisé
+    </footer>
+
 </body>
 </html>

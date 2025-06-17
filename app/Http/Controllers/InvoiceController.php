@@ -266,6 +266,21 @@ public function update(Request $request, Invoice $invoice)
         return redirect()->route('invoices.index')
                          ->with('success', 'Facture supprimée avec succès.');
     }
+public function clientPdf(Invoice $invoice)
+{
+    // Ensure the authenticated client owns this invoice
+    $client = auth('client')->user();
+
+    if ($invoice->client_profile_id !== $client->id) {
+        abort(403, 'Vous n\'êtes pas autorisé à accéder à cette facture.');
+    }
+
+    $invoice->load('clientProfile', 'items.product');
+
+    $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
+
+    return $pdf->download('facture_' . $invoice->invoice_number . '.pdf');
+}
 
     public function generatePDF(Invoice $invoice)
     {
