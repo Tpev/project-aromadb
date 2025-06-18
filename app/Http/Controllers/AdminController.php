@@ -20,8 +20,22 @@ use Illuminate\Support\Str;        // Importing the Str facade
 
 class AdminController extends Controller
 {
+	
+public function toggleLicense(Request $request, User $therapist)
+{
+	    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+    $therapist->license_status = $request->input('license_status');
+    $therapist->save();
+
+    return back()->with('success', 'License status updated successfully.');
+}
+	
 public function index()
 {
+	
     // Check if the user is an admin
     if (!auth()->user() || !auth()->user()->isAdmin()) {
         return redirect('/')->with('error', 'Unauthorized access');

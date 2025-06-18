@@ -711,6 +711,9 @@ Route::put('/admin/therapists/{id}/settings', [AdminController::class, 'updateTh
 Route::put('/admin/therapists/{id}/address', [AdminController::class, 'updateTherapistAddress'])
     ->name('admin.therapists.updateAddress');
 
+Route::put('/admin/therapists/{therapist}/toggle-license', [AdminTherapistController::class, 'toggleLicense'])
+    ->name('admin.therapists.toggleLicense');
+
 // Route to display the form for uploading the CSV
 Route::get('/admin/marketing/upload', [MarketingController::class, 'showUploadForm'])->name('admin.marketing.upload.form');
 
