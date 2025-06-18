@@ -5,7 +5,7 @@
     <title>Activation de votre compte</title>
 </head>
 <body>
-    <h2>Bonjour {{ $client->name ?? 'Cher client' }},</h2>
+    <h2>Bonjour {{ $client->first_name ?? 'Cher client' }},</h2>
 
     <p>Bienvenue chez AromaMade Pro. Pour activer votre compte, veuillez cliquer sur le lien ci-dessous :</p>
 
