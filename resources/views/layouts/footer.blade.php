@@ -25,6 +25,10 @@
                 <a href="/cgu" class="hover:underline text-lg">
                     Conditions Générales d’Utilisation
                 </a>
+            </li>            <li>
+                <a href="/cgv" class="hover:underline text-lg">
+                    Conditions Générales de Vente
+                </a>
             </li>
             <!-- Add more legal links here if needed -->
         </ul>

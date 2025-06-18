@@ -763,7 +763,11 @@ Route::middleware('auth')->group(function () {
 	// Route to the CGU page 
     Route::get('/cgu', function () {
         return view('cgu');
-    })->name('cgu');
+    })->name('cgu');	
+	// Route to the CGU page 
+    Route::get('/cgv', function () {
+        return view('cgv');
+    })->name('cgv');
 
 Route::get('/license-tiers/pricing', [LicenseTierController::class, 'pricing'])->name('license-tiers.pricing')->middleware('auth');
 
