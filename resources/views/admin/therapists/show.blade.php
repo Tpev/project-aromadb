@@ -345,18 +345,16 @@
             </div>
             <button type="submit">Update Settings</button>
         </form>
-<form action="{{ route('admin.therapists.toggleLicense', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+<form action="{{ route('admin.therapists.toggleLicense', $therapist->id) }}" method="POST" style="margin-bottom: 40px;">
     @csrf
     @method('PUT')
-    <div>
-        <label for="license_status">License Status:</label>
-        <select name="license_status" id="license_status">
-            <option value="active" {{ $therapist->license_status === 'active' ? 'selected' : '' }}>Active</option>
-            <option value="inactive" {{ $therapist->license_status === 'inactive' ? 'selected' : '' }}>Inactive</option>
-        </select>
-    </div>
-    <button type="submit">Update License Status</button>
+    <label for="license_status">Statut de la licence :</label>
+    <select name="license_status" id="license_status" onchange="this.form.submit()">
+        <option value="active" {{ $therapist->license_status === 'active' ? 'selected' : '' }}>Active</option>
+        <option value="inactive" {{ $therapist->license_status === 'inactive' ? 'selected' : '' }}>Inactive</option>
+    </select>
 </form>
+
         <!-- New Form to Update Address Fields (Set By Admin) -->
         <form action="{{ route('admin.therapists.updateAddress', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
             @csrf
