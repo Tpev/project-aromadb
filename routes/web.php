@@ -708,11 +708,11 @@ Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->na
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
 Route::put('/admin/therapists/{id}/picture', [AdminController::class, 'updateTherapistPicture'])->name('admin.therapists.updatePicture');
 Route::put('/admin/therapists/{id}/settings', [AdminController::class, 'updateTherapistSettings'])->name('admin.therapists.updateSettings');
-Route::put('/admin/therapists/{therapist}/toggle-license', [AdminController::class, 'toggleLicense'])
-    ->name('admin.therapists.toggleLicense');
+Route::put('/admin/therapists/{id}/address', [AdminController::class, 'updateTherapistAddress'])
+    ->name('admin.therapists.updateAddress');
 
-Route::put('/admin/therapists/{therapist}/toggle-license', [AdminTherapistController::class, 'toggleLicense'])
-    ->name('admin.therapists.toggleLicense');
+Route::put('/admin/therapists/{therapist}/update-address', [AdminController::class, 'updateAddress'])
+    ->name('admin.therapists.updateAddress');
 
 // Route to display the form for uploading the CSV
 Route::get('/admin/marketing/upload', [MarketingController::class, 'showUploadForm'])->name('admin.marketing.upload.form');
