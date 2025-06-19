@@ -354,6 +354,23 @@
         <option value="inactive" {{ $therapist->license_status === 'inactive' ? 'selected' : '' }}>Inactive</option>
     </select>
 </form>
+<!-- Update License Product -->
+<form action="{{ route('admin.therapists.updateLicenseProduct', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+    @csrf
+    @method('PUT')
+    <h2 class="section-title">Changer l’abonnement</h2>
+    <div>
+        <label for="license_product">Type de Licence :</label>
+        <select name="license_product" id="license_product">
+            <option value="Starter Mensuelle" {{ $therapist->license_product === 'Starter Mensuelle' ? 'selected' : '' }}>Starter Mensuelle</option>
+            <option value="Starter Annuelle" {{ $therapist->license_product === 'Starter Annuelle' ? 'selected' : '' }}>Starter Annuelle</option>
+            <option value="Pro Mensuelle" {{ $therapist->license_product === 'Pro Mensuelle' ? 'selected' : '' }}>Pro Mensuelle</option>
+            <option value="Pro Annuelle" {{ $therapist->license_product === 'Pro Annuelle' ? 'selected' : '' }}>Pro Annuelle</option>
+            <option value="Essai Gratuit" {{ $therapist->license_product === 'Essai Gratuit' ? 'selected' : '' }}>Essai Gratuit</option>
+        </select>
+    </div>
+    <button type="submit">Mettre à jour</button>
+</form>
 
         <!-- New Form to Update Address Fields (Set By Admin) -->
         <form action="{{ route('admin.therapists.updateAddress', $therapist->id) }}" method="POST" style="margin-bottom:40px;">

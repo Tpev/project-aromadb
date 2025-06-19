@@ -20,6 +20,17 @@ use Illuminate\Support\Str;        // Importing the Str facade
 
 class AdminController extends Controller
 {
+public function updateLicenseProduct(Request $request, User $therapist)
+{
+    $request->validate([
+        'license_product' => 'required|string|in:Starter Mensuelle,Starter Annuelle,Pro Mensuelle,Pro Annuelle,Essai Gratuit',
+    ]);
+
+    $therapist->license_product = $request->license_product;
+    $therapist->save();
+
+    return back()->with('success', 'Licence mise à jour avec succès.');
+}
 	
 public function toggleLicense(Request $request, User $therapist)
 {
