@@ -4,44 +4,38 @@ namespace App\Mail;
 
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue; // Import ShouldQueue
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use PDF;
 
-class InvoiceMail extends Mailable implements ShouldQueue // Implement ShouldQueue for queueing
+class InvoiceMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
     public $invoice;
     public $therapistName;
 
-    /**
-     * Create a new message instance.
-     *
-     * @param \App\Models\Invoice $invoice
-     * @param string $therapistName
-     */
-    public function __construct(Invoice $invoice, $therapistName)
+    public function __construct(Invoice $invoice, string $therapistName)
     {
+        // we’ve already eager-loaded relations in the controller
         $this->invoice = $invoice;
         $this->therapistName = $therapistName;
     }
 
-    /**
-     * Build the message.
-     *
-     * @return $this
-     */
     public function build()
     {
-        // Generate the PDF within the build method to avoid serialization issues
-        $pdf = PDF::loadView('invoices.pdf', ['invoice' => $this->invoice])->output();
+        // build the PDF from the same view you use in generatePDF()
+        $pdf = PDF::loadView('invoices.pdf', [
+            'invoice' => $this->invoice,
+        ])->output();
 
-        return $this->subject('Votre Facture n°' . $this->invoice->invoice_number)
+        return $this->subject("Votre Facture n°{$this->invoice->invoice_number}")
                     ->markdown('emails.invoices.mail')
-                    ->attachData($pdf, 'facture_' . $this->invoice->invoice_number . '.pdf', [
-                        'mime' => 'application/pdf',
-                    ]);
+                    ->attachData(
+                        $pdf,
+                        "facture_{$this->invoice->invoice_number}.pdf",
+                        ['mime' => 'application/pdf']
+                    );
     }
 }

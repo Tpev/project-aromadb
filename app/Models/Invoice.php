@@ -25,7 +25,18 @@ class Invoice extends Model
     	'invoice_number',
     	'sent_at',	// Add this line
 		'payment_link', // Add this line
+		'type',
+		'quote_number',
     ];
+
+protected $attributes = [
+    'type' => 'invoice',
+];
+
+public function isQuote()
+{
+    return $this->type === 'quote';
+}
 
     /**
      * L'utilisateur (thérapeute) qui a créé la facture.

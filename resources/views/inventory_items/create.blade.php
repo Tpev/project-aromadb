@@ -120,6 +120,34 @@
                     <input type="number" id="selling_price" name="selling_price" step="0.01" class="form-control" value="{{ old('selling_price') }}">
                     @error('selling_price') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
+<!-- TVA à l'achat -->
+<div class="mb-4">
+    <label for="vat_rate_purchase" class="block text-sm font-medium text-gray-700">TVA à l'achat (%)</label>
+    <input
+        type="number"
+        name="vat_rate_purchase"
+        id="vat_rate_purchase"
+        step="0.01"
+        min="0"
+        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] sm:text-sm"
+        value="{{ old('vat_rate_purchase', $inventoryItem->vat_rate_purchase ?? '') }}"
+    >
+</div>
+
+<!-- TVA à la vente -->
+<div class="mb-4">
+    <label for="vat_rate_sale" class="block text-sm font-medium text-gray-700">TVA à la vente (%)</label>
+    <input
+        type="number"
+        name="vat_rate_sale"
+        id="vat_rate_sale"
+        step="0.01"
+        min="0"
+        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] sm:text-sm"
+        value="{{ old('vat_rate_sale', $inventoryItem->vat_rate_sale ?? '') }}"
+    >
+</div>
+
 
                 <!-- Type d’unité -->
                 <div class="details-box form-section">
@@ -149,6 +177,19 @@
                     <label class="details-label" for="quantity_remaining">Quantité Restante (ml ou g)</label>
                     <input type="number" step="0.01" name="quantity_remaining" id="quantity_remaining" class="form-control" value="{{ old('quantity_remaining') }}">
                 </div>
+<!-- Prix d'Achat au ml -->
+<div class="details-box form-section" id="price_per_ml_box" style="display: none;">
+    <label class="details-label" for="price_per_ml">Prix d'Achat par ml (€)</label>
+    <input type="number" step="0.01" name="price_per_ml" id="price_per_ml" class="form-control" value="{{ old('price_per_ml') }}">
+    @error('price_per_ml') <p class="text-red-500">{{ $message }}</p> @enderror
+</div>
+
+<!-- Prix de Vente au ml -->
+<div class="details-box form-section" id="selling_price_per_ml_box" style="display: none;">
+    <label class="details-label" for="selling_price_per_ml">Prix de Vente par ml (€)</label>
+    <input type="number" step="0.01" name="selling_price_per_ml" id="selling_price_per_ml" class="form-control" value="{{ old('selling_price_per_ml') }}">
+    @error('selling_price_per_ml') <p class="text-red-500">{{ $message }}</p> @enderror
+</div>
 
                 <!-- Marque -->
                 <div class="details-box form-section">
@@ -177,12 +218,37 @@
             const showFields = (unitType === 'ml' || unitType === 'drop' || unitType === 'gramme');
             document.getElementById('ml_fields_box').style.display = showFields ? 'block' : 'none';
             document.getElementById('ml_fields_remaining').style.display = showFields ? 'block' : 'none';
+			// Show price per ml only for 'ml'
+    document.getElementById('price_per_ml_box').style.display = unitType === 'ml' ? 'block' : 'none';
+    document.getElementById('selling_price_per_ml_box').style.display = unitType === 'ml' ? 'block' : 'none';
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('unit_type').addEventListener('change', updateVisibility);
             updateVisibility();
         });
+		
+		
+    function autoFillPricePerMl() {
+        const price = parseFloat(document.getElementById('price').value) || 0;
+        const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
+        const qty = parseFloat(document.getElementById('quantity_per_unit').value) || 0;
+
+        if (qty > 0) {
+            document.getElementById('price_per_ml').value = (price / qty).toFixed(2);
+            document.getElementById('selling_price_per_ml').value = (sellingPrice / qty).toFixed(2);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Trigger on load
+        autoFillPricePerMl();
+
+        // Listen to relevant field changes
+        document.getElementById('price').addEventListener('input', autoFillPricePerMl);
+        document.getElementById('selling_price').addEventListener('input', autoFillPricePerMl);
+        document.getElementById('quantity_per_unit').addEventListener('input', autoFillPricePerMl);
+    });		
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

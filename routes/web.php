@@ -520,6 +520,19 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class, 'can:viewA
 
 	Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
 
+
+Route::get('invoices/create-quote', [InvoiceController::class, 'createQuote'])->name('invoices.createQuote');
+Route::post('invoices/store-quote', [InvoiceController::class, 'storeQuote'])->name('invoices.storeQuote');
+Route::get('/quotes/{quote}/edit', [InvoiceController::class, 'editQuote'])->name('invoices.editQuote');
+Route::put('/quotes/{quote}', [InvoiceController::class, 'updateQuote'])->name('invoices.updateQuote');
+Route::get('/quotes/{id}', [InvoiceController::class, 'showQuote'])->name('invoices.showQuote');
+Route::patch('/quotes/{quote}/status', [InvoiceController::class, 'updateQuoteStatus'])->name('quotes.updateStatus');
+Route::get('/devis/{invoice}/pdf', [InvoiceController::class, 'generateQuotePDF'])->name('invoices.quotePdf');
+Route::post('/quotes/{quote}/send-email', [InvoiceController::class, 'sendQuoteEmail'])->name('quotes.send.email');
+
+
+
+
 // Route to list invoices for a specific client profile
 Route::get('/client_profiles/{clientProfile}/invoices', [InvoiceController::class, 'clientInvoices'])->name('invoices.client');
 

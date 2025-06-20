@@ -33,7 +33,6 @@ class InventoryItemController extends Controller
         return view('inventory_items.create');
     }
 
-    // Store a newly created inventory item in storage
 public function store(Request $request)
 {
     $rules = [
@@ -41,24 +40,29 @@ public function store(Request $request)
         'reference' => 'required|string|max:255|unique:inventory_items,reference',
         'description' => 'nullable|string',
         'price' => 'nullable|numeric|min:0',
+        'price_per_ml' => 'nullable|numeric|min:0',
         'selling_price' => 'nullable|numeric|min:0',
+        'selling_price_per_ml' => 'nullable|numeric|min:0', // ✅ new
         'brand' => 'nullable|string|max:255',
         'unit_type' => 'required|in:unit,ml,drop,gramme',
         'quantity_per_unit' => 'nullable|numeric|min:0',
         'quantity_remaining' => 'nullable|numeric|min:0',
+		    'vat_rate_purchase' => 'nullable|numeric|min:0',
+    'vat_rate_sale' => 'nullable|numeric|min:0',
+
     ];
 
-    // Required only if it's a unit-based item
     if ($request->unit_type === 'unit') {
         $rules['quantity_in_stock'] = 'required|integer|min:0';
     }
 
     $validatedData = $request->validate($rules);
 
-    // Default quantity_in_stock = 1 if not unit
     if ($request->unit_type !== 'unit') {
         $validatedData['quantity_in_stock'] = 1;
     }
+
+
 
     $validatedData['user_id'] = Auth::id();
 
@@ -66,6 +70,8 @@ public function store(Request $request)
 
     return redirect()->route('inventory_items.index')->with('success', 'Article ajouté avec succès.');
 }
+
+
 
 
 
@@ -91,7 +97,7 @@ public function store(Request $request)
         return view('inventory_items.edit', compact('inventoryItem'));
     }
 
- public function update(Request $request, InventoryItem $inventoryItem)
+public function update(Request $request, InventoryItem $inventoryItem)
 {
     if ($inventoryItem->user_id !== auth()->id()) {
         abort(403, 'Unauthorized action.');
@@ -102,18 +108,27 @@ public function store(Request $request)
         'reference' => 'required|string|max:255|unique:inventory_items,reference,' . $inventoryItem->id,
         'description' => 'nullable|string',
         'price' => 'nullable|numeric|min:0',
+        'price_per_ml' => 'nullable|numeric|min:0',
         'selling_price' => 'nullable|numeric|min:0',
+        'selling_price_per_ml' => 'nullable|numeric|min:0', // ✅ new
         'quantity_in_stock' => 'required|numeric|min:0',
         'brand' => 'nullable|string|max:255',
         'unit_type' => 'required|string|in:unit,ml,drop,gramme',
         'quantity_per_unit' => 'nullable|numeric|min:0',
         'quantity_remaining' => 'nullable|numeric|min:0',
+		    'vat_rate_purchase' => 'nullable|numeric|min:0',
+    'vat_rate_sale' => 'nullable|numeric|min:0',
+
     ]);
+
+
 
     $inventoryItem->update($validatedData);
 
     return redirect()->route('inventory_items.index')->with('success', 'Item updated successfully.');
 }
+
+
 
 
 
@@ -182,6 +197,19 @@ public function consumeUnit(InventoryItem $inventoryItem)
 
     return redirect()->route('inventory_items.index')->with('success', '1 unité consommée.');
 }
+public function destroy($id)
+{
+    $item = InventoryItem::findOrFail($id);
 
-	
+    // 🔐 Ownership check (assuming you have user_id on inventory_items)
+    if ($item->user_id !== auth()->id()) {
+        abort(403, 'Vous n\'êtes pas autorisé à supprimer cet article.');
+    }
+
+    $item->delete();
+
+    return redirect()->route('inventory_items.index')
+        ->with('success', 'Article supprimé avec succès.');
+}
+
 }

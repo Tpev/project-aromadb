@@ -164,20 +164,20 @@
                     <th>Total TTC (€)</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach($invoice->items as $item)
-                    <tr>
-                        <td>{{ $item->product->name }}</td>
-                        <td>{{ $item->description }}</td>
-                        <td>{{ $item->quantity }}</td>
-                        <td>{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
-                        <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
-                        <td>{{ number_format($item->total_price, 2, ',', ' ') }}</td>
-                        <td>{{ number_format($item->tax_amount, 2, ',', ' ') }}</td>
-                        <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
+			  <tbody>
+				@foreach($invoice->items as $item)
+				  <tr>
+					<td>{{ $item->name }}</td>
+					<td>{{ $item->description }}</td>
+					<td>{{ $item->quantity }}</td>
+					<td>{{ number_format($item->unit_price, 2, ',', ' ') }} €</td>
+					<td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+					<td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
+					<td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
+					<td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
+				  </tr>
+				@endforeach
+			  </tbody>
         </table>
 
         <!-- Montant total -->

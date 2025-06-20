@@ -125,6 +125,126 @@
                     </table>
                 </div>
             </div>
+			
+			
+            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+                {{ __('Liste des Devis') }}
+            </h1>
+
+            <!-- Barre de Recherche et Bouton de Création -->
+            <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
+                <!-- Barre de Recherche -->
+                <div class="w-full md:w-auto">
+                    
+                </div>
+
+                <!-- Bouton Créer une Facture -->
+                <a href="{{ route('invoices.createQuote') }}" class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
+                    <!-- Icône Plus -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                    </svg>
+                    {{ __('Créer un devis') }}
+                </a>
+            </div>
+
+<table class="min-w-full divide-y divide-gray-200" id="quoteTable">
+    <thead class="bg-[#647a0b] text-white">
+        <tr>
+            <th onclick="sortQuoteTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                {{ __('Numéro de Devis') }}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 8l4 4 4-4H6z" />
+                </svg>
+            </th>
+            <th onclick="sortQuoteTable(1)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                {{ __('Client') }}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 8l4 4 4-4H6z" />
+                </svg>
+            </th>
+            <th onclick="sortQuoteTable(2)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                {{ __('Date du Devis') }}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 8l4 4 4-4H6z" />
+                </svg>
+            </th>
+            <th onclick="sortQuoteTable(3)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                {{ __('Montant Total TTC') }}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 8l4 4 4-4H6z" />
+                </svg>
+            </th>
+            <th onclick="sortQuoteTable(4)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                {{ __('Statut') }}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 8l4 4 4-4H6z" />
+                </svg>
+            </th>
+			                                <th onclick="sortTable(5)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                                    {{ __('Envoyée') }}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M6 8l4 4 4-4H6z" />
+                                    </svg>
+                                </th>
+        </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+        @foreach($quotes as $quote)
+            <tr class="hover:bg-gray-100 cursor-pointer" onclick="window.location='{{ route('invoices.showQuote', $quote->id) }}'">
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ $quote->quote_number ?? '—' }}
+
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ $quote->clientProfile->first_name }} {{ $quote->clientProfile->last_name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ \Carbon\Carbon::parse($quote->invoice_date)->format('d/m/Y') }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ number_format($quote->total_amount_with_tax, 2, ',', ' ') }} €
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {{ ucfirst($quote->status) }}
+                </td>
+				                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if(is_null($quote->sent_at))
+                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center">
+                                                <!-- Icône Non Envoyée -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 9a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V10a1 1 0 011-1z" />
+                                                </svg>
+                                                {{ __('Non Envoyée') }}
+                                            </span>
+                                        @else
+                                            <span class="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center">
+                                                <!-- Icône Envoyée -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" />
+                                                </svg>
+                                                {{ __('Envoyée le') }} {{ \Carbon\Carbon::parse($invoice->sent_at)->format('d/m/Y à H:i') }}
+                                            </span>
+                                        @endif
+                                    </td>
+            </tr>
+        @endforeach
+
+        @if($quotes->isEmpty())
+            <tr>
+                <td colspan="5" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                    {{ __('Aucun devis trouvé.') }}
+                </td>
+            </tr>
+        @endif
+    </tbody>
+</table>
+
+
+
+
+
+
         </div>
 
     <!-- Scripts pour le tri et le filtrage -->
@@ -136,26 +256,48 @@
         var nonEnvoyeeText = @json(__('Non Envoyée'));
         var envoyeeLeText = @json(__('Envoyée le'));
 
-        function filterTable() {
-            let input = document.getElementById('search');
-            let filter = input.value.toLowerCase();
-            let table = document.getElementById('invoiceTable');
-            let tr = table.getElementsByTagName('tr');
+function filterTable() {
+    let input = document.getElementById('search');
+    let filter = input.value.toLowerCase();
 
-            for (let i = 1; i < tr.length; i++) {
-                let tdClient = tr[i].getElementsByTagName('td')[1];
-                let tdStatus = tr[i].getElementsByTagName('td')[4];
-                if (tdClient && tdStatus) {
-                    let txtValueClient = tdClient.textContent || tdClient.innerText;
-                    let txtValueStatus = tdStatus.textContent || tdStatus.innerText;
-                    if (txtValueClient.toLowerCase().indexOf(filter) > -1 || txtValueStatus.toLowerCase().indexOf(filter) > -1) {
-                        tr[i].style.display = '';
-                    } else {
-                        tr[i].style.display = 'none';
-                    }
+    // Filter invoice table
+    let invoiceTable = document.getElementById('invoiceTable');
+    if (invoiceTable) {
+        let invoiceRows = invoiceTable.getElementsByTagName('tr');
+        for (let i = 1; i < invoiceRows.length; i++) {
+            let tdClient = invoiceRows[i].getElementsByTagName('td')[1];
+            let tdStatus = invoiceRows[i].getElementsByTagName('td')[4];
+            if (tdClient && tdStatus) {
+                let txtValueClient = tdClient.textContent || tdClient.innerText;
+                let txtValueStatus = tdStatus.textContent || tdStatus.innerText;
+                if (txtValueClient.toLowerCase().includes(filter) || txtValueStatus.toLowerCase().includes(filter)) {
+                    invoiceRows[i].style.display = '';
+                } else {
+                    invoiceRows[i].style.display = 'none';
                 }
             }
         }
+    }
+
+    // Filter quote table
+    let quoteTable = document.getElementById('quoteTable');
+    if (quoteTable) {
+        let quoteRows = quoteTable.getElementsByTagName('tr');
+        for (let i = 1; i < quoteRows.length; i++) {
+            let tdClient = quoteRows[i].getElementsByTagName('td')[1];
+            let tdStatus = quoteRows[i].getElementsByTagName('td')[4];
+            if (tdClient && tdStatus) {
+                let txtValueClient = tdClient.textContent || tdClient.innerText;
+                let txtValueStatus = tdStatus.textContent || tdStatus.innerText;
+                if (txtValueClient.toLowerCase().includes(filter) || txtValueStatus.toLowerCase().includes(filter)) {
+                    quoteRows[i].style.display = '';
+                } else {
+                    quoteRows[i].style.display = 'none';
+                }
+            }
+        }
+    }
+}
 
         function sortTable(n) {
             let table = document.getElementById('invoiceTable');
@@ -228,6 +370,55 @@
                 }
             }
         }
+		
+		function sortQuoteTable(n) {
+    let table = document.getElementById('quoteTable');
+    let tbody = table.tBodies[0];
+    let rows = Array.from(tbody.rows);
+    let dir = sortDirections['q' + n] === 'asc' ? 'desc' : 'asc';
+    sortDirections['q' + n] = dir;
+
+    rows.sort(function(a, b) {
+        let x = a.cells[n].textContent.trim();
+        let y = b.cells[n].textContent.trim();
+
+        if (n === 0 || n === 3) { // Numéro de devis or montant
+            x = parseFloat(x.replace(',', '.').replace(/[^0-9.-]+/g,""));
+            y = parseFloat(y.replace(',', '.').replace(/[^0-9.-]+/g,""));
+        } else if (n === 2) { // Date
+            x = new Date(x.split('/').reverse().join('-'));
+            y = new Date(y.split('/').reverse().join('-'));
+        } else {
+            x = x.toLowerCase();
+            y = y.toLowerCase();
+        }
+
+        if (dir === 'asc') {
+            return x > y ? 1 : (x < y ? -1 : 0);
+        } else {
+            return x < y ? 1 : (x > y ? -1 : 0);
+        }
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+
+    // Update sort icons
+    let ths = table.getElementsByTagName('th');
+    for (let i = 0; i < ths.length; i++) {
+        let icon = ths[i].getElementsByTagName('svg')[0];
+        if (i === n) {
+            if (dir === 'asc') {
+                icon.classList.remove('rotate-180');
+            } else {
+                icon.classList.add('rotate-180');
+            }
+        } else {
+            icon.classList.remove('rotate-180');
+            sortDirections['q' + i] = null;
+        }
+    }
+}
+
     </script>
 
     <!-- Styles Personnalisés -->

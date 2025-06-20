@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\ClientProfile;
 use App\Models\Product;
+use App\Models\InventoryItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PDF;
@@ -16,6 +17,8 @@ use Stripe\PaymentLink;
 use Illuminate\Support\Facades\Log;
 use App\Mail\InvoicePaymentLinkMail;
 use Stripe\StripeClient;
+use App\Mail\QuoteMail;
+
 
 class InvoiceController extends Controller
 {
@@ -29,126 +32,184 @@ class InvoiceController extends Controller
     /**
      * Affiche la liste des factures.
      */
-    public function index()
-    {
-		    if (Auth::user()->license_status === 'inactive') {
+public function index()
+{
+    if (Auth::user()->license_status === 'inactive') {
         return redirect('/license-tiers/pricing');
     }
-        $this->authorize('viewAny', Invoice::class); // Check permission to view any invoice
-        
-        // Retrieve all invoices for the authenticated user
-        $invoices = Invoice::where('user_id', Auth::id())->with('clientProfile')->get();
 
-        return view('invoices.index', compact('invoices'));
-    }
+    $this->authorize('viewAny', Invoice::class); // Check permission to view any invoice
 
-    /**
-     * Affiche le formulaire pour créer une nouvelle facture.
-     */
-    public function create(Request $request)
-    {
-        // Get clients and products for the authenticated user
-        $clients = ClientProfile::where('user_id', auth()->id())->get();
-        $products = Product::where('user_id', auth()->id())->get();
+    // Separate invoices and quotes
+    $invoices = Invoice::where('user_id', Auth::id())
+        ->where('type', 'invoice')
+        ->with('clientProfile')
+        ->get();
 
-        // Preload data if provided via query parameters
-        $selectedClient = $request->input('client_id') ? ClientProfile::find($request->input('client_id')) : null;
-        $selectedProduct = $request->input('product_id') ? Product::find($request->input('product_id')) : null;
+    $quotes = Invoice::where('user_id', Auth::id())
+        ->where('type', 'quote')
+        ->with('clientProfile')
+        ->get();
 
-        return view('invoices.create', compact('clients', 'products', 'selectedClient', 'selectedProduct'));
-    }
+    return view('invoices.index', compact('invoices', 'quotes'));
+}
+
+
+/**
+ * Affiche le formulaire pour créer une nouvelle facture.
+ */
+public function create(Request $request)
+{
+    // Get clients, products and inventory items for the authenticated user
+    $clients = ClientProfile::where('user_id', auth()->id())->get();
+    $products = Product::where('user_id', auth()->id())->get();
+    $inventoryItems = InventoryItem::where('user_id', auth()->id())->get();
+
+    // Preload selected client or product if passed via query parameters
+    $selectedClient = $request->input('client_id') ? ClientProfile::find($request->input('client_id')) : null;
+    $selectedProduct = $request->input('product_id') ? Product::find($request->input('product_id')) : null;
+
+    return view('invoices.create', compact('clients', 'products', 'inventoryItems', 'selectedClient', 'selectedProduct'));
+}
+
 
  /**
  * Stocke une nouvelle facture en base de données.
  */
 public function store(Request $request)
 {
-    // Validate the incoming request data
     $validatedData = $request->validate([
         'client_profile_id' => 'required|exists:client_profiles,id',
         'invoice_date' => 'required|date',
         'due_date' => 'nullable|date|after_or_equal:invoice_date',
-        'items.*.product_id' => 'required|exists:products,id',
-        'items.*.quantity' => 'required|integer|min:1',
-        'items.*.unit_price' => 'required|numeric|min:0', // Added validation for unit_price
+        'items.*.product_id' => 'nullable|exists:products,id',
+        'items.*.inventory_item_id' => 'nullable|exists:inventory_items,id',
+        'items.*.quantity' => 'required|numeric|min:0.01',
+        'items.*.unit_price' => 'required|numeric|min:0', // utilisé uniquement pour lignes personnalisées
+        'items.*.description' => 'nullable|string',
         'notes' => 'nullable|string',
     ]);
 
-    // Use a transaction to ensure data integrity
-    $invoice = DB::transaction(function () use ($request, $validatedData) {
-        // Lock the invoices table for the current user to prevent race conditions
+    $invoice = DB::transaction(function () use ($validatedData) {
         $lastInvoice = Invoice::where('user_id', Auth::id())
-                              ->lockForUpdate()
-                              ->orderBy('invoice_number', 'desc')
-                              ->first();
+            ->lockForUpdate()
+            ->orderBy('invoice_number', 'desc')
+            ->first();
 
-        // Determine the next invoice number
         $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
 
-        // Create the invoice with the determined invoice_number
         return Invoice::create([
             'client_profile_id' => $validatedData['client_profile_id'],
             'user_id' => Auth::id(),
             'invoice_date' => $validatedData['invoice_date'],
             'due_date' => $validatedData['due_date'],
-            'total_amount' => 0, // Will be calculated later
-            'total_tax_amount' => 0, // Will be calculated later
-            'total_amount_with_tax' => 0, // Will be calculated later
-            'status' => 'En attente',
             'notes' => $validatedData['notes'],
             'invoice_number' => $nextInvoiceNumber,
+            'total_amount' => 0,
+            'total_tax_amount' => 0,
+            'total_amount_with_tax' => 0,
+            'status' => 'En attente',
         ]);
     });
 
-    // Initialize totals
     $totalAmount = 0;
     $totalTaxAmount = 0;
 
-    // Iterate over each item in the invoice
-    foreach ($validatedData['items'] as $itemData) {
-        // Ensure the product belongs to the authenticated user
-        $product = Product::where('id', $itemData['product_id'])
-                          ->where('user_id', Auth::id())
-                          ->firstOrFail();
+    foreach ($validatedData['items'] as $item) {
+        $description = $item['description'] ?? '';
+        $quantity = $item['quantity'];
+        $type = null;
+        $unitPriceHt = 0;
+        $taxRate = 0;
+        $unitPriceTtc = 0;
 
-        $quantity = $itemData['quantity'];
-        $unitPrice = $itemData['unit_price']; // Use unit_price from the form
-        $taxRate = $product->tax_rate;
-        $totalPrice = $unitPrice * $quantity;
+        if (isset($item['product_id'])) {
+            $type = 'product';
+        } elseif (isset($item['inventory_item_id'])) {
+            $type = 'inventory';
+        }
 
-        $taxAmount = ($totalPrice * $taxRate) / 100;
-        $totalPriceWithTax = $totalPrice + $taxAmount;
+        if ($type === 'product') {
+            $product = Product::where('id', $item['product_id'])->where('user_id', Auth::id())->firstOrFail();
+            $description = $description ?: $product->name;
+            $taxRate = $product->tax_rate;
+            $unitPriceHt = $product->price;
+            $unitPriceTtc = $unitPriceHt * (1 + $taxRate / 100);
 
-        // Create the invoice item
-        $invoice->items()->create([
-            'product_id' => $product->id,
-            'description' => $itemData['description'] ?? $product->name, // Use description from form if provided
-            'quantity' => $quantity,
-            'unit_price' => $unitPrice,
-            'tax_rate' => $taxRate,
-            'tax_amount' => $taxAmount,
-            'total_price' => $totalPrice,
-            'total_price_with_tax' => $totalPriceWithTax,
-        ]);
+            $invoice->items()->create([
+                'type' => 'product',
+                'product_id' => $product->id,
+                'description' => $description,
+                'quantity' => $quantity,
+                'unit_price' => $unitPriceHt,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $unitPriceHt * $quantity * ($taxRate / 100),
+                'total_price' => $unitPriceHt * $quantity,
+                'total_price_with_tax' => $unitPriceHt * $quantity * (1 + $taxRate / 100),
+            ]);
+        } elseif ($type === 'inventory') {
+            $inv = InventoryItem::where('id', $item['inventory_item_id'])->where('user_id', Auth::id())->firstOrFail();
+            $description = $description ?: $inv->name;
+            $taxRate = $inv->vat_rate_sale ?? 0;
 
-        // Accumulate totals
-        $totalAmount += $totalPrice;
-        $totalTaxAmount += $taxAmount;
+            // Choix du prix TTC selon unit_type
+            if ($inv->unit_type === 'ml') {
+                $unitPriceTtc = $inv->selling_price_per_ml;
+            } else { // unit
+                $unitPriceTtc = $inv->selling_price;
+            }
+
+            // Conversion TTC → HT
+            $unitPriceHt = $taxRate > 0 ? $unitPriceTtc / (1 + $taxRate / 100) : $unitPriceTtc;
+
+            $invoice->items()->create([
+                'type' => 'inventory',
+                'inventory_item_id' => $inv->id,
+                'description' => $description,
+                'quantity' => $quantity,
+                'unit_price' => $unitPriceHt,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $unitPriceHt * $quantity * ($taxRate / 100),
+                'total_price' => $unitPriceHt * $quantity,
+                'total_price_with_tax' => $unitPriceTtc * $quantity,
+            ]);
+        } else {
+            // Ligne personnalisée
+            $unitPriceHt = $item['unit_price'];
+            $taxRate = 0;
+            $unitPriceTtc = $unitPriceHt;
+
+            $invoice->items()->create([
+                'type' => 'custom',
+                'description' => $description,
+                'quantity' => $quantity,
+                'unit_price' => $unitPriceHt,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $unitPriceHt * $quantity * ($taxRate / 100),
+                'total_price' => $unitPriceHt * $quantity,
+                'total_price_with_tax' => $unitPriceHt * $quantity * (1 + $taxRate / 100),
+            ]);
+        }
+
+        $total = $unitPriceHt * $quantity;
+        $tax = $total * ($taxRate / 100);
+        $totalAmount += $total;
+        $totalTaxAmount += $tax;
     }
 
-    // Calculate the total amount with tax
-    $totalAmountWithTax = $totalAmount + $totalTaxAmount;
-
-    // Update the invoice with the calculated totals
     $invoice->update([
         'total_amount' => $totalAmount,
         'total_tax_amount' => $totalTaxAmount,
-        'total_amount_with_tax' => $totalAmountWithTax,
+        'total_amount_with_tax' => $totalAmount + $totalTaxAmount,
     ]);
 
-    return redirect()->route('invoices.show', $invoice)
-                     ->with('success', 'Facture créée avec succès.');
+    return redirect()->route('invoices.show', $invoice)->with('success', 'Facture créée avec succès.');
 }
+
+
+
+
+
 
 
     /**
@@ -165,91 +226,150 @@ public function store(Request $request)
     /**
      * Affiche le formulaire pour éditer une facture.
      */
-    public function edit(Invoice $invoice)
-    {
-        // Check permission to edit the invoice
-        $this->authorize('update', $invoice);
+public function edit(Invoice $invoice)
+{
+    $this->authorize('update', $invoice);
 
-        // Récupère les clients et les produits
-        $clients = ClientProfile::where('user_id', Auth::id())->get();
-        $products = Product::where('user_id', Auth::id())->get();
+    $clients        = ClientProfile::where('user_id', Auth::id())->get();
+    $products       = Product::where('user_id', Auth::id())->get();
+    $inventoryItems = InventoryItem::where('user_id', Auth::id())->get();
 
-        return view('invoices.edit', compact('invoice', 'clients', 'products'));
-    }
+    return view('invoices.edit', compact('invoice', 'clients', 'products', 'inventoryItems'));
+}
+/**
+ * Met à jour une facture existante.
+ */
 /**
  * Met à jour une facture existante.
  */
 public function update(Request $request, Invoice $invoice)
 {
-    // Check permission to update the invoice
     $this->authorize('update', $invoice);
 
-    // Validation des données
     $validatedData = $request->validate([
-        'client_profile_id' => 'required|exists:client_profiles,id',
-        'invoice_date' => 'required|date',
-        'due_date' => 'nullable|date|after_or_equal:invoice_date',
-        'items.*.product_id' => 'required|exists:products,id',
-        'items.*.quantity' => 'required|integer|min:1',
-        'items.*.unit_price' => 'required|numeric|min:0', // Added validation for unit_price
-        'notes' => 'nullable|string',
+        'client_profile_id'      => 'required|exists:client_profiles,id',
+        'invoice_date'           => 'required|date',
+        'due_date'               => 'nullable|date|after_or_equal:invoice_date',
+        'items.*.product_id'         => 'nullable|exists:products,id',
+        'items.*.inventory_item_id'  => 'nullable|exists:inventory_items,id',
+        'items.*.quantity'           => 'required|numeric|min:0.01',
+        'items.*.unit_price'         => 'required|numeric|min:0', // only for custom lines
+        'items.*.description'        => 'nullable|string',
+        'notes'                  => 'nullable|string',
     ]);
 
-    // Mettre à jour la facture
-    $invoice->update([
-        'client_profile_id' => $validatedData['client_profile_id'],
-        'invoice_date' => $validatedData['invoice_date'],
-        'due_date' => $validatedData['due_date'],
-        'notes' => $validatedData['notes'],
-    ]);
-
-    // Supprimer les éléments existants
-    $invoice->items()->delete();
-
-    // Initialize totals
-    $totalAmount = 0;
-    $totalTaxAmount = 0;
-
-    foreach ($validatedData['items'] as $itemData) {
-        // Vérifie que le produit appartient à l'utilisateur
-        $product = Product::where('id', $itemData['product_id'])
-                          ->where('user_id', Auth::id())
-                          ->firstOrFail();
-
-        $quantity = $itemData['quantity'];
-        $unitPrice = $itemData['unit_price']; // Use unit_price from the form
-        $taxRate = $product->tax_rate;
-        $totalPrice = $unitPrice * $quantity;
-
-        $taxAmount = ($totalPrice * $taxRate) / 100;
-        $totalPriceWithTax = $totalPrice + $taxAmount;
-
-        $invoice->items()->create([
-            'product_id' => $product->id,
-            'description' => $itemData['description'] ?? $product->name, // Use description from form if provided
-            'quantity' => $quantity,
-            'unit_price' => $unitPrice,
-            'tax_rate' => $taxRate,
-            'tax_amount' => $taxAmount,
-            'total_price' => $totalPrice,
-            'total_price_with_tax' => $totalPriceWithTax,
+    DB::transaction(function() use ($validatedData, $invoice) {
+        // 1) Update basic invoice fields
+        $invoice->update([
+            'client_profile_id'   => $validatedData['client_profile_id'],
+            'invoice_date'        => $validatedData['invoice_date'],
+            'due_date'            => $validatedData['due_date'],
+            'notes'               => $validatedData['notes'],
         ]);
 
-        $totalAmount += $totalPrice;
-        $totalTaxAmount += $taxAmount;
-    }
+        // 2) Remove existing items
+        $invoice->items()->delete();
 
-    $totalAmountWithTax = $totalAmount + $totalTaxAmount;
+        // 3) Re-create all items, recompute totals
+        $totalAmount   = 0;
+        $totalTaxAmount = 0;
 
-    // Mettre à jour le montant total
-    $invoice->update([
-        'total_amount' => $totalAmount,
-        'total_tax_amount' => $totalTaxAmount,
-        'total_amount_with_tax' => $totalAmountWithTax,
-    ]);
+        foreach ($validatedData['items'] as $item) {
+            $qty         = $item['quantity'];
+            $desc        = $item['description'] ?? '';
+            $type        = isset($item['product_id'])
+                             ? 'product'
+                             : (isset($item['inventory_item_id']) ? 'inventory' : 'custom');
+            $unitPriceHt = 0;
+            $unitPriceTtc = 0;
+            $taxRate     = 0;
 
-    return redirect()->route('invoices.show', $invoice)
-                     ->with('success', 'Facture mise à jour avec succès.');
+            if ($type === 'product') {
+                $prod     = Product::where('id', $item['product_id'])
+                                   ->where('user_id', Auth::id())
+                                   ->firstOrFail();
+                $desc     = $desc ?: $prod->name;
+                $taxRate  = $prod->tax_rate;
+                $unitPriceHt  = $prod->price;
+                $unitPriceTtc = $unitPriceHt * (1 + $taxRate/100);
+
+                $invoice->items()->create([
+                    'type'                 => 'product',
+                    'product_id'           => $prod->id,
+                    'description'          => $desc,
+                    'quantity'             => $qty,
+                    'unit_price'           => $unitPriceHt,
+                    'tax_rate'             => $taxRate,
+                    'tax_amount'           => $unitPriceHt * $qty * ($taxRate/100),
+                    'total_price'          => $unitPriceHt * $qty,
+                    'total_price_with_tax' => $unitPriceHt * $qty * (1 + $taxRate/100),
+                ]);
+            }
+            elseif ($type === 'inventory') {
+                $inv      = InventoryItem::where('id', $item['inventory_item_id'])
+                                         ->where('user_id', Auth::id())
+                                         ->firstOrFail();
+                $desc     = $desc ?: $inv->name;
+                $taxRate  = $inv->vat_rate_sale ?? 0;
+
+                // choose TTC price per unit_type
+                if ($inv->unit_type === 'ml') {
+                    $unitPriceTtc = $inv->selling_price_per_ml;
+                } else {
+                    $unitPriceTtc = $inv->selling_price;
+                }
+
+                // compute HT
+                $unitPriceHt = $taxRate > 0
+                    ? $unitPriceTtc / (1 + $taxRate/100)
+                    : $unitPriceTtc;
+
+                $invoice->items()->create([
+                    'type'                 => 'inventory',
+                    'inventory_item_id'    => $inv->id,
+                    'description'          => $desc,
+                    'quantity'             => $qty,
+                    'unit_price'           => $unitPriceHt,
+                    'tax_rate'             => $taxRate,
+                    'tax_amount'           => $unitPriceHt * $qty * ($taxRate/100),
+                    'total_price'          => $unitPriceHt * $qty,
+                    'total_price_with_tax' => $unitPriceTtc * $qty,
+                ]);
+            }
+            else {
+                // custom line
+                $unitPriceHt  = $item['unit_price'];
+                $taxRate      = 0;
+                $unitPriceTtc = $unitPriceHt;
+
+                $invoice->items()->create([
+                    'type'                 => 'custom',
+                    'description'          => $desc,
+                    'quantity'             => $qty,
+                    'unit_price'           => $unitPriceHt,
+                    'tax_rate'             => $taxRate,
+                    'tax_amount'           => $unitPriceHt * $qty * ($taxRate/100),
+                    'total_price'          => $unitPriceHt * $qty,
+                    'total_price_with_tax' => $unitPriceHt * $qty * (1 + $taxRate/100),
+                ]);
+            }
+
+            // accumulate
+            $totalAmount   += $unitPriceHt * $qty;
+            $totalTaxAmount += ($unitPriceHt * $qty) * ($taxRate/100);
+        }
+
+        // 4) Update invoice totals
+        $invoice->update([
+            'total_amount'           => $totalAmount,
+            'total_tax_amount'       => $totalTaxAmount,
+            'total_amount_with_tax'  => $totalAmount + $totalTaxAmount,
+        ]);
+    });
+
+    return redirect()
+        ->route('invoices.show', $invoice)
+        ->with('success', __('Facture mise à jour avec succès.'));
 }
 
     /**
@@ -275,32 +395,34 @@ public function clientPdf(Invoice $invoice)
         abort(403, 'Vous n\'êtes pas autorisé à accéder à cette facture.');
     }
 
-    $invoice->load('clientProfile', 'items.product');
+    $invoice->load([
+  'user','clientProfile',
+  'items.product','items.inventoryItem',
+]);
+
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
     return $pdf->download('facture_' . $invoice->invoice_number . '.pdf');
 }
 
-    public function generatePDF(Invoice $invoice)
-    {
-        // Check permission to view the invoice
-        $this->authorize('view', $invoice);
+public function generatePDF(Invoice $invoice)
+{
+    $this->authorize('view', $invoice);
 
-        // Charger les relations nécessaires
-        $invoice->load('clientProfile', 'items.product');
+    // eager load everything we need
+    $invoice->load([
+        'user',
+        'clientProfile',
+        'items.product',
+        'items.inventoryItem',
+    ]);
 
-        // Partager les données avec la vue
-        $data = [
-            'invoice' => $invoice,
-        ];
+    $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
-        // Générer le PDF
-        $pdf = PDF::loadView('invoices.pdf', $data);
+    return $pdf->download('facture_'.$invoice->invoice_number.'.pdf');
+}
 
-        // Télécharger le PDF avec un nom de fichier personnalisé
-        return $pdf->download('facture_' . $invoice->invoice_number . '.pdf');
-    }
 
     public function markAsPaid(Invoice $invoice)
     {
@@ -311,123 +433,102 @@ public function clientPdf(Invoice $invoice)
         return redirect()->route('invoices.show', $invoice)->with('success', 'La facture a été marquée comme payée.');
     }
 
-    public function sendEmail(Invoice $invoice)
-    {
-        // Ensure the user is authorized to send this invoice
-        $this->authorize('view', $invoice); // Check permission to view the invoice
-
-        // Retrieve the client profile
-        $client = $invoice->clientProfile;
-
-        // Ensure the client has an email
-        if (!$client->email) {
-            return redirect()->back()->with('error', 'Le client n\'a pas d\'adresse email.');
-        }
-
-        // Get the therapist's name (assuming User has 'name' attribute)
-        $therapistName = Auth::user()->name;
-
-        // Send the email
-        try {
-            Mail::to($client->email)->queue(new InvoiceMail($invoice, $therapistName));
-
-            // Update sent_at
-            $invoice->update(['sent_at' => now()]);
-
-            return redirect()->route('invoices.show', $invoice->id)
-                             ->with('success', 'Facture envoyée par email avec succès.');
-        } catch (\Exception $e) {
-            // Log the error or handle it as needed
-            \Log::error('Error sending invoice email: ' . $e->getMessage());
-
-            return redirect()->route('invoices.show', $invoice->id)
-                             ->with('error', 'Une erreur est survenue lors de l\'envoi de l\'email.');
-        }
-    }
-public function createPaymentLink(Invoice $invoice)
+public function sendEmail(Invoice $invoice)
 {
-    // Authorization: Ensure the user can update the invoice
-    $this->authorize('update', $invoice);
-	$invoice->load('user');
-    // Check if the invoice already has a payment link
-    if ($invoice->payment_link) {
-        return redirect()->back()->with('error', 'Un lien de paiement a déjà été généré pour cette facture.');
+    $this->authorize('view', $invoice);
+
+    // eager-load everything the PDF and email view need
+    $invoice->load([
+        'user',
+        'clientProfile',
+        'items.product',
+        'items.inventoryItem',
+    ]);
+
+    $client = $invoice->clientProfile;
+    if (!$client->email) {
+        return back()->with('error', "Le client n'a pas d'adresse email.");
     }
+
+    $therapistName = Auth::user()->name;
 
     try {
-        // Retrieve the therapist (user) associated with the invoice
-        $user = $invoice->user;
+        Mail::to($client->email)
+            ->queue(new InvoiceMail($invoice, $therapistName));
 
-        // Ensure the user has a connected Stripe account
-        if (!$user->stripe_account_id) {
-            throw new \Exception('Le thérapeute n\'a pas de compte Stripe connecté.');
+        $invoice->update(['sent_at' => now()]);
+
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('success', 'Facture envoyée par email avec succès.');
+    } catch (\Exception $e) {
+        Log::error("Error sending invoice email: ".$e->getMessage());
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('error', "Une erreur est survenue lors de l'envoi de l'email.");
+    }
+}
+
+public function createPaymentLink(Invoice $invoice)
+{
+    $this->authorize('update', $invoice);
+    $invoice->load('user', 'items.product', 'items.inventoryItem');
+
+    if ($invoice->payment_link) {
+        return back()->with('error', 'Un lien de paiement existe déjà.');
+    }
+
+    $stripe = new StripeClient(config('services.stripe.secret'));
+    $lineItems = [];
+
+    foreach ($invoice->items as $item) {
+        if ($item->type === 'product' && $item->product) {
+            // syncProductWithStripe → récupère un price ID
+            $priceId = $this->syncPriceWithStripe(
+    $stripe,
+    $item->product,
+    $invoice->user->stripe_account_id
+);
+
+            $lineItems[] = ['price' => $priceId, 'quantity' => $item->quantity];
         }
+        elseif ($item->type === 'inventory' && $item->inventoryItem) {
+            // on passe directement en price_data
+            $qty = $item->quantity;
+            $name = $item->inventoryItem->name;
+            $taxRate = $item->inventoryItem->vat_rate_sale;
+            $unitType = $item->inventoryItem->unit_type;
 
-        // Initialize Stripe with the platform's secret key
-        $stripe = new StripeClient(config('services.stripe.secret'));
+            // choisir le bon prix TTC
+            $unitTtc = $unitType === 'ml'
+                ? $item->inventoryItem->selling_price_per_ml
+                : $item->inventoryItem->selling_price;
 
-        // Retrieve all invoice items
-        $invoiceItems = $invoice->items; // Assuming 'items' relationship is defined
-
-        $lineItems = [];
-
-        foreach ($invoiceItems as $item) {
-            $product = $item->product;
-
-            // Ensure the product belongs to the authenticated user
-            if ($product->user_id !== Auth::id()) {
-                throw new \Exception('Produit non autorisé.');
-            }
-
-            // Synchronize product with Stripe
-            $stripeProductId = $this->syncProductWithStripe($stripe, $product, $user->stripe_account_id);
-
-            // Synchronize price with Stripe
-            $stripePriceId = $this->syncPriceWithStripe($stripe, $product, $user->stripe_account_id);
-
-            // Add to line items
             $lineItems[] = [
-                'price' => $stripePriceId,
-                'quantity' => $item->quantity,
+                'price_data' => [
+                    'currency'     => 'eur',
+                    'unit_amount'  => intval(round($unitTtc * 100)),
+                    'product_data' => [
+                        'name'        => $name,
+                        'description' => $item->description,
+                    ],
+                ],
+                'quantity' => $qty,
             ];
         }
-
-        // Create a Stripe Payment Link using the synchronized prices
-        $paymentLink = $stripe->paymentLinks->create([
-            'line_items' => $lineItems,
-            'metadata' => [
-                'invoice_id' => $invoice->id, // Embed Invoice ID in metadata
-                'user_id' => $invoice->user_id, // Optional: Embed User ID if needed
-            ],
-            'after_completion' => [
-                'type' => 'redirect',
-                'redirect' => [
-                     'url' => route('therapist.show', ['slug' => $user->slug]),
-                ],
-            ],
-        ], [
-            'stripe_account' => $user->stripe_account_id, // Use connected account
-        ]);
-
-        // Save the payment link URL to the invoice
-        $invoice->payment_link = $paymentLink->url;
-        $invoice->save();
-		$therapistName = Auth::user()->name;
-        // Optionally, send the payment link via email to the patient
-        $client = $invoice->clientProfile;
-        if ($client && $client->email) {
-            Mail::to($client->email)->queue(new InvoicePaymentLinkMail($invoice, $therapistName));
-        }
-
-        return redirect()->back()->with('success', 'Lien de paiement Stripe généré avec succès.');
-    } catch (\Exception $e) {
-        Log::error("Stripe Payment Link Creation Failed for Invoice ID {$invoice->id}: " . $e->getMessage(), [
-            'invoice_id' => $invoice->id,
-            'user_id' => $invoice->user_id,
-            'exception' => $e,
-        ]);
-        return redirect()->back()->with('error', 'Une erreur est survenue lors de la création du lien de paiement.');
     }
+
+    $paymentLink = $stripe->paymentLinks->create([
+        'line_items' => $lineItems,
+        'after_completion' => [
+            'type' => 'redirect',
+            'redirect' => ['url' => route('therapist.show', $invoice->user->slug)],
+        ],
+    ], ['stripe_account' => $invoice->user->stripe_account_id]);
+
+    $invoice->update(['payment_link' => $paymentLink->url]);
+
+    return back()->with('success', 'Lien de paiement généré.');
 }
 
 
@@ -560,6 +661,308 @@ protected function syncProductWithStripe(StripeClient $stripe, Product $product,
             throw new \Exception('Erreur lors de la création du prix dans Stripe.');
         }
     }
+// QUOTE RELATED METHODS
 
+public function createQuote(Request $request)
+{
+    $clients        = ClientProfile::where('user_id', auth()->id())->get();
+    $products       = Product::where('user_id', auth()->id())->get();
+    $inventoryItems = InventoryItem::where('user_id', auth()->id())->get();
+
+    return view('invoices.create-quote', compact('clients','products','inventoryItems'));
+}
+
+public function storeQuote(Request $request)
+{
+    $validated = $request->validate([
+        'client_profile_id'       => 'required|exists:client_profiles,id',
+        'quote_date'              => 'required|date',
+        'valid_until'             => 'nullable|date|after_or_equal:quote_date',
+        'items.*.type'            => 'required|in:product,inventory',
+        'items.*.product_id'      => 'nullable|exists:products,id',
+        'items.*.inventory_item_id'=>'nullable|exists:inventory_items,id',
+        'items.*.quantity'        => 'required|numeric|min:0.01',
+        'items.*.unit_price'      => 'required|numeric|min:0', // only custom
+        'items.*.description'     => 'nullable|string',
+        'notes'                   => 'nullable|string',
+    ]);
+
+    $quote = DB::transaction(function() use($validated){
+        $last = Invoice::where('type','quote')
+                       ->where('user_id',auth()->id())
+                       ->orderByDesc('id')->first();
+        $num  = 'D-'.str_pad(($last?->id ?? 0)+1,5,'0',STR_PAD_LEFT);
+
+        return Invoice::create([
+            'client_profile_id'  => $validated['client_profile_id'],
+            'user_id'            => auth()->id(),
+            'invoice_date'       => $validated['quote_date'],
+            'due_date'           => $validated['valid_until'],
+            'notes'              => $validated['notes'],
+            'status'             => 'Devis',
+            'type'               => 'quote',
+            'quote_number'       => $num,
+            'total_amount'       => 0,
+            'total_tax_amount'   => 0,
+            'total_amount_with_tax'=>0,
+        ]);
+    });
+
+    $totHT  = 0;
+    $totTax = 0;
+
+    foreach($validated['items'] as $item) {
+        $qty = $item['quantity'];
+        $desc= $item['description'] ?? '';
+        $type= $item['type'];
+
+        if($type==='product') {
+            $prod     = Product::where('id',$item['product_id'])
+                               ->where('user_id',auth()->id())
+                               ->firstOrFail();
+            $desc     = $desc ?: $prod->name;
+            $taxRate  = $prod->tax_rate;
+            $htUnit   = $prod->price;
+            $ttcLine  = $htUnit*$qty*(1+$taxRate/100);
+        }
+        elseif($type==='inventory') {
+            $inv      = InventoryItem::where('id',$item['inventory_item_id'])
+                                     ->where('user_id',auth()->id())
+                                     ->firstOrFail();
+            $desc     = $desc ?: $inv->name;
+            $taxRate  = $inv->vat_rate_sale ?? 0;
+            $ttcUnit  = ($inv->unit_type==='ml')
+                           ? $inv->selling_price_per_ml
+                           : $inv->selling_price;
+            $htUnit   = $ttcUnit / (1+$taxRate/100);
+            $ttcLine  = $ttcUnit * $qty;
+        }
+        else {
+            $htUnit   = $item['unit_price'];
+            $taxRate  = 0;
+            $ttcLine  = $htUnit*$qty;
+        }
+
+        $taxAmt   = $htUnit*$qty*($taxRate/100);
+        $totHT   += $htUnit*$qty;
+        $totTax  += $taxAmt;
+
+        $quote->items()->create([
+            'type'                 => $type,
+            'product_id'           => $item['product_id'] ?? null,
+            'inventory_item_id'    => $item['inventory_item_id'] ?? null,
+            'description'          => $desc,
+            'quantity'             => $qty,
+            'unit_price'           => $htUnit,
+            'tax_rate'             => $taxRate,
+            'tax_amount'           => $taxAmt,
+            'total_price'          => $htUnit*$qty,
+            'total_price_with_tax' => $ttcLine,
+        ]);
+    }
+
+    $quote->update([
+        'total_amount'         => $totHT,
+        'total_tax_amount'     => $totTax,
+        'total_amount_with_tax'=> $totHT + $totTax,
+    ]);
+
+    return redirect()->route('invoices.showQuote',$quote)
+                     ->with('success','Devis créé avec succès.');
+}
+
+
+public function editQuote(Invoice $quote)
+{
+    $this->authorize('update', $quote);
+
+    $clients        = ClientProfile::where('user_id', Auth::id())->get();
+    $products       = Product::where('user_id', Auth::id())->get();
+    $inventoryItems = InventoryItem::where('user_id', Auth::id())->get();
+
+    return view('invoices.edit-quote', compact('quote', 'clients', 'products', 'inventoryItems'));
+}
+public function updateQuote(Request $request, Invoice $quote)
+{
+    $this->authorize('update', $quote);
+
+    $validated = $request->validate([
+        'client_profile_id'      => 'required|exists:client_profiles,id',
+        'quote_date'             => 'required|date',
+        'valid_until'            => 'nullable|date|after_or_equal:quote_date',
+        'items.*.product_id'     => 'nullable|exists:products,id',
+        'items.*.inventory_item_id' => 'nullable|exists:inventory_items,id',
+        'items.*.quantity'       => 'required|numeric|min:0.01',
+        'notes'                  => 'nullable|string',
+    ]);
+
+    DB::transaction(function() use ($validated, $quote) {
+        // Met à jour les infos générales
+        $quote->update([
+            'client_profile_id' => $validated['client_profile_id'],
+            'invoice_date'      => $validated['quote_date'],
+            'due_date'          => $validated['valid_until'],
+            'notes'             => $validated['notes'],
+        ]);
+
+        // Supprime les anciennes lignes
+        $quote->items()->delete();
+
+        $totalHT  = 0;
+        $totalTax = 0;
+
+        foreach ($validated['items'] as $item) {
+            // Détecte le type
+            if (!empty($item['product_id'])) {
+                $type = 'product';
+                $model = Product::where('user_id',Auth::id())
+                                ->findOrFail($item['product_id']);
+                $name        = $model->name;
+                $taxRate     = $model->tax_rate;
+                $priceHT     = $model->price;
+                $priceTTC    = $priceHT * (1 + $taxRate/100);
+            }
+            elseif (!empty($item['inventory_item_id'])) {
+                $type = 'inventory';
+                $model = InventoryItem::where('user_id',Auth::id())
+                                      ->findOrFail($item['inventory_item_id']);
+                $name    = $model->name;
+                $taxRate = $model->vat_rate_sale ?: 0;
+                // Choix des tarifs comme pour la facture
+                if ($model->unit_type === 'ml') {
+                    $priceTTC = $model->selling_price_per_ml;
+                } else {
+                    $priceTTC = $model->selling_price;
+                }
+                $priceHT = $taxRate>0
+                    ? $priceTTC / (1 + $taxRate/100)
+                    : $priceTTC;
+            }
+            else {
+                $type    = 'custom';
+                $name    = '';
+                $taxRate = 0;
+                $priceHT = $item['unit_price'] ?? 0;
+                $priceTTC = $priceHT;
+            }
+
+            $qty    = $item['quantity'];
+            $desc   = $item['description'] ?? $name;
+            $totalLigneHT  = $priceHT  * $qty;
+            $taxLigne      = $totalLigneHT * ($taxRate/100);
+            $totalLigneTTC = $priceTTC * $qty;
+
+            // Crée la ligne
+            $quote->items()->create([
+                'type'                  => $type,
+                'product_id'            => $type==='product'   ? $model->id : null,
+                'inventory_item_id'     => $type==='inventory' ? $model->id : null,
+                'description'           => $desc,
+                'quantity'              => $qty,
+                'unit_price'            => $priceHT,
+                'tax_rate'              => $taxRate,
+                'tax_amount'            => $taxLigne,
+                'total_price'           => $totalLigneHT,
+                'total_price_with_tax'  => $totalLigneTTC,
+            ]);
+
+            $totalHT  += $totalLigneHT;
+            $totalTax += $taxLigne;
+        }
+
+        // Met à jour les totaux du devis
+        $quote->update([
+            'total_amount'           => $totalHT,
+            'total_tax_amount'       => $totalTax,
+            'total_amount_with_tax'  => $totalHT + $totalTax,
+        ]);
+    });
+
+    return redirect()
+        ->route('invoices.showQuote', $quote)
+        ->with('success','Devis mis à jour avec succès.');
+}
+
+/**
+ * Affiche un devis spécifique.
+ */
+public function showQuote($id)
+{
+    // On charge clientProfile, items.product et items.inventoryItem
+    $quote = Invoice::where('id', $id)
+        ->where('type','quote')
+        ->with(['clientProfile','items.product','items.inventoryItem'])
+        ->firstOrFail();
+
+    $this->authorize('view',$quote);
+
+    return view('invoices.show-quote', compact('quote'));
+}
+
+public function updateQuoteStatus(Request $request, Invoice $quote)
+{
+    $this->authorize('update', $quote); // facultatif selon ta logique
+
+    $validated = $request->validate([
+        'status' => 'required|in:Devis Accepté,Devis Refusé',
+    ]);
+
+    if ($quote->type !== 'quote') {
+        return redirect()->back()->with('error', 'Ce document n\'est pas un devis.');
+    }
+
+    $quote->status = $validated['status'];
+    $quote->save();
+
+    return redirect()->back()->with('success', 'Statut du devis mis à jour : ' . $quote->status);
+}
+
+
+public function generateQuotePDF(Invoice $invoice)
+{
+    $this->authorize('view', $invoice);
+
+    // eager-load toutes les relations nécessaires
+    $invoice->load([
+        'user',
+        'clientProfile',
+        'items.product',
+        'items.inventoryItem', // <— pour les inventaires
+    ]);
+
+    $pdf = PDF::loadView('invoices.pdf_quote', ['invoice' => $invoice]);
+
+    return $pdf->download('devis_' . ($invoice->quote_number ?? $invoice->id) . '.pdf');
+}
+
+
+public function sendQuoteEmail(Invoice $quote)
+{
+    $this->authorize('view', $quote);
+
+    if ($quote->type !== 'quote') {
+        return redirect()->back()->with('error', 'Ce document n\'est pas un devis.');
+    }
+
+    $client = $quote->clientProfile;
+
+    if (!$client->email) {
+        return redirect()->back()->with('error', 'Le client n\'a pas d\'adresse email.');
+    }
+
+    try {
+        $therapistName = Auth::user()->name;
+        \Mail::to($client->email)->queue(new QuoteMail($quote, $therapistName));
+
+        $quote->update(['sent_at' => now()]);
+
+        return redirect()->route('invoices.showQuote', $quote)
+                         ->with('success', 'Devis envoyé par email avec succès.');
+    } catch (\Exception $e) {
+        \Log::error('Erreur envoi devis : ' . $e->getMessage());
+        return redirect()->route('invoices.showQuote', $quote)
+                         ->with('error', 'Erreur lors de l\'envoi du devis.');
+    }
+}
 
 }

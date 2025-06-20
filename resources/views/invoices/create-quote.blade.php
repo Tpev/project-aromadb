@@ -1,13 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Créer une facture') }}
+            {{ __('Créer un devis') }}
         </h2>
     </x-slot>
 
     <div class="container-fluid mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Nouvelle Facture') }}</h1>
+            <h1 class="details-title">{{ __('Nouveau Devis') }}</h1>
 
             @if ($errors->any())
                 <div class="mb-4 text-red-500">
@@ -19,29 +19,31 @@
                 </div>
             @endif
 
-            <form action="{{ route('invoices.store') }}" method="POST">
+            <form action="{{ route('invoices.storeQuote') }}" method="POST">
                 @csrf
 
-                <!-- Métadonnées de la facture -->
+                {{-- Métadonnées du devis --}}
                 <div class="input-section">
                     <div class="details-box">
                         <label class="details-label" for="client_profile_id">{{ __('Client') }}</label>
                         <select id="client_profile_id" name="client_profile_id" class="form-control" required>
                             <option value="">{{ __('Sélectionnez un client') }}</option>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}" {{ old('client_profile_id') == $client->id ? 'selected' : '' }}>
+                                <option value="{{ $client->id }}" {{ old('client_profile_id') == $client->id ? 'selected':'' }}>
                                     {{ $client->first_name }} {{ $client->last_name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
                     <div class="details-box">
-                        <label class="details-label" for="invoice_date">{{ __('Date de Facture') }}</label>
-                        <input type="date" id="invoice_date" name="invoice_date" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
+                        <label class="details-label" for="quote_date">{{ __('Date du Devis') }}</label>
+                        <input type="date" id="quote_date" name="quote_date" class="form-control"
+                               value="{{ old('quote_date', date('Y-m-d')) }}" required>
                     </div>
                     <div class="details-box">
-                        <label class="details-label" for="due_date">{{ __('Date d\'échéance') }}</label>
-                        <input type="date" id="due_date" name="due_date" class="form-control" value="{{ old('due_date') }}">
+                        <label class="details-label" for="valid_until">{{ __('Valable Jusqu\'au') }}</label>
+                        <input type="date" id="valid_until" name="valid_until" class="form-control"
+                               value="{{ old('valid_until') }}">
                     </div>
                     <div class="details-box">
                         <label class="details-label" for="notes">{{ __('Notes') }}</label>
@@ -49,11 +51,11 @@
                     </div>
                 </div>
 
-                <!-- Tableau des articles -->
+                {{-- Tableau des articles --}}
                 <div class="details-box">
-                    <label class="details-label">{{ __('Articles de la facture') }}</label>
+                    <label class="details-label">{{ __('Articles du devis') }}</label>
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="invoice-items-table">
+                        <table class="table table-bordered" id="quote-items-table">
                             <thead>
                                 <tr>
                                     <th>{{ __('Type') }}</th>
@@ -67,12 +69,9 @@
                                     <th>{{ __('Action') }}</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {{-- on part vide, on ajoute via JS --}}
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
-
                     <div class="flex gap-2 mt-2">
                         <button type="button" class="btn-primary" onclick="addProductItem()">
                             {{ __('Ajouter une prestation') }}
@@ -83,8 +82,10 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary mt-4">{{ __('Créer la Facture') }}</button>
-                <a href="{{ route('invoices.index') }}" class="btn-secondary mt-4">{{ __('Retour à la liste') }}</a>
+                <button type="submit" class="btn-primary mt-4">{{ __('Créer le Devis') }}</button>
+                <a href="{{ route('invoices.index', ['type'=>'quote']) }}" class="btn-secondary mt-4">
+                    {{ __('Retour à la liste') }}
+                </a>
             </form>
         </div>
     </div>
@@ -128,26 +129,28 @@
         </div>
     </div>
 
-    <!-- JS -->
+    {{-- JS commun à invoice/create --}}
     <script>
         let itemIndex = 0;
 
         function addProductItem() {
-            const table = document.querySelector('#invoice-items-table tbody');
-            const idx = itemIndex++;
-            const row = document.createElement('tr');
+            const tbody = document.querySelector('#quote-items-table tbody');
+            const idx   = itemIndex++;
+            const row   = document.createElement('tr');
+
             row.innerHTML = `
-                <td><input type="hidden" name="items[${idx}][type]" value="product">Prest.</td>
+                <td>Prest.</td>
                 <td>
-                    <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateRow(this)">
-                        <option value="">{{ __('Sélectionnez') }}</option>
-                        @foreach($products as $p)
-                            <option value="{{ $p->id }}"
-                                data-price="{{ $p->price }}"
-                                data-tax="{{ $p->tax_rate }}"
-                            >{{ $p->name }}</option>
-                        @endforeach
-                    </select>
+                  <input type="hidden" name="items[${idx}][type]" value="product">
+                  <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateRow(this)">
+                      <option value="">{{ __('Sélectionnez') }}</option>
+                      @foreach($products as $p)
+                          <option value="{{ $p->id }}"
+                              data-price="{{ $p->price }}"
+                              data-tax="{{ $p->tax_rate }}"
+                          >{{ $p->name }}</option>
+                      @endforeach
+                  </select>
                 </td>
                 <td><input type="text" name="items[${idx}][description]" class="form-control"></td>
                 <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="1" min="1" onchange="updateRow(this)"></td>
@@ -157,7 +160,7 @@
                 <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-ttc" readonly></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
-            table.appendChild(row);
+            tbody.appendChild(row);
         }
 
         function addInventoryItem() {
@@ -166,20 +169,22 @@
             const qty = parseFloat(document.getElementById('inventory_quantity').value) || 1;
             if (!opt.value) return;
 
-            const ttc = (opt.dataset.unitType === 'ml')
+            const ttc = opt.dataset.unitType==='ml'
                 ? parseFloat(opt.dataset.ttcPerMl)
                 : parseFloat(opt.dataset.ttcUnit);
-            const tax = parseFloat(opt.dataset.tax) || 0;
-            const ht  = ttc / (1 + tax/100);
+            const tax = parseFloat(opt.dataset.tax)||0;
+            const ht  = ttc/(1+tax/100);
 
-            const table = document.querySelector('#invoice-items-table tbody');
+            const tbody = document.querySelector('#quote-items-table tbody');
             const idx   = itemIndex++;
             const row   = document.createElement('tr');
+
             row.innerHTML = `
-                <td><input type="hidden" name="items[${idx}][type]" value="inventory">Inv.</td>
+                <td>Inv.</td>
                 <td>
-                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="${opt.value}">
-                    ${opt.text}
+                  <input type="hidden" name="items[${idx}][type]" value="inventory">
+                  <input type="hidden" name="items[${idx}][inventory_item_id]" value="${opt.value}">
+                  ${opt.text}
                 </td>
                 <td><input type="text" name="items[${idx}][description]" class="form-control" value="${opt.dataset.name}" readonly></td>
                 <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="${qty}" readonly></td>
@@ -189,35 +194,32 @@
                 <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-ttc" value="${(ttc*qty).toFixed(2)}" readonly></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
-            table.appendChild(row);
+            tbody.appendChild(row);
             closeInventoryModal();
         }
 
         function updateRow(el) {
-            const row   = el.closest('tr');
-            const price = parseFloat(row.querySelector('.product-select').selectedOptions[0]?.dataset.price) || 0;
-            const tax   = parseFloat(row.querySelector('.product-select').selectedOptions[0]?.dataset.tax) || 0;
-            const qty   = parseFloat(row.querySelector('input[name*="[quantity]"]').value) || 1;
-            const ht    = price;
-            const amt   = ht * qty * (tax/100);
-            const ttc   = (ht * qty) + amt;
+            const r       = el.closest('tr');
+            const price   = parseFloat(r.querySelector('.product-select').selectedOptions[0]?.dataset.price)||0;
+            const tax     = parseFloat(r.querySelector('.product-select').selectedOptions[0]?.dataset.tax)||0;
+            const qty     = parseFloat(r.querySelector('input[name*="[quantity]"]').value)||1;
+            const ht      = price;
+            const amt     = ht*qty*(tax/100);
+            const ttc     = ht*qty + amt;
 
-            row.querySelector('.unit-price').value = ht.toFixed(2);
-            row.querySelector('.tax-rate').value   = tax.toFixed(2);
-            row.querySelector('.tax-amt').value    = amt.toFixed(2);
-            row.querySelector('.total-ttc').value  = ttc.toFixed(2);
+            r.querySelector('.unit-price').value          = ht.toFixed(2);
+            r.querySelector('.tax-rate').value            = tax.toFixed(2);
+            r.querySelector('.tax-amt').value             = amt.toFixed(2);
+            r.querySelector('.total-ttc').value           = ttc.toFixed(2);
         }
 
         function removeItem(btn) {
             btn.closest('tr').remove();
         }
 
-        function openInventoryModal() {
-            document.getElementById('inventoryModal').classList.remove('hidden');
-        }
-        function closeInventoryModal() {
-            document.getElementById('inventoryModal').classList.add('hidden');
-        }
+        function openInventoryModal(){ document.getElementById('inventoryModal').classList.remove('hidden'); }
+        function closeInventoryModal(){ document.getElementById('inventoryModal').classList.add('hidden'); }
+
     </script>
 
      <style>
@@ -300,29 +302,29 @@
         }
 
         /* Styles pour la table des articles */
-        #invoice-items-table {
+        #quote-items-table {
             width: 100%;
             margin-bottom: 15px;
             table-layout: auto; /* Better layout */
         }
 
-        #invoice-items-table th, #invoice-items-table td {
+        #quote-items-table th, #quote-items-table td {
             padding: 8px;
             text-align: left;
         }
 
-        #invoice-items-table th {
+        #quote-items-table th {
             background-color: #647a0b;
             color: #fff;
             white-space: nowrap;
         }
 
-        #invoice-items-table td {
+        #quote-items-table td {
             border-bottom: 1px solid #ccc;
         }
 
-        #invoice-items-table td input,
-        #invoice-items-table td select {
+        #quote-items-table td input,
+        #quote-items-table td select {
             width: 100%; /* Ensure full width */
             /* Removed or adjusted max-width */
         }
@@ -358,7 +360,7 @@
                 margin-bottom: 10px;
             }
 
-            #invoice-items-table th, #invoice-items-table td {
+            #quote-items-table th, #quote-items-table td {
                 padding: 6px;
             }
         }

@@ -11,7 +11,8 @@
     </head>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="w-full px-4 sm:px-6 lg:px-12 space-y-6">
+
             <h1 class="text-3xl font-bold text-[#647a0b] text-center">
                 {{ __('Inventaire des Articles') }}
             </h1>
@@ -37,22 +38,27 @@
                 </a>
             </div>
 
-            <div class="bg-white shadow overflow-hidden rounded-lg">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200" id="inventoryTable">
-                        <thead class="bg-[#647a0b] text-white">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nom</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Référence</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix Achat</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix Vente</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Stock</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Unité</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Marque</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
+<div class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="min-w-full divide-y divide-gray-200" id="inventoryTable">
+
+<thead class="bg-[#647a0b] text-white">
+    <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nom</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Référence</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+		<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix Achat TTC</th>
+		<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix Vente TTC</th>
+
+
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix/ML Achat</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Prix/ML Vente</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Stock</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Unité</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Marque</th>
+        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
+    </tr>
+</thead>
+
 <tbody>
     @foreach($inventoryItems as $item)
         @php
@@ -70,8 +76,44 @@
 
                             <td class="px-4 py-2">{{ $item->reference }}</td>
                             <td class="px-4 py-2">{{ Str::limit($item->description, 50) }}</td>
-                            <td class="px-4 py-2">{{ number_format($item->price, 2) }}€</td>
-                            <td class="px-4 py-2">{{ number_format($item->selling_price, 2) }}€</td>
+<td class="px-4 py-2">
+    {{ number_format($item->price, 2) }}€ <br>
+    <small class="text-muted">
+        HT: {{ number_format($item->price_ht, 2) }}€ | TVA {{ $item->vat_rate_purchase }}%
+    </small>
+</td>
+
+<td class="px-4 py-2">
+    {{ number_format($item->selling_price, 2) }}€ <br>
+    <small class="text-muted">
+        HT: {{ number_format($item->selling_price_ht, 2) }}€ | TVA {{ $item->vat_rate_sale }}%
+    </small>
+</td>
+
+
+<td class="px-4 py-2">
+    @if(in_array($item->unit_type, ['ml', 'drop']) && $item->quantity_per_unit > 0)
+        {{ number_format($item->price / $item->quantity_per_unit, 2) }} €/ml<br>
+        <small class="text-muted">
+            HT: {{ number_format($item->price_ht / $item->quantity_per_unit, 2) }} €/ml
+        </small>
+    @else
+        –
+    @endif
+</td>
+
+<td class="px-4 py-2">
+    @if(in_array($item->unit_type, ['ml', 'drop']) && $item->quantity_per_unit > 0)
+        {{ number_format($item->selling_price / $item->quantity_per_unit, 2) }} €/ml<br>
+        <small class="text-muted">
+            HT: {{ number_format($item->selling_price_ht / $item->quantity_per_unit, 2) }} €/ml
+        </small>
+    @else
+        –
+    @endif
+</td>
+
+
 <td>
     @if(in_array($item->unit_type, ['ml', 'drop', 'gramme']))
 
