@@ -469,6 +469,7 @@ public function sendEmail(Invoice $invoice)
     }
 }
 
+
 public function createPaymentLink(Invoice $invoice)
 {
     $this->authorize('update', $invoice);
@@ -482,54 +483,73 @@ public function createPaymentLink(Invoice $invoice)
     $lineItems = [];
 
     foreach ($invoice->items as $item) {
+        // --- PRODUCT LINE ---
         if ($item->type === 'product' && $item->product) {
-            // syncProductWithStripe → récupère un price ID
             $priceId = $this->syncPriceWithStripe(
-    $stripe,
-    $item->product,
-    $invoice->user->stripe_account_id
-);
-
-            $lineItems[] = ['price' => $priceId, 'quantity' => $item->quantity];
-        }
-        elseif ($item->type === 'inventory' && $item->inventoryItem) {
-            // on passe directement en price_data
-            $qty = $item->quantity;
-            $name = $item->inventoryItem->name;
-            $taxRate = $item->inventoryItem->vat_rate_sale;
-            $unitType = $item->inventoryItem->unit_type;
-
-            // choisir le bon prix TTC
-            $unitTtc = $unitType === 'ml'
-                ? $item->inventoryItem->selling_price_per_ml
-                : $item->inventoryItem->selling_price;
+                $stripe,
+                $item->product,
+                $invoice->user->stripe_account_id
+            );
 
             $lineItems[] = [
-                'price_data' => [
-                    'currency'     => 'eur',
-                    'unit_amount'  => intval(round($unitTtc * 100)),
-                    'product_data' => [
-                        'name'        => $name,
-                        'description' => $item->description,
-                    ],
-                ],
-                'quantity' => $qty,
+                'price'    => $priceId,
+                'quantity' => $item->quantity,
             ];
+        }
+
+        // --- INVENTORY LINE ---
+        elseif ($item->type === 'inventory' && $item->inventoryItem) {
+            $inv       = $item->inventoryItem;
+            $qty       = $item->quantity;
+            $unitType  = $inv->unit_type;
+            $unitTtc   = $unitType === 'ml'
+                           ? $inv->selling_price_per_ml
+                           : $inv->selling_price;
+            $unitAmount = intval(round($unitTtc * 100));
+
+            try {
+                // 1) Create a Stripe Product for this inventory item
+                $stripeProduct = $stripe->products->create([
+                    'name'        => $inv->name,
+                    'description' => $item->description,
+                ], ['stripe_account' => $invoice->user->stripe_account_id]);
+
+                // 2) Create a one-off Stripe Price for that product
+                $stripePrice = $stripe->prices->create([
+                    'product'     => $stripeProduct->id,
+                    'unit_amount' => $unitAmount,
+                    'currency'    => 'eur',
+                ], ['stripe_account' => $invoice->user->stripe_account_id]);
+
+                // 3) Add to the line items
+                $lineItems[] = [
+                    'price'    => $stripePrice->id,
+                    'quantity' => $qty,
+                ];
+
+            } catch (ApiErrorException $e) {
+                Log::error("Stripe Inventory Price Creation Failed for InvoiceItem {$item->id}: " . $e->getMessage());
+                return back()->with('error', 'Impossible de créer le prix Stripe pour un article d’inventaire.');
+            }
         }
     }
 
+    // Create the Payment Link with only `price`‐based lines
     $paymentLink = $stripe->paymentLinks->create([
         'line_items' => $lineItems,
         'after_completion' => [
             'type' => 'redirect',
-            'redirect' => ['url' => route('therapist.show', $invoice->user->slug)],
+            'redirect' => [
+                'url' => route('therapist.show', $invoice->user->slug),
+            ],
         ],
     ], ['stripe_account' => $invoice->user->stripe_account_id]);
 
     $invoice->update(['payment_link' => $paymentLink->url]);
 
-    return back()->with('success', 'Lien de paiement généré.');
+    return back()->with('success', 'Lien de paiement généré avec succès.');
 }
+
 
 
     /**
