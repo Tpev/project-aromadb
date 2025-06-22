@@ -49,6 +49,10 @@
 							>
 								{{ __('Demander des informations') }}
 							</button>
+							<a href="{{ route('client.login'}}"
+							   class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition-colors duration-300">
+								{{ __('Accès Client') }}
+							</a>
 						</div>
 					@endif
 
