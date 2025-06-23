@@ -269,6 +269,9 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-check text-green-500 mr-2"></i>Facturation simplifiée
+                    </li>                 
+					<li class="mb-2">
+                        <i class="fas fa-check text-green-500 mr-2"></i>Devis
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-check text-green-500 mr-2"></i>Questionnaires
@@ -323,6 +326,12 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-check text-green-500 mr-2"></i>Visio-conférence intégrée
+                    </li>                    
+					<li class="mb-2">
+                        <i class="fas fa-check text-green-500 mr-2"></i>Espace Client sécurisé
+                    </li>					
+					<li class="mb-2">
+                        <i class="fas fa-check text-green-500 mr-2"></i> Gestion d’inventaire intelligente
                     </li>
                 </ul>
                 <p class="text-gray-700 mb-6">
