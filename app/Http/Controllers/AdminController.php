@@ -237,80 +237,87 @@ return view('admin.index', compact(
 
         return redirect()->route('admin.license')->with('success', 'License assigned successfully!');
     }
-	    public function indexTherapists()
-    {
-        // Check if the user is an admin
-        if (!auth()->user() || !auth()->user()->isAdmin()) {
-            return redirect('/')->with('error', 'Unauthorized access');
-        }
+
+
+public function indexTherapists()
+{
+    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
 
     // Get all therapists and count information requests in one query
     $therapists = User::where('is_therapist', true)
                       ->withCount('informationRequests')
                       ->get();
 
-        // For each therapist, calculate onboarding score
-        foreach ($therapists as $therapist) {
-            // Initialize score
-            $score = 0;
-            $total = 9; // 3 criteria + 6 items
+    foreach ($therapists as $therapist) {
+        $score = 0;
+        $total = 11; // 9 existing + 2 new criteria
 
-            // Onboarding criteria:
-
-            // Has a Slug
-            if ($therapist->slug) {
-                $score++;
-            }
-
-            // Has set up Stripe (has 'stripe_account_id')
-            if ($therapist->stripe_account_id) {
-                $score++;
-            }
-
-            // Accepts booking online (assuming 'accepts_online_booking' property)
-            if ($therapist->accept_online_appointments) {
-                $score++;
-            }
-
-            // Has created one or more of the following:
-
-            // Prestation
-            if ($therapist->products()->exists()) {
-                $score++;
-            }
-
-            // Disponibilité
-            if ($therapist->availabilities()->exists()) {
-                $score++;
-            }
-
-            // Appointment
-            if ($therapist->appointments()->exists()) {
-                $score++;
-            }
-
-            // Invoice
-            if ($therapist->invoices()->exists()) {
-                $score++;
-            }
-
-            // ClientProfile
-            if ($therapist->clientProfiles()->exists()) {
-                $score++;
-            }
-
-            // Event
-            if ($therapist->events()->exists()) {
-                $score++;
-            }
-
-            // Store the score in the therapist object
-            $therapist->onboarding_score = $score;
-            $therapist->onboarding_total = $total;
+        // Slug
+        if ($therapist->slug) {
+            $score++;
         }
 
-        return view('admin.therapists.index', compact('therapists'));
+        // Stripe setup
+        if ($therapist->stripe_account_id) {
+            $score++;
+        }
+
+        // Online booking
+        if ($therapist->accept_online_appointments) {
+            $score++;
+        }
+
+        // Prestation (Product)
+        if ($therapist->products()->exists()) {
+            $score++;
+        }
+
+        // Disponibilité
+        if ($therapist->availabilities()->exists()) {
+            $score++;
+        }
+
+        // Appointment
+        if ($therapist->appointments()->exists()) {
+            $score++;
+        }
+
+        // Invoice
+        if ($therapist->invoices()->where('type', 'invoice')->exists()) {
+            $score++;
+        }
+
+        // Quote (NEW)
+        if ($therapist->invoices()->where('type', 'quote')->exists()) {
+            $score++;
+        }
+
+        // ClientProfile
+        if ($therapist->clientProfiles()->exists()) {
+            $score++;
+        }
+
+        // Event
+        if ($therapist->events()->exists()) {
+            $score++;
+        }
+
+        // Inventory Items (NEW)
+        if ($therapist->inventoryItems()->exists()) {
+            $score++;
+        }
+
+        $therapist->onboarding_score = $score;
+        $therapist->onboarding_total = $total;
     }
+
+    return view('admin.therapists.index', compact('therapists'));
+}
+
+
 
     /**
      * Display detailed information about a specific therapist.
