@@ -15,6 +15,45 @@
 
     <!-- Custom Styles -->
     <style>
+    .styled-summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        background-color: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        font-size: 0.95rem;
+    }
+
+    .styled-summary-table th,
+    .styled-summary-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .styled-summary-table thead {
+        background-color: #f8fafc;
+        font-weight: bold;
+        color: #2d3748;
+        text-align: left;
+    }
+
+    .styled-summary-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-sm {
+        font-size: 0.85rem;
+    }
+
+    .text-gray-500 {
+        color: #6b7280;
+    }
         /* Full-Screen Background Video */
         #bg-video {
             position: fixed;
@@ -315,6 +354,36 @@
                 <p><strong>Accepts Online Booking:</strong> {{ $therapist->accepts_online_booking ? 'Yes' : 'No' }}</p>
             </div>
         </div>
+<h2 class="section-title">Contenus créés par ce thérapeute</h2>
+<table class="styled-summary-table">
+    <thead>
+        <tr>
+            <th>Élément</th>
+            <th>Nombre</th>
+            <th>Dernière création</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach([
+            'products' => 'Prestations',
+            'availabilities' => 'Disponibilités',
+            'appointments' => 'Rendez-vous',
+            'invoices' => 'Factures',
+            'quotes' => 'Devis',
+            'clientProfiles' => 'Profils clients',
+            'events' => 'Événements',
+            'inventoryItems' => 'Articles d\'inventaire'
+        ] as $key => $label)
+            <tr>
+                <td>{{ $label }}</td>
+                <td class="text-right">{{ $counts[$key] }}</td>
+                <td class="text-right text-sm text-gray-500">
+                    {{ $lastTimestamps[$key] ? $lastTimestamps[$key]->format('d/m/Y H:i') : '—' }}
+                </td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
 
         @if(session('success'))
             <div style="color: green; margin-bottom: 20px;">
@@ -499,25 +568,7 @@
     </div>
 </div>
 
-<h2 class="section-title">Contenus créés par ce thérapeute</h2>
-<table class="table-auto w-full border border-gray-300 mt-4 mb-6">
-    <thead class="bg-gray-100">
-        <tr>
-            <th class="px-4 py-2 text-left">Élément</th>
-            <th class="px-4 py-2 text-right">Nombre</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr><td class="px-4 py-2">Prestations</td><td class="px-4 py-2 text-right">{{ $counts['products'] }}</td></tr>
-        <tr><td class="px-4 py-2">Disponibilités</td><td class="px-4 py-2 text-right">{{ $counts['availabilities'] }}</td></tr>
-        <tr><td class="px-4 py-2">Rendez-vous</td><td class="px-4 py-2 text-right">{{ $counts['appointments'] }}</td></tr>
-        <tr><td class="px-4 py-2">Factures</td><td class="px-4 py-2 text-right">{{ $counts['invoices'] }}</td></tr>
-        <tr><td class="px-4 py-2">Devis</td><td class="px-4 py-2 text-right">{{ $counts['quotes'] }}</td></tr>
-        <tr><td class="px-4 py-2">Profils clients</td><td class="px-4 py-2 text-right">{{ $counts['clientProfiles'] }}</td></tr>
-        <tr><td class="px-4 py-2">Événements</td><td class="px-4 py-2 text-right">{{ $counts['events'] }}</td></tr>
-        <tr><td class="px-4 py-2">Articles d'inventaire</td><td class="px-4 py-2 text-right">{{ $counts['inventoryItems'] }}</td></tr>
-    </tbody>
-</table>
+
 
 
         <!-- Monthly Usage Statistics -->

@@ -436,6 +436,16 @@ $counts = [
     'inventoryItems' => $therapist->inventoryItems()->count(),
 ];
 
+$lastTimestamps = [
+    'products' => optional($therapist->products()->latest()->first())->created_at,
+    'availabilities' => optional($therapist->availabilities()->latest()->first())->created_at,
+    'appointments' => optional($therapist->appointments()->latest()->first())->created_at,
+    'invoices' => optional($therapist->invoices()->latest()->first())->created_at,
+    'quotes' => optional($therapist->invoices()->where('type', 'quote')->latest()->first())->created_at,
+    'clientProfiles' => optional($therapist->clientProfiles()->latest()->first())->created_at,
+    'events' => optional($therapist->events()->latest()->first())->created_at,
+    'inventoryItems' => optional($therapist->inventoryItems()->latest()->first())->created_at,
+];
 
 
 
@@ -445,8 +455,10 @@ return view('admin.therapists.show', compact(
     'invoicesThisWeek',
     'clientProfilesThisWeek',
     'eventsThisWeek',
-    'counts'
+    'counts',
+    'lastTimestamps'
 ));
+
 
 }
 
