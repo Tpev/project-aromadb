@@ -425,13 +425,29 @@ public function showTherapist($id)
         ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
         ->count();
 
-    return view('admin.therapists.show', compact(
-        'therapist',
-        'appointmentsThisWeek',
-        'invoicesThisWeek',
-        'clientProfilesThisWeek',
-        'eventsThisWeek'
-    ));
+$counts = [
+    'products' => $therapist->products()->count(),
+    'availabilities' => $therapist->availabilities()->count(),
+    'appointments' => $therapist->appointments()->count(),
+    'invoices' => $therapist->invoices()->count(),
+    'quotes' => $therapist->invoices()->where('type', 'quote')->count(),
+    'clientProfiles' => $therapist->clientProfiles()->count(),
+    'events' => $therapist->events()->count(),
+    'inventoryItems' => $therapist->inventoryItems()->count(),
+];
+
+
+
+
+return view('admin.therapists.show', compact(
+    'therapist',
+    'appointmentsThisWeek',
+    'invoicesThisWeek',
+    'clientProfilesThisWeek',
+    'eventsThisWeek',
+    'counts'
+));
+
 }
 
 	

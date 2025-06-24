@@ -499,6 +499,25 @@
     </div>
 </div>
 
+<h2 class="section-title">Contenus créés par ce thérapeute</h2>
+<table class="table-auto w-full border border-gray-300 mt-4 mb-6">
+    <thead class="bg-gray-100">
+        <tr>
+            <th class="px-4 py-2 text-left">Élément</th>
+            <th class="px-4 py-2 text-right">Nombre</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td class="px-4 py-2">Prestations</td><td class="px-4 py-2 text-right">{{ $counts['products'] }}</td></tr>
+        <tr><td class="px-4 py-2">Disponibilités</td><td class="px-4 py-2 text-right">{{ $counts['availabilities'] }}</td></tr>
+        <tr><td class="px-4 py-2">Rendez-vous</td><td class="px-4 py-2 text-right">{{ $counts['appointments'] }}</td></tr>
+        <tr><td class="px-4 py-2">Factures</td><td class="px-4 py-2 text-right">{{ $counts['invoices'] }}</td></tr>
+        <tr><td class="px-4 py-2">Devis</td><td class="px-4 py-2 text-right">{{ $counts['quotes'] }}</td></tr>
+        <tr><td class="px-4 py-2">Profils clients</td><td class="px-4 py-2 text-right">{{ $counts['clientProfiles'] }}</td></tr>
+        <tr><td class="px-4 py-2">Événements</td><td class="px-4 py-2 text-right">{{ $counts['events'] }}</td></tr>
+        <tr><td class="px-4 py-2">Articles d'inventaire</td><td class="px-4 py-2 text-right">{{ $counts['inventoryItems'] }}</td></tr>
+    </tbody>
+</table>
 
 
         <!-- Monthly Usage Statistics -->
