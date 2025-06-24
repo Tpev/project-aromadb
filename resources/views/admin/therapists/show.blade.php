@@ -24,6 +24,7 @@
         border-radius: 8px;
         overflow: hidden;
         font-size: 0.95rem;
+        color: #000; /* Default text color to black */
     }
 
     .styled-summary-table th,
@@ -35,7 +36,7 @@
     .styled-summary-table thead {
         background-color: #f8fafc;
         font-weight: bold;
-        color: #2d3748;
+        color: #000;
         text-align: left;
     }
 
@@ -49,10 +50,11 @@
 
     .text-sm {
         font-size: 0.85rem;
+        color: #000 !important; /* Force black for small text */
     }
 
     .text-gray-500 {
-        color: #6b7280;
+        color: #000 !important; /* Override any gray to black */
     }
         /* Full-Screen Background Video */
         #bg-video {
