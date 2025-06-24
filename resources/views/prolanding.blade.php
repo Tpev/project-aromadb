@@ -67,14 +67,14 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                         <p class="text-gray-700">Une véritable vitrine en ligne pour attirer de nouveaux clients ! Partagez facilement votre lien sur vos réseaux sociaux et permettez à vos patients de consulter vos services et de prendre rendez-vous sans effort.</p>
                     </div>
                 </div>
-                <!-- Feature Card 4 -->
-                <div class="feature-card group" data-aos="fade-up" data-aos-delay="300">
-                    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                        <i class="fas fa-file-invoice-dollar text-5xl mb-4 text-secondary"></i>
-                        <h3 class="text-2xl font-bold mb-2">Facturation simplifiée</h3>
-                        <p class="text-gray-700">Automatisez la génération et l’envoi de vos factures, et suivez facilement les paiements. Vous allez adorer ne plus vous soucier de l’administratif !</p>
-                    </div>
-                </div>
+<a href="/pro/facturation-therapeute" class="group block" data-aos="fade-up" data-aos-delay="300">
+    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
+        <i class="fas fa-file-invoice-dollar text-5xl mb-4 text-secondary"></i>
+        <h3 class="text-2xl font-bold mb-2">Facturation simplifiée</h3>
+        <p class="text-gray-700">Automatisez la génération et l’envoi de vos factures, et suivez facilement les paiements. Vous allez adorer ne plus vous soucier de l’administratif !</p>
+    </div>
+</a>
+
                 <!-- Feature Card 5 -->
                 <div class="feature-card group" data-aos="fade-up" data-aos-delay="400">
                     <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">

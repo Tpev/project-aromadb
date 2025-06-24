@@ -53,6 +53,17 @@ use App\Http\Controllers\ClientAuthController;
 use App\Http\Controllers\ClientMessageController;
 use App\Http\Controllers\Auth\ClientPasswordResetController;
 
+
+
+
+// Route SEO Content-Type
+
+    Route::get('/pro/facturation-therapeute', function () {
+        return view('facturationtherapeute');
+    })->name('facturationtherapeute');
+
+
+
 Route::prefix('client')->name('client.')->group(function () {
     Route::get('forgot-password', [ClientPasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('forgot-password', [ClientPasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -789,8 +800,6 @@ Route::middleware('auth')->group(function () {
     })->name('cgv');
 
 Route::get('/license-tiers/pricing', [LicenseTierController::class, 'pricing'])->name('license-tiers.pricing')->middleware('auth');
-
-
 
 
 
