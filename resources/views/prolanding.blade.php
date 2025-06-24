@@ -161,6 +161,14 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                             <p class="text-gray-700">Offrez des séances à distance grâce à la visio-conférence intégrée directement dans AromaMade, sans besoin d’outils tiers.</p>
                         </div>
                     </div>
+					<a href="/pro/gestion-inventaire-therapeute" class="feature-card group block" data-aos="fade-up" data-aos-delay="1300">
+					<div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
+						<i class="fas fa-boxes text-5xl mb-4 text-secondary"></i>
+						<h3 class="text-2xl font-bold mb-2">Gestion d’inventaire intelligente</h3>
+						<p class="text-gray-700">Suivez vos huiles essentielles, plantes, produits et consommables. AromaMade vous permet de gérer les niveaux de stock au goutte-à-goutte ou à l’unité.</p>
+					</div>
+				</a>
+
                 </div>
             </div>
 
