@@ -438,55 +438,68 @@
             <button type="submit">Update Address</button>
         </form>
 
-        <!-- Onboarding Checklist -->
-        <h2 class="section-title">Onboarding Checklist</h2>
-        <ul class="checklist">
-            @foreach([
-                'slug' => 'Has a Slug',
-                'stripe_account_id' => 'Has set up Stripe',
-                'accept_online_appointments' => 'Accepts Online Booking',
-                'products' => 'Has created a Prestation',
-                'availabilities' => 'Has created a Disponibilité',
-                'appointments' => 'Has created an Appointment',
-                'invoices' => 'Has created an Invoice',
-                'clientProfiles' => 'Has created a Client Profile',
-                'events' => 'Has created an Event',
-            ] as $attribute => $description)
-                <li>
-                    @if($attribute === 'accept_online_appointments')
-                        @if($therapist->accept_online_appointments)
-                            <span class="checkmark">&#10003;</span> {{ $description }}
-                        @else
-                            <span class="crossmark">&#10007;</span> {{ $description }}
-                        @endif
-                    @elseif(in_array($attribute, ['slug', 'stripe_account_id']))
-                        @if($therapist->$attribute)
-                            <span class="checkmark">&#10003;</span> {{ $description }}
-                        @else
-                            <span class="crossmark">&#10007;</span> {{ $description }}
-                        @endif
-                    @else
-                        @if($therapist->$attribute()->exists())
-                            <span class="checkmark">&#10003;</span> {{ $description }}
-                        @else
-                            <span class="crossmark">&#10007;</span> {{ $description }}
-                        @endif
-                    @endif
-                </li>
-            @endforeach
-        </ul>
 
-        <!-- Onboarding Score -->
-        <h2 class="section-title">Onboarding Score</h2>
-        <div class="onboarding-score">
-            <div class="radial-progress" data-percentage="{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45"></circle>
-                    <circle cx="50" cy="50" r="45" style="stroke-dashoffset: {{ 282 - (282 * ($therapist->onboarding_score / $therapist->onboarding_total)) }};"></circle>
-                </svg>
-                <div class="percentage">{{ round(($therapist->onboarding_score / $therapist->onboarding_total) * 100) }}%</div>
-            </div>
-        </div>
+
+<!-- Onboarding Checklist -->
+<h2 class="section-title">Onboarding Checklist</h2>
+<ul class="checklist">
+    @foreach([
+        'slug' => 'Has a Slug',
+        'stripe_account_id' => 'Has set up Stripe',
+        'accept_online_appointments' => 'Accepts Online Booking',
+        'products' => 'Has created a Prestation',
+        'availabilities' => 'Has created a Disponibilité',
+        'appointments' => 'Has created an Appointment',
+        'invoices' => 'Has created an Invoice',
+        'quote' => 'Has created a Quote',
+        'clientProfiles' => 'Has created a Client Profile',
+        'events' => 'Has created an Event',
+        'inventoryItems' => 'Has created an Inventory Item',
+    ] as $attribute => $description)
+        <li>
+            @if($attribute === 'accept_online_appointments')
+                @if($therapist->accept_online_appointments)
+                    <span class="checkmark">&#10003;</span> {{ $description }}
+                @else
+                    <span class="crossmark">&#10007;</span> {{ $description }}
+                @endif
+            @elseif(in_array($attribute, ['slug', 'stripe_account_id']))
+                @if($therapist->$attribute)
+                    <span class="checkmark">&#10003;</span> {{ $description }}
+                @else
+                    <span class="crossmark">&#10007;</span> {{ $description }}
+                @endif
+            @elseif($attribute === 'quote')
+                @if($therapist->invoices()->where('type', 'quote')->exists())
+                    <span class="checkmark">&#10003;</span> {{ $description }}
+                @else
+                    <span class="crossmark">&#10007;</span> {{ $description }}
+                @endif
+            @else
+                @if($therapist->$attribute()->exists())
+                    <span class="checkmark">&#10003;</span> {{ $description }}
+                @else
+                    <span class="crossmark">&#10007;</span> {{ $description }}
+                @endif
+            @endif
+        </li>
+    @endforeach
+</ul>
+
+<!-- Onboarding Score -->
+<h2 class="section-title">Onboarding Score</h2>
+<div class="onboarding-score">
+    <div class="radial-progress" data-percentage="{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}">
+        <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" class="background-circle"></circle>
+            <circle cx="50" cy="50" r="45" class="progress-circle"
+                style="stroke-dashoffset: {{ 282 - (282 * ($therapist->onboarding_score / $therapist->onboarding_total)) }};"></circle>
+        </svg>
+        <div class="percentage">{{ round(($therapist->onboarding_score / $therapist->onboarding_total) * 100) }}%</div>
+    </div>
+</div>
+
+
 
         <!-- Monthly Usage Statistics -->
         <h2 class="section-title">Monthly Usage Statistics</h2>

@@ -322,111 +322,118 @@ public function indexTherapists()
     /**
      * Display detailed information about a specific therapist.
      */
-    public function showTherapist($id)
-    {
-        // Check if the user is an admin
-        if (!auth()->user() || !auth()->user()->isAdmin()) {
-            return redirect('/')->with('error', 'Unauthorized access');
-        }
-		        // Find the therapist
-        $therapist = User::where('is_therapist', true)->findOrFail($id);
-		
-		    // Eager load relationships
+public function showTherapist($id)
+{
+    // Check if the user is an admin
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+
+    // Find the therapist
+    $therapist = User::where('is_therapist', true)->findOrFail($id);
+
+    // Eager load relationships
     $therapist->load([
         'products',
         'availabilities',
         'appointments',
         'invoices',
         'clientProfiles',
-        'events'
+        'events',
+        'inventoryItems' // NEW
     ]);
-		
 
+    // Calculate onboarding score
+    $score = 0;
+    $total = 11; // 9 original + 2 new
 
-        // Calculate onboarding score
-        $score = 0;
-        $total = 9; // 3 criteria + 6 items
-
-        // Onboarding criteria:
-
-        // Has a Slug
-        if ($therapist->slug) {
-            $score++;
-        }
-
-        // Has set up Stripe (has 'stripe_account_id')
-        if ($therapist->stripe_account_id) {
-            $score++;
-        }
-
-        // Accepts booking online (assuming 'accepts_online_booking' property)
-        if ($therapist->accept_online_appointments) {
-            $score++;
-        }
-
-        // Has created one or more of the following:
-
-        // Prestation
-        if ($therapist->products()->exists()) {
-            $score++;
-        }
-
-        // Disponibilité
-        if ($therapist->availabilities()->exists()) {
-            $score++;
-        }
-
-        // Appointment
-        if ($therapist->appointments()->exists()) {
-            $score++;
-        }
-
-        // Invoice
-        if ($therapist->invoices()->exists()) {
-            $score++;
-        }
-
-        // ClientProfile
-        if ($therapist->clientProfiles()->exists()) {
-            $score++;
-        }
-
-        // Event
-        if ($therapist->events()->exists()) {
-            $score++;
-        }
-
-        $therapist->onboarding_score = $score;
-        $therapist->onboarding_total = $total;
-
-        // Weekly usage statistics
-        $startOfWeek = Carbon::now()->startOfMonth();
-        $endOfWeek = Carbon::now()->endOfMonth();
-
-        $appointmentsThisWeek = $therapist->appointments()
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->count();
-
-        $invoicesThisWeek = $therapist->invoices()
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->count();
-
-        $clientProfilesThisWeek = $therapist->clientProfiles()
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->count();
-
-        $eventsThisWeek = $therapist->events()
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
-            ->count();
-
-        return view('admin.therapists.show', compact(
-            'therapist',
-            'appointmentsThisWeek',
-            'invoicesThisWeek',
-            'clientProfilesThisWeek',
-            'eventsThisWeek'
-        ));
+    // Slug
+    if ($therapist->slug) {
+        $score++;
     }
+
+    // Stripe setup
+    if ($therapist->stripe_account_id) {
+        $score++;
+    }
+
+    // Online booking
+    if ($therapist->accept_online_appointments) {
+        $score++;
+    }
+
+    // Prestation
+    if ($therapist->products()->exists()) {
+        $score++;
+    }
+
+    // Disponibilité
+    if ($therapist->availabilities()->exists()) {
+        $score++;
+    }
+
+    // Appointment
+    if ($therapist->appointments()->exists()) {
+        $score++;
+    }
+
+    // Invoice
+    if ($therapist->invoices()->where('type', 'invoice')->exists()) {
+        $score++;
+    }
+
+    // Quote (NEW)
+    if ($therapist->invoices()->where('type', 'quote')->exists()) {
+        $score++;
+    }
+
+    // ClientProfile
+    if ($therapist->clientProfiles()->exists()) {
+        $score++;
+    }
+
+    // Event
+    if ($therapist->events()->exists()) {
+        $score++;
+    }
+
+    // Inventory Items (NEW)
+    if ($therapist->inventoryItems()->exists()) {
+        $score++;
+    }
+
+    $therapist->onboarding_score = $score;
+    $therapist->onboarding_total = $total;
+
+    // Weekly usage statistics (this month actually)
+    $startOfMonth = Carbon::now()->startOfMonth();
+    $endOfMonth = Carbon::now()->endOfMonth();
+
+    $appointmentsThisWeek = $therapist->appointments()
+        ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        ->count();
+
+    $invoicesThisWeek = $therapist->invoices()
+        ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        ->count();
+
+    $clientProfilesThisWeek = $therapist->clientProfiles()
+        ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        ->count();
+
+    $eventsThisWeek = $therapist->events()
+        ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+        ->count();
+
+    return view('admin.therapists.show', compact(
+        'therapist',
+        'appointmentsThisWeek',
+        'invoicesThisWeek',
+        'clientProfilesThisWeek',
+        'eventsThisWeek'
+    ));
+}
+
 	
 	    public function welcome()
     {
