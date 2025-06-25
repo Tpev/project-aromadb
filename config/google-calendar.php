@@ -2,43 +2,62 @@
 
 return [
 
-    'default_auth_profile' => env('GOOGLE_CALENDAR_AUTH_PROFILE', 'service_account'),
+    /*
+    |--------------------------------------------------------------------------
+    | Profil d’authentification par défaut
+    |--------------------------------------------------------------------------
+    | L’application utilise le flux OAuth (compte Google du thérapeute),
+    | pas un compte de service. Vous pouvez malgré tout forcer un profil
+    | différent via la variable d’environnement GOOGLE_CALENDAR_AUTH_PROFILE.
+    */
+    'default_auth_profile' => env('GOOGLE_CALENDAR_AUTH_PROFILE', 'oauth'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Profils disponibles
+    |--------------------------------------------------------------------------
+    */
     'auth_profiles' => [
 
         /*
-         * Authenticate using a service account.
+         * ----- Compte de service (non utilisé dans notre cas) -----
+         *
+         * 1. Créez un service account dans Google Cloud.
+         * 2. Téléchargez le JSON      →  storage/app/google-calendar/service-account-credentials.json
+         * 3. Partagez le calendrier cible avec l’e-mail du compte de service.
          */
         'service_account' => [
-            /*
-             * Path to the json file containing the credentials.
-             */
             'credentials_json' => storage_path('app/google-calendar/service-account-credentials.json'),
         ],
 
         /*
-         * Authenticate with actual google user account.
+         * ----- Flux OAuth utilisateur (recommandé) -----
+         *
+         * 1. Téléchargez le fichier « OAuth client » JSON             →
+         *      storage/app/google-calendar/oauth-credentials.json
+         * 2. Laissez Spatie écrire le token dans oauth-token.json.
          */
         'oauth' => [
-            /*
-             * Path to the json file containing the oauth2 credentials.
-             */
             'credentials_json' => storage_path('app/google-calendar/oauth-credentials.json'),
-
-            /*
-             * Path to the json file containing the oauth2 token.
-             */
-            'token_json' => storage_path('app/google-calendar/oauth-token.json'),
+            'token_json'       => storage_path('app/google-calendar/oauth-token.json'),
         ],
     ],
 
     /*
-     *  The id of the Google Calendar that will be used by default.
-     */
-    'calendar_id' => env('GOOGLE_CALENDAR_ID'),
+    |--------------------------------------------------------------------------
+    | Calendrier par défaut
+    |--------------------------------------------------------------------------
+    | "primary" = calendrier principal du thérapeute ; sinon l’ID complet
+    | d’un agenda secondaire (ex. abc123@group.calendar.google.com).
+    */
+    'calendar_id' => env('GOOGLE_CALENDAR_ID', 'primary'),
 
-     /*
-     *  The email address of the user account to impersonate.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Délégation d’identité (facultatif)
+    |--------------------------------------------------------------------------
+    | Renseignez l’e-mail à usurper si vous utilisez un compte de service
+    | + G Suite domain-wide delegation. Laissez vide sinon.
+    */
     'user_to_impersonate' => env('GOOGLE_CALENDAR_IMPERSONATE'),
 ];
