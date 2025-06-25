@@ -10,7 +10,7 @@ Votre rendez-vous a été programmé avec succès.
 - **Prestation :** {{ $appointment->product->name }}
 **Mode de consultation :** {{ $appointment->mode }}
 
-@if($appointment->mode === 'dans le cabinet' && $appointment->user && $appointment->user->company_address)
+@if($appointment->mode === 'Dans le Cabinet' && $appointment->user && $appointment->user->company_address)
 **Adresse du cabinet :**  
 {{ $appointment->user->company_address }}
 @endif
