@@ -1,18 +1,24 @@
+@php
+    // Chaîne lisible prête à être affichée (ex.: "En Visio, Dans le Cabinet")
+    $modes = $appointment->product->getConsultationModes();
+
+    // Vérifie si la chaîne contient exactement "Dans le Cabinet"
+    $showsCabinetAddress = str_contains($modes, 'Dans le Cabinet');
+@endphp
+
 @component('mail::message')
 # Bonjour {{ $appointment->clientProfile->first_name }},
 
 Votre rendez-vous a été programmé avec succès.
 
-**Détails du rendez-vous&nbsp;:**
+**Détails du rendez-vous :**
 
 - **Date et heure :** {{ $appointment->appointment_date->format('d/m/Y \à H:i') }}
 - **Durée :** {{ $appointment->duration }} minutes
 - **Prestation :** {{ $appointment->product->name }}
-- **Mode{{ count($appointment->product->getConsultationModes()) > 1 ? 's' : '' }} de consultation :** {{ implode(', ', $appointment->product->getConsultationModes()) }}
+- **Mode de consultation :** {{ $modes }}
 
-{{-- Afficher l’adresse seulement si “Dans le Cabinet” est l’un des modes --}}
-@if (in_array('Dans le Cabinet', $appointment->product->getConsultationModes()) 
-    && $appointment->user?->company_address)
+@if ($showsCabinetAddress && $appointment->user?->company_address)
 **Adresse du cabinet :**  
 {{ $appointment->user->company_address }}
 @endif
