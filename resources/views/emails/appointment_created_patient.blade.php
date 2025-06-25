@@ -17,7 +17,7 @@ Votre rendez-vous a été programmé avec succès.
 - **Thérapeute :** {{ $appointment->user->name }}
 
 Si vous avez des questions, n'hésitez pas à nous contacter.
-
+test
 Merci,<br>
 {{ $appointment->user->name }}
 @endcomponent
