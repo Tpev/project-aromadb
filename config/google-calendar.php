@@ -5,14 +5,14 @@ return [
     // Utiliser uniquement OAuth
     'default_auth_profile' => env('GOOGLE_CALENDAR_AUTH_PROFILE', 'oauth'),
 
-    'auth_profiles' => [
-
-        // ---------- Profil OAuth (token injecté en mémoire) ----------
-        'oauth' => [
-            'credentials_json' => null,   // on ne lit pas de fichier
-            'token_json'       => null,   // on ne stocke pas de fichier
-        ],
+'auth_profiles' => [
+    'oauth' => [
+        // ← pointez sur le fichier que vous venez de copier
+        'credentials_json' => storage_path('app/google-calendar/oauth-credentials.json'),
+        'token_json'       => null,   // on n’a toujours pas besoin de fichier token
     ],
+],
+
 
     // Agenda par défaut
     'calendar_id'        => env('GOOGLE_CALENDAR_ID', 'primary'),
