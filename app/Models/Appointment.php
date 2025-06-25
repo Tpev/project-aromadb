@@ -20,6 +20,7 @@ protected $fillable = [
     'duration',
     'product_id',
 	 'stripe_session_id', // Ajouté pour suivre la session Stripe
+	 'google_event_id',     
 ];
 
     // Automatically generate a token when creating a new appointment
@@ -32,6 +33,52 @@ protected $fillable = [
             $appointment->token = Str::random(64); // Generate a random 64-character string
         });
     }
+	
+	    protected static function booted()
+    {
+        static::created(fn ($appt) => $appt->syncToGoogle());
+        static::updated(fn ($appt) => $appt->syncToGoogle());
+        static::deleted(fn ($appt) => $appt->removeFromGoogle());
+    }
+	
+public function syncToGoogle(): void
+{
+    $therapist = $this->user;
+
+    // Le thérapeute n’a pas connecté Google ?
+    if (!$therapist || !$therapist->google_access_token) {
+        return;
+    }
+
+    // On injecte son access_token dans la config Spatie
+    config(['google-calendar.oauth_token' => json_decode($therapist->google_access_token, true)]);
+
+    $eventData = [
+        'name'          => 'RDV – '.$this->clientProfile->first_name,
+        'startDateTime' => Carbon::parse($this->appointment_date),
+        'endDateTime'   => Carbon::parse($this->appointment_date)->addMinutes($this->duration),
+        'description'   => $this->notes,
+    ];
+
+    if ($this->google_event_id) {
+        // Mise à jour
+        Event::find($this->google_event_id)?->update($eventData);
+    } else {
+        // Création
+        $event = Event::create($eventData);
+        $this->fill(['google_event_id' => $event->id])->saveQuietly();
+    }
+}
+
+public function removeFromGoogle(): void
+{
+    if (!$this->google_event_id || !$this->user?->google_access_token) {
+        return;
+    }
+
+    config(['google-calendar.oauth_token' => json_decode($this->user->google_access_token, true)]);
+    Event::find($this->google_event_id)?->delete();
+}	
 // Add relationship to Product
 public function product()
 {
