@@ -54,7 +54,7 @@ private function client(): \Google\Client
         $user->google_token_expires_at = Carbon::now()->addSeconds($token['expires_in']);
         $user->save();
 
-        return redirect()->route('settings')->with('success', 'Google Agenda connecté !');
+        return redirect()->route('profile.editCompanyInfo')->with('success', 'Google Agenda connecté !');
     }
 
     /** Permet de déconnecter et de purger les jetons. */
