@@ -3,21 +3,24 @@
 
 Votre rendez-vous a été programmé avec succès.
 
-**Détails du rendez-vous :**
+**Détails du rendez-vous&nbsp;:**
 
-- **Date et heure :** {{ $appointment->appointment_date->format('d/m/Y à H:i') }}
+- **Date et heure :** {{ $appointment->appointment_date->format('d/m/Y \à H:i') }}
 - **Durée :** {{ $appointment->duration }} minutes
 - **Prestation :** {{ $appointment->product->name }}
-**Mode de consultation :** {{ $appointment->mode }}
+- **Mode{{ count($appointment->product->getConsultationModes()) > 1 ? 's' : '' }} de consultation :** {{ implode(', ', $appointment->product->getConsultationModes()) }}
 
-@if($appointment->mode === 'Dans le Cabinet' && $appointment->user && $appointment->user->company_address)
+{{-- Afficher l’adresse seulement si “Dans le Cabinet” est l’un des modes --}}
+@if (in_array('Dans le Cabinet', $appointment->product->getConsultationModes()) 
+    && $appointment->user?->company_address)
 **Adresse du cabinet :**  
 {{ $appointment->user->company_address }}
 @endif
+
 - **Thérapeute :** {{ $appointment->user->name }}
 
 Si vous avez des questions, n'hésitez pas à nous contacter.
-test
+
 Merci,<br>
 {{ $appointment->user->name }}
 @endcomponent
