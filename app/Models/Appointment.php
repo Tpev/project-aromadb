@@ -57,42 +57,73 @@ class Appointment extends Model
     /*  Synchronisation Google Calendar                                   */
     /* ------------------------------------------------------------------ */
 
-    public function syncToGoogle(): void
-    {
-        $therapist = $this->user;
-        if (!$therapist || !$therapist->google_access_token) {
-            return; // non connecté
+ public function syncToGoogle(): void
+{
+    $therapist = $this->user;
+    if (!$therapist || !$therapist->google_access_token) return;
+
+    /* ---------- Préparation token / fichier pour Spatie ----------- */
+    $tokenArr  = json_decode($therapist->google_access_token, true);
+    $tokenPath = GoogleTokenFile::put($therapist->id, $tokenArr);
+
+    config([
+        'google-calendar.oauth_token'                        => $tokenArr,
+        'google-calendar.auth_profiles.oauth.token_json'     => $tokenPath,
+    ]);
+
+    /* ---------------------- Données métier ------------------------ */
+    $product   = $this->product?->name ?? 'Prestation';
+    $client    = $this->clientProfile->first_name.' '.$this->clientProfile->last_name;
+
+    // Mode de consultation
+    $mode = $this->product?->getConsultationModes()[0] ?? 'Non spécifié';
+
+    // Lieu
+    $location = match ($mode) {
+        'En Visio'       => 'Visio',
+        'À Domicile'     => $this->clientProfile->address ?? 'Domicile client',
+        'Dans le Cabinet'=> $therapist->company_address ?? 'Cabinet',
+        default          => '',
+    };
+
+    // Titre & description enrichis
+    $summary     = "Rdv $product – $client";
+    $description = <<<TXT
+Client : $client
+Prestation : $product
+Mode : $mode
+
+Notes :
+{$this->notes}
+TXT;
+
+    $eventData = [
+        'name'          => $summary,
+        'description'   => $description,
+        'startDateTime' => Carbon::parse($this->appointment_date),
+        'endDateTime'   => Carbon::parse($this->appointment_date)->addMinutes($this->duration),
+        'location'      => $location,
+    ];
+
+    /* -------------------- Création / mise à jour ------------------ */
+    if ($this->google_event_id) {
+        // update
+        $event = GoogleEvent::find($this->google_event_id);
+        $event?->update($eventData);
+    } else {
+        // create
+        $event = GoogleEvent::create($eventData);
+
+        // Ajoute un lien Meet si visio
+        if ($mode === 'En Visio') {
+            $event->addMeetLink()->save();
         }
 
-        $tokenArr  = json_decode($therapist->google_access_token, true);
-        $tokenPath = GoogleTokenFile::put($therapist->id, $tokenArr); // fichier perso
-
-        // Injection runtime pour Spatie
-        config([
-            'google-calendar.oauth_token'                        => $tokenArr,
-            'google-calendar.auth_profiles.oauth.token_json'     => $tokenPath,
-        ]);
-
-        $eventData = [
-            'name'          => 'RDV – '.$this->clientProfile->first_name,
-            'startDateTime' => Carbon::parse($this->appointment_date),
-            'endDateTime'   => Carbon::parse($this->appointment_date)
-                                ->addMinutes($this->duration),
-            'description'   => $this->notes,
-        ];
-
-        try {
-            if ($this->google_event_id) {
-                GoogleEvent::find($this->google_event_id)?->update($eventData);
-            } else {
-                $event = GoogleEvent::create($eventData);
-                $this->forceFill(['google_event_id' => $event->id])->saveQuietly();
-            }
-        } finally {
-            // Nettoyage coûte que coûte
-            GoogleTokenFile::forget($therapist->id);
-        }
+        $this->forceFill(['google_event_id' => $event->id])->saveQuietly();
     }
+
+    GoogleTokenFile::forget($therapist->id);
+}
 
     public function removeFromGoogle(): void
     {
