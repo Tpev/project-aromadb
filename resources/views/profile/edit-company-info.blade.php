@@ -152,6 +152,9 @@
         {{ old('accept_online_appointments', auth()->user()->accept_online_appointments) ? 'checked' : '' }}>
         <span class="ml-2 text-gray-700">{{ __('Accepter les rendez-vous en ligne') }}</span>
     </label>
+
+
+
 						
 <!-- Helper text -->
 <small class="text-gray-500">{{ __('Si vous souhaitez que vos clients puissent prendre rendez-vous en ligne de manière autonome via votre portail pro sur aromamade.com') }}</small>
@@ -161,6 +164,22 @@
     @enderror
 </div>
 
+
+
+
+@if (auth()->user()->google_access_token)
+    <form method="POST" action="{{ route('google.disconnect') }}">
+        @csrf
+        <button class="btn btn-danger">Déconnecter Google Agenda</button>
+    </form>
+@else
+    <a href="{{ route('google.connect') }}" class="btn btn-primary">
+        Connecter Google Agenda
+    </a>
+@endif
+<br>
+<small class="text-gray-500">{{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous Aromamade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}</small>
+	
 <!-- Minimum Notice for Booking Appointment -->
 <div class="details-box">
     <label class="details-label" for="minimum_notice_hours">{{ __('Préavis Minimum pour Prendre un Rendez-vous (heures)') }}</label>

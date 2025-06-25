@@ -52,6 +52,18 @@ use App\Http\Controllers\ClientPasswordSetupController;
 use App\Http\Controllers\ClientAuthController;
 use App\Http\Controllers\ClientMessageController;
 use App\Http\Controllers\Auth\ClientPasswordResetController;
+use App\Http\Controllers\GoogleCalendarController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('google/connect', [GoogleCalendarController::class, 'redirect'])
+        ->name('google.connect');
+
+    Route::get('google/oauth2callback', [GoogleCalendarController::class, 'callback'])
+        ->name('google.callback');
+
+    Route::post('google/disconnect', [GoogleCalendarController::class, 'disconnect'])
+        ->name('google.disconnect');
+});
 
 
 
