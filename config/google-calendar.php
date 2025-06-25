@@ -3,7 +3,9 @@
 return [
 
     // Utiliser uniquement OAuth
-    'default_auth_profile' => env('GOOGLE_CALENDAR_AUTH_PROFILE', 'oauth'),
+    // Nouveau code (forcé)
+'default_auth_profile' => 'oauth',
+
 
 'auth_profiles' => [
     'oauth' => [
