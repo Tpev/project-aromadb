@@ -167,19 +167,7 @@
 
 
 
-@if (auth()->user()->google_access_token)
-    <form method="POST" action="{{ route('google.disconnect') }}">
-        @csrf
-        <button class="btn btn-danger">Déconnecter Google Agenda</button>
-    </form>
-@else
-    <a href="{{ route('google.connect') }}" class="btn btn-primary">
-        Connecter Google Agenda
-    </a>
-@endif
-<br>
-<small class="text-gray-500">{{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous Aromamade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}</small>
-	
+
 <!-- Minimum Notice for Booking Appointment -->
 <div class="details-box">
     <label class="details-label" for="minimum_notice_hours">{{ __('Préavis Minimum pour Prendre un Rendez-vous (heures)') }}</label>
@@ -223,7 +211,19 @@
             </form>
         </div>
     </div>
-
+@if (auth()->user()->google_access_token)
+    <form method="POST" action="{{ route('google.disconnect') }}">
+        @csrf
+        <button class="btn btn-danger">Déconnecter Google Agenda</button>
+    </form>
+@else
+    <a href="{{ route('google.connect') }}" class="btn btn-primary">
+        Connecter Google Agenda
+    </a>
+@endif
+<br>
+<small class="text-gray-500">{{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous Aromamade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}</small>
+	
     <!-- Add JavaScript to handle dynamic services list -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
