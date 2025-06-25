@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str; 
 use Carbon\Carbon;
+use Spatie\GoogleCalendar\Event as GoogleEvent;
+
+
 class Appointment extends Model
 {
     use HasFactory;
@@ -62,10 +65,10 @@ public function syncToGoogle(): void
 
     if ($this->google_event_id) {
         // Mise à jour
-        Event::find($this->google_event_id)?->update($eventData);
+        GoogleEvent::find($this->google_event_id)?->update($eventData);
     } else {
         // Création
-        $event = Event::create($eventData);
+        $event = GoogleEvent::create($eventData);
         $this->fill(['google_event_id' => $event->id])->saveQuietly();
     }
 }
@@ -77,7 +80,7 @@ public function removeFromGoogle(): void
     }
 
     config(['google-calendar.oauth_token' => json_decode($this->user->google_access_token, true)]);
-    Event::find($this->google_event_id)?->delete();
+    GoogleEvent::find($this->google_event_id)?->delete();
 }	
 // Add relationship to Product
 public function product()
