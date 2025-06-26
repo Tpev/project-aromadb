@@ -48,34 +48,40 @@ public function index()
     /* -------------------------------------------------------------
      | 3. Transforme chaque Appointment en événement FullCalendar
      * ------------------------------------------------------------*/
-    foreach ($appointments as $appointment) {
+foreach ($appointments as $appointment) {
 
-        $isPast = Carbon::parse($appointment->appointment_date)->isPast();
+    $isPast = Carbon::parse($appointment->appointment_date)->isPast();
 
-        // ► Titre : « Occupé » si le créneau est externe (pas de client)
+    /* ---------- Titre ---------- */
+    if ($appointment->external) {
+        // créneau importé depuis Google : on affiche le titre de l’évènement
+        $title = $appointment->notes ?: 'Occupé';
+    } else {
+        // rendez-vous créé dans AromaMade
         $client = optional($appointment->clientProfile);
-        $title  = $client->first_name
-            ? $client->first_name.' '.$client->last_name
-            : 'Occupé';
-
-        // ► Couleur
-        $color = $appointment->external
-            ? '#999999'                 // gris pour les créneaux externes
-            : ($isPast ? '#854f38'      // brun pour les rdv passés
-                       : '#647a0b');    // vert pour les futurs
-
-        $events[] = [
-            'title'     => $title,
-            'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
-            'end'       => $appointment->appointment_date
-                                       ->copy()
-                                       ->addMinutes($appointment->duration)
-                                       ->format('Y-m-d H:i:s'),
-            'url'       => route('appointments.show', $appointment->id),
-            'color'     => $color,
-            'textColor' => $isPast ? '#ffffff' : '#636363',
-        ];
+        $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? ''));
     }
+
+    /* ---------- Couleur ---------- */
+    $color = $appointment->external
+        ? '#999999'                 // gris pour les imports Google
+        : ($isPast ? '#854f38'      // brun pour les rdv passés
+                   : '#647a0b');    // vert pour les futurs
+
+    /* ---------- Push dans FullCalendar ---------- */
+    $events[] = [
+        'title'     => $title,
+        'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
+        'end'       => $appointment->appointment_date
+                                   ->copy()
+                                   ->addMinutes($appointment->duration ?? 0)
+                                   ->format('Y-m-d H:i:s'),
+        'url'       => route('appointments.show', $appointment->id),
+        'color'     => $color,
+        'textColor' => $isPast ? '#ffffff' : '#636363',
+    ];
+}
+
 
     /* -------------------------------------------------------------
      | 4. Ajoute les indisponibilités (gris)

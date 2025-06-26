@@ -43,7 +43,7 @@
                         <tr class="table-row" data-url="{{ route('appointments.show', $appointment->id) }}">
                             <td>
     @if($appointment->external)
-        Occupé
+                {{ $appointment->notes ?: 'Occupé' }}
     @else
         {{ optional($appointment->clientProfile)->first_name }}
         {{ optional($appointment->clientProfile)->last_name }}
