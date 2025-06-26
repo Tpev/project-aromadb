@@ -33,45 +33,68 @@ class AppointmentController extends Controller
      */
 public function index()
 {
-	    if (Auth::user()->license_status === 'inactive') {
+    // 1. Redirige les comptes inactifs
+    if (Auth::user()->license_status === 'inactive') {
         return redirect('/license-tiers/pricing');
     }
-    // Fetch appointments for the authenticated user
+
+    // 2. Charge tous les rendez-vous du thérapeute
     $appointments = Appointment::where('user_id', Auth::id())
         ->with(['clientProfile', 'product'])
         ->get();
 
     $events = [];
-    
-    // Fetch appointment events
+
+    /* -------------------------------------------------------------
+     | 3. Transforme chaque Appointment en événement FullCalendar
+     * ------------------------------------------------------------*/
     foreach ($appointments as $appointment) {
-		$isPast = Carbon::parse($appointment->appointment_date)->isPast();
+
+        $isPast = Carbon::parse($appointment->appointment_date)->isPast();
+
+        // ► Titre : « Occupé » si le créneau est externe (pas de client)
+        $client = optional($appointment->clientProfile);
+        $title  = $client->first_name
+            ? $client->first_name.' '.$client->last_name
+            : 'Occupé';
+
+        // ► Couleur
+        $color = $appointment->external
+            ? '#999999'                 // gris pour les créneaux externes
+            : ($isPast ? '#854f38'      // brun pour les rdv passés
+                       : '#647a0b');    // vert pour les futurs
+
         $events[] = [
-            'title' => $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
-            'start' => $appointment->appointment_date->format('Y-m-d H:i:s'),
-            'end' => $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Y-m-d H:i:s'),
-            'url' => route('appointments.show', $appointment->id),
-            'color' => $isPast ? '#854f38' : '#647a0b',
-			'textColor' => $isPast ? '#ffffff' : '#636363', // Assurer une bonne lisibilité			// Rouge pour les rdv passés, brun pour les à venir
+            'title'     => $title,
+            'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
+            'end'       => $appointment->appointment_date
+                                       ->copy()
+                                       ->addMinutes($appointment->duration)
+                                       ->format('Y-m-d H:i:s'),
+            'url'       => route('appointments.show', $appointment->id),
+            'color'     => $color,
+            'textColor' => $isPast ? '#ffffff' : '#636363',
         ];
     }
 
-    // Fetch unavailability periods for the logged-in user
+    /* -------------------------------------------------------------
+     | 4. Ajoute les indisponibilités (gris)
+     * ------------------------------------------------------------*/
     $unavailabilities = Unavailability::where('user_id', Auth::id())
         ->get()
         ->map(function ($unavailability) {
             return [
-                'title' => $unavailability->reason ?? 'Indisponible', // Use reason if exists, otherwise "Indisponible"
-                'start' => $unavailability->start_date->format('Y-m-d H:i:s'), // Format the start_date
-                'end' => $unavailability->end_date->format('Y-m-d H:i:s'), // Format the end_date
-                'color' => 'grey', // Set the color for the unavailability
-				'url' => route('unavailabilities.index'),
+                'title' => $unavailability->reason ?: 'Indisponible',
+                'start' => $unavailability->start_date->format('Y-m-d H:i:s'),
+                'end'   => $unavailability->end_date->format('Y-m-d H:i:s'),
+                'color' => '#808080',                        // gris
+                'url'   => route('unavailabilities.index'),
             ];
         });
 
-    // Merge unavailability events into the events array
     $events = array_merge($events, $unavailabilities->toArray());
 
+    // 5. Retourne la vue
     return view('appointments.index', compact('appointments', 'events'));
 }
 
