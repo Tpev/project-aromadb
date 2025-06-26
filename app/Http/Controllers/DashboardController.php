@@ -69,11 +69,13 @@ class DashboardController extends Controller
         })->toArray();
 
         // Derniers Rendez-vous
-        $recentAppointments = Appointment::where('user_id', $userId)
-            ->where('appointment_date', '>=', Carbon::now()->subDays(30))
-            ->orderBy('appointment_date', 'desc')
-            ->take(5)
-            ->get();
+$recentAppointments = Appointment::query()
+    ->where('user_id', auth()->id())
+    ->where('external', false)          // ⬅️ on ne garde que les rendez-vous internes
+    ->orderBy('appointment_date')
+    ->limit(5)
+    ->with('clientProfile')             // eager-load pour éviter les N+1
+    ->get();
 
         // Dernières Factures
         $recentInvoices = Invoice::where('user_id', $userId)
