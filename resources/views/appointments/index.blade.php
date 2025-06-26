@@ -41,7 +41,14 @@
                 <tbody>
                     @foreach($appointments as $appointment)
                         <tr class="table-row" data-url="{{ route('appointments.show', $appointment->id) }}">
-                            <td>{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}</td>
+                            <td>
+    @if($appointment->external)
+        Occupé
+    @else
+        {{ optional($appointment->clientProfile)->first_name }}
+        {{ optional($appointment->clientProfile)->last_name }}
+    @endif
+</td>
                             <td>
     <i class="fas fa-calendar-alt"></i>
     {{ \Carbon\Carbon::parse($appointment->appointment_date)->translatedFormat('d/m/Y') }}
@@ -50,7 +57,7 @@
     {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('H:i') }}
 </td>
                             <td>{{ $appointment->duration }} {{ __('min') }}</td>
-                            <td>{{ $appointment->product->name ?? __('Aucun produit') }}</td>
+                            <td>{{ $appointment->product->name ?? '—' }}</td>
                             <td id="status-{{ $appointment->id }}">{{ ucfirst($appointment->status) }}</td>
                             <td>
                                 <!-- Bouton pour générer une facture -->
