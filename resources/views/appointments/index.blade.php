@@ -59,24 +59,28 @@
                             <td>{{ $appointment->duration }} {{ __('min') }}</td>
                             <td>{{ $appointment->product->name ?? '—' }}</td>
                             <td id="status-{{ $appointment->id }}">{{ ucfirst($appointment->status) }}</td>
-                            <td>
-                                <!-- Bouton pour générer une facture -->
-                                <a href="{{ route('invoices.create', ['client_id' => $appointment->client_profile_id, 'product_id' => $appointment->product_id]) }}" class="btn-invoice"">
-                                    <i class="fas fa-file-invoice-dollar"></i> Générer une facture
-                                </a>
+        {{-- Actions (masquées pour les imports Google) --}}
+        <td>
+        @unless($appointment->external)
+            <a href="{{ route('invoices.create', [
+                     'client_id'  => $appointment->client_profile_id,
+                     'product_id' => $appointment->product_id]) }}"
+               class="btn-invoice">
+                <i class="fas fa-file-invoice-dollar"></i> Générer une facture
+            </a>
 
-                                <!-- Nouveau bouton pour marquer comme complété -->
-            <!-- Mark as Completed Button -->
-            @if($appointment->status !== 'Complété')
-                <form action="{{ route('appointments.completeindex', $appointment->id) }}" method="POST" style="display: inline-block;">
-                    @csrf
-                    @method('PUT')
-                    <button type="submit" class="btn-complete" onclick="return confirm('{{ __('Marquer ce rendez-vous comme complété?') }}')">
-                        <i class="fas fa-check-circle"></i> {{ __('Marquer comme Complété') }}
+            @if ($appointment->status !== 'Complété')
+                <form action="{{ route('appointments.completeindex', $appointment->id) }}"
+                      method="POST" style="display:inline-block;">
+                    @csrf @method('PUT')
+                    <button type="submit" class="btn-complete"
+                            onclick="return confirm('Marquer ce rendez-vous comme complété ?')">
+                        <i class="fas fa-check-circle"></i> Marquer comme Complété
                     </button>
                 </form>
             @endif
-                            </td>
+        @endunless
+        </td>
                         </tr>
                     @endforeach
                 </tbody>

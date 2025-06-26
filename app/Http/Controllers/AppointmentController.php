@@ -45,28 +45,29 @@ public function index()
 
     $events = [];
 
-    /* -------------------------------------------------------------
-     | 3. Transforme chaque Appointment en événement FullCalendar
-     * ------------------------------------------------------------*/
+
+/* -------------------------------------------------------------------------
+ | Construction du tableau $events pour FullCalendar
+ | ---------------------------------------------------------------------- */
 foreach ($appointments as $appointment) {
 
     $isPast = Carbon::parse($appointment->appointment_date)->isPast();
 
     /* ---------- Titre ---------- */
     if ($appointment->external) {
-        // créneau importé depuis Google : on affiche le titre de l’évènement
+        // Créneau importé (pas de client lié)
         $title = $appointment->notes ?: 'Occupé';
     } else {
-        // rendez-vous créé dans AromaMade
+        // Rendez-vous interne
         $client = optional($appointment->clientProfile);
-        $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? ''));
+        $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? '')) ?: 'Rendez-vous';
     }
 
     /* ---------- Couleur ---------- */
     $color = $appointment->external
-        ? '#999999'                 // gris pour les imports Google
-        : ($isPast ? '#854f38'      // brun pour les rdv passés
-                   : '#647a0b');    // vert pour les futurs
+        ? '#999999'                 // gris : occupé (Google)
+        : ($isPast ? '#854f38'      // brun : passé
+                   : '#647a0b');    // vert : futur
 
     /* ---------- Push dans FullCalendar ---------- */
     $events[] = [
@@ -76,11 +77,15 @@ foreach ($appointments as $appointment) {
                                    ->copy()
                                    ->addMinutes($appointment->duration ?? 0)
                                    ->format('Y-m-d H:i:s'),
-        'url'       => route('appointments.show', $appointment->id),
+        // ⇒ pas de lien cliquable pour les imports Google
+        'url'       => $appointment->external
+                        ? null
+                        : route('appointments.show', $appointment->id),
         'color'     => $color,
         'textColor' => $isPast ? '#ffffff' : '#636363',
     ];
 }
+
 
 
     /* -------------------------------------------------------------
