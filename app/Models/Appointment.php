@@ -14,9 +14,8 @@ class Appointment extends Model
     use HasFactory;
 
     /* ------------------------------------------------------------------ */
-    /*  Attributs                                                         */
+    /*  Champs                                                            */
     /* ------------------------------------------------------------------ */
-
     protected $fillable = [
         'client_profile_id',
         'user_id',
@@ -28,21 +27,22 @@ class Appointment extends Model
         'product_id',
         'stripe_session_id',
         'google_event_id',
+        'external',            // ← créneau issu d’un import Google
     ];
 
     protected $casts = [
         'appointment_date' => 'datetime',
+        'external'         => 'boolean',
     ];
 
     /* ------------------------------------------------------------------ */
     /*  Boot : token public + observers Google                            */
     /* ------------------------------------------------------------------ */
-
     protected static function boot()
     {
         parent::boot();
 
-        // Token public (lien patient)
+        // token public (lien patient)
         static::creating(fn ($appt) => $appt->token = Str::random(64));
     }
 
@@ -56,79 +56,73 @@ class Appointment extends Model
     /* ------------------------------------------------------------------ */
     /*  Synchronisation Google Calendar                                   */
     /* ------------------------------------------------------------------ */
+    public function syncToGoogle(): void
+    {
+        // 1. ne rien pousser si  ► créneau « Occupé » importé  OU  pas de token
+        if ($this->external)                return;
+        $therapist = $this->user;
+        if (!$therapist?->google_access_token) return;
 
- public function syncToGoogle(): void
-{
-    $therapist = $this->user;
-    if (!$therapist || !$therapist->google_access_token) return;
+        // 2. prépare Spatie (token en fichier jetable)
+        $tokenArr  = json_decode($therapist->google_access_token, true);
+        $tokenPath = GoogleTokenFile::put($therapist->id, $tokenArr);
 
-    /* ---------- Préparation token / fichier pour Spatie ----------- */
-    $tokenArr  = json_decode($therapist->google_access_token, true);
-    $tokenPath = GoogleTokenFile::put($therapist->id, $tokenArr);
+        config([
+            'google-calendar.oauth_token'                     => $tokenArr,
+            'google-calendar.auth_profiles.oauth.token_json'  => $tokenPath,
+        ]);
 
-    config([
-        'google-calendar.oauth_token'                        => $tokenArr,
-        'google-calendar.auth_profiles.oauth.token_json'     => $tokenPath,
-    ]);
+        // 3. données métier
+        $productName = optional($this->product)->name ?? 'Prestation';
+        $clientName  = trim(
+            optional($this->clientProfile)->first_name.' '.
+            optional($this->clientProfile)->last_name
+        );
 
-    /* ---------------------- Données métier ------------------------ */
-    $product   = $this->product?->name ?? 'Prestation';
-    $client    = $this->clientProfile->first_name.' '.$this->clientProfile->last_name;
+        // mode de consultation (méthode du modèle Product)
+        $mode = optional($this->product)
+                  ->getConsultationModes()[0] ?? 'Non spécifié';
 
-    // Mode de consultation
-    $mode = $this->product?->getConsultationModes()[0] ?? 'Non spécifié';
+        $location = match($mode) {
+            'En Visio'        => 'Visio',
+            'À Domicile'      => optional($this->clientProfile)->address ?? 'Domicile client',
+            'Dans le Cabinet' => $therapist->company_address ?? 'Cabinet',
+            default           => '',
+        };
 
-    // Lieu
-    $location = match ($mode) {
-        'En Visio'       => 'Visio',
-        'À Domicile'     => $this->clientProfile->address ?? 'Domicile client',
-        'Dans le Cabinet'=> $therapist->company_address ?? 'Cabinet',
-        default          => '',
-    };
+        // tag pour éviter toute boucle lors de l’import
+        $description = rtrim(($this->notes ?? '')."\n\n[AromaMade]");
 
-    // Titre & description enrichis
-    $summary     = "Rdv $product – $client";
-    $description = <<<TXT
-Client : $client
-Prestation : $product
-Mode : $mode
+        $eventData = [
+            'name'          => $clientName ? "Rdv $productName – $clientName" : $productName,
+            'description'   => $description,
+            'startDateTime' => $this->appointment_date,
+            'endDateTime'   => Carbon::parse($this->appointment_date)->addMinutes($this->duration ?? 60),
+            'location'      => $location,
+        ];
 
-Notes :
-{$this->notes}
-TXT;
+        // 4. create / update
+        if ($this->google_event_id) {
+            GoogleEvent::find($this->google_event_id)?->update($eventData);
+        } else {
+            $event = GoogleEvent::create($eventData);
 
-    $eventData = [
-        'name'          => $summary,
-        'description'   => $description,
-        'startDateTime' => Carbon::parse($this->appointment_date),
-        'endDateTime'   => Carbon::parse($this->appointment_date)->addMinutes($this->duration),
-        'location'      => $location,
-    ];
+            // ajoute Meet si visio
+            if ($mode === 'En Visio') {
+                $event->addMeetLink()->save();
+            }
 
-    /* -------------------- Création / mise à jour ------------------ */
-    if ($this->google_event_id) {
-        // update
-        $event = GoogleEvent::find($this->google_event_id);
-        $event?->update($eventData);
-    } else {
-        // create
-        $event = GoogleEvent::create($eventData);
-
-        // Ajoute un lien Meet si visio
-        if ($mode === 'En Visio') {
-            $event->addMeetLink()->save();
+            // stocke l’id Google
+            $this->forceFill(['google_event_id' => $event->id])->saveQuietly();
         }
 
-        $this->forceFill(['google_event_id' => $event->id])->saveQuietly();
+        GoogleTokenFile::forget($therapist->id);
     }
-
-    GoogleTokenFile::forget($therapist->id);
-}
 
     public function removeFromGoogle(): void
     {
         $therapist = $this->user;
-        if (!$this->google_event_id || !$therapist?->google_access_token) {
+        if ($this->external || !$this->google_event_id || !$therapist?->google_access_token) {
             return;
         }
 
@@ -136,8 +130,8 @@ TXT;
         $tokenPath = GoogleTokenFile::put($therapist->id, $tokenArr);
 
         config([
-            'google-calendar.oauth_token'                       => $tokenArr,
-            'google-calendar.auth_profiles.oauth.token_json'    => $tokenPath,
+            'google-calendar.oauth_token'                    => $tokenArr,
+            'google-calendar.auth_profiles.oauth.token_json' => $tokenPath,
         ]);
 
         try {
@@ -148,9 +142,8 @@ TXT;
     }
 
     /* ------------------------------------------------------------------ */
-    /*  Relations Eloquent                                                */
+    /*  Relations                                                         */
     /* ------------------------------------------------------------------ */
-
     public function product()       { return $this->belongsTo(Product::class); }
     public function user()          { return $this->belongsTo(User::class); }
     public function clientProfile() { return $this->belongsTo(ClientProfile::class); }
