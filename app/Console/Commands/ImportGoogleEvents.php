@@ -1,5 +1,4 @@
 <?php
-// app/Console/Commands/ImportGoogleEvents.php
 
 namespace App\Console\Commands;
 
@@ -14,24 +13,13 @@ use Spatie\GoogleCalendar\Event;
 class ImportGoogleEvents extends Command
 {
     protected $signature   = 'google:import-events';
-    protected $description = 'Synchronise les événements Google Agenda → table appointments';
+    protected $description = 'Synchronise Google Agenda → appointments (create, delete)';
 
-    /** Fuseau cible (Europe/Paris par défaut) */
-    private string $tz;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->tz = config('app.timezone', 'Europe/Paris');
-    }
-
-    /* --------------------------------------------------------------------- */
-    /* 1. Boucle principale                                                  */
-    /* --------------------------------------------------------------------- */
     public function handle(): int
     {
-        $from = Carbon::now();               // aujourd’hui
-        $to   = $from->copy()->addYear();    // + 1 an
+        // plage scrutée : aujourd’hui → +1 an
+        $from = Carbon::now();
+        $to   = $from->copy()->addYear();
 
         User::whereNotNull('google_access_token')
             ->chunkById(50, function ($users) use ($from, $to) {
@@ -40,15 +28,15 @@ class ImportGoogleEvents extends Command
                 }
             });
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
     }
 
     /* --------------------------------------------------------------------- */
-    /* 2. Import pour un utilisateur                                         */
+    /*  Synchronise un seul thérapeute                                       */
     /* --------------------------------------------------------------------- */
     private function syncForUser(User $user, Carbon $from, Carbon $to): void
     {
-        /* --- 2 a) Prépare Spatie --------------------------------------- */
+        /* ---------- 1. Prépare Spatie (token jetable) ---------- */
         $tokenArr  = json_decode($user->google_access_token, true);
         $tokenPath = GoogleTokenFile::put($user->id, $tokenArr);
 
@@ -57,49 +45,70 @@ class ImportGoogleEvents extends Command
             'google-calendar.auth_profiles.oauth.token_json' => $tokenPath,
         ]);
 
-        /* --- 2 b) Récupère les événements ----------------------------- */
+        /* ---------- 2. Récupère les évènements restants ---------- */
+        /** @var \Illuminate\Support\Collection $events */
         $events = Event::get($from, $to, ['singleEvents' => true]);
 
-        foreach ($events as $ev) {
+        // Liste des IDs encore présents
+        $stillThere = [];
 
-            /* Ignorer :
-               – événements déjà poussés par AromaMade (tag)
-               – événements déjà importés (google_event_id)           */
-            if (
-                str_contains($ev->description ?? '', '[AromaMade]') ||
-                Appointment::where('google_event_id', $ev->id)->exists()
-            ) {
+        foreach ($events as $ev) {
+            // a)  écarter nos propres slots poussés ([AromaMade])
+            if (str_contains($ev->description ?? '', '[AromaMade]')) {
+                $stillThere[] = $ev->id;          // on l’ignore mais on note l’ID
                 continue;
             }
 
-            /* --- 2 c) Conversion fiable des dates ------------------- */
-            $start = $this->toAppTz($ev->startDateTime ?? $ev->startDate);
-            $end   = $this->toAppTz($ev->endDateTime   ?? $ev->endDate);
+            // b) déjà importé ?
+            $exists = Appointment::where('google_event_id', $ev->id)->first();
+            if ($exists) {
+                $stillThere[] = $ev->id;          // il existe toujours côté Google
+                continue;                          // => rien à faire
+            }
 
+            // c) nouveau créneau « Occupé » --------------------
             Appointment::create([
-                'user_id'          => $user->id,
-                'client_profile_id'=> null,
-                'appointment_date' => $start,
-                'duration'         => $start->diffInMinutes($end),
-                'status'           => 'busy',
-                'notes'            => $ev->summary,           // titre de l’event
-                'google_event_id'  => $ev->id,
-                'external'         => true,
-                'type'             => 'external',
-                'token'            => Str::random(64),        // lien public neutre
+                'user_id'           => $user->id,
+                'client_profile_id' => null,
+                'appointment_date'  => $this->parseDate($ev->startDateTime ?? $ev->startDate),
+                'duration'          => $this->durationMinutes($ev),
+                'status'            => 'busy',
+                'notes'             => $ev->summary,
+                'google_event_id'   => $ev->id,
+                'external'          => true,
+                'type'              => 'external',
+                'token'             => Str::random(64),
             ]);
+
+            $stillThere[] = $ev->id;              // ajouté à la liste présente
         }
 
-        GoogleTokenFile::forget($user->id);                   // ménage
+        /* ---------- 3. Supprimer les créneaux disparus ---------- */
+        Appointment::where('user_id', $user->id)
+            ->where('external', true)
+            ->whereBetween('appointment_date', [$from, $to])
+            ->whereNotIn('google_event_id', $stillThere)
+            ->each(fn ($appt) => $appt->delete());   // soft delete ou forceDelete()
+
+        GoogleTokenFile::forget($user->id);
     }
 
     /* --------------------------------------------------------------------- */
-    /* 3. Helper : force le fuseau voulu                                     */
+    /*  Helpers                                                              */
     /* --------------------------------------------------------------------- */
-    private function toAppTz($value): Carbon
+    private function durationMinutes(Event $ev): int
     {
-        // $value est déjà un Carbon via Spatie ; sinon on parse.
-        $c = $value instanceof Carbon ? $value : Carbon::parse($value);
-        return $c->copy()->setTimezone($this->tz);
+        // startDate / startDateTime sont déjà des Carbon (Spatie 3.x)
+        $start = $this->parseDate($ev->startDateTime ?? $ev->startDate);
+        $end   = $this->parseDate($ev->endDateTime   ?? $ev->endDate);
+
+        return $start->diffInMinutes($end);
+    }
+
+    private function parseDate($googleDate): Carbon
+    {
+        // • $googleDate peut être un Carbon, DateTime ou string RFC3339
+        // • On force dans le timezone applicatif (config/app.php - « timezone »)
+        return Carbon::parse($googleDate)->setTimezone(config('app.timezone', 'Europe/Paris'));
     }
 }
