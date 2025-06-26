@@ -12,6 +12,7 @@ use App\Console\Commands\FetchFacebookMetrics;
 use App\Console\Commands\UpdateLicenseStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Console\Commands\ImportGoogleEvents; 
 
 
 
@@ -37,4 +38,7 @@ Schedule::command(FetchFacebookMetrics::class)->hourly();
 // Expired Trial
 Schedule::command(UpdateLicenseStatus::class)->daily();
 
-
+//  import Google toutes les 10 min  
+Schedule::command(ImportGoogleEvents::class)
+        ->everyTenMinutes()
+        ->withoutOverlapping();
