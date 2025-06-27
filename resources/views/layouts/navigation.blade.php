@@ -5,11 +5,11 @@
       <!-- Left Section: Logo and Primary Menu -->
       <div class="flex">
         <!-- Logo -->
-        <div class="flex-shrink-0 flex items-center">
-          <a href="{{ url('/') }}">
-            <img class="h-20 w-auto" src="{{ asset('images/png-01.png') }}" alt="Logo">
-          </a>
-        </div>
+ <div class="flex-shrink-0 flex items-center">
+     <a href="{{ url('/') }}">
+         <x-application-logo/>   {{-- one-liner, CLS-safe --}}
+     </a>
+ </div>
         <!-- Desktop Menu -->
         <div class="hidden sm:ml-6 sm:flex sm:space-x-8 items-center">
 
