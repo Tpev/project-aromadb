@@ -2,73 +2,217 @@
 <x-app-layout>
     {{-- En-tête de la page --}}
     <x-slot name="header">
-        <h2 class="font-semibold text-3xl text-[#647a0b] leading-tight">
-            {{ $therapist->business_name }}
-        </h2>
+
     </x-slot>
+{{-- ─────────────── SEO PAGE TITLE (uses services) ─────────────── --}}
+@php
+    // 1) Location bits
+    $city  = trim($therapist->city_setByAdmin  ?? '');
+    $state = trim($therapist->state_setByAdmin ?? '');
+    $loc   = $city ? "à $city" . ($state ? ", $state" : '')
+                   : ($state ? "en $state" : '');
+
+    // 2) Services list (decode JSON → array, grab first 2 unique names)
+    $servicesRaw = json_decode($therapist->services, true) ?? [];
+    $servicesArr = is_array($servicesRaw) ? array_filter($servicesRaw) : [];
+    $services    = collect($servicesArr)->unique()->take(2)->implode(', ');
+
+    // 3) Fallback label
+    $label = $services ?: 'Thérapeute';
+
+    // 4) Assemble final title (max ~60 chars)
+    $brand = config('app.name', 'AromaMade');
+    $title = \Illuminate\Support\Str::limit(
+                trim(sprintf('%s • %s | %s', $label, $loc ?: __('près de chez vous'), $brand)),
+                60,
+                '…'
+            );
+@endphp
+
+{{-- ───────── META DESCRIPTION (uses services list) ───────── --}}
+@php
+    // 1) Build location fragment
+    $city  = trim($therapist->city_setByAdmin  ?? '');
+    $state = trim($therapist->state_setByAdmin ?? '');
+    $location = $city
+        ? ($state ? "$city, $state" : $city)
+        : ($state ?: __('votre région'));
+
+    // 2) Extract up to three unique service names
+    $servicesRaw = json_decode($therapist->services, true) ?? [];
+    $servicesArr = is_array($servicesRaw) ? array_filter($servicesRaw) : [];
+    $services    = collect($servicesArr)->unique()->take(3)->implode(', ');
+
+    // 3) Fallback label
+    $label = $services ?: 'Thérapeute';
+
+    // 4) Trimmed “À propos” snippet
+    $aboutSnippet = \Illuminate\Support\Str::limit(strip_tags($therapist->about), 120);
+
+    // 5) Compose final meta sentence (~155 chars)
+    $meta = \Illuminate\Support\Str::limit(
+                trim(sprintf(
+                    '%s – %s à %s. %s',
+                    $therapist->business_name ?? $therapist->company_name,
+                    $label,
+                    $location,
+                    $aboutSnippet
+                )),
+                155,
+                '…'
+            );
+@endphp
+
+@section('meta_description', $meta)
+
 
     {{-- Contenu principal --}}
-    <div class="py-12 bg-gray-50">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-12">
+<div>
+        <div>
             @if (session('success'))
     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
         {{ session('success') }}
     </div>
 @endif
 
-            {{-- Section Hero --}}
-            <div class="bg-[#8ea633] shadow-lg rounded-lg p-8 flex flex-col md:flex-row items-center">
-                @if($therapist->profile_picture)
-                    <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="{{ __('Photo de Profil') }}" class="w-48 h-48 rounded-full object-cover border-4 border-white shadow-md">
-                @else
-                    <div class="w-48 h-48 rounded-full bg-white flex items-center justify-center text-[#8ea633] text-4xl font-bold">
-                        {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
-                    </div>
-                @endif
-                <div class="mt-6 md:mt-0 md:ml-8 text-center md:text-left w-full">
-                    <h1 class="text-3xl md:text-5xl font-bold text-white break-words whitespace-normal px-4">
-                        {{ $therapist->company_name }}
-                    </h1>
-                    <p class="mt-4 text-xl text-white leading-relaxed">
-                        {{ $therapist->profile_description ?? '' }}
-                    </p>
-					{{-- Bouton d’appel à l’action --}}
-					@if($therapist->accept_online_appointments)
-						<div class="mt-6 flex gap-4">
-							{{-- Bouton Rendez-vous existant --}}
-							<a href="{{ route('appointments.createPatient', $therapist->id) }}"
-							   class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition-colors duration-300">
-								{{ __('Prendre Rendez-vous') }}
-							</a>
-
-							{{-- Nouveau bouton pour demander des informations --}}
-							<button
-								class="inline-block bg-[#854f38] text-white font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c] transition-colors duration-300"
-								x-data="{}"
-								x-on:click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))"
-							>
-								{{ __('Demander des informations') }}
-							</button>
-						<a href="{{ route('client.login') }}"
-						   class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition-colors duration-300">
-							{{ __('Accès Client') }}
-						</a>
-
-						</div>
-					@endif
-
-                </div>
+{{-- FULL-WIDTH HERO ---------------------------------------------------- --}}
+<section class="bg-[#8ea633] shadow-lg text-white">
+    <div class="max-w-7xl mx-auto px-6 py-12 md:py-20 flex flex-col md:flex-row items-center gap-10">
+        {{-- Avatar ------------------------------------------------------ --}}
+        @if ($therapist->profile_picture)
+            <img src="{{ asset('storage/'.$therapist->profile_picture) }}"
+                 alt="{{ __('Photo de Profil') }}"
+                 class="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover ring-4 ring-white shadow-md">
+        @else
+            <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center justify-center
+                        text-[#8ea633] text-4xl font-bold ring-4 ring-white">
+                {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
             </div>
+        @endif
 
-            {{-- Section À Propos --}}
-            <div class="bg-[#f9fafb] shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
-                </h3>
-                <p class="mt-6 text-gray-700 text-lg leading-relaxed">
-					{!! $therapist->about ?? __('Informations à propos non disponibles.') !!}
+        {{-- Heading + CTA --------------------------------------------- --}}
+        <div class="text-center md:text-left">
+            <h1 class="text-3xl md:text-5xl font-bold break-words">
+                {{ $therapist->company_name }}
+            </h1>
+            @if ($therapist->profile_description)
+                <p class="mt-4 text-xl leading-relaxed">
+                    {{ $therapist->profile_description }}
                 </p>
-            </div>
+            @endif
+
+            @if ($therapist->accept_online_appointments)
+                <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
+                    <a href="{{ route('appointments.createPatient', $therapist->id) }}"
+                       class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full
+                              hover:bg-[#e8f0d8] transition">
+                        {{ __('Prendre Rendez-vous') }}
+                    </a>
+
+                    <button
+                        class="inline-block bg-[#854f38] text-white font-semibold text-lg px-8 py-3 rounded-full
+                               hover:bg-[#6a3f2c] transition"
+                        x-data
+                        x-on:click.prevent="$dispatch('open-request-modal')">
+                        {{ __('Demander des informations') }}
+                    </button>
+
+                    <a href="{{ route('client.login') }}"
+                       class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full
+                              hover:bg-[#e8f0d8] transition">
+                        {{ __('Accès Client') }}
+                    </a>
+                </div>
+            @endif
+        </div>
+    </div>
+</section>
+{{-- STICKY CTA BAR (add right here) ----------------------------------- --}}
+<div x-data="{ show:false }"
+     x-init="window.addEventListener('scroll',()=>show=window.scrollY>450)"
+     x-show="show"
+     x-transition.opacity.duration.300ms
+     class="fixed bottom-0 md:top-0 md:bottom-auto inset-x-0 z-40 bg-[#8ea633] text-white py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <span class="font-medium truncate">{{ $therapist->company_name }}</span>
+
+        <div class="flex gap-3">
+            <a href="{{ route('appointments.createPatient', $therapist->id) }}"
+               class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
+                {{ __('Prendre Rendez-vous') }}
+            </a>
+            <button x-on:click="$dispatch('open-request-modal')"
+                    class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full">
+                {{ __('Infos') }}
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- À PROPOS + CONTACT (two-column band) -------------------------------- --}}
+<section class="bg-[#f9fafb] shadow rounded-lg p-8">
+    <div class="grid md:grid-cols-3 gap-12">
+        {{-- Column 1-2 : À Propos --}}
+        <div class="md:col-span-2">
+            <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
+            </h3>
+
+            <article class="mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none">
+                {!! $therapist->about ?? __('Informations à propos non disponibles.') !!}
+            </article>
+        </div>
+
+        {{-- Column 3 : Contact --}}
+        <aside>
+            <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                <i class="fas fa-address-book text-[#854f38] mr-3"></i> {{ __('Contact') }}
+            </h3>
+
+            <ul class="mt-6 space-y-6">
+                @if ($therapist->share_address_publicly)
+                    <li class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <div>
+                            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Adresse') }}</h4>
+                            <p class="text-gray-700 mt-2">
+                                {{ $therapist->company_address ?? __('Adresse non disponible.') }}
+                            </p>
+                        </div>
+                    </li>
+                @endif
+
+                @if ($therapist->share_phone_publicly)
+                    <li class="flex items-start">
+                        <i class="fas fa-phone-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <div>
+                            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Téléphone') }}</h4>
+                            <p class="text-gray-700 mt-2">
+                                {{ $therapist->company_phone ?? __('Téléphone non disponible.') }}
+                            </p>
+                        </div>
+                    </li>
+                @endif
+
+                @if ($therapist->share_email_publicly)
+                    <li class="flex items-start">
+                        <i class="fas fa-envelope text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <div>
+                            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Email') }}</h4>
+                            <p class="text-gray-700 mt-2">
+                                <a href="mailto:{{ $therapist->company_email }}"
+                                   class="text-[#854f38] hover:text-[#6a3f2c]">
+                                    {{ $therapist->company_email }}
+                                </a>
+                            </p>
+                        </div>
+                    </li>
+                @endif
+            </ul>
+        </aside>
+    </div>
+</section>
+
 
             {{-- Section Services --}}
             <div class="bg-white shadow rounded-lg p-8">
@@ -94,49 +238,7 @@
                 @endif
             </div>
 
-            {{-- Section Contact --}}
-            <div class="bg-[#f9fafb] shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-address-book text-[#854f38] mr-3"></i> {{ __('Contact') }}
-                </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mt-6">
 
-                    @if($therapist->share_address_publicly)
-                        <div class="flex items-start">
-                            <i class="fas fa-map-marker-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
-                            <div>
-                                <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Adresse') }}</h4>
-                                <p class="text-gray-700 mt-2">{{ $therapist->company_address ?? __('Adresse non disponible.') }}</p>
-                            </div>
-                        </div>
-                    @endif
-
-                    @if($therapist->share_phone_publicly)
-                        <div class="flex items-start">
-                            <i class="fas fa-phone-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
-                            <div>
-                                <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Téléphone') }}</h4>
-                                <p class="text-gray-700 mt-2">{{ $therapist->company_phone ?? __('Téléphone non disponible.') }}</p>
-                            </div>
-                        </div>
-                    @endif
-
-                    @if($therapist->share_email_publicly)
-                        <div class="flex items-start">
-                            <i class="fas fa-envelope text-2xl text-[#854f38] mr-4 mt-1"></i>
-                            <div>
-                                <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Email') }}</h4>
-                                <p class="text-gray-700 mt-2">
-                                    <a href="mailto:{{ $therapist->company_email }}" class="text-[#854f38] hover:text-[#6a3f2c]">
-                                        {{ $therapist->company_email }}
-                                    </a>
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-
-                </div>
-            </div>
 
 {{-- Section Prestations --}}
 <div class="bg-white shadow rounded-lg p-8">
@@ -391,6 +493,7 @@
             </div>
         </form>
     </div>
+	
 </div>
 
     {{-- Styles personnalisés --}}
@@ -453,6 +556,8 @@
                     text-align: center;
                 }
             }
+	
+
         </style>
     @endpush
 
