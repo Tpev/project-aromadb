@@ -75,26 +75,38 @@
     </div>
 @endif
 
-{{-- FULL-WIDTH HERO ---------------------------------------------------- --}}
+{{-- FULL-WIDTH HERO │ CLS-SAFE --------------------------------------- --}}
 <section class="bg-[#8ea633] shadow-lg text-white">
-    <div class="max-w-7xl mx-auto px-6 py-12 md:py-20 flex flex-col md:flex-row items-center gap-10">
-        {{-- Avatar ------------------------------------------------------ --}}
+    <div class="max-w-7xl mx-auto px-6 py-12 md:py-20
+                flex flex-col md:flex-row items-center gap-10">
+
+        {{-- Avatar -------------------------------------------------- --}}
         @if ($therapist->profile_picture)
-            <img src="{{ asset('storage/'.$therapist->profile_picture) }}"
-                 alt="{{ __('Photo de Profil') }}"
-                 class="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover ring-4 ring-white shadow-md">
+            <img
+                src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}"
+                srcset="
+                    {{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }} 320w,
+                    {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
+                    {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
+                sizes="(min-width: 768px) 224px, 192px"  {{-- md:w-56 → 224 px, otherwise 192 px --}}
+                width="224" height="224"                {{-- intrinsic box → no layout jump --}}
+                alt="{{ __('Photo de Profil') }}"
+                class="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
+                       ring-4 ring-white shadow-md"
+                loading="eager" decoding="async">
         @else
-            <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center justify-center
-                        text-[#8ea633] text-4xl font-bold ring-4 ring-white">
+            <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
+                        justify-center text-[#8ea633] text-4xl font-bold ring-4 ring-white">
                 {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
             </div>
         @endif
 
-        {{-- Heading + CTA --------------------------------------------- --}}
+        {{-- Heading + CTA ----------------------------------------- --}}
         <div class="text-center md:text-left">
             <h1 class="text-3xl md:text-5xl font-bold break-words">
                 {{ $therapist->company_name }}
             </h1>
+
             @if ($therapist->profile_description)
                 <p class="mt-4 text-xl leading-relaxed">
                     {{ $therapist->profile_description }}
@@ -104,22 +116,21 @@
             @if ($therapist->accept_online_appointments)
                 <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
                     <a href="{{ route('appointments.createPatient', $therapist->id) }}"
-                       class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full
-                              hover:bg-[#e8f0d8] transition">
+                       class="inline-block bg-white text-[#8ea633] font-semibold
+                              text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition">
                         {{ __('Prendre Rendez-vous') }}
                     </a>
 
                     <button
-                        class="inline-block bg-[#854f38] text-white font-semibold text-lg px-8 py-3 rounded-full
-                               hover:bg-[#6a3f2c] transition"
-                        x-data
-                        x-on:click.prevent="$dispatch('open-request-modal')">
+                        class="inline-block bg-[#854f38] text-white font-semibold
+                               text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c] transition"
+                        x-data x-on:click.prevent="$dispatch('open-request-modal')">
                         {{ __('Demander des informations') }}
                     </button>
 
                     <a href="{{ route('client.login') }}"
-                       class="inline-block bg-white text-[#8ea633] font-semibold text-lg px-8 py-3 rounded-full
-                              hover:bg-[#e8f0d8] transition">
+                       class="inline-block bg-white text-[#8ea633] font-semibold
+                              text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition">
                         {{ __('Accès Client') }}
                     </a>
                 </div>
@@ -127,6 +138,18 @@
         </div>
     </div>
 </section>
+
+@push('critical-preloads')
+    {{-- Preload first suitable avatar size for faster LCP --}}
+    <link rel="preload"
+          as="image"
+          href="{{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }}"
+          imagesrcset="
+             {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
+             {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
+          imagesizes="224px">
+@endpush
+
 {{-- STICKY CTA BAR (add right here) ----------------------------------- --}}
 <div x-data="{ show:false }"
      x-init="window.addEventListener('scroll',()=>show=window.scrollY>450)"

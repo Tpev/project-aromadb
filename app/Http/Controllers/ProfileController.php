@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use App\Services\ProfileAvatarService;
 
 class ProfileController extends Controller
 {
@@ -131,27 +132,28 @@ public function updateCompanyInfo(Request $request)
     // Process services (stored as JSON string in the input field)
     $user->services = json_decode($validatedData['services'], true) ?? [];
 
-    // Handle profile picture upload
-    if ($request->hasFile('profile_picture')) {
-        // Delete the old profile picture if it exists
-        if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
-            Storage::disk('public')->delete($user->profile_picture);
-        }
+/* ──────────── PROFILE PICTURE HANDLING ──────────── */
+if ($request->hasFile('profile_picture')) {
 
-        // Store the new profile picture in 'profile_pictures' directory within 'public' disk
-        $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+    // 1) Generate responsive WebP variants in storage/app/public/avatars/{id}/
+    //    and get the path to the 320-px file for <img src="">
+    $path320 = ProfileAvatarService::store(
+        $request->file('profile_picture'),
+        $user->id
+    );
 
-        // Update the user's profile picture path
-        $user->profile_picture = $path;
-    }
+    // 2) Persist the smallest variant path in DB
+    $user->profile_picture = $path320;
+}
 
-    // Generate slug if the company name is provided and different from the current one
-    if (!empty($validatedData['company_name']) && $user->isDirty('company_name')) {
-        $user->slug = User::createUniqueSlug($validatedData['company_name'], $user->id);
-    }
+/* ────────────── SLUG (if company name changed) ───────────── */
+if (!empty($validatedData['company_name']) && $user->isDirty('company_name')) {
+    $user->slug = User::createUniqueSlug($validatedData['company_name'], $user->id);
+}
 
-    // Save user
-    $user->save();
+/* ─────────────── SAVE AND REDIRECT ─────────────── */
+$user->save();
+
 
     return redirect()->route('profile.editCompanyInfo')->with('success', 'Informations mises à jour avec succès.');
 }
