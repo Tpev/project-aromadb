@@ -174,13 +174,29 @@
 
 
 
-{{-- STICKY CTA BAR (add right here) ----------------------------------- --}}
-<div x-data="{ show:false }"
-     x-init="window.addEventListener('scroll',()=>show=window.scrollY>450)"
+{{-- STICKY CTA BAR – CLS-SAFE ───────────────────────────────--}}
+@php
+    // bar height = 56 px (14 * 4) → Tailwind h-14
+    $barH = 'h-14';
+@endphp
+
+{{-- 1. Desktop placeholder – keeps layout stable --}}
+<div x-data="{show:false}"
+     x-init="window.addEventListener('scroll', ()=>show = window.scrollY > 450)"
+     :class="show ? '{{ $barH }}' : 'h-0'"
+     class="hidden md:block w-full transition-all duration-300"></div>
+
+{{-- 2. Real bar – fixed, fades in/out --}}
+<div x-data="{show:false}"
+     x-init="window.addEventListener('scroll', ()=>show = window.scrollY > 450)"
      x-show="show"
      x-transition.opacity.duration.300ms
-     class="fixed bottom-0 md:top-0 md:bottom-auto inset-x-0 z-40 bg-[#8ea633] text-white py-3 shadow-lg">
-    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+     class="fixed inset-x-0
+            bottom-0 md:top-0 md:bottom-auto
+            z-40 bg-[#8ea633] text-white {{ $barH }}
+            shadow-lg flex items-center">
+
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
         <span class="font-medium truncate">{{ $therapist->company_name }}</span>
 
         <div class="flex gap-3">
@@ -188,8 +204,9 @@
                class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
                 {{ __('Prendre Rendez-vous') }}
             </a>
-            <button x-on:click="$dispatch('open-request-modal')"
-                    class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full">
+            <button type="button"
+                    class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full"
+                    x-on:click="$dispatch('open-request-modal')">
                 {{ __('Infos') }}
             </button>
         </div>
