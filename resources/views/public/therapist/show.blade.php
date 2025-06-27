@@ -77,7 +77,7 @@
 @endif
 
 {{-- FULL-WIDTH HERO – CLS 0.00 -------------------------------------------- --}}
-<section class="relative overflow-hidden ">
+<section class="relative overflow-hidden isolate">
 
     {{-- optional banner (painted once size is known) ----------------------- --}}
     @if ($therapist->banner)
@@ -180,33 +180,38 @@
     $barH = 'h-14';
 @endphp
 
-{{-- ─── STICKY CTA BAR — 0 CLS —──────────────────────────────────────── --}}
-<div  x-data="{ on:false }"
-      @scroll.window="on = window.scrollY > 450"
+{{-- 1. Desktop placeholder – keeps layout stable --}}
+<div x-data="{show:false}"
+     x-init="window.addEventListener('scroll', ()=>show = window.scrollY > 450)"
+     :class="show ? '{{ $barH }}' : 'h-0'"
+     class="hidden md:block w-full transition-all duration-300"></div>
 
-      class="fixed inset-x-0 bottom-0 md:top-0 md:bottom-auto
-             z-40 bg-[#8ea633] text-white h-14 shadow-lg flex items-center
-             px-6 justify-between
-             transition-transform duration-300 ease-out
-             translate-y-full md:-translate-y-full"        {{-- start off-screen --}}
-      :class="on ? 'translate-y-0' : ''">                  {{-- slide in/out --}}
+{{-- 2. Real bar – fixed, fades in/out --}}
+<div x-data="{show:false}"
+     x-init="window.addEventListener('scroll', ()=>show = window.scrollY > 450)"
+     x-show="show"
+     x-transition.opacity.duration.300ms
+     class="fixed inset-x-0
+            bottom-0 md:top-0 md:bottom-auto
+            z-40 bg-[#8ea633] text-white {{ $barH }}
+            shadow-lg flex items-center">
 
-    <span class="font-medium truncate">{{ $therapist->company_name }}</span>
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <span class="font-medium truncate">{{ $therapist->company_name }}</span>
 
-    <div class="flex gap-3">
-        <a  href="{{ route('appointments.createPatient', $therapist->id) }}"
-            class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full
-                   hover:bg-[#e8f0d8]"> {{ __('Prendre Rendez-vous') }} </a>
-
-        <button type="button"
-                class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c]
-                       px-5 py-2 rounded-full"
-                x-on:click="$dispatch('open-request-modal')">
-            {{ __('Infos') }}
-        </button>
+        <div class="flex gap-3">
+            <a href="{{ route('appointments.createPatient', $therapist->id) }}"
+               class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
+                {{ __('Prendre Rendez-vous') }}
+            </a>
+            <button type="button"
+                    class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full"
+                    x-on:click="$dispatch('open-request-modal')">
+                {{ __('Infos') }}
+            </button>
+        </div>
     </div>
 </div>
-
 
 {{-- À PROPOS + CONTACT (two-column band) -------------------------------- --}}
 <section class="bg-[#f9fafb] shadow rounded-lg p-8">
