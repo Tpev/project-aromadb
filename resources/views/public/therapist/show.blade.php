@@ -76,43 +76,46 @@
     </div>
 @endif
 
-{{-- FULL-WIDTH HERO – CLS 0.00 --------------------------------------------- --}}
+{{-- FULL-WIDTH HERO – CLS 0.00 -------------------------------------------- --}}
 <section class="relative overflow-hidden isolate">
 
-    {{-- Optional banner – only painted once size is known ------------------- --}}
+    {{-- optional banner (painted once size is known) ----------------------- --}}
     @if ($therapist->banner)
         <picture class="absolute inset-0 -z-10">
             <source type="image/webp"
-                    srcset="
-                        {{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }} 1280w,
-                        {{ asset("storage/banners/{$therapist->id}/banner-1920.webp") }} 1920w"
+                    srcset="{{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }} 1280w,
+                            {{ asset("storage/banners/{$therapist->id}/banner-1920.webp") }} 1920w"
                     sizes="100vw">
             <img  src="{{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }}"
-                  width="1920" height="720"            {{-- intrinsic box → no layout shift --}}
+                  width="1920" height="720"
                   class="w-full h-full object-cover opacity-30"
                   alt="">
         </picture>
     @endif
 
-    <div class="bg-[#8ea633]/90 backdrop-blur-sm text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-6 py-12 md:py-20
-                    flex flex-col md:flex-row items-center gap-10">
+    {{-- green overlay – spans full viewport width ------------------------- --}}
+    <div class="bg-[#8ea633]/90 backdrop-blur-sm text-white shadow-lg w-full">
 
-            {{-- Avatar (320 / 640 / 1024) ----------------------------------- --}}
+        {{-- FLEX container -------------------------------------------------- --}}
+        <div class="max-w-7xl mx-auto px-6
+                    flex flex-col md:flex-row items-center gap-10
+                    py-12 md:py-20
+                    min-h-[380px] sm:min-h-[420px]">
+
+            {{-- Avatar ------------------------------------------------------ --}}
             <div class="shrink-0">
                 @if ($therapist->profile_picture)
                     <img  src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}"
-                          srcset="
-                              {{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }} 320w,
-                              {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
-                              {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
+                          srcset="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }} 320w,
+                                  {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
+                                  {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
                           sizes="(min-width: 768px) 224px, 192px"
                           width="224" height="224"
                           class="block w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
                                  ring-4 ring-white shadow-md"
                           alt="{{ __('Photo de Profil') }}"
                           loading="eager" decoding="async">
-                @else   {{-- Text avatar keeps identical footprint --}}
+                @else
                     <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
                                 justify-center text-[#8ea633] text-4xl font-bold ring-4 ring-white
                                 select-none">
@@ -121,7 +124,7 @@
                 @endif
             </div>
 
-            {{-- Copy + CTAs -------------------------------------------------- --}}
+            {{-- Copy & CTAs -------------------------------------------------- --}}
             <div class="text-center md:text-left max-w-2xl">
                 <h1 class="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight break-words">
                     {{ $therapist->company_name }}
