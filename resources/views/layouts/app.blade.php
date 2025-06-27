@@ -18,24 +18,7 @@
     <title>@yield('title', config('app.name', 'AromaMade'))</title>
 
     <!-- Fonts -->
-    {{--  ① keep the preconnect  --}}
-<link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
-
-{{--  ② preload the exact WOFF2 files the CSS will request  --}}
-<link rel="preload" as="font"
-      href="https://fonts.bunny.net/font-files/figtree/figtree-latin-400-normal.woff2"
-      type="font/woff2" crossorigin>
-<link rel="preload" as="font"
-      href="https://fonts.bunny.net/font-files/figtree/figtree-latin-500-normal.woff2"
-      type="font/woff2" crossorigin>
-<link rel="preload" as="font"
-      href="https://fonts.bunny.net/font-files/figtree/figtree-latin-600-normal.woff2"
-      type="font/woff2" crossorigin>
-
-{{--  ③ load the stylesheet *after* the preloads  (FOIT-free, CLS-free) --}}
-<link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=optional"
-      rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 
