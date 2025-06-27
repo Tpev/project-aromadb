@@ -2,14 +2,7 @@
 <x-app-layout>
     {{-- En-tête de la page --}}
     <x-slot name="header">
-<link rel="preload"
-      as="image"
-      href="https://aromamade.com/storage/avatars/33/avatar-320.webp"
-      imagesrcset="
-        https://aromamade.com/storage/avatars/33/avatar-320.webp 320w,
-        https://aromamade.com/storage/avatars/33/avatar-640.webp 640w"
-      imagesizes="(min-width:768px)224px,192px"
-      fetchpriority="high">
+
 
     </x-slot>
 {{-- ─────────────── SEO PAGE TITLE (uses services) ─────────────── --}}
