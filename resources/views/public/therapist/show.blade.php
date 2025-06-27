@@ -172,16 +172,7 @@
 
 
 
-@push('critical-preloads')
-    {{-- Preload first suitable avatar size for faster LCP --}}
-    <link rel="preload"
-          as="image"
-          href="{{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }}"
-          imagesrcset="
-             {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
-             {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
-          imagesizes="224px">
-@endpush
+
 
 {{-- STICKY CTA BAR (add right here) ----------------------------------- --}}
 <div x-data="{ show:false }"
