@@ -174,6 +174,38 @@
 
 
 
+{{-- STICKY CTA BAR – CLS-SAFE ───────────────────────────────--}}
+@php
+    // bar height = 56 px (14 * 4) → Tailwind h-14
+    $barH = 'h-14';
+@endphp
+
+{{-- ─── STICKY CTA BAR — 0 CLS —──────────────────────────────────────── --}}
+<div  x-data="{ on:false }"
+      @scroll.window="on = window.scrollY > 450"
+
+      class="fixed inset-x-0 bottom-0 md:top-0 md:bottom-auto
+             z-40 bg-[#8ea633] text-white h-14 shadow-lg flex items-center
+             px-6 justify-between
+             transition-transform duration-300 ease-out
+             translate-y-full md:-translate-y-full"        {{-- start off-screen --}}
+      :class="on ? 'translate-y-0' : ''">                  {{-- slide in/out --}}
+
+    <span class="font-medium truncate">{{ $therapist->company_name }}</span>
+
+    <div class="flex gap-3">
+        <a  href="{{ route('appointments.createPatient', $therapist->id) }}"
+            class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full
+                   hover:bg-[#e8f0d8]"> {{ __('Prendre Rendez-vous') }} </a>
+
+        <button type="button"
+                class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c]
+                       px-5 py-2 rounded-full"
+                x-on:click="$dispatch('open-request-modal')">
+            {{ __('Infos') }}
+        </button>
+    </div>
+</div>
 
 
 {{-- À PROPOS + CONTACT (two-column band) -------------------------------- --}}
