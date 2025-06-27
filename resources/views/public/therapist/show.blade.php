@@ -75,69 +75,98 @@
     </div>
 @endif
 
-{{-- FULL-WIDTH HERO │ CLS-SAFE --------------------------------------- --}}
-<section class="bg-[#8ea633] shadow-lg text-white">
-    <div class="max-w-7xl mx-auto px-6 py-12 md:py-20
-                flex flex-col md:flex-row items-center gap-10">
+{{-- FULL-WIDTH HERO – CLS 0.00 --------------------------------------------- --}}
+<section class="relative overflow-hidden isolate">
 
-        {{-- Avatar -------------------------------------------------- --}}
-        @if ($therapist->profile_picture)
-            <img
-                src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}"
-                srcset="
-                    {{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }} 320w,
-                    {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
-                    {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
-                sizes="(min-width: 768px) 224px, 192px"  {{-- md:w-56 → 224 px, otherwise 192 px --}}
-                width="224" height="224"                {{-- intrinsic box → no layout jump --}}
-                alt="{{ __('Photo de Profil') }}"
-                class="w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
-                       ring-4 ring-white shadow-md"
-                loading="eager" decoding="async">
-        @else
-            <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
-                        justify-center text-[#8ea633] text-4xl font-bold ring-4 ring-white">
-                {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
+    {{-- Optional banner – only painted once size is known ------------------- --}}
+    @if ($therapist->banner)
+        <picture class="absolute inset-0 -z-10">
+            <source type="image/webp"
+                    srcset="
+                        {{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }} 1280w,
+                        {{ asset("storage/banners/{$therapist->id}/banner-1920.webp") }} 1920w"
+                    sizes="100vw">
+            <img  src="{{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }}"
+                  width="1920" height="720"            {{-- intrinsic box → no layout shift --}}
+                  class="w-full h-full object-cover opacity-30"
+                  alt="">
+        </picture>
+    @endif
+
+    <div class="bg-[#8ea633]/90 backdrop-blur-sm text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-12 md:py-20
+                    flex flex-col md:flex-row items-center gap-10">
+
+            {{-- Avatar (320 / 640 / 1024) ----------------------------------- --}}
+            <div class="shrink-0">
+                @if ($therapist->profile_picture)
+                    <img  src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}"
+                          srcset="
+                              {{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }} 320w,
+                              {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
+                              {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
+                          sizes="(min-width: 768px) 224px, 192px"
+                          width="224" height="224"
+                          class="block w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
+                                 ring-4 ring-white shadow-md"
+                          alt="{{ __('Photo de Profil') }}"
+                          loading="eager" decoding="async">
+                @else   {{-- Text avatar keeps identical footprint --}}
+                    <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
+                                justify-center text-[#8ea633] text-4xl font-bold ring-4 ring-white
+                                select-none">
+                        {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
+                    </div>
+                @endif
             </div>
-        @endif
 
-        {{-- Heading + CTA ----------------------------------------- --}}
-        <div class="text-center md:text-left">
-            <h1 class="text-3xl md:text-5xl font-bold break-words">
-                {{ $therapist->company_name }}
-            </h1>
+            {{-- Copy + CTAs -------------------------------------------------- --}}
+            <div class="text-center md:text-left max-w-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight break-words">
+                    {{ $therapist->company_name }}
+                </h1>
 
-            @if ($therapist->profile_description)
-                <p class="mt-4 text-xl leading-relaxed">
-                    {{ $therapist->profile_description }}
-                </p>
-            @endif
+                @if ($therapist->profile_description)
+                    <p class="mt-4 text-xl leading-relaxed">
+                        {{ $therapist->profile_description }}
+                    </p>
+                @endif
 
-            @if ($therapist->accept_online_appointments)
-                <div class="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
-                    <a href="{{ route('appointments.createPatient', $therapist->id) }}"
-                       class="inline-block bg-white text-[#8ea633] font-semibold
-                              text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition">
-                        {{ __('Prendre Rendez-vous') }}
-                    </a>
+                @if ($therapist->accept_online_appointments)
+                    <nav aria-label="{{ __('Liens de prise de contact') }}"
+                         class="mt-8 flex flex-wrap md:flex-nowrap gap-4
+                                justify-center md:justify-start">
 
-                    <button
-                        class="inline-block bg-[#854f38] text-white font-semibold
-                               text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c] transition"
-                        x-data x-on:click.prevent="$dispatch('open-request-modal')">
-                        {{ __('Demander des informations') }}
-                    </button>
+                        <a  href="{{ route('appointments.createPatient', $therapist->id) }}"
+                            class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
+                                   text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
+                                   transition-colors duration-200">
+                            {{ __('Prendre Rendez-vous') }}
+                        </a>
 
-                    <a href="{{ route('client.login') }}"
-                       class="inline-block bg-white text-[#8ea633] font-semibold
-                              text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8] transition">
-                        {{ __('Accès Client') }}
-                    </a>
-                </div>
-            @endif
+                        <button type="button"
+                                class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
+                                       text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
+                                       transition-colors duration-200"
+                                x-data
+                                x-on:click.prevent="$dispatch('open-request-modal')">
+                            {{ __('Demander des informations') }}
+                        </button>
+
+                        <a  href="{{ route('client.login') }}"
+                            class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
+                                   text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
+                                   transition-colors duration-200">
+                            {{ __('Accès Client') }}
+                        </a>
+                    </nav>
+                @endif
+            </div>
         </div>
     </div>
 </section>
+
+
 
 @push('critical-preloads')
     {{-- Preload first suitable avatar size for faster LCP --}}
