@@ -77,7 +77,7 @@
 @endif
 
 {{-- FULL-WIDTH HERO – CLS 0.00 -------------------------------------------- --}}
-<section class="relative overflow-hidden isolate">
+<section class="relative overflow-hidden ">
 
     {{-- optional banner (painted once size is known) ----------------------- --}}
     @if ($therapist->banner)
