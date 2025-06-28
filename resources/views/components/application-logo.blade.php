@@ -1,14 +1,17 @@
+{{-- resources/views/components/application-logo.blade.php --}}
 @php
-    // 320 × 80 → intrinsic box matches nav design
+    /**
+     * Single-resolution logo
+     *  – file must be ~256 × 64 px  (ratio 4 : 1)
+     *  – matches a 64 px-high nav bar on mobile (h-16)
+     */
     $logo1x = asset('images/png-01.webp');
-    $logo2x = asset('images/png-01@2x.png');   // leave out if you don’t ship it
 @endphp
 
 <img
     src="{{ $logo1x }}"
-    srcset="{{ $logo1x }} 1x, {{ $logo2x }} 2x"
-    width="320" height="80"                         {{-- 80 px high, CLS-safe --}}
-    class="block h-20 w-auto {{ $attributes->get('class') }}" {{-- h-20 = 5 rem = 80 px --}}
+    width="256" height="64"                     {{-- intrinsic box → zero CLS --}}
+    class="block h-16 w-auto sm:h-20            {{-- 64 px on mobile, 80 px ≥ 640 px --}}
+           {{ $attributes->get('class') }}"
     alt="{{ config('app.name') }}"
-    fetchpriority="high"
-    loading="eager" decoding="async">
+    fetchpriority="high" loading="eager" decoding="async">
