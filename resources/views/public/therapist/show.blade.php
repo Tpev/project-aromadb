@@ -3,7 +3,17 @@
     {{-- En-tête de la page --}}
     <x-slot name="header">
 
-
+@once
+    @if ($therapist->banner)
+        <link rel="preload"
+              as="image"
+              href="{{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }}"
+              imagesrcset="
+                  {{ asset("storage/banners/{$therapist->id}/banner-1280.webp") }} 1280w,
+                  {{ asset("storage/banners/{$therapist->id}/banner-1920.webp") }} 1920w"
+              imagesizes="100vw">
+    @endif
+@endonce
     </x-slot>
 {{-- ─────────────── SEO PAGE TITLE (uses services) ─────────────── --}}
 @php
@@ -114,6 +124,7 @@
                           class="block w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
                                  ring-4 ring-white shadow-md"
                           alt="{{ __('Photo de Profil') }}"
+						  fetchpriority="high" 
                           loading="eager" decoding="async">
                 @else
                     <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
