@@ -480,7 +480,9 @@ public function updateTherapistPicture(Request $request, User $therapist)
     $request->validate([
         'profile_picture' => 'required|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
     ]);
-
+    \Log::info('updateTherapistPicture hit', [
+        'therapist_id' => $therapist->id,
+        'has_file' => $request->hasFile('profile_picture'),
     $path320 = \App\Services\ProfileAvatarService::store(
         $request->file('profile_picture'),
         $therapist->getKey() // int guaranteed

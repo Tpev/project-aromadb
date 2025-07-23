@@ -8,6 +8,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
 use Intervention\Image\Encoders\WebpEncoder;
+use Illuminate\Support\Facades\Log;
 
 class ProfileAvatarService
 {
@@ -16,50 +17,86 @@ class ProfileAvatarService
      */
 public static function store(UploadedFile $file, int $userId): string
 {
+    Log::info('Avatar STORE start', [
+        'userId' => $userId,
+        'origName' => $file->getClientOriginalName(),
+        'size' => $file->getSize(),
+        'mime' => $file->getMimeType(),
+    ]);
+
     $disk   = Storage::disk('public');
     $folder = "avatars/{$userId}";
     $sizes  = [320, 640, 1024];
 
-    // Ensure base dir exists
+    // 1) base dir
+    Log::info('Check base dir', [
+        'avatars_exists' => $disk->exists('avatars'),
+        'path_base'      => $disk->path('avatars'),
+        'is_writable'    => is_writable($disk->path('avatars'))
+    ]);
+
     if (! $disk->exists('avatars')) {
-        $disk->makeDirectory('avatars');
+        $mk = $disk->makeDirectory('avatars');
+        Log::info('makeDirectory(avatars)', ['result' => $mk]);
     }
 
-    // Best-effort cleanup (ignore errors)
-    try { $disk->deleteDirectory($folder); } catch (\Throwable $e) {}
-
-    // Recreate or fallback to native FS
+    // 2) delete old
     try {
-        $disk->makeDirectory($folder);
+        $del = $disk->deleteDirectory($folder);
+        Log::info('deleteDirectory', ['folder' => $folder, 'result' => $del]);
     } catch (\Throwable $e) {
+        Log::warning('deleteDirectory exception', ['msg' => $e->getMessage()]);
+    }
+
+    // 3) create folder (with fallback)
+    try {
+        $mk = $disk->makeDirectory($folder);
+        Log::info('makeDirectory(folder)', ['folder' => $folder, 'result' => $mk]);
+    } catch (\Throwable $e) {
+        Log::warning('makeDirectory exception', ['msg' => $e->getMessage()]);
         \Illuminate\Support\Facades\File::ensureDirectoryExists(
             storage_path("app/public/{$folder}"),
-            0775,
-            true
+            0775, true
         );
+        Log::info('Fallback ensureDirectoryExists done');
     }
 
-    $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+    Log::info('Folder exists after create?', [
+        'exists' => $disk->exists($folder),
+        'abs'    => $disk->path($folder),
+        'is_writable' => is_writable($disk->path($folder))
+    ]);
 
+    // 4) save original
+    $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+    $origPath = "{$folder}/{$baseName}.{$file->getClientOriginalExtension()}";
+    $putOrig  = $disk->putFileAs($folder, $file, basename($origPath));
+    Log::info('putFileAs original', ['path' => $origPath, 'result' => $putOrig]);
+
+    // 5) make variants
     $driver  = extension_loaded('imagick') ? new \Intervention\Image\Drivers\Imagick\Driver()
                                            : new \Intervention\Image\Drivers\Gd\Driver();
     $manager = new \Intervention\Image\ImageManager($driver);
     $webpEnc = new \Intervention\Image\Encoders\WebpEncoder(quality: 80);
 
-    // Save original
-    $origPath = "{$folder}/{$baseName}.{$file->getClientOriginalExtension()}";
-    $disk->putFileAs($folder, $file, basename($origPath));
-
     foreach ($sizes as $w) {
-        $encoded = $manager->read($file->getRealPath())
-            ->scaleDown(width: $w, height: $w)
-            ->resizeCanvas($w, $w, background: 'ffffff')
-            ->encode($webpEnc);
+        try {
+            $encoded = $manager->read($file->getRealPath())
+                ->scaleDown(width: $w, height: $w)
+                ->resizeCanvas($w, $w, background: 'ffffff')
+                ->encode($webpEnc);
 
-        $disk->put("{$folder}/avatar-{$w}.webp", (string) $encoded);
+            $p = "{$folder}/avatar-{$w}.webp";
+            $ok = $disk->put($p, (string) $encoded);
+            Log::info('put variant', ['path' => $p, 'ok' => $ok]);
+        } catch (\Throwable $e) {
+            Log::error('Variant encode/put failed', ['width' => $w, 'error' => $e->getMessage()]);
+            throw $e; // rethrow so you see it
+        }
     }
+
+    Log::info('Avatar STORE done', ['return' => "{$folder}/avatar-320.webp"]);
 
     return "{$folder}/avatar-320.webp";
 }
-
 }
