@@ -483,6 +483,7 @@ public function updateTherapistPicture(Request $request, User $therapist)
     \Log::info('updateTherapistPicture hit', [
         'therapist_id' => $therapist->id,
         'has_file' => $request->hasFile('profile_picture'),
+    ]);
     $path320 = \App\Services\ProfileAvatarService::store(
         $request->file('profile_picture'),
         $therapist->getKey() // int guaranteed
