@@ -472,33 +472,31 @@ return view('admin.therapists.show', compact(
 
         return view('admin.welcome');
     }
-	public function updateTherapistPicture(Request $request, $id)
+public function updateTherapistPicture(Request $request, User $therapist)
 {
-    // Check if the user is an admin
-    if (!auth()->user() || !auth()->user()->isAdmin()) {
-        return redirect('/')->with('error', 'Unauthorized access');
-    }
+    abort_unless(auth()->user()?->isAdmin(), 403);
 
-    // Find the therapist by ID
-    $therapist = User::where('is_therapist', true)->findOrFail($id);
-
-    // Validate the incoming request
     $request->validate([
-        'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        'profile_picture' => 'required|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
     ]);
 
-    // If a file is uploaded, store it
     if ($request->hasFile('profile_picture')) {
-        // Store the file in 'public/therapists'
-        $path = $request->file('profile_picture')->store('public/therapists');
-        
-        // Remove 'public/' from the path for storage in DB if desired
-        $therapist->profile_picture = str_replace('public/', '', $path);
+
+        // (Optional) clean old variants
+        // Storage::disk('public')->deleteDirectory("avatars/{$therapist->id}");
+
+        $path320 = \App\Services\ProfileAvatarService::store(
+            $request->file('profile_picture'),
+            $therapist->id
+        );
+
+        $therapist->profile_picture = $path320;
         $therapist->save();
     }
 
-    return redirect()->route('admin.therapists.show', $id)->with('success', 'Profile picture updated successfully!');
+    return back()->with('success', 'Profile picture updated successfully!');
 }
+
 
 public function updateTherapistSettings(Request $request, $id)
 {
