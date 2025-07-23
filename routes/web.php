@@ -742,7 +742,8 @@ Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])-
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
 Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
-Route::put('/admin/therapists/{id}/picture', [AdminController::class, 'updateTherapistPicture'])->name('admin.therapists.updatePicture');
+Route::put('/admin/therapists/{therapist}/picture', [AdminController::class, 'updateTherapistPicture']);
+
 Route::put('/admin/therapists/{id}/settings', [AdminController::class, 'updateTherapistSettings'])->name('admin.therapists.updateSettings');
 Route::put('/admin/therapists/{id}/address', [AdminController::class, 'updateTherapistAddress'])
     ->name('admin.therapists.updateAddress');

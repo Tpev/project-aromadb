@@ -473,7 +473,7 @@ return view('admin.therapists.show', compact(
 
         return view('admin.welcome');
     }
-public function updateTherapistPicture(Request $request, $id)
+public function updateTherapistPicture(Request $request, User $therapist)
 {
     abort_unless(auth()->user()?->isAdmin(), 403);
 
@@ -481,11 +481,9 @@ public function updateTherapistPicture(Request $request, $id)
         'profile_picture' => 'required|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
     ]);
 
-    $therapist = User::where('is_therapist', true)->findOrFail($id);
-
     $path320 = \App\Services\ProfileAvatarService::store(
         $request->file('profile_picture'),
-        (int) $therapist->id
+        $therapist->getKey() // int guaranteed
     );
 
     $therapist->profile_picture = $path320;
