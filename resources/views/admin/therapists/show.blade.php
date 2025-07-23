@@ -347,7 +347,11 @@
 
         <!-- Therapist Info Card -->
         <div class="therapist-info-card">
-            <img src="{{ asset('storage/' . $therapist->profile_picture) }}" alt="Avatar" class="avatar-large">
+  @php
+     $avatarUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($therapist->profile_picture);
+     $ver       = $therapist->updated_at?->timestamp ?? time(); // fallback if null
+ @endphp
+ <img src="{{ $avatarUrl }}?v={{ $ver }}" alt="Avatar" class="avatar-large">
             <div class="info">
                 <h2>{{ $therapist->name }}</h2>
                 <p><strong>Email:</strong> {{ $therapist->email }}</p>
