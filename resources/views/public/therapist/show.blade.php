@@ -39,6 +39,9 @@
                 '…'
             );
 @endphp
+@php
+    $imgVer = $therapist->updated_at?->timestamp ?? time();
+@endphp
 
 {{-- ───────── META DESCRIPTION (uses services list) ───────── --}}
 @php
@@ -115,17 +118,18 @@
             {{-- Avatar ------------------------------------------------------ --}}
             <div class="shrink-0">
                 @if ($therapist->profile_picture)
-                    <img  src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}"
-                          srcset="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }} 320w,
-                                  {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }} 640w,
-                                  {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }} 1024w"
-                          sizes="(min-width: 768px) 224px, 192px"
-                          width="224" height="224"
-                          class="block w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
-                                 ring-4 ring-white shadow-md"
-                          alt="{{ __('Photo de Profil') }}"
-						  fetchpriority="high" 
-                          loading="eager" decoding="async">
+<img  src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}?v={{ $imgVer }}"
+      srcset="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}?v={{ $imgVer }} 320w,
+              {{ asset("storage/avatars/{$therapist->id}/avatar-640.webp") }}?v={{ $imgVer }} 640w,
+              {{ asset("storage/avatars/{$therapist->id}/avatar-1024.webp") }}?v={{ $imgVer }} 1024w"
+      sizes="(min-width: 768px) 224px, 192px"
+      width="224" height="224"
+      class="block w-48 h-48 md:w-56 md:h-56 rounded-full object-cover
+             ring-4 ring-white shadow-md"
+      alt="{{ __('Photo de Profil') }}"
+      fetchpriority="high"
+      loading="eager" decoding="async">
+
                 @else
                     <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
                                 justify-center text-[#8ea633] text-4xl font-bold ring-4 ring-white
