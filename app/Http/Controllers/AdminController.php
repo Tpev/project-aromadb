@@ -17,6 +17,7 @@ use App\Models\Availability;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB; // Importing the DB facade
 use Illuminate\Support\Str;        // Importing the Str facade
+use App\Services\ProfileAvatarService;
 
 class AdminController extends Controller
 {
@@ -472,7 +473,7 @@ return view('admin.therapists.show', compact(
 
         return view('admin.welcome');
     }
-public function updateTherapistPicture(Request $request, User $therapist)
+public function updateTherapistPicture(Request $request, $id)
 {
     abort_unless(auth()->user()?->isAdmin(), 403);
 
@@ -480,22 +481,19 @@ public function updateTherapistPicture(Request $request, User $therapist)
         'profile_picture' => 'required|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
     ]);
 
-    if ($request->hasFile('profile_picture')) {
+    $therapist = User::where('is_therapist', true)->findOrFail($id);
 
-        // (Optional) clean old variants
-        // Storage::disk('public')->deleteDirectory("avatars/{$therapist->id}");
+    $path320 = \App\Services\ProfileAvatarService::store(
+        $request->file('profile_picture'),
+        (int) $therapist->id
+    );
 
-        $path320 = \App\Services\ProfileAvatarService::store(
-            $request->file('profile_picture'),
-            $therapist->id
-        );
-
-        $therapist->profile_picture = $path320;
-        $therapist->save();
-    }
+    $therapist->profile_picture = $path320;
+    $therapist->save();
 
     return back()->with('success', 'Profile picture updated successfully!');
 }
+
 
 
 public function updateTherapistSettings(Request $request, $id)
