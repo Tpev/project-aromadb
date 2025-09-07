@@ -1,11 +1,3 @@
-@php
-    // Chaîne lisible prête à être affichée (ex.: "En Visio, Dans le Cabinet")
-    $modes = $appointment->product->getConsultationModes();
-
-    // Vérifie si la chaîne contient exactement "Dans le Cabinet"
-    $showsCabinetAddress = str_contains($modes, 'Dans le Cabinet');
-@endphp
-
 @component('mail::message')
 # Bonjour {{ $appointment->clientProfile->first_name }},
 
@@ -15,18 +7,18 @@ Votre rendez-vous a été programmé avec succès.
 
 - **Date et heure :** {{ $appointment->appointment_date->format('d/m/Y \à H:i') }}
 - **Durée :** {{ $appointment->duration }} minutes
-- **Prestation :** {{ $appointment->product->name }}
+- **Prestation :** {{ $appointment->product->name ?? '—' }}
 - **Mode de consultation :** {{ $modes }}
 
-@if ($showsCabinetAddress && $appointment->user?->company_address)
+@isset($cabinetAddress)
 **Adresse du cabinet :**  
-{{ $appointment->user->company_address }}
-@endif
+{!! nl2br(e($cabinetAddress)) !!}
+@endisset
 
-- **Thérapeute :** {{ $appointment->user->name }}
+- **Thérapeute :** {{ $appointment->user->company_name ?? $appointment->user->name }}
 
 Si vous avez des questions, n'hésitez pas à nous contacter.
 
-Merci,<br>
-{{ $appointment->user->name }}
+Merci,  
+{{ $appointment->user->company_name ?? $appointment->user->name }}
 @endcomponent

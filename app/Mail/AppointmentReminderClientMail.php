@@ -1,5 +1,4 @@
 <?php
-// app/Mail/AppointmentReminderClientMail.php
 
 namespace App\Mail;
 
@@ -15,20 +14,42 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 
     public $appointment;
 
-    /**
-     * Create a new message instance.
-     */
     public function __construct(Appointment $appointment)
     {
+        // Ensure relations are available to the template
+        $appointment->loadMissing([
+            'product',
+            'user',
+            'clientProfile',
+            'practiceLocation',
+        ]);
+
         $this->appointment = $appointment;
     }
 
-    /**
-     * Build the message.
-     */
     public function build()
     {
+        // Pretty modes string (e.g., "En Visio", "Dans le Cabinet")
+        $modes = $this->appointment->product
+            ? $this->appointment->product->getConsultationModes()
+            : '—';
+
+        // Resolve the address of the actual selected cabinet (if any)
+        $cabinetAddress = null;
+        if ($this->appointment->practiceLocation) {
+            $pl = $this->appointment->practiceLocation;
+            $cabinetAddress = $pl->full_address
+                ?? trim(collect([$pl->address_line1, $pl->postal_code.' '.$pl->city])
+                    ->filter()->implode("\n"));
+        } elseif (($this->appointment->type ?? null) === 'cabinet') {
+            // Fallback if no practice_location_id stored but type indicates cabinet
+            $cabinetAddress = $this->appointment->user?->company_address;
+        }
+
         return $this->subject('Rappel de rendez-vous')
-                    ->markdown('emails.appointment_reminder');
+            ->markdown('emails.appointment_reminder', [
+                'modes'          => $modes,
+                'cabinetAddress' => $cabinetAddress,
+            ]);
     }
 }

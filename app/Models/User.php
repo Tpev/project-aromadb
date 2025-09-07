@@ -186,5 +186,9 @@ public function testimonials()
 {
     return $this->hasMany(\App\Models\InformationRequest::class, 'therapist_id');
 }
+public function practiceLocations()
+{
+    return $this->hasMany(\App\Models\PracticeLocation::class);
+}
 
 }

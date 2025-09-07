@@ -21,7 +21,7 @@ use App\Models\Unavailability;
 use Stripe\StripeClient;
 use App\Notifications\AppointmentBooked;
 use Illuminate\Support\Facades\Notification;
-
+use Illuminate\Validation\Rule;
 
 
 class AppointmentController extends Controller
@@ -124,120 +124,134 @@ foreach ($appointments as $appointment) {
 
 public function store(Request $request)
 {
-    // Define base validation rules
+    // Base validation
     $rules = [
         'client_profile_id' => 'required',
-        'appointment_date' => 'required|date',
-        'appointment_time' => 'required|date_format:H:i',
-        'status' => 'required|string',
-        'notes' => 'nullable|string',
-        'product_id' => 'required|exists:products,id',
+        'appointment_date'  => 'required|date',
+        'appointment_time'  => 'required|date_format:H:i',
+        'status'            => 'required|string',
+        'notes'             => 'nullable|string',
+        'product_id'        => 'required|exists:products,id',
+        // 'mode' facultatif (UI) : 'cabinet' | 'visio' | 'domicile'
+        // 'practice_location_id' validé plus bas si nécessaire
     ];
 
-    // Check if the user selected "Créer un nouveau client"
+    // Si création d'un nouveau client
     if ($request->client_profile_id == 'new') {
-        // Add validation rules for new client fields
         $rules = array_merge($rules, [
             'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:client_profiles,email',
-            'phone' => 'nullable|string|max:15',
-            'birthdate' => 'nullable|date',
-            'address' => 'nullable|string|max:255',
+            'last_name'  => 'required|string|max:255',
+            'email'      => 'nullable|email|max:255|unique:client_profiles,email',
+            'phone'      => 'nullable|string|max:15',
+            'birthdate'  => 'nullable|date',
+            'address'    => 'nullable|string|max:255',
         ]);
     } else {
-        // Ensure the client_profile_id exists in the database
         $rules['client_profile_id'] .= '|exists:client_profiles,id';
     }
 
-    // Validate the request
-    $validatedData = $request->validate($rules);
+    $validated = $request->validate($rules);
 
     $therapistId = Auth::id();
+    $therapist   = User::findOrFail($therapistId);
 
-    // Handle new client creation if needed
-    if ($request->client_profile_id == 'new') {
-        // Create the new client profile
-        $clientProfile = ClientProfile::create([
-            'user_id' => $therapistId,
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'birthdate' => $request->birthdate,
-            'address' => $request->address,
+    // Produit & durée
+    $product  = Product::findOrFail($request->product_id);
+    $duration = (int) $product->duration;
+
+    // Mode (respecte l'UI si fournie, sinon déduction)
+    $mode = $this->resolveMode($product, $request->input('mode'));
+
+    // Validation conditionnelle du lieu si cabinet
+    $locationId = null;
+    if ($mode === 'cabinet') {
+        // Si l'UI n'envoie pas explicitement le lieu et que le thérapeute n'en a qu'un, auto-sélection (optionnel)
+        if (!$request->filled('practice_location_id')) {
+            $onlyLoc = $therapist->practiceLocations()->first();
+            if ($onlyLoc && $therapist->practiceLocations()->count() === 1) {
+                $request->merge(['practice_location_id' => $onlyLoc->id]);
+            }
+        }
+
+        $request->validate([
+            'practice_location_id' => ['required','integer','exists:practice_locations,id'],
         ]);
 
+        $locationId = (int) $request->practice_location_id;
+
+        // Sécurité multi-tenant : le lieu doit appartenir au thérapeute
+        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
+            ->where('user_id', $therapistId)
+            ->exists();
+
+        if (!$ownsLocation) {
+            return back()->withErrors(['practice_location_id' => 'Ce cabinet n’appartient pas à votre compte.'])->withInput();
+        }
+    }
+
+    // Création/assoc client
+    if ($request->client_profile_id == 'new') {
+        $clientProfile = ClientProfile::create([
+            'user_id'    => $therapistId,
+            'first_name' => $request->first_name,
+            'last_name'  => $request->last_name,
+            'email'      => $request->email,
+            'phone'      => $request->phone,
+            'birthdate'  => $request->birthdate,
+            'address'    => $request->address,
+        ]);
         $clientProfileId = $clientProfile->id;
     } else {
         $clientProfileId = $request->client_profile_id;
-        $clientProfile = ClientProfile::findOrFail($clientProfileId);
+        $clientProfile   = ClientProfile::findOrFail($clientProfileId);
     }
 
-    // Fetch the selected product and its duration
-    $product = Product::findOrFail($request->product_id);
-    $duration = $product->duration;
+    // Datetime
+    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date.' '.$request->appointment_time);
 
-    // Combine date and time
-    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
-
-    // Check availability considering the product linkage
-    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id)) {
-        return redirect()->back()->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])->withInput();
+    // Vérification disponibilité (passe mode + location)
+    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, null, $locationId, $mode)) {
+        return redirect()->back()
+            ->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])
+            ->withInput();
     }
 
-    // Create the appointment
+    // Création du rendez-vous (avec practice_location_id si cabinet)
     $appointment = Appointment::create([
-        'client_profile_id' => $clientProfileId,
-        'user_id' => $therapistId,
-        'appointment_date' => $appointmentDateTime,
-        'status' => $request->status,
-        'notes' => $request->notes,
-        'product_id' => $request->product_id,
-        'duration' => $duration,
+        'client_profile_id'     => $clientProfileId,
+        'user_id'               => $therapistId,
+        'appointment_date'      => $appointmentDateTime,
+        'status'                => $request->status,
+        'notes'                 => $request->notes,
+        'product_id'            => $request->product_id,
+        'duration'              => $duration,
+        'practice_location_id'  => $mode === 'cabinet' ? $locationId : null,
     ]);
 
-    // Check if the product allows video calls
+    // Meeting visio si applicable
     if ($product->visio) {
-        // Generate a secure token for the room
         $token = Str::random(32);
-
-        // Create the meeting and link it to the appointment
         $meeting = Meeting::create([
-            'name' => 'Réunion pour ' . $clientProfile->first_name . ' ' . $clientProfile->last_name,
-            'start_time' => $appointmentDateTime,
-            'duration' => $duration,
+            'name'              => 'Réunion pour '.$clientProfile->first_name.' '.$clientProfile->last_name,
+            'start_time'        => $appointmentDateTime,
+            'duration'          => $duration,
             'participant_email' => $clientProfile->email,
             'client_profile_id' => $clientProfileId,
-            'room_token' => $token,
-            'appointment_id' => $appointment->id, // Link the meeting to the appointment
+            'room_token'        => $token,
+            'appointment_id'    => $appointment->id,
         ]);
-
-        // Create the connection link using the meeting token
-        $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Append #1 for the initiator
-
-        // Optionally, include the connection link in the emails
-        $appointment->meeting_link = $connectionLink;
+        $appointment->meeting_link = route('webrtc.room', ['room' => $token]).'#1';
     }
 
-    // Load necessary relationships for the appointment
-    $appointment->load('clientProfile', 'user', 'product');
+    // Charger relations pour emails
+    $appointment->load('clientProfile','user','product');
 
-    // Send emails to both patient and therapist
+    // Envoi emails
     $therapistEmail = $appointment->user->email;
-    $patientEmail = $appointment->clientProfile->email;
+    $patientEmail   = $appointment->clientProfile->email;
+    if (!empty($patientEmail))  { Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment)); }
+    if (!empty($therapistEmail)){ Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment)); }
 
-    // Send email to patient if email exists
-    if (!empty($patientEmail)) {
-        Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
-    }
-
-    // Send email to therapist if email exists
-    if (!empty($therapistEmail)) {
-        Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
-    }
-
-    // Redirect to the appointments index with a success message
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
 
@@ -311,64 +325,90 @@ public function show(Appointment $appointment)
     /**
      * Update the specified appointment in storage.
      */
-    public function update(Request $request, Appointment $appointment)
-    {
-        // Validate the request
+ public function update(Request $request, Appointment $appointment)
+{
+    // Autorisation
+    $this->authorize('update', $appointment);
+
+    // Validation de base
+    $request->validate([
+        'client_profile_id' => 'required|exists:client_profiles,id',
+        'appointment_date'  => 'required|date',
+        'appointment_time'  => 'required|date_format:H:i',
+        'status'            => 'required|string',
+        'notes'             => 'nullable|string',
+        'product_id'        => 'required|exists:products,id',
+        // 'mode' facultatif (UI)
+        // 'practice_location_id' validé plus bas si nécessaire
+    ]);
+
+    $therapistId = Auth::id();
+    $therapist   = User::findOrFail($therapistId);
+
+    // Produit & durée
+    $product  = Product::findOrFail($request->product_id);
+    $duration = (int) $product->duration;
+
+    // Mode (UI prioritaire)
+    $mode = $this->resolveMode($product, $request->input('mode'));
+
+    // Validation conditionnelle du lieu si cabinet
+    $locationId = null;
+    if ($mode === 'cabinet') {
+        // Si pas de lieu envoyé et un seul lieu existe, auto-sélection (optionnel)
+        if (!$request->filled('practice_location_id')) {
+            $onlyLoc = $therapist->practiceLocations()->first();
+            if ($onlyLoc && $therapist->practiceLocations()->count() === 1) {
+                $request->merge(['practice_location_id' => $onlyLoc->id]);
+            }
+        }
+
         $request->validate([
-            'client_profile_id' => 'required|exists:client_profiles,id',
-            'appointment_date' => 'required|date',
-            'appointment_time' => 'required|date_format:H:i',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
-            'product_id' => 'required|exists:products,id',
+            'practice_location_id' => ['required','integer','exists:practice_locations,id'],
         ]);
 
-        // Fetch the selected product and its duration
-        $product = Product::findOrFail($request->product_id);
-        $duration = $product->duration;
+        $locationId = (int) $request->practice_location_id;
 
-        // Combine date and time
-        $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
-        $therapistId = Auth::id();
+        // Le lieu doit appartenir au thérapeute
+        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
+            ->where('user_id', $therapistId)
+            ->exists();
 
-        // Check availability considering the product linkage and exclude the current appointment
-        if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, $appointment->id)) {
-            return redirect()->back()->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])->withInput();
+        if (!$ownsLocation) {
+            return back()->withErrors(['practice_location_id' => 'Ce cabinet n’appartient pas à votre compte.'])->withInput();
         }
-
-        // Update the appointment
-        $appointment->update([
-            'client_profile_id' => $request->client_profile_id,
-            'user_id' => $therapistId,
-            'appointment_date' => $appointmentDateTime,
-            'status' => $request->status,
-            'notes' => $request->notes,
-            'product_id' => $request->product_id,
-            'duration' => $duration,
-        ]);
-
-        // queue email notification to the client about the update
-        if ($appointment->clientProfile && $appointment->clientProfile->email) {
-            Mail::to($appointment->clientProfile->email)
-                ->queue(new AppointmentEditedClientMail($appointment));
-        }
-
-        return redirect()->route('appointments.index')->with('success', 'Rendez-vous mis à jour avec succès.');
     }
 
-    /**
-     * Remove the specified appointment from storage.
-     */
-    public function destroy(Appointment $appointment)
-    {
-        // Ensure the appointment belongs to the authenticated user
-        $this->authorize('delete', $appointment);
+    // DateTime
+    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date.' '.$request->appointment_time);
 
-        // Delete the appointment
-        $appointment->delete();
-
-        return redirect()->route('appointments.index')->with('success', 'Rendez-vous supprimé avec succès.');
+    // Vérification disponibilité (exclure le RDV en cours d’édition, passer mode + location)
+    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, $appointment->id, $locationId, $mode)) {
+        return redirect()->back()
+            ->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])
+            ->withInput();
     }
+
+    // Mise à jour du rendez-vous (avec practice_location_id si cabinet)
+    $appointment->update([
+        'client_profile_id'     => $request->client_profile_id,
+        'user_id'               => $therapistId,
+        'appointment_date'      => $appointmentDateTime,
+        'status'                => $request->status,
+        'notes'                 => $request->notes,
+        'product_id'            => $request->product_id,
+        'duration'              => $duration,
+        'practice_location_id'  => $mode === 'cabinet' ? $locationId : null,
+    ]);
+
+    // Email de mise à jour au client si email présent
+    if ($appointment->clientProfile && $appointment->clientProfile->email) {
+        Mail::to($appointment->clientProfile->email)->queue(new AppointmentEditedClientMail($appointment));
+    }
+
+    return redirect()->route('appointments.index')->with('success', 'Rendez-vous mis à jour avec succès.');
+}
+
 
     /**
      * Fetch available time slots based on date and product linkage.
@@ -412,70 +452,103 @@ public function show(Appointment $appointment)
      * @param int|null $excludeAppointmentId
      * @return bool
      */
-    private function isAvailable($appointmentDateTime, $duration, $therapistId, $productId, $excludeAppointmentId = null)
-    {
-        // Convert duration to integer
-        $duration = (int) $duration;
+ private function isAvailable($appointmentDateTime, $duration, $therapistId, $productId, $excludeAppointmentId = null, $locationId = null, $mode = null)
+{
+    // Normalise
+    $duration = (int) $duration;
+    $start    = Carbon::parse($appointmentDateTime);
+    $end      = $start->copy()->addMinutes($duration);
 
-        // Combine date and time
-        $appointmentStartTime = Carbon::parse($appointmentDateTime);
-        $appointmentEndTime = $appointmentStartTime->copy()->addMinutes($duration);
+    // 1) Récup produit & mode
+    $product = Product::findOrFail((int) $productId);
 
-        // Get the day of the week (Monday = 0)
-        $dayOfWeek = $appointmentStartTime->dayOfWeekIso - 1;
-
-        // Fetch availabilities linked to the product
-        $availabilities = Availability::where('user_id', $therapistId)
-            ->where('day_of_week', $dayOfWeek)
-            ->where(function($query) use ($productId) {
-                $query->where('applies_to_all', true)
-                      ->orWhereHas('products', function($q) use ($productId) {
-                          $q->where('products.id', $productId);
-                      });
-            })
-            ->get();
-
-        if ($availabilities->isEmpty()) {
-            return false; // No availability linked to the product on this day
-        }
-
-        $isWithinAvailability = false;
-
-        foreach ($availabilities as $availability) {
-            $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
-                ->setDate($appointmentStartTime->year, $appointmentStartTime->month, $appointmentStartTime->day);
-            $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
-                ->setDate($appointmentStartTime->year, $appointmentStartTime->month, $appointmentStartTime->day);
-
-            // Check if the appointment is within the availability
-            if ($appointmentStartTime->gte($availabilityStart) && $appointmentEndTime->lte($availabilityEnd)) {
-                $isWithinAvailability = true;
-                break;
-            }
-        }
-
-        if (!$isWithinAvailability) {
-            return false; // Appointment is outside availability
-        }
-
-        // Check for conflicting appointments
-        $conflictingAppointments = Appointment::where('user_id', $therapistId)
-            ->where(function ($query) use ($appointmentStartTime, $appointmentEndTime) {
-                $query->where(function ($subQuery) use ($appointmentStartTime, $appointmentEndTime) {
-                    $subQuery->where('appointment_date', '<', $appointmentEndTime)
-                             ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$appointmentStartTime]);
-                });
-            });
-
-        // Exclude the current appointment if updating
-        if ($excludeAppointmentId) {
-            $conflictingAppointments->where('id', '!=', $excludeAppointmentId);
-        }
-
-        $conflictExists = $conflictingAppointments->exists();
-
-        return !$conflictExists; // True if no conflict
+    if (!in_array($mode, ['cabinet','visio','domicile'], true)) {
+        // déduction simple si le mode n'est pas fourni
+        $modes = [];
+        if ($product->dans_le_cabinet) $modes[] = 'cabinet';
+        if ($product->visio)           $modes[] = 'visio';
+        if ($product->adomicile)       $modes[] = 'domicile';
+        $mode = count($modes) === 1 ? $modes[0] : 'cabinet';
     }
+
+    // Cabinet: si multi-lieux, on attend un locationId
+    if ($mode === 'cabinet' && empty($locationId)) {
+        // Si pas de location fourni, on laisse passer
+        // mais on ne filtre pas par lieu (comportement permissif).
+        // Tu peux durcir en retournant false si tu veux forcer un lieu:
+        // return false;
+    }
+
+    // 2) Jour de semaine (0..6)
+    $dayOfWeek0 = $start->dayOfWeekIso - 1;
+
+    // 3) Sélection des disponibilités (filtre produit + jour [+ lieu si cabinet])
+    $availabilitiesQuery = Availability::where('user_id', (int) $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $availabilitiesQuery->where('practice_location_id', (int) $locationId);
+    }
+    // visio / domicile -> pas de filtre de lieu
+
+    $availabilities = $availabilitiesQuery->get();
+    if ($availabilities->isEmpty()) {
+        return false;
+    }
+
+    // 4) Vérifier que le créneau tombe DANS au moins une disponibilité
+    $insideAvailability = false;
+    foreach ($availabilities as $a) {
+        $aStart = Carbon::createFromFormat('H:i:s', $a->start_time)
+            ->setDate($start->year, $start->month, $start->day);
+        $aEnd = Carbon::createFromFormat('H:i:s', $a->end_time)
+            ->setDate($start->year, $start->month, $start->day);
+
+        if ($start->gte($aStart) && $end->lte($aEnd)) {
+            $insideAvailability = true;
+            break;
+        }
+    }
+    if (!$insideAvailability) {
+        return false;
+    }
+
+    // 5) Conflits avec d'autres rendez-vous (global par thérapeute)
+    $conflictingAppointments = Appointment::where('user_id', (int) $therapistId)
+        ->where(function ($q) use ($start, $end) {
+            $q->where('appointment_date', '<', $end)
+              ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$start]);
+        });
+
+    if ($excludeAppointmentId) {
+        $conflictingAppointments->where('id', '!=', $excludeAppointmentId);
+    }
+
+    if ($conflictingAppointments->exists()) {
+        return false;
+    }
+
+    // 6) Conflits avec indisponibilités (multi-day)
+    $hasUnavailability = Unavailability::where('user_id', (int) $therapistId)
+        ->where(function ($q) use ($start, $end) {
+            $q->where('start_date', '<', $end)
+              ->where('end_date',   '>', $start);
+        })
+        ->exists();
+
+    if ($hasUnavailability) {
+        return false;
+    }
+
+    return true;
+}
+  
 
     /**
      * Helper method to fetch available slots for editing and creation.
@@ -489,80 +562,134 @@ public function show(Appointment $appointment)
      */
  private function getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $excludeAppointmentId = null)
 {
-    $dayOfWeek = Carbon::createFromFormat('Y-m-d', $date)->dayOfWeekIso - 1; // Monday = 0
-    $availabilities = Availability::where('user_id', $therapistId)
-        ->where('day_of_week', $dayOfWeek)
-        ->where(function($query) use ($productId) {
+    // 1) Setup & helpers
+    $product = Product::findOrFail((int) $productId);
+    $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
+    $dayOfWeek0 = $carbonDate->dayOfWeekIso - 1; // Monday=0..Sunday=6
+
+    // Deduce mode based on product booleans.
+    // If multi-mode and we are editing an existing appointment with a location, treat as 'cabinet'.
+    $modes = [];
+    if ($product->dans_le_cabinet) $modes[] = 'cabinet';
+    if ($product->visio)           $modes[] = 'visio';
+    if ($product->adomicile)       $modes[] = 'domicile';
+
+    $locationId = null;
+    $mode = null;
+
+    // If we have an appointment in edit, infer its mode/location
+    if ($excludeAppointmentId) {
+        $editingAppointment = Appointment::find($excludeAppointmentId);
+        if ($editingAppointment) {
+            if (!is_null($editingAppointment->practice_location_id)) {
+                // Appointment is "cabinet" (has a location)
+                $mode = 'cabinet';
+                $locationId = (int) $editingAppointment->practice_location_id;
+            } else {
+                // No location on the appointment; infer from product modes
+                if (count($modes) === 1) {
+                    $mode = $modes[0];
+                } else {
+                    // Ambiguous multi-mode without location: prefer 'visio' then 'domicile', else 'cabinet'
+                    $mode = in_array('visio', $modes, true) ? 'visio'
+                          : (in_array('domicile', $modes, true) ? 'domicile' : 'cabinet');
+                }
+            }
+        }
+    }
+
+    // If still not set (e.g., creating new or no appointment found), deduce from product
+    if (!$mode) {
+        if (count($modes) === 1) {
+            $mode = $modes[0];
+        } else {
+            // Ambiguous: default to 'cabinet' (UI should pass/choose location later).
+            $mode = 'cabinet';
+            // Note: no locationId available here → we'll NOT filter by location to avoid hiding slots.
+        }
+    }
+
+    // 2) Fetch Availabilities
+    // Always filter by product linkage (applies_to_all OR pivot).
+    // If mode=cabinet and we know the location, filter by that location.
+    $availabilitiesQuery = Availability::where('user_id', (int) $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($productId) {
             $query->where('applies_to_all', true)
-                  ->orWhereHas('products', function($q) use ($productId) {
-                      $q->where('products.id', $productId);
-                  });
-        })
-        ->get();
+                ->orWhereHas('products', function ($q) use ($productId) {
+                    $q->where('products.id', $productId);
+                });
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $availabilitiesQuery->where('practice_location_id', $locationId);
+    }
+    // visio / domicile OR cabinet without known location → no location filter
+
+    $availabilities = $availabilitiesQuery->get();
 
     if ($availabilities->isEmpty()) {
         return [];
     }
 
-    // Fetch existing appointments for the date
-    $existingAppointments = Appointment::where('user_id', $therapistId)
+    // 3) Existing appointments for the date (exclude the one being edited)
+    $existingAppointments = Appointment::where('user_id', (int) $therapistId)
         ->whereDate('appointment_date', $date)
         ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
             return $query->where('id', '!=', $excludeAppointmentId);
         })
         ->get();
 
-    // Fetch unavailability periods for the therapist on the selected date
-    $unavailabilities = Unavailability::where('user_id', $therapistId)
-        ->whereDate('start_date', $date)
+    // 4) Unavailability (support multi-day spans)
+    $unavailabilities = Unavailability::where('user_id', (int) $therapistId)
+        ->where(function ($query) use ($date) {
+            $query->whereDate('start_date', '<=', $date)
+                  ->whereDate('end_date', '>=', $date);
+        })
         ->get();
 
+    // 5) Build slots
     $slots = [];
 
     foreach ($availabilities as $availability) {
         $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
-            ->setDate(Carbon::parse($date)->year, Carbon::parse($date)->month, Carbon::parse($date)->day);
+            ->setDateFrom($carbonDate);
         $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
-            ->setDate(Carbon::parse($date)->year, Carbon::parse($date)->month, Carbon::parse($date)->day);
+            ->setDateFrom($carbonDate);
 
-        // Check for available slots every 15 minutes
+        // Step by 15 minutes
         while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
             $slotStart = $availabilityStart->copy();
-            $slotEnd = $availabilityStart->copy()->addMinutes($duration);
+            $slotEnd   = $availabilityStart->copy()->addMinutes((int) $duration);
 
-            // Check for overlapping appointments
+            // Overlap with existing appointments (global, regardless of mode/location)
             $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
-                $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
-
-                // Check if the new slot overlaps with any existing appointment
+                $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
-            // Check for overlapping unavailability
+            // Overlap with unavailability
             $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
-                $unavailabilityEnd = Carbon::parse($unavailability->end_date);
-
-                // Check if the new slot overlaps with any unavailability
+                $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
                 return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
             });
 
-            // If the slot is not booked and not unavailable, add it to the available slots
             if (!$isBooked && !$isUnavailable) {
                 $slots[] = [
                     'start' => $slotStart->format('H:i'),
-                    'end' => $slotEnd->format('H:i'),
+                    'end'   => $slotEnd->format('H:i'),
                 ];
             }
 
-            // Move to the next potential slot (increment by 15 minutes)
             $availabilityStart->addMinutes(15);
         }
     }
 
     return $slots;
 }
+
 
 
 /**
@@ -601,222 +728,229 @@ public function storePatient(Request $request)
 {
     // Messages d'erreur personnalisés
     $messages = [
-        'therapist_id.required' => 'Le thérapeute est requis.',
-        'therapist_id.exists' => 'Le thérapeute sélectionné est invalide.',
-        'first_name.required' => 'Le prénom est requis.',
-        'last_name.required' => 'Le nom est requis.',
-        'email.email' => 'Veuillez fournir une adresse e-mail valide.',
-        'phone.max' => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
+        'therapist_id.required'   => 'Le thérapeute est requis.',
+        'therapist_id.exists'     => 'Le thérapeute sélectionné est invalide.',
+        'first_name.required'     => 'Le prénom est requis.',
+        'last_name.required'      => 'Le nom est requis.',
+        'email.email'             => 'Veuillez fournir une adresse e-mail valide.',
+        'phone.max'               => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
         'appointment_date.required' => 'La date du rendez-vous est requise.',
         'appointment_time.required' => 'L’heure du rendez-vous est requise.',
-        'product_id.exists' => 'Le produit sélectionné est invalide.',
+        'product_id.exists'       => 'Le produit sélectionné est invalide.',
     ];
 
-    // Valider les données du formulaire
+    // Validation de base
     $request->validate([
-        'therapist_id' => 'required|exists:users,id',
-        'first_name' => 'required|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'email' => 'nullable|email|max:255',
-        'phone' => 'nullable|string|max:20',
-        'address' => 'nullable|string',
-        'birthdate' => 'nullable|date',
+        'therapist_id'     => 'required|exists:users,id',
+        'first_name'       => 'required|string|max:255',
+        'last_name'        => 'required|string|max:255',
+        'email'            => 'nullable|email|max:255',
+        'phone'            => 'nullable|string|max:20',
+        'address'          => 'nullable|string',
+        'birthdate'        => 'nullable|date',
         'appointment_date' => 'required|date',
         'appointment_time' => 'required|date_format:H:i',
-        'product_id' => 'required|exists:products,id',
-        'notes' => 'nullable|string',
-        'type' => 'nullable|string',
+        'product_id'       => 'required|exists:products,id',
+        'notes'            => 'nullable|string',
+        // 'type' may come from the form; if not we will infer it from product flags
+        'type'             => 'nullable|string',
+        // practice_location_id is validated conditionally (see below)
+        'practice_location_id' => 'nullable|integer',
     ], $messages);
 
-    // Si le produit nécessite une adresse, valider la présence de l'adresse
-    $product = Product::findOrFail($request->product_id);
-    if ($product->adomicile) {
-        $request->validate([
-            'address' => 'required|string|max:255',
-        ]);
-    }
-
-    // Récupérer le thérapeute
+    // Produit & thérapeute
+    $product   = Product::findOrFail($request->product_id);
     $therapist = User::findOrFail($request->therapist_id);
 
-    // Combiner la date et l'heure
-    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date . ' ' . $request->appointment_time);
+    // Inférer le "type" (mode) à partir du produit si non fourni
+    // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
+    $mode = $request->input('type');
+    if (!$mode) {
+        if (!empty($product->dans_le_cabinet)) {
+            $mode = 'cabinet';
+        } elseif (!empty($product->visio) || !empty($product->en_visio)) {
+            $mode = 'visio';
+        } elseif (!empty($product->adomicile)) {
+            $mode = 'domicile';
+        } else {
+            $mode = 'autre';
+        }
+    }
 
-    // Valider la disponibilité du thérapeute
-    if (!$this->isAvailable($appointmentDateTime, $product->duration, $therapist->id, $product->id)) {
-        return redirect()->back()->withErrors([
+    // Si le produit nécessite une adresse (domicile), exiger l'adresse
+    if ($mode === 'domicile' || !empty($product->adomicile)) {
+        $request->validate([
+            'address' => 'required|string|max:255',
+        ], $messages);
+    }
+
+    // Si le mode est au cabinet, EXIGER un practice_location_id appartenant à ce thérapeute
+    $practiceLocationId = $request->input('practice_location_id');
+    if ($mode === 'cabinet') {
+        $request->validate([
+            'practice_location_id' => [
+                'required',
+                Rule::exists('practice_locations', 'id')->where(fn ($q) =>
+                    $q->where('user_id', $therapist->id)
+                ),
+            ],
+        ], [
+            'practice_location_id.required' => 'Veuillez sélectionner un cabinet.',
+            'practice_location_id.exists'   => 'Le cabinet sélectionné est invalide.',
+        ]);
+    } else {
+        // pour visio/domicile, on ignore le cabinet éventuel envoyé
+        $practiceLocationId = null;
+    }
+
+    // Combiner la date et l'heure
+    $appointmentDateTime = Carbon::createFromFormat(
+        'Y-m-d H:i',
+        $request->appointment_date . ' ' . $request->appointment_time
+    );
+
+    // Valider la disponibilité du thérapeute (on passe le practice_location_id pour le cabinet)
+    if (!$this->isAvailable($appointmentDateTime, $product->duration, $therapist->id, $product->id, null, $practiceLocationId, $mode)) {
+        return back()->withErrors([
             'appointment_date' => 'Le créneau horaire est indisponible ou entre en conflit avec un autre rendez-vous.',
         ])->withInput();
     }
 
-    // Créer ou trouver le ClientProfile
+    // Créer / retrouver le ClientProfile (lié au thérapeute)
     $clientProfile = ClientProfile::firstOrCreate(
         [
-            'email' => $request->email,
+            'email'   => $request->email,
             'user_id' => $therapist->id,
         ],
         [
             'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'birthdate' => $request->birthdate,
-            'notes' => $request->notes,
+            'last_name'  => $request->last_name,
+            'phone'      => $request->phone,
+            'address'    => $request->address,
+            'birthdate'  => $request->birthdate,
+            'notes'      => $request->notes,
         ]
     );
 
-    // Créer le rendez-vous avec le statut 'pending'
+    // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
     $appointment = Appointment::create([
-        'client_profile_id' => $clientProfile->id,
-        'user_id' => $therapist->id, // Assigné au thérapeute
-        'appointment_date' => $appointmentDateTime,
-        'status' => 'pending', // Statut initial
-        'notes' => $request->notes,
-        'type' => $request->type,
-        'duration' => $product->duration,
-        'product_id' => $request->product_id,
+        'client_profile_id'     => $clientProfile->id,
+        'user_id'               => $therapist->id,
+        'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
+        'appointment_date'      => $appointmentDateTime,
+        'status'                => 'pending',
+        'notes'                 => $request->notes,
+        'type'                  => $mode,                 // ← on stocke le mode
+        'duration'              => $product->duration,
+        'product_id'            => $product->id,
     ]);
 
-    // Vérifier si le produit permet les appels vidéo
-    if ($product->visio) {
-        // Générer un token sécurisé pour la salle
+    // Si visio : créer une réunion + lien
+    if ($mode === 'visio' || !empty($product->visio) || !empty($product->en_visio)) {
         $token = Str::random(32);
-
-        // Créer la réunion et la lier au rendez-vous
         $meeting = Meeting::create([
-            'name' => 'Réunion pour ' . $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
-            'start_time' => $appointmentDateTime,
-            'duration' => $product->duration,
+            'name'              => 'Réunion pour ' . $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'start_time'        => $appointmentDateTime,
+            'duration'          => $product->duration,
             'participant_email' => $appointment->clientProfile->email,
             'client_profile_id' => $clientProfile->id,
-            'room_token' => $token,
-            'appointment_id' => $appointment->id, // Lier la réunion au rendez-vous
+            'room_token'        => $token,
+            'appointment_id'    => $appointment->id,
         ]);
-
-        // Créer le lien de connexion en utilisant le token de la salle
-        $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Ajouter #1 pour l'initiateur
+        // $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // si vous en avez besoin
     }
 
-    // Charger les relations nécessaires pour le rendez-vous
-    $appointment->load('clientProfile', 'user', 'product');
+    // Charger pour notif
+    $appointment->load('clientProfile', 'user', 'product', 'practiceLocation');
 
-    // **Send Notification Here**
+    // Notification au thérapeute (try/catch pour robustesse)
     try {
         $therapist->notify(new AppointmentBooked($appointment));
     } catch (\Exception $e) {
         Log::error('Failed to send appointment notification: ' . $e->getMessage());
     }
 
-    // Vérifier si le paiement est requis
-    if ($product->collect_payment) {
-        // Vérifier si le thérapeute a déjà configuré Stripe
+    /* ---------------------- Paiement Stripe si requis ---------------------- */
+    if (!empty($product->collect_payment)) {
         if ($therapist->stripe_account_id) {
-            // Le thérapeute a configuré Stripe, procéder au paiement
-            // Initialiser Stripe
             $stripeSecretKey = config('services.stripe.secret');
-
             $stripe = new StripeClient($stripeSecretKey);
 
-            // Calculer le montant total (incluant la TVA)
-            $totalAmount = $product->price + ($product->price * $product->tax_rate / 100); // Assume currency is euros
+            $totalAmount = $product->price + ($product->price * $product->tax_rate / 100);
 
-            // Créer la session Stripe Checkout
             try {
                 $session = $stripe->checkout->sessions->create([
                     'payment_method_types' => ['card'],
                     'line_items' => [[
                         'price_data' => [
-                            'currency' => 'eur',
-                            'product_data' => [
-                                'name' => $product->name,
-                            ],
-                            'unit_amount' => intval($totalAmount * 100), // montant en cents
+                            'currency'     => 'eur',
+                            'product_data' => ['name' => $product->name],
+                            'unit_amount'  => intval($totalAmount * 100),
                         ],
                         'quantity' => 1,
                     ]],
                     'mode' => 'payment',
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                    'cancel_url' => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
-
+                    'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
                     'payment_intent_data' => [
                         'metadata' => [
-                            'appointment_id' => $appointment->id, // Assigné au PaymentIntent
-                            'patient_email' => $appointment->clientProfile->email,
+                            'appointment_id' => $appointment->id,
+                            'patient_email'  => $appointment->clientProfile->email,
                         ],
                     ],
-
-                ],
-                [
-                    'stripe_account' => $therapist->stripe_account_id, // Compte connecté du thérapeute
+                ], [
+                    'stripe_account' => $therapist->stripe_account_id,
                 ]);
 
-                // Mettre à jour le rendez-vous avec l'ID de la session Stripe
                 $appointment->stripe_session_id = $session->id;
                 $appointment->save();
 
-                // Rediriger l'utilisateur vers Stripe Checkout
                 return redirect($session->url);
 
             } catch (\Exception $e) {
                 Log::error('Stripe Checkout creation failed: ' . $e->getMessage());
-                return redirect()->back()->withErrors(['payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'])->withInput();
+                return back()->withErrors(['payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'])
+                             ->withInput();
             }
         } else {
-            // Le thérapeute n'a pas configuré Stripe, traiter comme si aucun paiement n'était requis
-            Log::warning('Le thérapeute ID ' . $therapist->id . ' n\'a pas connecté son compte Stripe. Traitement sans paiement.');
+            // Pas de Stripe connecté : on confirme directement
+            Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
+            $appointment->update(['status' => 'confirmed']);
 
-            // Définir le statut à 'confirmed'
-            $appointment->status = 'confirmed';
-            $appointment->save();
-
-            // Envoyer les emails immédiatement
             try {
-                // Email au patient
-                $patientEmail = $appointment->clientProfile->email;
-                if ($patientEmail) {
-                    Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+                if ($appointment->clientProfile->email) {
+                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
                 }
-
-                // Email au thérapeute
-                $therapistEmail = $therapist->email;
-                if ($therapistEmail) {
-                    Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+                if ($therapist->email) {
+                    Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
                 }
-
             } catch (\Exception $e) {
-                Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
+                Log::error("Erreur envoi emails : " . $e->getMessage());
             }
 
-            // Rediriger vers la confirmation du rendez-vous
-            return redirect()->route('appointments.showPatient', $appointment->token)->with('success', 'Votre rendez-vous a été réservé avec succès.');
+            return redirect()->route('appointments.showPatient', $appointment->token)
+                             ->with('success', 'Votre rendez-vous a été réservé avec succès.');
         }
-    } else {
-        // Si aucun paiement n'est requis, définir le statut à 'confirmed' et envoyer les emails immédiatement
-        $appointment->status = 'confirmed';
-        $appointment->save();
-
-        // Envoyer les emails immédiatement
-        try {
-            // Email au patient
-            $patientEmail = $appointment->clientProfile->email;
-            if ($patientEmail) {
-                Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
-            }
-
-            // Email au thérapeute
-            $therapistEmail = $therapist->email;
-            if ($therapistEmail) {
-                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'envoi des e-mails de notification : ' . $e->getMessage());
-        }
-
-        // Rediriger vers la confirmation du rendez-vous
-        return redirect()->route('appointments.showPatient', $appointment->token)->with('success', 'Votre rendez-vous a été réservé avec succès.');
     }
+
+    /* ---------------------- Pas de paiement requis ---------------------- */
+    $appointment->update(['status' => 'confirmed']);
+
+    try {
+        if ($appointment->clientProfile->email) {
+            Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+        }
+        if ($therapist->email) {
+            Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+        }
+    } catch (\Exception $e) {
+        Log::error("Erreur envoi emails : " . $e->getMessage());
+    }
+
+    return redirect()->route('appointments.showPatient', $appointment->token)
+                     ->with('success', 'Votre rendez-vous a été réservé avec succès.');
 }
+
 
 
 
@@ -885,57 +1019,92 @@ public function storePatient(Request $request)
         return $icsContent;
     }
 
-    /**
-     * Helper method to fetch available slots for a patient booking.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
 public function getAvailableSlotsForPatient(Request $request)
 {
-    // Validate the request
+    // 1) Basic validation (core fields)
     $request->validate([
         'therapist_id' => 'required|exists:users,id',
-        'date' => 'required|date_format:Y-m-d',
-        'product_id' => 'required|exists:products,id',
+        'date'         => 'required|date_format:Y-m-d',
+        'product_id'   => 'required|exists:products,id',
+        // 'mode' and 'location_id' handled below after we resolve the mode
     ]);
 
-    $therapistId = $request->therapist_id;
-    $productId = $request->product_id;
-    $duration = Product::findOrFail($productId)->duration;
+    $therapistId = (int) $request->therapist_id;
+    $product     = Product::findOrFail((int) $request->product_id);
+    $duration    = (int) ($product->duration ?? 0);
 
-    // Get therapist's minimum notice hours
-    $therapist = User::findOrFail($therapistId);
-    $minimumNoticeHours = $therapist->minimum_notice_hours ?? 0;
+    // 2) Resolve mode
+    // If UI provided a mode, use it. Otherwise, deduce from product booleans.
+    // Fallback to 'cabinet' if ambiguous (multi-mode product without explicit mode).
+    $requestedMode = $request->input('mode');
+    $mode = in_array($requestedMode, ['cabinet','visio','domicile'], true)
+        ? $requestedMode
+        : (function() use ($product) {
+            $modes = [];
+            if ($product->dans_le_cabinet) $modes[] = 'cabinet';
+            if ($product->visio)           $modes[] = 'visio';
+            if ($product->adomicile)       $modes[] = 'domicile';
+            if (count($modes) === 1) return $modes[0];
+            return 'cabinet';
+        })();
 
-    // Calculate the earliest allowable booking time
-    $currentDateTime = Carbon::now();
-    $minimumNoticeDateTime = $currentDateTime->copy()->addHours($minimumNoticeHours);
+    // 3) If cabinet mode, validate location_id and ensure it belongs to the therapist
+    $locationId = null;
+    if ($mode === 'cabinet') {
+        $request->validate([
+            'location_id' => ['required','integer','exists:practice_locations,id'],
+        ]);
+        $locationId = (int) $request->location_id;
 
-    // Get the day of the week
-    $dayOfWeek = Carbon::createFromFormat('Y-m-d', $request->date)->dayOfWeekIso - 1;
+        // Verify the location belongs to the therapist (avoid cross-tenant leakage)
+        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
+            ->where('user_id', $therapistId)
+            ->exists();
+        if (!$ownsLocation) {
+            return response()->json(['slots' => [], 'message' => 'Invalid location for this therapist.'], 422);
+        }
+    }
 
-    // Fetch availabilities considering 'applies_to_all' and product linkage
-    $availabilities = Availability::where('user_id', $therapistId)
-        ->where('day_of_week', $dayOfWeek)
-        ->where(function ($query) use ($productId) {
+    // 4) Minimum notice handling
+    $therapist            = User::findOrFail($therapistId);
+    $minimumNoticeHours   = (int) ($therapist->minimum_notice_hours ?? 0);
+    $now                  = Carbon::now();
+    $minimumNoticeDateTime = $now->copy()->addHours($minimumNoticeHours);
+
+    // 5) Day-of-week (matching your existing schema: 0=Mon ... 6=Sun)
+    $date       = Carbon::createFromFormat('Y-m-d', $request->date);
+    $dayOfWeek0 = $date->dayOfWeekIso - 1; // ISO: Mon=1..Sun=7 → 0..6
+
+    // 6) Fetch availabilities
+    // - Always filter by product linkage (applies_to_all OR pivot)
+    // - If mode=cabinet → also filter by the selected practice_location_id
+    // - If mode=visio/domcile → NO location filter (use all availabilities)
+    $availabilitiesQuery = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($product) {
             $query->where('applies_to_all', true)
-                ->orWhereHas('products', function ($q) use ($productId) {
-                    $q->where('products.id', $productId);
+                ->orWhereHas('products', function ($q) use ($product) {
+                    $q->where('products.id', $product->id);
                 });
-        })
-        ->get();
+        });
+
+    if ($mode === 'cabinet') {
+        $availabilitiesQuery->where('practice_location_id', $locationId);
+    }
+    // visio / domicile: no location filter
+
+    $availabilities = $availabilitiesQuery->get();
 
     if ($availabilities->isEmpty()) {
         return response()->json(['slots' => []]);
     }
 
-    // Fetch existing appointments on the selected date
+    // 7) Existing appointments (global — a therapist can't be double-booked)
     $existingAppointments = Appointment::where('user_id', $therapistId)
         ->whereDate('appointment_date', $request->date)
         ->get();
 
-    // Updated unavailability query to handle multi-day spans
+    // 8) Unavailabilities (support multi-day spans)
     $unavailabilities = Unavailability::where('user_id', $therapistId)
         ->where(function ($query) use ($request) {
             $query->whereDate('start_date', '<=', $request->date)
@@ -943,39 +1112,46 @@ public function getAvailableSlotsForPatient(Request $request)
         })
         ->get();
 
+    // 9) Build slots (15-min step, keep your current stepping)
     $slots = [];
 
     foreach ($availabilities as $availability) {
         $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
-            ->setDateFrom(Carbon::parse($request->date));
+            ->setDateFrom($date);
         $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
-            ->setDateFrom(Carbon::parse($request->date));
+            ->setDateFrom($date);
 
         while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
             $slotStart = $availabilityStart->copy();
-            $slotEnd = $availabilityStart->copy()->addMinutes($duration);
+            $slotEnd   = $availabilityStart->copy()->addMinutes($duration);
 
+            // Enforce minimum notice
             if ($slotStart->lt($minimumNoticeDateTime)) {
                 $availabilityStart->addMinutes(15);
                 continue;
             }
 
+            // Check overlap with existing appointments
             $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
-                $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration);
+                $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
+            // Check overlap with unavailabilities
             $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
-                $unavailabilityEnd = Carbon::parse($unavailability->end_date);
+                $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
                 return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
             });
 
             if (!$isBooked && !$isUnavailable) {
                 $slots[] = [
                     'start' => $slotStart->format('H:i'),
-                    'end' => $slotEnd->format('H:i'),
+                    'end'   => $slotEnd->format('H:i'),
+                    // Optional: echo back context (useful for cabinet mode)
+                    // 'mode'        => $mode,
+                    // 'location_id' => $mode === 'cabinet' ? $locationId : null,
                 ];
             }
 
@@ -1444,6 +1620,21 @@ protected function createInvoiceFromAppointment(Appointment $appointment)
 }
 
 
+private function resolveMode(\App\Models\Product $product, ?string $requested = null): string
+{
+    // Si l'UI envoie 'mode', on respecte
+    if (in_array($requested, ['cabinet','visio','domicile'], true)) {
+        return $requested;
+    }
+
+    // Sinon on essaie de déduire
+    if ($product->dans_le_cabinet && !$product->visio && !$product->adomicile) return 'cabinet';
+    if ($product->visio && !$product->dans_le_cabinet && !$product->adomicile) return 'visio';
+    if ($product->adomicile && !$product->dans_le_cabinet && !$product->visio) return 'domicile';
+
+    // Ambigu : par défaut "cabinet" (l'UI devrait envoyer le mode dans ce cas)
+    return 'cabinet';
+}
 
 
 

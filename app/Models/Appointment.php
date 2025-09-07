@@ -14,7 +14,7 @@ class Appointment extends Model
     use HasFactory;
 
     /* ------------------------------------------------------------------ */
-    /*  Champs                                                            */
+    /*  Fields                                                            */
     /* ------------------------------------------------------------------ */
     protected $fillable = [
         'client_profile_id',
@@ -27,23 +27,31 @@ class Appointment extends Model
         'product_id',
         'stripe_session_id',
         'google_event_id',
-        'external',            // ← créneau issu d’un import Google
+        'external',                // imported busy slot from Google
+        'practice_location_id',    // ← SELECTED cabinet location (if cabinet)
+        'address',                 // ← optional, for domicile override
+        'token',                   // allow mass-assign only if you want; it is auto-set in creating()
     ];
 
     protected $casts = [
         'appointment_date' => 'datetime',
         'external'         => 'boolean',
+        'duration'         => 'integer',
     ];
 
     /* ------------------------------------------------------------------ */
-    /*  Boot : token public + observers Google                            */
+    /*  Boot: public token + Google observers                             */
     /* ------------------------------------------------------------------ */
     protected static function boot()
     {
         parent::boot();
 
-        // token public (lien patient)
-        static::creating(fn ($appt) => $appt->token = Str::random(64));
+        // Generate public token (patient link)
+        static::creating(function ($appt) {
+            if (empty($appt->token)) {
+                $appt->token = Str::random(64);
+            }
+        });
     }
 
     protected static function booted()
@@ -54,16 +62,88 @@ class Appointment extends Model
     }
 
     /* ------------------------------------------------------------------ */
-    /*  Synchronisation Google Calendar                                   */
+    /*  Helpers: Determine mode & location                                */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Returns one of: 'cabinet' | 'visio' | 'domicile'
+     */
+    public function getResolvedMode(): string
+    {
+        if ($this->practice_location_id) {
+            return 'cabinet';
+        }
+
+        // Fallback from product flags
+        $product = $this->product;
+        if ($product?->visio || $product?->en_visio) {
+            return 'visio';
+        }
+        if ($product?->adomicile) {
+            return 'domicile';
+        }
+
+        // Default
+        return 'cabinet';
+    }
+
+    /**
+     * Human label for mode.
+     */
+    public function getResolvedModeLabel(): string
+    {
+        return [
+            'cabinet'  => __('Dans le Cabinet'),
+            'visio'    => __('En Visio'),
+            'domicile' => __('À Domicile'),
+        ][$this->getResolvedMode()] ?? __('Non spécifié');
+    }
+
+    /**
+     * Returns the best address string for Google event "location"
+     * depending on the resolved mode.
+     */
+    public function getResolvedLocationString(): string
+    {
+        $mode = $this->getResolvedMode();
+
+        if ($mode === 'visio') {
+            // Usually Google Meet appended; keep a simple marker.
+            return 'Visio';
+        }
+
+        if ($mode === 'domicile') {
+            // Prefer explicit appointment.address (if saved), else client profile address.
+            return $this->address
+                ?: ($this->clientProfile?->address ?: 'Domicile client');
+        }
+
+        // mode === 'cabinet'
+        if ($this->practiceLocation) {
+            // Use accessor full_address from PracticeLocation
+            // (getFullAddressAttribute in your model exposes "full_address")
+            $pieces = array_filter([
+                $this->practiceLocation->label,
+                $this->practiceLocation->full_address,
+            ]);
+            return implode(' - ', $pieces);
+        }
+
+        // Fallback to therapist company address if no practice location on record
+        return $this->user?->company_address ?: 'Cabinet';
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Google Calendar Sync                                              */
     /* ------------------------------------------------------------------ */
     public function syncToGoogle(): void
     {
-        // 1. ne rien pousser si  ► créneau « Occupé » importé  OU  pas de token
-        if ($this->external)                return;
+        // 1) Skip if: imported busy slot OR therapist has no Google token
+        if ($this->external) return;
         $therapist = $this->user;
         if (!$therapist?->google_access_token) return;
 
-        // 2. prépare Spatie (token en fichier jetable)
+        // 2) Prepare Spatie (token via temp file)
         $tokenArr  = json_decode($therapist->google_access_token, true);
         $tokenPath = GoogleTokenFile::put($therapist->id, $tokenArr);
 
@@ -72,25 +152,17 @@ class Appointment extends Model
             'google-calendar.auth_profiles.oauth.token_json'  => $tokenPath,
         ]);
 
-        // 3. données métier
+        // 3) Business data
         $productName = optional($this->product)->name ?? 'Prestation';
         $clientName  = trim(
             optional($this->clientProfile)->first_name.' '.
             optional($this->clientProfile)->last_name
         );
 
-        // mode de consultation (méthode du modèle Product)
-        $mode = optional($this->product)
-                  ->getConsultationModes()[0] ?? 'Non spécifié';
+        $mode        = $this->getResolvedMode();               // 'cabinet' | 'visio' | 'domicile'
+        $location    = $this->getResolvedLocationString();
 
-        $location = match($mode) {
-            'En Visio'        => 'Visio',
-            'À Domicile'      => optional($this->clientProfile)->address ?? 'Domicile client',
-            'Dans le Cabinet' => $therapist->company_address ?? 'Cabinet',
-            default           => '',
-        };
-
-        // tag pour éviter toute boucle lors de l’import
+        // tag to prevent import loops
         $description = rtrim(($this->notes ?? '')."\n\n[AromaMade]");
 
         $eventData = [
@@ -101,18 +173,18 @@ class Appointment extends Model
             'location'      => $location,
         ];
 
-        // 4. create / update
+        // 4) Create / Update
         if ($this->google_event_id) {
             GoogleEvent::find($this->google_event_id)?->update($eventData);
         } else {
             $event = GoogleEvent::create($eventData);
 
-            // ajoute Meet si visio
-            if ($mode === 'En Visio') {
+            // Add Google Meet if visio
+            if ($mode === 'visio') {
                 $event->addMeetLink()->save();
             }
 
-            // stocke l’id Google
+            // Save Google event id silently
             $this->forceFill(['google_event_id' => $event->id])->saveQuietly();
         }
 
@@ -144,9 +216,33 @@ class Appointment extends Model
     /* ------------------------------------------------------------------ */
     /*  Relations                                                         */
     /* ------------------------------------------------------------------ */
-    public function product()       { return $this->belongsTo(Product::class); }
-    public function user()          { return $this->belongsTo(User::class); }
-    public function clientProfile() { return $this->belongsTo(ClientProfile::class); }
-    public function meeting()       { return $this->hasOne(Meeting::class); }
-    public function invoice()       { return $this->hasOne(Invoice::class); }
+    public function practiceLocation()
+    {
+        return $this->belongsTo(\App\Models\PracticeLocation::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class); // therapist
+    }
+
+    public function clientProfile()
+    {
+        return $this->belongsTo(ClientProfile::class);
+    }
+
+    public function meeting()
+    {
+        return $this->hasOne(Meeting::class);
+    }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }

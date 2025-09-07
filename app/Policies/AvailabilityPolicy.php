@@ -11,23 +11,54 @@ class AvailabilityPolicy
     use HandlesAuthorization;
 
     /**
-     * Determine whether the user can update the availability.
+     * Let admins pass everything (optional).
      */
-    public function update(User $user, Availability $availability)
+    public function before(User $user, $ability)
     {
-        return $user->id === $availability->user_id;
+        if (property_exists($user, 'is_admin') && $user->is_admin) {
+            return true;
+        }
     }
 
     /**
-     * Determine whether the user can delete the availability.
+     * Can the user list their availabilities?
      */
-    public function delete(User $user, Availability $availability)
+    public function viewAny(User $user): bool
     {
-        return $user->id === $availability->user_id;
+        // adjust if you want all authenticated users
+        return (bool) ($user->is_therapist ?? false);
     }
-		public function viewAny(User $user)
-{
-    // Only allow users who are therapists
-    return $user->is_therapist;
-}
+
+    /**
+     * Can the user see a specific availability?
+     */
+    public function view(User $user, Availability $availability): bool
+    {
+        return $availability->user_id === $user->id;
+    }
+
+    /**
+     * Can the user get to the "create" page and store a new availability?
+     */
+    public function create(User $user): bool
+    {
+        // adjust if you want to allow any logged-in user
+        return (bool) ($user->is_therapist ?? false);
+    }
+
+    /**
+     * Can the user update an availability?
+     */
+    public function update(User $user, Availability $availability): bool
+    {
+        return $availability->user_id === $user->id;
+    }
+
+    /**
+     * Can the user delete an availability?
+     */
+    public function delete(User $user, Availability $availability): bool
+    {
+        return $availability->user_id === $user->id;
+    }
 }

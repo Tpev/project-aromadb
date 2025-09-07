@@ -21,6 +21,27 @@
             <form action="{{ route('availabilities.store') }}" method="POST">
                 @csrf
 
+                <!-- Lieu (facultatif) -->
+                <div class="details-box">
+                    <label class="details-label" for="practice_location_id">{{ __('Lieu (cabinet)') }}</label>
+                    <select id="practice_location_id" name="practice_location_id" class="form-control select2-single">
+                        <option value="">{{ __('— Aucun (Visio / Domicile / Générale) —') }}</option>
+                        @foreach($locations as $loc)
+                            <option value="{{ $loc->id }}" {{ old('practice_location_id') == $loc->id ? 'selected' : '' }}>
+                                {{ $loc->label }}
+                                @if($loc->is_primary) — {{ __('Principal') }} @endif
+                                @if($loc->city) — {{ $loc->city }} @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="form-text text-muted">
+                        {{ __('Laisser vide pour des créneaux non liés à un cabinet (ex : Visio, Domicile).') }}
+                    </small>
+                    @error('practice_location_id')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Jour de la Semaine -->
                 <div class="details-box">
                     <label class="details-label" for="day_of_week">{{ __('Jour de la Semaine') }}</label>
@@ -53,7 +74,7 @@
                     @enderror
                 </div>
 
-                <!-- Checkbox to Apply Availability to All Products -->
+                <!-- Checkbox: s'applique à tous les produits -->
                 <div class="details-box">
                     <div class="form-check">
                         <input type="checkbox" name="applies_to_all" id="applies_to_all" class="form-check-input" value="1" {{ old('applies_to_all') ? 'checked' : '' }}>
@@ -64,16 +85,14 @@
                     @enderror
                 </div>
 
-                <!-- Multi-Select for Products (Visible Only If Not Applying to All) -->
+                <!-- Sélecteur multi-produits (si non « tous les produits ») -->
                 <div class="details-box" id="products_select_group" style="{{ old('applies_to_all') ? 'display: none;' : '' }}">
                     <label class="details-label" for="products">{{ __('Sélectionner les Produits') }}</label>
                     <select name="products[]" id="products" class="form-control select2" multiple>
                         @foreach($products as $product)
                             <option value="{{ $product->id }}" 
-                                @if(is_array(old('products')) && in_array($product->id, old('products'))) 
-                                    selected 
-                                @endif>
-                                        {{ $product->name }} - {{ $product->getConsultationModes() }}
+                                @if(is_array(old('products')) && in_array($product->id, old('products'))) selected @endif>
+                                {{ $product->name }} - {{ $product->getConsultationModes() }}
                             </option>
                         @endforeach
                     </select>
@@ -104,7 +123,7 @@
 
     <script>
         $(document).ready(function(){
-            // Initialize Timepicker
+            // Timepicker
             $('.timepicker').timepicker({
                 timeFormat: 'HH:mm',
                 interval: 15,
@@ -115,16 +134,21 @@
                 scrollbar: true
             });
 
-            // Initialize Select2
+            // Select2
             $('.select2').select2({
                 placeholder: "{{ __('Sélectionner des produits') }}",
                 allowClear: true,
                 width: '100%',
                 dropdownAutoWidth: true,
-                // You can add more configurations here
+            });
+            $('.select2-single').select2({
+                placeholder: "{{ __('— Aucun (Visio / Domicile / Générale) —') }}",
+                allowClear: true,
+                width: '100%',
+                dropdownAutoWidth: true,
             });
 
-            // Toggle Product Selection Based on 'Appliquer à tous les produits' Checkbox
+            // Toggle produits si "tous"
             $('#applies_to_all').change(function(){
                 if(this.checked){
                     $('#products_select_group').hide();
@@ -133,7 +157,7 @@
                 }
             });
 
-            // On page load, check the checkbox state and toggle product selection
+            // Etat initial
             if($('#applies_to_all').is(':checked')){
                 $('#products_select_group').hide();
             } else {
@@ -144,168 +168,48 @@
 
     <!-- Custom Styles -->
     <style>
-        .container {
-            max-width: 800px;
-        }
-
+        .container { max-width: 800px; }
         .details-container {
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
+            background-color: #f9f9f9; border-radius: 10px; padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); margin: 0 auto;
         }
-
-        .details-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .details-box {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .details-label {
-            font-weight: 600;
-            color: #647a0b;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #854f38;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        .form-check-input {
-            margin-right: 10px;
-        }
-
+        .details-title { font-size: 2rem; font-weight: bold; color: #647a0b; margin-bottom: 20px; text-align: center; }
+        .details-box { margin-bottom: 20px; text-align: left; }
+        .details-label { font-weight: 600; color: #647a0b; display: block; margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #854f38; border-radius: 5px; box-sizing: border-box; }
+        .form-check-input { margin-right: 10px; }
         .btn-primary, .btn-secondary {
-            padding: 10px 20px;
-            font-size: 1rem;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin: 5px;
+            padding: 10px 20px; font-size: 1rem; border-radius: 5px; text-decoration: none;
+            display: inline-flex; align-items: center; cursor: pointer; transition: background-color 0.3s; margin: 5px;
         }
+        .btn-primary { background-color: #647a0b; color: #ffffff; border: none; }
+        .btn-primary:hover { background-color: #854f38; }
+        .btn-secondary { background-color: transparent; color: #854f38; border: 1px solid #854f38; }
+        .btn-secondary:hover { background-color: #854f38; color: #ffffff; }
+        .text-red-500 { color: #e3342f; font-size: 0.875rem; margin-top: 5px; }
+        .d-flex { display: flex; align-items: center; }
+        .justify-content-center { justify-content: center; }
+        .ml-3 { margin-left: 15px; }
+        .mr-2 { margin-right: 8px; }
+        .form-check { display: flex; align-items: center; }
 
-        .btn-primary {
-            background-color: #647a0b;
-            color: #ffffff;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #854f38;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: #854f38;
-            border: 1px solid #854f38;
-        }
-
-        .btn-secondary:hover {
-            background-color: #854f38;
-            color: #ffffff;
-        }
-
-        .text-red-500 {
-            color: #e3342f;
-            font-size: 0.875rem;
-            margin-top: 5px;
-        }
-
-        .d-flex {
-            display: flex;
-            align-items: center;
-        }
-
-        .justify-content-center {
-            justify-content: center;
-        }
-
-        .ml-3 {
-            margin-left: 15px;
-        }
-
-        .mr-2 {
-            margin-right: 8px;
-        }
-
-        .form-check {
-            display: flex;
-            align-items: center;
-        }
-
-        /* Select2 Custom Styles */
-        /* Ensure Select2 dropdowns appear above other elements */
+        /* Select2 custom */
+        .select2-container--default .select2-selection--single,
         .select2-container--default .select2-selection--multiple {
-            background-color: #ffffff;
-            border: 1px solid #854f38;
-            border-radius: 5px;
-            min-height: 38px;
+            border: 1px solid #854f38; border-radius: 5px; min-height: 38px;
         }
-
-        .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-            padding: 4px;
-        }
-
+        .select2-container--default .select2-selection--multiple .select2-selection__rendered { padding: 4px; }
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background-color: #647a0b;
-            border: 1px solid #647a0b;
-            color: #ffffff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            margin-top: 5px;
+            background-color: #647a0b; border: 1px solid #647a0b; color: #ffffff; padding: 5px 10px; border-radius: 4px; margin-top: 5px;
         }
-
-        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
-            color: #ffffff;
-            margin-right: 5px;
-        }
-
-        .select2-container--default .select2-selection--multiple .select2-selection__choice:hover {
-            background-color: #854f38;
-            border-color: #854f38;
-        }
-
-        .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: #647a0b;
-            color: #ffffff;
-        }
-
-        .select2-container--default .select2-selection--multiple .select2-selection__placeholder {
-            color: #854f38;
-        }
-
-        /* Adjust scrollbar in dropdown */
-        .select2-container--default .select2-results__options {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        /* Responsive Adjustments */
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: #ffffff; margin-right: 5px; }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice:hover { background-color: #854f38; border-color: #854f38; }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #647a0b; color: #ffffff; }
+        .select2-container--default .select2-selection--multiple .select2-selection__placeholder { color: #854f38; }
+        .select2-container--default .select2-results__options { max-height: 200px; overflow-y: auto; }
         @media (max-width: 768px) {
-            .select2-container--default .select2-selection--multiple {
-                min-height: 50px;
-            }
-
-            .select2-container--default .select2-selection--multiple .select2-selection__choice {
-                padding: 8px 12px;
-                font-size: 0.9rem;
-            }
+            .select2-container--default .select2-selection--multiple { min-height: 50px; }
+            .select2-container--default .select2-selection--multiple .select2-selection__choice { padding: 8px 12px; font-size: 0.9rem; }
         }
     </style>
 </x-app-layout>

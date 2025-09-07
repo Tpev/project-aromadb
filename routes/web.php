@@ -53,6 +53,20 @@ use App\Http\Controllers\ClientAuthController;
 use App\Http\Controllers\ClientMessageController;
 use App\Http\Controllers\Auth\ClientPasswordResetController;
 use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\PracticeLocationController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('practice-locations', PracticeLocationController::class)
+        ->parameters(['practice-locations' => 'practice_location'])
+        ->names([
+            'index'   => 'practice-locations.index',
+            'create'  => 'practice-locations.create',
+            'store'   => 'practice-locations.store',
+            'edit'    => 'practice-locations.edit',
+            'update'  => 'practice-locations.update',
+            'destroy' => 'practice-locations.destroy',
+        ]);
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('google/connect', [GoogleCalendarController::class, 'redirect'])
