@@ -1636,6 +1636,24 @@ private function resolveMode(\App\Models\Product $product, ?string $requested = 
     return 'cabinet';
 }
 
+// app/Http/Controllers/AppointmentController.php
+
+public function destroy(Appointment $appointment)
+{
+    // Make sure the current user owns this appointment
+    $this->authorize('delete', $appointment); // keep/remove if you use policies
+
+    // Optional: clean up related records (safe if relation doesn't exist)
+    optional($appointment->meeting)->delete();
+    // optional($appointment->invoice)->delete(); // usually you KEEP invoices
+
+    // Triggers Appointment::deleted -> removeFromGoogle()
+    $appointment->delete();
+
+    return redirect()
+        ->route('appointments.index')
+        ->with('success', 'Le rendez-vous a été supprimé.');
+}
 
 
 }
