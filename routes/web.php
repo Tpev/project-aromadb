@@ -54,6 +54,7 @@ use App\Http\Controllers\ClientMessageController;
 use App\Http\Controllers\Auth\ClientPasswordResetController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\PracticeLocationController;
+use App\Models\User;
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('practice-locations', PracticeLocationController::class)
@@ -687,20 +688,36 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
     Route::get('/pro', function () {
         return view('prolanding');
     })->name('prolanding');
-    // Route to the welcome page directly returning the welcome view
+ 
 Route::get('/', function () {
-    // Fetch upcoming events from users with visible_annuarire_admin_set = true
+    // Upcoming events
     $events = Event::with('user')
-        ->whereHas('user', function($query) {
-            $query->where('visible_annuarire_admin_set', true);
-        })
+        ->whereHas('user', fn($q) => $q->where('visible_annuarire_admin_set', true))
         ->where('start_date_time', '>', now())
         ->orderBy('start_date_time', 'asc')
         ->take(5)
         ->get();
 
-    return view('welcome', compact('events'));
+    // Featured therapists (use profile_picture — your real column)
+    $featuredTherapists = User::query()
+        ->where('is_therapist', true)
+        ->where('visible_annuarire_admin_set', true) // optional
+        ->where('is_featured', true)
+        ->where(function ($q) {
+            $q->whereNull('featured_until')
+              ->orWhere('featured_until', '>', now());
+        })
+        ->whereNotNull('slug')
+        ->whereNotNull('profile_picture')   // ✅ keep this, drop cover_photo_path entirely
+        ->orderByDesc('featured_weight')
+
+        ->latest('id')
+        ->limit(9)
+        ->get();
+
+    return view('welcome', compact('events', 'featuredTherapists'));
 })->name('welcome');
+
 	Route::get('/formation/Utilisateur-Aromatherapie{numero}', [App\Http\Controllers\FormationController::class, 'show'])->name('formation.show');
 	Route::get('/formation/Therapeute-Sales{numero}', [App\Http\Controllers\FormationController::class, 'show1'])->name('formation.show1');
 	
@@ -756,6 +773,8 @@ Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])-
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
 Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
+Route::put('/admin/therapists/{therapist}/featured', [\App\Http\Controllers\AdminController::class, 'updateFeatured'])
+        ->name('admin.therapists.updateFeatured');
 Route::put(
     '/admin/therapists/{therapist}/picture',
     [AdminController::class, 'updateTherapistPicture']

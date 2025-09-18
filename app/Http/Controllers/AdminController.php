@@ -574,5 +574,37 @@ public function updateLesson(Request $request, $id)
     return redirect()->back()->with('success', 'Le contenu de la leçon a été mis à jour avec succès.');
 }
 
+public function updateFeatured(Request $request, User $therapist)
+{
+    // Admin gate
+    if (!auth()->user() || !auth()->user()->isAdmin()) {
+        return redirect('/')->with('error', 'Unauthorized access');
+    }
+
+    // Validate inputs (featured_until is optional)
+    $data = $request->validate([
+        'is_featured'      => ['nullable','boolean'],
+        'featured_until'   => ['nullable','date'], // you can add 'after:now' if you prefer
+        'featured_weight'  => ['nullable','integer','between:0,100'],
+    ]);
+
+    // Normalize checkbox (when unchecked, it's absent)
+    $therapist->is_featured = $request->has('is_featured');
+
+    // Optional extras
+    if (array_key_exists('featured_until', $data)) {
+        $therapist->featured_until = $data['featured_until'];
+    }
+    if (array_key_exists('featured_weight', $data)) {
+        $therapist->featured_weight = $data['featured_weight'] ?? 0;
+    }
+
+    $therapist->save();
+
+    // (Optional) bust home cache if you cache featured section
+    // Cache::forget('home.featuredTherapists');
+
+    return back()->with('success', 'Featured settings updated successfully.');
+}
 
 }

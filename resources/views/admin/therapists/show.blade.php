@@ -396,6 +396,31 @@
                 {{ session('success') }}
             </div>
         @endif
+{{-- Toggle Featured --}}
+<form action="{{ route('admin.therapists.updateFeatured', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+    @csrf
+    @method('PUT')
+    <h2 class="section-title">Mise en avant (Featured)</h2>
+
+    <div>
+        <label for="is_featured">Mettre à la une :</label>
+        <input type="checkbox" name="is_featured" id="is_featured" value="1" {{ $therapist->is_featured ? 'checked' : '' }}>
+    </div>
+
+    <div style="margin-top:10px;">
+        <label for="featured_until">Jusqu’au (optionnel) :</label>
+        <input type="datetime-local" name="featured_until" id="featured_until"
+               value="{{ $therapist->featured_until ? $therapist->featured_until->format('Y-m-d\TH:i') : '' }}">
+    </div>
+
+    <div style="margin-top:10px;">
+        <label for="featured_weight">Poids (0–100, optionnel) :</label>
+        <input type="number" min="0" max="100" name="featured_weight" id="featured_weight"
+               value="{{ old('featured_weight', $therapist->featured_weight ?? 0) }}">
+    </div>
+
+    <button type="submit" style="margin-top:12px;">Mettre à jour</button>
+</form>
 
         <!-- Form to update the therapist's profile picture -->
         <form action="{{ route('admin.therapists.updatePicture', $therapist->id) }}" method="POST" enctype="multipart/form-data" style="margin-bottom:40px;">

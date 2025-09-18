@@ -55,6 +55,9 @@ class User extends Authenticatable
         'google_access_token',
         'google_refresh_token',
         'google_token_expires_at',
+		    'is_featured',
+    'featured_until',
+    'featured_weight',
 
     ];
 
@@ -69,6 +72,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
 		'accept_online_appointments' => 'boolean', // Ensure this line is present
+		    'is_featured' => 'boolean',
+    'featured_until' => 'datetime',
     ];
 
     // Relationships
@@ -190,5 +195,31 @@ public function practiceLocations()
 {
     return $this->hasMany(\App\Models\PracticeLocation::class);
 }
+public function scopeTherapists($q)
+{
+    return $q->where('is_therapist', true);
+}
 
+public function scopeCurrentlyFeatured($q)
+{
+    return $q->where('is_featured', true)
+        ->where(function ($q) {
+            $q->whereNull('featured_until')
+              ->orWhere('featured_until', '>', now());
+        });
+}
+
+public function scopeFeaturedOrdered($q)
+{
+    // Weight desc first, then rating desc, then newest
+    return $q->orderByDesc('featured_weight')
+             ->orderByDesc('average_rating')
+             ->latest('id');
+}
+
+/** Optional helper */
+public function isFeatured(): bool
+{
+    return (bool) $this->is_featured && (is_null($this->featured_until) || $this->featured_until->isFuture());
+}
 }

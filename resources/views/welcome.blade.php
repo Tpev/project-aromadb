@@ -128,54 +128,104 @@
     </div>
   </section>
 
-  {{-- ========================  FEATURED THERAPISTS  ======================== --}}
-  @if(isset($featuredTherapists) && $featuredTherapists->count())
-    <section class="py-12">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Praticiens à la une</h2>
-          <a href="{{ route('nos-practiciens') }}" class="text-[#854f38] hover:underline font-semibold">Voir tout</a>
-        </div>
+ {{-- ========================  FEATURED THERAPISTS  ======================== --}}
+@if(isset($featuredTherapists) && $featuredTherapists->count())
+  <section class="py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Praticiens à la une</h2>
+        <a href="{{ route('nos-practiciens') }}" class="text-[#854f38] hover:underline font-semibold">Voir tout</a>
+      </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          @foreach($featuredTherapists as $t)
-            <a href="{{ route('therapist.show', $t->slug) }}"
-               class="group bg-white rounded-2xl border border-gray-100 shadow hover:shadow-lg transition overflow-hidden">
-              <div class="h-40 sm:h-44 w-full bg-gray-100">
-                @if($t->cover_photo_path)
-                  <img src="{{ asset('storage/'.$t->cover_photo_path) }}" alt="Photo de {{ $t->name }}"
-                       class="w-full h-full object-cover" loading="lazy">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @foreach($featuredTherapists as $therapist)
+          <div class="flex flex-col bg-white shadow-xl rounded-xl overflow-hidden transform hover:-translate-y-1 transition-all duration-300">
+
+            <!-- Header Banner -->
+            <div class="relative h-40 bg-[#647a0b]">
+              @if($therapist->verified ?? false)
+                <div class="absolute top-2 right-2">
+                  <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    Vérifié
+                  </span>
+                </div>
+              @endif
+            </div>
+
+            <!-- Profile Image (overlapping the banner) -->
+            <div class="relative flex justify-center -mt-16">
+              <img
+                class="w-32 h-32 rounded-full border-4 border-white object-cover"
+                src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/150' }}"
+                alt="{{ $therapist->name }}"
+              >
+            </div>
+
+            <!-- Card Details -->
+            <div class="flex flex-col flex-grow px-4 pt-2 pb-4">
+              <div class="text-center">
+                <h4 class="text-2xl font-bold text-[#647a0b]">{{ $therapist->name }}</h4>
+
+                @if($therapist->company_name)
+                  <p class="text-sm text-[#647a0b]">{{ $therapist->company_name }}</p>
+                @endif
+
+                @if($therapist->city_setByAdmin)
+                  <p class="text-sm text-[#647a0b]">
+                    <i class="fas fa-map-marker-alt"></i> {{ $therapist->city_setByAdmin }}
+                  </p>
                 @endif
               </div>
-              <div class="p-5">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg sm:text-xl font-semibold text-[#854f38] line-clamp-2">{{ $t->name }}</h3>
-                  @if($t->average_rating)
-                    <span class="text-xs sm:text-sm bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md whitespace-nowrap">
-                      {{ number_format($t->average_rating,1) }} ★
+
+              <!-- Specialty Badges -->
+              <div class="mt-2 text-center">
+                @php
+                  // services can be JSON or array; normalize to array
+                  $servicesRaw = $therapist->services ?? [];
+                  $services = is_array($servicesRaw) ? $servicesRaw : (json_decode($servicesRaw, true) ?: []);
+                @endphp
+                @if(!empty($services))
+                  @foreach($services as $service)
+                    <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full m-1">
+                      {{ $service }}
+                    </span>
+                  @endforeach
+                @endif
+              </div>
+
+              @php
+                $aboutPlain = strip_tags($therapist->about ?? 'Informations à propos non disponibles.');
+              @endphp
+
+              <p class="mt-4 text-sm text-[#647a0b] text-center">
+                {{ Str::limit($aboutPlain, 100) }}
+              </p>
+
+              <!-- Rating / Testimonials and CTA -->
+              <div class="mt-4 flex flex-col items-center space-y-2">
+                <div class="flex items-center space-x-2 text-[#647a0b] text-sm">
+                  <i class="fas fa-comment-alt"></i>
+                  <span>{{ $therapist->testimonials()->count() }} témoignage(s)</span>
+
+                  @if(!is_null($therapist->average_rating))
+                    <span class="inline-flex items-center gap-1">
+                      • <strong>{{ number_format($therapist->average_rating, 1) }}</strong>★
                     </span>
                   @endif
                 </div>
-                <p class="mt-1 text-sm text-gray-600">
-                  {{ $t->primary_specialty ?? 'Médecines douces' }} · @if($t->city) {{ $t->city }} @endif
-                </p>
-                <div class="mt-3 flex flex-wrap gap-2 text-xs text-gray-700">
-                  @if($t->offers_visio) <span class="px-2 py-1 rounded-full bg-gray-100">Visio</span> @endif
-                  @if($t->offers_home)  <span class="px-2 py-1 rounded-full bg-gray-100">À domicile</span> @endif
-                  @if($t->offers_office)<span class="px-2 py-1 rounded-full bg-gray-100">En cabinet</span> @endif
-                </div>
-                <div class="mt-4">
-                  <span class="inline-flex items-center text-[#647a0b] font-semibold group-hover:translate-x-1 transition">
-                    Prendre RDV →
-                  </span>
-                </div>
+
+                <a href="{{ route('therapist.show', $therapist->slug) }}" class="btn btn-primary text-xs w-full md:w-auto">
+                  Voir profil
+                </a>
               </div>
-            </a>
-          @endforeach
-        </div>
+            </div>
+          </div>
+        @endforeach
       </div>
-    </section>
-  @endif
+    </div>
+  </section>
+@endif
+
 
   {{-- ========================  HOW IT WORKS + ESPACE CLIENT  ======================== --}}
   <section class="bg-[#f9fafb] py-12">
