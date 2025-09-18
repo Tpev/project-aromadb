@@ -1,579 +1,441 @@
 <x-app-layout>
-    @section('meta_description')
-        Bienvenue sur AromaMade, le portail tout-en-un dédié au bien-être : découvrez un annuaire de thérapeutes certifiés, des ressources expertes, des événements inspirants, des formations.
-    @endsection
+  {{-- ========================  SEO  ======================== --}}
+  @section('title', 'Trouvez un thérapeute près de chez vous | AromaMade')
+  @section('meta_description')
+    Réservez en ligne avec des thérapeutes certifiés (naturopathie, sophrologie, ostéopathie…). Profils vérifiés, avis, tarifs, prise de RDV simple. Espace Client pour partager vos documents en toute sécurité. Événements & ateliers organisés par nos membres.
+  @endsection
 
-    <!-- Hero Section with Logo and Search Bar -->
-    <div class="hero bg-cover bg-center flex flex-col items-center justify-center text-white"
-         style="background-image: url('{{ asset('images/hero-background.webp') }}'); height: 60vh;">
-        <div class="container mx-auto text-center">
-            <!-- Display Logo -->
-            <img src="{{ asset('images/white-logo.png') }}" alt="AromaMade Logo" class="mx-auto logo mb-6">
-        </div>
-        <!-- Search Bar -->
-        <div class="search-container absolute bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-2xl z-10 px-4">
-            <input type="text" id="search-input" class="search-input w-full"
-                   placeholder="Rechercher des huiles, tisanes, recettes, articles..."
-                   autocomplete="off"
-                   aria-label="Recherche">
-            <div id="search-results" class="search-results"></div>
-        </div>
-    </div>
+  {{-- Head extras: Canonical, Social --}}
+  <x-slot name="head">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta name="robots" content="index,follow">
 
-    <!-- Features Section (Nos Catégories) -->
-    <section class="py-8 bg-white">
-        <div class="container mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4" style="color: #647a0b;">
-                <i class="fas fa-th-large mr-2" style="color: #854f38;"></i>Nos catégories
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Huile Essentielle -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-leaf text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Huiles Essentielles</h3>
-                    <p class="text-lg mb-4">
-                        Découvrez des informations fiables sur les huiles essentielles : leurs bienfaits,
-                        usages, et précautions, pour un usage éclairé et responsable.
-                    </p>
-                    <a href="{{ route('huilehes.index') }}" class="btn-primary">Découvrir</a>
-                </div>
+    {{-- Social --}}
+    <meta property="og:site_name" content="AromaMade">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Trouvez un thérapeute près de chez vous | AromaMade">
+    <meta property="og:description" content="Réservez avec des praticiens vérifiés. Avis, tarifs, Espace Client sécurisé.">
+    <meta property="og:image" content="{{ asset('images/og-home.webp') }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Trouvez un thérapeute près de chez vous | AromaMade">
+    <meta name="twitter:description" content="Prise de RDV simple, profils vérifiés, Espace Client sécurisé.">
+    <meta name="twitter:image" content="{{ asset('images/og-home.webp') }}">
 
-                <!-- Huile Végétale -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-seedling text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Huiles Végétales</h3>
-                    <p class="text-lg mb-4">
-                        Découvrez notre collection d'huiles végétales, soigneusement documentée pour offrir
-                        des informations fiables sur leurs bienfaits naturels.
-                    </p>
-                    <a href="{{ route('huilehvs.index') }}" class="btn-primary">Explorer</a>
-                </div>
-
-                <!-- Tisanes -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-mug-hot text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Tisanes</h3>
-                    <p class="text-lg mb-4">
-                        Explorez les tisanes, où chaque infusion est accompagnée d'informations précises et
-                        vérifiées. Que ce soit pour la relaxation ou pour leurs vertus spécifiques.
-                    </p>
-                    <a href="{{ route('tisanes.index') }}" class="btn-primary">Voir plus</a>
-                </div>
-
-                <!-- Recettes -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-book-open text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Recettes</h3>
-                    <p class="text-lg mb-4">
-                        Explorez des recettes naturelles soigneusement élaborées pour soutenir votre
-                        bien-être, tout en mettant en avant l’efficacité des huiles essentielles, végétales,
-                        et tisanes.
-                    </p>
-                    <a href="{{ route('recettes.index') }}" class="btn-primary">Voir Recettes</a>
-                </div>
-
-                <!-- Articles -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-newspaper text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Articles</h3>
-                    <p class="text-lg mb-4">
-                        Découvrez des articles hebdomadaires sur l'aromathérapie, le bien-être, et les bonnes
-                        pratiques pour rester en bonne santé naturellement.
-                    </p>
-                    <a href="{{ route('blog.index') }}" class="btn-primary">Lire les Articles</a>
-                </div>
-
-                <!-- Thérapeutes -->
-                <div class="text-center bg-gray-100 p-6 rounded-lg shadow">
-                    <i class="fas fa-user-md text-6xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-4" style="color: #647a0b;">Thérapeutes</h3>
-                    <p class="text-lg mb-4">
-                        Découvrez des praticiens certifiés en médecines douces, soigneusement sélectionnés
-                        pour vous accompagner vers un bien-être optimal.
-                    </p>
-                    <a href="{{ route('nos-practiciens') }}" class="btn-primary">Voir les Thérapeutes</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Therapists Section -->
-    <section class="py-12 bg-white">
-        <div class="container mx-auto text-center px-4">
-            <!-- Icon at the top -->
-            <i class="fas fa-user-md text-6xl mb-4" style="color: #854f38;"></i>
-            <h2 class="text-2xl font-bold mb-4" style="color: #647a0b;">Espace Thérapeutes</h2>
-            <p class="text-lg mb-4 text-gray-700 max-w-3xl mx-auto">
-                Vous êtes thérapeute ? Découvrez comment AromaMade PRO peut vous aider à optimiser votre
-                pratique, élargir votre clientèle, et gagner du temps au quotidien grâce à nos outils dédiés.
-            </p>
-            <div class="mt-8">
-                <a href="{{ route('prolanding') }}" class="btn-primary">Découvrir l'Espace Thérapeutes</a>
-            </div>
-        </div>
-    </section>
-
-<!-- Events Section: Showcase Upcoming Events in a Single Row -->
-<section class="py-12 bg-[#f9fafb]">
-    <div class="container mx-auto px-4">
-        <h3 class="text-3xl font-semibold text-[#854f38] flex items-center mb-6">
-            <i class="fas fa-calendar-alt text-[#854f38] mr-3"></i> Événements à Venir
-        </h3>
-        @if($events->count() > 0)
-            <!-- Single-row horizontal scroll -->
-            <div class="flex overflow-x-auto space-x-4">
-                @foreach($events as $event)
-                    <!-- Event Card -->
-                    <div class="flex-shrink-0 w-80 border border-gray-200 rounded-lg
-                                overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white
-                                flex flex-col">
-                        <!-- Event Image -->
-                        @if($event->image)
-                            <img src="{{ asset('storage/' . $event->image) }}"
-                                 alt="{{ $event->name }}"
-                                 class="w-full h-48 object-cover">
-                        @endif
-
-                        <!-- Event Content -->
-                        <div class="p-6 flex-grow flex flex-col">
-                            <!-- Title & Date -->
-                            <h4 class="text-2xl font-semibold text-[#854f38]">
-                                {{ $event->name }}
-                            </h4>
-                            <p class="mt-2 text-gray-600">
-                                <i class="fas fa-calendar-alt mr-1 text-[#854f38]"></i>
-                                {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
-                            </p>
-                            <p class="text-gray-600 mt-1">
-                                <i class="fas fa-map-marker-alt mr-1 text-[#854f38]"></i>
-                                {{ $event->location }}
-                            </p>
-
-                            <!-- Organizer -->
-                            @if($event->user)
-                                <p class="text-gray-600 mt-1">
-                                    <i class="fas fa-user mr-1 text-[#854f38]"></i>
-                                    Organisé par :
-                                    <a href="{{ route('therapist.show', $event->user->slug) }}"
-                                       class="text-blue-600 underline"
-                                       title="Voir le profil de {{ $event->user->name }}">
-                                        {{ $event->user->name }}
-                                    </a>
-                                </p>
-                            @endif
-
-                            <!-- Spots / Price -->
-                            @if($event->limited_spot)
-                                <p class="text-gray-600 mt-1">
-                                    <i class="fas fa-users mr-1 text-[#854f38]"></i>
-                                    {{ __('Places restantes :') }}
-                                    {{ $event->number_of_spot - $event->reservations->count() }}
-                                </p>
-                            @endif
-
-                            @if($event->associatedProduct && $event->associatedProduct->price > 0)
-                                <p class="text-gray-600 mt-1">
-                                    <i class="fas fa-tag mr-1 text-[#854f38]"></i>
-                                    {{ __('Prix :') }}
-                                    {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
-                                </p>
-                            @endif
-							<!-- Event Description with "Lire plus" toggle -->
-							<div x-data="{ showFull: false }" class="mt-4 text-gray-700">
-								<!-- Short excerpt shown when showFull = false -->
-								<p x-show="!showFull">{{ Str::limit($event->description, 80) }}</p>
-
-								<!-- Full description shown when showFull = true -->
-								<p x-show="showFull">{{ $event->description }}</p>
-
-								@if(strlen($event->description) > 80)
-									<!-- Toggle button -->
-									<button
-										@click="showFull = !showFull"
-										class="text-blue-600 underline text-sm mt-2"
-									>
-										<span x-show="!showFull">Lire plus</span>
-										<span x-show="showFull">Réduire</span>
-									</button>
-								@endif
-							</div>
-
-
-                            @php
-                                $spotsLeft = $event->limited_spot
-                                    ? $event->number_of_spot - $event->reservations->count()
-                                    : null;
-                            @endphp
-
-                            <!-- Booking Button aligned at bottom -->
-                            <div class="mt-auto pt-4">
-                                @if($event->booking_required)
-                                    @if(!$event->limited_spot || ($spotsLeft > 0))
-                                        <a href="{{ route('events.reserve.create', $event->id) }}"
-                                           class="inline-block bg-[#854f38] text-white text-sm px-6 py-2 rounded-full
-                                                  hover:bg-[#6a3f2c] transition-colors duration-300">
-                                            {{ __('Réserver') }}
-                                        </a>
-                                    @else
-                                        <p class="text-red-500 font-semibold text-sm">{{ __('Complet') }}</p>
-                                    @endif
-                                @endif
-                            </div>
-                        </div> <!-- .p-6 .flex-grow -->
-                    </div> <!-- .flex-shrink-0 -->
-                @endforeach
-            </div> <!-- .flex overflow-x-auto -->
-        @else
-            <p class="mt-6 text-gray-600">{{ __('Aucun événement à venir pour le moment.') }}</p>
-        @endif
-    </div>
-</section>
-
-
-
-    <!-- New Section for Additional Features -->
-    <section class="py-8 bg-gray-50">
-        <div class="container mx-auto text-center">
-            <h2 class="text-3xl font-bold mb-4" style="color: #647a0b;">Créez un compte gratuitement</h2>
-            <p class="text-lg max-w-3xl mx-auto mb-6">
-                En créant un compte gratuit sur AromaMade, vous accédez à des fonctionnalités exclusives. Sauvegardez
-                vos fiches préférées, que ce soit pour les huiles essentielles, les huiles végétales, les tisanes ou les
-                recettes, et bien plus encore !
-            </p>
-            <a href="{{ route('register') }}" class="btn-secondary">Créer un compte</a>
-        </div>
-    </section>
-
-    <!-- About Us Section -->
-    <section class="py-8 bg-gray-100">
-        <div class="container mx-auto">
-            <h2 class="text-3xl font-bold text-center mb-4" style="color: #647a0b;">
-                <i class="fas fa-info-circle mr-2" style="color: #854f38;"></i>À propos de nous
-            </h2>
-            <p class="text-lg text-center max-w-4xl mx-auto mb-6">
-                AromaMade est une plateforme créée pour offrir à tous un accès facile et gratuit à des informations
-                fiables et vérifiées sur les huiles essentielles, les huiles végétales, les tisanes, et bien plus encore.
-                Nous croyons que la connaissance de la nature et de ses bienfaits doit être partagée de manière
-                transparente, sans parti pris, afin que chacun puisse prendre des décisions éclairées pour son bien-être.
-            </p>
-            <p class="text-lg text-center max-w-4xl mx-auto mb-6">
-                Notre mission est de bâtir une base de données riche et qualitative, où chaque donnée est soigneusement
-                sélectionnée et validée, pour offrir une ressource accessible à tous, des amateurs de bien-être naturel
-                aux praticiens expérimentés. Nous voulons que ce savoir, autrefois dispersé ou difficile à trouver, soit
-                centralisé et présenté de manière claire, précise, et bienveillante.
-            </p>
-            <div class="text-center">
-                <a href="{{ route('welcome') }}" class="btn-secondary">En savoir plus</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Custom Styles -->
     <style>
-        .hero {
-            background-size: cover;
-            background-position: center;
-            min-height: 60vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            color: white;
-        }
-
-        /* Overlay for better text visibility */
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 0;
-        }
-
-        /* Ensure content is above the overlay */
-        .hero > .container,
-        .search-container {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Responsive Logo */
-        .logo {
-            max-width: 800px;
-            width: 100%;
-            height: auto;
-        }
-
-        @media (max-width: 768px) {
-            .logo {
-                max-width: 500px;
-            }
-        }
-
-        /* Button Styles */
-        .btn-primary {
-            background-color: #647a0b;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: background-color 0.3s, transform 0.2s;
-            display: inline-block;
-        }
-        .btn-primary:hover {
-            background-color: #576a0a;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background-color: #854f38;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1.1rem;
-            transition: background-color 0.3s, transform 0.2s;
-            display: inline-block;
-        }
-        .btn-secondary:hover {
-            background-color: #723c2f;
-            transform: translateY(-2px);
-        }
-
-        /* Custom Icon Color */
-        i {
-            color: #854f38;
-        }
-
-        /* Title Color */
-        h2, h3 {
-            color: #647a0b;
-        }
-
-        /* Search Styles */
-        .search-container {
-            position: absolute;
-            bottom: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0 1rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px 50px 15px 20px;
-            font-size: 1.2rem;
-            border: 2px solid #fff;
-            border-radius: 50px;
-            outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #333;
-        }
-
-        .search-input::placeholder {
-            color: #666;
-            font-style: italic;
-        }
-
-        .search-input:focus {
-            border-color: #854f38;
-            box-shadow: 0 0 10px rgba(133, 79, 56, 0.5);
-        }
-
-        /* Search Icon inside the input */
-        .search-container::after {
-            content: '\f002'; /* Font Awesome search icon */
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 900;
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #854f38;
-            pointer-events: none;
-        }
-
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: white;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: 0 0 8px 8px;
-        }
-
-        .search-result {
-            padding: 12px 20px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-        }
-
-        .search-result a {
-            text-decoration: none;
-            color: #333;
-            display: block;
-        }
-
-        .search-result:hover {
-            background-color: #f5f5f5;
-        }
-
-        .no-results {
-            padding: 12px 20px;
-            text-align: center;
-            color: #888;
-        }
-
-        /* Highlighting matched terms */
-        .highlight {
-            background-color: yellow;
-            color: #000;
-            border-radius: 3px;
-        }
-
-        /* Grouped Results Styles */
-        .search-type-header {
-            padding: 10px 20px;
-            background-color: #f0f0f0;
-            font-weight: bold;
-            border-bottom: 1px solid #ddd;
-            color: #647a0b;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 768px) {
-            .search-results {
-                max-height: 300px;
-            }
-        }
+      /* Utility clamps for titles/excerpts */
+      .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+      .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
     </style>
 
-    <!-- JavaScript for Instant Search -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const searchInput = document.getElementById('search-input');
-            const resultsContainer = document.getElementById('search-results');
-
-            // Debounce function to limit the rate of AJAX requests
-            function debounce(func, delay) {
-                let debounceTimer;
-                return function() {
-                    const context = this;
-                    const args = arguments;
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => func.apply(context, args), delay);
-                }
-            }
-
-            // Function to handle search
-            const handleSearch = debounce(function () {
-                const query = this.value.trim();
-
-                if (query.length > 2) { // Minimum 3 characters before triggering search
-                    fetch(`/search?query=${encodeURIComponent(query)}`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Error: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            resultsContainer.innerHTML = ''; // Clear previous results
-
-                            // Combine all results with type
-                            const results = [
-                                ...data.huileHEs.map(item => ({...item, type: 'Huile Essentielle'})),
-                                ...data.huileHVs.map(item => ({...item, type: 'Huile Végétale'})),
-                                ...data.tisanes.map(item => ({...item, type: 'Tisane'})),
-                                ...data.recettes.map(item => ({...item, type: 'Recette'})),
-                                ...data.articles.map(item => ({...item, type: 'Article'})),
-                            ];
-
-                            if (results.length > 0) {
-                                // Group results by type
-                                const groupedResults = results.reduce((acc, item) => {
-                                    acc[item.type] = acc[item.type] || [];
-                                    acc[item.type].push(item);
-                                    return acc;
-                                }, {});
-
-                                for (const [type, items] of Object.entries(groupedResults)) {
-                                    // Create a header for each type
-                                    const typeHeader = document.createElement('div');
-                                    typeHeader.classList.add('search-type-header');
-                                    typeHeader.textContent = type;
-                                    resultsContainer.appendChild(typeHeader);
-
-                                    items.forEach(result => {
-                                        const resultElement = document.createElement('div');
-                                        resultElement.classList.add('search-result');
-
-                                        // Highlight matched query
-                                        let displayName = (result.NomHE || result.NomHV || result.NomTisane || result.NomRecette || result.Title);
-                                        const regex = new RegExp(`(${query})`, 'gi');
-                                        displayName = displayName.replace(regex, '<span class="highlight">$1</span>');
-
-                                        // Construct URL based on type
-                                        let url = '#';
-                                        switch(result.type) {
-                                            case 'Huile Essentielle':
-                                                url = `/huilehes/${result.slug}`;
-                                                break;
-                                            case 'Huile Végétale':
-                                                url = `/huilehvs/${result.slug}`;
-                                                break;
-                                            case 'Tisane':
-                                                url = `/tisanes/${result.slug}`;
-                                                break;
-                                            case 'Recette':
-                                                url = `/recettes/${result.slug}`;
-                                                break;
-                                            case 'Article':
-                                                url = `/article/${result.slug}`;
-                                                break;
-                                            default:
-                                                url = '/';
-                                        }
-
-                                        resultElement.innerHTML = `<a href="${url}">${displayName}</a>`;
-                                        resultsContainer.appendChild(resultElement);
-                                    });
-                                }
-                            } else {
-                                resultsContainer.innerHTML = '<div class="no-results">Aucun résultat trouvé</div>';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Search Error:', error);
-                            resultsContainer.innerHTML = '<div class="no-results">Une erreur est survenue. Veuillez réessayer plus tard.</div>';
-                        });
-                } else {
-                    resultsContainer.innerHTML = ''; // Clear results if query is too short
-                }
-            }, 300); // 300ms debounce delay
-
-            searchInput.addEventListener('input', handleSearch);
-
-            // Close search results when clicking outside
-            document.addEventListener('click', function (e) {
-                if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
-                    resultsContainer.innerHTML = '';
-                }
-            });
-        });
+    {{-- JSON-LD: WebSite + SearchAction (therapists) --}}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AromaMade",
+      "url": "{{ url('/') }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "{{ route('therapists.search') }}?specialty={specialty}&location={location}",
+        "query-input": [
+          "required name=specialty",
+          "required name=location"
+        ]
+      }
+    }
     </script>
+  </x-slot>
+
+  {{-- ========================  HERO + PRIMARY SEARCH  ======================== --}}
+  <section class="relative bg-cover bg-center" style="background-image:url('{{ asset('images/hero-background.webp') }}')">
+    <div class="absolute inset-0 bg-black/45"></div>
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 text-center">
+      <img src="{{ asset('images/white-logo.png') }}" alt="AromaMade - Plateforme de prise de rendez-vous bien-être"
+           class="mx-auto w-[200px] sm:w-[260px] md:w-[320px] mb-5 md:mb-7" loading="lazy">
+
+      <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
+        Trouvez votre thérapeute et réservez en quelques clics
+      </h1>
+      <p class="text-white/90 text-base sm:text-lg md:text-xl mt-3 md:mt-4">
+        Naturopathe, sophrologue, ostéopathe… Profils vérifiés, avis et tarifs. <span class="font-semibold">Espace Client</span> pour partager vos documents en toute sécurité.
+      </p>
+
+      {{-- Search Card (no "mode", mobile-first) --}}
+      <div class="mt-6 md:mt-8 max-w-5xl mx-auto bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-4 sm:p-5">
+        <form action="{{ route('therapists.search') }}" method="POST"
+              class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          @csrf
+          {{-- Specialty --}}
+          <div>
+            <label for="specialty" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
+              Spécialité
+            </label>
+            <input type="text" id="specialty" name="specialty" list="specialties"
+                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
+                   placeholder="Ex. naturopathie, sophrologie">
+            <datalist id="specialties"></datalist>
+          </div>
+
+          {{-- Location --}}
+          <div>
+            <label for="location" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
+              Lieu
+            </label>
+            <input type="text" id="location" name="location" list="regions"
+                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
+                   placeholder="Ville, code postal ou région">
+            <datalist id="regions"></datalist>
+          </div>
+
+          {{-- Submit --}}
+          <div class="flex items-end">
+            <button type="submit"
+                    class="w-full inline-flex items-center justify-center bg-[#647a0b] hover:bg-[#576a0a] text-white font-semibold rounded-xl px-6 py-3 shadow-lg transition active:scale-[0.99]">
+              Rechercher
+            </button>
+          </div>
+        </form>
+
+        {{-- Quick chips --}}
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+          <span class="text-gray-600">Populaires :</span>
+          @php $popular = ['Naturopathie', 'Sophrologie', 'Ostéopathie', 'Hypnose', 'Massage bien-être']; @endphp
+          @foreach($popular as $label)
+            <a href="{{ route('therapists.search') }}?specialty={{ urlencode($label) }}"
+               class="px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition">{{ $label }}</a>
+          @endforeach
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {{-- ========================  TRUST STRIP  ======================== --}}
+  <section class="bg-[#f8f8f8] py-6">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl p-4 shadow">
+        <p class="font-semibold text-[#647a0b]">Praticiens vérifiés</p>
+        <p class="text-sm text-gray-600">Diplômes & profils revus par notre équipe.</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow">
+        <p class="font-semibold text-[#647a0b]">Réservation rapide</p>
+        <p class="text-sm text-gray-600">Créneaux en cabinet, à domicile ou en visio.</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow">
+        <p class="font-semibold text-[#647a0b]">Données sécurisées</p>
+        <p class="text-sm text-gray-600">Confidentialité & chiffrement renforcés.</p>
+      </div>
+    </div>
+  </section>
+
+  {{-- ========================  FEATURED THERAPISTS  ======================== --}}
+  @if(isset($featuredTherapists) && $featuredTherapists->count())
+    <section class="py-12">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Praticiens à la une</h2>
+          <a href="{{ route('nos-practiciens') }}" class="text-[#854f38] hover:underline font-semibold">Voir tout</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          @foreach($featuredTherapists as $t)
+            <a href="{{ route('therapist.show', $t->slug) }}"
+               class="group bg-white rounded-2xl border border-gray-100 shadow hover:shadow-lg transition overflow-hidden">
+              <div class="h-40 sm:h-44 w-full bg-gray-100">
+                @if($t->cover_photo_path)
+                  <img src="{{ asset('storage/'.$t->cover_photo_path) }}" alt="Photo de {{ $t->name }}"
+                       class="w-full h-full object-cover" loading="lazy">
+                @endif
+              </div>
+              <div class="p-5">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-lg sm:text-xl font-semibold text-[#854f38] line-clamp-2">{{ $t->name }}</h3>
+                  @if($t->average_rating)
+                    <span class="text-xs sm:text-sm bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md whitespace-nowrap">
+                      {{ number_format($t->average_rating,1) }} ★
+                    </span>
+                  @endif
+                </div>
+                <p class="mt-1 text-sm text-gray-600">
+                  {{ $t->primary_specialty ?? 'Médecines douces' }} · @if($t->city) {{ $t->city }} @endif
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2 text-xs text-gray-700">
+                  @if($t->offers_visio) <span class="px-2 py-1 rounded-full bg-gray-100">Visio</span> @endif
+                  @if($t->offers_home)  <span class="px-2 py-1 rounded-full bg-gray-100">À domicile</span> @endif
+                  @if($t->offers_office)<span class="px-2 py-1 rounded-full bg-gray-100">En cabinet</span> @endif
+                </div>
+                <div class="mt-4">
+                  <span class="inline-flex items-center text-[#647a0b] font-semibold group-hover:translate-x-1 transition">
+                    Prendre RDV →
+                  </span>
+                </div>
+              </div>
+            </a>
+          @endforeach
+        </div>
+      </div>
+    </section>
+  @endif
+
+  {{-- ========================  HOW IT WORKS + ESPACE CLIENT  ======================== --}}
+  <section class="bg-[#f9fafb] py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl md:text-3xl font-bold text-center text-[#647a0b]">Comment ça marche ?</h2>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h3 class="font-semibold text-lg text-[#647a0b]">1. Recherchez</h3>
+          <p class="text-gray-600">Saisissez une spécialité et un lieu pour afficher les praticiens disponibles.</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h3 class="font-semibold text-lg text-[#647a0b]">2. Comparez</h3>
+          <p class="text-gray-600">Lisez les profils, avis et tarifs pour choisir le bon accompagnement.</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h3 class="font-semibold text-lg text-[#647a0b]">3. Réservez</h3>
+          <p class="text-gray-600">
+            Confirmez votre créneau. Votre <strong>Espace Client</strong> est créé pour partager documents, formulaires et notes en toute confidentialité.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {{-- ========================  EVENTS / WORKSHOPS (Members organized)  ======================== --}}
+  <section class="py-12 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
+          Événements & Ateliers des membres
+        </h2>
+        <p class="text-gray-600 max-w-2xl">
+          Découvrez les prochains <strong>événements, ateliers et stages</strong> organisés par nos praticiens membres : conférences, initiations, découvertes de pratiques…
+        </p>
+      </div>
+
+      @if(isset($events) && $events->count())
+        <div class="mt-6 flex overflow-x-auto space-x-4 pb-2 -mx-1 px-1">
+          @foreach($events as $event)
+            <div class="flex-shrink-0 w-72 sm:w-80 bg-white rounded-2xl border border-gray-100 shadow hover:shadow-lg transition overflow-hidden">
+              @if($event->image)
+                <img src="{{ asset('storage/'.$event->image) }}" alt="{{ $event->name }}" class="w-full h-40 object-cover" loading="lazy">
+              @endif
+              <div class="p-5 flex flex-col h-[260px]">
+                <h3 class="text-lg font-semibold text-[#854f38] line-clamp-2">{{ $event->name }}</h3>
+                <p class="mt-2 text-gray-600 text-sm">
+                  {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
+                </p>
+                <p class="text-gray-600 text-sm">{{ $event->location }}</p>
+
+                @if($event->user)
+                  <p class="text-gray-600 text-sm">
+                    Organisé par
+                    <a href="{{ route('therapist.show', $event->user->slug) }}" class="text-[#647a0b] underline">
+                      {{ $event->user->name }}
+                    </a>
+                  </p>
+                @endif
+
+                @php
+                  $spotsLeft = $event->limited_spot ? $event->number_of_spot - $event->reservations->count() : null;
+                @endphp
+                @if($event->limited_spot)
+                  <p class="text-gray-600 text-sm">
+                    Places restantes : {{ max($spotsLeft,0) }}
+                  </p>
+                @endif
+                @if($event->associatedProduct && $event->associatedProduct->price > 0)
+                  <p class="text-gray-600 text-sm">
+                    Prix : {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                  </p>
+                @endif
+
+                <div x-data="{ open:false }" class="mt-2 text-sm text-gray-700">
+                  <p x-show="!open">{{ Str::limit(strip_tags($event->description), 80) }}</p>
+                  <p x-show="open">{{ strip_tags($event->description) }}</p>
+                  @if(strlen(strip_tags($event->description)) > 80)
+                    <button @click="open = !open" class="text-[#854f38] underline mt-1">
+                      <span x-show="!open">Lire plus</span><span x-show="open">Réduire</span>
+                    </button>
+                  @endif
+                </div>
+
+                <div class="mt-auto pt-3">
+                  @if($event->booking_required)
+                    @if(!$event->limited_spot || ($spotsLeft > 0))
+                      <a href="{{ route('events.reserve.create', $event->id) }}"
+                         class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
+                        S’inscrire
+                      </a>
+                    @else
+                      <span class="text-red-500 font-semibold text-sm">Complet</span>
+                    @endif
+                  @endif
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      @else
+        <p class="mt-4 text-gray-600">Aucun événement à venir pour le moment.</p>
+      @endif
+    </div>
+  </section>
+
+  {{-- ========================  CONTENT HUB (BLOG)  ======================== --}}
+  @if(isset($blogPosts))
+    <section class="py-12 bg-[#f9fafb]">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl md:text-3xl font-bold text-[#6a3f2c]">Conseils & Articles</h2>
+          <a href="{{ route('blog.index') }}" class="text-[#854f38] hover:underline font-semibold">Tous les articles</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          @forelse($blogPosts as $post)
+            <a href="{{ route('blog.show', $post->slug) }}"
+               class="bg-white rounded-2xl border border-gray-100 shadow hover:shadow-lg transition overflow-hidden">
+              <img src="{{ asset('images/'.$post->slug.'.webp') }}" alt="{{ $post->Title }}" class="w-full h-44 object-cover" loading="lazy">
+              <div class="p-5">
+                @if($post->Tags)
+                  <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">{{ $post->Tags }}</span>
+                @endif
+                <h3 class="mt-2 text-lg sm:text-xl font-semibold text-[#854f38] line-clamp-2">{{ $post->Title }}</h3>
+                <p class="mt-1 text-gray-600 line-clamp-3">{{ Str::limit(strip_tags($post->Contents), 110) }}</p>
+                <span class="mt-3 inline-flex items-center text-[#647a0b] font-semibold">
+                  Lire l’article →
+                </span>
+              </div>
+            </a>
+          @empty
+            <p class="text-gray-600">Aucun article disponible.</p>
+          @endforelse
+        </div>
+      </div>
+    </section>
+  @endif
+
+  {{-- ========================  PRO CTA (Therapists only)  ======================== --}}
+  <section class="bg-gradient-to-r from-[#854f38] to-[#6a3f2c] py-12 text-white text-center">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl md:text-3xl font-bold">Vous êtes thérapeute ? Rejoignez AromaMade PRO</h2>
+      <p class="mt-3 text-white/90">
+        Agenda en ligne, téléconsultation, dossiers clients, facturation, questionnaires, rappels — <strong>sans commission</strong>.
+      </p>
+      <a href="{{ route('prolanding') }}"
+         class="inline-block mt-6 bg-white text-[#6a3f2c] font-semibold px-6 py-3 rounded-full shadow hover:shadow-lg transition">
+        Découvrir l’Espace PRO
+      </a>
+    </div>
+  </section>
+
+  {{-- ========================  SEO / ABOUT + FAQ  ======================== --}}
+  <section class="py-12 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">AromaMade, votre guide bien-être</h2>
+        <p class="mt-3 text-gray-700">
+          Notre mission : rendre l’accès aux médecines douces simple, fiable et transparent. Nous centralisons un
+          annuaire de praticiens vérifiés et des contenus pédagogiques (huiles essentielles, végétales, tisanes,
+          recettes, articles) pour vous aider à faire des choix éclairés.
+        </p>
+        <p class="mt-3 text-gray-700">
+          Réservez votre rendez-vous en toute sérénité, comparez les profils, découvrez les avis, et utilisez votre
+          <strong>Espace Client</strong> pour partager vos informations avec votre thérapeute en toute confidentialité.
+        </p>
+        <a href="{{ route('welcome') }}" class="mt-4 inline-flex items-center text-[#854f38] font-semibold hover:underline">
+          En savoir plus →
+        </a>
+      </div>
+
+      <div class="bg-[#f9fafb] rounded-2xl shadow p-6">
+        <h3 class="text-xl font-semibold text-[#647a0b]">Questions fréquentes</h3>
+        <div class="mt-4 divide-y">
+          <details class="py-3">
+            <summary class="cursor-pointer font-medium text-[#647a0b]">
+              Comment vérifiez-vous les praticiens ?
+            </summary>
+            <p class="mt-2 text-gray-600">Contrôle manuel des diplômes/certifications et revues régulières des profils.</p>
+          </details>
+          <details class="py-3">
+            <summary class="cursor-pointer font-medium text-[#647a0b]">
+              L’Espace Client est-il inclus ?
+            </summary>
+            <p class="mt-2 text-gray-600">Oui, il est créé automatiquement après votre première réservation.</p>
+          </details>
+          <details class="py-3">
+            <summary class="cursor-pointer font-medium text-[#647a0b]">
+              Mes données sont-elles protégées ?
+            </summary>
+            <p class="mt-2 text-gray-600">Oui. Nous appliquons des mesures strictes de sécurité et ne revendons jamais vos informations.</p>
+          </details>
+        </div>
+
+        {{-- FAQ JSON-LD --}}
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [{
+            "@type": "Question",
+            "name": "Comment vérifiez-vous les praticiens ?",
+            "acceptedAnswer": {"@type":"Answer","text":"Contrôle manuel des diplômes et certifications, avec revues régulières des profils."}
+          },{
+            "@type": "Question",
+            "name": "L’Espace Client est-il inclus ?",
+            "acceptedAnswer": {"@type":"Answer","text":"Oui. Il est créé automatiquement après votre première réservation pour partager documents et formulaires."}
+          },{
+            "@type": "Question",
+            "name": "Mes données sont-elles protégées ?",
+            "acceptedAnswer": {"@type":"Answer","text":"Oui, nous appliquons des mesures strictes de sécurité et ne revendons jamais vos informations."}
+          }]
+        }
+        </script>
+      </div>
+    </div>
+  </section>
+
+  {{-- ========================  FOOTER SLOT  ======================== --}}
+  <x-slot name="footer">
+    @include('layouts.footer')
+  </x-slot>
+
+  {{-- ========================  AUTOCOMPLETE ONLY (no global search)  ======================== --}}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Specialties autocomplete
+      const specialtyInput = document.getElementById('specialty');
+      const specialtiesList = document.getElementById('specialties');
+      specialtyInput?.addEventListener('input', function () {
+        const term = this.value.trim();
+        if (!term) { specialtiesList.innerHTML = ''; return; }
+        fetch('{{ route('autocomplete.specialties') }}?term=' + encodeURIComponent(term))
+          .then(r => r.json())
+          .then(data => {
+            specialtiesList.innerHTML = '';
+            data.forEach(item => {
+              const opt = document.createElement('option');
+              opt.value = item;
+              specialtiesList.appendChild(opt);
+            });
+          }).catch(()=>{});
+      });
+
+      // Regions autocomplete
+      const regionInput = document.getElementById('location');
+      const regionsList = document.getElementById('regions');
+      regionInput?.addEventListener('input', function () {
+        const term = this.value.trim();
+        if (!term) { regionsList.innerHTML = ''; return; }
+        fetch('{{ route('autocomplete.regions') }}?term=' + encodeURIComponent(term))
+          .then(r => r.json())
+          .then(data => {
+            regionsList.innerHTML = '';
+            data.forEach(item => {
+              const opt = document.createElement('option');
+              opt.value = item;
+              regionsList.appendChild(opt);
+            });
+          }).catch(()=>{});
+      });
+    });
+  </script>
 </x-app-layout>
