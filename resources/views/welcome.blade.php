@@ -61,11 +61,22 @@
         Naturopathe, sophrologue, ostéopathe… Profils vérifiés, avis et tarifs. <span class="font-semibold">Espace Client</span> pour partager vos documents en toute sécurité.
       </p>
 
-      {{-- Search Card (no "mode", mobile-first) --}}
+      {{-- Search Card (now includes Name like results page; posts to therapists.search) --}}
       <div class="mt-6 md:mt-8 max-w-5xl mx-auto bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-4 sm:p-5">
         <form action="{{ route('therapists.search') }}" method="POST"
-              class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+              class="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
           @csrf
+
+          {{-- Name (fuzzy across name & company_name) --}}
+          <div>
+            <label for="name" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
+              Nom (optionnel)
+            </label>
+            <input type="text" id="name" name="name"
+                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
+                   placeholder="Ex. Marie Dupont ou Cabinet Harmonie" value="{{ old('name', request('name')) }}">
+          </div>
+
           {{-- Specialty --}}
           <div>
             <label for="specialty" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
@@ -73,7 +84,7 @@
             </label>
             <input type="text" id="specialty" name="specialty" list="specialties"
                    class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
-                   placeholder="Ex. naturopathie, sophrologie">
+                   placeholder="Ex. naturopathie, sophrologie" value="{{ old('specialty', request('specialty')) }}">
             <datalist id="specialties"></datalist>
           </div>
 
@@ -84,7 +95,7 @@
             </label>
             <input type="text" id="location" name="location" list="regions"
                    class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
-                   placeholder="Ville, code postal ou région">
+                   placeholder="Ville, code postal ou région" value="{{ old('location', request('location')) }}">
             <datalist id="regions"></datalist>
           </div>
 
@@ -269,6 +280,8 @@
               @if($event->image)
                 <img src="{{ asset('storage/'.$event->image) }}" alt="{{ $event->name }}" class="w-full h-40 object-cover" loading="lazy">
               @endif
+
+              {{-- Body: fixed height; text scrolls; CTA pinned at bottom --}}
               <div class="p-5 flex flex-col h-[260px]">
                 <h3 class="text-lg font-semibold text-[#854f38] line-clamp-2">{{ $event->name }}</h3>
                 <p class="mt-2 text-gray-600 text-sm">
@@ -299,16 +312,22 @@
                   </p>
                 @endif
 
-                <div x-data="{ open:false }" class="mt-2 text-sm text-gray-700">
-                  <p x-show="!open">{{ Str::limit(strip_tags($event->description), 80) }}</p>
-                  <p x-show="open">{{ strip_tags($event->description) }}</p>
-                  @if(strlen(strip_tags($event->description)) > 80)
+                {{-- Description zone: scrollable to avoid pushing CTA out --}}
+                <div x-data="{ open:false }" class="mt-2 text-sm text-gray-700 flex-1 min-h-0">
+                  <div class="overflow-y-auto max-h-24" x-show="!open">
+                    {{ Str::limit(strip_tags($event->description), 220) }}
+                  </div>
+                  <div class="overflow-y-auto max-h-28" x-show="open">
+                    {{ strip_tags($event->description) }}
+                  </div>
+                  @if(strlen(strip_tags($event->description)) > 220)
                     <button @click="open = !open" class="text-[#854f38] underline mt-1">
                       <span x-show="!open">Lire plus</span><span x-show="open">Réduire</span>
                     </button>
                   @endif
                 </div>
 
+                {{-- CTA pinned at bottom of card body --}}
                 <div class="mt-auto pt-3">
                   @if($event->booking_required)
                     @if(!$event->limited_spot || ($spotsLeft > 0))
