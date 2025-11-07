@@ -33,7 +33,7 @@
                 </div>
 
                 <!-- Location -->
-                <div class0="info-box">
+                <div class="info-box">
                     <h3 class="info-title"><i class="fas fa-map-marker-alt mr-2"></i>{{ __('Lieu') }}</h3>
                     <p class="info-text">{{ $event->location }}</p>
                 </div>
@@ -59,7 +59,7 @@
                         @php
                             $spotsLeft = $event->number_of_spot - $event->reservations->count();
                         @endphp
-                        <p class="info-text">{{ $spotsLeft }} </p>
+                        <p class="info-text">{{ $spotsLeft }}</p>
                     </div>
                 @endif
             </div>
@@ -94,6 +94,9 @@
             <form action="{{ route('events.reserve.store', $event->id) }}" method="POST">
                 @csrf
 
+                <!-- Honeypot (anti-bot) -->
+                <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;height:1px;width:1px;opacity:0;" aria-hidden="true">
+
                 <!-- Full Name -->
                 <div class="form-group">
                     <label for="full_name" class="form-label">
@@ -126,6 +129,13 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+
+                {{-- reCAPTCHA (same as register) --}}
+                {!! NoCaptcha::renderJs(app()->getLocale() ?? 'fr') !!}
+                {!! NoCaptcha::display() !!}
+                @error('g-recaptcha-response')
+                    <p class="text-red-500 mt-2">{{ $message }}</p>
+                @enderror
 
                 <button type="submit" class="btn-primary mt-4">
                     <i class="fas fa-paper-plane mr-2"></i>{{ __('Réserver') }}
@@ -310,10 +320,6 @@
         @media (max-width: 768px) {
             .event-info {
                 grid-template-columns: 1fr;
-            }
-
-            .form-title {
-                font-size: 1.8rem;
             }
 
             .btn-primary, .btn-secondary {
