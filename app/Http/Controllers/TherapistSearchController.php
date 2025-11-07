@@ -51,15 +51,17 @@ class TherapistSearchController extends Controller
             return view('results', compact('therapists', 'specialty', 'region'));
         }
 
-        // -------- Fuzzy Name Search (small typos tolerated) --------
+        // -------- Fuzzy Name/Company Search (small typos tolerated) --------
         $nameTerm = trim($data['name']);
         $normTerm = $this->normalize($nameTerm);
 
-        // Prefilter in DB for performance: LIKE + SOUNDEX
+        // Prefilter in DB for performance: LIKE + SOUNDEX on both name and company_name
         $prefilter = (clone $base)
             ->where(function ($q) use ($nameTerm) {
                 $q->where('name', 'like', '%' . $nameTerm . '%')
-                  ->orWhereRaw('SOUNDEX(name) = SOUNDEX(?)', [$nameTerm]);
+                  ->orWhere('company_name', 'like', '%' . $nameTerm . '%')
+                  ->orWhereRaw('SOUNDEX(name) = SOUNDEX(?)', [$nameTerm])
+                  ->orWhereRaw('SOUNDEX(company_name) = SOUNDEX(?)', [$nameTerm]);
             })
             ->limit(250)
             ->get();
@@ -69,24 +71,49 @@ class TherapistSearchController extends Controller
             $prefilter = (clone $base)->limit(500)->get();
         }
 
-        // Compute distances (Levenshtein) on normalized strings
+        // Compute distances (Levenshtein) on normalized strings (name + company_name)
         $scored = $prefilter->map(function ($t) use ($normTerm) {
-            $name = $t->name ?? '';
-            $normName = $this->normalize($name);
+            $fullName    = $t->name ?? '';
+            $companyName = $t->company_name ?? '';
 
-            // token min distance handles "Dr Jean Martin" vs "Martin"
-            $tokens = preg_split('/\s+/', $normName) ?: [];
-            $distances = [$this->lev($normName, $normTerm)];
-            foreach ($tokens as $tok) {
-                if ($tok !== '') {
-                    $distances[] = $this->lev($tok, $normTerm);
-                }
+            $normFull    = $this->normalize($fullName);
+            $normCompany = $this->normalize($companyName);
+
+            // Token-based min distance helps "Dr Jean Martin" vs "Martin" and for company_name too
+            $distances = [];
+
+            // full strings
+            if ($normFull !== '')    $distances[] = $this->lev($normFull, $normTerm);
+            if ($normCompany !== '') $distances[] = $this->lev($normCompany, $normTerm);
+
+            // tokens of name
+            foreach (preg_split('/\s+/', $normFull) ?: [] as $tok) {
+                if ($tok !== '') $distances[] = $this->lev($tok, $normTerm);
             }
+            // tokens of company
+            foreach (preg_split('/\s+/', $normCompany) ?: [] as $tok) {
+                if ($tok !== '') $distances[] = $this->lev($tok, $normTerm);
+            }
+
+            // if still empty (both fields empty), set large distance
+            if (empty($distances)) {
+                $distances[] = 999;
+            }
+
             $minDist = min($distances);
 
-            // small boosts for starts-with / contains
-            $startsBoost   = Str::startsWith($normName, $normTerm) ? -2 : 0;
-            $containsBoost = Str::contains($normName, $normTerm) ? -1 : 0;
+            // Small boosts if either field starts with / contains the term
+            $startsBoost = 0;
+            $containsBoost = 0;
+
+            if ($normFull !== '') {
+                if (Str::startsWith($normFull, $normTerm)) $startsBoost -= 2;
+                if (Str::contains($normFull, $normTerm))   $containsBoost -= 1;
+            }
+            if ($normCompany !== '') {
+                if (Str::startsWith($normCompany, $normTerm)) $startsBoost -= 2;
+                if (Str::contains($normCompany, $normTerm))   $containsBoost -= 1;
+            }
 
             $t->am_fuzzy_score = $minDist + $startsBoost + $containsBoost;
             return $t;
@@ -197,7 +224,7 @@ class TherapistSearchController extends Controller
     private function normalize(string $s): string
     {
         $s = trim(mb_strtolower($s, 'UTF-8'));
-        $t = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
+        $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
         if ($t !== false && $t !== null) $s = $t;
         $s = preg_replace('/[^a-z0-9 ]+/', ' ', $s);
         $s = preg_replace('/\s+/', ' ', $s);
