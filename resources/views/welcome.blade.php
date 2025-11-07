@@ -280,8 +280,6 @@
               @if($event->image)
                 <img src="{{ asset('storage/'.$event->image) }}" alt="{{ $event->name }}" class="w-full h-40 object-cover" loading="lazy">
               @endif
-
-              {{-- Body: fixed height; text scrolls; CTA pinned at bottom --}}
               <div class="p-5 flex flex-col h-[260px]">
                 <h3 class="text-lg font-semibold text-[#854f38] line-clamp-2">{{ $event->name }}</h3>
                 <p class="mt-2 text-gray-600 text-sm">
@@ -312,58 +310,28 @@
                   </p>
                 @endif
 
-                {{-- Description zone: scrollable to avoid pushing CTA out --}}
-                <div x-data="{ open:false }" class="mt-2 text-sm text-gray-700 flex-1 min-h-0">
-                  <div class="overflow-y-auto max-h-24" x-show="!open">
-                    {{ Str::limit(strip_tags($event->description), 220) }}
-                  </div>
-                  <div class="overflow-y-auto max-h-28" x-show="open">
-                    {{ strip_tags($event->description) }}
-                  </div>
-                  @if(strlen(strip_tags($event->description)) > 220)
+                <div x-data="{ open:false }" class="mt-2 text-sm text-gray-700">
+                  <p x-show="!open">{{ Str::limit(strip_tags($event->description), 80) }}</p>
+                  <p x-show="open">{{ strip_tags($event->description) }}</p>
+                  @if(strlen(strip_tags($event->description)) > 80)
                     <button @click="open = !open" class="text-[#854f38] underline mt-1">
                       <span x-show="!open">Lire plus</span><span x-show="open">Réduire</span>
                     </button>
                   @endif
                 </div>
 
-<div class="mt-auto pt-3">
-  @php
-    // keep your original logic, but compute spots safely
-    $limited   = (bool)($event->limited_spot ?? false);
-    $total     = (int)($event->number_of_spot ?? 0);
-    $booked    = (int)optional($event->reservations)->count(); // safe if null
-    $spotsLeft = $limited ? max($total - $booked, 0) : null;
-
-    $hasSpots  = !$limited || ($spotsLeft > 0);
-    $bookUrl   = $event->booking_url ?? null; // optional external url
-  @endphp
-
-  {{-- ORIGINAL behavior: internal booking when booking_required is true --}}
-  @if($event->booking_required)
-    @if($hasSpots)
-      <a href="{{ route('events.reserve.create', $event->id) }}"
-         class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
-        S’inscrire
-      </a>
-    @else
-      <span class="text-red-500 font-semibold text-sm">Complet</span>
-    @endif
-
-  {{-- NEW fallback: if booking_required = false but you provided an external URL, show it --}}
-  @elseif($bookUrl && $hasSpots)
-    <a href="{{ $bookUrl }}"
-       class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
-      S’inscrire
-    </a>
-
-  {{-- If limited AND no spots, show "Complet" --}}
-  @elseif($limited && $spotsLeft === 0)
-    <span class="text-red-500 font-semibold text-sm">Complet</span>
-  @endif
-</div>
-
-
+                <div class="mt-auto pt-3">
+                  @if($event->booking_required)
+                    @if(!$event->limited_spot || ($spotsLeft > 0))
+                      <a href="{{ route('events.reserve.create', $event->id) }}"
+                         class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
+                        S’inscrire
+                      </a>
+                    @else
+                      <span class="text-red-500 font-semibold text-sm">Complet</span>
+                    @endif
+                  @endif
+                </div>
               </div>
             </div>
           @endforeach
