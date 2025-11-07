@@ -327,19 +327,46 @@
                   @endif
                 </div>
 
-                {{-- CTA pinned at bottom of card body --}}
-                <div class="mt-auto pt-3">
-                  @if($event->booking_required)
-                    @if(!$event->limited_spot || ($spotsLeft > 0))
-                      <a href="{{ route('events.reserve.create', $event->id) }}"
-                         class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
-                        S’inscrire
-                      </a>
-                    @else
-                      <span class="text-red-500 font-semibold text-sm">Complet</span>
-                    @endif
-                  @endif
-                </div>
+				{{-- CTA pinned at bottom of card body (FIXED LOGIC) --}}
+				<div class="mt-auto pt-3">
+				  @php
+					// Normalize fields (avoid null issues)
+					$limited       = (bool)($event->limited_spot ?? false);
+					$total         = (int)($event->number_of_spot ?? 0);
+					$booked        = (int)($event->reservations?->count() ?? 0);
+					$spotsLeft     = $limited ? max($total - $booked, 0) : null;
+					$available     = !$limited || $spotsLeft > 0;
+
+					$bookingUrl    = $event->booking_url ?? null;
+					$bookingNeeded = (bool)($event->booking_required ?? false);
+					$hasBookingUrl = !empty($bookingUrl);
+
+					// Show button if available AND (booking required OR a direct URL exists)
+					$shouldShowBook = $available && ($bookingNeeded || $hasBookingUrl);
+
+					// Event view URL fallback
+					$viewUrl = $event->url
+						?? (isset($event->slug) ? route('events.show', $event->slug) : null);
+				  @endphp
+
+				  <div class="flex flex-col sm:flex-row gap-2">
+					@if($shouldShowBook)
+					  <a href="{{ $hasBookingUrl ? $bookingUrl : route('events.reserve.create', $event->id) }}"
+						 class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
+						S’inscrire
+					  </a>
+					@elseif($limited && $spotsLeft === 0)
+					  <span class="text-red-500 font-semibold text-sm">Complet</span>
+					@endif
+
+					@if($viewUrl)
+					  <a href="{{ $viewUrl }}" class="btn btn-secondary text-xs sm:text-sm">
+						Voir l’événement
+					  </a>
+					@endif
+				  </div>
+				</div>
+
               </div>
             </div>
           @endforeach
