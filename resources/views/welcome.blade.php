@@ -327,45 +327,42 @@
                   @endif
                 </div>
 
-				{{-- CTA pinned at bottom of card body (FIXED LOGIC) --}}
-				<div class="mt-auto pt-3">
-				  @php
-					// Normalize fields (avoid null issues)
-					$limited       = (bool)($event->limited_spot ?? false);
-					$total         = (int)($event->number_of_spot ?? 0);
-					$booked        = (int)($event->reservations?->count() ?? 0);
-					$spotsLeft     = $limited ? max($total - $booked, 0) : null;
-					$available     = !$limited || $spotsLeft > 0;
+<div class="mt-auto pt-3">
+  @php
+    // keep your original logic, but compute spots safely
+    $limited   = (bool)($event->limited_spot ?? false);
+    $total     = (int)($event->number_of_spot ?? 0);
+    $booked    = (int)optional($event->reservations)->count(); // safe if null
+    $spotsLeft = $limited ? max($total - $booked, 0) : null;
 
-					$bookingUrl    = $event->booking_url ?? null;
-					$bookingNeeded = (bool)($event->booking_required ?? false);
-					$hasBookingUrl = !empty($bookingUrl);
+    $hasSpots  = !$limited || ($spotsLeft > 0);
+    $bookUrl   = $event->booking_url ?? null; // optional external url
+  @endphp
 
-					// Show button if available AND (booking required OR a direct URL exists)
-					$shouldShowBook = $available && ($bookingNeeded || $hasBookingUrl);
+  {{-- ORIGINAL behavior: internal booking when booking_required is true --}}
+  @if($event->booking_required)
+    @if($hasSpots)
+      <a href="{{ route('events.reserve.create', $event->id) }}"
+         class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
+        S’inscrire
+      </a>
+    @else
+      <span class="text-red-500 font-semibold text-sm">Complet</span>
+    @endif
 
-					// Event view URL fallback
-					$viewUrl = $event->url
-						?? (isset($event->slug) ? route('events.show', $event->slug) : null);
-				  @endphp
+  {{-- NEW fallback: if booking_required = false but you provided an external URL, show it --}}
+  @elseif($bookUrl && $hasSpots)
+    <a href="{{ $bookUrl }}"
+       class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
+      S’inscrire
+    </a>
 
-				  <div class="flex flex-col sm:flex-row gap-2">
-					@if($shouldShowBook)
-					  <a href="{{ $hasBookingUrl ? $bookingUrl : route('events.reserve.create', $event->id) }}"
-						 class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
-						S’inscrire
-					  </a>
-					@elseif($limited && $spotsLeft === 0)
-					  <span class="text-red-500 font-semibold text-sm">Complet</span>
-					@endif
+  {{-- If limited AND no spots, show "Complet" --}}
+  @elseif($limited && $spotsLeft === 0)
+    <span class="text-red-500 font-semibold text-sm">Complet</span>
+  @endif
+</div>
 
-					@if($viewUrl)
-					  <a href="{{ $viewUrl }}" class="btn btn-secondary text-xs sm:text-sm">
-						Voir l’événement
-					  </a>
-					@endif
-				  </div>
-				</div>
 
               </div>
             </div>
