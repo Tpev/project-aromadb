@@ -48,7 +48,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
                         <i class="fas fa-calendar-alt text-5xl mb-4 text-primary"></i>
                         <h3 class="text-2xl font-bold mb-2">Prise de rendez-vous</h3>
-                        <p class="text-gray-700">Gagnez du temps en créant vos rendez-vous depuis votre espace, ou laissez vos clients réserver directement via votre Portail Pro. Vous restez maître de votre planning tout en offrant une flexibilité maximale à vos patients.</p>
+                        <p class="text-gray-700">Gagnez du temps en créant vos rendez-vous depuis votre espace, ou laissez vos clients réserver directement via votre Portail Pro. Vous restez maître de votre planning tout en offrant une flexibilité maximale à vos clients.</p>
                     </div>
                 </div>
                 <!-- Feature Card 2 -->
@@ -56,7 +56,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
                         <i class="fas fa-folder-open text-5xl mb-4 text-secondary"></i>
                         <h3 class="text-2xl font-bold mb-2">Gestion des dossiers clients</h3>
-                        <p class="text-gray-700">Centralisez toutes les informations essentielles dans un dossier sécurisé. Plus besoin de jongler entre différents outils, toutes les données de vos patients sont accessibles en un clic.</p>
+                        <p class="text-gray-700">Centralisez toutes les informations essentielles dans un dossier sécurisé. Plus besoin de jongler entre différents outils, toutes les données de vos clients sont accessibles en un clic.</p>
                     </div>
                 </div>
                 <!-- Feature Card 3 -->
@@ -64,7 +64,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
                         <i class="fas fa-globe text-5xl mb-4 text-primary"></i>
                         <h3 class="text-2xl font-bold mb-2">Portail Pro</h3>
-                        <p class="text-gray-700">Une véritable vitrine en ligne pour attirer de nouveaux clients ! Partagez facilement votre lien sur vos réseaux sociaux et permettez à vos patients de consulter vos services et de prendre rendez-vous sans effort.</p>
+                        <p class="text-gray-700">Une véritable vitrine en ligne pour attirer de nouveaux clients ! Partagez facilement votre lien sur vos réseaux sociaux et permettez à vos clients de consulter vos services et de prendre rendez-vous sans effort.</p>
                     </div>
                 </div>
 <a href="/pro/facturation-therapeute" class="group block" data-aos="fade-up" data-aos-delay="300">
@@ -80,7 +80,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
                         <i class="fas fa-question-circle text-5xl mb-4 text-primary"></i>
                         <h3 class="text-2xl font-bold mb-2">Questionnaires</h3>
-                        <p class="text-gray-700">Créez des questionnaires personnalisés à envoyer avant ou pendant les séances, pour mieux comprendre vos patients et personnaliser vos soins.</p>
+                        <p class="text-gray-700">Créez des questionnaires personnalisés à envoyer avant ou pendant les séances, pour mieux comprendre vos clients et personnaliser vos soins.</p>
                     </div>
                 </div>
                 <!-- Feature Card 6 -->
@@ -88,7 +88,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                     <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
                         <i class="fas fa-bullseye text-5xl mb-4 text-secondary"></i>
                         <h3 class="text-2xl font-bold mb-2">Suivi des objectifs thérapeutiques</h3>
-                        <p class="text-gray-700">Suivez les progrès de vos patients en définissant des objectifs personnalisés pour chaque séance.</p>
+                        <p class="text-gray-700">Suivez les progrès de vos clients en définissant des objectifs personnalisés pour chaque séance.</p>
                     </div>
                 </div>
             </div>
@@ -142,7 +142,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
                         <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
                             <i class="fas fa-star text-5xl mb-4 text-secondary"></i>
                             <h3 class="text-2xl font-bold mb-2">Avis clients</h3>
-                            <p class="text-gray-700">Affichez les retours et avis de vos clients directement sur votre profil pour renforcer votre crédibilité et attirer de nouveaux patients.</p>
+                            <p class="text-gray-700">Affichez les retours et avis de vos clients directement sur votre profil pour renforcer votre crédibilité et attirer de nouveaux clients.</p>
                         </div>
                     </div>
                     <!-- Feature Card 13 -->
@@ -375,7 +375,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
             <div class="security-feature" data-aos="fade-up">
                 <i class="fas fa-shield-alt text-5xl mb-4 text-primary"></i>
                 <h3 class="text-2xl font-bold mb-2">Conformité HDS</h3>
-                <p class="text-gray-700">Nos infrastructures respectent les exigences strictes de l'Hébergement de Données de Santé, assurant une protection optimale des informations sensibles de vos patients.</p>
+                <p class="text-gray-700">Nos infrastructures respectent les exigences strictes de l'Hébergement de Données de Santé, assurant une protection optimale des informations sensibles de vos clients.</p>
             </div>
             <!-- Security Feature 2 -->
             <div class="security-feature" data-aos="fade-up" data-aos-delay="100">
@@ -387,7 +387,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
             <div class="security-feature" data-aos="fade-up" data-aos-delay="200">
                 <i class="fas fa-user-shield text-5xl mb-4 text-primary"></i>
                 <h3 class="text-2xl font-bold mb-2">Protection des Données</h3>
-                <p class="text-gray-700">Nous utilisons des protocoles de sécurité avancés pour assurer la confidentialité et l'intégrité de vos informations professionnelles et celles de vos patients.</p>
+                <p class="text-gray-700">Nous utilisons des protocoles de sécurité avancés pour assurer la confidentialité et l'intégrité de vos informations professionnelles et celles de vos clients.</p>
             </div>
         </div>
     </div>
@@ -443,7 +443,7 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
 <!-- FAQ Item 5 -->
 <div class="accordion-item">
     <div class="accordion-header">
-        <h3>Comment assurez-vous la sécurité de mes données et celles de mes patients ?</h3>
+        <h3>Comment assurez-vous la sécurité de mes données et celles de mes clients ?</h3>
         <i class="fas fa-chevron-down"></i>
     </div>
     <div class="accordion-content">
