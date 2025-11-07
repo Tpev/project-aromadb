@@ -1,11 +1,9 @@
 <x-app-layout>
   <!-- Head Slot -->
-  
-  
   @section('title', 'Annuaire Thérapeute en Ligne | Trouvez votre praticien de médecine douce')
-    @section('meta_description')
-Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie, naturopathie, ostéopathie : trouvez le professionnel certifié idéal pour votre bien-être
-    @endsection
+  @section('meta_description')
+Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie, naturopathie, ostéopathie : trouvez le professionnel certifié idéal pour votre bien-être
+  @endsection
 
   <x-slot name="head">
     <!-- Font Awesome CDN -->
@@ -52,6 +50,20 @@ Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie
           <div class="w-full max-w-3xl bg-white border border-gray-200 rounded-lg sm:rounded-full p-3 sm:p-6 shadow-xl">
             <form action="{{ route('therapists.search') }}" method="POST" class="flex flex-col sm:flex-row gap-4 w-full">
               @csrf
+
+              <!-- Name (NEW: fuzzy by name & company_name) -->
+              <div class="flex-1">
+                <label for="name" class="sr-only">Nom</label>
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
+                  placeholder="Nom du praticien (ex. Marie Dupont ou Cabinet Harmonie)"
+                  value="{{ old('name', request('name')) }}"
+                >
+              </div>
+
               <!-- Specialty Dropdown (with Autocomplete) -->
               <div class="flex-1">
                 <label for="specialty" class="sr-only">Spécialité</label>
@@ -60,15 +72,16 @@ Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie
                   name="specialty" 
                   id="specialty" 
                   class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-                  placeholder="Spécialité" 
+                  placeholder="Spécialité (ex. Naturopathie, Sophrologie)" 
                   list="specialties"
+                  value="{{ old('specialty', request('specialty')) }}"
                 >
                 <datalist id="specialties">
                   <!-- Populated dynamically by JavaScript -->
                 </datalist>
               </div>
 
-   <!-- Location Autocomplete -->
+              <!-- Location Autocomplete (FIXED closing tag) -->
               <div class="flex-1">
                 <label for="location" class="sr-only">Lieu</label>
                 <input 
@@ -77,13 +90,13 @@ Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie
                   id="location"
                   class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
                   placeholder="Lieu (ville ou région)"
-                  list="regions" <!-- new datalist for regions -->
-                
+                  list="regions"
+                  value="{{ old('location', request('location')) }}"
+                >
                 <datalist id="regions">
                   <!-- Populated by JS for regions -->
                 </datalist>
               </div>
-
 
               <!-- Search Button with Icon -->
               <div class="flex-shrink-0 flex items-center">
@@ -442,17 +455,14 @@ Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie
       const specialtyInput = document.getElementById('specialty');
       const dataList = document.getElementById('specialties');
 
-      specialtyInput.addEventListener('input', function () {
+      specialtyInput?.addEventListener('input', function () {
         const term = this.value.trim();
 
         if (term.length > 0) {
           fetch('{{ route('autocomplete.specialties') }}?term=' + encodeURIComponent(term))
             .then(response => response.json())
             .then(data => {
-              // Clear previous options
               dataList.innerHTML = '';
-
-              // Populate the datalist with new options
               data.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item;
@@ -463,41 +473,36 @@ Découvrez notre annuaire thérapeute dédié aux médecines douces. Sophrologie
               console.error('Error fetching specialties:', error);
             });
         } else {
-          // Clear if input is empty
           dataList.innerHTML = '';
         }
       });
     });
-	
-	      // ========== REGION AUTOCOMPLETE ==========
-      const regionInput = document.getElementById('location');
-      const regionsDataList = document.getElementById('regions');
 
-      regionInput.addEventListener('input', function () {
-        const term = this.value.trim();
+    // ========== REGION AUTOCOMPLETE ==========
+    const regionInput = document.getElementById('location');
+    const regionsDataList = document.getElementById('regions');
 
-        if (term.length > 0) {
-          fetch('{{ route('autocomplete.regions') }}?term=' + encodeURIComponent(term))
-            .then(response => response.json())
-            .then(data => {
-              // Clear existing options
-              regionsDataList.innerHTML = '';
+    regionInput?.addEventListener('input', function () {
+      const term = this.value.trim();
 
-              // Populate new options
-              data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                regionsDataList.appendChild(option);
-              });
-            })
-            .catch(error => {
-              console.error('Error fetching regions:', error);
+      if (term.length > 0) {
+        fetch('{{ route('autocomplete.regions') }}?term=' + encodeURIComponent(term))
+          .then(response => response.json())
+          .then(data => {
+            regionsDataList.innerHTML = '';
+            data.forEach(item => {
+              const option = document.createElement('option');
+              option.value = item;
+              regionsDataList.appendChild(option);
             });
-        } else {
-          regionsDataList.innerHTML = '';
-        }
-      });
-
+          })
+          .catch(error => {
+            console.error('Error fetching regions:', error);
+          });
+      } else {
+        regionsDataList.innerHTML = '';
+      }
+    });
   </script>
 
 </x-app-layout>
