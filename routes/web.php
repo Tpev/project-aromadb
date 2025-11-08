@@ -55,6 +55,7 @@ use App\Http\Controllers\Auth\ClientPasswordResetController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\PracticeLocationController;
 use App\Models\User;
+use App\Http\Controllers\ReceiptController;
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('practice-locations', PracticeLocationController::class)
@@ -592,6 +593,15 @@ Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.st
     Route::post('/invoices/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])
          ->name('invoices.sendEmail');
     Route::put('/invoices/{invoice}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
+	
+	// Livre de recettes : index + export CSV + CA mensuel
+Route::get('/accounting/receipts', [ReceiptController::class, 'index'])->name('receipts.index')->middleware('auth');
+Route::get('/accounting/receipts/export', [ReceiptController::class, 'exportCsv'])->name('receipts.export')->middleware('auth');
+Route::get('/accounting/ca-monthly', [ReceiptController::class, 'caMonthly'])->name('receipts.caMonthly')->middleware('auth');
+// routes/web.php
+Route::post('/receipts/{receipt}/reverse', [\App\Http\Controllers\ReceiptController::class, 'reverse'])
+    ->name('receipts.reverse');
+
 
 });
 

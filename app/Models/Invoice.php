@@ -71,4 +71,25 @@ public function appointment()
         'due_date' => 'date',
         'sent_at' => 'datetime',
     ];
+	
+	
+public function receipts()
+{
+    return $this->hasMany(Receipt::class);
+}
+
+public function getTotalEncaisseAttribute(): float
+{
+    // total TTC encaissé = somme des credits - debits
+    $credit = $this->receipts()->where('direction','credit')->sum('amount_ttc');
+    $debit  = $this->receipts()->where('direction','debit')->sum('amount_ttc');
+    return (float) ($credit - $debit);
+}
+
+public function getSoldeRestantAttribute(): float
+{
+    $ttc = (float) $this->total_amount_with_tax;
+    return max(0, $ttc - $this->total_encaisse);
+}	
+	
 }

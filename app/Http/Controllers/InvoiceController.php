@@ -212,16 +212,20 @@ public function store(Request $request)
 
 
 
-    /**
-     * Affiche une facture spécifique.
-     */
-    public function show(Invoice $invoice)
-    {
-        // Check permission to view the invoice
-        $this->authorize('view', $invoice);
+public function show(Invoice $invoice)
+{
+    $this->authorize('view', $invoice);
 
-        return view('invoices.show', compact('invoice'));
-    }
+    // Avoid N+1 and get everything the Blade needs
+    $invoice->load([
+        'clientProfile',
+        'items.product',
+        'items.inventoryItem',
+        'receipts' => fn ($q) => $q->orderBy('encaissement_date')->orderBy('id'),
+    ]);
+
+    return view('invoices.show', compact('invoice'));
+}
 
     /**
      * Affiche le formulaire pour éditer une facture.
@@ -424,14 +428,68 @@ public function generatePDF(Invoice $invoice)
 }
 
 
-    public function markAsPaid(Invoice $invoice)
-    {
-        $this->authorize('update', $invoice); // Check permission to update invoice status
+public function markAsPaid(Request $request, Invoice $invoice)
+{
+    $this->authorize('update', $invoice);
 
-        $invoice->update(['status' => 'Payée']);
-        
-        return redirect()->route('invoices.show', $invoice)->with('success', 'La facture a été marquée comme payée.');
+    $validated = $request->validate([
+        'encaissement_date' => ['nullable','date'],
+        'payment_method'    => ['nullable','in:transfer,card,check,cash,other'],
+        'amount_ttc'        => ['nullable','numeric','min:0.01'], // pour paiement partiel éventuel
+        'nature'            => ['nullable','in:service,goods'],
+        'note'              => ['nullable','string','max:255'],
+    ]);
+
+    $date  = $validated['encaissement_date'] ?? now()->toDateString();
+    $pm    = $validated['payment_method']    ?? 'transfer';
+    $nature= $validated['nature']            ?? 'service';
+
+    // Montant à enregistrer : par défaut le solde restant TTC
+    $montantTtc = isset($validated['amount_ttc']) && $validated['amount_ttc'] > 0
+        ? (float) $validated['amount_ttc']
+        : (float) $invoice->solde_restant;
+
+    if ($montantTtc <= 0) {
+        return back()->with('error', 'Aucun montant à encaisser (solde déjà réglé).');
     }
+
+    // Convertir TTC -> HT à partir de la facture (proportionnel au ratio global)
+    $ttcFacture = (float) $invoice->total_amount_with_tax;
+    $htFacture  = (float) $invoice->total_amount;
+
+    $ratioHT = $ttcFacture > 0 ? $htFacture / $ttcFacture : 1.0;
+    $montantHt = round($montantTtc * $ratioHT, 2);
+
+    // Créer l’écriture
+    \App\Models\Receipt::create([
+        'user_id'           => $invoice->user_id,
+        'invoice_id'        => $invoice->id,
+        'invoice_number'    => (string) $invoice->invoice_number,
+        'encaissement_date' => $date,
+        'client_name'       => $invoice->clientProfile
+                                 ? ($invoice->clientProfile->first_name.' '.$invoice->clientProfile->last_name)
+                                 : 'Client',
+        'nature'            => $nature,
+        'amount_ht'         => $montantHt,
+        'amount_ttc'        => $montantTtc,
+        'payment_method'    => $pm,
+        'direction'         => 'credit',
+        'source'            => 'payment',
+        'note'              => $validated['note'] ?? null,
+    ]);
+
+    // Mettre le statut
+    $invoice->refresh();
+    if ($invoice->solde_restant <= 0.001) {
+        $invoice->update(['status' => 'Payée']);
+    } else {
+        $invoice->update(['status' => 'Partiellement payée']);
+    }
+
+    return redirect()->route('invoices.show', $invoice)
+        ->with('success', 'Encaissement enregistré dans le livre de recettes.');
+}
+
 
 public function sendEmail(Invoice $invoice)
 {
