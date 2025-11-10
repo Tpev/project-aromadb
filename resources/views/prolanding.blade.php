@@ -14,18 +14,40 @@
 Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des thérapeutes du bien-être. Gérez vos rendez-vous, vos clients, et développez votre pratique avec des outils puissants et faciles à utiliser.
     @endsection
 
-    <!-- Hero Section with Background Video -->
-    <section class="hero relative">
+<!-- Hero Section with Background Video -->
+<section class="hero relative">
     <div class="hero-bg absolute w-full h-full bg-center bg-cover" style="background-image: url('{{ asset('images/hero.webp') }}');">
         <div class="overlay absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-60"></div>
     </div>
-        <div class="container mx-auto text-center relative z-10 py-24">
-            <h1 class="text-5xl md:text-6xl font-bold mb-6 text-white animate-fade-in">Transformez votre pratique avec AromaMade PRO</h1>
-            <p class="text-xl md:text-2xl mb-8 text-white">L'outil tout-en-un pour les thérapeutes du bien-être</p>
-            <a href="{{ route('register-pro') }}" class="btn-primary animate-pulse">Commencer votre essai gratuit</a>
+
+    <div class="container mx-auto text-center relative z-10 py-24">
+        <h1 class="text-5xl md:text-6xl font-bold mb-6 text-white animate-fade-in">
+            Transformez votre pratique avec AromaMade PRO
+        </h1>
+        <p class="text-xl md:text-2xl mb-10 text-white">
+            L'outil tout-en-un pour les thérapeutes du bien-être
+        </p>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <!-- Main CTA -->
+            <a href="{{ route('register-pro') }}"
+               class="px-8 py-3 rounded-lg text-white font-semibold text-lg shadow-lg bg-[#647a0b] hover:bg-[#7a930d] transition duration-300 animate-pulse">
+               Activer mon essai PRO de 14 jours
+            </a>
+
+            <!-- Secondary CTA -->
+            <a href="{{ route('register-pro') }}"
+               class="px-8 py-3 rounded-lg bg-white text-[#647a0b] font-semibold text-lg shadow-lg hover:bg-transparent hover:text-white hover:border-white border border-transparent transition duration-300">
+               Référencement gratuit
+            </a>
         </div>
-        <div class="overlay absolute inset-0 bg-black opacity-50"></div>
-    </section>
+    </div>
+
+    <div class="overlay absolute inset-0 bg-black opacity-50"></div>
+</section>
+
+
+
 
     <!-- Introduction Section -->
     <section class="py-12 bg-white">
