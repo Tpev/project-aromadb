@@ -1,0 +1,115 @@
+/* ===== Brand tokens ===== */
+:root{
+  --primary-color:#647a0b;
+  --secondary-color:#854f38;
+  --text:#1f2937;
+  --muted:#4b5563;
+  --bg:#ffffff;
+  --bg-alt:#f7fafc;
+}
+
+/* ===== Base ===== */
+body{font-family:'Roboto',sans-serif;color:var(--text);}
+h1,h2,h3,h4,h5,h6{font-family:'Poppins',sans-serif;}
+.text-primary{color:var(--primary-color);}
+.muted{color:var(--muted);}
+
+/* Containers */
+.container{max-width:1100px;}
+.center{text-align:center;}
+
+/* ===== Buttons ===== */
+.btn-primary{
+  background:linear-gradient(90deg,var(--primary-color) 0%,var(--secondary-color) 100%);
+  color:#fff; padding:14px 28px; border-radius:6px; text-decoration:none;
+  display:inline-block; font-size:1.125rem; transition:transform .25s, box-shadow .25s;
+}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(0,0,0,.15);}
+.btn-secondary{
+  background:transparent; color:var(--primary-color); padding:12px 24px; border:2px solid var(--primary-color);
+  border-radius:6px; text-decoration:none; font-size:1.0625rem; transition:background .2s, color .2s;
+}
+.btn-secondary:hover{background:var(--primary-color); color:#fff;}
+
+/* ===== Hero ===== */
+.hero{position:relative; min-height:70vh; display:flex; align-items:center;}
+.hero .overlay{position:absolute; inset:0; background:rgba(0,0,0,.45);}
+.hero .breadcrumb{
+  color:#fff; font-size:.9rem; margin-bottom:1rem; opacity:.9;
+  display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap;
+}
+.hero .breadcrumb a{color:#fff; text-decoration:underline dotted; text-underline-offset:2px;}
+.hero .breadcrumb .current{text-decoration:none; opacity:.8}
+
+/* ===== Sections ===== */
+.section-title{font-size:2.2rem; font-weight:700; color:var(--primary-color);}
+@media (min-width:768px){ .section-title{font-size:2.4rem;} }
+
+/* ===== Cards ===== */
+.card{
+  background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:22px;
+  box-shadow:0 6px 14px rgba(0,0,0,.06); transition:transform .25s, box-shadow .25s;
+}
+.card:hover{transform:translateY(-4px); box-shadow:0 12px 26px rgba(0,0,0,.08);}
+.card-icon{font-size:2.4rem; color:var(--primary-color); margin-bottom:.5rem;}
+.card-title{font-weight:700; font-size:1.25rem; margin-bottom:.35rem;}
+
+/* ===== Feature tiles ===== */
+.feature-tile{
+  background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:22px;
+  transition:transform .25s, box-shadow .25s; box-shadow:0 4px 10px rgba(0,0,0,.04);
+}
+.feature-tile:hover{transform:translateY(-4px); box-shadow:0 12px 24px rgba(0,0,0,.08);}
+.feature-tile h3{font-size:1.2rem; font-weight:700; margin-bottom:.35rem;}
+.feature-tile p{color:var(--muted);}
+.tile-icon{font-size:2rem; color:var(--secondary-color); margin-bottom:.5rem;}
+
+/* ===== Steps ===== */
+.steps{max-width:850px; margin:0 auto;}
+.step{
+  display:flex; gap:16px; align-items:flex-start; padding:16px; border-radius:12px; background:#fff;
+  border:1px solid #e5e7eb; margin-bottom:12px; box-shadow:0 4px 10px rgba(0,0,0,.03);
+}
+.step .bubble{
+  width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+  background:var(--primary-color); color:#fff; font-weight:700; flex:0 0 34px;
+}
+.step h3{font-size:1.1rem; font-weight:700; margin:2px 0 4px;}
+.step p{color:var(--muted); margin:0}
+
+/* ===== Integration logos ===== */
+.logo-row{display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap;}
+.logo-row img{height:34px; filter:grayscale(1); opacity:.8; transition:opacity .2s, filter .2s}
+.logo-row img:hover{filter:none; opacity:1}
+
+/* ===== Testimonials ===== */
+.testimonial-card{
+  background:#f7fafc; padding:22px; border-radius:10px; box-shadow:0 6px 14px rgba(0,0,0,.05);
+  border:1px solid #e5e7eb;
+}
+.testimonial-card .quote{font-style:italic; color:#111827;}
+.testimonial-card .author{margin-top:8px; font-weight:700; color:#374151;}
+
+/* ===== Accordion ===== */
+.accordion .accordion-item{border-bottom:1px solid #e5e7eb;}
+.accordion .accordion-header{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:#fff; border:none; padding:16px 0; font-size:1.05rem; color:var(--primary-color);
+  font-weight:600; cursor:pointer;
+}
+.accordion .accordion-content{display:none; padding:0 0 14px; color:var(--muted);}
+.accordion .accordion-item.open .accordion-content{display:block;}
+.accordion .accordion-item i{transition:transform .2s;}
+.accordion .accordion-item.open i{transform:rotate(180deg);}
+
+/* ===== Utilities ===== */
+.mt-10{margin-top:2.5rem;}
+.mt-12{margin-top:3rem;}
+.py-12{padding:3rem 0}
+.py-16{padding:4rem 0}
+
+/* Background helpers (Tailwind classes still present on the page) */
+.bg-gray-100{background:#f3f4f6;}
+.bg-white{background:#fff;}
+.bg-green-100{background:#ecfdf5;}
+.text-white{color:#fff;}

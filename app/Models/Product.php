@@ -30,8 +30,11 @@ class Product extends Model
 		'display_order', // Add this line
 		'stripe_product_id', // Newly added
         'stripe_price_id',  // Newly added
+		'requires_emargement',
     ];
-
+    protected $casts = [
+        'requires_emargement'  => 'boolean',
+    ];
     /**
      * The user (therapist) that created the product.
      */

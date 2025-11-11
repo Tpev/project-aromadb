@@ -57,6 +57,7 @@ class ProductController extends Controller
         'image' => 'nullable|image|max:8048',
         'brochure' => 'nullable|mimes:pdf|max:10120',
         'display_order' => 'nullable|integer|min:0',
+		'requires_emargement' => 'required|boolean',
     ]);
 
     // Définir l'ordre d'affichage par défaut si non fourni
@@ -98,6 +99,7 @@ class ProductController extends Controller
         'image' => $validatedData['image'] ?? null,
         'brochure' => $validatedData['brochure'] ?? null,
         'display_order' => $validatedData['display_order'],
+		'requires_emargement' => $validatedData['requires_emargement'],
     ]);
 
     return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
@@ -146,6 +148,7 @@ public function update(Request $request, Product $product)
         'image' => 'nullable|image|max:5048',
         'brochure' => 'nullable|mimes:pdf|max:10120',
         'display_order' => 'nullable|integer|min:0',
+		'requires_emargement' => 'required|boolean',
     ]);
 
     // Gérer les uploads de fichiers
@@ -188,6 +191,7 @@ public function update(Request $request, Product $product)
         'image' => $validatedData['image'] ?? $product->image,
         'brochure' => $validatedData['brochure'] ?? $product->brochure,
         'display_order' => $validatedData['display_order'] ?? $product->display_order,
+		'requires_emargement' => $validatedData['requires_emargement'],
     ]);
 
     return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
@@ -237,6 +241,7 @@ public function storeDuplicate(Request $request, Product $product)
         'image' => 'nullable|image|max:4048',
         'brochure' => 'nullable|mimes:pdf|max:5120',
         'display_order' => 'nullable|integer|min:0',
+		'requires_emargement' => 'required|boolean',
     ]);
 
     // Gérer les uploads de fichiers
@@ -274,6 +279,7 @@ public function storeDuplicate(Request $request, Product $product)
         'max_per_day' => $validatedData['max_per_day'],
         'image' => $validatedData['image'],
         'brochure' => $validatedData['brochure'],
+		'requires_emargement' => $validatedData['requires_emargement'],
         'display_order' => $validatedData['display_order'] ?? ($product->display_order + 1),
     ]);
 

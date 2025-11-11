@@ -56,6 +56,70 @@ use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\PracticeLocationController;
 use App\Models\User;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\AssistantController;
+use App\Http\Controllers\EmargementController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentSigningController;
+
+// Upload (from client dossier)
+Route::middleware(['web','auth'])->group(function () {
+    Route::post('/clients/{clientProfile}/documents', [DocumentController::class,'store'])
+        ->name('documents.store');
+    Route::get('/documents/{doc}/download-final', [DocumentController::class,'downloadFinal'])
+        ->name('documents.download.final');
+
+    Route::post('/documents/{doc}/send',   [DocumentSigningController::class,'send'])->name('documents.send');
+    Route::post('/signing/{signing}/resend',[DocumentSigningController::class,'resend'])->name('documents.resend');
+});
+
+// Public client signing (step 1), then therapist signing (step 2) using same token:
+Route::get('/docs/sign/{token}',  [DocumentSigningController::class,'showForm'])
+    ->name('documents.sign.form');
+Route::post('/docs/sign/{token}', [DocumentSigningController::class,'submit'])
+    ->name('documents.sign.submit');
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/appointments/{appointment}/emargement/send', [EmargementController::class,'send'])
+        ->name('emargement.send');
+    Route::post('/emargements/{emargement}/resend', [EmargementController::class,'resend'])
+        ->name('emargement.resend');
+    Route::get('/emargements/{emargement}/download', [EmargementController::class,'download'])
+        ->name('emargement.download');
+});
+
+// Public signing (magic link)
+Route::get('/sign/{token}', [EmargementController::class,'showSignForm'])->name('emargement.sign.form');
+Route::post('/sign/{token}', [EmargementController::class,'submitSignature'])->name('emargement.sign.submit');
+
+
+
+
+
+
+// --- Agenda feature page
+Route::view('/fonctionnalites/agenda', 'fonctionnalites.agenda')
+    ->name('features.agenda');
+// --- Dossiers clients feature page
+Route::view('/fonctionnalites/dossiers-clients', 'fonctionnalites.dossiers-clients')
+    ->name('features.dossiers');
+// Facturation page
+Route::view('/fonctionnalites/facturation', 'fonctionnalites.facturation')
+    ->name('features.facturation');
+// Feature: Questionnaires
+Route::view('/fonctionnalites/questionnaires', 'fonctionnalites.questionnaires')
+    ->name('features.questionnaires');
+// Portail Pro
+Route::view('/fonctionnalites/portail-pro', 'fonctionnalites.portail-pro')
+    ->name('features.portailpro');
+// Paiements
+Route::view('/fonctionnalites/paiements', 'fonctionnalites.paiements')
+    ->name('features.paiements');
+	
+Route::middleware(['auth'])->group(function () {
+    Route::get('/assistant', [AssistantController::class, 'view'])->name('assistant.view');
+    Route::post('/assistant/message', [AssistantController::class, 'message'])->name('assistant.message');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('practice-locations', PracticeLocationController::class)

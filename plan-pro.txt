@@ -1,0 +1,39 @@
+/pro                                  ← Pillar (keep as-is; main conversion page)
+│
+├── /fonctionnalites                  ← Feature hub (overview)
+│     ├── /agenda                     ← Prise de rendez-vous, synchro calendriers
+│     ├── /dossiers-clients           ← Fiches, notes, objectifs, documents liés
+│     ├── /facturation                ← Devis, factures, suivi paiements
+│     ├── /questionnaires             ← Formulaires personnalisés / pré-séance
+│     ├── /visio                      ← Téléconsultation intégrée
+│     ├── /portail-pro                ← Vitrine, SEO local, prise de RDV
+│     ├── /inventaire                 ← Huiles, tisanes, produits, consommables
+│     ├── /evenements                 ← Ateliers, séminaires, quotas & réservations
+│     ├── /reseaux-sociaux            ← Publication auto, intégrations
+│     ├── /paiements                  ← Paiement en ligne / lien de paiement
+│     ├── /bibliotheque               ← Conseils & programmes d’accompagnement
+│     ├── /documents                  ← Stockage, partage sécurisé
+│     └── /synchronisation            ← Google/Apple/Outlook (ICS), mobile/desktop
+│
+├── /solutions                        ← Pain-point (problem → solution) hub
+│     ├── /gagner-du-temps
+│     ├── /simplifier-la-paperasse
+│     ├── /developper-sa-clientele
+│     ├── /etre-visible
+│     ├── /facturer-simplement
+│     ├── /suivre-ses-clients
+│     ├── /travailler-a-distance
+│     ├── /fideliser-ses-clients
+│     ├── /organiser-ses-ateliers
+│     ├── /gerer-ses-rendez-vous
+│     ├── /ameliorer-sa-visibilite-locale
+│     ├── /gerer-ses-documents
+│     └── /proteger-les-donnees
+│
+└── /professions                      ← Segment-by-profession hub
+      ├── /naturopathes
+      ├── /sophrologues
+      ├── /reflexologues
+      ├── /aromatherapeutes
+      ├── /coachs-bien-etre
+      └── /autres-praticiens

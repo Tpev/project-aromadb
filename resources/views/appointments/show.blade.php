@@ -113,6 +113,14 @@
         </div>
     </div>
 </div>
+@can('update', $appointment)
+@if($appointment->product?->requires_emargement && !$appointment->emargement_sent)
+<form action="{{ route('emargement.send', $appointment->id) }}" method="POST" style="display:inline-block">
+    @csrf
+    <button class="btn-primary" type="submit">📄 Envoyer la feuille d’émargement</button>
+</form>
+@endif
+@endcan
 
 
         </div>

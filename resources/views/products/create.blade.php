@@ -5,11 +5,10 @@
         </h2>
     </x-slot>
 
-    <div class="container mt-5">
+    <div class="container mt-5" x-data="{ adv:false }">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouvelle Prestation') }}</h1>
 
-            <!-- Updated form with enctype for file uploads -->
             <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
@@ -39,19 +38,18 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-				<!-- Collect Payment -->
-				<div class="details-box">
-					<label class="details-label" for="collect_payment">{{ __('Collecter le Paiement durant la prise de rdv sur votre portail') }}</label>
-					<!-- Hidden input to ensure a value is always sent -->
-					<input type="hidden" name="collect_payment" value="0">
-					<!-- Checkbox input -->
-					<input type="checkbox" id="collect_payment" name="collect_payment" value="1" {{ old('collect_payment') ? 'checked' : '' }}>
-					@error('collect_payment')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-				</div>
 
-                <!-- Taux de Taxe -->
+                <!-- Collect Payment -->
+                <div class="details-box">
+                    <label class="details-label" for="collect_payment">{{ __('Collecter le Paiement durant la prise de RDV sur votre portail') }}</label>
+                    <input type="hidden" name="collect_payment" value="0">
+                    <input type="checkbox" id="collect_payment" name="collect_payment" value="1" {{ old('collect_payment') ? 'checked' : '' }}>
+                    @error('collect_payment')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- TVA -->
                 <div class="details-box">
                     <label class="details-label" for="tax_rate">{{ __('TVA (%)') }}</label>
                     <input type="number" id="tax_rate" name="tax_rate" class="form-control" value="{{ old('tax_rate', 0) }}" step="0.01" min="0" max="100" required>
@@ -82,23 +80,12 @@
                     @enderror
                 </div>
 
-                <!-- Can Be Booked Online -->
+                <!-- Peut être réservé en ligne -->
                 <div class="details-box">
                     <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
-                    <!-- Hidden input to ensure a value is always sent -->
                     <input type="hidden" name="can_be_booked_online" value="0">
-                    <!-- Checkbox input -->
                     <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online') ? 'checked' : '' }}>
                     @error('can_be_booked_online')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Maximum séances par jour -->
-                <div class="details-box">
-                    <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
-                    <input type="number" id="max_per_day" name="max_per_day" class="form-control" value="{{ old('max_per_day') }}" min="1">
-                    @error('max_per_day')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
@@ -120,33 +107,68 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-				<!-- Display Order -->
-				<div class="details-box">
-					<label class="details-label" for="display_order">{{ __('Ordre d\'affichage') }}</label>
-					<input type="number" id="display_order" name="display_order" class="form-control" value="{{ old('display_order', 0) }}" min="0">
-					@error('display_order')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-					<small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
-				</div>
 
+                <!-- Ordre d’affichage -->
+                <div class="details-box">
+                    <label class="details-label" for="display_order">{{ __('Ordre d\'affichage') }}</label>
+                    <input type="number" id="display_order" name="display_order" class="form-control" value="{{ old('display_order', 0) }}" min="0">
+                    @error('display_order')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                    <small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
+                </div>
+
+                <!-- === Options avancées === -->
+                <div class="advanced-wrapper">
+                    <button type="button"
+                            class="adv-toggle"
+                            @click="adv = !adv"
+                            :aria-expanded="adv ? 'true' : 'false'">
+                        <span>Options avancées</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="chev" :class="{ 'rotate-180': adv }" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <div x-show="adv" x-transition.origin.top.left style="display:none">
+                        <div class="adv-box">
+                            <!-- Nombre maximum de séances par jour -->
+                            <div class="details-box">
+                                <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
+                                <input type="number" id="max_per_day" name="max_per_day" class="form-control" value="{{ old('max_per_day') }}" min="1">
+                                @error('max_per_day') <p class="text-red-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Fiche d’émargement requise -->
+                            <div class="details-box">
+                                <label class="details-label" for="requires_emargement">{{ __('Fiche d’émargement requise') }}</label>
+                                <input type="hidden" name="requires_emargement" value="0">
+                                <input type="checkbox" id="requires_emargement" name="requires_emargement" value="1" {{ old('requires_emargement') ? 'checked' : '' }}>
+                                @error('requires_emargement') <p class="text-red-500">{{ $message }}</p> @enderror
+                                <small class="text-gray-500">
+                                    {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer la Prestation') }}</button>
                 <a href="{{ route('products.index') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
         </div>
     </div>
 
-    <!-- Styles personnalisés -->
+    <!-- Styles -->
     <style>
-        .container {
-            max-width: 800px;
-        }
+        .container { max-width: 800px; }
 
         .details-container {
             background-color: #f9f9f9;
             border-radius: 10px;
             padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             margin: 0 auto;
         }
 
@@ -158,9 +180,7 @@
             text-align: center;
         }
 
-        .details-box {
-            margin-bottom: 15px;
-        }
+        .details-box { margin-bottom: 15px; }
 
         .details-label {
             font-weight: bold;
@@ -187,9 +207,7 @@
             cursor: pointer;
         }
 
-        .btn-primary:hover {
-            background-color: #854f38;
-        }
+        .btn-primary:hover { background-color: #854f38; }
 
         .btn-secondary {
             background-color: transparent;
@@ -206,9 +224,23 @@
             color: #fff;
         }
 
-        .text-red-500 {
-            color: #e3342f;
-            font-size: 0.875rem;
+        .text-red-500 { color: #e3342f; font-size: 0.875rem; }
+        .text-gray-500 { color: #6b7280; font-size: 0.85rem; }
+
+        .advanced-wrapper { margin-top: 24px; border-top: 1px dashed #d1d5db; padding-top: 16px; }
+        .adv-toggle {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+            color: #374151; font-weight: 600; cursor: pointer;
+        }
+        .adv-toggle:hover { background: #f8fafc; }
+        .chev { transition: transform .2s ease; }
+        .rotate-180 { transform: rotate(180deg); }
+
+        .adv-box {
+            background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 16px; margin-top: 12px;
         }
     </style>
 </x-app-layout>
