@@ -25,6 +25,37 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
+	<style>
+      /* --- App-only tabbar --- */
+      .am-app .app-tabbar { display:flex; }
+
+      .app-tabbar {
+        display:none;
+        height:58px;
+        padding-bottom:env(safe-area-inset-bottom);
+      }
+
+      .app-tabbar .tab-item {
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:4px;
+        padding:8px 10px;
+        flex:1;
+        color:#6b7280;
+        text-decoration:none;
+      }
+      .app-tabbar .tab-item.active { color:#111827; font-weight:600; }
+
+      .am-app body {
+        padding-bottom:calc(58px + env(safe-area-inset-bottom));
+      }
+
+      .no-tabbar .app-tabbar {
+        display:none!important;
+      }
+    </style>
 </head>
 <body class="font-sans antialiased bg-[#f5f5f5]">
     <div class="min-h-screen">
@@ -186,6 +217,18 @@
             }, 30000); // 30 seconds
         });
     </script>
+<script>
+  (function () {
+    try {
+      const isApp =
+        typeof window.Capacitor !== 'undefined' &&
+        typeof window.Capacitor.getPlatform === 'function' &&
+        window.Capacitor.getPlatform() !== 'web';
+      if (isApp) document.documentElement.classList.add('am-app');
+    } catch (_) {}
+  })();
+</script>
+@include('partials.app-tabbar')
 
     @stack('scripts')
 </body>
