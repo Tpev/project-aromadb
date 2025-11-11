@@ -22,20 +22,20 @@
             <h1 class="details-title flex items-center justify-center gap-3">
                 {{ $product->name }}
 
-                {{-- Badge: fiche d’émargement requise --}}
+                {{-- Badge: fiche d’émargement requise (only if true) --}}
                 @if($product->requires_emargement)
                     <span class="badge badge-green" title="Fiche d’émargement requise">
                         <i class="fas fa-file-signature"></i> {{ __('Émargement requis') }}
-                    </span>
-                @else
-                    <span class="badge badge-gray" title="Pas d’émargement requis">
-                        <i class="fas fa-file-signature"></i> {{ __('Pas d’émargement') }}
                     </span>
                 @endif
             </h1>
 
             <!-- Info grid -->
             <div class="product-info-boxes">
+                @php
+                    // Legacy-safe: if null, treat as visible
+                    $isVisibleInPortal = is_null($product->visible_in_portal) ? true : (bool)$product->visible_in_portal;
+                @endphp
 
                 <!-- Nom -->
                 <div class="product-box">
@@ -97,16 +97,25 @@
                     </div>
                 </div>
 
-                <!-- Collecter le Paiement -->
+                <!-- Visible sur le portail (legacy-safe) -->
                 <div class="product-box">
-                    <i class="fas fa-money-check-alt icon"></i>
+                    <i class="fas fa-eye icon"></i>
                     <div class="product-details">
-                        <p class="product-label">{{ __('Collecter le Paiement') }}</p>
+                        <p class="product-label">{{ __('Visible sur le portail') }}</p>
                         <p class="product-value">
-                            @if($product->collect_payment)
-                                <span class="chip chip-green">{{ __('Oui, paiement demandé à la réservation') }}</span>
+                            @if($isVisibleInPortal)
+                                <span class="chip chip-green">
+                                    <i class="fas fa-eye"></i> {{ __('Visible') }}
+                                </span>
+                                @if(is_null($product->visible_in_portal))
+                                    <small class="text-gray-500" style="margin-left:.5rem;">
+                                        ({{ __('hérité par défaut') }})
+                                    </small>
+                                @endif
                             @else
-                                <span class="chip chip-gray">{{ __('Non, pas de paiement demandé') }}</span>
+                                <span class="chip chip-gray">
+                                    <i class="fas fa-eye-slash"></i> {{ __('Masqué') }}
+                                </span>
                             @endif
                         </p>
                     </div>
@@ -195,9 +204,7 @@
                                 <tr onclick="window.location='{{ route('invoices.show', $invoice->id) }}';">
                                     <td>{{ $invoice->invoice_number }}</td>
                                     <td>
-                                        @php
-                                            $cp = $invoice->clientProfile ?? null;
-                                        @endphp
+                                        @php $cp = $invoice->clientProfile ?? null; @endphp
                                         {{ $cp ? trim(($cp->first_name ?? '').' '.($cp->last_name ?? '')) : '—' }}
                                     </td>
                                     <td>
@@ -245,16 +252,11 @@
             padding: 6px 10px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600;
         }
         .badge-green { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-        .badge-gray  { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
 
         .product-image-container { text-align: center; }
-        .product-image {
-            max-width: 100%; height: auto; border-radius: 10px; object-fit: cover;
-        }
+        .product-image { max-width: 100%; height: auto; border-radius: 10px; object-fit: cover; }
 
-        .product-info-boxes {
-            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 10px;
-        }
+        .product-info-boxes { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 10px; }
 
         .product-box {
             display: flex; align-items: center; background-color: #ffffff;
@@ -267,6 +269,10 @@
         .product-details { text-align: left; }
         .product-label { font-weight: bold; color: #647a0b; margin: 0 0 4px; }
         .product-value { color: #333333; font-size: 1rem; word-wrap: break-word; }
+
+        .chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:9999px; font-weight:600; }
+        .chip-green { background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+        .chip-gray  { background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; }
 
         .link { color: #4f46e5; text-decoration: underline; }
         .link:hover { color: #3730a3; }
