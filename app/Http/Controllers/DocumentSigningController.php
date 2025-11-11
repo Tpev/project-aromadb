@@ -8,6 +8,9 @@ use App\Models\DocumentSignEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DocumentSignRequestMail;
+use App\Mail\DocumentSignedFinalMail;
 
 class DocumentSigningController extends Controller
 {
@@ -107,19 +110,23 @@ class DocumentSigningController extends Controller
         // (This should NOT try to touch documents.signed_at anymore)
         app(\App\Services\DocumentSigningService::class)->generateFinalPdf($doc);
         $doc->refresh();
+// ✅ ENVOI MAIL FINAL AU CLIENT AVEC PDF SIGNÉ
+$clientEmail = $doc->clientProfile?->email;
+$clientName  = trim(($doc->clientProfile?->first_name ?? '').' '.($doc->clientProfile?->last_name ?? '')) ?: null;
 
+if ($clientEmail) {
+    Mail::to($clientEmail)->queue(new DocumentSignedFinalMail($doc, $clientName));
+}
         // Same simple thank-you page
         return view('documents.sign.thanks');
     }
 
 public function send(Request $request, Document $doc)
 {
-    // Only the therapist (owner) can send
     if (!auth()->check() || auth()->id() !== $doc->owner_user_id) {
         abort(403, 'Accès non autorisé');
     }
 
-    // Create or refresh the signing token
     $signing = \App\Models\DocumentSigning::updateOrCreate(
         ['document_id' => $doc->id],
         [
@@ -130,30 +137,44 @@ public function send(Request $request, Document $doc)
         ]
     );
 
-    // ✅ Update the document’s own status
     $doc->update(['status' => 'sent']);
 
-    // TODO: send mail to client with route('documents.sign.form', $signing->token)
+    // ✅ ENVOI MAIL AU CLIENT AVEC LIEN DE SIGNATURE
+    $clientEmail = $doc->clientProfile?->email;
+    $clientName  = trim(($doc->clientProfile?->first_name ?? '').' '.($doc->clientProfile?->last_name ?? '')) ?: null;
+
+    if ($clientEmail) {
+        Mail::to($clientEmail)->queue(new DocumentSignRequestMail($doc, $signing, $clientName));
+    }
+
     return back()->with('success', 'Lien de signature envoyé au client.');
 }
 
 
-    public function resend(DocumentSigning $signing)
-    {
-        $doc = $signing->document;
 
-        // simple ownership check
-        abort_unless(Auth::check(), 403, 'Authentification requise.');
-        abort_unless($doc->owner_user_id === Auth::id(), 403, 'Accès refusé.');
+public function resend(DocumentSigning $signing)
+{
+    $doc = $signing->document;
 
-        $signing->update([
-            'token'      => bin2hex(random_bytes(32)),
-            'expires_at' => now()->addDays(14),
-        ]);
+    abort_unless(Auth::check(), 403, 'Authentification requise.');
+    abort_unless($doc->owner_user_id === Auth::id(), 403, 'Accès refusé.');
 
-        // Re-send email if you have a Mailable here
+    $signing->update([
+        'token'      => bin2hex(random_bytes(32)),
+        'expires_at' => now()->addDays(14),
+        'status'     => 'sent',
+    ]);
 
-        return back()->with('success', 'Nouveau lien de signature envoyé.');
+    // ✅ RE-ENVOI MAIL AU CLIENT
+    $clientEmail = $doc->clientProfile?->email;
+    $clientName  = trim(($doc->clientProfile?->first_name ?? '').' '.($doc->clientProfile?->last_name ?? '')) ?: null;
+
+    if ($clientEmail) {
+        Mail::to($clientEmail)->queue(new DocumentSignRequestMail($doc, $signing, $clientName));
     }
+
+    return back()->with('success', 'Nouveau lien de signature envoyé.');
+}
+
 }
 		
