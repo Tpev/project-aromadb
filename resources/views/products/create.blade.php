@@ -79,6 +79,25 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+				<!-- Visible sur le Portail Pro/Public -->
+				<div class="details-box">
+					<label class="details-label" for="visible_in_portal">
+						{{ __('Visible sur votre portail') }}
+					</label>
+					<input type="hidden" name="visible_in_portal" value="0">
+					<input
+						type="checkbox"
+						id="visible_in_portal"
+						name="visible_in_portal"
+						value="1"
+						{{ old('visible_in_portal', 1) ? 'checked' : '' }}>
+					@error('visible_in_portal')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+					<small class="text-gray-500">
+						{{ __('Si coché, cette prestation apparaît sur votre portail (page publique et prise de rendez-vous).') }}
+					</small>
+				</div>
 
                 <!-- Peut être réservé en ligne -->
                 <div class="details-box">

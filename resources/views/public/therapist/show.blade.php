@@ -324,9 +324,16 @@
     <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">
         <i class="fas fa-spa text-[#854f38] mr-3"></i> {{ __('Prestations') }}
     </h3>
+
     @php
-        $uniquePrestations = $prestations->unique('name');
+        // Legacy-safe visibility: show if null or true; hide only if explicitly false
+        $visiblePrestations = $prestations->filter(function ($p) {
+            return $p->visible_in_portal !== false;
+        });
+
+        $uniquePrestations = $visiblePrestations->unique('name');
     @endphp
+
     @if($uniquePrestations->count() > 0)
         <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             @foreach($uniquePrestations as $prestation)
@@ -339,9 +346,14 @@
                     @endif
                     <div class="p-6">
                         <h4 class="text-2xl font-semibold text-[#647a0b]">{{ $prestation->name }}</h4>
-                        <p class="mt-2 text-gray-600">{{ __('Durée :') }} {{ $prestation->duration }} {{ __('min') }}</p>
 
-                        <p class="mt-4 text-gray-700 prestation-description" data-full-text="{{ e($prestation->description) }}" data-truncated-text="{{ e($truncatedDescription) }}">
+                        @if(!is_null($prestation->duration))
+                            <p class="mt-2 text-gray-600">{{ __('Durée :') }} {{ $prestation->duration }} {{ __('min') }}</p>
+                        @endif
+
+                        <p class="mt-4 text-gray-700 prestation-description"
+                           data-full-text="{{ e($prestation->description) }}"
+                           data-truncated-text="{{ e($truncatedDescription) }}">
                             {!! nl2br(e($truncatedDescription)) !!}
                             @if(\Illuminate\Support\Str::length($prestation->description) > 200)
                                 <span class="text-[#854f38] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
@@ -361,6 +373,7 @@
         <p class="mt-6 text-gray-600">{{ __('Aucune prestation disponible pour le moment.') }}</p>
     @endif
 </div>
+
 
 
             {{-- Section Événements --}}
