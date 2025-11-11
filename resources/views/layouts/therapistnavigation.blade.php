@@ -18,7 +18,7 @@
 
                 <!-- Liens de Navigation -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <!-- Existing navigation links -->
+                    <!-- Liens principaux -->
                     <x-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Tableau de Bord') }}
                     </x-nav-link>
@@ -28,28 +28,83 @@
                     <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Rendez-vous') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Factures') }}
-                    </x-nav-link>
 
-                    <!-- Menu déroulant Configuration avec Alpine.js -->
-                    <div class="relative flex items-center" x-data="{ openConfig: false, timeout: null }" @mouseenter="clearTimeout(timeout); openConfig = true" @mouseleave="timeout = setTimeout(() => openConfig = false, 200)">
-                        <!-- Lien Configuration -->
-                        <x-nav-link href="#" class="text-[#647a0b] hover:text-[#854f38] flex items-center" @click.prevent="openConfig = !openConfig" x-bind:aria-expanded="openConfig.toString()" aria-haspopup="true">
-                            {{ __('Configuration') }}
-                            <!-- Indicateur de Dropdown -->
+                    <!-- ======= Comptabilité (Option 1) ======= -->
+                    <div class="relative flex items-center"
+                         x-data="{ openAccounting: false, timeoutAcc: null }"
+                         @mouseenter="clearTimeout(timeoutAcc); openAccounting = true"
+                         @mouseleave="timeoutAcc = setTimeout(() => openAccounting = false, 200)">
+                        <x-nav-link href="#"
+                                    class="text-[#647a0b] hover:text-[#854f38] flex items-center"
+                                    @click.prevent="openAccounting = !openAccounting"
+                                    x-bind:aria-expanded="openAccounting.toString()" aria-haspopup="true">
+                            {{ __('Comptabilité') }}
                             <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
                                 <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"></path>
                             </svg>
                         </x-nav-link>
 
-                        <!-- Menu déroulant -->
-                        <div x-show="openConfig" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform translate-y-1" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform translate-y-1" class="absolute left-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg z-20" x-cloak @mouseenter="clearTimeout(timeout); openConfig = true" @mouseleave="timeout = setTimeout(() => openConfig = false, 200)">
-                            <!-- Éléments du Menu -->
+                        <div x-show="openAccounting"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 transform translate-y-1"
+                             x-transition:enter-end="opacity-100 transform translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 transform translate-y-0"
+                             x-transition:leave-end="opacity-0 transform translate-y-1"
+                             class="absolute left-0 top-full mt-2 w-56 bg-white rounded-md shadow-lg z-20"
+                             x-cloak
+                             @mouseenter="clearTimeout(timeoutAcc); openAccounting = true"
+                             @mouseleave="timeoutAcc = setTimeout(() => openAccounting = false, 200)">
+
+                            <!-- Items -->
+                            <a href="{{ route('invoices.index') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('invoices.*') ? 'bg-gray-50 font-medium' : '' }}">
+                                {{ __('Factures & Devis') }}
+                            </a>
+
+                            <a href="{{ route('receipts.index') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('receipts.index') ? 'bg-gray-50 font-medium' : '' }}">
+                                {{ __('Livre de recettes') }}
+                            </a>
+
+                            <a href="{{ route('receipts.caMonthly') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('receipts.caMonthly') ? 'bg-gray-50 font-medium' : '' }}">
+                                {{ __('Statistiques (CA mensuel)') }}
+                            </a>
+                        </div>
+                    </div>
+                    <!-- ======= /Comptabilité ======= -->
+
+                    <!-- Menu déroulant Configuration -->
+                    <div class="relative flex items-center"
+                         x-data="{ openConfig: false, timeout: null }"
+                         @mouseenter="clearTimeout(timeout); openConfig = true"
+                         @mouseleave="timeout = setTimeout(() => openConfig = false, 200)">
+                        <x-nav-link href="#"
+                                    class="text-[#647a0b] hover:text-[#854f38] flex items-center"
+                                    @click.prevent="openConfig = !openConfig"
+                                    x-bind:aria-expanded="openConfig.toString()" aria-haspopup="true">
+                            {{ __('Configuration') }}
+                            <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"></path>
+                            </svg>
+                        </x-nav-link>
+
+                        <div x-show="openConfig"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 transform translate-y-1"
+                             x-transition:enter-end="opacity-100 transform translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 transform translate-y-0"
+                             x-transition:leave-end="opacity-0 transform translate-y-1"
+                             class="absolute left-0 top-full mt-2 w-56 bg-white rounded-md shadow-lg z-20"
+                             x-cloak
+                             @mouseenter="clearTimeout(timeout); openConfig = true"
+                             @mouseleave="timeout = setTimeout(() => openConfig = false, 200)">
                             <a href="{{ route('availabilities.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Disponibilités') }}
-                            </a>                            
-							<a href="{{ route('practice-locations.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            </a>
+                            <a href="{{ route('practice-locations.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Cabinets & Lieux') }}
                             </a>
                             <a href="{{ route('unavailabilities.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -69,17 +124,19 @@
                             </a>
                             <a href="{{ route('therapist.stripe') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Paiement en ligne') }}
-                            </a>                            
-							<a href="{{ route('conseils.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            </a>
+                            <a href="{{ route('conseils.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Biblio Conseils') }}
-                            </a>							
-							<a href="{{ route('inventory_items.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            </a>
+                            <a href="{{ route('inventory_items.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Inventaire') }}
                             </a>
                         </div>
                     </div>
 
-                    <x-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                    <x-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}"
+                                :active="request()->is('pro/' . auth()->user()->slug)"
+                                class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Portail') }}
                     </x-nav-link>
                 </div>
@@ -117,7 +174,6 @@
                                     {{ $notification->data['message'] }}
                                     <br>
                                     <small class="text-gray-500">{{ $notification->data['amount_paid'] ?? '' }} - {{ $notification->data['appointment_date'] ?? '' }}</small>
-
                                 </a>
                             @empty
                                 <div class="px-4 py-2 text-sm text-gray-500">Aucune notification</div>
@@ -143,7 +199,6 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <!-- Profil -->
                         <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Profil') }}
                         </x-dropdown-link>
@@ -152,16 +207,14 @@
                         </x-dropdown-link>
                         <x-dropdown-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
                             {{ __('Support') }}
-                        </x-dropdown-link>                        
+                        </x-dropdown-link>
 
                         <div class="border-t border-gray-100"></div>
 
-                        <!-- Déconnexion -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
-                                onclick="event.preventDefault();
-                                            this.closest('form').submit();">
+                                onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Déconnexion') }}
                             </x-dropdown-link>
                         </form>
@@ -193,20 +246,34 @@
             <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Rendez-vous') }}
             </x-responsive-nav-link>
+
+            <!-- Comptabilité (mobile) -->
+            <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Comptabilité</div>
+            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Factures & Devis') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('receipts.index')" :active="request()->routeIs('receipts.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Livre de recettes') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('receipts.caMonthly')" :active="request()->routeIs('receipts.caMonthly')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Statistiques (CA mensuel)') }}
+            </x-responsive-nav-link>
+
+            <!-- Config (mobile) -->
+            <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Configuration</div>
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Prestations') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Evénements') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Disponibilités') }}
-            </x-responsive-nav-link>            
-			
-			<x-responsive-nav-link :href="route('practice-locations.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('practice-locations.index')" :active="request()->routeIs('practice-locations.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Cabinets & Lieux') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('unavailabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('unavailabilities.index')" :active="request()->routeIs('unavailabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Indisponibilités') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('questionnaires.index')" :active="request()->routeIs('questionnaires.*')" class="text-[#647a0b] hover:text-[#854f38]">
@@ -217,17 +284,17 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('therapist.stripe')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Paiement en ligne') }}
-            </x-responsive-nav-link>            
-			<x-responsive-nav-link :href="route('conseils.index')" class="text-[#647a0b] hover:text-[#854f38]">
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('conseils.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Biblio Conseils') }}
-            </x-responsive-nav-link>			
-			<x-responsive-nav-link :href="route('inventory_items.index')" class="text-[#647a0b] hover:text-[#854f38]">
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('inventory_items.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Inventaire') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Factures') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+
+            <x-responsive-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}"
+                                   :active="request()->is('pro/' . auth()->user()->slug)"
+                                   class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Portail') }}
             </x-responsive-nav-link>
         </div>
@@ -241,11 +308,10 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('Profil') }}
-                </x-responsive-nav-link>                
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('License') }}
                 </x-responsive-nav-link>
-
                 <x-responsive-nav-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
                     {{ __('Support') }}
                 </x-responsive-nav-link>
@@ -253,8 +319,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
-                        onclick="event.preventDefault();
-                                    this.closest('form').submit();">
+                        onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Déconnexion') }}
                     </x-responsive-nav-link>
                 </form>
@@ -271,11 +336,9 @@
     <script>
         // Vérifie si l'utilisateur n'est pas déjà sur la page de mise à niveau
         if (window.location.pathname !== "{{ route('license-tiers.pricing', [], false) }}") {
-            // Redirige l'utilisateur vers la page de mise à niveau
             window.location.href = "{{ route('license-tiers.pricing') }}";
         }
     </script>
-    <!-- Optionnel : Afficher un message d'alerte dans la navbar -->
     <div class="alert alert-warning">
         Votre licence a expiré. Veuillez <a href="{{ route('license-tiers.pricing') }}">renouveler votre licence</a> pour continuer à utiliser l'application.
     </div>
