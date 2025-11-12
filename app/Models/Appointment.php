@@ -154,51 +154,73 @@ class Appointment extends Model
     /* ------------------------------------------------------------------ */
     /*  Google Calendar Sync                                              */
     /* ------------------------------------------------------------------ */
-    public function syncToGoogle(): void
-    {
-        if ($this->external) return;
-        $therapist = $this->user;
-        if (!$therapist?->google_access_token) return;
+public function syncToGoogle(): void
+{
+    if ($this->external) return;
 
-        $tokenArr  = json_decode($therapist->google_access_token, true);
-        $tokenPath = \App\Support\GoogleTokenFile::put($therapist->id, $tokenArr);
+    $therapist = $this->user;
+    if (!$therapist?->google_access_token) return;
 
-        config([
-            'google-calendar.oauth_token'                     => $tokenArr,
-            'google-calendar.auth_profiles.oauth.token_json'  => $tokenPath,
-        ]);
+    $tokenArr  = json_decode($therapist->google_access_token, true);
+    $tokenPath = \App\Support\GoogleTokenFile::put($therapist->id, $tokenArr);
 
+    config([
+        'google-calendar.oauth_token'                     => $tokenArr,
+        'google-calendar.auth_profiles.oauth.token_json'  => $tokenPath,
+    ]);
+
+    try {
         $productName = optional($this->product)->name ?? 'Prestation';
         $clientName  = trim(
-            optional($this->clientProfile)->first_name.' '.
+            optional($this->clientProfile)->first_name . ' ' .
             optional($this->clientProfile)->last_name
         );
 
-        $mode        = $this->getResolvedMode();
-        $location    = $this->getResolvedLocationString();
-
-        $description = rtrim(($this->notes ?? '')."\n\n[AromaMade]");
+        $mode      = $this->getResolvedMode();
+        $location  = $this->getResolvedLocationString();
+        $description = rtrim(($this->notes ?? '') . "\n\n[AromaMade]");
 
         $eventData = [
             'name'          => $clientName ? "Rdv $productName – $clientName" : $productName,
             'description'   => $description,
             'startDateTime' => $this->appointment_date,
-            'endDateTime'   => Carbon::parse($this->appointment_date)->addMinutes($this->duration ?? 60),
+            'endDateTime'   => \Carbon\Carbon::parse($this->appointment_date)->addMinutes($this->duration ?? 60),
             'location'      => $location,
         ];
 
         if ($this->google_event_id) {
-            GoogleEvent::find($this->google_event_id)?->update($eventData);
+            \Spatie\GoogleCalendar\Event::find($this->google_event_id)?->update($eventData);
         } else {
-            $event = GoogleEvent::create($eventData);
+            $event = \Spatie\GoogleCalendar\Event::create($eventData);
+
             if ($mode === 'visio') {
-                $event->addMeetLink()->save();
+                try {
+                    // addMeetLink() may return the model or null/void depending on implementation.
+                    $maybeEvent = $event->addMeetLink();
+
+                    if ($maybeEvent instanceof \Spatie\GoogleCalendar\Event) {
+                        $event = $maybeEvent;
+                    }
+
+                    // Persist either way; avoids calling save() on null.
+                    $event->save();
+                } catch (\Throwable $e) {
+                    \Log::warning('Meet link creation failed', [
+                        'appointment_id'  => $this->id,
+                        'google_event_id' => $event->id ?? null,
+                        'error'           => $e->getMessage(),
+                    ]);
+                    // Continue without crashing the request.
+                }
             }
+
             $this->forceFill(['google_event_id' => $event->id])->saveQuietly();
         }
-
+    } finally {
         \App\Support\GoogleTokenFile::forget($therapist->id);
     }
+}
+
 
     public function removeFromGoogle(): void
     {
