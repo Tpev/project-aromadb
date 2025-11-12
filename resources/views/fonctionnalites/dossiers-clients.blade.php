@@ -1,18 +1,15 @@
 <x-app-layout>
-    @section('title', 'Dossiers clients | Suivi thérapeutique & documents | AromaMade PRO')
+    @section('title', 'Dossiers clients | Suivi & documents | AromaMade PRO')
     @section('meta_description')
-Centralisez l’historique, les notes et objectifs de vos clients. Stockage sécurisé HDS en France, consentements, documents, photos, questionnaires et exports PDF. Le dossier du praticien, clair et complet.
+Centralisez l’historique, les notes de séance et objectifs de vos clients. Consentements signés (SES), documents, photos, questionnaires et exports PDF. Stockage en France chez un hébergeur certifié HDS, conforme RGPD.
     @endsection
 
     @push('styles')
-        <!-- AOS -->
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-        <!-- Icons & Fonts -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
-        <!-- Reuse the same feature stylesheet -->
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
-    @endpush
+    @endpush>
 
     <!-- HERO -->
     <section class="hero relative">
@@ -29,7 +26,7 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                 Dossiers clients clairs, complets et sécurisés
             </h1>
             <p class="text-white text-xl md:text-2xl mb-8 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Historique, notes, objectifs, documents et consentements — tout au même endroit pour un suivi professionnel et serein.
+                Historique, notes de séance, objectifs, documents et consentements — tout au même endroit pour un suivi professionnel et serein (non médical).
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Commencer l’essai gratuit</a>
@@ -52,12 +49,12 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-bullseye card-icon"></i>
                     <h3 class="card-title">Suivi structuré</h3>
-                    <p>Notes cliniques, objectifs par client et par séance, alertes et contre-indications pour un suivi précis.</p>
+                    <p>Notes de séance, objectifs par client et par rendez-vous, alertes et précautions pour un suivi précis.</p>
                 </div>
                 <div class="card" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-shield-alt card-icon"></i>
                     <h3 class="card-title">Sécurité & conformité</h3>
-                    <p>Données hébergées en France sur infrastructure <strong>HDS</strong>, conformité <strong>RGPD</strong> incluse.</p>
+                    <p>Données hébergées en France chez un prestataire <strong>certifié HDS</strong>, conformité <strong>RGPD</strong> incluse.</p>
                 </div>
             </div>
         </div>
@@ -72,51 +69,77 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                 <div class="feature-tile" data-aos="fade-up">
                     <i class="fas fa-id-card tile-icon"></i>
                     <h3>Fiche client complète</h3>
-                    <p>Coordonnées, antécédents, préférences, contre-indications et tags personnalisés pour filtrer facilement.</p>
+                    <p>Coordonnées, préférences, informations utiles, précautions et tags personnalisés pour filtrer facilement.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="50">
                     <i class="fas fa-stream tile-icon"></i>
                     <h3>Historique des séances</h3>
                     <p>Vue chronologique de toutes les séances avec accès direct aux notes, objectifs et documents associés.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-notes-medical tile-icon"></i>
-                    <h3>Notes structurées</h3>
-                    <p>Notes libres ou modèles structurés (ex. SOAP). Modèles enregistrés pour gagner du temps au quotidien.</p>
+                    <h3>Notes de séance structurées</h3>
+                    <p>Notes libres ou modèles (ex. SOAP d’accompagnement). Enregistrez vos modèles pour gagner du temps.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="150">
                     <i class="fas fa-bullseye tile-icon"></i>
                     <h3>Objectifs & progression</h3>
                     <p>Définissez des objectifs par client, suivez l’évolution séance après séance et consignez les résultats.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-file-upload tile-icon"></i>
                     <h3>Documents & photos</h3>
-                    <p>Ajoutez des fichiers, photos, comptes-rendus, ordonnances ou bilans et retrouvez-les en un clic.</p>
+                    <p>Ajoutez des fichiers, photos et comptes-rendus. Intégrez, si le client vous les remet, des documents médicaux <em>fournis par le client</em>.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="250">
                     <i class="fas fa-file-signature tile-icon"></i>
-                    <h3>Consentements</h3>
-                    <p>Consignez les consentements et formulaires signés, attachés au dossier pour une traçabilité parfaite.</p>
+                    <h3>Consentements (SES eIDAS)</h3>
+                    <p>Faites signer les consentements / bilans avec une signature électronique simple (SES), horodatée et rattachée au dossier.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="300">
                     <i class="fas fa-list-alt tile-icon"></i>
                     <h3>Questionnaires & bilans</h3>
-                    <p>Envoyez des questionnaires avant ou après la séance. Les réponses sont stockées dans le dossier.</p>
+                    <p>Envoyez des questionnaires avant/après séance. Les réponses sont stockées automatiquement dans le dossier.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">
                     <i class="fas fa-exclamation-triangle tile-icon"></i>
                     <h3>Alertes & précautions</h3>
-                    <p>Signalez les allergies, contre-indications et précautions. Alertes visuelles lors de la prise de rendez-vous.</p>
+                    <p>Signalez allergies, contre-indications déclarées et précautions. Alertes visuelles lors de la prise de rendez-vous.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
+                    <i class="fas fa-share-square tile-icon"></i>
+                    <h3>Partage sécurisé</h3>
+                    <p>Partage de documents via lien protégé (mot de passe + expiration). Journalisation des accès.</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="450">
+                    <i class="fas fa-history tile-icon"></i>
+                    <h3>Historique & versions</h3>
+                    <p>Traçabilité complète : horodatage, auteur, historique non destructif des modifications (audit trail).</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="500">
+                    <i class="fas fa-user-check tile-icon"></i>
+                    <h3>Attestation de présence</h3>
+                    <p>Générez une attestation de présence (PDF) depuis la séance en un clic, avec vos infos de praticien.</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="550">
                     <i class="fas fa-file-export tile-icon"></i>
-                    <h3>Exports & partages</h3>
-                    <p>Export PDF/CSV des données essentielles et partage sécurisé de documents si besoin.</p>
+                    <h3>Exports & RGPD</h3>
+                    <p>Export PDF/CSV des données utiles, réponse aux demandes d’accès/portabilité et aide au suivi des durées de conservation.</p>
                 </div>
             </div>
 
-            <div class="center mt-10" data-aos="fade-up" data-aos-delay="450">
+            <div class="center mt-10" data-aos="fade-up" data-aos-delay="600">
                 <a href="{{ url('/tarifs') }}" class="btn-secondary">Voir les tarifs</a>
             </div>
         </div>
@@ -138,21 +161,21 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                     <span class="bubble">2</span>
                     <div>
                         <h3>Consignez chaque séance</h3>
-                        <p>Ajoutez vos notes, objectifs, photos et documents en quelques secondes, depuis le dossier.</p>
+                        <p>Ajoutez vos notes de séance, objectifs, photos et documents en quelques secondes, depuis le dossier.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="200">
                     <span class="bubble">3</span>
                     <div>
-                        <h3>Suivez l’évolution</h3>
-                        <p>Visualisez la progression par objectif et préparez la prochaine séance en toute confiance.</p>
+                        <h3>Faites signer si besoin</h3>
+                        <p>Envoyez consentements et autres documents à signer (SES). Tout est horodaté et rattaché au dossier.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="300">
                     <span class="bubble">4</span>
                     <div>
-                        <h3>Partagez & exportez</h3>
-                        <p>Générez un PDF ou exportez les données utiles lorsque nécessaire, dans le respect du RGPD.</p>
+                        <h3>Exportez & partagez</h3>
+                        <p>Générez un PDF récapitulatif ou partagez un document via lien sécurisé, dans le respect du RGPD.</p>
                     </div>
                 </div>
             </div>
@@ -168,12 +191,22 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
         <div class="container mx-auto px-4 text-center">
             <h2 class="section-title" data-aos="fade-up">Sécurité & conformité par défaut</h2>
             <p class="muted max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Hébergement en France sur infrastructure <strong>HDS</strong>. Chiffrement en transit et au repos, gestion des accès et traçabilité pour protéger vos données et celles de vos clients.
+                Hébergement en France chez un prestataire <strong>certifié HDS</strong>. Chiffrement en transit et au repos, contrôle d’accès nominatif et traçabilité des opérations.
             </p>
             <div class="logo-row mt-8" data-aos="fade-up" data-aos-delay="150">
                 <img src="{{ asset('images/security/france.svg') }}" alt="Hébergement en France" />
                 <img src="{{ asset('images/security/hds.svg') }}" alt="HDS" />
                 <img src="{{ asset('images/security/rgpd.svg') }}" alt="RGPD" />
+            </div>
+        </div>
+    </section>
+
+    <!-- DISCLAIMER (legal safety) -->
+    <section class="py-8 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-sm" data-aos="fade-up">
+                <strong>Important :</strong> AromaMade PRO s’adresse à des praticiens du bien-être. La plateforme n’est pas un service de télémédecine ni un Dossier Médical Partagé. 
+                Les informations saisies ne constituent ni un diagnostic, ni une prescription médicale et ne remplacent pas l’avis d’un professionnel de santé.
             </div>
         </div>
     </section>
@@ -188,7 +221,7 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                     <h4 class="author">— Élodie, Réflexologue</h4>
                 </div>
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
-                    <p class="quote">« J’apprécie surtout la partie documents et consentements. C’est clair, enregistré au bon endroit et je suis serein sur la conformité. »</p>
+                    <p class="quote">« J’apprécie surtout la partie documents, consentements et le partage sécurisé. Je suis serein sur la conformité. »</p>
                     <h4 class="author">— Marc, Naturopathe</h4>
                 </div>
             </div>
@@ -206,7 +239,17 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui. Créez et enregistrez vos modèles (ex. SOAP) pour les réutiliser lors des prochaines séances.</p>
+                        <p>Oui. Créez et enregistrez vos modèles (ex. SOAP d’accompagnement) pour les réutiliser lors des prochaines séances.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Les signatures sont-elles valables ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Nous utilisons la <strong>signature électronique simple (SES)</strong> conforme au règlement <strong>eIDAS</strong>, adaptée pour des consentements et documents d’accompagnement.</p>
                     </div>
                 </div>
 
@@ -216,27 +259,27 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Tous les fichiers sont stockés en France sur des serveurs conformes HDS, avec sauvegardes régulières.</p>
+                        <p>Tous les fichiers sont stockés en France chez un hébergeur <strong>certifié HDS</strong>, avec sauvegardes régulières et chiffrement.</p>
                     </div>
                 </div>
 
                 <div class="accordion-item">
                     <button class="accordion-header">
-                        <span>Les consentements sont-ils horodatés ?</span>
+                        <span>Puis-je répondre à une demande d’accès RGPD ?</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui. Chaque consentement est horodaté et rattaché au dossier du client, avec la version du document signé.</p>
+                        <p>Oui. Vous pouvez exporter le dossier (PDF/CSV) et partager des documents via lien protégé par mot de passe et expiration.</p>
                     </div>
                 </div>
 
                 <div class="accordion-item">
                     <button class="accordion-header">
-                        <span>Puis-je exporter un dossier ?</span>
+                        <span>Proposez-vous un consentement “photos avant/après” ?</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Vous pouvez générer un PDF récapitulatif et exporter certaines données en CSV pour archivage.</p>
+                        <p>Oui, c’est un modèle distinct du consentement de séance. Il précise l’usage des images et les droits du client.</p>
                     </div>
                 </div>
             </div>
@@ -252,7 +295,7 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
         <div class="container mx-auto text-center px-4">
             <h2 class="section-title" data-aos="fade-up">Le dossier client qui vous fait gagner du temps</h2>
             <p class="muted max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Préparez vos séances en quelques minutes, gardez l’historique clair et offrez un suivi professionnel à vos clients.
+                Préparez vos séances en quelques minutes, gardez l’historique clair et offrez un suivi professionnel — sans complexité.
             </p>
             <div class="mt-8" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Commencer mon essai gratuit</a>
@@ -261,7 +304,6 @@ Centralisez l’historique, les notes et objectifs de vos clients. Stockage séc
     </section>
 
     @push('scripts')
-        <!-- AOS -->
         <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {

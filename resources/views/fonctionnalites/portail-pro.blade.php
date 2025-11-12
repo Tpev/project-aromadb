@@ -1,7 +1,7 @@
 <x-app-layout>
     @section('title', 'Portail Pro | Vitrine en ligne & prise de rendez-vous | AromaMade PRO')
     @section('meta_description')
-Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de rendez-vous. Lien unique à partager, QR code, avis clients, SEO local et intégrations réseaux sociaux.
+Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients et prise de rendez-vous. Lien unique à partager, QR code, SEO local, annuaire des praticiens et événements avec paiement à l’inscription.
     @endsection
 
     @push('styles')
@@ -12,7 +12,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de re
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
         <!-- Shared feature stylesheet -->
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
-    @endpush
+    @endpush>
 
     <!-- HERO -->
     <section class="hero relative">
@@ -52,7 +52,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de re
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-map-marker-alt card-icon"></i>
                     <h3 class="card-title">Pensé pour le SEO local</h3>
-                    <p>Optimisé pour apparaître sur des recherches de type <em>“naturopathe + ville”</em> grâce aux <strong>sections dédiées</strong> et données structurées.</p>
+                    <p>Optimisé pour apparaître sur des recherches de type <em>“naturopathe + ville”</em> grâce aux <strong>sections dédiées</strong> et données structurées. Votre page est aussi listée dans notre <strong>annuaire des praticiens</strong>.</p>
                 </div>
                 <div class="card" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-link card-icon"></i>
@@ -84,7 +84,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de re
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-star tile-icon"></i>
                     <h3>Avis clients</h3>
-                    <p>Affichez vos avis pour renforcer la confiance et rassurer les nouveaux visiteurs.</p>
+                    <p>Affichez les <strong>avis de vos clients</strong> sur votre page pour renforcer la confiance et votre présence locale.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="150">
@@ -111,20 +111,34 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de re
                     <p>Ajoutez vos villes cibles pour capter plus de recherches locales et préciser vos déplacements à domicile.</p>
                 </div>
 
+                <!-- Removed the original "Widget d’intégration" tile as requested -->
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">
-                    <i class="fas fa-code tile-icon"></i>
-                    <h3>Widget d’intégration</h3>
-                    <p>Intégrez le bouton “Réserver” ou un mini-agenda sur votre site existant via un simple code <code>&lt;script&gt;</code>.</p>
+                    <i class="fas fa-users tile-icon"></i>
+                    <h3>Événements & ateliers</h3>
+                    <p>Publiez vos <strong>ateliers, formations, cercles</strong> sur votre page. Gérez la <strong>capacité</strong> et les <strong>réservations</strong>.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
+                    <i class="fas fa-credit-card tile-icon"></i>
+                    <h3>Paiement à la réservation</h3>
+                    <p>Demandez un <strong>paiement sécurisé</strong> au moment de la réservation (rendez-vous ou événement).</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="450">
+                    <i class="fas fa-address-card tile-icon"></i>
+                    <h3>Annuaire des praticiens</h3>
+                    <p>Votre Portail Pro apparaît automatiquement dans notre <strong>annuaire</strong> pour booster votre visibilité.</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="500">
                     <i class="fas fa-shield-alt tile-icon"></i>
                     <h3>Respect de la vie privée</h3>
-                    <p>Hébergement en France (HDS), conformité RGPD, consentements et mentions légales sur votre Portail.</p>
+                    <p>Hébergement en France (HDS), conformité RGPD, consentements et mentions légales sur votre page publique.</p>
                 </div>
             </div>
 
-            <div class="center mt-10" data-aos="fade-up" data-aos-delay="450">
+            <div class="center mt-10" data-aos="fade-up" data-aos-delay="550">
                 <a href="{{ url('/tarifs') }}" class="btn-secondary">Voir les tarifs</a>
             </div>
         </div>
@@ -203,7 +217,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de re
         </div>
     </section>
 
-    <!-- FAQ -->
+    <!-- FAQ (inchangé) -->
     <section class="py-16 bg-gray-100">
         <div class="container mx-auto px-4">
             <h2 class="section-title text-center" data-aos="fade-up">Questions fréquentes — Portail Pro</h2>
@@ -244,7 +258,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités et prise de re
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui : copiez le code <code>&lt;script&gt;</code> fourni dans votre espace. Le widget ouvre la réservation liée à votre agenda.</p>
+                        <p>Nous recommandons de rediriger vers votre Portail Pro pour une expérience optimale et centralisée.</p>
                     </div>
                 </div>
             </div>

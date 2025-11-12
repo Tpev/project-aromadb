@@ -95,7 +95,9 @@ Route::post('/sign/{token}', [EmargementController::class,'submitSignature'])->n
 
 
 
-
+// ---  feature page
+Route::view('/fonctionnalites', 'fonctionnalites.index')
+    ->name('features.index');
 
 // --- Agenda feature page
 Route::view('/fonctionnalites/agenda', 'fonctionnalites.agenda')

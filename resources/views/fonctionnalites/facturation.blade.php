@@ -1,16 +1,13 @@
 <x-app-layout>
     @section('title', 'Facturation thérapeute | Devis, factures, livre de recettes | AromaMade PRO')
     @section('meta_description')
-Générez devis et factures conformes, suivez les paiements, gérez acomptes/avoirs et exportez votre livre de recettes (micro-entreprise) en un clic. Numérotation séquentielle, mentions légales et TVA incluses.
+Créez devis et factures propres, suivez les paiements (espèces, virement, CB), gérez acomptes/avoirs et exportez votre livre de recettes (micro-entreprise). Numérotation séquentielle, mentions légales 🇫🇷 et tableau de chiffre d’affaires mensuel.
     @endsection
 
     @push('styles')
-        <!-- AOS -->
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-        <!-- Icons & Fonts -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
-        <!-- Shared feature stylesheet -->
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
     @endpush
 
@@ -26,10 +23,10 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                 <span class="current">Facturation</span>
             </nav>
             <h1 class="text-white text-5xl md:text-6xl font-bold mb-6" data-aos="fade-up">
-                Devis, factures & livre de recettes — simples et conformes
+                Devis, factures & livre de recettes simples et conformes
             </h1>
             <p class="text-white text-xl md:text-2xl mb-8 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Créez des documents professionnels en quelques secondes, suivez les paiements et restez en règle avec la réglementation française.
+                Émettez vos documents en quelques secondes, enregistrez les paiements et suivez votre chiffre d’affaires mois par mois.
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essai gratuit 14 jours</a>
@@ -47,17 +44,17 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                 <div class="card" data-aos="fade-up">
                     <i class="fas fa-file-invoice-dollar card-icon"></i>
                     <h3 class="card-title">Professionnel & rapide</h3>
-                    <p>Devis, factures et reçus en 2 clics : modèles propres, duplications, envoi par email depuis l’application.</p>
+                    <p>Devis, factures et reçus en 2 clics : modèles propres, duplication, envoi par email depuis l’application.</p>
                 </div>
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-shield-alt card-icon"></i>
                     <h3 class="card-title">Conforme en France</h3>
-                    <p>Numérotation séquentielle, mentions légales, TVA/dispense, livre de recettes (micro-entreprise) et archivage.</p>
+                    <p>Numérotation séquentielle, mentions obligatoires, TVA/dispense, <strong>livre de recettes</strong> (micro-entreprise) et archivage horodaté.</p>
                 </div>
                 <div class="card" data-aos="fade-up" data-aos-delay="200">
-                    <i class="fas fa-credit-card card-icon"></i>
-                    <h3 class="card-title">Paiements facilités</h3>
-                    <p>Lien de paiement sécurisé pour les factures, acomptes, relances. Suivi des règlements et rapprochement rapide.</p>
+                    <i class="fas fa-chart-line card-icon"></i>
+                    <h3 class="card-title">Suivi du CA mensuel</h3>
+                    <p>Tableau de bord par mois (HT/TTC, modes de règlement). Exports CSV/XLSX pour votre déclaration ou votre comptable.</p>
                 </div>
             </div>
         </div>
@@ -72,59 +69,77 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                 <div class="feature-tile" data-aos="fade-up">
                     <i class="fas fa-file-contract tile-icon"></i>
                     <h3>Devis → Facture</h3>
-                    <p>Créez un devis, envoyez-le pour validation, puis transformez-le en facture en 1 clic. Historique clair des versions.</p>
+                    <p>Créez un devis, envoyez-le pour validation, puis transformez-le en facture en 1 clic. Traçabilité des versions conservée.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="50">
                     <i class="fas fa-hashtag tile-icon"></i>
                     <h3>Numérotation séquentielle</h3>
-                    <p>Numéros uniques et continus par année ou série. Verrouillage des numéros émis et traces de modification.</p>
+                    <p>Numéros uniques et continus par année/série. Verrouillage après émission, et journal d’audit non destructif.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-stamp tile-icon"></i>
                     <h3>Mentions légales 🇫🇷</h3>
-                    <p>Mentions obligatoires (identité, date, désignation, quantités/prix, TVA ou <em>TVA non applicable, art. 293 B CGI</em> si éligible), conditions de règlement.</p>
+                    <p>Identité, date, désignation, quantités/prix, TVA ou <em>TVA non applicable, art. 293 B CGI</em> selon votre statut, conditions de règlement.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="150">
                     <i class="fas fa-percentage tile-icon"></i>
                     <h3>TVA, TTC/HT & remises</h3>
-                    <p>Lignes HT/TTC, remises, multi-taux si nécessaire. Totaux et soldes calculés automatiquement sur le document PDF.</p>
+                    <p>Lignes HT/TTC, remises, multi-taux si nécessaire. Totaux, soldes et mentions calculés automatiquement sur vos PDF.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-hand-holding-usd tile-icon"></i>
                     <h3>Acomptes & avoirs</h3>
-                    <p>Demande d’acompte, facture d’acompte, régularisation sur la facture finale. Gestion des avoirs si besoin d’annulation partielle.</p>
+                    <p>Facture d’acompte, régularisation sur la facture finale. <strong>Avoir</strong> pour correction : contre-passation propre et traçable.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="250">
-                    <i class="fas fa-link tile-icon"></i>
-                    <h3>Paiement en ligne</h3>
-                    <p>Ajoutez un lien de paiement sécurisé à vos <strong>factures</strong>. Suivi des règlements et relances automatiques par email.</p>
+                    <i class="fas fa-credit-card tile-icon"></i>
+                    <h3>Enregistrement des paiements</h3>
+                    <p>Renseignez le règlement depuis la facture : <strong>espèces</strong>, <strong>virement</strong> ou <strong>CB</strong>. Reçu PDF généré et joint à l’email.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="300">
-                    <i class="fas fa-book tile-icon"></i>
-                    <h3>Livre de recettes</h3>
-                    <p>Pour micro-entreprise : enregistrez vos encaissements et exportez votre <strong>livre de recettes</strong> (CSV/PDF) conforme aux exigences usuelles.</p>
+                    <i class="fas fa-link tile-icon"></i>
+                    <h3>Paiement en ligne (factures)</h3>
+                    <p>Ajoutez un lien de paiement sécurisé à vos <strong>factures</strong> (Stripe). <em>Les devis ne comportent pas de lien de paiement.</em></p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">
-                    <i class="fas fa-envelope-open-text tile-icon"></i>
-                    <h3>Envoi & relances email</h3>
-                    <p>Envoyez devis/factures depuis AromaMade. Relances en cas d’échéance dépassée, reçus de paiement joints automatiquement.</p>
+                    <i class="fas fa-book tile-icon"></i>
+                    <h3>Livre de recettes automatique</h3>
+                    <p>Micro-entreprise : chaque encaissement alimente un registre <strong>numéroté et horodaté</strong>, non modifiable. Export <strong>CSV/XLSX/PDF</strong>.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
+                    <i class="fas fa-envelope-open-text tile-icon"></i>
+                    <h3>Envoi & relances email</h3>
+                    <p>Envoyez devis/factures depuis AromaMade, relancez automatiquement en cas d’échéance dépassée. Pièces jointes propres.</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="450">
+                    <i class="fas fa-chart-bar tile-icon"></i>
+                    <h3>Tableau CA mensuel</h3>
+                    <p>Vue mensuelle du CA encaissé, filtres par mode de paiement, produit/prestation, client. Export période en 1 clic.</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="500">
                     <i class="fas fa-file-export tile-icon"></i>
                     <h3>Exports & archivage</h3>
-                    <p>Exports PDF/CSV par période, téléchargement des pièces, conservation des documents émis pour votre traçabilité.</p>
+                    <p>Exports PDF/CSV par période, téléchargement des pièces. Conservation et traçabilité pour votre comptabilité.</p>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="550">
+                    <i class="fas fa-info-circle tile-icon"></i>
+                    <h3>Devis ≠ facture</h3>
+                    <p>Les <strong>devis</strong> n’impactent pas la numérotation des <strong>factures</strong> et n’ouvrent pas de paiement en ligne. Conversion en un clic.</p>
                 </div>
             </div>
 
-            <div class="center mt-10" data-aos="fade-up" data-aos-delay="450">
+            <div class="center mt-10" data-aos="fade-up" data-aos-delay="600">
                 <a href="{{ url('/tarifs') }}" class="btn-secondary">Voir les tarifs</a>
             </div>
         </div>
@@ -139,7 +154,7 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                     <span class="bubble">1</span>
                     <div>
                         <h3>Créez le devis</h3>
-                        <p>Sélectionnez le client et les prestations, ajustez prix/TVA/remises, puis envoyez pour validation par email.</p>
+                        <p>Sélectionnez le client et les prestations, ajustez prix/TVA/remises, puis envoyez le PDF par email.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="100">
@@ -152,15 +167,15 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                 <div class="step" data-aos="fade-right" data-aos-delay="200">
                     <span class="bubble">3</span>
                     <div>
-                        <h3>Encaissez & suivez</h3>
-                        <p>Enregistrez le règlement (espèces, CB, virement). Le statut se met à jour et un reçu est envoyé au client.</p>
+                        <h3>Encaissez & enregistrez</h3>
+                        <p>Enregistrez le règlement (espèces / virement / CB). Le statut se met à jour et un reçu est envoyé au client.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="300">
                     <span class="bubble">4</span>
                     <div>
-                        <h3>Exportez vos données</h3>
-                        <p>Générez vos PDF, exports CSV et votre livre de recettes (si micro-entreprise) pour votre comptabilité.</p>
+                        <h3>Suivez & exportez</h3>
+                        <p>Consultez votre CA mensuel et exportez votre livre de recettes (si micro-entreprise), vos PDF et vos CSV.</p>
                     </div>
                 </div>
             </div>
@@ -176,12 +191,23 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
         <div class="container mx-auto px-4 text-center">
             <h2 class="section-title" data-aos="fade-up">Prêt pour vos outils et règlements</h2>
             <p class="muted max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Lien de paiement sécurisé (Stripe) pour les factures, pièces jointes PDF lisibles par tous, exports CSV pour votre comptable.
+                Paiement en ligne (Stripe) sur facture, PDF lisibles par tous, exports CSV/XLSX pour votre comptable, et reçus envoyés automatiquement.
             </p>
             <div class="logo-row mt-8" data-aos="fade-up" data-aos-delay="150">
                 <img src="{{ asset('images/integrations/stripe.svg') }}" alt="Stripe" />
                 <img src="{{ asset('images/integrations/pdf.svg') }}" alt="PDF" />
-                <img src="{{ asset('images/integrations/csv.svg') }}" alt="CSV" />
+                <img src="{{ asset('images/integrations/csv.svg') }}" alt="CSV/XLSX" />
+            </div>
+        </div>
+    </section>
+
+    <!-- DISCLAIMER (cash register / scope) -->
+    <section class="py-8 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-sm" data-aos="fade-up">
+                <strong>À savoir :</strong> AromaMade PRO facilite l’édition de devis/factures et le suivi des encaissements. 
+                La solution n’est pas un <em>logiciel de caisse certifié (NF525)</em>. 
+                Si votre activité est soumise à l’usage d’un logiciel de caisse certifié, utilisez un système conforme en complément.
             </div>
         </div>
     </section>
@@ -192,11 +218,11 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
             <h2 class="section-title text-center" data-aos="fade-up">Des documents nets et une compta plus simple</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
                 <div class="testimonial-card" data-aos="fade-up">
-                    <p class="quote">« Je crée mes devis et les transforme en facture en un clic. Les relances par email m’ont permis d’être payée plus vite. »</p>
+                    <p class="quote">« Je transforme mes devis en factures en un clic, et l’export du livre de recettes m’aide pour la déclaration. »</p>
                     <h4 class="author">— Maud, Sophrologue</h4>
                 </div>
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
-                    <p class="quote">« Le livre de recettes exportable m’a sauvé du temps pour ma déclaration. La numérotation est propre et conforme. »</p>
+                    <p class="quote">« Les relances automatiques et les liens de paiement m’ont permis d’être réglé plus vite, sans relancer à la main. »</p>
                     <h4 class="author">— Thomas, Naturopathe</h4>
                 </div>
             </div>
@@ -214,7 +240,7 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui : numérotation séquentielle, mentions obligatoires (identité, date, désignation, quantités/prix, TVA ou mention de dispense si applicable), conditions de règlement, archivage des pièces.</p>
+                        <p>Oui : numérotation séquentielle, mentions obligatoires (identité, date, désignation, quantités/prix, TVA ou mention de dispense si applicable), conditions de règlement, archivage et traçabilité.</p>
                     </div>
                 </div>
 
@@ -224,7 +250,7 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui, pour les micro-entrepreneurs : enregistrez vos encaissements et exportez votre <strong>livre de recettes</strong> (CSV/PDF) avec les colonnes usuelles (date, client, montant, mode de règlement, référence).</p>
+                        <p>Oui, pour micro-entrepreneurs : chaque encaissement crée une ligne <strong>numérotée, datée et horodatée</strong>, non modifiable. Export <strong>CSV/XLSX/PDF</strong> par période.</p>
                     </div>
                 </div>
 
@@ -234,17 +260,17 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Non : les liens de paiement sont ajoutés uniquement aux <strong>factures</strong>. Un devis accepté peut être transformé en facture payable.</p>
+                        <p>Non : les liens de paiement sont ajoutés uniquement aux <strong>factures</strong>. Un devis accepté se convertit en facture payable.</p>
                     </div>
                 </div>
 
                 <div class="accordion-item">
                     <button class="accordion-header">
-                        <span>Puis-je gérer la TVA et les remises ?</span>
+                        <span>Puis-je gérer TVA et remises ?</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui : gestion HT/TTC, remises par ligne, multi-taux si nécessaire et mention automatique “TVA non applicable, art. 293 B CGI” si votre statut l’exige.</p>
+                        <p>Oui : HT/TTC, remises par ligne, multi-taux si nécessaire et mention automatique “TVA non applicable, art. 293 B CGI” selon votre statut.</p>
                     </div>
                 </div>
             </div>
@@ -269,7 +295,6 @@ Générez devis et factures conformes, suivez les paiements, gérez acomptes/avo
     </section>
 
     @push('scripts')
-        <!-- AOS -->
         <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function () {

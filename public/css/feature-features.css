@@ -1,0 +1,59 @@
+/* Buttons */
+.btn-primary-am{
+  @apply inline-flex items-center justify-center px-5 py-3 rounded-2xl font-semibold text-white bg-[#647a0b] hover:bg-[#506207] transition shadow-sm;
+}
+.btn-ghost-am{
+  @apply inline-flex items-center justify-center px-5 py-3 rounded-2xl font-semibold text-[#647a0b] bg-white hover:bg-gray-50 border border-[#ccd7a3] transition;
+}
+
+/* Pills */
+.pill{
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-gray-200 text-gray-700;
+}
+
+/* Cards */
+.card-glass{
+  @apply relative flex flex-col gap-4 p-6 rounded-2xl bg-white/70 backdrop-blur border border-gray-200 hover:shadow-lg transition;
+}
+.card-glass::after{
+  content:"";
+  position:absolute; inset:-1px;
+  border-radius:1rem;
+  background: linear-gradient(180deg, rgba(100,122,11,.15), rgba(0,0,0,0));
+  z-index:-1;
+}
+.icon-wrap{
+  @apply w-12 h-12 rounded-2xl grid place-items-center text-white bg-[#647a0b];
+}
+.icon-wrap i{ font-size:1.2rem; }
+.card-title{ @apply text-lg font-semibold text-gray-900; }
+.card-text{ @apply text-gray-600 leading-relaxed; }
+.card-cta{
+  @apply mt-2 inline-flex items-center gap-2 text-[#647a0b] font-semibold;
+}
+.card-cta::after{
+  content:"→"; @apply transition;
+}
+.card-glass:hover .card-cta::after{ transform: translateX(3px); }
+
+/* Flow items */
+.flow-item{ @apply rounded-2xl border border-gray-200 p-5 bg-white/70; }
+.flow-icon{ @apply w-10 h-10 grid place-items-center rounded-xl bg-gray-900 text-white mb-3; }
+
+/* Trust row */
+.trust-row{
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6 rounded-3xl border border-gray-200 bg-white p-6 md:p-8;
+}
+.trust-item{ @apply flex items-start gap-4; }
+.trust-item h4{ @apply text-base font-semibold text-gray-900; }
+.trust-item p{ @apply text-gray-600 leading-relaxed; }
+
+/* FAQ */
+.faq-item{
+  @apply rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-sm transition;
+}
+.faq-item>summary{
+  @apply cursor-pointer list-none font-semibold text-gray-900 flex items-center justify-between;
+}
+.faq-item>summary::-webkit-details-marker{ display:none; }
+.faq-item>p{ @apply mt-2 text-gray-600; }

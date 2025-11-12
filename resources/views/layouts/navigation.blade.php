@@ -96,6 +96,50 @@
             </div>
           </div>
 
+          <!-- AromaMade PRO (Fonctionnalités) Dropdown -->
+          <div x-data="{ proOpen:false }"
+               class="relative"
+               x-cloak
+               @keydown.escape.window="proOpen=false">
+            <button
+              @click="proOpen = !proOpen"
+              type="button"
+              class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-[#647a0b] focus:outline-none"
+              aria-haspopup="true"
+              :aria-expanded="proOpen.toString()"
+              aria-controls="pro-menu">
+              AromaMade PRO
+              <i class="fas fa-chevron-down ml-1 align-middle"></i>
+            </button>
+
+            <div
+              x-show="proOpen"
+              x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 translate-y-1"
+              x-transition:enter-end="opacity-100 translate-y-0"
+              x-transition:leave="transition ease-in duration-150"
+              x-transition:leave-start="opacity-100 translate-y-0"
+              x-transition:leave-end="opacity-0 translate-y-1"
+              @click.outside="proOpen=false"
+              @click.stop
+              id="pro-menu"
+              class="absolute left-0 mt-2 w-72 bg-white shadow-lg rounded-md py-2 z-50 pointer-events-auto">
+
+              <a href="{{ url('/fonctionnalites') }}" class="block px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100">
+                Fonctionnalités
+              </a>
+
+              <div class="border-t border-gray-200 my-2"></div>
+
+              <a href="{{ url('/fonctionnalites/agenda') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Agenda & réservation</a>
+              <a href="{{ url('/fonctionnalites/dossiers-clients') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Dossiers clients</a>
+              <a href="{{ url('/fonctionnalites/facturation') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Facturation</a>
+              <a href="{{ url('/fonctionnalites/questionnaires') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Questionnaires</a>
+              <a href="{{ url('/fonctionnalites/portail-pro') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Portail Pro</a>
+              <a href="{{ url('/fonctionnalites/paiements') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Paiements</a>
+            </div>
+          </div>
+
           <!-- Trouver un thérapeute -->
           <a href="{{ route('nos-practiciens') }}"
              class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-[#647a0b] focus:outline-none">
@@ -180,6 +224,26 @@
 
       <a href="{{ route('huilehvs.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Huiles Végétales</a>
       <a href="{{ route('tisanes.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Tisanes</a>
+
+      <!-- AromaMade PRO (mobile collapsible) -->
+      <div x-data="{ proMobileOpen:false }" class="border-t border-gray-200 pt-2">
+        <button
+          @click="proMobileOpen = !proMobileOpen"
+          class="w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:text-[#647a0b] hover:bg-gray-50 flex items-center justify-between">
+          AromaMade PRO
+          <i class="fas fa-chevron-down ml-2" :class="{'rotate-180': proMobileOpen}"></i>
+        </button>
+        <div x-show="proMobileOpen" x-collapse>
+          <a href="{{ url('/fonctionnalites') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-700 hover:text-[#647a0b] hover:bg-gray-50">Fonctionnalités</a>
+          <a href="{{ url('/fonctionnalites/agenda') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Agenda & réservation</a>
+          <a href="{{ url('/fonctionnalites/dossiers-clients') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Dossiers clients</a>
+          <a href="{{ url('/fonctionnalites/facturation') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Facturation</a>
+          <a href="{{ url('/fonctionnalites/questionnaires') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Questionnaires</a>
+          <a href="{{ url('/fonctionnalites/portail-pro') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Portail Pro</a>
+          <a href="{{ url('/fonctionnalites/paiements') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Paiements</a>
+        </div>
+      </div>
+
       <a href="{{ route('nos-practiciens') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Trouver un praticien</a>
 
       <a href="{{ route('prolanding') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-white bg-[#647a0b] hover:bg-[#8ea633]">

@@ -1,7 +1,7 @@
 <x-app-layout>
     @section('title', 'Paiements en ligne | Acomptes, soldes, remboursements | AromaMade PRO')
     @section('meta_description')
-Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur facture, acomptes, soldes, reçus automatiques, relances email, remboursements partiels, SCA (3D Secure) & conformité PSD2. Compatible CB, Apple Pay, Google Pay, SEPA.
+Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur facture, acomptes, soldes, reçus automatiques, relances email, remboursements partiels. SCA (3D Secure) via Stripe & cadre PSD2. Compatible CB, Apple Pay, Google Pay, SEPA.
     @endsection
 
     @push('styles')
@@ -47,17 +47,17 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                 <div class="card" data-aos="fade-up">
                     <i class="fas fa-link card-icon"></i>
                     <h3 class="card-title">Lien de paiement sur facture</h3>
-                    <p>Ajoutez un <strong>lien sécurisé</strong> à vos factures. Le client règle en quelques secondes, vous recevez la confirmation et le reçu est envoyé automatiquement.</p>
+                    <p>Ajoutez un <strong>lien sécurisé</strong> à vos factures. Le client règle en quelques secondes, vous recevez la confirmation et le reçu part automatiquement.</p>
                 </div>
                 <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <i class="fas fa-university card-icon"></i>
                     <h3 class="card-title">Sécurisé & conforme</h3>
-                    <p>Authentification forte (SCA 3D Secure), conformité <strong>PSD2</strong>, paiements CB, Apple Pay, Google Pay, SEPA lorsqu’activés.</p>
+                    <p>Authentification forte (SCA 3D Secure) et cadre <strong>PSD2</strong> assurés via Stripe. CB, Apple Pay, Google Pay, SEPA (selon activation).</p>
                 </div>
                 <div class="card" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-sync-alt card-icon"></i>
                     <h3 class="card-title">Statuts synchronisés</h3>
-                    <p>Le statut de la facture passe automatiquement à “payée” et le <strong>rapprochement</strong> s’effectue dans votre tableau de bord.</p>
+                    <p>La facture passe automatiquement en “payée” et le <strong>rapprochement</strong> se fait dans votre tableau de bord.</p>
                 </div>
             </div>
         </div>
@@ -72,55 +72,55 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                 <div class="feature-tile" data-aos="fade-up">
                     <i class="fas fa-receipt tile-icon"></i>
                     <h3>Factures payables en ligne</h3>
-                    <p>Insérez un lien de paiement sécurisé sur chaque <strong>facture</strong>. Les devis restent non payables jusqu’à conversion.</p>
+                    <p>Insérez un lien de paiement sécurisé sur chaque <strong>facture</strong>. Les devis ne sont pas payables avant conversion.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="50">
                     <i class="fas fa-hand-holding-usd tile-icon"></i>
                     <h3>Acomptes & soldes</h3>
-                    <p>Demandez un <strong>acompte</strong> avant la séance, puis encaissez le solde. Tout est tracé et visible sur la facture finale.</p>
+                    <p>Demandez un <strong>acompte</strong> avant la séance, puis encaissez le solde. Tout est tracé et ventilé sur la facture finale.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="100">
-                    <i class="fas fa-envelope-open-text tile-icon"></i>
-                    <h3>Relances email automatiques</h3>
-                    <p>Programmez des relances par email en cas d’échéance dépassée. Ton poli, lien direct et reçu joint après paiement.</p>
+                    <i class="fas fa-ticket-alt tile-icon"></i>
+                    <h3>Paiement à l’inscription (événements)</h3>
+                    <p>Pour vos <strong>ateliers/formations</strong> : exigez le paiement au moment de l’inscription et <strong>gérez la capacité</strong> automatiquement.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="150">
-                    <i class="fas fa-undo tile-icon"></i>
-                    <h3>Remboursements</h3>
-                    <p>Effectuez des remboursements <strong>totaux ou partiels</strong> depuis la facture. Les statuts et reçus s’actualisent.</p>
+                    <i class="fas fa-envelope-open-text tile-icon"></i>
+                    <h3>Relances email automatiques</h3>
+                    <p>Relances programmées en cas d’échéance dépassée : ton poli, lien direct, reçu envoyé après paiement.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="200">
-                    <i class="fas fa-wallet tile-icon"></i>
-                    <h3>Modes de paiement</h3>
-                    <p>CB, Apple Pay, Google Pay, SEPA (selon activation). Vos clients choisissent le mode qu’ils préfèrent.</p>
+                    <i class="fas fa-undo tile-icon"></i>
+                    <h3>Remboursements</h3>
+                    <p>Remboursements <strong>totaux ou partiels</strong> depuis la facture. Statuts et reçus mis à jour automatiquement.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="250">
-                    <i class="fas fa-percentage tile-icon"></i>
-                    <h3>TVA, TTC/HT & remises</h3>
-                    <p>Gestion des taux, remises et totaux automatiques ; mentions légales et reçus conformes attachés au paiement.</p>
+                    <i class="fas fa-wallet tile-icon"></i>
+                    <h3>Modes de paiement</h3>
+                    <p>CB, Apple Pay, Google Pay, SEPA (selon activation Stripe). Le client choisit le mode qu’il préfère.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="300">
-                    <i class="fas fa-shield-alt tile-icon"></i>
-                    <h3>Sécurité & conformité</h3>
-                    <p>Chiffrement, SCA (3D Secure), conformité <strong>PSD2</strong> et conservation des preuves de paiement.</p>
+                    <i class="fas fa-book tile-icon"></i>
+                    <h3>Livre de recettes (micro)</h3>
+                    <p>Chaque encaissement alimente votre <strong>livre de recettes</strong>. Export PDF/CSV pour vos déclarations.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">
                     <i class="fas fa-file-export tile-icon"></i>
                     <h3>Exports comptables</h3>
-                    <p>Exports CSV/PDF par période, rapprochement facilité pour votre comptable et votre <strong>livre de recettes</strong> si micro-entreprise.</p>
+                    <p>Exports PDF/CSV par période, pièces jointes aux factures et historique des règlements pour votre comptable.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
                     <i class="fas fa-plug tile-icon"></i>
                     <h3>Intégration Stripe</h3>
-                    <p>Encaissements sécurisés via Stripe. Activation rapide et suivis centralisés dans votre tableau de bord AromaMade.</p>
+                    <p>Encaissements sécurisés via Stripe. Activation rapide et suivi centralisé dans AromaMade PRO.</p>
                 </div>
             </div>
 
@@ -139,28 +139,28 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                     <span class="bubble">1</span>
                     <div>
                         <h3>Activez les paiements</h3>
-                        <p>Connectez votre compte Stripe. Choisissez les moyens de paiement à proposer.</p>
+                        <p>Connectez votre compte Stripe et sélectionnez les moyens de paiement à proposer (CB, wallets, SEPA).</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="100">
                     <span class="bubble">2</span>
                     <div>
                         <h3>Ajoutez le lien sur la facture</h3>
-                        <p>Chaque facture peut inclure un <strong>lien sécurisé</strong>. Le client règle en ligne et reçoit son reçu par email.</p>
+                        <p>Chaque facture peut inclure un <strong>lien sécurisé</strong>. Le client paie en ligne et reçoit son reçu par email.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="200">
                     <span class="bubble">3</span>
                     <div>
                         <h3>Suivez les règlements</h3>
-                        <p>Le statut se met à jour automatiquement ; vous pouvez déclencher des relances email en cas de retard.</p>
+                        <p>Les statuts se mettent à jour automatiquement ; déclenchez des relances si nécessaire.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="300">
                     <span class="bubble">4</span>
                     <div>
                         <h3>Exportez & comptabilisez</h3>
-                        <p>Exports PDF/CSV, livre de recettes (micro-entreprise) et justificatifs archivés pour votre comptabilité.</p>
+                        <p>Exports PDF/CSV, <strong>livre de recettes</strong> (micro-entreprise) et archivage des justificatifs.</p>
                     </div>
                 </div>
             </div>
@@ -176,7 +176,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
         <div class="container mx-auto px-4 text-center">
             <h2 class="section-title" data-aos="fade-up">Moyens de paiement & conformité</h2>
             <p class="muted max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Cartes (Visa, MasterCard), Apple Pay, Google Pay, virement SEPA (selon activation). SCA (3D Secure) et conformité PSD2 pour sécuriser vos encaissements.
+                Cartes (Visa, MasterCard), Apple Pay, Google Pay, virement SEPA (selon activation Stripe). SCA (3D Secure) et cadre PSD2 assurés par Stripe.
             </p>
             <div class="logo-row mt-8" data-aos="fade-up" data-aos-delay="150">
                 <img src="{{ asset('images/payments/stripe.svg') }}" alt="Stripe" />
@@ -217,7 +217,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui. Émettez une facture d’acompte avec lien de paiement, puis déduisez l’acompte sur la facture finale.</p>
+                        <p>Oui. Émettez une <strong>facture d’acompte</strong> avec lien de paiement, puis déduisez l’acompte sur la facture finale.</p>
                     </div>
                 </div>
 
@@ -237,7 +237,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Cartes bancaires (Visa, MasterCard), Apple Pay, Google Pay et SEPA (selon activation de votre compte Stripe).</p>
+                        <p>Cartes bancaires (Visa, MasterCard), Apple Pay, Google Pay, et SEPA selon l’activation de votre compte Stripe.</p>
                     </div>
                 </div>
 
@@ -247,7 +247,27 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Oui, remboursements <strong>totaux ou partiels</strong> directement depuis la facture. Les documents et statuts se mettent à jour.</p>
+                        <p>Oui, remboursements <strong>totaux ou partiels</strong> directement depuis la facture ; statuts et reçus sont mis à jour.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Quand arrive l’argent sur mon compte ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Les <strong>virements</strong> vers votre banque sont gérés par Stripe (délais et planning de versement variables). Les paiements <strong>SEPA</strong> ont un délai de confirmation plus long.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        <span>Les frais de paiement sont-ils inclus ?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="accordion-content">
+                        <p>Des <strong>frais Stripe</strong> s’appliquent sur chaque transaction. Le détail figure dans votre compte Stripe.</p>
                     </div>
                 </div>
             </div>

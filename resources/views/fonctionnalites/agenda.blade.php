@@ -74,41 +74,47 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
                     <h3>Créneaux personnalisés</h3>
                     <p>Définissez la durée de chaque service, insérez des <strong>temps de pause</strong> entre deux rendez-vous et ajustez vos horaires selon vos besoins.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="50">
                     <i class="fas fa-map-marker-alt tile-icon"></i>
                     <h3>Multi-lieux et modes de séance</h3>
                     <p>Gérez vos séances au cabinet, à domicile ou en visio — chaque service peut avoir ses propres modalités et adresses.</p>
                 </div>
+
+                <!-- UPDATED: Portail Pro (replaces "Lien de réservation unique") -->
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="100">
-                    <i class="fas fa-link tile-icon"></i>
-                    <h3>Lien de réservation unique</h3>
-                    <p>Partagez un lien vers votre agenda sur Instagram, Google ou votre site pour permettre la réservation en toute autonomie.</p>
+                    <i class="fas fa-id-badge tile-icon"></i>
+                    <h3>Portail Pro de réservation</h3>
+                    <p>Un <strong>lien unique</strong> vers votre profil AromaMade PRO. Vos clients réservent directement depuis votre Portail Pro — simple et efficace.</p>
                 </div>
+
+                <!-- UPDATED: Ateliers & événements (replaces recurrent/shared) -->
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="150">
-                    <i class="fas fa-user-friends tile-icon"></i>
-                    <h3>Rendez-vous récurrents ou partagés</h3>
-                    <p>Planifiez des séances récurrentes ou des créneaux pour plusieurs participants (familles, ateliers, suivis groupés).</p>
+                    <i class="fas fa-users tile-icon"></i>
+                    <h3>Ateliers & événements</h3>
+                    <p>Créez des séances spéciales : <strong>ateliers, stages, événements</strong>… avec des dates dédiées et une description claire.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-envelope-open-text tile-icon"></i>
                     <h3>Confirmations automatiques</h3>
                     <p>Vos clients reçoivent une confirmation dès qu’un rendez-vous est validé, ainsi qu’un lien direct pour le modifier ou l’annuler.</p>
                 </div>
-                <div class="feature-tile" data-aos="fade-up" data-aos-delay="250">
-                    <i class="fas fa-ban tile-icon"></i>
-                    <h3>Gestion des annulations</h3>
-                    <p>Fixez vos conditions (délai minimal, politique d’annulation) et gardez une visibilité totale sur vos disponibilités.</p>
-                </div>
+
+                <!-- REMOVED: Gestion des annulations -->
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="300">
                     <i class="fas fa-calendar-day tile-icon"></i>
                     <h3>Horaires types et exceptions</h3>
                     <p>Enregistrez vos semaines types, créez des modèles d’horaires et définissez facilement les jours de fermeture ou de congés.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">
                     <i class="fas fa-exchange-alt tile-icon"></i>
                     <h3>Replanification simplifiée</h3>
                     <p>Modifiez un rendez-vous par simple glisser-déposer. Le client reçoit immédiatement la mise à jour par email.</p>
                 </div>
+
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
                     <i class="fas fa-shield-alt tile-icon"></i>
                     <h3>Conforme RGPD et HDS</h3>
@@ -138,7 +144,7 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
                     <span class="bubble">2</span>
                     <div>
                         <h3>Activez la réservation en ligne</h3>
-                        <p>Partagez votre lien de réservation ou intégrez votre agenda sur votre site pour faciliter la prise de rendez-vous.</p>
+                        <p>Partagez le lien de votre <strong>Portail Pro</strong> pour permettre la prise de rendez-vous en toute autonomie.</p>
                     </div>
                 </div>
                 <div class="step" data-aos="fade-right" data-aos-delay="200">
