@@ -32,19 +32,43 @@
         }
         .btn-primary:hover, .btn-secondary:hover { background-color:#854f38; }
         .text-red-500 { color:#e3342f; font-size:.875rem; margin-top:5px; }
-        .loading-spinner { display:none; margin-left:10px; }
         @media (max-width: 600px) {
             .details-container { padding:20px; }
             .details-title { font-size:1.5rem; }
             .d-flex.justify-content-center.mt-4 { flex-direction:column; align-items:stretch; }
             .btn-primary, .btn-secondary { width:100%; margin-bottom:10px; }
         }
+
         /* Flatpickr theming */
         .flatpickr-calendar { border:1px solid #647a0b; }
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background:#647a0b; color:#fff; }
         .flatpickr-day:hover { background:#854f38; color:#fff; }
         .flatpickr-day.disabled { background:#e9ecef; color:#6c757d; cursor:not-allowed; }
         .flatpickr-day.disabled:hover { background:#e9ecef; color:#6c757d; }
+
+        /* Time slots grid */
+        .time-slots-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .time-slot-btn {
+            border: 1px solid #854f38;
+            background: #ffffff;
+            color: #854f38;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 72px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+        .time-slot-btn.active,
+        .time-slot-btn:hover {
+            background: #647a0b;
+            color: #ffffff;
+            border-color: #647a0b;
+        }
     </style>
 
     @php
@@ -140,25 +164,24 @@
 
                 <!-- Hidden "final" product_id and mode -->
                 <input type="hidden" name="product_id" id="product_id" value="{{ old('product_id') }}">
-                <input type="hidden" name="type" id="selected_mode_slug" value="{{ old('type') }}"><!-- keep using your 'type' field for mode -->
+                <input type="hidden" name="type" id="selected_mode_slug" value="{{ old('type') }}"><!-- mode -->
 
-				<!-- Cabinet: choose a practice location -->
-				<div class="details-box" id="cabinet-location-section" style="display:none;">
-					<label class="details-label" for="practice_location_id">{{ __('Sélectionnez le Cabinet') }}</label>
-					<select id="practice_location_id" name="practice_location_id" class="form-control">
-						<option value="" disabled selected>{{ __('Choisir un lieu') }}</option>
-						@foreach($practiceLocations as $loc)
-							<option value="{{ $loc->id }}"
-									data-address="{{ $loc->full_address ?? ($loc->address_line1 . ', ' . $loc->postal_code . ' ' . $loc->city) }}"
-									{{ old('practice_location_id') == $loc->id ? 'selected':'' }}>
-								{{ $loc->label }}
-							</option>
-						@endforeach
-					</select>
-					<small class="text-muted">{{ __('Le choix du lieu est requis pour les consultations au cabinet.') }}</small>
-					<p class="text-red-500 mt-1 d-none" id="location-error"></p>
-				</div>
-
+                <!-- Cabinet: choose a practice location -->
+                <div class="details-box" id="cabinet-location-section" style="display:none;">
+                    <label class="details-label" for="practice_location_id">{{ __('Sélectionnez le Cabinet') }}</label>
+                    <select id="practice_location_id" name="practice_location_id" class="form-control">
+                        <option value="" disabled selected>{{ __('Choisir un lieu') }}</option>
+                        @foreach($practiceLocations as $loc)
+                            <option value="{{ $loc->id }}"
+                                    data-address="{{ $loc->full_address ?? ($loc->address_line1 . ', ' . $loc->postal_code . ' ' . $loc->city) }}"
+                                    {{ old('practice_location_id') == $loc->id ? 'selected':'' }}>
+                                {{ $loc->label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">{{ __('Le choix du lieu est requis pour les consultations au cabinet.') }}</small>
+                    <p class="text-red-500 mt-1 d-none" id="location-error"></p>
+                </div>
 
                 <!-- Cabinet address preview -->
                 <div class="details-box" id="therapist-address-section" style="display:none;">
@@ -208,18 +231,24 @@
                     <label class="details-label" for="appointment_date">{{ __('Date du Rendez-vous') }}</label>
                     <input type="text" id="appointment_date" name="appointment_date" class="form-control"
                            value="{{ old('appointment_date') }}" required placeholder="{{ __('Sélectionner une date') }}">
+                    <p id="date-loading-message" class="text-muted mt-1" style="display:none;">
+                        {{ __('Chargement des jours disponibles...') }}
+                    </p>
                     @error('appointment_date')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>
 
-                <!-- Hour -->
+                <!-- Hour (time slots grid + hidden input) -->
                 <div class="details-box">
                     <label class="details-label" for="appointment_time">{{ __('Heure du Rendez-vous') }}</label>
-                    <div class="d-flex align-items-center">
-                        <select id="appointment_time" name="appointment_time" class="form-control" required disabled>
-                            <option value="" disabled selected>{{ __('Sélectionner une heure') }}</option>
-                        </select>
-                        <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+
+                    <input type="hidden" id="appointment_time" name="appointment_time" value="{{ old('appointment_time') }}">
+
+                    <div id="time-slots-container" class="mt-2">
+                        <span class="text-muted">{{ __('Veuillez d’abord sélectionner une prestation, un mode et une date.') }}</span>
                     </div>
+
+                    <p id="no-slots-message" class="text-red-500 mt-1" style="display:none;"></p>
+
                     @error('appointment_time')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>
 
@@ -249,254 +278,316 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // Provide the product modes mapping to JS
-        const PRODUCT_MODES = @json($productModes); // { "Massage": [ {mode, slug, product{...}}, ...], ... }
+<script>
+    const PRODUCT_MODES = @json($productModes);
+    const OLD_TIME      = @json(old('appointment_time'));
 
-        $(function () {
-            let availableDays = []; // 0=Mon .. 6=Sun (your scheme)
+    $(function () {
+        let allowedDates = []; // concrete Y-m-d dates with at least one slot
+        let currentSlotsRequestId = 0;
 
-            const fp = flatpickr("#appointment_date", {
-                dateFormat: "Y-m-d",
-                altInput: true,
-                altFormat: "d-m-Y",
-                minDate: "today",
-                locale: "fr",
-                disableMobile: true,
-                disable: [],
-                onChange: function(selectedDates, dateStr) {
-                    const therapistId = $('input[name="therapist_id"]').val();
-                    const productId = $('#product_id').val();
-                    const modeSlug  = $('#selected_mode_slug').val();
-                    const locationId = ($('#practice_location_id').is(':visible') ? $('#practice_location_id').val() : null);
-                    if (dateStr && productId && therapistId) {
-                        fetchAvailableSlots(dateStr, productId, therapistId, modeSlug, locationId);
+        const fp = flatpickr("#appointment_date", {
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d-m-Y",
+            minDate: "today",
+            locale: "fr",
+            disableMobile: true,
+            enable: [],     // will be set dynamically
+            onChange: function(selectedDates, dateStr) {
+                const therapistId = $('input[name="therapist_id"]').val();
+                const productId   = $('#product_id').val();
+                const modeSlug    = $('#selected_mode_slug').val();
+                const locationId  = ($('#practice_location_id').is(':visible') ? $('#practice_location_id').val() : null);
+
+                if (dateStr && productId && therapistId) {
+                    fetchAvailableSlots(dateStr, productId, therapistId, modeSlug, locationId);
+                } else {
+                    resetTimeSelect();
+                }
+            }
+        });
+
+        function resetTimeSelect() {
+            $('#appointment_time').val('');
+            $('#time-slots-container').html(
+                '<span class="text-muted">{{ __("Veuillez d’abord sélectionner une prestation, un mode et une date.") }}</span>'
+            );
+            $('#no-slots-message').hide().text('');
+        }
+
+        function requireCabinetLocationIfNeeded() {
+            const modeSlug = $('#selected_mode_slug').val();
+            if (modeSlug === 'cabinet') {
+                const locId = $('#practice_location_id').val();
+                if (!locId) {
+                    $('#location-error').text('{{ __("Veuillez sélectionner un cabinet.") }}').removeClass('d-none');
+                    return false;
+                }
+                $('#location-error').addClass('d-none');
+            }
+            return true;
+        }
+
+        /**
+         * Ask the backend: "which concrete dates in the next N days have at least one slot?"
+         */
+        function loadAvailableDates(productId, therapistId, modeSlug, locationId) {
+            $('#date-loading-message')
+                .text('{{ __("Chargement des jours disponibles...") }}')
+                .show();
+
+            $.ajax({
+                url: '{{ route("appointments.available-dates-concrete-patient") }}',
+                method: 'POST',
+                data: {
+                    product_id:  productId,
+                    therapist_id: therapistId,
+                    mode:        modeSlug || undefined,
+                    location_id: (modeSlug === 'cabinet' ? (locationId || undefined) : undefined),
+                    days:        60,
+                    _token:      '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    allowedDates = Array.isArray(response.dates) ? response.dates : [];
+
+                    if (allowedDates.length === 0) {
+                        fp.set('enable', []);
+                        fp.set('disable', [true]); // disable everything
+                        fp.clear();
+                        resetTimeSelect();
+                        alert('{{ __("Aucune date disponible pour cette prestation.") }}');
                     } else {
+                        fp.set('enable', allowedDates);
+                        fp.set('disable', []); // only enabled dates are clickable
+                        fp.clear();
                         resetTimeSelect();
                     }
+
+                    $('#date-loading-message').hide().text('');
+                },
+                error: function(xhr) {
+                    console.error('Error fetching available dates:', xhr.responseText);
+                    allowedDates = [];
+                    fp.set('enable', []);
+                    fp.set('disable', [true]);
+                    fp.clear();
+                    resetTimeSelect();
+                    $('#date-loading-message').hide().text('');
+                    alert('{{ __("Une erreur est survenue lors de la récupération des jours disponibles.") }}');
                 }
             });
+        }
 
-            // Helpers
-            function resetTimeSelect() {
-                $('#appointment_time').html('<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>').prop('disabled', true);
+        /**
+         * Fetch slots for a specific date (uses the same logic as date precomputation).
+         */
+        function fetchAvailableSlots(date, productId, therapistId, modeSlug, locationId) {
+            if (modeSlug === 'cabinet' && !locationId) {
+                resetTimeSelect();
+                return;
             }
 
-            function requireCabinetLocationIfNeeded() {
-                const modeSlug = $('#selected_mode_slug').val();
-                if (modeSlug === 'cabinet') {
-                    const locId = $('#practice_location_id').val();
-                    if (!locId) {
-                        $('#location-error').text('{{ __("Veuillez sélectionner un cabinet.") }}').removeClass('d-none');
-                        return false;
-                    }
-                    $('#location-error').addClass('d-none');
-                }
-                return true;
-            }
+            currentSlotsRequestId++;
+            const thisRequestId = currentSlotsRequestId;
 
-            function loadAvailableDays(productId, therapistId, modeSlug, locationId) {
-                const payload = {
-                    product_id: productId,
-                    therapist_id: therapistId,
-                    _token: '{{ csrf_token() }}'
-                };
-                // The route for available dates (patient)
-                $.ajax({
-                    url: '{{ route("appointments.available-dates-patient") }}',
-                    method: 'POST',
-                    data: payload,
-                    success: function (response) {
-                        if (Array.isArray(response.available_days) && response.available_days.length > 0) {
-                            availableDays = response.available_days.map(Number);
-                            fp.set('disable', [function(date) {
-                                // Convert JS getDay() to 0..6 Mon..Sun as your system
-                                const dayOfWeek = (date.getDay() + 6) % 7;
-                                return !availableDays.includes(dayOfWeek);
-                            }]);
-                        } else {
-                            fp.set('disable', [true]);
-                            alert('{{ __("Aucune date disponible pour cette prestation.") }}');
-                        }
-                    },
-                    error: function (xhr) {
-                        console.error('Error fetching available days:', xhr.responseText);
-                        alert('{{ __("Une erreur est survenue lors de la récupération des jours disponibles.") }}');
-                    }
-                });
-            }
+            $('#appointment_time').val('');
+            $('#time-slots-container').html(
+                '<span class="text-muted">{{ __("Chargement des créneaux disponibles...") }}</span>'
+            );
+            $('#no-slots-message').hide().text('');
 
-            function fetchAvailableSlots(date, productId, therapistId, modeSlug, locationId) {
-                if (modeSlug === 'cabinet' && !locationId) {
-                    // Force choosing location before slots
-                    resetTimeSelect();
-                    return;
-                }
+            const payload = {
+                date:         date,
+                product_id:   productId,
+                therapist_id: therapistId,
+                _token:       '{{ csrf_token() }}',
+                mode:         modeSlug || undefined,
+                location_id:  (modeSlug === 'cabinet' ? (locationId || undefined) : undefined)
+            };
 
-                $('#appointment_time').prop('disabled', true);
-                $('.loading-spinner').show();
+            $.ajax({
+                url: '{{ route("appointments.available-slots-patient") }}',
+                method: 'POST',
+                data: payload,
+                success: function (response) {
+                    if (thisRequestId !== currentSlotsRequestId) return;
 
-                const payload = {
-                    date: date,
-                    product_id: productId,
-                    therapist_id: therapistId,
-                    _token: '{{ csrf_token() }}',
-                    mode: modeSlug || undefined,
-                    location_id: (modeSlug === 'cabinet' ? (locationId || undefined) : undefined)
-                };
+                    const hasSlots = Array.isArray(response.slots) && response.slots.length > 0;
 
-                $.ajax({
-                    url: '{{ route("appointments.available-slots-patient") }}',
-                    method: 'POST',
-                    data: payload,
-                    success: function (response) {
-                        $('.loading-spinner').hide();
-                        if (Array.isArray(response.slots) && response.slots.length > 0) {
-                            let options = '<option value="" disabled selected>{{ __("Sélectionner une heure") }}</option>';
-                            response.slots.forEach(function (slot) {
-                                options += `<option value="${slot.start}">${slot.start} - ${slot.end}</option>`;
+                    if (hasSlots) {
+                        let html = '<div class="time-slots-grid">';
+                        response.slots.forEach(function (slot) {
+                            const t = slot.start;
+                            html += `<button type="button" class="time-slot-btn" data-time="${t}">${t}</button>`;
+                        });
+                        html += '</div>';
+                        $('#time-slots-container').html(html);
+                        $('#no-slots-message').hide().text('');
+
+                        if (OLD_TIME) {
+                            $('#appointment_time').val(OLD_TIME);
+                            $('#time-slots-container .time-slot-btn').each(function () {
+                                if ($(this).data('time') === OLD_TIME) {
+                                    $(this).addClass('active');
+                                }
                             });
-                            $('#appointment_time').html(options).prop('disabled', false);
-                        } else {
-                            $('#appointment_time').html('<option value="" disabled selected>{{ __("Aucun créneau disponible pour cette date.") }}</option>').prop('disabled', true);
                         }
-                    },
-                    error: function (xhr) {
-                        $('.loading-spinner').hide();
-                        console.error('Error fetching available slots:', xhr.responseText);
-                        alert('{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles.") }}');
+                    } else {
+                        $('#time-slots-container').html(
+                            '<span class="text-muted">{{ __("Aucun créneau disponible pour cette date.") }}</span>'
+                        );
+                        $('#no-slots-message')
+                            .text('{{ __("Aucun créneau n’est disponible pour ce jour. Merci de choisir une autre date.") }}')
+                            .show();
                     }
-                });
-            }
+                },
+                error: function (xhr) {
+                    if (thisRequestId !== currentSlotsRequestId) return;
+                    console.error('Error fetching available slots:', xhr.responseText);
+                    $('#time-slots-container').html(
+                        '<span class="text-red-500">{{ __("Une erreur est survenue lors de la récupération des créneaux disponibles.") }}</span>'
+                    );
+                }
+            });
+        }
 
-            // When Prestation changes → populate Mode
-            $('#product_name').on('change', function () {
-                const name = $(this).val();
-                const modes = PRODUCT_MODES[name] || [];
-                const $mode = $('#consultation_mode');
+        // Click on time slot
+        $(document).on('click', '.time-slot-btn', function () {
+            $('.time-slot-btn').removeClass('active');
+            $(this).addClass('active');
+            const time = $(this).data('time');
+            $('#appointment_time').val(time);
+            $('#no-slots-message').hide().text('');
+        });
 
-                $mode.empty().append('<option value="" disabled selected>{{ __("Sélectionner un mode de consultation") }}</option>');
-                $('#consultation-mode-section').toggle(modes.length > 0);
+        // When Prestation changes → populate Mode
+        $('#product_name').on('change', function () {
+            const name  = $(this).val();
+            const modes = PRODUCT_MODES[name] || [];
+            const $mode = $('#consultation_mode');
 
-                // Fill
-                modes.forEach(function (m) {
-                    // value will carry product_id, attach slug in data attribute
-                    $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${m.mode}</option>`);
-                });
+            $mode.empty().append('<option value="" disabled selected>{{ __("Sélectionner un mode de consultation") }}</option>');
+            $('#consultation-mode-section').toggle(modes.length > 0);
 
-                // Reset hidden + sections
-                $('#product_id').val('');
-                $('#selected_mode_slug').val('');
+            modes.forEach(function (m) {
+                $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${m.mode}</option>`);
+            });
+
+            $('#product_id').val('');
+            $('#selected_mode_slug').val('');
+            $('#cabinet-location-section').hide();
+            $('#therapist-address-section').hide();
+            $('#client-address-section').hide();
+            $('#mode-error').addClass('d-none').text('');
+            $('#location-error').addClass('d-none').text('');
+
+            allowedDates = [];
+            fp.set('enable', []);
+            fp.set('disable', []);
+            fp.clear();
+            resetTimeSelect();
+        });
+
+        // When Mode changes
+        $('#consultation_mode').on('change', function () {
+            const productId = $(this).val();
+            const modeSlug  = $(this).find(':selected').data('slug');
+
+            $('#product_id').val(productId);
+            $('#selected_mode_slug').val(modeSlug);
+
+            if (modeSlug === 'cabinet') {
+                $('#cabinet-location-section').show();
+                $('#therapist-address-section').hide();
+                $('#client-address-section').hide();
+            } else if (modeSlug === 'domicile') {
+                $('#cabinet-location-section').hide();
+                $('#therapist-address-section').hide();
+                $('#client-address-section').show();
+            } else {
                 $('#cabinet-location-section').hide();
                 $('#therapist-address-section').hide();
                 $('#client-address-section').hide();
-                $('#mode-error').addClass('d-none').text('');
+            }
 
-                // Reset date/time
-                fp.clear(); fp.setDate(null);
+            const therapistId = $('input[name="therapist_id"]').val();
+
+            if (modeSlug === 'cabinet') {
+                allowedDates = [];
+                fp.set('enable', []);
+                fp.set('disable', []);
+                fp.clear();
                 resetTimeSelect();
-            });
-
-            // When Mode changes
-            $('#consultation_mode').on('change', function () {
-                const productId = $(this).val();
-                const modeSlug  = $(this).find(':selected').data('slug'); // cabinet | visio | domicile
-
-                $('#product_id').val(productId);
-                $('#selected_mode_slug').val(modeSlug);
-
-                // Sections visibility
-                if (modeSlug === 'cabinet') {
-                    $('#cabinet-location-section').show();
-                    // Address preview will show after location chosen
-                    $('#therapist-address-section').hide();
-                    $('#client-address-section').hide();
-                } else if (modeSlug === 'domicile') {
-                    $('#cabinet-location-section').hide();
-                    $('#therapist-address-section').hide();
-                    $('#client-address-section').show();
-                } else {
-                    // visio
-                    $('#cabinet-location-section').hide();
-                    $('#therapist-address-section').hide();
-                    $('#client-address-section').hide();
-                }
-
-                // Load available days only once mode is selected (and location if 'cabinet')
-                const therapistId = $('input[name="therapist_id"]').val();
-                if (modeSlug === 'cabinet') {
-                    // Wait for location selection to call loadAvailableDays
-                    // (we still reset calendar/time)
-                    fp.clear(); fp.setDate(null);
-                    resetTimeSelect();
-                } else if (productId && therapistId) {
-                    loadAvailableDays(productId, therapistId, modeSlug, null);
-                    fp.clear(); fp.setDate(null);
-                    resetTimeSelect();
-                }
-            });
-
-            // When Cabinet location changes
-            $('#practice_location_id').on('change', function () {
-                const locId = $(this).val();
-                const address = $(this).find(':selected').data('address') || '';
-                $('#therapist-address').text(address || '{{ __("Adresse non disponible.") }}');
-                $('#therapist-address-section').show();
-
-                const productId = $('#product_id').val();
-                const therapistId = $('input[name="therapist_id"]').val();
-                const modeSlug = $('#selected_mode_slug').val();
-
-                if (productId && therapistId && modeSlug === 'cabinet') {
-                    loadAvailableDays(productId, therapistId, modeSlug, locId);
-                    fp.clear(); fp.setDate(null);
-                    resetTimeSelect();
-                    $('#location-error').addClass('d-none').text('');
-                }
-            });
-
-            // Calendar change already calls fetchAvailableSlots()
-
-            // Restore old input (if any)
-            @if(old('product_name'))
-                $('#product_name').val(@json(old('product_name'))).trigger('change');
-                @if(old('product_id'))
-                    setTimeout(function () {
-                        const productId = @json(old('product_id'));
-                        // Try to select the correct mode option (by product id)
-                        $('#consultation_mode option').each(function(){
-                            if ($(this).val() == productId) $(this).prop('selected', true);
-                        });
-                        $('#consultation_mode').trigger('change');
-
-                        @if(old('type'))
-                            $('#selected_mode_slug').val(@json(old('type'))); // cabinet | visio | domicile
-                        @endif
-
-                        @if(old('practice_location_id'))
-                            $('#practice_location_id').val(@json(old('practice_location_id'))).trigger('change');
-                        @endif
-
-                        @if(old('appointment_date'))
-                            setTimeout(function(){
-                                fp.setDate(@json(old('appointment_date')), true);
-                                const therapistId = $('input[name="therapist_id"]').val();
-                                const modeSlug  = $('#selected_mode_slug').val();
-                                const locationId = ($('#practice_location_id').is(':visible') ? $('#practice_location_id').val() : null);
-                                fetchAvailableSlots(@json(old('appointment_date')), productId, therapistId, modeSlug, locationId);
-                            }, 400);
-                        @endif
-                    }, 300);
-                @endif
-            @endif
-
-            // Validate before submit (ensure cabinet has location)
-            $('form').on('submit', function (e) {
-                if (!requireCabinetLocationIfNeeded()) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
+            } else if (productId && therapistId) {
+                loadAvailableDates(productId, therapistId, modeSlug, null);
+            }
         });
-    </script>
+
+        // When Cabinet location changes
+        $('#practice_location_id').on('change', function () {
+            const locId   = $(this).val();
+            const address = $(this).find(':selected').data('address') || '';
+            $('#therapist-address').text(address || '{{ __("Adresse non disponible.") }}');
+            $('#therapist-address-section').show();
+
+            const productId   = $('#product_id').val();
+            const therapistId = $('input[name="therapist_id"]').val();
+            const modeSlug    = $('#selected_mode_slug').val();
+
+            if (productId && therapistId && modeSlug === 'cabinet') {
+                loadAvailableDates(productId, therapistId, modeSlug, locId);
+                $('#location-error').addClass('d-none').text('');
+            }
+        });
+
+        // Restore old input (if any)
+        @if(old('product_name'))
+            $('#product_name').val(@json(old('product_name'))).trigger('change');
+            @if(old('product_id'))
+                setTimeout(function () {
+                    const productId = @json(old('product_id'));
+
+                    $('#consultation_mode option').each(function(){
+                        if ($(this).val() == productId) $(this).prop('selected', true);
+                    });
+                    $('#consultation_mode').trigger('change');
+
+                    @if(old('type'))
+                        $('#selected_mode_slug').val(@json(old('type')));
+                    @endif
+
+                    @if(old('practice_location_id'))
+                        $('#practice_location_id').val(@json(old('practice_location_id'))).trigger('change');
+                    @endif
+
+                    @if(old('appointment_date'))
+                        setTimeout(function(){
+                            const therapistId = $('input[name="therapist_id"]').val();
+                            const modeSlug    = $('#selected_mode_slug').val();
+                            const locationId  = ($('#practice_location_id').is(':visible') ? $('#practice_location_id').val() : null);
+
+                            // load available dates then set date + slots
+                            loadAvailableDates(productId, therapistId, modeSlug, locationId);
+
+                            setTimeout(function() {
+                                fp.setDate(@json(old('appointment_date')), true);
+                                fetchAvailableSlots(@json(old('appointment_date')), productId, therapistId, modeSlug, locationId);
+                            }, 600);
+                        }, 300);
+                    @endif
+                }, 300);
+            @endif
+        @endif
+
+        // Validate before submit (ensure cabinet has location)
+        $('form').on('submit', function (e) {
+            if (!requireCabinetLocationIfNeeded()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+</script>
+
 </x-app-layout>

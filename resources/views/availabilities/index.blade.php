@@ -20,21 +20,54 @@
                 </div>
             @endif
 
-            <!-- Recherche + Boutons -->
-            <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
-                <div class="w-full md:w-auto">
-                    <input type="text" id="search" class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-[#854f38]" placeholder="{{ __('Recherche par jour, prestation ou lieu...') }}" onkeyup="filterTable()">
-                </div>
+<!-- Recherche + Boutons -->
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
+    <!-- Search -->
+    <div class="w-full md:w-auto">
+        <input
+            type="text"
+            id="search"
+            class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-[#854f38]"
+            placeholder="{{ __('Recherche par jour, prestation ou lieu...') }}"
+            onkeyup="filterTable()"
+        >
+    </div>
 
-                <div class="flex flex-col sm:flex-row sm:space-x-4 w-full md:w-auto space-y-4 sm:space-y-0">
-                    <a href="{{ route('availabilities.create') }}" class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
-                        <i class="fas fa-plus mr-2"></i> {{ __('Ajouter une Disponibilité') }}
-                    </a>
-                    <a href="{{ route('unavailabilities.create') }}" class="bg-[#854f38] text-white px-4 py-2 rounded-md hover:bg-[#6a3f2c] transition duration-200 flex items-center justify-center">
-                        <i class="fas fa-plus mr-2"></i> {{ __('Ajouter une Indisponibilité temporaire') }}
-                    </a>
-                </div>
-            </div>
+    <!-- Boutons actions -->
+    <div class="flex flex-wrap justify-center md:justify-end gap-2 md:gap-3 w-full md:w-auto">
+        {{-- Dispo récurrentes --}}
+        <a
+            href="{{ route('availabilities.create') }}"
+            class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                   bg-[#647a0b] text-white hover:bg-[#4f6108] transition duration-200 shadow-sm"
+        >
+            <i class="fas fa-calendar-plus mr-2"></i>
+            {{ __('Ajouter une Disponibilité') }}
+        </a>
+
+        {{-- Indisponibilité --}}
+        <a
+            href="{{ route('unavailabilities.index') }}"
+            class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                   bg-[#854f38] text-white hover:bg-[#6a3f2c] transition duration-200 shadow-sm"
+        >
+            <i class="fas fa-ban mr-2"></i>
+            {{ __('Ajouter une Indisponibilité temporaire') }}
+        </a>
+
+        {{-- Disponibilités ponctuelles --}}
+        <a
+            href="{{ route('special-availabilities.index') }}"
+            class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                   border border-[#647a0b] text-[#647a0b] bg-white
+                   hover:bg-[#647a0b] hover:text-white transition duration-200 shadow-sm"
+        >
+            <i class="fas fa-star mr-2"></i>
+            {{ __('Ajouter des Disponibilités ponctuelles') }}
+        </a>
+    </div>
+</div>
+
 
             <!-- Tableau -->
             <div class="bg-white shadow overflow-hidden rounded-lg">

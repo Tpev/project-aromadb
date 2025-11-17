@@ -60,6 +60,18 @@ use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\EmargementController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentSigningController;
+use App\Http\Controllers\SpecialAvailabilityController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('special-availabilities', SpecialAvailabilityController::class)
+        ->except(['show']);
+});
+
+Route::post(
+    '/appointments/available-dates-concrete-patient',
+    [AppointmentController::class, 'availableConcreteDatesPatient']
+)->name('appointments.available-dates-concrete-patient');
+
 
 // Upload (from client dossier)
 Route::middleware(['web','auth'])->group(function () {

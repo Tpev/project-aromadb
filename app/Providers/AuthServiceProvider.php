@@ -18,6 +18,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Document::class      => DocumentPolicy::class,
         ClientProfile::class => ClientProfilePolicy::class,
+		SpecialAvailability::class => SpecialAvailabilityPolicy::class,
     ];
 
     /**

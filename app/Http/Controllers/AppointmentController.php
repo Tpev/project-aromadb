@@ -22,7 +22,7 @@ use Stripe\StripeClient;
 use App\Notifications\AppointmentBooked;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
-
+use App\Models\SpecialAvailability;
 
 class AppointmentController extends Controller
 {
@@ -452,8 +452,15 @@ public function show(Appointment $appointment)
      * @param int|null $excludeAppointmentId
      * @return bool
      */
- private function isAvailable($appointmentDateTime, $duration, $therapistId, $productId, $excludeAppointmentId = null, $locationId = null, $mode = null)
-{
+private function isAvailable(
+    $appointmentDateTime,
+    $duration,
+    $therapistId,
+    $productId,
+    $excludeAppointmentId = null,
+    $locationId = null,
+    $mode = null
+) {
     // Normalise
     $duration = (int) $duration;
     $start    = Carbon::parse($appointmentDateTime);
@@ -463,7 +470,7 @@ public function show(Appointment $appointment)
     $product = Product::findOrFail((int) $productId);
 
     if (!in_array($mode, ['cabinet','visio','domicile'], true)) {
-        // déduction simple si le mode n'est pas fourni
+        // Déduction simple si le mode n'est pas fourni
         $modes = [];
         if ($product->dans_le_cabinet) $modes[] = 'cabinet';
         if ($product->visio)           $modes[] = 'visio';
@@ -471,33 +478,54 @@ public function show(Appointment $appointment)
         $mode = count($modes) === 1 ? $modes[0] : 'cabinet';
     }
 
-    // Cabinet: si multi-lieux, on attend un locationId
+    // Cabinet: si multi-lieux, on attend un locationId (mais on reste permissif si vide)
     if ($mode === 'cabinet' && empty($locationId)) {
-        // Si pas de location fourni, on laisse passer
-        // mais on ne filtre pas par lieu (comportement permissif).
-        // Tu peux durcir en retournant false si tu veux forcer un lieu:
-        // return false;
+        // Si tu veux être strict, tu peux faire `return false;` ici
     }
 
     // 2) Jour de semaine (0..6)
     $dayOfWeek0 = $start->dayOfWeekIso - 1;
 
-    // 3) Sélection des disponibilités (filtre produit + jour [+ lieu si cabinet])
-    $availabilitiesQuery = Availability::where('user_id', (int) $therapistId)
-        ->where('day_of_week', $dayOfWeek0)
-        ->where(function ($query) use ($productId) {
-            $query->where('applies_to_all', true)
-                  ->orWhereHas('products', function ($q) use ($productId) {
-                      $q->where('products.id', $productId);
-                  });
-        });
+  // 3a) Weekly
+$weeklyQuery = Availability::where('user_id', (int) $therapistId)
+    ->where('day_of_week', $dayOfWeek0)
+    ->where(function ($query) use ($productId) {
+        $query->where('applies_to_all', true)
+              ->orWhereHas('products', function ($q) use ($productId) {
+                  $q->where('products.id', $productId);
+              });
+    });
 
-    if ($mode === 'cabinet' && $locationId) {
-        $availabilitiesQuery->where('practice_location_id', (int) $locationId);
-    }
-    // visio / domicile -> pas de filtre de lieu
+if ($mode === 'cabinet' && $locationId) {
+    $weeklyQuery->where('practice_location_id', (int) $locationId);
+}
+// visio / domicile → ignore le cabinet
 
-    $availabilities = $availabilitiesQuery->get();
+$weeklyAvailabilities = $weeklyQuery->get();
+
+// 3b) Specials
+$dateStr = $start->toDateString();
+
+$specialQuery = SpecialAvailability::where('user_id', (int) $therapistId)
+    ->whereDate('date', $dateStr)
+    ->where(function ($query) use ($productId) {
+        $query->where('applies_to_all', true)
+              ->orWhereHas('products', function ($q) use ($productId) {
+                  $q->where('products.id', $productId);
+              });
+    });
+
+if ($mode === 'cabinet' && $locationId) {
+    $specialQuery->where('practice_location_id', (int) $locationId);
+}
+// visio / domicile → ignore le cabinet
+
+$specialAvailabilities = $specialQuery->get();
+
+
+    // 3c) Merge des deux types de dispo
+    $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
+
     if ($availabilities->isEmpty()) {
         return false;
     }
@@ -548,6 +576,7 @@ public function show(Appointment $appointment)
 
     return true;
 }
+
   
 
     /**
@@ -560,79 +589,105 @@ public function show(Appointment $appointment)
      * @param int|null $excludeAppointmentId
      * @return array
      */
- private function getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $excludeAppointmentId = null)
+private function getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $excludeAppointmentId = null)
 {
     // 1) Setup & helpers
-    $product = Product::findOrFail((int) $productId);
+    $product    = Product::findOrFail((int) $productId);
     $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
     $dayOfWeek0 = $carbonDate->dayOfWeekIso - 1; // Monday=0..Sunday=6
 
-    // Deduce mode based on product booleans.
-    // If multi-mode and we are editing an existing appointment with a location, treat as 'cabinet'.
+    // Déduire les modes possibles
     $modes = [];
     if ($product->dans_le_cabinet) $modes[] = 'cabinet';
     if ($product->visio)           $modes[] = 'visio';
     if ($product->adomicile)       $modes[] = 'domicile';
 
     $locationId = null;
-    $mode = null;
+    $mode       = null;
 
-    // If we have an appointment in edit, infer its mode/location
+    // Si on édite un RDV existant : en déduire mode + lieu
     if ($excludeAppointmentId) {
         $editingAppointment = Appointment::find($excludeAppointmentId);
         if ($editingAppointment) {
             if (!is_null($editingAppointment->practice_location_id)) {
-                // Appointment is "cabinet" (has a location)
-                $mode = 'cabinet';
+                // "cabinet"
+                $mode       = 'cabinet';
                 $locationId = (int) $editingAppointment->practice_location_id;
             } else {
-                // No location on the appointment; infer from product modes
+                // Pas de lieu → déduire du produit
                 if (count($modes) === 1) {
                     $mode = $modes[0];
                 } else {
-                    // Ambiguous multi-mode without location: prefer 'visio' then 'domicile', else 'cabinet'
                     $mode = in_array('visio', $modes, true) ? 'visio'
-                          : (in_array('domicile', $modes, true) ? 'domicile' : 'cabinet');
+                         : (in_array('domicile', $modes, true) ? 'domicile' : 'cabinet');
                 }
             }
         }
     }
 
-    // If still not set (e.g., creating new or no appointment found), deduce from product
+    // Si toujours pas défini (création ou cas limite) → déduire du produit
     if (!$mode) {
         if (count($modes) === 1) {
             $mode = $modes[0];
         } else {
-            // Ambiguous: default to 'cabinet' (UI should pass/choose location later).
             $mode = 'cabinet';
-            // Note: no locationId available here → we'll NOT filter by location to avoid hiding slots.
         }
     }
 
-    // 2) Fetch Availabilities
-    // Always filter by product linkage (applies_to_all OR pivot).
-    // If mode=cabinet and we know the location, filter by that location.
+    // 2) Dispos récurrentes
     $availabilitiesQuery = Availability::where('user_id', (int) $therapistId)
         ->where('day_of_week', $dayOfWeek0)
         ->where(function ($query) use ($productId) {
             $query->where('applies_to_all', true)
-                ->orWhereHas('products', function ($q) use ($productId) {
-                    $q->where('products.id', $productId);
-                });
+                  ->orWhereHas('products', function ($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
         });
 
     if ($mode === 'cabinet' && $locationId) {
         $availabilitiesQuery->where('practice_location_id', $locationId);
     }
-    // visio / domicile OR cabinet without known location → no location filter
 
     $availabilities = $availabilitiesQuery->get();
 
-    if ($availabilities->isEmpty()) {
+    // 2b) Dispos ponctuelles pour ce jour
+    $specialQuery = SpecialAvailability::where('user_id', (int) $therapistId)
+        ->whereDate('date', $date)
+        ->where(function ($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $specialQuery->where('practice_location_id', $locationId);
+    }
+
+    $specialAvailabilities = $specialQuery->get();
+
+    // Si rien ni en récurrent ni en ponctuel => aucun slot
+    if ($availabilities->isEmpty() && $specialAvailabilities->isEmpty()) {
         return [];
     }
 
-    // 3) Existing appointments for the date (exclude the one being edited)
+    // Normaliser toutes les fenêtres de dispo (récurrentes + ponctuelles)
+    $windows = [];
+
+    foreach ($availabilities as $a) {
+        $windows[] = [
+            'start_time' => $a->start_time,
+            'end_time'   => $a->end_time,
+        ];
+    }
+    foreach ($specialAvailabilities as $sa) {
+        $windows[] = [
+            'start_time' => $sa->start_time,
+            'end_time'   => $sa->end_time,
+        ];
+    }
+
+    // 3) RDV existants pour ce jour (hors RDV en cours d'édition)
     $existingAppointments = Appointment::where('user_id', (int) $therapistId)
         ->whereDate('appointment_date', $date)
         ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
@@ -640,7 +695,7 @@ public function show(Appointment $appointment)
         })
         ->get();
 
-    // 4) Unavailability (support multi-day spans)
+    // 4) Indisponibilités couvrant ce jour
     $unavailabilities = Unavailability::where('user_id', (int) $therapistId)
         ->where(function ($query) use ($date) {
             $query->whereDate('start_date', '<=', $date)
@@ -648,28 +703,29 @@ public function show(Appointment $appointment)
         })
         ->get();
 
-    // 5) Build slots
+    // 5) Construire les slots (pas de changement sur l'algo)
     $slots = [];
+    $duration = (int) $duration;
 
-    foreach ($availabilities as $availability) {
-        $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
+    foreach ($windows as $window) {
+        $availabilityStart = Carbon::createFromFormat('H:i:s', $window['start_time'])
             ->setDateFrom($carbonDate);
-        $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
+        $availabilityEnd = Carbon::createFromFormat('H:i:s', $window['end_time'])
             ->setDateFrom($carbonDate);
 
-        // Step by 15 minutes
+        // Step de 15 minutes
         while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
             $slotStart = $availabilityStart->copy();
-            $slotEnd   = $availabilityStart->copy()->addMinutes((int) $duration);
+            $slotEnd   = $availabilityStart->copy()->addMinutes($duration);
 
-            // Overlap with existing appointments (global, regardless of mode/location)
+            // Conflit RDV ?
             $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
                 $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
-            // Overlap with unavailability
+            // Conflit indispo ?
             $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
                 $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
@@ -689,6 +745,7 @@ public function show(Appointment $appointment)
 
     return $slots;
 }
+
 
 
 
@@ -1034,8 +1091,6 @@ public function getAvailableSlotsForPatient(Request $request)
     $duration    = (int) ($product->duration ?? 0);
 
     // 2) Resolve mode
-    // If UI provided a mode, use it. Otherwise, deduce from product booleans.
-    // Fallback to 'cabinet' if ambiguous (multi-mode product without explicit mode).
     $requestedMode = $request->input('mode');
     $mode = in_array($requestedMode, ['cabinet','visio','domicile'], true)
         ? $requestedMode
@@ -1056,7 +1111,6 @@ public function getAvailableSlotsForPatient(Request $request)
         ]);
         $locationId = (int) $request->location_id;
 
-        // Verify the location belongs to the therapist (avoid cross-tenant leakage)
         $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
             ->where('user_id', $therapistId)
             ->exists();
@@ -1071,29 +1125,47 @@ public function getAvailableSlotsForPatient(Request $request)
     $now                  = Carbon::now();
     $minimumNoticeDateTime = $now->copy()->addHours($minimumNoticeHours);
 
-    // 5) Day-of-week (matching your existing schema: 0=Mon ... 6=Sun)
+    // 5) Day + date
     $date       = Carbon::createFromFormat('Y-m-d', $request->date);
-    $dayOfWeek0 = $date->dayOfWeekIso - 1; // ISO: Mon=1..Sun=7 → 0..6
+    $dayOfWeek0 = $date->dayOfWeekIso - 1; // 0..6
+    $dateStr    = $date->format('Y-m-d');
 
-    // 6) Fetch availabilities
-    // - Always filter by product linkage (applies_to_all OR pivot)
-    // - If mode=cabinet → also filter by the selected practice_location_id
-    // - If mode=visio/domcile → NO location filter (use all availabilities)
-    $availabilitiesQuery = Availability::where('user_id', $therapistId)
-        ->where('day_of_week', $dayOfWeek0)
-        ->where(function ($query) use ($product) {
-            $query->where('applies_to_all', true)
-                ->orWhereHas('products', function ($q) use ($product) {
-                    $q->where('products.id', $product->id);
-                });
-        });
+// 6a) Weekly
+$weeklyQuery = Availability::where('user_id', $therapistId)
+    ->where('day_of_week', $dayOfWeek0)
+    ->where(function ($query) use ($product) {
+        $query->where('applies_to_all', true)
+              ->orWhereHas('products', function ($q) use ($product) {
+                  $q->where('products.id', $product->id);
+              });
+    });
 
-    if ($mode === 'cabinet') {
-        $availabilitiesQuery->where('practice_location_id', $locationId);
-    }
-    // visio / domicile: no location filter
+if ($mode === 'cabinet' && $locationId) {
+    $weeklyQuery->where('practice_location_id', $locationId);
+}
+// visio / domicile → pas de filtre de cabinet
 
-    $availabilities = $availabilitiesQuery->get();
+$weeklyAvailabilities = $weeklyQuery->get();
+
+// 6b) Specials
+$specialQuery = SpecialAvailability::where('user_id', $therapistId)
+    ->whereDate('date', $dateStr)
+    ->where(function ($query) use ($product) {
+        $query->where('applies_to_all', true)
+              ->orWhereHas('products', function ($q) use ($product) {
+                  $q->where('products.id', $product->id);
+              });
+    });
+
+if ($mode === 'cabinet' && $locationId) {
+    $specialQuery->where('practice_location_id', $locationId);
+}
+// visio / domicile → pas de filtre
+
+$specialAvailabilities = $specialQuery->get();
+
+$availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
+
 
     if ($availabilities->isEmpty()) {
         return response()->json(['slots' => []]);
@@ -1112,7 +1184,7 @@ public function getAvailableSlotsForPatient(Request $request)
         })
         ->get();
 
-    // 9) Build slots (15-min step, keep your current stepping)
+    // 9) Build slots (15-min step)
     $slots = [];
 
     foreach ($availabilities as $availability) {
@@ -1149,9 +1221,6 @@ public function getAvailableSlotsForPatient(Request $request)
                 $slots[] = [
                     'start' => $slotStart->format('H:i'),
                     'end'   => $slotEnd->format('H:i'),
-                    // Optional: echo back context (useful for cabinet mode)
-                    // 'mode'        => $mode,
-                    // 'location_id' => $mode === 'cabinet' ? $locationId : null,
                 ];
             }
 
@@ -1159,24 +1228,116 @@ public function getAvailableSlotsForPatient(Request $request)
         }
     }
 
+    // Optionnel : trier et dédupliquer les slots (au cas où weekly + special se chevauchent)
+    $slots = collect($slots)
+        ->unique(fn($s) => $s['start'].'-'.$s['end'])
+        ->sortBy('start')
+        ->values()
+        ->all();
+
     return response()->json(['slots' => $slots]);
 }
 
 
 
+public function availableConcreteDatesPatient(Request $request)
+{
+    $request->validate([
+        'therapist_id' => 'required|exists:users,id',
+        'product_id'   => 'required|exists:products,id',
+        'mode'         => 'nullable|string|in:cabinet,visio,domicile',
+        'location_id'  => 'nullable|integer',
+        'days'         => 'nullable|integer|min:1|max:90',
+    ]);
+
+    $therapistId = (int) $request->therapist_id;
+    $product     = Product::findOrFail((int) $request->product_id);
+
+    $mode = $this->resolvePatientMode($product, $request->input('mode'));
+
+    $locationId = null;
+    if ($mode === 'cabinet') {
+        $request->validate([
+            'location_id' => ['required','integer','exists:practice_locations,id'],
+        ]);
+
+        $locationId = (int) $request->location_id;
+
+        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
+            ->where('user_id', $therapistId)
+            ->exists();
+
+        if (!$ownsLocation) {
+            return response()->json([
+                'dates' => [],
+                'message' => 'Invalid location for this therapist.',
+            ], 422);
+        }
+    }
+
+    $days  = (int) $request->input('days', 60);
+    $today = \Carbon\Carbon::today();
+    $dates = [];
+
+    for ($i = 0; $i < $days; $i++) {
+        $date      = $today->copy()->addDays($i);
+        $dayOfWeek = $date->dayOfWeekIso - 1;
+        $dateStr   = $date->format('Y-m-d');
+
+        // Weekly
+        $weeklyQuery = Availability::where('user_id', $therapistId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where(function ($q) use ($product) {
+                $q->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($qq) use ($product) {
+                      $qq->where('products.id', $product->id);
+                  });
+            });
+
+        if ($mode === 'cabinet' && $locationId) {
+            $weeklyQuery->where('practice_location_id', $locationId);
+        }
+        // visio / domicile → pas de filtre de cabinet
+
+        $hasWeekly = $weeklyQuery->exists();
+
+        // Specials
+        $specialQuery = SpecialAvailability::where('user_id', $therapistId)
+            ->whereDate('date', $dateStr)
+            ->where(function ($q) use ($product) {
+                $q->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($qq) use ($product) {
+                      $qq->where('products.id', $product->id);
+                  });
+            });
+
+        if ($mode === 'cabinet' && $locationId) {
+            $specialQuery->where('practice_location_id', $locationId);
+        }
+        // visio / domicile → pas de filtre de cabinet
+
+        $hasSpecial = $specialQuery->exists();
+
+        if ($hasWeekly || $hasSpecial) {
+            $dates[] = $dateStr;
+        }
+    }
+
+    return response()->json(['dates' => $dates]);
+}
+
 
 
 public function getAvailableDates(Request $request)
 {
-    // Validate the request
     $request->validate([
         'product_id' => 'required|exists:products,id',
     ]);
 
-    $productId = $request->product_id;
+    $productId   = $request->product_id;
     $therapistId = Auth::id();
 
-    // Fetch available days considering 'applies_to_all' and product linkage
+    // Jours provenant des dispos récurrentes
     $availableDays = Availability::where('user_id', $therapistId)
         ->where(function($query) use ($productId) {
             $query->where('applies_to_all', true)
@@ -1185,25 +1346,42 @@ public function getAvailableDates(Request $request)
                   });
         })
         ->pluck('day_of_week')
-        ->unique()
         ->toArray();
+
+    // Jours provenant des dispos ponctuelles (dates futures ou d'aujourd'hui)
+    $specialDays = SpecialAvailability::where('user_id', $therapistId)
+        ->whereDate('date', '>=', Carbon::today()->toDateString())
+        ->where(function($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        })
+        ->get()
+        ->map(function($sa) {
+            $date = Carbon::parse($sa->date);
+            return $date->dayOfWeekIso - 1; // 0..6
+        })
+        ->toArray();
+
+    $availableDays = array_values(array_unique(array_merge($availableDays, $specialDays)));
 
     return response()->json(['available_days' => $availableDays]);
 }
+
 
 
 public function availableDatesPatient(Request $request)
 {
-    // Validate the request
     $request->validate([
-        'product_id' => 'required|exists:products,id',
+        'product_id'   => 'required|exists:products,id',
         'therapist_id' => 'required|exists:users,id',
     ]);
 
-    $productId = $request->product_id;
+    $productId   = $request->product_id;
     $therapistId = $request->therapist_id;
 
-    // Fetch available days considering 'applies_to_all' and product linkage
+    // Jours dispo via récurrents
     $availableDays = Availability::where('user_id', $therapistId)
         ->where(function($query) use ($productId) {
             $query->where('applies_to_all', true)
@@ -1212,11 +1390,29 @@ public function availableDatesPatient(Request $request)
                   });
         })
         ->pluck('day_of_week')
-        ->unique()
         ->toArray();
+
+    // Jours dispo via dispo ponctuelles
+    $specialDays = SpecialAvailability::where('user_id', $therapistId)
+        ->whereDate('date', '>=', Carbon::today()->toDateString())
+        ->where(function($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        })
+        ->get()
+        ->map(function($sa) {
+            $date = Carbon::parse($sa->date);
+            return $date->dayOfWeekIso - 1; // 0..6
+        })
+        ->toArray();
+
+    $availableDays = array_values(array_unique(array_merge($availableDays, $specialDays)));
 
     return response()->json(['available_days' => $availableDays]);
 }
+
 
 
 
@@ -1654,6 +1850,140 @@ public function destroy(Appointment $appointment)
         ->route('appointments.index')
         ->with('success', 'Le rendez-vous a été supprimé.');
 }
+
+
+/**
+ * Resolve booking mode for patient side based on product flags + requested mode.
+ */
+private function resolvePatientMode(\App\Models\Product $product, ?string $requested): string
+{
+    if (in_array($requested, ['cabinet', 'visio', 'domicile'], true)) {
+        return $requested;
+    }
+
+    $modes = [];
+    if ($product->dans_le_cabinet) {
+        $modes[] = 'cabinet';
+    }
+    if ($product->visio || $product->en_visio) {
+        $modes[] = 'visio';
+    }
+    if ($product->adomicile) {
+        $modes[] = 'domicile';
+    }
+
+    if (count($modes) === 1) {
+        return $modes[0];
+    }
+
+    // Ambiguous product: default to cabinet
+    return 'cabinet';
+}
+
+/**
+ * Core logic to compute available slots for patient booking on a given date.
+ * Used both by getAvailableSlotsForPatient() and by the date precomputation endpoint.
+ */
+private function computeSlotsForPatient(
+    int $therapistId,
+    \App\Models\Product $product,
+    \Carbon\Carbon $date,
+    string $mode,
+    ?int $locationId = null
+): array {
+    $duration = (int) ($product->duration ?? 0);
+    if ($duration <= 0) {
+        return [];
+    }
+
+    // Minimum notice
+    $therapist = \App\Models\User::findOrFail($therapistId);
+    $minimumNoticeHours    = (int) ($therapist->minimum_notice_hours ?? 0);
+    $now                   = Carbon::now();
+    $minimumNoticeDateTime = $now->copy()->addHours($minimumNoticeHours);
+
+    // Day-of-week in your schema (0 = Monday … 6 = Sunday)
+    $dayOfWeek0 = $date->dayOfWeekIso - 1;
+
+    // Availabilities (filtered by product linkage, and optionally by cabinet location)
+    $availabilitiesQuery = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($product) {
+            $query->where('applies_to_all', true)
+                ->orWhereHas('products', function ($q) use ($product) {
+                    $q->where('products.id', $product->id);
+                });
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $availabilitiesQuery->where('practice_location_id', $locationId);
+    }
+
+    $availabilities = $availabilitiesQuery->get();
+    if ($availabilities->isEmpty()) {
+        return [];
+    }
+
+    // Existing appointments that day
+    $existingAppointments = Appointment::where('user_id', $therapistId)
+        ->whereDate('appointment_date', $date->format('Y-m-d'))
+        ->get();
+
+    // Unavailabilities covering that day
+    $unavailabilities = Unavailability::where('user_id', $therapistId)
+        ->where(function ($query) use ($date) {
+            $query->whereDate('start_date', '<=', $date->format('Y-m-d'))
+                  ->whereDate('end_date', '>=', $date->format('Y-m-d'));
+        })
+        ->get();
+
+    $slots = [];
+
+    foreach ($availabilities as $availability) {
+        $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)
+            ->setDateFrom($date);
+        $availabilityEnd = Carbon::createFromFormat('H:i:s', $availability->end_time)
+            ->setDateFrom($date);
+
+        // Step by 15 minutes
+        while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
+            $slotStart = $availabilityStart->copy();
+            $slotEnd   = $availabilityStart->copy()->addMinutes($duration);
+
+            // Respect minimum notice
+            if ($slotStart->lt($minimumNoticeDateTime)) {
+                $availabilityStart->addMinutes(15);
+                continue;
+            }
+
+            // Conflicts with existing appointments
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            // Conflicts with unavailabilities
+            $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
+                $unavailabilityStart = Carbon::parse($unavailability->start_date);
+                $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
+                return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
+            });
+
+            if (!$isBooked && !$isUnavailable) {
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end'   => $slotEnd->format('H:i'),
+                ];
+            }
+
+            $availabilityStart->addMinutes(15);
+        }
+    }
+
+    return $slots;
+}
+
 
 
 }
