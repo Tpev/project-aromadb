@@ -209,21 +209,45 @@
                 <button type="submit" class="btn-primary mt-4">{{ __('Enregistrer les Modifications') }}</button>
                 <a href="{{ route('profile.edit') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
+
+            <!-- Google Connections Section -->
+            <div class="details-box google-section mt-8">
+                <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
+                <p class="text-gray-500 text-sm mb-3">
+                    {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
+                </p>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Google Agenda connect / disconnect -->
+                    @if (auth()->user()->google_access_token)
+                        <form method="POST" action="{{ route('google.disconnect') }}" class="inline-block">
+                            @csrf
+                            <button type="submit" class="btn btn-danger">
+                                {{ __('Déconnecter Google Agenda') }}
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('google.connect') }}" class="btn btn-primary inline-block">
+                            {{ __('Connecter Google Agenda') }}
+                        </a>
+                    @endif
+
+                    <!-- Google Reviews -->
+                    <a href="{{ route('pro.google-reviews.index') }}" class="btn btn-secondary inline-block">
+                        {{ __('Connecter Google Review') }}
+                    </a>
+                </div>
+
+                <small class="text-gray-500 block mt-3">
+                    {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
+                </small>
+            </div>
+
         </div>
+
+
     </div>
-@if (auth()->user()->google_access_token)
-    <form method="POST" action="{{ route('google.disconnect') }}">
-        @csrf
-        <button class="btn btn-danger">Déconnecter Google Agenda</button>
-    </form>
-@else
-    <a href="{{ route('google.connect') }}" class="btn btn-primary">
-        Connecter Google Agenda
-    </a>
-@endif
-<br>
-<small class="text-gray-500">{{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous Aromamade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}</small>
-	
+
     <!-- Add JavaScript to handle dynamic services list -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
