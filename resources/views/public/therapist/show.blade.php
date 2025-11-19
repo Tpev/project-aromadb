@@ -731,4 +731,76 @@
             });
         </script>
     @endpush
+	@php
+    // Calcule un rating moyen seulement sur ceux qui ont une note
+    $ratedTestimonials = $testimonials->filter(fn($t) => !is_null($t->rating));
+    $averageRating = $ratedTestimonials->count() > 0
+        ? round($ratedTestimonials->avg('rating'), 1)
+        : null;
+
+    $reviewItems = $testimonials->map(function ($t) use ($therapist) {
+        $isGoogle = $t->source === 'google';
+        $author   = $isGoogle
+            ? ($t->reviewer_name ?? 'Client Google')
+            : optional($t->clientProfile)->first_name;
+
+        $dateIso = ($t->external_created_at ?? $t->created_at)->toAtomString();
+
+        return [
+            '@type'         => 'Review',
+            'author'        => [
+                '@type' => 'Person',
+                'name'  => $author ?: 'Client',
+            ],
+            'datePublished' => $dateIso,
+            'reviewBody'    => $t->testimonial,
+            'reviewRating'  => $t->rating ? [
+                '@type'       => 'Rating',
+                'ratingValue' => $t->rating,
+                'bestRating'  => 5,
+                'worstRating' => 1,
+            ] : null,
+        ];
+    })->values()->all();
+
+    // Nettoyage : on enlève les reviewRating = null si pas de note
+    $reviewItems = array_map(function ($item) {
+        if (is_null($item['reviewRating'])) {
+            unset($item['reviewRating']);
+        }
+        return $item;
+    }, $reviewItems);
+@endphp
+
+@section('structured_data')
+<script type="application/ld+json">
+{!! json_encode([
+    '@context'        => 'https://schema.org',
+    '@type'           => 'LocalBusiness',
+    '@id'             => url()->current(),
+    'name'            => $therapist->company_name,
+    'url'             => url()->current(),
+    'image'           => $therapist->profile_picture
+                            ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
+                            : null,
+    'address'         => $therapist->share_address_publicly && $therapist->company_address
+                            ? [
+                                '@type'           => 'PostalAddress',
+                                'streetAddress'   => $therapist->company_address,
+                                'addressLocality' => $therapist->city_setByAdmin,
+                                'addressRegion'   => $therapist->state_setByAdmin,
+                                'addressCountry'  => 'FR',
+                              ]
+                            : null,
+    'telephone'       => $therapist->share_phone_publicly ? $therapist->company_phone : null,
+    'review'          => $reviewItems,
+    'aggregateRating' => $averageRating ? [
+        '@type'       => 'AggregateRating',
+        'ratingValue' => $averageRating,
+        'reviewCount' => $ratedTestimonials->count(),
+    ] : null,
+]) !!}
+</script>
+@endsection
+
 </x-app-layout>
