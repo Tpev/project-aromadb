@@ -9,7 +9,7 @@
                     Étape 4 — Parrainer un confrère / une consœur (bonus)
                 </h4>
                 <p class="text-xs text-gray-500 mt-1">
-                    Invitez un autre thérapeute à découvrir AromaMade PRO. Lorsqu’il s’abonne, vous gagnez 1 mois de licence PRO offert.
+                    Invitez un autre praticien à découvrir AromaMade PRO. Lorsqu’il s’abonne, vous gagnez 1 mois de licence PRO offert.
                 </p>
             </div>
         </div>
@@ -40,7 +40,7 @@
                          {{ ($step4Checks['referral'] ?? false) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400' }}">
                 {{ ($step4Checks['referral'] ?? false) ? '✓' : '•' }}
             </span>
-            <span>Inviter au moins un thérapeute (et qu’il s’abonne) pour débloquer le mois offert</span>
+            <span>Inviter au moins un praticien (et qu’il s’abonne) pour débloquer le mois offert</span>
         </li>
     </ul>
 
