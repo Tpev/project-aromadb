@@ -1,0 +1,199 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "Laravel" [ref=e8] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/dashboard-pro
+            - img "Laravel" [ref=e9]
+          - generic [ref=e10]:
+            - link "Tableau de Bord" [ref=e11] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/dashboard-pro
+            - link "Clients" [ref=e12] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/client_profiles
+            - link "Rendez-vous" [ref=e13] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/appointments
+            - link "Comptabilité" [ref=e15] [cursor=pointer]:
+              - /url: "#"
+              - text: Comptabilité
+              - img [ref=e16]
+            - link "Configuration" [ref=e19] [cursor=pointer]:
+              - /url: "#"
+              - text: Configuration
+              - img [ref=e20]
+            - link "Portail" [ref=e22] [cursor=pointer]:
+              - /url: http://127.0.0.1:8000/pro/cabinet-test-aroma-onboarding
+        - generic [ref=e23]:
+          - button [ref=e25] [cursor=pointer]:
+            - img [ref=e26]
+          - button "Test Therapist" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: Test Therapist
+            - img [ref=e33]
+    - main [ref=e35]:
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - heading "👋 Bienvenue sur AromaMade PRO" [level=3] [ref=e41]
+              - paragraph [ref=e42]: Suivez ces étapes pour être prêt à recevoir des réservations en ligne et profiter de toutes les fonctionnalités.
+            - generic [ref=e44]:
+              - generic [ref=e45]: Progression globale
+              - generic [ref=e46]: 42%
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - generic [ref=e52]: "2"
+                - generic [ref=e53]:
+                  - heading "Étape 2 — Prêt pour les réservations en ligne" [level=4] [ref=e54]
+                  - paragraph [ref=e55]: Configurez vos lieux, vos horaires et vos prestations pour ouvrir les réservations.
+              - generic [ref=e56]:
+                - generic [ref=e57]: 67% complété
+                - generic [ref=e58]: Activez la réservation en complétant ces points
+            - list [ref=e61]:
+              - listitem [ref=e62]:
+                - generic [ref=e63]: •
+                - generic [ref=e64]: Ajouter au moins un lieu de consultation (cabinet, visio, domicile)
+              - listitem [ref=e65]:
+                - generic [ref=e66]: ✓
+                - generic [ref=e67]: Définir vos plages de disponibilités dans l’agenda
+              - listitem [ref=e68]:
+                - generic [ref=e69]: ✓
+                - generic [ref=e70]: Marquer au moins une prestation comme “réservable en ligne”
+            - generic [ref=e71]:
+              - link "Gérer mes lieux" [ref=e72] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/practice-locations
+              - link "Définir mes horaires" [ref=e73] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/availabilities
+              - link "Rendre mes prestations réservables" [ref=e74] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/products
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - generic [ref=e78]: 1. Profil & informations
+                - generic [ref=e79]: ✔️ Terminé
+              - link "Voir" [ref=e80] [cursor=pointer]:
+                - /url: "#step1"
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - generic [ref=e83]: 3. Découvrir les fonctionnalités
+                - generic [ref=e84]: 0% — Optionnel
+              - link "Voir" [ref=e85] [cursor=pointer]:
+                - /url: "#step3"
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - generic [ref=e88]: 4. Parrainer un thérapeute
+                - generic [ref=e89]: "0% — Bonus : 1 mois offert"
+              - link "Voir" [ref=e90] [cursor=pointer]:
+                - /url: "#step4"
+        - generic [ref=e93]:
+          - link "✔ 2 Clients" [ref=e94] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/client_profiles
+            - generic [ref=e95]:
+              - generic [ref=e96]: ✔
+              - generic [ref=e97]:
+                - generic [ref=e98]: "2"
+                - generic [ref=e99]: Clients
+          - link "📅 2 Rendez-vous à venir" [ref=e100] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/appointments?filter=upcoming
+            - generic [ref=e101]:
+              - generic [ref=e102]: 📅
+              - generic [ref=e103]:
+                - generic [ref=e104]: "2"
+                - generic [ref=e105]: Rendez-vous à venir
+          - generic [ref=e107]:
+            - generic [ref=e108]: 👁
+            - generic [ref=e109]:
+              - generic [ref=e110]: "0"
+              - generic [ref=e111]: Vues du Portail
+          - link "🧾 0 Factures" [ref=e112] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/invoices
+            - generic [ref=e113]:
+              - generic [ref=e114]: 🧾
+              - generic [ref=e115]:
+                - generic [ref=e116]: "0"
+                - generic [ref=e117]: Factures
+          - link "⏳ 0 En attente" [ref=e118] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/invoices?filter=pending
+            - generic [ref=e119]:
+              - generic [ref=e120]: ⏳
+              - generic [ref=e121]:
+                - generic [ref=e122]: "0"
+                - generic [ref=e123]: En attente
+          - link "💶 0,00 € Revenus ce mois" [ref=e124] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/invoices?filter=current_month
+            - generic [ref=e125]:
+              - generic [ref=e126]: 💶
+              - generic [ref=e127]:
+                - generic [ref=e128]: 0,00 €
+                - generic [ref=e129]: Revenus ce mois
+        - generic [ref=e130]:
+          - heading "Rendez-vous par Mois" [level=3] [ref=e132]
+          - heading "Revenus Mensuels" [level=3] [ref=e136]
+        - generic [ref=e139]:
+          - heading "Prochains Rendez-vous" [level=3] [ref=e140]
+          - table [ref=e142]:
+            - rowgroup [ref=e143]:
+              - row "Client Date Durée Statut" [ref=e144]:
+                - cell "Client" [ref=e145]
+                - cell "Date" [ref=e146]
+                - cell "Durée" [ref=e147]
+                - cell "Statut" [ref=e148]
+            - rowgroup [ref=e149]:
+              - row "ClientTest Playwright 24/11/2025 09:00 60 min Confirmé" [ref=e150] [cursor=pointer]:
+                - cell "ClientTest Playwright" [ref=e151]
+                - cell "24/11/2025 09:00" [ref=e152]
+                - cell "60 min" [ref=e153]
+                - cell "Confirmé" [ref=e154]
+              - row "ClientTest Playwright 24/11/2025 10:00 60 min Confirmé" [ref=e155] [cursor=pointer]:
+                - cell "ClientTest Playwright" [ref=e156]
+                - cell "24/11/2025 10:00" [ref=e157]
+                - cell "60 min" [ref=e158]
+                - cell "Confirmé" [ref=e159]
+        - generic [ref=e160]:
+          - heading "Dernières Factures" [level=3] [ref=e161]
+          - table [ref=e163]:
+            - rowgroup [ref=e164]:
+              - row "Client Montant Statut Date" [ref=e165]:
+                - cell "Client" [ref=e166]
+                - cell "Montant" [ref=e167]
+                - cell "Statut" [ref=e168]
+                - cell "Date" [ref=e169]
+            - rowgroup [ref=e170]:
+              - row "Aucune facture récente." [ref=e171]:
+                - cell "Aucune facture récente." [ref=e172]
+        - generic [ref=e173]:
+          - heading "QR Code pour votre Portail" [level=3] [ref=e174]
+          - paragraph [ref=e175]: Utilisez-le sur vos cartes de visite ou supports imprimés.
+          - button "Générer le QR Code" [ref=e176] [cursor=pointer]
+  - contentinfo [ref=e177]:
+    - generic [ref=e178]:
+      - generic [ref=e179]:
+        - list [ref=e180]:
+          - listitem [ref=e181]:
+            - link "Accueil" [ref=e182] [cursor=pointer]:
+              - /url: /
+          - listitem [ref=e183]:
+            - link "Trouvez votre praticien en médecine douce" [ref=e184] [cursor=pointer]:
+              - /url: /nos-practiciens
+        - list [ref=e185]:
+          - listitem [ref=e186]:
+            - link "Politique de confidentialité" [ref=e187] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=e188]:
+            - link "Conditions Générales d’Utilisation" [ref=e189] [cursor=pointer]:
+              - /url: /cgu
+          - listitem [ref=e190]:
+            - link "Conditions Générales de Vente" [ref=e191] [cursor=pointer]:
+              - /url: /cgv
+      - generic [ref=e192]:
+        - link "" [ref=e193] [cursor=pointer]:
+          - /url: https://www.facebook.com/profile.php?id=100089128162095
+          - generic [ref=e194]: 
+        - link "" [ref=e195] [cursor=pointer]:
+          - /url: https://www.instagram.com/aroma.made/
+          - generic [ref=e196]: 
+      - paragraph [ref=e197]: © 2025 AromaMade. Tous droits réservés.
+```
