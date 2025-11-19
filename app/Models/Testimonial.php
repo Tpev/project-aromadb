@@ -14,6 +14,23 @@ class Testimonial extends Model
         'therapist_id',
         'client_profile_id',
         'testimonial',
+		        // Google / source
+        'source',
+        'external_review_id',
+        'rating',
+        'reviewer_name',
+        'reviewer_profile_photo_url',
+        'visible_on_public_profile',
+        'external_created_at',
+        'external_updated_at',
+        'owner_reply',
+        'owner_reply_updated_at',
+    ];
+	    protected $casts = [
+        'visible_on_public_profile' => 'boolean',
+        'external_created_at'       => 'datetime',
+        'external_updated_at'       => 'datetime',
+        'owner_reply_updated_at'    => 'datetime',
     ];
 
     /**

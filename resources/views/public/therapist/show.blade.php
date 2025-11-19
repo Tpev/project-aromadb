@@ -432,34 +432,76 @@
                 @endif
             </div>
 
-            {{-- Section Témoignages --}}
-            <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-comments text-[#854f38] mr-3"></i> {{ __('Témoignages') }}
-                </h3>
+{{-- Section Témoignages --}}
+<div class="bg-white shadow rounded-lg p-8">
+    <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+        <i class="fas fa-comments text-[#854f38] mr-3"></i> {{ __('Témoignages') }}
+    </h3>
 
-                @if($testimonials->count() > 0)
-                    <div class="mt-8 space-y-6">
-                        @foreach($testimonials as $testimonial)
-                            <div class="p-6 border-l-4 border-[#8ea633] bg-[#f9fafb] rounded-md">
-                                <p class="text-gray-700 italic text-lg">"{{ $testimonial->testimonial }}"</p>
-                                <p class="mt-4 text-sm text-gray-600">
-                                    — {{ $testimonial->clientProfile->first_name }}, {{ $testimonial->created_at->format('d/m/Y') }}
-                                </p>
+    @if($testimonials->count() > 0)
+        <div class="mt-8 space-y-6">
+            @foreach($testimonials as $testimonial)
+                @php
+                    $isGoogle = $testimonial->source === 'google';
+
+                    $author = $isGoogle
+                        ? ($testimonial->reviewer_name ?? 'Client Google')
+                        : optional($testimonial->clientProfile)->first_name;
+
+                    $date = $testimonial->external_created_at
+                        ? $testimonial->external_created_at->format('d/m/Y')
+                        : $testimonial->created_at->format('d/m/Y');
+                @endphp
+
+                <div class="p-6 border-l-4 {{ $isGoogle ? 'border-[#8ea633]' : 'border-[#854f38]' }} bg-[#f9fafb] rounded-md">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <div class="flex items-center gap-2">
+                            <p class="text-sm text-gray-800 font-semibold">
+                                {{ $author ?? __('Client') }}
+                            </p>
+
+                            @if($isGoogle)
+                                <span class="inline-flex items-center text-xs bg-[#e5f0c8] text-[#647a0b] px-2 py-0.5 rounded-full">
+                                    <i class="fab fa-google mr-1"></i> Avis Google
+                                </span>
+                            @endif
+                        </div>
+
+                        @if($isGoogle && $testimonial->rating)
+                            <div class="flex items-center gap-1 text-[#f6b400] text-xs">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    @if ($i <= $testimonial->rating)
+                                        <i class="fas fa-star"></i>
+                                    @else
+                                        <i class="far fa-star text-gray-300"></i>
+                                    @endif
+                                @endfor
                             </div>
-                        @endforeach
+                        @endif
                     </div>
 
-                    {{-- Pagination --}}
-                    <div class="mt-8">
-                        {{ $testimonials->links() }}
-                    </div>
-                @else
-                    <p class="mt-6 text-lg text-gray-600">
-                        {{ __('Les témoignages de mes clients seront bientôt disponibles ici.') }}
+                    <p class="text-gray-700 italic text-lg whitespace-pre-line">
+                        "{{ $testimonial->testimonial }}"
                     </p>
-                @endif
-            </div>
+
+                    <p class="mt-4 text-sm text-gray-600">
+                        {{ $date }}
+                    </p>
+                </div>
+            @endforeach
+        </div>
+
+        {{-- Pagination --}}
+        <div class="mt-8">
+            {{ $testimonials->links() }}
+        </div>
+    @else
+        <p class="mt-6 text-lg text-gray-600">
+            {{ __('Les témoignages de mes clients seront bientôt disponibles ici.') }}
+        </p>
+    @endif
+</div>
+
 
         </div>
     </div>

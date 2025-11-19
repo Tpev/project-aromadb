@@ -61,6 +61,24 @@ use App\Http\Controllers\EmargementController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentSigningController;
 use App\Http\Controllers\SpecialAvailabilityController;
+use App\Http\Controllers\GoogleReviewController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pro/google-reviews', [GoogleReviewController::class, 'index'])
+        ->name('pro.google-reviews.index');
+
+    Route::get('/pro/google-reviews/connect', [GoogleReviewController::class, 'redirectToGoogle'])
+        ->name('pro.google-reviews.connect');
+
+    Route::get('/pro/google-reviews/callback', [GoogleReviewController::class, 'handleCallback'])
+        ->name('pro.google-reviews.callback');
+
+    Route::post('/pro/google-reviews/sync', [GoogleReviewController::class, 'syncReviews'])
+        ->name('pro.google-reviews.sync');
+
+    Route::post('/pro/google-reviews/disconnect', [GoogleReviewController::class, 'disconnect'])
+        ->name('pro.google-reviews.disconnect');
+});
 
 
 Route::post('/onboarding/skip-step3', [DashboardController::class, 'skipStep3'])

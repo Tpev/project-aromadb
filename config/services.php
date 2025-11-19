@@ -42,6 +42,12 @@ return [
     'api_key' => env('OPENAI_API_KEY'),
     'model'   => env('MODEL_NAME', 'gpt-4.1'),
 ],
+    'google_business' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_BUSINESS_REDIRECT_URI'),
+        'scopes'        => explode(',', env('GOOGLE_BUSINESS_SCOPES', 'https://www.googleapis.com/auth/business.manage')),
+    ],
 
 
 ];
