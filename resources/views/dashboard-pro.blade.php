@@ -6,169 +6,313 @@
         </h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            
-            {{-- KPIs Section --}}
+
+{{-- ===================================================== --}}
+{{--                 ONBOARDING SEQUENTIEL                --}}
+{{-- ===================================================== --}}
+
+@if(!$onboardingCompleted)
+    <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df] mb-6">
+
+        {{-- Bandeau titre + progression globale --}}
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+                <h3 class="text-lg font-semibold text-[#647a0b]">
+                    👋 Bienvenue sur AromaMade PRO
+                </h3>
+                <p class="text-sm text-gray-600">
+                    Suivez ces étapes pour être prêt à recevoir des réservations en ligne et profiter de toutes les fonctionnalités.
+                </p>
+            </div>
+
+            <div class="min-w-[220px]">
+                <div class="flex justify-between text-xs font-medium text-gray-600 mb-1">
+                    <span>Progression globale</span>
+                    <span>{{ $globalCompletion }}%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div class="h-2 bg-[#647a0b] rounded-full transition-all duration-300"
+                         style="width: {{ $globalCompletion }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Détermination de l'étape active --}}
+        @php
+            $currentStep = 1;
+
+            if ($step1Completion == 100 && $step2Completion < 100) {
+                $currentStep = 2;
+            } elseif ($step1Completion == 100 && $step2Completion == 100 && !$skipStep3 && $step3Completion < 100) {
+                $currentStep = 3;
+            } elseif (
+                $step1Completion == 100 &&
+                $step2Completion == 100 &&
+                ($step3Completion == 100 || $skipStep3) &&
+                !$skipStep4 &&
+                $step4Completion < 100
+            ) {
+                $currentStep = 4;
+            }
+        @endphp
+
+        {{-- ÉTAPE ACTIVE (BIG CARD) --}}
+        @if($currentStep == 1)
+            @include('partials.onboarding.step1-big')
+        @elseif($currentStep == 2)
+            @include('partials.onboarding.step2-big')
+        @elseif($currentStep == 3)
+            @include('partials.onboarding.step3-big')
+        @elseif($currentStep == 4)
+            @include('partials.onboarding.step4-big')
+        @endif
+
+        {{-- MINI-CARDS --}}
+        <div class="mt-6 space-y-3">
+
+            {{-- Étape 1 --}}
+            @if($currentStep != 1)
+                <div class="flex items-center justify-between p-3 rounded-lg border bg-[#fafcf5]">
+                    <div>
+                        <div class="font-semibold text-sm text-gray-800">1. Profil & informations</div>
+                        <div class="text-xs text-gray-500">
+                            @if($step1Completion == 100)
+                                ✔️ Terminé
+                            @else
+                                {{ $step1Completion }}% — En attente
+                            @endif
+                        </div>
+                    </div>
+                    <a href="#step1" class="text-xs text-[#647a0b] hover:underline font-medium">
+                        Voir
+                    </a>
+                </div>
+            @endif
+
+            {{-- Étape 2 --}}
+            @if($currentStep != 2)
+                <div class="flex items-center justify-between p-3 rounded-lg border bg-[#fbfaf7]">
+                    <div>
+                        <div class="font-semibold text-sm text-gray-800">
+                            2. Réservations en ligne
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            @if($step2Completion == 100)
+                                ✔️ Terminé
+                            @else
+                                {{ $step2Completion }}% — En cours
+                            @endif
+                        </div>
+                    </div>
+                    <a href="#step2" class="text-xs text-[#647a0b] hover:underline font-medium">
+                        Voir
+                    </a>
+                </div>
+            @endif
+
+            {{-- Étape 3 (optionnelle) --}}
+            @if($currentStep != 3)
+                <div class="flex items-center justify-between p-3 rounded-lg border bg-[#fef9f7]">
+                    <div>
+                        <div class="font-semibold text-sm text-gray-800">
+                            3. Découvrir les fonctionnalités
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            @if($skipStep3)
+                                Ignorée (optionnel)
+                            @elseif($step3Completion == 100)
+                                ✔️ Terminé
+                            @else
+                                {{ $step3Completion }}% — Optionnel
+                            @endif
+                        </div>
+                    </div>
+                    @unless($skipStep3)
+                        <a href="#step3" class="text-xs text-[#647a0b] hover:underline font-medium">
+                            Voir
+                        </a>
+                    @endunless
+                </div>
+            @endif
+
+            {{-- Étape 4 (parrainage, optionnelle) --}}
+            @if($currentStep != 4)
+                <div class="flex items-center justify-between p-3 rounded-lg border bg-[#f4f7ff]">
+                    <div>
+                        <div class="font-semibold text-sm text-gray-800">
+                            4. Parrainer un thérapeute
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            @if($skipStep4)
+                                Ignorée (bonus optionnel)
+                            @elseif(($step4Checks['referral'] ?? false) === true)
+                                ✔️ Parrainage validé
+                            @else
+                                {{ $step4Completion }}% — Bonus : 1 mois offert
+                            @endif
+                        </div>
+                    </div>
+                    @unless($skipStep4)
+                        <a href="#step4" class="text-xs text-[#647a0b] hover:underline font-medium">
+                            Voir
+                        </a>
+                    @endunless
+                </div>
+            @endif
+
+        </div>
+    </div>
+@endif
+
+
+            {{-- ===================================================== --}}
+            {{--                       KPI CARDS                     --}}
+            {{-- ===================================================== --}}
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div class="col-span-1 lg:col-span-5">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                        <!-- Total Clients -->
-                        <a href="{{ route('client_profiles.index') }}" class="bg-[#8ea633] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
+
+                        {{-- Total Clients --}}
+                        <a href="{{ route('client_profiles.index') }}"
+                           class="bg-[#8ea633] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
                                 <div class="p-3 rounded-full bg-white text-[#8ea633] mr-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M17 20h5V4H2v16h5m5-8l3 3 7-7" />
-                                    </svg>
+                                    ✔
                                 </div>
                                 <div>
                                     <div class="text-2xl font-bold">{{ $totalClients }}</div>
-                                    <div class="text-sm">{{ __('Clients') }}</div>
+                                    <div class="text-sm">Clients</div>
                                 </div>
                             </div>
                         </a>
 
-                        <!-- Rendez-vous à Venir -->
-                        <a href="{{ route('appointments.index', ['filter' => 'upcoming']) }}" class="bg-[#647a0b] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
+                        {{-- RDV à venir --}}
+                        <a href="{{ route('appointments.index', ['filter' => 'upcoming']) }}"
+                           class="bg-[#647a0b] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
                                 <div class="p-3 rounded-full bg-white text-[#647a0b] mr-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M8 7V3m8 4V3m-9 8h10m5 4H3a2 2 0 01-2-2V7a2 2 0 012-2h3m16 14v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m16 0H3" />
-                                    </svg>
+                                    📅
                                 </div>
                                 <div>
                                     <div class="text-2xl font-bold">{{ $upcomingAppointments }}</div>
-                                    <div class="text-sm">{{ __('Rendez-vous à Venir') }}</div>
+                                    <div class="text-sm">Rendez-vous à venir</div>
                                 </div>
                             </div>
                         </a>
 
-                        <!-- Nombre de Vues du Portail Pro -->
-                        <div class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
-                            <a href="#" class="block">
-                                <div class="flex items-center">
-                                    <div class="p-3 rounded-full bg-white text-[#8ea633] mr-4">
-                                        <i class="fas fa-eye h-6 w-6"></i>
-                                        <!-- Optionnel : Utiliser SVG de Font Awesome si préférée -->
-                                    </div>
-                                    <div>
-                                        <div class="text-2xl font-bold">{{ $therapist->view_count }}</div>
-                                        <div class="text-sm">{{ __('Vues du Portail Pro') }}</div>
-                                    </div>
+                        {{-- Portail Pro views --}}
+                        <div class="bg-[#a96b56] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-white text-[#a96b56] mr-4">👁</div>
+                                <div>
+                                    <div class="text-2xl font-bold">{{ $therapist->view_count }}</div>
+                                    <div class="text-sm">Vues du Portail</div>
                                 </div>
-                            </a>
+                            </div>
                         </div>
 
-                        <!-- Factures Émises -->
-                        <a href="{{ route('invoices.index') }}" class="bg-[#a96b56] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
+                        {{-- Factures émises --}}
+                        <a href="{{ route('invoices.index') }}"
+                           class="bg-[#a96b56] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#a96b56] mr-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M9 17v-6a2 2 0 012-2h3m4 0a2 2 0 012 2v6m-6 0v-6m0 0V9m0 2h.01" />
-                                    </svg>
-                                </div>
+                                <div class="p-3 rounded-full bg-white text-[#a96b56] mr-4">🧾</div>
                                 <div>
                                     <div class="text-2xl font-bold">{{ $totalInvoices }}</div>
-                                    <div class="text-sm">{{ __('Factures Émises') }}</div>
+                                    <div class="text-sm">Factures</div>
                                 </div>
                             </div>
                         </a>
 
-                        <!-- Factures en Attente -->
-                        <a href="{{ route('invoices.index', ['filter' => 'pending']) }}" class="bg-[#854f38] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white">
+                        {{-- Factures en attente --}}
+                        <a href="{{ route('invoices.index', ['filter' => 'pending']) }}"
+                           class="bg-[#854f38] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#854f38] mr-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
+                                <div class="p-3 rounded-full bg-white text-[#854f38] mr-4">⏳</div>
                                 <div>
                                     <div class="text-2xl font-bold">{{ $pendingInvoices }}</div>
-                                    <div class="text-sm">{{ __('Factures en Attente') }}</div>
+                                    <div class="text-sm">En attente</div>
                                 </div>
                             </div>
                         </a>
 
-                        <!-- Revenus Ce Mois -->
-                        <a href="{{ route('invoices.index', ['filter' => 'current_month']) }}" class="bg-[#6a3f2c] shadow rounded-lg p-5 hover:shadow-xl transition-shadow duration-300 cursor-pointer text-white col-span-1 sm:col-span-2">
+                        {{-- Revenus du mois --}}
+                        <a href="{{ route('invoices.index', ['filter' => 'current_month']) }}"
+                           class="bg-[#6a3f2c] shadow rounded-lg p-5 text-white hover:shadow-lg transition col-span-1 sm:col-span-2">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#6a3f2c] mr-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M12 8c-1.657 0-3 1.343-3 3v4a3 3 0 006 0v-4c0-1.657-1.343-3-3-3z" />
-                                        <path d="M6 12h.01M18 12h.01M9 12h6" />
-                                    </svg>
-                                </div>
+                                <div class="p-3 rounded-full bg-white text-[#6a3f2c] mr-4">💶</div>
                                 <div>
-                                    <div class="text-2xl font-bold">{{ number_format($monthlyRevenue, 2, ',', ' ') }} €</div>
-                                    <div class="text-sm">{{ __('Revenus Ce Mois') }}</div>
+                                    <div class="text-2xl font-bold">
+                                        {{ number_format($monthlyRevenue, 2, ',', ' ') }} €
+                                    </div>
+                                    <div class="text-sm">Revenus ce mois</div>
                                 </div>
                             </div>
                         </a>
+
                     </div>
                 </div>
             </div>
 
-            {{-- Graphiques, Prochains Rendez-vous, Dernières Factures --}}
+
+            {{-- ===================================================== --}}
+            {{--                GRAPHIQUES + RDV + FACTURES            --}}
+            {{-- ===================================================== --}}
+
+            {{-- Graphiques --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Rendez-vous par Mois -->
+
+                {{-- RDV par mois --}}
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                    <h3 class="text-xl font-semibold text-[#647a0b] mb-4">{{ __('Rendez-vous par Mois') }}</h3>
-                    <canvas id="appointmentsChart" class="w-full h-60"></canvas>
+                    <h3 class="text-xl font-semibold text-[#647a0b] mb-4">Rendez-vous par Mois</h3>
+                    <div class="h-60">
+                        <canvas id="appointmentsChart" class="w-full h-full"></canvas>
+                    </div>
                 </div>
 
-                <!-- Revenus Mensuels -->
+                {{-- Revenus mensuels --}}
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                    <h3 class="text-xl font-semibold text-[#854f38] mb-4">{{ __('Revenus Mensuels') }}</h3>
-                    <canvas id="revenueChart" class="w-full h-60"></canvas>
+                    <h3 class="text-xl font-semibold text-[#854f38] mb-4">Revenus Mensuels</h3>
+                    <div class="h-60">
+                        <canvas id="revenueChart" class="w-full h-full"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Prochains Rendez-vous -->
-            <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-[#647a0b]">{{ __('Prochains Rendez-vous') }}</h3>
-                    <a href="{{ route('appointments.index') }}" class="text-[#854f38] hover:text-[#6a3f2c] font-medium flex items-center">
-                        {{ __('Voir tous') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                </div>
+
+            {{-- Prochains Rendez-vous --}}
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-xl font-semibold text-[#647a0b] mb-3">Prochains Rendez-vous</h3>
+
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-[#f5f5f5]">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Client') }}</th>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Date et Heure') }}</th>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Durée (min)') }}</th>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Statut') }}</th>
+                                <th class="px-4 py-2 text-left">Client</th>
+                                <th class="px-4 py-2 text-left">Date</th>
+                                <th class="px-4 py-2 text-left">Durée</th>
+                                <th class="px-4 py-2 text-left">Statut</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+
+                        <tbody class="divide-y">
                             @forelse($recentAppointments as $appointment)
-                                <tr class="hover:bg-[#f0f8e8] transition-colors duration-200 cursor-pointer" onclick="window.location='{{ route('appointments.show', $appointment->id) }}'">
-                                    <td class="px-4 py-2 whitespace-nowrap">
+                                <tr class="hover:bg-[#f0f8e8] cursor-pointer"
+                                    onclick="window.location='{{ route('appointments.show', $appointment->id) }}'">
+                                    <td class="px-4 py-2">
                                         {{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
                                     </td>
-                                    <td class="px-4 py-2 whitespace-nowrap">
+                                    <td class="px-4 py-2">
                                         {{ \Carbon\Carbon::parse($appointment->appointment_date)->locale('fr_FR')->isoFormat('DD/MM/YYYY HH:mm') }}
                                     </td>
-                                    <td class="px-4 py-2 whitespace-nowrap">
-                                        {{ $appointment->duration }}
-                                    </td>
-                                    <td class="px-4 py-2 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full
-                                            @if($appointment->status === 'confirmed') bg-green-100 text-green-800
-                                            @elseif($appointment->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @else bg-gray-100 text-gray-800 @endif">
-                                            {{ ucfirst($appointment->status) }}
-                                        </span>
-                                    </td>
+                                    <td class="px-4 py-2">{{ $appointment->duration }} min</td>
+                                    <td class="px-4 py-2">{{ ucfirst($appointment->status) }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-2 text-center text-sm text-gray-500">
-                                        {{ __('Aucun rendez-vous récent.') }}
+                                    <td colspan="4" class="px-4 py-3 text-center text-gray-500">
+                                        Aucun rendez-vous récent.
                                     </td>
                                 </tr>
                             @endforelse
@@ -177,52 +321,41 @@
                 </div>
             </div>
 
-            <!-- Dernières Factures -->
-            <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold text-[#854f38]">{{ __('Dernières Factures') }}</h3>
-                    <a href="{{ route('invoices.index') }}" class="text-[#647a0b] hover:text-[#4b5c08] font-medium flex items-center">
-                        {{ __('Voir tous') }}
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                </div>
+
+            {{-- Dernières Factures --}}
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-xl font-semibold text-[#854f38] mb-3">Dernières Factures</h3>
+
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-[#f5f5f5]">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-100">
                             <tr>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Client') }}</th>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Montant') }}</th>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Statut') }}</th>
-                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">{{ __('Date') }}</th>
+                                <th class="px-4 py-2 text-left">Client</th>
+                                <th class="px-4 py-2 text-left">Montant</th>
+                                <th class="px-4 py-2 text-left">Statut</th>
+                                <th class="px-4 py-2 text-left">Date</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+
+                        <tbody class="divide-y">
                             @forelse($recentInvoices as $invoice)
-                                <tr class="hover:bg-[#fdece6] transition-colors duration-200 cursor-pointer" onclick="window.location='{{ route('invoices.show', $invoice->id) }}'">
-                                    <td class="px-4 py-2 whitespace-nowrap">
+                                <tr class="hover:bg-[#fdece6] cursor-pointer"
+                                    onclick="window.location='{{ route('invoices.show', $invoice->id) }}'">
+                                    <td class="px-4 py-2">
                                         {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
                                     </td>
-                                    <td class="px-4 py-2 whitespace-nowrap">
+                                    <td class="px-4 py-2">
                                         {{ number_format($invoice->total_amount, 2, ',', ' ') }} €
                                     </td>
-                                    <td class="px-4 py-2 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full
-                                            @if($invoice->status === 'paid') bg-green-100 text-green-800
-                                            @elseif($invoice->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @else bg-gray-100 text-gray-800 @endif">
-                                            {{ ucfirst($invoice->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-2 whitespace-nowrap">
-                                        {{ \Carbon\Carbon::parse($invoice->invoice_date)->locale('fr_FR')->isoFormat('DD/MM/YYYY') }}
+                                    <td class="px-4 py-2">{{ ucfirst($invoice->status) }}</td>
+                                    <td class="px-4 py-2">
+                                        {{ \Carbon\Carbon::parse($invoice->invoice_date)->isoFormat('DD/MM/YYYY') }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-2 text-center text-sm text-gray-500">
-                                        {{ __('Aucune facture récente.') }}
+                                    <td colspan="4" class="px-4 py-3 text-center text-gray-500">
+                                        Aucune facture récente.
                                     </td>
                                 </tr>
                             @endforelse
@@ -230,76 +363,47 @@
                     </table>
                 </div>
             </div>
+
+
+            {{-- QR Code --}}
+            @if($therapist->slug)
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-[#647a0b] mb-3">QR Code pour votre Portail</h3>
+
+                    <p class="text-sm text-gray-500 mb-4">
+                        Utilisez-le sur vos cartes de visite ou supports imprimés.
+                    </p>
+
+                    <button id="generate-qrcode" class="bg-[#647a0b] text-white px-4 py-2 rounded hover:bg-[#8ea633]">
+                        Générer le QR Code
+                    </button>
+
+                    <a id="download-qrcode" href="#" download="qrcode.png"
+                       class="bg-[#a96b56] text-white px-4 py-2 rounded hover:bg-[#854f38] ml-3 hidden">
+                        Télécharger
+                    </a>
+
+                    <div id="qrcode-container" class="mt-6 flex justify-center"></div>
+                </div>
+            @endif
+
         </div>
     </div>
 
-    {{-- QR Code Section --}}
-    @if($therapist->slug)
-        <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <h3 class="text-xl font-semibold text-[#647a0b] mb-4">{{ __('QR Code pour votre Portail') }}</h3>
-            
-            {{-- Ajout du texte explicatif en français --}}
-            <p class="text-sm text-gray-600 mb-4">
-                {{ __('Ce QR Code peut être utilisé sur vos cartes de visite, vos supports de communication, etc.') }}
-            </p>
-            
-            <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <button id="generate-qrcode" class="btn bg-[#647a0b] text-white py-2 px-4 rounded hover:bg-[#8ea633]">
-                    {{ __('Générer le QR Code') }}
-                </button>
-                <a id="download-qrcode" href="#" download="qrcode.png" class="btn bg-[#a96b56] text-white py-2 px-4 rounded hover:bg-[#854f38] hidden">
-                    {{ __('Télécharger le QR Code') }}
-                </a>
-            </div>
-            <div id="qrcode-container" class="mt-6 flex justify-center">
-                <!-- QR Code will be displayed here -->
-            </div>
-        </div>
-    @endif
 
-    {{-- QR Code Script --}}
-    <script>
-        document.getElementById('generate-qrcode')?.addEventListener('click', function () {
-            fetch('{{ route("dashboard-pro.qrcode") }}')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if(data.qrCode){
-                        // Display QR Code
-                        const qrcodeContainer = document.getElementById('qrcode-container');
-                        qrcodeContainer.innerHTML = `<img src="${data.qrCode}" alt="QR Code" class="w-48 h-48">`;
-
-                        // Update download link
-                        const downloadLink = document.getElementById('download-qrcode');
-                        downloadLink.href = data.qrCode;
-                        downloadLink.classList.remove('hidden');
-                    } else {
-                        console.error('QR Code not generated:', data.error);
-                        alert('Erreur lors de la génération du QR Code.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la génération du QR Code:', error);
-                    alert('Erreur lors de la génération du QR Code.');
-                });
-        });
-    </script>
-
-    {{-- Scripts pour les Graphiques --}}
+    {{-- ===================== --}}
+    {{-- Scripts Graphiques   --}}
+    {{-- ===================== --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            // Données dynamiques du backend
-            const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);  // Convertir en nombres
-            const revenueData = @json(array_values($monthlyRevenueData)).map(Number);  // Convertir en nombres
-            const monthLabels = @json(array_values($months));  // Utiliser les noms de mois
+            const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);
+            const revenueData      = @json(array_values($monthlyRevenueData)).map(Number);
+            const monthLabels      = @json(array_values($months));
 
-            // Graphique "Rendez-vous par Mois"
+            // Rendez-vous par mois
             var ctxAppointments = document.getElementById('appointmentsChart').getContext('2d');
             var appointmentsChart = new Chart(ctxAppointments, {
                 type: 'bar',
@@ -308,7 +412,7 @@
                     datasets: [{
                         label: '{{ __("Nombre de Rendez-vous") }}',
                         data: appointmentsData,
-                        backgroundColor: 'rgba(100, 122, 11, 0.6)', // #647a0b
+                        backgroundColor: 'rgba(100, 122, 11, 0.6)',
                         borderColor: 'rgba(100, 122, 11, 1)',
                         borderWidth: 1
                     }]
@@ -325,9 +429,7 @@
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                             backgroundColor: 'rgba(0,0,0,0.7)',
                             titleColor: '#fff',
@@ -342,7 +444,7 @@
                 }
             });
 
-            // Graphique "Revenus Mensuels"
+            // Revenus mensuels
             var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
             var revenueChart = new Chart(ctxRevenue, {
                 type: 'line',
@@ -351,7 +453,7 @@
                     datasets: [{
                         label: '{{ __("Revenus (€)") }}',
                         data: revenueData,
-                        backgroundColor: 'rgba(133, 79, 56, 0.2)', // #854f38
+                        backgroundColor: 'rgba(133, 79, 56, 0.2)',
                         borderColor: 'rgba(133, 79, 56, 1)',
                         borderWidth: 2,
                         fill: true,
@@ -376,9 +478,7 @@
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                             backgroundColor: 'rgba(0,0,0,0.7)',
                             titleColor: '#fff',
@@ -396,73 +496,32 @@
         });
     </script>
 
-    {{-- Styles personnalisés --}}
+
+    {{-- ===================== --}}
+    {{-- Script QR Code        --}}
+    {{-- ===================== --}}
+    <script>
+        document.getElementById('generate-qrcode')?.addEventListener('click', function () {
+            fetch('{{ route("dashboard-pro.qrcode") }}')
+                .then(r => r.json())
+                .then(data => {
+                    const img = `<img src="${data.qrCode}" class="w-48 h-48">`;
+                    document.getElementById('qrcode-container').innerHTML = img;
+
+                    const link = document.getElementById('download-qrcode');
+                    link.href = data.qrCode;
+                    link.classList.remove('hidden');
+                });
+        });
+    </script>
+
+    {{-- ===================== --}}
+    {{-- Styles complémentaires --}}
+    {{-- ===================== --}}
     <style>
-        /* Styles personnalisés adaptés à votre marque */
-        .bg-brand-green {
-            background-color: #647a0b;
-        }
-
-        .text-brand-green {
-            color: #647a0b;
-        }
-
-        .hover\:text-brand-orange:hover {
-            color: #854f38;
-        }
-
-        /* Amélioration des tables */
-        table th, table td {
-            padding: 0.75rem 1rem;
-        }
-
-        /* Amélioration des graphiques */
+        /* limite supplémentaire de sécu, comme dans ton ancienne version */
         canvas {
             max-height: 300px;
-        }
-
-        /* Styles pour indiquer que les éléments sont cliquables */
-        .cursor-pointer {
-            cursor: pointer;
-        }
-
-        /* Styles pour les boutons "Voir tous" */
-        .text-[#854f38]:hover {
-            text-decoration: underline;
-        }
-
-        /* Couleurs de fond pour les lignes de tableau au survol */
-        .hover\:bg-[#f0f8e8]:hover {
-            background-color: #f0f8e8;
-        }
-        .hover\:bg-[#fdece6]:hover {
-            background-color: #fdece6;
-        }
-
-        /* Styles pour les boutons QR Code */
-        .btn {
-            display: inline-block;
-            font-weight: 600;
-            text-align: center;
-            white-space: nowrap;
-            vertical-align: middle;
-            user-select: none;
-            border: 1px solid transparent;
-            padding: 0.375rem 0.75rem;
-            font-size: 1rem;
-            line-height: 1.5;
-            border-radius: 0.25rem;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .btn:hover {
-            text-decoration: none;
-        }
-
-        /* Ajustement de l'image QR Code */
-        #qrcode-container img {
-            max-width: 200px;
-            height: auto;
         }
     </style>
 

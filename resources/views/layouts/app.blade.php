@@ -72,18 +72,7 @@
             {{ $slot }}
         </main>
 
-        <!-- Usetiful script start -->
-        <script>
-            (function (w, d, s) {
-                var a = d.getElementsByTagName('head')[0];
-                var r = d.createElement('script');
-                r.async = 1;
-                r.src = s;
-                r.setAttribute('id', 'usetifulScript');
-                r.dataset.token = "ebdbb5d70d492668e3cf57ea505ef82f";
-                a.appendChild(r);
-            })(window, document, "https://www.usetiful.com/dist/usetiful.js");
-        </script>
+
         <!-- Usetiful script end -->
     </div>
 

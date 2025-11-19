@@ -62,6 +62,19 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentSigningController;
 use App\Http\Controllers\SpecialAvailabilityController;
 
+
+Route::post('/onboarding/skip-step3', [DashboardController::class, 'skipStep3'])
+    ->name('onboarding.skipStep3')
+    ->middleware(['auth']);
+
+Route::post('/onboarding/skip-step4', [DashboardController::class, 'skipStep4'])
+    ->name('onboarding.skipStep4')
+    ->middleware(['auth']);
+
+Route::post('/onboarding/referral-done', [DashboardController::class, 'markReferralOnboardingDone'])
+    ->name('onboarding.referralDone')
+    ->middleware(['auth']);
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('special-availabilities', SpecialAvailabilityController::class)
         ->except(['show']);
