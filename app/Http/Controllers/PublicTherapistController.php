@@ -29,9 +29,10 @@ public function show($slug)
 	        // Incrémenter le compteur de vues
         $therapist->increment('view_count');	
     // Charger les témoignages paginés
-    $testimonials = Testimonial::where('therapist_id', $therapist->id)
+    $testimonials = $therapist->testimonials()
     ->orderByRaw('COALESCE(external_created_at, created_at) DESC')
     ->paginate(5);
+
 	 $prestations = $therapist->products()->orderBy('display_order')->get();
 // Fetch upcoming events for the therapist
     // Fetch upcoming events for the therapist that are set to be shown on the portal
