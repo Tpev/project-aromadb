@@ -13,31 +13,32 @@ use Carbon\Carbon;
 class GoogleReviewController extends Controller
 {
     /**
+     * Nettoie le commentaire Google pour enlever la partie
+     * "(Translated by Google) ..."
+     */
+    protected function cleanGoogleComment(?string $raw): ?string
+    {
+        if (! $raw) {
+            return $raw;
+        }
+
+        // Google usually appends: "\n\n(Translated by Google)\n..."
+        $marker = '(Translated by Google)';
+
+        $pos = mb_strpos($raw, $marker);
+
+        if ($pos !== false) {
+            // Keep only the part before the translation block
+            $raw = mb_substr($raw, 0, $pos);
+        }
+
+        // Trim extra blank lines / spaces
+        return trim($raw);
+    }
+
+    /**
      * HTTP client helper with CA bundle / dev fallback.
      */
-	 
-	 
-	 
-	 protected function cleanGoogleComment(?string $raw): ?string
-{
-    if (! $raw) {
-        return $raw;
-    }
-
-    // Google usually appends: "\n\n(Translated by Google)\n..."
-    $marker = '(Translated by Google)';
-
-    $pos = mb_strpos($raw, $marker);
-
-    if ($pos !== false) {
-        // Keep only the part before the translation block
-        $raw = mb_substr($raw, 0, $pos);
-    }
-
-    // Trim extra blank lines / spaces
-    return trim($raw);
-}
-
     protected function httpClient(bool $form = false)
     {
         $http = $form ? Http::asForm() : Http::withOptions([]);
@@ -57,8 +58,6 @@ class GoogleReviewController extends Controller
 
     protected function ensureFeatureEnabled()
     {
-
-
         if (! Auth::user()->is_therapist) {
             abort(403);
         }
@@ -126,7 +125,7 @@ class GoogleReviewController extends Controller
 
         $config = config('services.google_business');
 
-        // Échange code -> tokens (USES httpClient with CA / fallback)
+        // Échange code -> tokens
         $tokenResponse = $this->httpClient(true)->post('https://oauth2.googleapis.com/token', [
             'code'          => $code,
             'client_id'     => $config['client_id'],
@@ -145,11 +144,11 @@ class GoogleReviewController extends Controller
                 ->with('error', 'Impossible de récupérer les informations Google (token).');
         }
 
-        $tokens        = $tokenResponse->json();
-        $accessToken   = $tokens['access_token'] ?? null;
-        $refreshToken  = $tokens['refresh_token'] ?? null;
-        $expiresIn     = $tokens['expires_in'] ?? 3600;
-        $expiresAt     = now()->addSeconds($expiresIn - 60);
+        $tokens       = $tokenResponse->json();
+        $accessToken  = $tokens['access_token'] ?? null;
+        $refreshToken = $tokens['refresh_token'] ?? null;
+        $expiresIn    = $tokens['expires_in'] ?? 3600;
+        $expiresAt    = now()->addSeconds($expiresIn - 60);
 
         $user = Auth::user();
 
@@ -219,7 +218,8 @@ class GoogleReviewController extends Controller
                 'account_display_name'    => $accountDisplayName,
                 'location_id'             => $locationId,
                 'location_title'          => $locationTitle,
-                'refresh_token'           => $refreshToken ?: optional($googleAccount ?? null)->refresh_token,
+                // on garde l’ancien refresh_token si Google n’en renvoie pas un nouveau
+                'refresh_token'           => $refreshToken ?: GoogleBusinessAccount::where('user_id', $user->id)->value('refresh_token'),
                 'access_token'            => $accessToken,
                 'access_token_expires_at' => $expiresAt,
             ]
@@ -244,6 +244,57 @@ class GoogleReviewController extends Controller
         return redirect()
             ->route('pro.google-reviews.index')
             ->with('success', 'Connexion Google Business supprimée. Les avis déjà importés restent visibles.');
+    }
+
+    /**
+     * Appel API Reviews via file_get_contents (contourne Guzzle/Http).
+     */
+    protected function fetchGoogleReviewsViaStream(GoogleBusinessAccount $account, string $accessToken): array
+    {
+        $url = "https://mybusiness.googleapis.com/v4/accounts/{$account->account_id}/locations/{$account->location_id}/reviews";
+
+        $opts = [
+            'http' => [
+                'method'  => 'GET',
+                'header'  =>
+                    "Authorization: Bearer {$accessToken}\r\n" .
+                    "Accept: application/json\r\n",
+                'timeout' => 15,
+            ],
+        ];
+
+        try {
+            $context = stream_context_create($opts);
+            $body    = @file_get_contents($url, false, $context);
+
+            if ($body === false) {
+                Log::warning('Google Reviews: file_get_contents failed', [
+                    'account_id'  => $account->id,
+                    'user_id'     => $account->user_id,
+                ]);
+                return [];
+            }
+
+            $data = json_decode($body, true);
+
+            if (! is_array($data)) {
+                Log::warning('Google Reviews: invalid JSON body', [
+                    'account_id'   => $account->id,
+                    'user_id'      => $account->user_id,
+                    'body_sample'  => substr($body, 0, 200),
+                ]);
+                return [];
+            }
+
+            return $data['reviews'] ?? [];
+        } catch (\Throwable $e) {
+            Log::error('Google Reviews: exception while fetching', [
+                'account_id' => $account->id,
+                'user_id'    => $account->user_id,
+                'error'      => $e->getMessage(),
+            ]);
+            return [];
+        }
     }
 
     /**
@@ -303,7 +354,7 @@ class GoogleReviewController extends Controller
             ]);
         }
 
-        // 2) Appel API Reviews
+        // 2) Vérif des infos de compte
         $accountId  = $account->account_id;
         $locationId = $account->location_id;
 
@@ -313,36 +364,22 @@ class GoogleReviewController extends Controller
                 ->with('error', 'Les informations de compte ou d’établissement Google sont incomplètes.');
         }
 
-        $reviewsResp = $this->httpClient()
-            ->withToken($accessToken)
-            ->get("https://mybusiness.googleapis.com/v4/accounts/{$accountId}/locations/{$locationId}/reviews");
-
-        if ($reviewsResp->failed()) {
-            Log::error('Google Reviews fetch failed', [
-                'body' => $reviewsResp->body(),
-            ]);
-
-            return redirect()
-                ->route('pro.google-reviews.index')
-                ->with('error', 'Impossible de récupérer vos avis Google pour le moment.');
-        }
-
-        $reviews = $reviewsResp->json('reviews') ?? [];
+        // 3) Appel API Reviews via stream (contourne Guzzle)
+        $reviews = $this->fetchGoogleReviewsViaStream($account, $accessToken);
 
         $imported = 0;
 
         foreach ($reviews as $review) {
-            $externalId  = $review['reviewId'] ?? null;
+            $externalId = $review['reviewId'] ?? null;
             if (! $externalId) {
                 continue;
             }
 
-$rawComment  = $review['comment'] ?? '';
-$comment     = $this->cleanGoogleComment($rawComment);
-$starRating  = $review['starRating'] ?? null;
-$reviewer    = $review['reviewer'] ?? [];
-$reply       = $review['reviewReply'] ?? [];
-
+            $rawComment = $review['comment'] ?? '';
+            $comment    = $this->cleanGoogleComment($rawComment);
+            $starRating = $review['starRating'] ?? null;
+            $reviewer   = $review['reviewer'] ?? [];
+            $reply      = $review['reviewReply'] ?? [];
 
             $rating = match ($starRating) {
                 'ONE'   => 1,
