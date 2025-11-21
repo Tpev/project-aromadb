@@ -22,34 +22,46 @@ protected function cleanGoogleComment(?string $raw): ?string
         return $raw;
     }
 
-    $marker = '(Translated by Google)';
-    $pos    = mb_strpos($raw, $marker);
+    // Normalise line endings
+    $raw = str_replace(["\r\n", "\r"], "\n", $raw);
 
-    if ($pos === false) {
-        // No translation marker, just clean spaces
-        return trim($raw);
+    // 1. If Google sent a block with "(Original)", KEEP ONLY the original part
+    $originalMarker = '(Original)';
+    $originalPos    = mb_strpos($raw, $originalMarker);
+
+    if ($originalPos !== false) {
+        // Everything after "(Original)" is the original-language text
+        $raw = mb_substr($raw, $originalPos + mb_strlen($originalMarker));
+    } else {
+        // 2. Fallback: older pattern "(Translated by Google)" appended at the end
+        $translatedMarker = '(Translated by Google)';
+        $pos              = mb_strpos($raw, $translatedMarker);
+
+        if ($pos !== false) {
+            $before = trim(mb_substr($raw, 0, $pos));
+
+            if ($before !== '') {
+                // Original text before the translation → keep it
+                $raw = $before;
+            } else {
+                // Comment starts with "(Translated by Google)" → keep translated part only
+                $after = mb_substr($raw, $pos + mb_strlen($translatedMarker));
+                $raw   = $after ?: $raw;
+            }
+        }
     }
 
-    // Part before the translation block
-    $before = trim(mb_substr($raw, 0, $pos));
+    // 3. Remove any leftover markers just in case
+    $raw = preg_replace('/\(Translated by Google\)/u', '', $raw);
+    $raw = preg_replace('/\(Original\)/u', '', $raw);
 
-    if ($before !== '') {
-        // Classic case: original text + translation → we keep original only
-        return $before;
-    }
+    // 4. Clean wrapping quotes Google sometimes puts around
+    $raw = trim($raw);
+    $raw = preg_replace('/^"+|"+$/u', '', $raw);
 
-    // Edge case: comment starts *with* "(Translated by Google)"
-    // → try to use the translated content instead of returning empty
-    $after = mb_substr($raw, $pos + mb_strlen($marker));
-
-    // Remove leading spaces / line breaks / colon / dash, etc.
-    $after = preg_replace('/^\s*[:\-]?\s*/u', '', $after ?? '');
-
-    // If still empty, fall back to the full raw comment
-    $clean = trim($after);
-
-    return $clean !== '' ? $clean : trim($raw);
+    return trim($raw);
 }
+
 
 
     /**
