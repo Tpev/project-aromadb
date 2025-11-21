@@ -16,25 +16,41 @@ class GoogleReviewController extends Controller
      * Nettoie le commentaire Google pour enlever la partie
      * "(Translated by Google) ..."
      */
-    protected function cleanGoogleComment(?string $raw): ?string
-    {
-        if (! $raw) {
-            return $raw;
-        }
+protected function cleanGoogleComment(?string $raw): ?string
+{
+    if (! $raw) {
+        return $raw;
+    }
 
-        // Google usually appends: "\n\n(Translated by Google)\n..."
-        $marker = '(Translated by Google)';
+    $marker = '(Translated by Google)';
+    $pos    = mb_strpos($raw, $marker);
 
-        $pos = mb_strpos($raw, $marker);
-
-        if ($pos !== false) {
-            // Keep only the part before the translation block
-            $raw = mb_substr($raw, 0, $pos);
-        }
-
-        // Trim extra blank lines / spaces
+    if ($pos === false) {
+        // No translation marker, just clean spaces
         return trim($raw);
     }
+
+    // Part before the translation block
+    $before = trim(mb_substr($raw, 0, $pos));
+
+    if ($before !== '') {
+        // Classic case: original text + translation → we keep original only
+        return $before;
+    }
+
+    // Edge case: comment starts *with* "(Translated by Google)"
+    // → try to use the translated content instead of returning empty
+    $after = mb_substr($raw, $pos + mb_strlen($marker));
+
+    // Remove leading spaces / line breaks / colon / dash, etc.
+    $after = preg_replace('/^\s*[:\-]?\s*/u', '', $after ?? '');
+
+    // If still empty, fall back to the full raw comment
+    $clean = trim($after);
+
+    return $clean !== '' ? $clean : trim($raw);
+}
+
 
     /**
      * HTTP client helper with CA bundle / dev fallback.
