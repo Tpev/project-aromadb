@@ -282,9 +282,11 @@
     const PRODUCT_MODES = @json($productModes);
     const OLD_TIME      = @json(old('appointment_time'));
 
+    let allowedDates = [];
+    let currentSlotsRequestId = 0;
+
     $(function () {
-        let allowedDates = []; // concrete Y-m-d dates with at least one slot
-        let currentSlotsRequestId = 0;
+        const therapistId = $('input[name="therapist_id"]').val();
 
         const fp = flatpickr("#appointment_date", {
             dateFormat: "Y-m-d",
@@ -293,19 +295,7 @@
             minDate: "today",
             locale: "fr",
             disableMobile: true,
-            enable: [],     // will be set dynamically
-            onChange: function(selectedDates, dateStr) {
-                const therapistId = $('input[name="therapist_id"]').val();
-                const productId   = $('#product_id').val();
-                const modeSlug    = $('#selected_mode_slug').val();
-                const locationId  = ($('#practice_location_id').is(':visible') ? $('#practice_location_id').val() : null);
-
-                if (dateStr && productId && therapistId) {
-                    fetchAvailableSlots(dateStr, productId, therapistId, modeSlug, locationId);
-                } else {
-                    resetTimeSelect();
-                }
-            }
+            enable: []
         });
 
         function resetTimeSelect() {
@@ -324,15 +314,12 @@
                     $('#location-error').text('{{ __("Veuillez sélectionner un cabinet.") }}').removeClass('d-none');
                     return false;
                 }
-                $('#location-error').addClass('d-none');
+                $('#location-error').addClass('d-none').text('');
             }
             return true;
         }
 
-        /**
-         * Ask the backend: "which concrete dates in the next N days have at least one slot?"
-         */
-        function loadAvailableDates(productId, therapistId, modeSlug, locationId) {
+        function fetchDates(productId, modeSlug, locationId = null) {
             $('#date-loading-message')
                 .text('{{ __("Chargement des jours disponibles...") }}')
                 .show();
@@ -353,13 +340,11 @@
 
                     if (allowedDates.length === 0) {
                         fp.set('enable', []);
-                        fp.set('disable', [true]); // disable everything
                         fp.clear();
                         resetTimeSelect();
                         alert('{{ __("Aucune date disponible pour cette prestation.") }}');
                     } else {
                         fp.set('enable', allowedDates);
-                        fp.set('disable', []); // only enabled dates are clickable
                         fp.clear();
                         resetTimeSelect();
                     }
@@ -370,7 +355,6 @@
                     console.error('Error fetching available dates:', xhr.responseText);
                     allowedDates = [];
                     fp.set('enable', []);
-                    fp.set('disable', [true]);
                     fp.clear();
                     resetTimeSelect();
                     $('#date-loading-message').hide().text('');
@@ -379,10 +363,11 @@
             });
         }
 
-        /**
-         * Fetch slots for a specific date (uses the same logic as date precomputation).
-         */
-        function fetchAvailableSlots(date, productId, therapistId, modeSlug, locationId) {
+        function fetchAvailableSlots(date, productId, modeSlug, locationId) {
+            if (!date || !productId || !modeSlug) {
+                resetTimeSelect();
+                return;
+            }
             if (modeSlug === 'cabinet' && !locationId) {
                 resetTimeSelect();
                 return;
@@ -452,6 +437,23 @@
             });
         }
 
+        // central refresh used by product / mode / cabinet
+        function refreshDates() {
+            const productId = $('#product_id').val();
+            const modeSlug  = $('#selected_mode_slug').val();
+            const locId     = (modeSlug === 'cabinet' ? $('#practice_location_id').val() : null);
+
+            if (!productId || !modeSlug || (modeSlug === 'cabinet' && !locId)) {
+                allowedDates = [];
+                fp.set('enable', []);
+                fp.clear();
+                resetTimeSelect();
+                return;
+            }
+
+            fetchDates(productId, modeSlug, locId);
+        }
+
         // Click on time slot
         $(document).on('click', '.time-slot-btn', function () {
             $('.time-slot-btn').removeClass('active');
@@ -461,7 +463,7 @@
             $('#no-slots-message').hide().text('');
         });
 
-        // When Prestation changes → populate Mode
+        // When Prestation changes → populate Mode & refresh dates
         $('#product_name').on('change', function () {
             const name  = $(this).val();
             const modes = PRODUCT_MODES[name] || [];
@@ -474,22 +476,25 @@
                 $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${m.mode}</option>`);
             });
 
+            // reset hidden state & UI
             $('#product_id').val('');
             $('#selected_mode_slug').val('');
             $('#cabinet-location-section').hide();
             $('#therapist-address-section').hide();
+            $('#therapist-address').text('');
             $('#client-address-section').hide();
             $('#mode-error').addClass('d-none').text('');
             $('#location-error').addClass('d-none').text('');
 
             allowedDates = [];
             fp.set('enable', []);
-            fp.set('disable', []);
             fp.clear();
             resetTimeSelect();
+
+            refreshDates();
         });
 
-        // When Mode changes
+        // When Mode changes → show/hide cabinet/domicile & refresh dates
         $('#consultation_mode').on('change', function () {
             const productId = $(this).val();
             const modeSlug  = $(this).find(':selected').data('slug');
@@ -497,9 +502,12 @@
             $('#product_id').val(productId);
             $('#selected_mode_slug').val(modeSlug);
 
+            resetTimeSelect();
+            fp.set('enable', []);
+            fp.clear();
+
             if (modeSlug === 'cabinet') {
                 $('#cabinet-location-section').show();
-                $('#therapist-address-section').hide();
                 $('#client-address-section').hide();
             } else if (modeSlug === 'domicile') {
                 $('#cabinet-location-section').hide();
@@ -511,33 +519,31 @@
                 $('#client-address-section').hide();
             }
 
-            const therapistId = $('input[name="therapist_id"]').val();
-
-            if (modeSlug === 'cabinet') {
-                allowedDates = [];
-                fp.set('enable', []);
-                fp.set('disable', []);
-                fp.clear();
-                resetTimeSelect();
-            } else if (productId && therapistId) {
-                loadAvailableDates(productId, therapistId, modeSlug, null);
-            }
+            refreshDates();
         });
 
-        // When Cabinet location changes
+        // When Cabinet location changes → update address & refresh dates
         $('#practice_location_id').on('change', function () {
             const locId   = $(this).val();
             const address = $(this).find(':selected').data('address') || '';
             $('#therapist-address').text(address || '{{ __("Adresse non disponible.") }}');
             $('#therapist-address-section').show();
+            $('#location-error').addClass('d-none').text('');
 
-            const productId   = $('#product_id').val();
-            const therapistId = $('input[name="therapist_id"]').val();
-            const modeSlug    = $('#selected_mode_slug').val();
+            refreshDates();
+        });
 
-            if (productId && therapistId && modeSlug === 'cabinet') {
-                loadAvailableDates(productId, therapistId, modeSlug, locId);
-                $('#location-error').addClass('d-none').text('');
+        // Date change (flatpickr fires a normal change event)
+        $('#appointment_date').on('change', function () {
+            const date      = $(this).val();
+            const productId = $('#product_id').val();
+            const modeSlug  = $('#selected_mode_slug').val();
+            const locId     = (modeSlug === 'cabinet' ? $('#practice_location_id').val() : null);
+
+            if (date && productId && modeSlug) {
+                fetchAvailableSlots(date, productId, modeSlug, locId);
+            } else {
+                resetTimeSelect();
             }
         });
 
@@ -563,18 +569,13 @@
 
                     @if(old('appointment_date'))
                         setTimeout(function(){
-                            const therapistId = $('input[name="therapist_id"]').val();
-                            const modeSlug    = $('#selected_mode_slug').val();
-                            const locationId  = ($('#practice_location_id').is(':visible') ? $('#practice_location_id').val() : null);
+                            const modeSlug   = $('#selected_mode_slug').val();
+                            const locationId = (modeSlug === 'cabinet' ? $('#practice_location_id').val() : null);
+                            const oldDate    = @json(old('appointment_date'));
 
-                            // load available dates then set date + slots
-                            loadAvailableDates(productId, therapistId, modeSlug, locationId);
-
-                            setTimeout(function() {
-                                fp.setDate(@json(old('appointment_date')), true);
-                                fetchAvailableSlots(@json(old('appointment_date')), productId, therapistId, modeSlug, locationId);
-                            }, 600);
-                        }, 300);
+                            fp.setDate(oldDate, true);
+                            fetchAvailableSlots(oldDate, productId, modeSlug, locationId);
+                        }, 600);
                     @endif
                 }, 300);
             @endif

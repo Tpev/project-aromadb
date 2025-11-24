@@ -58,6 +58,7 @@ class User extends Authenticatable
 		    'is_featured',
     'featured_until',
     'featured_weight',
+	   'buffer_time_between_appointments',
 
     ];
 
@@ -74,6 +75,7 @@ class User extends Authenticatable
 		'accept_online_appointments' => 'boolean', // Ensure this line is present
 		    'is_featured' => 'boolean',
     'featured_until' => 'datetime',
+	'buffer_time_between_appointments' => 'integer',
     ];
 
     // Relationships

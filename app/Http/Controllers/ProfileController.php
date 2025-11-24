@@ -106,6 +106,7 @@ public function updateCompanyInfo(Request $request)
         'profile_description' => 'nullable|string|max:1000',
         'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg,heic|max:3048', // Max 2MB
         //'accept_online_appointments' => 'sometimes|boolean', // Validation rule for boolean
+		'buffer_time_between_appointments' => 'nullable|integer|min:0',
     ]);
 
     // Get the authenticated user
@@ -127,6 +128,7 @@ public function updateCompanyInfo(Request $request)
         'about' => $validatedData['about'],
         'minimum_notice_hours' => $validatedData['minimum_notice_hours'],
         'profile_description' => $validatedData['profile_description'], // Handle profile description
+		 'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
     ]);
 
     // Process services (stored as JSON string in the input field)
@@ -180,6 +182,7 @@ public function submitOnboarding(Request $request)
         'profile_description' => 'nullable|string|max:1000',
         'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,heic|max:3048', // Max 2MB
         // 'accept_online_appointments' => 'sometimes|boolean',
+		 'buffer_time_between_appointments' => 'nullable|integer|min:0',
     ]);
 
     // Get the authenticated user
@@ -201,6 +204,7 @@ public function submitOnboarding(Request $request)
         'about' => $validatedData['about'],
         'minimum_notice_hours' => $validatedData['minimum_notice_hours'],
         'profile_description' => $validatedData['profile_description'],
+		'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
     ]);
 
     // Process services (stored as JSON string in the input field)

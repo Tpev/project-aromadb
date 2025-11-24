@@ -466,6 +466,12 @@ private function isAvailable(
     $start    = Carbon::parse($appointmentDateTime);
     $end      = $start->copy()->addMinutes($duration);
 
+    // Buffer time between appointments (in minutes)
+    $therapist      = User::findOrFail((int) $therapistId);
+    $bufferMinutes  = (int) ($therapist->buffer_time_between_appointments ?? 0);
+    $bufferedStart  = $bufferMinutes > 0 ? $start->copy()->subMinutes($bufferMinutes) : $start;
+    $bufferedEnd    = $bufferMinutes > 0 ? $end->copy()->addMinutes($bufferMinutes)   : $end;
+
     // 1) Récup produit & mode
     $product = Product::findOrFail((int) $productId);
 
@@ -486,44 +492,41 @@ private function isAvailable(
     // 2) Jour de semaine (0..6)
     $dayOfWeek0 = $start->dayOfWeekIso - 1;
 
-  // 3a) Weekly
-$weeklyQuery = Availability::where('user_id', (int) $therapistId)
-    ->where('day_of_week', $dayOfWeek0)
-    ->where(function ($query) use ($productId) {
-        $query->where('applies_to_all', true)
-              ->orWhereHas('products', function ($q) use ($productId) {
-                  $q->where('products.id', $productId);
-              });
-    });
+    // 3a) Weekly
+    $weeklyQuery = Availability::where('user_id', (int) $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        });
 
-if ($mode === 'cabinet' && $locationId) {
-    $weeklyQuery->where('practice_location_id', (int) $locationId);
-}
-// visio / domicile → ignore le cabinet
+    if ($mode === 'cabinet' && $locationId) {
+        $weeklyQuery->where('practice_location_id', (int) $locationId);
+    }
 
-$weeklyAvailabilities = $weeklyQuery->get();
+    $weeklyAvailabilities = $weeklyQuery->get();
 
-// 3b) Specials
-$dateStr = $start->toDateString();
+    // 3b) Specials
+    $dateStr = $start->toDateString();
 
-$specialQuery = SpecialAvailability::where('user_id', (int) $therapistId)
-    ->whereDate('date', $dateStr)
-    ->where(function ($query) use ($productId) {
-        $query->where('applies_to_all', true)
-              ->orWhereHas('products', function ($q) use ($productId) {
-                  $q->where('products.id', $productId);
-              });
-    });
+    $specialQuery = SpecialAvailability::where('user_id', (int) $therapistId)
+        ->whereDate('date', $dateStr)
+        ->where(function ($query) use ($productId) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($productId) {
+                      $q->where('products.id', $productId);
+                  });
+        });
 
-if ($mode === 'cabinet' && $locationId) {
-    $specialQuery->where('practice_location_id', (int) $locationId);
-}
-// visio / domicile → ignore le cabinet
+    if ($mode === 'cabinet' && $locationId) {
+        $specialQuery->where('practice_location_id', (int) $locationId);
+    }
 
-$specialAvailabilities = $specialQuery->get();
+    $specialAvailabilities = $specialQuery->get();
 
-
-    // 3c) Merge des deux types de dispo
+    // 3c) Merge
     $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
 
     if ($availabilities->isEmpty()) {
@@ -547,11 +550,11 @@ $specialAvailabilities = $specialQuery->get();
         return false;
     }
 
-    // 5) Conflits avec d'autres rendez-vous (global par thérapeute)
+    // 5) Conflits avec d'autres rendez-vous (global par thérapeute, avec buffer)
     $conflictingAppointments = Appointment::where('user_id', (int) $therapistId)
-        ->where(function ($q) use ($start, $end) {
-            $q->where('appointment_date', '<', $end)
-              ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$start]);
+        ->where(function ($q) use ($bufferedStart, $bufferedEnd) {
+            $q->where('appointment_date', '<', $bufferedEnd)
+              ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$bufferedStart]);
         });
 
     if ($excludeAppointmentId) {
@@ -562,7 +565,7 @@ $specialAvailabilities = $specialQuery->get();
         return false;
     }
 
-    // 6) Conflits avec indisponibilités (multi-day)
+    // 6) Conflits avec indisponibilités (multi-day) – pas de buffer ici
     $hasUnavailability = Unavailability::where('user_id', (int) $therapistId)
         ->where(function ($q) use ($start, $end) {
             $q->where('start_date', '<', $end)
@@ -576,6 +579,7 @@ $specialAvailabilities = $specialQuery->get();
 
     return true;
 }
+
 
   
 
@@ -595,6 +599,9 @@ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $produ
     $product    = Product::findOrFail((int) $productId);
     $carbonDate = Carbon::createFromFormat('Y-m-d', $date);
     $dayOfWeek0 = $carbonDate->dayOfWeekIso - 1; // Monday=0..Sunday=6
+
+    $therapist     = User::findOrFail((int) $therapistId);
+    $bufferMinutes = (int) ($therapist->buffer_time_between_appointments ?? 0);
 
     // Déduire les modes possibles
     $modes = [];
@@ -703,8 +710,8 @@ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $produ
         })
         ->get();
 
-    // 5) Construire les slots (pas de changement sur l'algo)
-    $slots = [];
+    // 5) Construire les slots
+    $slots    = [];
     $duration = (int) $duration;
 
     foreach ($windows as $window) {
@@ -718,14 +725,20 @@ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $produ
             $slotStart = $availabilityStart->copy();
             $slotEnd   = $availabilityStart->copy()->addMinutes($duration);
 
-            // Conflit RDV ?
-            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+            // Conflit RDV avec buffer ?
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
                 $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                if ($bufferMinutes > 0) {
+                    $appointmentStart = $appointmentStart->copy()->subMinutes($bufferMinutes);
+                    $appointmentEnd   = $appointmentEnd->copy()->addMinutes($bufferMinutes);
+                }
+
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
-            // Conflit indispo ?
+            // Conflit indispo (sans buffer)
             $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
                 $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
@@ -1119,10 +1132,11 @@ public function getAvailableSlotsForPatient(Request $request)
         }
     }
 
-    // 4) Minimum notice handling
-    $therapist            = User::findOrFail($therapistId);
-    $minimumNoticeHours   = (int) ($therapist->minimum_notice_hours ?? 0);
-    $now                  = Carbon::now();
+    // 4) Minimum notice + buffer
+    $therapist             = User::findOrFail($therapistId);
+    $minimumNoticeHours    = (int) ($therapist->minimum_notice_hours ?? 0);
+    $bufferMinutes         = (int) ($therapist->buffer_time_between_appointments ?? 0);
+    $now                   = Carbon::now();
     $minimumNoticeDateTime = $now->copy()->addHours($minimumNoticeHours);
 
     // 5) Day + date
@@ -1130,42 +1144,39 @@ public function getAvailableSlotsForPatient(Request $request)
     $dayOfWeek0 = $date->dayOfWeekIso - 1; // 0..6
     $dateStr    = $date->format('Y-m-d');
 
-// 6a) Weekly
-$weeklyQuery = Availability::where('user_id', $therapistId)
-    ->where('day_of_week', $dayOfWeek0)
-    ->where(function ($query) use ($product) {
-        $query->where('applies_to_all', true)
-              ->orWhereHas('products', function ($q) use ($product) {
-                  $q->where('products.id', $product->id);
-              });
-    });
+    // 6a) Weekly
+    $weeklyQuery = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($product) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($product) {
+                      $q->where('products.id', $product->id);
+                  });
+        });
 
-if ($mode === 'cabinet' && $locationId) {
-    $weeklyQuery->where('practice_location_id', $locationId);
-}
-// visio / domicile → pas de filtre de cabinet
+    if ($mode === 'cabinet' && $locationId) {
+        $weeklyQuery->where('practice_location_id', $locationId);
+    }
 
-$weeklyAvailabilities = $weeklyQuery->get();
+    $weeklyAvailabilities = $weeklyQuery->get();
 
-// 6b) Specials
-$specialQuery = SpecialAvailability::where('user_id', $therapistId)
-    ->whereDate('date', $dateStr)
-    ->where(function ($query) use ($product) {
-        $query->where('applies_to_all', true)
-              ->orWhereHas('products', function ($q) use ($product) {
-                  $q->where('products.id', $product->id);
-              });
-    });
+    // 6b) Specials
+    $specialQuery = SpecialAvailability::where('user_id', $therapistId)
+        ->whereDate('date', $dateStr)
+        ->where(function ($query) use ($product) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($product) {
+                      $q->where('products.id', $product->id);
+                  });
+        });
 
-if ($mode === 'cabinet' && $locationId) {
-    $specialQuery->where('practice_location_id', $locationId);
-}
-// visio / domicile → pas de filtre
+    if ($mode === 'cabinet' && $locationId) {
+        $specialQuery->where('practice_location_id', $locationId);
+    }
 
-$specialAvailabilities = $specialQuery->get();
+    $specialAvailabilities = $specialQuery->get();
 
-$availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
-
+    $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
 
     if ($availabilities->isEmpty()) {
         return response()->json(['slots' => []]);
@@ -1203,14 +1214,20 @@ $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
                 continue;
             }
 
-            // Check overlap with existing appointments
-            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+            // Check overlap with existing appointments (with buffer)
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
                 $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                if ($bufferMinutes > 0) {
+                    $appointmentStart = $appointmentStart->copy()->subMinutes($bufferMinutes);
+                    $appointmentEnd   = $appointmentEnd->copy()->addMinutes($bufferMinutes);
+                }
+
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
-            // Check overlap with unavailabilities
+            // Check overlap with unavailabilities (no buffer)
             $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
                 $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
@@ -1228,7 +1245,7 @@ $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
         }
     }
 
-    // Optionnel : trier et dédupliquer les slots (au cas où weekly + special se chevauchent)
+    // Optionnel : trier et dédupliquer les slots
     $slots = collect($slots)
         ->unique(fn($s) => $s['start'].'-'.$s['end'])
         ->sortBy('start')
@@ -1237,6 +1254,7 @@ $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
 
     return response()->json(['slots' => $slots]);
 }
+
 
 
 
@@ -1896,9 +1914,10 @@ private function computeSlotsForPatient(
         return [];
     }
 
-    // Minimum notice
-    $therapist = \App\Models\User::findOrFail($therapistId);
+    // Minimum notice + buffer
+    $therapist             = \App\Models\User::findOrFail($therapistId);
     $minimumNoticeHours    = (int) ($therapist->minimum_notice_hours ?? 0);
+    $bufferMinutes         = (int) ($therapist->buffer_time_between_appointments ?? 0);
     $now                   = Carbon::now();
     $minimumNoticeDateTime = $now->copy()->addHours($minimumNoticeHours);
 
@@ -1910,9 +1929,9 @@ private function computeSlotsForPatient(
         ->where('day_of_week', $dayOfWeek0)
         ->where(function ($query) use ($product) {
             $query->where('applies_to_all', true)
-                ->orWhereHas('products', function ($q) use ($product) {
-                    $q->where('products.id', $product->id);
-                });
+                  ->orWhereHas('products', function ($q) use ($product) {
+                      $q->where('products.id', $product->id);
+                  });
         });
 
     if ($mode === 'cabinet' && $locationId) {
@@ -1956,14 +1975,20 @@ private function computeSlotsForPatient(
                 continue;
             }
 
-            // Conflicts with existing appointments
-            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd) {
+            // Conflicts with existing appointments (with buffer)
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
                 $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                if ($bufferMinutes > 0) {
+                    $appointmentStart = $appointmentStart->copy()->subMinutes($bufferMinutes);
+                    $appointmentEnd   = $appointmentEnd->copy()->addMinutes($bufferMinutes);
+                }
+
                 return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
             });
 
-            // Conflicts with unavailabilities
+            // Conflicts with unavailabilities (no buffer)
             $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
                 $unavailabilityStart = Carbon::parse($unavailability->start_date);
                 $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
@@ -1983,6 +2008,7 @@ private function computeSlotsForPatient(
 
     return $slots;
 }
+
 
 
 

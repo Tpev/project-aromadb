@@ -176,7 +176,27 @@
         <p class="text-red-500">{{ $message }}</p>
     @enderror
 </div>
-
+<!-- Buffer Time Between Appointments -->
+<div class="details-box">
+    <label class="details-label" for="buffer_time_between_appointments">
+        {{ __('Temps de battement entre deux rendez-vous (minutes)') }}
+    </label>
+    <input
+        type="number"
+        id="buffer_time_between_appointments"
+        name="buffer_time_between_appointments"
+        class="form-control"
+        min="0"
+        step="5"
+        value="{{ old('buffer_time_between_appointments', auth()->user()->buffer_time_between_appointments) }}"
+    >
+    <small class="text-gray-500">
+        {{ __('Durée ajoutée automatiquement entre deux rendez-vous pour vous laisser du temps (préparation, notes, pause, etc.).') }}
+    </small>
+    @error('buffer_time_between_appointments')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
+</div>
 
                 <!-- Checkbox fields for sharing info publicly -->
                 <div class="mb-4">
