@@ -1,7 +1,7 @@
-<!-- resources/views/your-navigation-file.blade.php -->
+<!-- resources/views/layouts/therapistnavigation.blade.php -->
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Inclure Alpine.js si ce n'est pas déjà fait -->
+    <!-- Inclure Alpine.js si ce n'est pas déjà fait ailleurs -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <!-- Menu de Navigation Principal -->
@@ -18,18 +18,64 @@
 
                 <!-- Liens de Navigation -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <!-- Liens principaux -->
-                    <x-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
+                    <!-- Tableau de bord -->
+                    <x-nav-link :href="route('dashboard-pro')"
+                                :active="request()->routeIs('dashboard-pro')"
+                                class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Tableau de Bord') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Clients') }}
-                    </x-nav-link>                    
-                    <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
+
+                    <!-- ======= Clients (submenu particuliers + corporate) ======= -->
+                    <div class="relative flex items-center"
+                         x-data="{ openClients: false, timeoutClients: null }"
+                         @mouseenter="clearTimeout(timeoutClients); openClients = true"
+                         @mouseleave="timeoutClients = setTimeout(() => openClients = false, 200)">
+                        <x-nav-link href="#"
+                                    :active="request()->routeIs('client_profiles.*') || request()->routeIs('corporate-clients.*')"
+                                    class="text-[#647a0b] hover:text-[#854f38] flex items-center"
+                                    @click.prevent="openClients = !openClients"
+                                    x-bind:aria-expanded="openClients.toString()" aria-haspopup="true">
+                            {{ __('Clients') }}
+                            <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"></path>
+                            </svg>
+                        </x-nav-link>
+
+                        <div x-show="openClients"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 transform translate-y-1"
+                             x-transition:enter-end="opacity-100 transform translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 transform translate-y-0"
+                             x-transition:leave-end="opacity-0 transform translate-y-1"
+                             class="absolute left-0 top-full mt-2 w-64 bg-white rounded-md shadow-lg z-20"
+                             x-cloak
+                             @mouseenter="clearTimeout(timeoutClients); openClients = true"
+                             @mouseleave="timeoutClients = setTimeout(() => openClients = false, 200)">
+
+                            <a href="{{ route('client_profiles.index') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100
+                                      {{ request()->routeIs('client_profiles.*') ? 'bg-gray-50 font-medium' : '' }}">
+                                {{ __('Clients particuliers') }}
+                            </a>
+
+                            <a href="{{ route('corporate-clients.index') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100
+                                      {{ request()->routeIs('corporate-clients.*') ? 'bg-gray-50 font-medium' : '' }}">
+                                {{ __('Clients entreprises') }}
+                            </a>
+                        </div>
+                    </div>
+                    <!-- ======= /Clients ======= -->
+
+                    <!-- Rendez-vous -->
+                    <x-nav-link :href="route('appointments.index')"
+                                :active="request()->routeIs('appointments.*')"
+                                class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Rendez-vous') }}
                     </x-nav-link>
 
-                    <!-- ======= Comptabilité (Option 1) ======= -->
+                    <!-- ======= Comptabilité ======= -->
                     <div class="relative flex items-center"
                          x-data="{ openAccounting: false, timeoutAcc: null }"
                          @mouseenter="clearTimeout(timeoutAcc); openAccounting = true"
@@ -37,6 +83,7 @@
                         <x-nav-link href="#"
                                     class="text-[#647a0b] hover:text-[#854f38] flex items-center"
                                     @click.prevent="openAccounting = !openAccounting"
+                                    :active="request()->routeIs('invoices.*') || request()->routeIs('receipts.*')"
                                     x-bind:aria-expanded="openAccounting.toString()" aria-haspopup="true">
                             {{ __('Comptabilité') }}
                             <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
@@ -56,7 +103,6 @@
                              @mouseenter="clearTimeout(timeoutAcc); openAccounting = true"
                              @mouseleave="timeoutAcc = setTimeout(() => openAccounting = false, 200)">
 
-                            <!-- Items -->
                             <a href="{{ route('invoices.index') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('invoices.*') ? 'bg-gray-50 font-medium' : '' }}">
                                 {{ __('Factures & Devis') }}
@@ -83,6 +129,16 @@
                         <x-nav-link href="#"
                                     class="text-[#647a0b] hover:text-[#854f38] flex items-center"
                                     @click.prevent="openConfig = !openConfig"
+                                    :active="request()->routeIs('availabilities.*')
+                                              || request()->routeIs('practice-locations.*')
+                                              || request()->routeIs('unavailabilities.*')
+                                              || request()->routeIs('products.*')
+                                              || request()->routeIs('events.*')
+                                              || request()->routeIs('questionnaires.*')
+                                              || request()->routeIs('profile.editCompanyInfo')
+                                              || request()->routeIs('therapist.stripe')
+                                              || request()->routeIs('conseils.*')
+                                              || request()->routeIs('inventory_items.*')"
                                     x-bind:aria-expanded="openConfig.toString()" aria-haspopup="true">
                             {{ __('Configuration') }}
                             <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
@@ -134,6 +190,7 @@
                         </div>
                     </div>
 
+                    <!-- Portail public -->
                     <x-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}"
                                 :active="request()->is('pro/' . auth()->user()->slug)"
                                 class="text-[#647a0b] hover:text-[#854f38]">
@@ -148,7 +205,8 @@
                 <div class="relative">
                     <button id="notificationButton" class="relative text-gray-700 hover:text-[#854f38] focus:outline-none">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                         @if(auth()->user()->unreadNotifications->count() > 0)
                             <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
@@ -173,7 +231,11 @@
                                 <a href="{{ $notification->data['url'] }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     {{ $notification->data['message'] }}
                                     <br>
-                                    <small class="text-gray-500">{{ $notification->data['amount_paid'] ?? '' }} - {{ $notification->data['appointment_date'] ?? '' }}</small>
+                                    <small class="text-gray-500">
+                                        {{ $notification->data['amount_paid'] ?? '' }}
+                                        @if(!empty($notification->data['amount_paid']) && !empty($notification->data['appointment_date'])) – @endif
+                                        {{ $notification->data['appointment_date'] ?? '' }}
+                                    </small>
                                 </a>
                             @empty
                                 <div class="px-4 py-2 text-sm text-gray-500">Aucune notification</div>
@@ -192,7 +254,9 @@
                             <div>{{ Auth::user()->name }}</div>
                             <div class="ml-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.354a.75.75 0 111.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                    <path fill-rule="evenodd"
+                                          d="M5.23 7.21a.75.75 0 011.06.02L10 11.584l3.71-4.354a.75.75 0 111.14.976l-4.25 5a.75.75 0 01-1.14 0l-4.25-5a.75.75 0 01.02-1.06z"
+                                          clip-rule="evenodd" />
                                 </svg>
                             </div>
                         </button>
@@ -224,10 +288,17 @@
 
             <!-- Menu Hamburger (Responsive) -->
             <div class="-mr-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
+                <button @click="open = ! open"
+                        class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{ 'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{ 'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path :class="{ 'hidden': open, 'inline-flex': ! open }"
+                              class="inline-flex"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{ 'hidden': ! open, 'inline-flex': open }"
+                              class="hidden"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
@@ -240,9 +311,21 @@
             <x-responsive-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Tableau de Bord') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Clients') }}
+
+            <!-- Clients (mobile) -->
+            <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Clients</div>
+            <x-responsive-nav-link :href="route('client_profiles.index')"
+                                   :active="request()->routeIs('client_profiles.*')"
+                                   class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Clients particuliers') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('corporate-clients.index')"
+                                   :active="request()->routeIs('corporate-clients.*')"
+                                   class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Clients entreprises') }}
+            </x-responsive-nav-link>
+
+            <!-- Rendez-vous -->
             <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Rendez-vous') }}
             </x-responsive-nav-link>
@@ -292,6 +375,7 @@
                 {{ __('Inventaire') }}
             </x-responsive-nav-link>
 
+            <!-- Portail -->
             <x-responsive-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}"
                                    :active="request()->is('pro/' . auth()->user()->slug)"
                                    class="text-[#647a0b] hover:text-[#854f38]">
@@ -299,6 +383,7 @@
             </x-responsive-nav-link>
         </div>
 
+        <!-- Bloc utilisateur (mobile) -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-[#647a0b]">{{ Auth::user()->name }}</div>
@@ -334,12 +419,13 @@
 
 @if($user && $user->is_therapist && $user->license_status === 'expirée')
     <script>
-        // Vérifie si l'utilisateur n'est pas déjà sur la page de mise à niveau
         if (window.location.pathname !== "{{ route('license-tiers.pricing', [], false) }}") {
             window.location.href = "{{ route('license-tiers.pricing') }}";
         }
     </script>
     <div class="alert alert-warning">
-        Votre licence a expiré. Veuillez <a href="{{ route('license-tiers.pricing') }}">renouveler votre licence</a> pour continuer à utiliser l'application.
+        Votre licence a expiré. Veuillez
+        <a href="{{ route('license-tiers.pricing') }}">renouveler votre licence</a>
+        pour continuer à utiliser l'application.
     </div>
 @endif
