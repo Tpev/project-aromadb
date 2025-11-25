@@ -16,20 +16,48 @@
 
             <h1 class="details-title">{{ __('Devis n°') }} {{ $quote->quote_number ?? '—' }}</h1>
 
+            @php
+                $cp      = $quote->clientProfile;
+                $company = $cp->company ?? null;
+
+                $billingFirst = $cp->first_name_billing ?: $cp->first_name;
+                $billingLast  = $cp->last_name_billing  ?: $cp->last_name;
+            @endphp
+
             {{-- Infos en-tête --}}
             <div class="invoice-info-boxes row mt-4">
-                {{-- Client --}}
+
+                {{-- Bénéficiaire (toujours la fiche client) --}}
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-user icon"></i>
                         <div class="invoice-details">
-                            <p class="invoice-label">{{ __('Client') }}</p>
+                            <p class="invoice-label">{{ __('Bénéficiaire') }}</p>
                             <p class="invoice-value">
-                                {{ $quote->clientProfile->first_name }} {{ $quote->clientProfile->last_name }}
+                                {{ $cp->first_name }} {{ $cp->last_name }}
                             </p>
                         </div>
                     </div>
                 </div>
+
+                {{-- Facturé à (entreprise + contact de facturation le cas échéant) --}}
+                <div class="col-md-4">
+                    <div class="invoice-box d-flex align-items-center">
+                        <i class="fas fa-building icon"></i>
+                        <div class="invoice-details">
+                            <p class="invoice-label">{{ __('Facturé à') }}</p>
+                            <p class="invoice-value">
+                                @if($company)
+                                    <strong>{{ $company->name }}</strong><br>
+                                    <span>À l’attention de {{ $billingFirst }} {{ $billingLast }}</span>
+                                @else
+                                    {{ $billingFirst }} {{ $billingLast }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Date du devis --}}
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
@@ -40,18 +68,20 @@
                         </div>
                     </div>
                 </div>
+
                 {{-- Valable jusqu'au --}}
                 @if($quote->due_date)
-                <div class="col-md-4">
-                    <div class="invoice-box d-flex align-items-center">
-                        <i class="fas fa-calendar-check icon"></i>
-                        <div class="invoice-details">
-                            <p class="invoice-label">{{ __('Valable Jusqu\'au') }}</p>
-                            <p class="invoice-value">{{ $quote->due_date->translatedFormat('d F Y') }}</p>
+                    <div class="col-md-4">
+                        <div class="invoice-box d-flex align-items-center">
+                            <i class="fas fa-calendar-check icon"></i>
+                            <div class="invoice-details">
+                                <p class="invoice-label">{{ __('Valable Jusqu\'au') }}</p>
+                                <p class="invoice-value">{{ $quote->due_date->translatedFormat('d F Y') }}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
                 @endif
+
                 {{-- Totaux --}}
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
@@ -86,6 +116,7 @@
                         </div>
                     </div>
                 </div>
+
                 {{-- Statut --}}
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
@@ -124,14 +155,24 @@
                                     @foreach($quote->items as $item)
                                         <tr>
                                             {{-- Colonne Type --}}
-                                            <td>{{ $item->type === 'inventory' ? 'Inv.' : 'Prest.' }}</td>
-
-                                            {{-- Nom : produit ou inventaire --}}
                                             <td>
                                                 @if($item->type === 'inventory')
+                                                    Inv.
+                                                @elseif($item->type === 'product')
+                                                    Prest.
+                                                @else
+                                                    Autre
+                                                @endif
+                                            </td>
+
+                                            {{-- Nom : produit ou inventaire ou fallback description --}}
+                                            <td>
+                                                @if($item->type === 'product' && $item->product)
+                                                    {{ $item->product->name }}
+                                                @elseif($item->type === 'inventory' && $item->inventoryItem)
                                                     {{ $item->inventoryItem->name }}
                                                 @else
-                                                    {{ $item->product->name }}
+                                                    {{ $item->description }}
                                                 @endif
                                             </td>
 
@@ -277,7 +318,6 @@
             margin: 5px 0 0 0;
         }
 
-        /* Styles pour la table des articles */
         .table-responsive {
             background-color: #ffffff;
             border-radius: 8px;
@@ -306,7 +346,6 @@
             background-color: #f1f1f1;
         }
 
-        /* Totaux de la facture */
         .totals-container {
             background-color: #ffffff;
             border-radius: 8px;
@@ -321,7 +360,6 @@
             margin: 10px 0;
         }
 
-        /* Boutons d'action */
         .btn-primary, .btn-secondary {
             padding: 10px 20px;
             border-radius: 5px;
@@ -351,10 +389,9 @@
             color: #fff;
         }
 
-        /* Email Sent Indicator */
         .email-sent-indicator {
             font-size: 1rem;
-            color: #28a745; /* Bootstrap's success color */
+            color: #28a745;
             display: flex;
             align-items: center;
         }
@@ -362,7 +399,6 @@
             margin-right: 5px;
         }
 
-        /* Responsiveness */
         @media (max-width: 992px) {
             .invoice-info-boxes .col-md-4 {
                 flex: 0 0 100%;

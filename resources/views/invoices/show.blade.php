@@ -5,10 +5,13 @@
         </h2>
     </x-slot>
 
-    {{-- Alpine (Jetstream already includes it). If not, uncomment: --}}
-    {{-- <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
+    {{-- Ensure x-cloak CSS is parsed before any Alpine components --}}
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 
-    <div class="container-fluid mt-5" x-data="{ showPayModal:false, showReceipts:false }">
+    <div class="container-fluid mt-5" x-data="{ showReceipts:false }">
+
         <div class="details-container mx-auto p-4">
 
             {{-- Flash messages --}}
@@ -25,7 +28,7 @@
                 {{-- Actions à droite --}}
                 <div class="actions-bar">
                     @if($invoice->status !== 'Payée' || $invoice->solde_restant > 0)
-                        <button type="button" class="btn-primary" @click="showPayModal=true">
+                        <button type="button" class="btn-primary" onclick="openPayModal()">
                             <i class="fas fa-check"></i> {{ __('Enregistrer un paiement') }}
                         </button>
                     @endif
@@ -254,134 +257,133 @@
                   </button>
                 </div>
 
-<div class="table-responsive mt-3" x-show="showReceipts" x-transition>
-  <table class="table table-bordered table-hover am-table" id="receiptsTable">
-    <thead>
-      <tr>
-        <th style="width: 12%;">{{ __('Date') }}</th>
-        <th style="width: 14%;">{{ __('N° Facture') }}</th>
-        <th>{{ __('Client') }}</th>
-        <th style="width: 14%;">{{ __('Mode') }}</th>
-        <th style="width: 10%;">{{ __('Direction') }}</th>
-        <th class="text-right" style="width: 16%;">{{ __('Montant TTC (€)') }}</th>
-        <th style="width: 20%;">{{ __('Note') }}</th>
-        <th style="width: 12%;">{{ __('Actions') }}</th>
-      </tr>
-    </thead>
+                <div class="table-responsive mt-3" x-show="showReceipts" x-transition x-cloak>
+                  <table class="table table-bordered table-hover am-table" id="receiptsTable">
+                    <thead>
+                      <tr>
+                        <th style="width: 12%;">{{ __('Date') }}</th>
+                        <th style="width: 14%;">{{ __('N° Facture') }}</th>
+                        <th>{{ __('Client') }}</th>
+                        <th style="width: 14%;">{{ __('Mode') }}</th>
+                        <th style="width: 10%;">{{ __('Direction') }}</th>
+                        <th class="text-right" style="width: 16%;">{{ __('Montant TTC (€)') }}</th>
+                        <th style="width: 20%;">{{ __('Note') }}</th>
+                        <th style="width: 12%;">{{ __('Actions') }}</th>
+                      </tr>
+                    </thead>
 
-    @php
-        // 0) Encaissé TTC global (si 0 => aucune CP possible)
-        $encaisseTotal = (float) ($invoice->total_encaisse ?? 0);
+                    @php
+                        // 0) Encaissé TTC global (si 0 => aucune CP possible)
+                        $encaisseTotal = (float) ($invoice->total_encaisse ?? 0);
 
-        // 1) Set des lignes déjà contre-passées (celles qui ont un enfant reversal pointant vers elles)
-        $alreadyReversedIds = $invoice->receipts
-            ->filter(fn($x) => (int)$x->is_reversal === 1 && !is_null($x->reversal_of_id))
-            ->pluck('reversal_of_id')
-            ->map(fn($v) => (int)$v)
-            ->all();
+                        // 1) Set des lignes déjà contre-passées (celles qui ont un enfant reversal pointant vers elles)
+                        $alreadyReversedIds = $invoice->receipts
+                            ->filter(fn($x) => (int)$x->is_reversal === 1 && !is_null($x->reversal_of_id))
+                            ->pluck('reversal_of_id')
+                            ->map(fn($v) => (int)$v)
+                            ->all();
 
-        // 2) Dernière ligne éligible (LIFO) : crédit, payment, >0, non reversal, sans reversal existant
-        $lastReversible = $invoice->receipts
-            ->filter(function ($x) use ($alreadyReversedIds) {
-                return (int)$x->is_reversal !== 1
-                    && !in_array((int)$x->id, $alreadyReversedIds, true)
-                    && is_null($x->reversal_of_id)
-                    && $x->direction === 'credit'
-                    && $x->source === 'payment'
-                    && (float)$x->amount_ttc > 0;
-            })
-            ->sortByDesc('id')
-            ->first();
+                        // 2) Dernière ligne éligible (LIFO) : crédit, payment, >0, non reversal, sans reversal existant
+                        $lastReversible = $invoice->receipts
+                            ->filter(function ($x) use ($alreadyReversedIds) {
+                                return (int)$x->is_reversal !== 1
+                                    && !in_array((int)$x->id, $alreadyReversedIds, true)
+                                    && is_null($x->reversal_of_id)
+                                    && $x->direction === 'credit'
+                                    && $x->source === 'payment'
+                                    && (float)$x->amount_ttc > 0;
+                            })
+                            ->sortByDesc('id')
+                            ->first();
 
-        $lastReversibleId = $lastReversible->id ?? null;
-    @endphp
+                        $lastReversibleId = $lastReversible->id ?? null;
+                    @endphp
 
-    <tbody>
-    @foreach($invoice->receipts as $r)
-      @php
-          $isReversal       = (int)$r->is_reversal === 1;
-          $hasBeenReversed  = in_array((int)$r->id, $alreadyReversedIds, true);
+                    <tbody>
+                    @foreach($invoice->receipts as $r)
+                      @php
+                          $isReversal       = (int)$r->is_reversal === 1;
+                          $hasBeenReversed  = in_array((int)$r->id, $alreadyReversedIds, true);
 
-          $canReverse = $encaisseTotal > 0
-                        && !$isReversal
-                        && !$hasBeenReversed
-                        && is_null($r->reversal_of_id)
-                        && $r->direction === 'credit'
-                        && $r->source === 'payment'
-                        && (float)$r->amount_ttc > 0
-                        && ((int)$r->id === (int)$lastReversibleId);
-      @endphp
+                          $canReverse = $encaisseTotal > 0
+                                        && !$isReversal
+                                        && !$hasBeenReversed
+                                        && is_null($r->reversal_of_id)
+                                        && $r->direction === 'credit'
+                                        && $r->source === 'payment'
+                                        && (float)$r->amount_ttc > 0
+                                        && ((int)$r->id === (int)$lastReversibleId);
+                      @endphp
 
-      <tr x-data="{ openReverse:false }">
-        <td>{{ \Illuminate\Support\Carbon::parse($r->encaissement_date)->format('d/m/Y') }}</td>
-        <td>{{ $r->invoice_number }}</td>
-        <td>{{ $r->client_name }}</td>
-        <td>{{ $r->payment_method_label }}</td>
-        <td>
-          {{ $r->direction === 'debit' ? 'Sortie' : 'Entrée' }}
-          @if($isReversal)
-            <span class="badge-reversal" title="Contre-passation">CP</span>
-          @endif
-        </td>
-        <td class="text-right">{{ number_format($r->amount_ttc, 2, ',', ' ') }}</td>
-        <td>{{ $r->note }}</td>
-        <td>
-          @if($canReverse)
-            <button type="button" class="btn-secondary btn-xs" @click="openReverse=true">
-              Contre-passer
-            </button>
-          @endif
-        </td>
+                      <tr x-data="{ openReverse:false }">
+                        <td>{{ \Illuminate\Support\Carbon::parse($r->encaissement_date)->format('d/m/Y') }}</td>
+                        <td>{{ $r->invoice_number }}</td>
+                        <td>{{ $r->client_name }}</td>
+                        <td>{{ $r->payment_method_label }}</td>
+                        <td>
+                          {{ $r->direction === 'debit' ? 'Sortie' : 'Entrée' }}
+                          @if($isReversal)
+                            <span class="badge-reversal" title="Contre-passation">CP</span>
+                          @endif
+                        </td>
+                        <td class="text-right">{{ number_format($r->amount_ttc, 2, ',', ' ') }}</td>
+                        <td>{{ $r->note }}</td>
+                        <td>
+                          @if($canReverse)
+                            <button type="button" class="btn-secondary btn-xs" @click="openReverse=true">
+                              Contre-passer
+                            </button>
+                          @endif
+                        </td>
 
-        {{-- Modal Contre-passation (par ligne) --}}
-        <template x-teleport="body">
-          <div class="modal" x-show="openReverse" x-transition>
-            <div class="modal-overlay" @click="openReverse=false"></div>
-            <div class="modal-card" @click.outside="openReverse=false">
-              <div class="modal-header">
-                <h3>Contre-passation de la ligne #{{ $r->id }}</h3>
-                <button class="modal-close" @click="openReverse=false">&times;</button>
-              </div>
-              <form action="{{ route('receipts.reverse', $r->id) }}" method="POST" class="modal-body">
-                @csrf
-                <div class="form-grid">
-                  <div class="form-field">
-                    <label class="invoice-label">Date</label>
-                    <input type="date" name="encaissement_date" class="form-control" value="{{ now()->toDateString() }}">
-                  </div>
-                  <div class="form-field">
-                    <label class="invoice-label">Montant TTC (optionnel)</label>
-                    <input type="number" step="0.01" min="0.01" name="amount_ttc" class="form-control"
-                           placeholder="{{ number_format($r->amount_ttc, 2, ',', ' ') }}">
-                    <small class="text-muted">Laisser vide = contre-passer la totalité.</small>
-                  </div>
-                  <div class="form-field col-span-2">
-                    <label class="invoice-label">Note</label>
-                    <input type="text" name="note" class="form-control" placeholder="Raison de la contre-passation…">
-                  </div>
+                        {{-- Modal Contre-passation (par ligne) --}}
+                        <template x-teleport="body">
+                          <div class="modal" x-show="openReverse" x-transition x-cloak>
+                            <div class="modal-overlay" @click="openReverse=false"></div>
+                            <div class="modal-card" @click.outside="openReverse=false">
+                              <div class="modal-header">
+                                <h3>Contre-passation de la ligne #{{ $r->id }}</h3>
+                                <button class="modal-close" @click="openReverse=false">&times;</button>
+                              </div>
+                              <form action="{{ route('receipts.reverse', $r->id) }}" method="POST" class="modal-body">
+                                @csrf
+                                <div class="form-grid">
+                                  <div class="form-field">
+                                    <label class="invoice-label">Date</label>
+                                    <input type="date" name="encaissement_date" class="form-control" value="{{ now()->toDateString() }}">
+                                  </div>
+                                  <div class="form-field">
+                                    <label class="invoice-label">Montant TTC (optionnel)</label>
+                                    <input type="number" step="0.01" min="0.01" name="amount_ttc" class="form-control"
+                                           placeholder="{{ number_format($r->amount_ttc, 2, ',', ' ') }}">
+                                    <small class="text-muted">Laisser vide = contre-passer la totalité.</small>
+                                  </div>
+                                  <div class="form-field col-span-2">
+                                    <label class="invoice-label">Note</label>
+                                    <input type="text" name="note" class="form-control" placeholder="Raison de la contre-passation…">
+                                  </div>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="button" class="btn-secondary" @click="openReverse=false">Annuler</button>
+                                  <button type="submit" class="btn-primary">Valider</button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
+                        </template>
+                      </tr>
+                    @endforeach
+                    </tbody>
+                  </table>
+
+                  @if($encaisseTotal <= 0)
+                    <p class="text-muted mt-2" style="font-style:italic;">
+                      Aucun paiement réversible : encaissement total à 0.
+                    </p>
+                  @endif
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn-secondary" @click="openReverse=false">Annuler</button>
-                  <button type="submit" class="btn-primary">Valider</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </template>
-      </tr>
-    @endforeach
-    </tbody>
-  </table>
 
-  @if($encaisseTotal <= 0)
-    <p class="text-muted mt-2" style="font-style:italic;">
-      Aucun paiement réversible : encaissement total à 0.
-    </p>
-  @endif
-</div>
-
-
-                <div class="totals-container mt-3" x-show="showReceipts" x-transition>
+                <div class="totals-container mt-3" x-show="showReceipts" x-transition x-cloak>
                   <p class="total">
                     <strong>{{ __('Total encaissé TTC') }} :</strong>
                     {{ number_format($invoice->total_encaisse, 2, ',', ' ') }} €
@@ -430,13 +432,13 @@
 
         </div>
 
-        {{-- MODAL Enregistrer un paiement (caché par défaut) --}}
-        <div class="modal" x-show="showPayModal" x-transition>
-            <div class="modal-overlay" @click="showPayModal=false"></div>
-            <div class="modal-card" @click.outside="showPayModal=false">
+        {{-- MODAL Enregistrer un paiement (vanilla JS, caché par défaut) --}}
+        <div id="payModal" class="modal" style="display:none;">
+            <div class="modal-overlay" onclick="closePayModal()"></div>
+            <div class="modal-card" onclick="event.stopPropagation();">
                 <div class="modal-header">
                     <h3>{{ __('Enregistrer un paiement') }}</h3>
-                    <button class="modal-close" @click="showPayModal=false">&times;</button>
+                    <button type="button" class="modal-close" onclick="closePayModal()">&times;</button>
                 </div>
 
                 <form action="{{ route('invoices.markAsPaid', $invoice->id) }}" method="POST" class="modal-body">
@@ -462,8 +464,14 @@
 
                         <div class="form-field">
                             <label class="invoice-label">Montant TTC (optionnel)</label>
-                            <input type="number" step="0.01" min="0" name="amount_ttc" class="form-control"
-                                   placeholder="{{ number_format($invoice->solde_restant, 2, ',', ' ') }}">
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="amount_ttc"
+                                class="form-control"
+                                placeholder="{{ number_format($invoice->solde_restant, 2, ',', ' ') }}"
+                            >
                             <small class="text-muted">Laisser vide = encaissement du solde restant.</small>
                         </div>
 
@@ -482,23 +490,15 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn-secondary" @click="showPayModal=false">Annuler</button>
+                        <button type="button" class="btn-secondary" onclick="closePayModal()">Annuler</button>
                         <button type="submit" class="btn-primary">
                             <i class="fas fa-check"></i> Enregistrer
                         </button>
                     </div>
-
-                    @if($invoice->receipts->count() > 0)
-                        <div class="mt-3">
-                            <button type="button" class="link-toggle" @click="showReceipts = !showReceipts">
-                                <i class="fas" :class="showReceipts ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                                <span x-text="showReceipts ? 'Masquer l’historique des paiements' : 'Afficher l’historique des paiements'"></span>
-                            </button>
-                        </div>
-                    @endif
                 </form>
             </div>
         </div>
+
     </div>
 
     <style>
@@ -579,8 +579,10 @@
         }
 
         /* Modal */
-        .modal{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:50; }
-        [x-cloak], .modal[style*="display: none"] { display:none !important; }
+        .modal{
+            position:fixed; inset:0; z-index:50;
+            align-items:center; justify-content:center;
+        }
         .modal-overlay{ position:absolute; inset:0; background:rgba(0,0,0,.4); }
         .modal-card{
             position:relative; background:#fff; width:100%; max-width:720px; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,.2);
@@ -618,4 +620,27 @@
             .am-table th, .am-table td{ padding:10px; font-size:.92rem; }
         }
     </style>
+
+    {{-- Simple JS for the paiement modal --}}
+    <script>
+        function openPayModal() {
+            const modal = document.getElementById('payModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePayModal() {
+            const modal = document.getElementById('payModal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closePayModal();
+            }
+        });
+    </script>
 </x-app-layout>

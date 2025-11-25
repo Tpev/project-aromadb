@@ -25,16 +25,34 @@
                 {{-- Métadonnées du devis --}}
                 <div class="input-section">
                     <div class="details-box">
-                        <label class="details-label" for="client_profile_id">{{ __('Client') }}</label>
+                        <label class="details-label" for="client_profile_id">{{ __('Client / Entreprise') }}</label>
                         <select id="client_profile_id" name="client_profile_id" class="form-control" required>
                             <option value="">{{ __('Sélectionnez un client') }}</option>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}" {{ old('client_profile_id') == $client->id ? 'selected':'' }}>
-                                    {{ $client->first_name }} {{ $client->last_name }}
+                                @php
+                                    $company = $client->company ?? null;
+
+                                    $billingFirst = $client->first_name_billing ?: $client->first_name;
+                                    $billingLast  = $client->last_name_billing  ?: $client->last_name;
+
+                                    if ($company) {
+                                        // Ex: ACME SA – Jean Dupont
+                                        $label = $company->name . ' – ' . trim($billingFirst.' '.$billingLast);
+                                    } else {
+                                        // Client normal : Prénom Nom
+                                        $label = trim($client->first_name.' '.$client->last_name);
+                                    }
+                                @endphp
+                                <option
+                                    value="{{ $client->id }}"
+                                    {{ old('client_profile_id') == $client->id ? 'selected' : '' }}
+                                >
+                                    {{ $label }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
+
                     <div class="details-box">
                         <label class="details-label" for="quote_date">{{ __('Date du Devis') }}</label>
                         <input type="date" id="quote_date" name="quote_date" class="form-control"
@@ -169,11 +187,11 @@
             const qty = parseFloat(document.getElementById('inventory_quantity').value) || 1;
             if (!opt.value) return;
 
-            const ttc = opt.dataset.unitType==='ml'
+            const ttc = opt.dataset.unitType === 'ml'
                 ? parseFloat(opt.dataset.ttcPerMl)
                 : parseFloat(opt.dataset.ttcUnit);
-            const tax = parseFloat(opt.dataset.tax)||0;
-            const ht  = ttc/(1+tax/100);
+            const tax = parseFloat(opt.dataset.tax) || 0;
+            const ht  = ttc / (1 + tax / 100);
 
             const tbody = document.querySelector('#quote-items-table tbody');
             const idx   = itemIndex++;
@@ -200,17 +218,20 @@
 
         function updateRow(el) {
             const r       = el.closest('tr');
-            const price   = parseFloat(r.querySelector('.product-select').selectedOptions[0]?.dataset.price)||0;
-            const tax     = parseFloat(r.querySelector('.product-select').selectedOptions[0]?.dataset.tax)||0;
-            const qty     = parseFloat(r.querySelector('input[name*="[quantity]"]').value)||1;
-            const ht      = price;
-            const amt     = ht*qty*(tax/100);
-            const ttc     = ht*qty + amt;
+            const productSelect = r.querySelector('.product-select');
+            const selected      = productSelect ? productSelect.selectedOptions[0] : null;
 
-            r.querySelector('.unit-price').value          = ht.toFixed(2);
-            r.querySelector('.tax-rate').value            = tax.toFixed(2);
-            r.querySelector('.tax-amt').value             = amt.toFixed(2);
-            r.querySelector('.total-ttc').value           = ttc.toFixed(2);
+            const price   = selected ? parseFloat(selected.dataset.price) || 0 : 0;
+            const tax     = selected ? parseFloat(selected.dataset.tax)   || 0 : 0;
+            const qty     = parseFloat(r.querySelector('input[name*="[quantity]"]').value) || 1;
+            const ht      = price;
+            const amt     = ht * qty * (tax / 100);
+            const ttc     = ht * qty + amt;
+
+            r.querySelector('.unit-price').value  = ht.toFixed(2);
+            r.querySelector('.tax-rate').value    = tax.toFixed(2);
+            r.querySelector('.tax-amt').value     = amt.toFixed(2);
+            r.querySelector('.total-ttc').value   = ttc.toFixed(2);
         }
 
         function removeItem(btn) {
@@ -219,10 +240,9 @@
 
         function openInventoryModal(){ document.getElementById('inventoryModal').classList.remove('hidden'); }
         function closeInventoryModal(){ document.getElementById('inventoryModal').classList.add('hidden'); }
-
     </script>
 
-     <style>
+    <style>
         .container-fluid {
             max-width: 1200px;
         }
@@ -301,11 +321,10 @@
             font-size: 0.875rem;
         }
 
-        /* Styles pour la table des articles */
         #quote-items-table {
             width: 100%;
             margin-bottom: 15px;
-            table-layout: auto; /* Better layout */
+            table-layout: auto;
         }
 
         #quote-items-table th, #quote-items-table td {
@@ -325,8 +344,7 @@
 
         #quote-items-table td input,
         #quote-items-table td select {
-            width: 100%; /* Ensure full width */
-            /* Removed or adjusted max-width */
+            width: 100%;
         }
 
         .btn-danger {
@@ -342,13 +360,11 @@
             background-color: #cc1f1a;
         }
 
-        /* Custom class to grey out readonly fields */
         .readonly-field {
-            background-color: #e9ecef; /* Light grey background */
-            cursor: not-allowed; /* Indicate non-editable */
+            background-color: #e9ecef;
+            cursor: not-allowed;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .details-title {
                 font-size: 1.5rem;

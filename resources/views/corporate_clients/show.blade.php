@@ -216,6 +216,87 @@
             </section>
 
             {{-- ==========================
+                 SECTION: Factures liées à cette entreprise
+                 ========================== --}}
+            @php
+                // Récupère toutes les factures des clients rattachés à cette entreprise
+                $invoices = $company->clientProfiles
+                    ? $company->clientProfiles->flatMap(function ($cp) {
+                        return $cp->invoices ?? collect();
+                    })
+                    : collect();
+
+                // On ne garde que les vraies factures (pas les devis)
+                $invoices = $invoices->filter(function ($inv) {
+                    return ($inv->type ?? 'invoice') === 'invoice';
+                })->sortByDesc('invoice_date');
+            @endphp
+
+            <section class="bg-white p-6 rounded-2xl shadow mt-6">
+                <div class="flex items-center justify-between gap-3 flex-wrap mb-3">
+                    <h2 class="text-xl font-semibold text-gray-800">
+                        💶 {{ __('Factures liées à cette entreprise') }}
+                    </h2>
+
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('invoices.create') }}?company_id={{ $company->id }}"
+                           class="btn-primary">
+                            + Créer une facture pour cette entreprise
+                        </a>
+                    </div>
+                </div>
+
+                @if($invoices->isEmpty())
+                    <p class="text-muted text-sm">
+                        Aucune facture n’est encore associée aux clients de cette entreprise.
+                    </p>
+                @else
+                    <div class="table-responsive mx-auto">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>N° facture</th>
+                                    <th>Bénéficiaire</th>
+                                    <th>Date</th>
+                                    <th>Total TTC</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($invoices as $invoice)
+                                    <tr>
+                                        <td>#{{ $invoice->invoice_number }}</td>
+                                        <td>
+                                            @if($invoice->clientProfile)
+                                                {{ $invoice->clientProfile->first_name }}
+                                                {{ $invoice->clientProfile->last_name }}
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
+                                        <td>
+                                            {{ optional($invoice->invoice_date)->format('d/m/Y') ?? '—' }}
+                                        </td>
+                                        <td>
+                                            {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €
+                                        </td>
+                                        <td>{{ ucfirst($invoice->status) }}</td>
+                                        <td>
+                                            <a href="{{ route('invoices.show', $invoice->id) }}"
+                                               class="btn-primary">
+                                                Voir la facture
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </section>
+
+            {{-- ==========================
                  Actions bas de page
                  ========================== --}}
             <div class="row mt-6">

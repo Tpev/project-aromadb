@@ -1045,13 +1045,23 @@ public function sendQuoteEmail(Invoice $quote)
 
     $client = $quote->clientProfile;
 
-    if (!$client->email) {
+    // 1) Email de facturation prioritaire, sinon email du client
+    $toEmail = $client->email_billing ?: $client->email;
+
+    if (!$toEmail) {
         return redirect()->back()->with('error', 'Le client n\'a pas d\'adresse email.');
     }
 
+    // 2) Nom du contact de facturation pour le contenu de l’email
+    $billingFirst = $client->first_name_billing ?: $client->first_name;
+    $billingLast  = $client->last_name_billing  ?: $client->last_name;
+    $contactName  = trim($billingFirst.' '.$billingLast);
+
     try {
         $therapistName = Auth::user()->name;
-        \Mail::to($client->email)->queue(new QuoteMail($quote, $therapistName));
+
+        // Tu peux faire évoluer QuoteMail pour accepter $contactName
+        \Mail::to($toEmail)->queue(new QuoteMail($quote, $therapistName, $contactName));
 
         $quote->update(['sent_at' => now()]);
 
@@ -1063,5 +1073,6 @@ public function sendQuoteEmail(Invoice $quote)
                          ->with('error', 'Erreur lors de l\'envoi du devis.');
     }
 }
+
 
 }

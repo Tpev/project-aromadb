@@ -86,51 +86,57 @@
             <h1>Devis #{{ $invoice->quote_number ?? '—' }}</h1>
         </div>
 
-<!-- Détails entreprise + client -->
-<div class="company-client-details">
-    <div class="column column-left">
-        @php $user = $invoice->user; @endphp
-        <div class="company-details">
-            <h2>{{ $user->company_name ?? 'Votre Entreprise' }}</h2>
-            @if($user->company_address)
-                <p>{{ $user->company_address }}</p>
-            @endif
-            @if($user->company_email)
-                <p>Email : {{ $user->company_email }}</p>
-            @endif
-            @if($user->company_phone)
-                <p>Téléphone : {{ $user->company_phone }}</p>
-            @endif
-        </div>
-    </div>
-    <div class="column column-right">
-        <div class="client-details">
-            <h2>Destinataire :</h2>
-            @if($invoice->clientProfile->first_name_billing || $invoice->clientProfile->last_name_billing)
-                <p>
-                    {{ $invoice->clientProfile->first_name_billing }}
-                    {{ $invoice->clientProfile->last_name_billing }}
-                </p>
-            @else
-                <p>
-                    {{ $invoice->clientProfile->first_name }}
-                    {{ $invoice->clientProfile->last_name }}
-                </p>
-            @endif
+        @php
+            $user    = $invoice->user;
+            $cp      = $invoice->clientProfile;
+            $company = $cp->company ?? null;
 
-            @if($invoice->clientProfile->address)
-                <p>{{ $invoice->clientProfile->address }}</p>
-            @endif
-            @if($invoice->clientProfile->email)
-                <p>Email : {{ $invoice->clientProfile->email }}</p>
-            @endif
-            @if($invoice->clientProfile->phone)
-                <p>Téléphone : {{ $invoice->clientProfile->phone }}</p>
-            @endif
-        </div>
-    </div>
-</div>
+            $billingFirst = $cp->first_name_billing ?: $cp->first_name;
+            $billingLast  = $cp->last_name_billing  ?: $cp->last_name;
+        @endphp
 
+        <!-- Détails entreprise + bénéficiaire / facturation -->
+        <div class="company-client-details">
+            <div class="column column-left">
+                <div class="company-details">
+                    <h2>{{ $user->company_name ?? 'Votre Entreprise' }}</h2>
+                    @if($user->company_address)
+                        <p>{{ $user->company_address }}</p>
+                    @endif
+                    @if($user->company_email)
+                        <p>Email : {{ $user->company_email }}</p>
+                    @endif
+                    @if($user->company_phone)
+                        <p>Téléphone : {{ $user->company_phone }}</p>
+                    @endif
+                </div>
+            </div>
+
+            <div class="column column-right">
+                <div class="client-details">
+                    <h2>Bénéficiaire :</h2>
+                    <p>{{ $cp->first_name }} {{ $cp->last_name }}</p>
+
+                    <h2 style="margin-top:6px;">Facturé à :</h2>
+                    @if($company)
+                        <p><strong>{{ $company->name }}</strong></p>
+                        <p>À l’attention de {{ $billingFirst }} {{ $billingLast }}</p>
+                    @else
+                        <p>{{ $billingFirst }} {{ $billingLast }}</p>
+                    @endif
+
+                    @if($cp->address)
+                        <p>{{ $cp->address }}</p>
+                    @endif
+                    @if($cp->email)
+                        <p>Email : {{ $cp->email }}</p>
+                    @endif
+                    @if($cp->phone)
+                        <p>Téléphone : {{ $cp->phone }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
 
         <!-- Détails du devis -->
         <div class="invoice-details">
@@ -145,7 +151,6 @@
         <table>
             <thead>
                 <tr>
-
                     <th>Nom</th>
                     <th>Description</th>
                     <th>Qté</th>
@@ -158,25 +163,24 @@
             </thead>
             <tbody>
                 @foreach($invoice->items as $item)
-                <tr>
-
-                    <td>
-                        @if($item->type === 'product')
-                            {{ $item->product->name }}
-                        @elseif($item->type === 'inventory')
-                            {{ $item->inventoryItem->name }}
-                        @else
-                            —
-                        @endif
-                    </td>
-                    <td>{{ $item->description }}</td>
-                    <td>{{ $item->quantity }}</td>
-                    <td>{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
-                    <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
-                    <td>{{ number_format($item->total_price, 2, ',', ' ') }}</td>
-                    <td>{{ number_format($item->tax_amount, 2, ',', ' ') }}</td>
-                    <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }}</td>
-                </tr>
+                    <tr>
+                        <td>
+                            @if($item->type === 'product' && $item->product)
+                                {{ $item->product->name }}
+                            @elseif($item->type === 'inventory' && $item->inventoryItem)
+                                {{ $item->inventoryItem->name }}
+                            @else
+                                {{ $item->description }}
+                            @endif
+                        </td>
+                        <td>{{ $item->description }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ number_format($item->unit_price, 2, ',', ' ') }}</td>
+                        <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+                        <td>{{ number_format($item->total_price, 2, ',', ' ') }}</td>
+                        <td>{{ number_format($item->tax_amount, 2, ',', ' ') }}</td>
+                        <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }}</td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
@@ -187,10 +191,10 @@
         <p class="total"><strong>Total TTC :</strong> {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €</p>
 
         @if($invoice->notes)
-        <div class="notes">
-            <h3>Notes :</h3>
-            <p>{{ $invoice->notes }}</p>
-        </div>
+            <div class="notes">
+                <h3>Notes :</h3>
+                <p>{{ $invoice->notes }}</p>
+            </div>
         @endif
 
         <!-- Mentions légales et pied -->
