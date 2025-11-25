@@ -19,6 +19,10 @@
                 </div>
             @endif
 
+            @php
+                $selectedClientId = old('client_profile_id', optional($selectedClient)->id ?? null);
+            @endphp
+
             <form action="{{ route('invoices.store') }}" method="POST">
                 @csrf
 
@@ -29,12 +33,17 @@
                         <select id="client_profile_id" name="client_profile_id" class="form-control" required>
                             <option value="">{{ __('Sélectionnez un client') }}</option>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}" {{ old('client_profile_id') == $client->id ? 'selected' : '' }}>
+                                <option value="{{ $client->id }}"
+                                        {{ (string)$selectedClientId === (string)$client->id ? 'selected' : '' }}>
                                     {{ $client->first_name }} {{ $client->last_name }}
+                                    @if($client->company)
+                                        — 👔 {{ $client->company->name }}
+                                    @endif
                                 </option>
                             @endforeach
                         </select>
                     </div>
+
                     <div class="details-box">
                         <label class="details-label" for="invoice_date">{{ __('Date de Facture') }}</label>
                         <input type="date" id="invoice_date" name="invoice_date" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
@@ -195,8 +204,10 @@
 
         function updateRow(el) {
             const row   = el.closest('tr');
-            const price = parseFloat(row.querySelector('.product-select').selectedOptions[0]?.dataset.price) || 0;
-            const tax   = parseFloat(row.querySelector('.product-select').selectedOptions[0]?.dataset.tax) || 0;
+            const select = row.querySelector('.product-select');
+            const selected = select ? select.selectedOptions[0] : null;
+            const price = selected ? parseFloat(selected.dataset.price) || 0 : 0;
+            const tax   = selected ? parseFloat(selected.dataset.tax) || 0 : 0;
             const qty   = parseFloat(row.querySelector('input[name*="[quantity]"]').value) || 1;
             const ht    = price;
             const amt   = ht * qty * (tax/100);
@@ -220,7 +231,7 @@
         }
     </script>
 
-     <style>
+    <style>
         .container-fluid {
             max-width: 1200px;
         }
@@ -303,7 +314,7 @@
         #invoice-items-table {
             width: 100%;
             margin-bottom: 15px;
-            table-layout: auto; /* Better layout */
+            table-layout: auto;
         }
 
         #invoice-items-table th, #invoice-items-table td {
@@ -323,8 +334,7 @@
 
         #invoice-items-table td input,
         #invoice-items-table td select {
-            width: 100%; /* Ensure full width */
-            /* Removed or adjusted max-width */
+            width: 100%;
         }
 
         .btn-danger {
@@ -340,13 +350,11 @@
             background-color: #cc1f1a;
         }
 
-        /* Custom class to grey out readonly fields */
         .readonly-field {
-            background-color: #e9ecef; /* Light grey background */
-            cursor: not-allowed; /* Indicate non-editable */
+            background-color: #e9ecef;
+            cursor: not-allowed;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .details-title {
                 font-size: 1.5rem;

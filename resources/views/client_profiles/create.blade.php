@@ -103,6 +103,33 @@
                     @enderror
                 </div>
 
+                {{-- Entreprise cliente (optionnel) --}}
+                @if(isset($companies) && $companies->isNotEmpty())
+                    <div class="details-box">
+                        <label class="details-label" for="company_id">
+                            {{ __('Entreprise cliente (optionnel)') }}
+                        </label>
+                        <select id="company_id" name="company_id" class="form-control">
+                            <option value="">{{ __('— Aucune —') }}</option>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}"
+                                    @if(old('company_id', $selectedCompanyId ?? null) == $company->id) selected @endif>
+                                    {{ $company->name }}
+                                    @if($company->billing_city)
+                                        – {{ $company->billing_city }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-gray-500 block mt-1">
+                            {{ __('Permet de rattacher ce client à une entreprise pour la facturation B2B.') }}
+                        </small>
+                        @error('company_id')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
+
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer le Profil') }}</button>
                 <a href="{{ route('client_profiles.index') }}" class="btn-secondary mt-4">
                     {{ __('Retour à la liste') }}

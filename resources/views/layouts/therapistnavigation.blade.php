@@ -24,6 +24,9 @@
                     </x-nav-link>
                     <x-nav-link :href="route('client_profiles.index')" :active="request()->routeIs('client_profiles.*')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Clients') }}
+                    </x-nav-link>                    
+					<x-nav-link :href="route('corporate-clients.index')" :active="request()->routeIs('corporate-clients.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Clients PRO') }}
                     </x-nav-link>
                     <x-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
                         {{ __('Rendez-vous') }}

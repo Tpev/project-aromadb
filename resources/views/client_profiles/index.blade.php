@@ -61,7 +61,17 @@
                             @foreach($clientProfiles as $clientProfile)
                                 <tr class="hover:bg-gray-100 cursor-pointer" onclick="window.location='{{ route('client_profiles.show', $clientProfile->id) }}'">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
+                                        <div class="flex items-center gap-2">
+                                            <span>
+                                                {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
+                                            </span>
+
+                                            @if(!empty($clientProfile->company_id) && $clientProfile->company)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#647a0b]/10 text-[#647a0b]">
+                                                    👔 {{ __('Entreprise') }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {{ $clientProfile->email }}

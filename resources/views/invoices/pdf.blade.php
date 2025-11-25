@@ -108,34 +108,43 @@
                     @endif
                 </div>
             </div>
+
             <div class="column column-right">
                 <!-- Détails du client -->
                 <div class="client-details">
                     <h2>Facturé à :</h2>
-                    <!-- If billing names exist, use them, otherwise fallback to normal names -->
-                    @if($invoice->clientProfile->first_name_billing || $invoice->clientProfile->last_name_billing)
-                        <p>
-                            {{ $invoice->clientProfile->first_name_billing }} {{ $invoice->clientProfile->last_name_billing }}
-                        </p>
+
+                    @php
+                        $cp      = $invoice->clientProfile;
+                        $company = $cp->company ?? null;
+
+                        // Même logique qu’avant : noms de facturation si présents, sinon noms normaux
+                        $billingFirst = $cp->first_name_billing ?: $cp->first_name;
+                        $billingLast  = $cp->last_name_billing  ?: $cp->last_name;
+                    @endphp
+
+                    @if($company)
+                        {{-- Client lié à une entreprise --}}
+                        <p><strong>{{ $company->name }}</strong></p>
+                        <p>À l’attention de {{ $billingFirst }} {{ $billingLast }}</p>
                     @else
-                        <p>
-                            {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
-                        </p>
+                        {{-- Client “normal” : on garde le comportement d’origine --}}
+                        <p>{{ $billingFirst }} {{ $billingLast }}</p>
                     @endif
 
-                    <!-- Adresse (toujours la même, si vous avez un champ d'adresse de facturation distinct, adaptez) -->
-                    @if($invoice->clientProfile->address)
-                        <p>{{ $invoice->clientProfile->address }}</p>
+                    <!-- Adresse -->
+                    @if($cp->address)
+                        <p>{{ $cp->address }}</p>
                     @endif
 
                     <!-- Email -->
-                    @if($invoice->clientProfile->email)
-                        <p>Email : {{ $invoice->clientProfile->email }}</p>
+                    @if($cp->email)
+                        <p>Email : {{ $cp->email }}</p>
                     @endif
 
                     <!-- Téléphone -->
-                    @if($invoice->clientProfile->phone)
-                        <p>Téléphone : {{ $invoice->clientProfile->phone }}</p>
+                    @if($cp->phone)
+                        <p>Téléphone : {{ $cp->phone }}</p>
                     @endif
                 </div>
             </div>
@@ -164,20 +173,20 @@
                     <th>Total TTC (€)</th>
                 </tr>
             </thead>
-			  <tbody>
-				@foreach($invoice->items as $item)
-				  <tr>
-					<td>{{ $item->name }}</td>
-					<td>{{ $item->description }}</td>
-					<td>{{ $item->quantity }}</td>
-					<td>{{ number_format($item->unit_price, 2, ',', ' ') }} €</td>
-					<td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
-					<td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
-					<td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
-					<td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
-				  </tr>
-				@endforeach
-			  </tbody>
+            <tbody>
+                @foreach($invoice->items as $item)
+                    <tr>
+                        <td>{{ $item->name }}</td>
+                        <td>{{ $item->description }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ number_format($item->unit_price, 2, ',', ' ') }} €</td>
+                        <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+                        <td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
+                        <td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
+                        <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
+                    </tr>
+                @endforeach
+            </tbody>
         </table>
 
         <!-- Montant total -->

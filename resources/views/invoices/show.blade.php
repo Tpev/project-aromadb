@@ -71,36 +71,57 @@
                 </div>
             </div>
 
+            @php
+                $cp      = $invoice->clientProfile;
+                $company = $cp->company ?? null;
+                $billingFirst = $cp->first_name_billing ?: $cp->first_name;
+                $billingLast  = $cp->last_name_billing  ?: $cp->last_name;
+            @endphp
+
             {{-- Infos facture --}}
             <div class="invoice-info-boxes row mt-4">
+                {{-- Client / Bénéficiaire --}}
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-user icon"></i>
                         <div class="invoice-details">
-                            <p class="invoice-label">{{ __('Client') }}</p>
+                            <p class="invoice-label">{{ __('Client / Bénéficiaire') }}</p>
                             <p class="invoice-value">
-                                {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="invoice-box d-flex align-items-center">
-                        <i class="fas fa-file-invoice icon"></i>
-                        <div class="invoice-details">
-                            <p class="invoice-label">{{ __('Facturé à') }}</p>
-                            <p class="invoice-value">
-                                @if($invoice->clientProfile->first_name_billing || $invoice->clientProfile->last_name_billing)
-                                    {{ $invoice->clientProfile->first_name_billing }} {{ $invoice->clientProfile->last_name_billing }}
+                                @if($company)
+                                    <span class="font-semibold block">{{ $company->name }}</span>
+                                    <span class="text-sm text-gray-600 block">
+                                        Bénéficiaire (profil client) :
+                                        {{ $cp->first_name }} {{ $cp->last_name }}
+                                    </span>
                                 @else
-                                    {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                                    <span class="block">
+                                        Bénéficiaire (profil client) :
+                                        {{ $cp->first_name }} {{ $cp->last_name }}
+                                    </span>
                                 @endif
                             </p>
                         </div>
                     </div>
                 </div>
 
+                {{-- Facturé à (entreprise ou normal) --}}
+                <div class="col-md-4">
+                    <div class="invoice-box d-flex align-items-center">
+                        <i class="fas fa-file-invoice icon"></i>
+                        <div class="invoice-details">
+                            <p class="invoice-label">{{ __('Facturé à') }}</p>
+                            <p class="invoice-value">
+                                @if($company)
+                                    {{ $company->name }} – À l’attention de {{ $billingFirst }} {{ $billingLast }}
+                                @else
+                                    {{ $billingFirst }} {{ $billingLast }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Date de facture --}}
                 <div class="col-md-4">
                     <div class="invoice-box d-flex align-items-center">
                         <i class="fas fa-calendar-alt icon"></i>
@@ -281,12 +302,6 @@
           $isReversal       = (int)$r->is_reversal === 1;
           $hasBeenReversed  = in_array((int)$r->id, $alreadyReversedIds, true);
 
-          // Affiche le bouton seulement si:
-          // - il reste de l'encaisse global (>0)
-          // - ce n'est pas une CP
-          // - la ligne n'a pas déjà une CP associée
-          // - c'est une entrée "payment" > 0
-          // - c'est la dernière ligne réversible (LIFO)
           $canReverse = $encaisseTotal > 0
                         && !$isReversal
                         && !$hasBeenReversed
@@ -473,7 +488,6 @@
                         </button>
                     </div>
 
-                    {{-- Lien pour afficher l’historique directement depuis le modal --}}
                     @if($invoice->receipts->count() > 0)
                         <div class="mt-3">
                             <button type="button" class="link-toggle" @click="showReceipts = !showReceipts">

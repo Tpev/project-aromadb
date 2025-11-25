@@ -14,6 +14,25 @@
             <h1 class="details-title">
                 {{ __('Profil de ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
             </h1>
+@if($clientProfile->company)
+    <div class="bg-white border-l-4 border-[#647a0b] p-4 rounded-md mb-4 flex items-center justify-between">
+        <div>
+            <p class="font-semibold text-[#647a0b]">
+                👔 Client rattaché à une entreprise
+            </p>
+            <p class="text-sm text-gray-700">
+                {{ __('Entreprise :') }}
+                <a href="{{ route('corporate-clients.show', $clientProfile->company) }}"
+                   class="underline text-[#854f38]">
+                    {{ $clientProfile->company->name }}
+                </a>
+            </p>
+        </div>
+        <span class="badge badge-required">
+            Entreprise
+        </span>
+    </div>
+@endif
 
 <hr class="my-6">
 

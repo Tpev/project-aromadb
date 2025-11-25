@@ -19,6 +19,7 @@ class ClientProfile extends Authenticatable
         'password',                    // new
         'password_setup_token_hash',   // coming next
         'password_setup_expires_at',
+		'company_id', 
     ];
 
     protected $hidden = ['password','remember_token'];
@@ -97,6 +98,17 @@ public function messages()
 {
     return $this->hasMany(\App\Models\Message::class);
 }
+    public function company()
+    {
+        return $this->belongsTo(CorporateClient::class, 'company_id');
+    }
+// Dans la classe ClientProfile
 
+protected $appends = ['is_corporate']; // optionnel mais pratique
+
+public function getIsCorporateAttribute(): bool
+{
+    return !is_null($this->company_id);
+}
 
 }

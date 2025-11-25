@@ -10,8 +10,6 @@
         $isSame = (
             $clientProfile->first_name === $clientProfile->first_name_billing &&
             $clientProfile->last_name === $clientProfile->last_name_billing &&
-            // Optional: ensure they aren't null/empty, 
-            // but if you want them to be "same" even if they're empty, remove this condition
             !empty($clientProfile->first_name_billing) &&
             !empty($clientProfile->last_name_billing)
         );
@@ -146,6 +144,33 @@
                     @enderror
                 </div>
 
+                {{-- Entreprise cliente (optionnel) --}}
+                @if(isset($companies) && $companies->isNotEmpty())
+                    <div class="details-box">
+                        <label class="details-label" for="company_id">
+                            {{ __('Entreprise cliente (optionnel)') }}
+                        </label>
+                        <select id="company_id" name="company_id" class="form-control">
+                            <option value="">{{ __('— Aucune —') }}</option>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}"
+                                    @if(old('company_id', $clientProfile->company_id) == $company->id) selected @endif>
+                                    {{ $company->name }}
+                                    @if($company->billing_city)
+                                        – {{ $company->billing_city }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-gray-500 block mt-1">
+                            {{ __('Permet de rattacher ce client à une entreprise pour la facturation B2B.') }}
+                        </small>
+                        @error('company_id')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
+
                 <!-- Buttons -->
                 <div class="details-box mt-4 d-flex justify-content-between">
                     <button type="submit" class="btn-primary">
@@ -168,7 +193,6 @@
             const firstNameBilling  = document.getElementById('first_name_billing');
             const lastNameBilling   = document.getElementById('last_name_billing');
 
-            // Function to set read-only & copy data
             function enableSameNames() {
                 firstNameBilling.value = firstNameInput.value;
                 lastNameBilling.value  = lastNameInput.value;
@@ -176,18 +200,15 @@
                 lastNameBilling.setAttribute('readonly', true);
             }
 
-            // Function to remove read-only & allow editing
             function disableSameNames() {
                 firstNameBilling.removeAttribute('readonly');
                 lastNameBilling.removeAttribute('readonly');
             }
 
-            // Check or uncheck on page load
             if (useSameNames.checked) {
                 enableSameNames();
             }
 
-            // Event listener on the checkbox
             useSameNames.addEventListener('change', function() {
                 if (this.checked) {
                     enableSameNames();
@@ -196,8 +217,6 @@
                 }
             });
 
-            // If user changes first_name or last_name while checkbox is active,
-            // automatically update billing names
             firstNameInput.addEventListener('input', function() {
                 if (useSameNames.checked) {
                     firstNameBilling.value = this.value;
@@ -216,7 +235,7 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 15px; /* Ensure some padding on smaller screens */
+            padding: 0 15px;
             text-align: center;
         }
 
@@ -238,7 +257,7 @@
 
         .details-box {
             margin-bottom: 15px;
-            text-align: left; /* Align labels & inputs left for readability */
+            text-align: left;
         }
 
         .details-label {
@@ -251,13 +270,13 @@
         .form-control {
             width: 100%;
             padding: 10px;
-            border: 1px solid #854f38; /* Consistent border color */
+            border: 1px solid #854f38;
             border-radius: 5px;
             box-sizing: border-box;
         }
 
         .form-control:focus {
-            border-color: #647a0b; /* Highlight border on focus */
+            border-color: #647a0b;
             outline: none;
             box-shadow: 0 0 5px rgba(100, 122, 11, 0.5);
         }
@@ -306,7 +325,6 @@
             margin-top: 5px;
         }
 
-        /* Responsive Adjustments */
         @media (max-width: 600px) {
             .details-container {
                 padding: 20px;

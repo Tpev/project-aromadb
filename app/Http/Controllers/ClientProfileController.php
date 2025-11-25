@@ -7,50 +7,52 @@ use App\Models\Appointment;
 use App\Models\SessionNote;
 use App\Models\Message;
 use App\Models\Invoice;
+use App\Models\Response;
+use App\Models\CorporateClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ClientProfileController extends Controller
 {
     use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
     /**
+     * Upload a document from the client portal.
+     */
+    public function uploadDocument(Request $request)
+    {
+        $clientProfile = auth('client')->user();
+
+        if (!$clientProfile) {
+            return response()->json(['success' => false, 'message' => 'Profil client introuvable.'], 404);
+        }
+
+        $request->validate([
+            'document' => 'required|file|max:5120', // 5MB max
+        ]);
+
+        $file = $request->file('document');
+        $path = $file->store('client_documents/' . auth()->id(), 'public');
+
+        // Optional: save record to a `client_documents` table here
+
+        return response()->json(['success' => true, 'path' => $path]);
+    }
+
+    /**
      * Display a listing of the client profiles.
      *
      * @return \Illuminate\Http\Response
      */
-
-
-public function uploadDocument(Request $request)
-{
-$clientProfile = auth('client')->user();
-
-if (!$clientProfile) {
-    return response()->json(['success' => false, 'message' => 'Profil client introuvable.'], 404);
-}
-
-
-    $request->validate([
-        'document' => 'required|file|max:5120', // 5MB max
-    ]);
-
-    $file = $request->file('document');
-    $path = $file->store('client_documents/' . auth()->id(), 'public');
-
-    // Optional: save record to a `client_documents` table here
-    // e.g., ClientDocument::create([...]);
-
-    return response()->json(['success' => true, 'path' => $path]);
-}
-	 
     public function index()
     {
-		    if (Auth::user()->license_status === 'inactive') {
-        return redirect('/license-tiers/pricing');
-    }
+        if (Auth::user()->license_status === 'inactive') {
+            return redirect('/license-tiers/pricing');
+        }
+
         // Get all client profiles for the logged-in therapist
         $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
 
@@ -64,7 +66,16 @@ if (!$clientProfile) {
      */
     public function create()
     {
-        return view('client_profiles.create');
+        $user = Auth::user();
+
+        $companies = CorporateClient::where('user_id', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        // Optionnel: pré-remplir via ?company_id= dans l’URL
+        $selectedCompanyId = request('company_id');
+
+        return view('client_profiles.create', compact('companies', 'selectedCompanyId'));
     }
 
     /**
@@ -75,8 +86,10 @@ if (!$clientProfile) {
      */
     public function store(Request $request)
     {
-        // Include first_name_billing and last_name_billing in the validation
-        $request->validate([
+        $userId = Auth::id();
+
+        // Include first_name_billing, last_name_billing & company_id in the validation
+        $data = $request->validate([
             'first_name'         => 'required|string|max:255',
             'last_name'          => 'required|string|max:255',
             'email'              => 'nullable|email|max:255',
@@ -86,21 +99,18 @@ if (!$clientProfile) {
             'notes'              => 'nullable|string',
             'first_name_billing' => 'nullable|string|max:255',
             'last_name_billing'  => 'nullable|string|max:255',
+
+            // 👉 lien vers entreprise (facultatif, et uniquement parmi les entreprises du thérapeute)
+            'company_id'         => [
+                'nullable',
+                Rule::exists('corporate_clients', 'id')
+                    ->where('user_id', $userId),
+            ],
         ]);
 
-        // Create the new client profile, including the new billing fields
-        ClientProfile::create([
-            'user_id'            => Auth::id(),
-            'first_name'         => $request->first_name,
-            'last_name'          => $request->last_name,
-            'email'              => $request->email,
-            'phone'              => $request->phone,
-            'birthdate'          => $request->birthdate,
-            'address'            => $request->address,
-            'notes'              => $request->notes,
-            'first_name_billing' => $request->first_name_billing,
-            'last_name_billing'  => $request->last_name_billing,
-        ]);
+        $data['user_id'] = $userId;
+
+        ClientProfile::create($data);
 
         return redirect()->route('client_profiles.index')
                          ->with('success', 'Client profile created successfully.');
@@ -117,7 +127,7 @@ if (!$clientProfile) {
         $this->authorize('view', $clientProfile);
 
         // Get related appointments, session notes, and invoices
-        $appointments = $clientProfile->appointments; 
+        $appointments = $clientProfile->appointments;
         $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
         $invoices     = Invoice::where('client_profile_id', $clientProfile->id)->get();
 
@@ -125,11 +135,11 @@ if (!$clientProfile) {
         $responses = Response::with('questionnaire')
             ->where('client_profile_id', $clientProfile->id)
             ->get();
-			
-		$clientProfile = ClientProfile::findOrFail($clientProfile->id);
-		$clientProfile->load('messages');
 
-			
+        // Recharger avec la relation messages
+        $clientProfile = ClientProfile::findOrFail($clientProfile->id);
+        $clientProfile->load('messages');
+
         // Récupérer la dernière demande de témoignage, s'il y en a une
         $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
 
@@ -153,7 +163,16 @@ if (!$clientProfile) {
     {
         $this->authorize('update', $clientProfile);
 
-        return view('client_profiles.edit', compact('clientProfile'));
+        $user = Auth::user();
+
+        // sécurité : on s’assure que ce client appartient au thérapeute connecté
+        abort_if($clientProfile->user_id !== $user->id, 403);
+
+        $companies = CorporateClient::where('user_id', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('client_profiles.edit', compact('clientProfile', 'companies'));
     }
 
     /**
@@ -167,8 +186,10 @@ if (!$clientProfile) {
     {
         $this->authorize('update', $clientProfile);
 
-        // Include first_name_billing and last_name_billing in the validation
-        $request->validate([
+        $userId = Auth::id();
+
+        // Include first_name_billing, last_name_billing & company_id in the validation
+        $data = $request->validate([
             'first_name'         => 'required|string|max:255',
             'last_name'          => 'required|string|max:255',
             'email'              => 'nullable|email|max:255',
@@ -178,20 +199,16 @@ if (!$clientProfile) {
             'notes'              => 'nullable|string',
             'first_name_billing' => 'nullable|string|max:255',
             'last_name_billing'  => 'nullable|string|max:255',
+
+            'company_id'         => [
+                'nullable',
+                Rule::exists('corporate_clients', 'id')
+                    ->where('user_id', $userId),
+            ],
         ]);
 
-        // Update the client profile, including billing fields
-        $clientProfile->update([
-            'first_name'         => $request->first_name,
-            'last_name'          => $request->last_name,
-            'email'              => $request->email,
-            'phone'              => $request->phone,
-            'birthdate'          => $request->birthdate,
-            'address'            => $request->address,
-            'notes'              => $request->notes,
-            'first_name_billing' => $request->first_name_billing,
-            'last_name_billing'  => $request->last_name_billing,
-        ]);
+        // Update the client profile, including billing fields & company link
+        $clientProfile->update($data);
 
         return redirect()->route('client_profiles.index')
                          ->with('success', 'Client profile updated successfully.');
@@ -213,24 +230,25 @@ if (!$clientProfile) {
         return redirect()->route('client_profiles.index')
                          ->with('success', 'Client profile deleted successfully.');
     }
-public function home()
-{
-    $clientProfile = auth('client')->user();
 
-    $appointments = $clientProfile->appointments()
-        ->where('appointment_date', '>=', now())
-        ->orderBy('appointment_date')
-        ->get();
+    /**
+     * Client portal home.
+     */
+    public function home()
+    {
+        $clientProfile = auth('client')->user();
 
-    $invoices = $clientProfile->invoices()->latest()->get();
+        $appointments = $clientProfile->appointments()
+            ->where('appointment_date', '>=', now())
+            ->orderBy('appointment_date')
+            ->get();
 
-    $messages = Message::where('client_profile_id', $clientProfile->id)
-        ->orderBy('created_at', 'asc')
-        ->get();
+        $invoices = $clientProfile->invoices()->latest()->get();
 
-    return view('client.home', compact('clientProfile', 'appointments', 'invoices', 'messages'));
-}
+        $messages = Message::where('client_profile_id', $clientProfile->id)
+            ->orderBy('created_at', 'asc')
+            ->get();
 
-
-	
+        return view('client.home', compact('clientProfile', 'appointments', 'invoices', 'messages'));
+    }
 }

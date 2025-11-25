@@ -62,6 +62,11 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentSigningController;
 use App\Http\Controllers\SpecialAvailabilityController;
 use App\Http\Controllers\GoogleReviewController;
+use App\Http\Controllers\CorporateClientController;
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('corporate-clients', CorporateClientController::class);
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/google-reviews', [GoogleReviewController::class, 'index'])

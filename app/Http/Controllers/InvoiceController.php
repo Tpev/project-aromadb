@@ -498,20 +498,40 @@ public function sendEmail(Invoice $invoice)
     // eager-load everything the PDF and email view need
     $invoice->load([
         'user',
-        'clientProfile',
+        'clientProfile.company',   // ⬅️ important for queued mails
         'items.product',
         'items.inventoryItem',
     ]);
 
-    $client = $invoice->clientProfile;
-    if (!$client->email) {
-        return back()->with('error', "Le client n'a pas d'adresse email.");
+    $client  = $invoice->clientProfile;
+    $company = $client?->company;
+
+    // Determine recipient(s)
+    $to = null;
+    $cc = null;
+
+    if ($company && $company->billing_email) {
+        // Entreprise avec email de facturation dédié
+        $to = $company->billing_email;
+        $cc = $client->email; // copie au bénéficiaire si renseigné
+    } elseif ($company && $company->email) {
+        // Entreprise sans "billing_email" mais avec email général
+        $to = $company->email;
+        $cc = $client->email;
+    } elseif ($client && $client->email) {
+        // Client "normal" (pas d'entreprise)
+        $to = $client->email;
+    }
+
+    if (!$to) {
+        return back()->with('error', "Aucune adresse email de facturation n'est définie (client ou entreprise).");
     }
 
     $therapistName = Auth::user()->name;
 
     try {
-        Mail::to($client->email)
+        Mail::to($to)
+            ->when($cc, fn ($message) => $message->cc($cc))
             ->queue(new InvoiceMail($invoice, $therapistName));
 
         $invoice->update(['sent_at' => now()]);
@@ -520,12 +540,13 @@ public function sendEmail(Invoice $invoice)
             ->route('invoices.show', $invoice)
             ->with('success', 'Facture envoyée par email avec succès.');
     } catch (\Exception $e) {
-        Log::error("Error sending invoice email: ".$e->getMessage());
+        Log::error("Error sending invoice email: " . $e->getMessage());
         return redirect()
             ->route('invoices.show', $invoice)
             ->with('error', "Une erreur est survenue lors de l'envoi de l'email.");
     }
 }
+
 
 
 public function createPaymentLink(Invoice $invoice)
