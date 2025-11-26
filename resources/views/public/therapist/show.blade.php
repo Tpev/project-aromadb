@@ -339,7 +339,23 @@
             @foreach($uniquePrestations as $prestation)
                 @php
                     $truncatedDescription = \Illuminate\Support\Str::limit($prestation->description, 200);
+
+                    // Prépare les badges de lieu
+                    $locationBadges = [];
+                    if ($prestation->dans_le_cabinet) {
+                        $locationBadges[] = ['📍', __('Cabinet')];
+                    }
+                    if ($prestation->adomicile) {
+                        $locationBadges[] = ['🏠', __('À domicile')];
+                    }
+                    if ($prestation->visio) {
+                        $locationBadges[] = ['💻', __('Visio')];
+                    }
+
+                    // Paiement en ligne possible : adapte la partie "Stripe configuré" à ta logique
+                    $canCollectOnline = $prestation->collect_payment /* && ($therapist->stripe_ready ?? false) */;
                 @endphp
+
                 <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item bg-[#f9fafb]">
                     @if($prestation->image)
                         <img src="{{ asset('storage/' . $prestation->image) }}" alt="{{ $prestation->name }}" class="w-full h-48 object-cover">
@@ -347,8 +363,38 @@
                     <div class="p-6">
                         <h4 class="text-2xl font-semibold text-[#647a0b]">{{ $prestation->name }}</h4>
 
-                        @if(!is_null($prestation->duration))
-                            <p class="mt-2 text-gray-600">{{ __('Durée :') }} {{ $prestation->duration }} {{ __('min') }}</p>
+                        {{-- Ligne de badges : lieux, durée, paiement en ligne --}}
+                        @if(
+                            count($locationBadges) > 0
+                            || !is_null($prestation->duration)
+                            || $canCollectOnline
+                        )
+                            <div class="mt-3 flex flex-wrap gap-2 text-xs sm:text-sm">
+                                @foreach($locationBadges as [$icon, $label])
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b]">
+                                        <span class="mr-1">{{ $icon }}</span> {{ $label }}
+                                    </span>
+                                @endforeach
+
+                                @if(!is_null($prestation->duration))
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-gray-700">
+                                        <span class="mr-1">⏱</span> {{ $prestation->duration }} {{ __('min') }}
+                                    </span>
+                                @endif
+
+                                @if($canCollectOnline)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#854f38]">
+                                        <span class="mr-1">💳</span> {{ __('Paiement en ligne possible') }}
+                                    </span>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if($prestation->price_visible_in_portal && $prestation->price > 0)
+                            <p class="mt-3 text-gray-600 font-semibold">
+                                {{ __('Prix :') }}
+                                {{ number_format($prestation->price_incl_tax ?? $prestation->price, 2, ',', ' ') }} €
+                            </p>
                         @endif
 
                         <p class="mt-4 text-gray-700 prestation-description"
@@ -373,6 +419,7 @@
         <p class="mt-6 text-gray-600">{{ __('Aucune prestation disponible pour le moment.') }}</p>
     @endif
 </div>
+
 
 
 
@@ -731,7 +778,7 @@
             });
         </script>
     @endpush
-	@php
+@php
     // Calcule un rating moyen seulement sur ceux qui ont une note
     $ratedTestimonials = $testimonials->filter(fn($t) => !is_null($t->rating));
     $averageRating = $ratedTestimonials->count() > 0
@@ -770,37 +817,80 @@
         }
         return $item;
     }, $reviewItems);
+
+    // ───── Services / Offers pour schema.org ─────
+    // On prend les prestations visibles sur le portail (comme dans la section Prestations)
+    $visiblePrestationsForSchema = $prestations
+        ->filter(fn($p) => $p->visible_in_portal !== false)
+        ->unique('name')
+        ->take(6); // évite un JSON énorme
+
+    $serviceOffers = $visiblePrestationsForSchema->map(function ($p) {
+        $desc = \Illuminate\Support\Str::limit(strip_tags($p->description ?? ''), 160);
+
+        $offer = [
+            '@type'       => 'Offer',
+            'name'        => $p->name,
+            'description' => $desc ?: null,
+            'itemOffered' => [
+                '@type'       => 'Service',
+                'name'        => $p->name,
+                'description' => $desc ?: null,
+            ],
+        ];
+
+        // Prix uniquement si on a le droit de l’afficher
+        if ($p->price_visible_in_portal && $p->price > 0) {
+            $offer['price']         = (float) ($p->price_incl_tax ?? $p->price);
+            $offer['priceCurrency'] = 'EUR';
+        }
+
+        // Nettoyage des clés null
+        return array_filter($offer, fn($v) => !is_null($v));
+    })->values()->all();
+
+    // ───── Construction finale du LocalBusiness + Offers ─────
+    $schemaData = [
+        '@context'  => 'https://schema.org',
+        '@type'     => 'LocalBusiness',
+        '@id'       => url()->current(),
+        'name'      => $therapist->company_name,
+        'url'       => url()->current(),
+        'image'     => $therapist->profile_picture
+                        ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
+                        : null,
+        'address'   => ($therapist->share_address_publicly && $therapist->company_address)
+                        ? [
+                            '@type'           => 'PostalAddress',
+                            'streetAddress'   => $therapist->company_address,
+                            'addressLocality' => $therapist->city_setByAdmin,
+                            'addressRegion'   => $therapist->state_setByAdmin,
+                            'addressCountry'  => 'FR',
+                          ]
+                        : null,
+        'telephone' => $therapist->share_phone_publicly ? $therapist->company_phone : null,
+        'review'    => $reviewItems,
+        'aggregateRating' => $averageRating ? [
+            '@type'       => 'AggregateRating',
+            'ratingValue' => $averageRating,
+            'reviewCount' => $ratedTestimonials->count(),
+        ] : null,
+    ];
+
+    // Ajoute les offres si on en a
+    if (count($serviceOffers) > 0) {
+        $schemaData['makesOffer'] = $serviceOffers;
+    }
+
+    // Nettoyage final des clés null top-level
+    $schemaData = array_filter($schemaData, fn($v) => !is_null($v));
 @endphp
 
 @section('structured_data')
 <script type="application/ld+json">
-{!! json_encode([
-    '@context'        => 'https://schema.org',
-    '@type'           => 'LocalBusiness',
-    '@id'             => url()->current(),
-    'name'            => $therapist->company_name,
-    'url'             => url()->current(),
-    'image'           => $therapist->profile_picture
-                            ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
-                            : null,
-    'address'         => $therapist->share_address_publicly && $therapist->company_address
-                            ? [
-                                '@type'           => 'PostalAddress',
-                                'streetAddress'   => $therapist->company_address,
-                                'addressLocality' => $therapist->city_setByAdmin,
-                                'addressRegion'   => $therapist->state_setByAdmin,
-                                'addressCountry'  => 'FR',
-                              ]
-                            : null,
-    'telephone'       => $therapist->share_phone_publicly ? $therapist->company_phone : null,
-    'review'          => $reviewItems,
-    'aggregateRating' => $averageRating ? [
-        '@type'       => 'AggregateRating',
-        'ratingValue' => $averageRating,
-        'reviewCount' => $ratedTestimonials->count(),
-    ] : null,
-]) !!}
+{!! json_encode($schemaData, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
+
 
 </x-app-layout>

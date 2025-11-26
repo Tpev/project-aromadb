@@ -39,6 +39,25 @@
                     @enderror
                 </div>
 
+				<!-- Afficher le prix sur le portail -->
+				<div class="details-box">
+					<label class="details-label" for="price_visible_in_portal">
+						{{ __('Afficher le prix sur votre portail') }}
+					</label>
+					<input type="hidden" name="price_visible_in_portal" value="0">
+					<input
+						type="checkbox"
+						id="price_visible_in_portal"
+						name="price_visible_in_portal"
+						value="1"
+						{{ old('price_visible_in_portal', 1) ? 'checked' : '' }}>
+					@error('price_visible_in_portal')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+					<small class="text-gray-500">
+						{{ __('Décochez si vous préférez ne pas afficher le tarif de cette prestation sur votre page publique.') }}
+					</small>
+				</div>
                 <!-- Collect Payment -->
                 <div class="details-box">
                     <label class="details-label" for="collect_payment">{{ __('Collecter le Paiement durant la prise de RDV sur votre portail') }}</label>

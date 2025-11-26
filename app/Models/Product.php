@@ -32,11 +32,13 @@ class Product extends Model
         'stripe_price_id',
         'requires_emargement',
         'visible_in_portal',
+		'price_visible_in_portal',
     ];
 
     protected $casts = [
         'requires_emargement' => 'boolean',
         'visible_in_portal'   => 'boolean',
+		'price_visible_in_portal' => 'boolean',
     ];
 
     /** Le thérapeute qui a créé le produit. */

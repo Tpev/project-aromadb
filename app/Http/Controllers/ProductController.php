@@ -60,6 +60,7 @@ class ProductController extends Controller
             'display_order'        => 'nullable|integer|min:0',
             'requires_emargement'  => 'required|boolean',
             'visible_in_portal'    => 'required|boolean', // NEW
+			'price_visible_in_portal' => 'required|boolean',
         ]);
 
         // Définir l'ordre d'affichage par défaut si non fourni
@@ -103,6 +104,7 @@ class ProductController extends Controller
             'display_order'        => $validatedData['display_order'],
             'requires_emargement'  => $validatedData['requires_emargement'],
             'visible_in_portal'    => $validatedData['visible_in_portal'], // NEW
+			'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
         ]);
 
         return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
@@ -151,6 +153,7 @@ class ProductController extends Controller
             'display_order'        => 'nullable|integer|min:0',
             'requires_emargement'  => 'required|boolean',
             'visible_in_portal'    => 'required|boolean', // NEW
+			 'price_visible_in_portal' => 'required|boolean',
         ]);
 
         // Gérer les uploads de fichiers
@@ -195,6 +198,7 @@ class ProductController extends Controller
             'display_order'        => $validatedData['display_order'] ?? $product->display_order,
             'requires_emargement'  => $validatedData['requires_emargement'],
             'visible_in_portal'    => $validatedData['visible_in_portal'], // NEW
+			'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
         ]);
 
         return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
@@ -245,6 +249,7 @@ class ProductController extends Controller
             'display_order'        => 'nullable|integer|min:0',
             'requires_emargement'  => 'nullable|boolean',
             'visible_in_portal'    => 'nullable|boolean', // NEW
+			'price_visible_in_portal' => 'nullable|boolean',
         ]);
 
         // Gérer les uploads de fichiers
@@ -283,7 +288,9 @@ class ProductController extends Controller
         $visibleInPortal = array_key_exists('visible_in_portal', $validatedData)
             ? (bool)$validatedData['visible_in_portal']
             : (bool)$product->visible_in_portal;
-
+		$priceVisibleInPortal = array_key_exists('price_visible_in_portal', $validatedData)
+			? (bool)$validatedData['price_visible_in_portal']
+			: (bool)($product->price_visible_in_portal ?? true); // fallback
         // Créer la nouvelle prestation
         $newProduct = Product::create([
             'user_id'              => Auth::id(),
@@ -302,9 +309,11 @@ class ProductController extends Controller
             'brochure'             => $validatedData['brochure'],
             'requires_emargement'  => $requiresEmargement,
             'visible_in_portal'    => $visibleInPortal, // NEW
+			'price_visible_in_portal' => $priceVisibleInPortal,
             'display_order'        => $validatedData['display_order'] ?? (($product->display_order ?? 0) + 1),
         ]);
 
         return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
     }
+	
 }
