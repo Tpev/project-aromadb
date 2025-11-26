@@ -5,6 +5,15 @@
             <i class="fas fa-calendar-plus mr-2"></i>{{ __('Réserver une Place pour :') }} {{ $event->name }}
         </h2>
     </x-slot>
+@section('meta_description')
+Réservez votre place pour « {{ $event->name }} », animé par {{ $event->user->name }} le {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }} à {{ $event->location }}.
+@if($event->limited_spot)
+Il reste {{ $event->number_of_spot - $event->reservations->count() }} places disponibles.
+@endif
+@if($event->booking_required)
+Réservation requise.
+@endif
+@endsection
 
     <div class="container mt-5">
         <!-- Event Details Recap -->
