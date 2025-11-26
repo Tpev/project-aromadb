@@ -977,3 +977,4 @@ Route::get('/license-tiers/pricing', [LicenseTierController::class, 'pricing'])-
 
 
 require __DIR__.'/auth.php';
+require __DIR__.'/mobile.php';
