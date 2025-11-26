@@ -331,29 +331,46 @@
             return $p->visible_in_portal !== false;
         });
 
-        $uniquePrestations = $visiblePrestations->unique('name');
+        // On groupe par nom pour fusionner les différents "modes" d'une même prestation
+        $groupedPrestations = $visiblePrestations->groupBy('name');
     @endphp
 
-    @if($uniquePrestations->count() > 0)
+    @if($groupedPrestations->count() > 0)
         <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            @foreach($uniquePrestations as $prestation)
+            @foreach($groupedPrestations as $name => $group)
                 @php
+                    /** @var \App\Models\Product $prestation */
+                    $prestation = $group->first(); // on prend le 1er comme "référence"
+
                     $truncatedDescription = \Illuminate\Support\Str::limit($prestation->description, 200);
 
-                    // Prépare les badges de lieu
+                    // On agrège les modes sur l'ensemble du groupe
+                    $hasCabinet = $group->contains(function ($p) {
+                        return (bool) $p->dans_le_cabinet;
+                    });
+                    $hasDomicile = $group->contains(function ($p) {
+                        return (bool) $p->adomicile;
+                    });
+                    $hasVisio = $group->contains(function ($p) {
+                        return (bool) $p->visio;
+                    });
+
+                    // Prépare les badges de lieu à partir des flags agrégés
                     $locationBadges = [];
-                    if ($prestation->dans_le_cabinet) {
+                    if ($hasCabinet) {
                         $locationBadges[] = ['📍', __('Cabinet')];
                     }
-                    if ($prestation->adomicile) {
+                    if ($hasDomicile) {
                         $locationBadges[] = ['🏠', __('À domicile')];
                     }
-                    if ($prestation->visio) {
+                    if ($hasVisio) {
                         $locationBadges[] = ['💻', __('Visio')];
                     }
 
-                    // Paiement en ligne possible : adapte la partie "Stripe configuré" à ta logique
-                    $canCollectOnline = $prestation->collect_payment /* && ($therapist->stripe_ready ?? false) */;
+                    // Paiement en ligne possible (basé sur au moins une variante qui le permet)
+                    $canCollectOnline = $group->contains(function ($p) {
+                        return (bool) $p->collect_payment;
+                    });
                 @endphp
 
                 <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item bg-[#f9fafb]">
@@ -419,6 +436,7 @@
         <p class="mt-6 text-gray-600">{{ __('Aucune prestation disponible pour le moment.') }}</p>
     @endif
 </div>
+
 
 
 
