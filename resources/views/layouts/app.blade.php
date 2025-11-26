@@ -16,6 +16,9 @@
 
     <!-- Dynamic Page Title -->
     <title>@yield('title', config('app.name', 'AromaMade'))</title>
+	
+
+    @yield('structured_data')
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
