@@ -25,12 +25,23 @@ class TherapistSearchController extends Controller
             ->where('slug', '!=', '')
             ->where('visible_annuarire_admin_set', true);
 
-        // Location filter
+        // ----------------- Location filter (User + all practiceLocations) -----------------
         if (!empty($data['location'])) {
             $loc = trim($data['location']);
+
             $base->where(function ($q) use ($loc) {
+                // Match therapist main city/state set by admin
                 $q->where('city_setByAdmin', 'like', '%' . $loc . '%')
-                  ->orWhere('state_setByAdmin', 'like', '%' . $loc . '%');
+                  ->orWhere('state_setByAdmin', 'like', '%' . $loc . '%')
+                  // ALSO match on all practice locations (cabinets)
+                  ->orWhereHas('practiceLocations', function ($lq) use ($loc) {
+                      $lq->where('city', 'like', '%' . $loc . '%')
+                         ->orWhere('postal_code', 'like', '%' . $loc . '%')
+                         ->orWhere('address_line1', 'like', '%' . $loc . '%')
+                         ->orWhere('address_line2', 'like', '%' . $loc . '%')
+                         ->orWhere('country', 'like', '%' . $loc . '%')
+                         ->orWhere('label', 'like', '%' . $loc . '%');
+                  });
             });
         }
 
@@ -185,7 +196,16 @@ class TherapistSearchController extends Controller
             ->where('visible_annuarire_admin_set', true)
             ->where(function ($q) use ($regionSearch) {
                 $q->where('city_setByAdmin', 'like', '%' . $regionSearch . '%')
-                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%');
+                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%')
+                  // match region via practice locations too
+                  ->orWhereHas('practiceLocations', function ($lq) use ($regionSearch) {
+                      $lq->where('city', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('postal_code', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('address_line1', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('address_line2', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('country', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('label', 'like', '%' . $regionSearch . '%');
+                  });
             })
             ->get();
 
@@ -211,7 +231,16 @@ class TherapistSearchController extends Controller
             })
             ->where(function ($q) use ($regionSearch) {
                 $q->where('city_setByAdmin', 'like', '%' . $regionSearch . '%')
-                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%');
+                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%')
+                  // also region via practice locations
+                  ->orWhereHas('practiceLocations', function ($lq) use ($regionSearch) {
+                      $lq->where('city', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('postal_code', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('address_line1', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('address_line2', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('country', 'like', '%' . $regionSearch . '%')
+                         ->orWhere('label', 'like', '%' . $regionSearch . '%');
+                  });
             })
             ->get();
 
