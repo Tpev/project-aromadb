@@ -1,0 +1,55 @@
+/* resources/css/mobile.css */
+
+/* Palette AromaMade pour le mobile */
+body.mobile-theme {
+    --am-primary: #647a0b;
+    --am-secondary: #854f38;
+    --am-bg-soft: #fffaf3;
+    --am-text-dark: #1f2933;
+}
+
+/* Carte principale (client) */
+body.mobile-theme .am-mobile-card-main {
+    border-radius: 1.5rem;
+    border: 1px solid #ebe5d9;
+    box-shadow: 0 10px 25px rgba(148, 132, 106, 0.18);
+    background-color: #fffdf9;
+}
+
+/* Pastille “Le plus utilisé” */
+body.mobile-theme .am-pill-hot {
+    background-color: var(--am-secondary);
+    color: #fff;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    letter-spacing: 0.03em;
+}
+
+/* Barre séparatrice */
+body.mobile-theme .am-separator-bar {
+    height: 2px;
+    width: 80px;
+    border-radius: 9999px;
+    background-color: var(--am-secondary);
+}
+
+/* Carte praticien */
+body.mobile-theme .am-mobile-card-pro {
+    border-radius: 1.25rem;
+    background-color: var(--am-primary);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(77, 89, 10, 0.38);
+}
+
+/* Petit bouton “Continuer” type ghost */
+body.mobile-theme .am-link-continue {
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--am-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
