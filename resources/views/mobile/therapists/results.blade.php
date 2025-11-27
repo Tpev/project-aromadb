@@ -45,7 +45,7 @@
             {{-- ───────────────────── TOP BAR ───────────────────── --}}
             <div class="flex items-center justify-between">
                 <a
-                    href="{{ route('mobile.therapists.index') }}"
+                    href="{{ url('/mobile/therapeutes') }}"
                     class="inline-flex items-center gap-1.5 text-base text-gray-700 font-medium"
                 >
                     <i class="fas fa-chevron-left text-sm"></i>
@@ -250,7 +250,7 @@
 
                             <x-ts-button
                                 tag="a"
-                                href="{{ route('mobile.therapists.index') }}"
+                                href="{{ url('/mobile/therapeutes') }}"
                                 size="sm"
                                 rounded
                                 class="!text-sm !px-5 !py-2 !bg-[#647a0b] !text-white hover:!bg-[#8ea633]"

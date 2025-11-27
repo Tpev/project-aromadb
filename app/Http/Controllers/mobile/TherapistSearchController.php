@@ -10,10 +10,21 @@ use Illuminate\Support\Str;
 class TherapistSearchController extends Controller
 {
     /**
-     * Main search endpoint (POST from mobile form).
-     * Returns the mobile results view.
+     * GET /mobile/therapeutes
+     * Affiche simplement le formulaire de recherche mobile.
      */
     public function index(Request $request)
+    {
+        // Si tu veux pré-remplir les champs plus tard, tu peux
+        // passer des valeurs à la vue ici.
+        return view('mobile.therapists.index');
+    }
+
+    /**
+     * POST /mobile/therapeutes/rechercher
+     * Traite la recherche et affiche les résultats.
+     */
+    public function search(Request $request)
     {
         $data = $request->validate([
             'name'      => 'nullable|string',
@@ -145,19 +156,6 @@ class TherapistSearchController extends Controller
             'specialty'  => $specialty,
             'region'     => $region,
         ]);
-    }
-
-    /**
-     * Mobile public profile.
-     */
-    public function show(string $slug)
-    {
-        $therapist = User::where('slug', $slug)
-            ->where('is_therapist', true)
-            ->firstOrFail();
-
-        // You can later build a nicer mobile profile view
-        return view('mobile.therapists.show', compact('therapist'));
     }
 
     // ----------------- Helpers -----------------
