@@ -5,27 +5,21 @@ use Illuminate\Support\Facades\Route;
 // Search controller
 use App\Http\Controllers\Mobile\TherapistSearchController;
 
-// Profile controller (NEW)
+// Profile controller
 use App\Http\Controllers\Mobile\MobileTherapistController;
 
-
 // ---------------------------------------------------------
-// PUBLIC ENTRY POINT OF THE MOBILE APP
-// ---------------------------------------------------------
-Route::middleware(['web'])->group(function () {
-    Route::get('/mobile', function () {
-        return view('mobile.entry');
-    })->name('mobile.entry');
-});
-
-
-// ---------------------------------------------------------
-// MOBILE AREA
+// MOBILE AREA (single, unified group)
 // ---------------------------------------------------------
 Route::middleware(['web'])
     ->prefix('mobile')
     ->name('mobile.')
     ->group(function () {
+
+        // Entry screen: "Espace Client / Espace Praticien"
+        Route::get('/', function () {
+            return view('mobile.entry');
+        })->name('entry');
 
         // ---------------------------------------------------------
         // SEARCH
@@ -38,7 +32,6 @@ Route::middleware(['web'])
         // Search action handler (POST from the form)
         Route::post('/therapeutes/rechercher', [TherapistSearchController::class, 'search'])
             ->name('therapists.search');
-
 
         // ---------------------------------------------------------
         // THERAPIST PUBLIC PROFILE (MOBILE VERSION)
