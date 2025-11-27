@@ -44,10 +44,12 @@
 
             {{-- ───────────────────── TOP BAR ───────────────────── --}}
             <div class="flex items-center justify-between">
-                <a href="{{ route('mobile.therapists.index') }}"
-                   class="inline-flex items-center gap-1.5 text-base text-gray-700 font-medium">
+                <a
+                    href="{{ route('mobile.therapists.index') }}"
+                    class="inline-flex items-center gap-1.5 text-base text-gray-700 font-medium"
+                >
                     <i class="fas fa-chevron-left text-sm"></i>
-                    {{ __('Modifier la recherche') }}
+                    <span class="break-words">{{ __('Modifier la recherche') }}</span>
                 </a>
 
                 <span class="text-sm text-gray-500 font-medium">
@@ -57,13 +59,19 @@
 
             {{-- ───────────────────── HEADER / CONTEXT ───────────────────── --}}
             <div class="text-left space-y-3">
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold">
+                <span
+                    class="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-semibold max-w-full break-words"
+                >
                     <i class="fas fa-map-marker-alt mr-2 text-[10px]"></i>
 
                     @if(isset($specialty) || isset($region))
-                        {{ trim(($specialty ?? __('Toutes spécialités')) . ' • ' . ($region ?? __('Tous lieux'))) }}
+                        <span class="break-words">
+                            {{ trim(($specialty ?? __('Toutes spécialités')) . ' • ' . ($region ?? __('Tous lieux'))) }}
+                        </span>
                     @else
-                        {{ __('Toutes spécialités • Tous lieux') }}
+                        <span class="break-words">
+                            {{ __('Toutes spécialités • Tous lieux') }}
+                        </span>
                     @endif
                 </span>
 
@@ -71,7 +79,7 @@
                     {{ $heading }}
                 </h1>
 
-                <p class="text-base text-gray-700 leading-relaxed">
+                <p class="text-base text-gray-700 leading-relaxed break-words">
                     @if ($count > 0)
                         {{ __('Parcourez les profils, découvrez les spécialités et réservez en quelques taps.') }}
                     @else
@@ -84,7 +92,7 @@
             <div class="space-y-5 pb-6">
                 @forelse($therapists as $therapist)
 
-                    <x-ts-card class="rounded-3xl shadow-lg border border-primary-100 px-5 py-5 bg-white/95">
+                    <x-ts-card class="rounded-3xl shadow-lg border border-primary-100 px-4 py-4 bg-white/95">
 
                         <div class="flex items-start gap-4">
 
@@ -98,9 +106,11 @@
                                     @endphp
 
                                     @if($avatar)
-                                        <img src="{{ $avatar }}"
-                                             alt="{{ $therapist->name }}"
-                                             class="w-full h-full object-cover">
+                                        <img
+                                            src="{{ $avatar }}"
+                                            alt="{{ $therapist->name }}"
+                                            class="w-full h-full object-cover"
+                                        >
                                     @else
                                         <span class="text-xl font-bold text-primary-700">
                                             {{ mb_substr($therapist->name ?? 'A', 0, 1) }}
@@ -110,11 +120,12 @@
                             </div>
 
                             {{-- MAIN INFO --}}
-                            <div class="flex-1 space-y-2">
+                            <div class="flex-1 min-w-0 space-y-2">
 
-                                <div class="flex justify-between gap-3">
-                                    <div class="space-y-1">
-                                        <div class="text-lg font-semibold text-gray-900 leading-tight break-words">
+                                {{-- Name + badge --}}
+                                <div class="flex items-start gap-2">
+                                    <div class="flex-1 min-w-0 space-y-1">
+                                        <div class="text-lg font-semibold text-gray-900 leading-snug break-words">
                                             {{ $therapist->name }}
                                         </div>
 
@@ -132,7 +143,7 @@
                                     </div>
 
                                     @if($therapist->verified ?? false)
-                                        <span class="inline-flex items-center px-2 py-[4px]
+                                        <span class="shrink-0 inline-flex items-center px-2 py-[4px]
                                                      rounded-full bg-green-50 text-green-700 text-xs font-semibold">
                                             <i class="fas fa-shield-check mr-1 text-[10px]"></i>
                                             {{ __('Vérifié') }}
@@ -142,12 +153,14 @@
 
                                 {{-- LOCATION --}}
                                 @if($therapist->city_setByAdmin || $therapist->state_setByAdmin)
-                                    <div class="flex items-center gap-1.5 text-sm text-gray-600 mt-1 break-words">
+                                    <div class="flex items-center gap-1.5 text-sm text-gray-600 mt-1">
                                         <i class="fas fa-map-marker-alt text-[11px] text-secondary-600"></i>
-                                        {{ $therapist->city_setByAdmin }}
-                                        @if($therapist->state_setByAdmin)
-                                            – {{ $therapist->state_setByAdmin }}
-                                        @endif
+                                        <span class="break-words">
+                                            {{ $therapist->city_setByAdmin }}
+                                            @if($therapist->state_setByAdmin)
+                                                – {{ $therapist->state_setByAdmin }}
+                                            @endif
+                                        </span>
                                     </div>
                                 @endif
 
@@ -163,7 +176,7 @@
                                         @foreach(array_slice($services, 0, 3) as $service)
                                             <span class="inline-flex items-center px-3 py-[4px]
                                                          rounded-full bg-primary-50 text-primary-700
-                                                         text-xs font-medium break-words">
+                                                         text-xs font-medium max-w-full break-words">
                                                 {{ $service }}
                                             </span>
                                         @endforeach
@@ -190,13 +203,15 @@
                                 </p>
 
                                 {{-- FOOTER ROW --}}
-                                <div class="mt-3 flex items-center justify-between">
+                                <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
                                     <div class="flex items-center gap-1.5 text-xs text-gray-500">
                                         <i class="fas fa-comment-dots text-[11px] text-secondary-500"></i>
                                         @php
                                             $testimonialsCount = $therapist->testimonials()->count();
                                         @endphp
-                                        {{ $testimonialsCount }} {{ \Illuminate\Support\Str::plural('avis', $testimonialsCount) }}
+                                        <span class="break-words">
+                                            {{ $testimonialsCount }} {{ \Illuminate\Support\Str::plural('avis', $testimonialsCount) }}
+                                        </span>
                                     </div>
 
                                     <x-ts-button
@@ -229,7 +244,7 @@
                                 {{ __('Aucun praticien trouvé') }}
                             </p>
 
-                            <p class="text-sm text-gray-600 px-5 leading-relaxed">
+                            <p class="text-sm text-gray-600 px-5 leading-relaxed break-words">
                                 {{ __('Essayez de modifier la spécialité, le lieu ou réduisez les mots-clés.') }}
                             </p>
 
@@ -250,7 +265,7 @@
 
             {{-- FOOTER HINT --}}
             @if($count > 0)
-                <p class="text-sm text-gray-500 text-center leading-relaxed px-4">
+                <p class="text-sm text-gray-500 text-center leading-relaxed px-4 break-words">
                     {{ __('Vous pouvez ajuster vos critères à tout moment via “Modifier la recherche”.') }}
                 </p>
             @endif

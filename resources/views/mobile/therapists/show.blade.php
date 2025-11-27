@@ -1,36 +1,29 @@
 {{-- resources/views/mobile/therapists/show.blade.php --}}
 @php
-    // === LOCATION FRAGMENTS ===
+    use Illuminate\Support\Str;
+
+    // === LOCATION ===
     $city  = trim($therapist->city_setByAdmin  ?? '');
     $state = trim($therapist->state_setByAdmin ?? '');
     $locationLabel = $city
         ? ($state ? "$city, $state" : $city)
         : ($state ?: __('Votre région'));
 
-    // === SERVICES LABEL FOR TITLE / META ===
+    // === SERVICES (SEO + tags) ===
     $servicesRaw = json_decode($therapist->services, true) ?? [];
     $servicesArr = is_array($servicesRaw) ? array_filter($servicesRaw) : [];
     $servicesSeo = collect($servicesArr)->unique()->take(3)->implode(', ');
-    $labelSeo    = $servicesSeo ?: 'Thérapeute';
 
-    // === PAGE TITLE (short for mobile) ===
-    $brand = config('app.name', 'AromaMade');
-    $pageTitle = \Illuminate\Support\Str::limit(
-        trim(sprintf('%s – %s | %s', $therapist->company_name ?? $therapist->name, $labelSeo, $brand)),
-        60,
-        '…'
-    );
+    // === PAGE TITLE / META ===
+    $brand     = config('app.name', 'AromaMade');
+    $nameLabel = $therapist->company_name ?? $therapist->name;
+    $labelSeo  = $servicesSeo ?: 'Thérapeute';
 
-    // === META DESCRIPTION ===
-    $aboutSnippet = \Illuminate\Support\Str::limit(strip_tags($therapist->about ?? ''), 120);
-    $meta = \Illuminate\Support\Str::limit(
-        trim(sprintf(
-            '%s – %s à %s. %s',
-            $therapist->business_name ?? $therapist->company_name ?? $therapist->name,
-            $labelSeo,
-            $locationLabel,
-            $aboutSnippet
-        )),
+    $pageTitle = Str::limit("$nameLabel – $labelSeo | $brand", 60, '…');
+
+    $aboutSnippet = Str::limit(strip_tags($therapist->about ?? ''), 120);
+    $meta = Str::limit(
+        trim(sprintf('%s – %s à %s. %s', $nameLabel, $labelSeo, $locationLabel, $aboutSnippet)),
         155,
         '…'
     );
@@ -51,116 +44,117 @@
 
     <div
         x-data="{ infoOpen: false }"
-        class="min-h-screen flex flex-col px-5 py-6"
-        style="background: radial-gradient(circle at top, #fffaf3 0, #f7f4ec 40%, #eee7dc 100%);"
+        class="min-h-screen flex flex-col px-5 py-6 bg-[#f7f4ec]"
     >
         <div class="w-full max-w-lg mx-auto space-y-6">
 
-            {{-- Back link + rating / count --}}
+            {{-- ─────────────────── BACK / RATING ─────────────────── --}}
             <div class="flex items-center justify-between">
                 <a
                     href="{{ url()->previous() !== url()->current() ? url()->previous() : route('mobile.therapists.index') }}"
-                    class="inline-flex items-center gap-1.5 text-sm text-gray-700"
+                    class="inline-flex items-center gap-1.5 text-base text-gray-700 font-medium"
                 >
-                    <i class="fas fa-chevron-left text-xs"></i>
-                    <span>{{ __('Retour') }}</span>
+                    <i class="fas fa-chevron-left text-sm"></i>
+                    {{ __('Retour') }}
                 </a>
 
-                <div class="flex items-center gap-2 text-xs text-gray-600">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
                     @if($averageRating)
                         <div class="inline-flex items-center gap-1">
-                            <i class="fas fa-star text-[#f6b400] text-sm"></i>
+                            <i class="fas fa-star text-[#f6b400]"></i>
                             <span class="font-semibold">{{ $averageRating }}</span>
                         </div>
                         <span>•</span>
                     @endif
+
                     <span>
-                        {{ $testimonials->count() }} {{ \Illuminate\Support\Str::plural('avis', $testimonials->count()) }}
+                        {{ $testimonials->count() }}
+                        {{ \Illuminate\Support\Str::plural('avis', $testimonials->count()) }}
                     </span>
                 </div>
             </div>
 
-            {{-- HERO CARD --}}
-            <x-ts-card class="rounded-3xl shadow-xl border-0 bg-gradient-to-br from-primary-600 via-primary-500 to-secondary-600 text-white px-5 py-6">
+            {{-- ─────────────────── HERO CARD (PRIMARY GREEN, NO GRADIENT) ─────────────────── --}}
+            <x-ts-card class="rounded-3xl shadow-xl border-0 bg-[#647a0b] text-white px-6 py-7">
                 <div class="flex flex-col items-center text-center space-y-4">
+
                     {{-- Avatar --}}
-                    <div class="w-24 h-24 rounded-full bg-white/10 border border-white/40 overflow-hidden flex items-center justify-center shadow-md">
+                    <div class="w-28 h-28 rounded-full bg-white/10 border border-white/20 overflow-hidden shadow-md flex items-center justify-center">
                         @if ($therapist->profile_picture)
                             <img
                                 src="{{ asset("storage/avatars/{$therapist->id}/avatar-320.webp") }}?v={{ $imgVer }}"
-                                alt="{{ $therapist->name }}"
                                 class="w-full h-full object-cover"
+                                alt="{{ $therapist->name }}"
                             >
                         @else
-                            <span class="text-2xl font-semibold">
-                                {{ mb_substr($therapist->company_name ?? $therapist->name ?? 'A', 0, 1) }}
+                            <span class="text-3xl font-bold">
+                                {{ mb_substr($nameLabel ?? 'A', 0, 1) }}
                             </span>
                         @endif
                     </div>
 
-                    {{-- Main info --}}
+                    {{-- Name & tagline --}}
                     <div class="space-y-1">
-                        <h1 class="text-xl font-extrabold leading-snug break-words">
-                            {{ $therapist->company_name ?? $therapist->name }}
+                        <h1 class="text-2xl font-extrabold break-words leading-snug">
+                            {{ $nameLabel }}
                         </h1>
 
                         @if($therapist->profile_description)
-                            <p class="text-sm leading-snug text-white/90 break-words">
+                            <p class="text-sm text-white/90 leading-snug break-words">
                                 {{ $therapist->profile_description }}
                             </p>
                         @endif
 
-                        <div class="flex flex-wrap items-center justify-center gap-2 mt-1 text-xs text-white/90">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white/15">
-                                <i class="fas fa-map-marker-alt mr-1 text-[11px]"></i>
+                        <div class="flex flex-wrap items-center justify-center gap-2 mt-1">
+                            <span class="px-3 py-1 rounded-full bg-white/15 text-xs inline-flex items-center">
+                                <i class="fas fa-map-marker-alt mr-1 text-[10px]"></i>
                                 {{ $locationLabel }}
                             </span>
 
-                            @if(!empty($servicesSeo))
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white/15">
-                                    <i class="fas fa-leaf mr-1 text-[11px]"></i>
+                            @if($servicesSeo)
+                                <span class="px-3 py-1 rounded-full bg-white/15 text-xs inline-flex items-center">
+                                    <i class="fas fa-leaf mr-1 text-[10px]"></i>
                                     {{ $servicesSeo }}
                                 </span>
                             @endif
 
                             @if($therapist->verified ?? false)
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-green-500/20 border border-green-300/60 text-[11px]">
-                                    <i class="fas fa-shield-check mr-1 text-[11px]"></i>
+                                <span class="px-3 py-1 rounded-full bg-green-500/20 border border-green-300/60 text-xs inline-flex items-center">
+                                    <i class="fas fa-shield-check mr-1 text-[10px]"></i>
                                     {{ __('Praticien vérifié') }}
                                 </span>
                             @endif
                         </div>
                     </div>
 
-                    {{-- CTAs --}}
+                    {{-- CTAs (kept same logic: only if accept_online_appointments) --}}
                     @if($therapist->accept_online_appointments)
                         <div class="w-full flex flex-col gap-3 mt-2">
                             <x-ts-button
                                 tag="a"
                                 href="{{ route('appointments.createPatient', $therapist->id) }}"
-                                class="w-full !bg-white !text-primary-700 !border-0 hover:!bg-primary-50 !text-[14px]"
+                                class="w-full !bg-white !text-[#647a0b] !font-semibold !border-0 hover:!bg-primary-50"
                             >
-                                <i class="fas fa-calendar-plus mr-2 text-xs"></i>
+                                <i class="fas fa-calendar-plus mr-2"></i>
                                 {{ __('Prendre rendez-vous') }}
                             </x-ts-button>
 
                             <div class="flex gap-3">
                                 <x-ts-button
-                                    tag="button"
                                     type="button"
-                                    class="flex-1 !bg-secondary-700 !border-0 !text-[13px]"
+                                    class="flex-1 !bg-white/20 !border-0"
                                     x-on:click="infoOpen = true"
                                 >
-                                    <i class="fas fa-envelope-open-text mr-2 text-xs"></i>
-                                    {{ __('Demander une information') }}
+                                    <i class="fas fa-envelope-open-text mr-2"></i>
+                                    {{ __('Demande d’information') }}
                                 </x-ts-button>
 
                                 <x-ts-button
                                     tag="a"
                                     href="{{ route('client.login') }}"
-                                    class="flex-1 !bg-white/15 !border border-white/40 !text-[13px]"
+                                    class="flex-1 !bg-white/20 !border-0"
                                 >
-                                    <i class="fas fa-user-circle mr-2 text-xs"></i>
+                                    <i class="fas fa-user-circle mr-2"></i>
                                     {{ __('Accès client') }}
                                 </x-ts-button>
                             </div>
@@ -169,11 +163,11 @@
                 </div>
             </x-ts-card>
 
-            {{-- À PROPOS --}}
-            <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-5">
+            {{-- ─────────────────── À PROPOS ─────────────────── --}}
+            <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-6">
                 <div class="space-y-3">
                     <div class="flex items-center gap-2">
-                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-primary-50">
+                        <div class="w-8 h-8 rounded-2xl bg-primary-50 flex items-center justify-center">
                             <i class="fas fa-info-circle text-primary-700 text-sm"></i>
                         </div>
                         <h2 class="text-lg font-semibold text-gray-900">
@@ -181,17 +175,17 @@
                         </h2>
                     </div>
 
-                    <div class="text-[14px] text-gray-700 leading-relaxed prose max-w-none break-words">
+                    <div class="text-[15px] text-gray-700 leading-relaxed break-words prose max-w-none">
                         {!! $therapist->about ?? __('Informations à propos non disponibles pour le moment.') !!}
                     </div>
                 </div>
             </x-ts-card>
 
-            {{-- COORDONNÉES --}}
-            <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-5">
+            {{-- ─────────────────── COORDONNÉES ─────────────────── --}}
+            <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-6">
                 <div class="space-y-4">
                     <div class="flex items-center gap-2">
-                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-secondary-50">
+                        <div class="w-8 h-8 rounded-2xl bg-secondary-50 flex items-center justify-center">
                             <i class="fas fa-address-card text-secondary-700 text-sm"></i>
                         </div>
                         <h2 class="text-lg font-semibold text-gray-900">
@@ -199,13 +193,13 @@
                         </h2>
                     </div>
 
-                    <div class="space-y-3 text-[14px] text-gray-700">
+                    <div class="space-y-3 text-[15px] text-gray-700">
                         @if($therapist->share_address_publicly)
                             <div class="flex items-start gap-2">
-                                <i class="fas fa-map-marker-alt mt-1 text-secondary-600 text-sm"></i>
+                                <i class="fas fa-map-marker-alt mt-1 text-secondary-600"></i>
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ __('Adresse') }}</p>
-                                    <p class="leading-snug break-words">
+                                    <p class="break-words">
                                         {{ $therapist->company_address ?? __('Adresse non disponible.') }}
                                     </p>
                                 </div>
@@ -214,7 +208,7 @@
 
                         @if($therapist->share_phone_publicly && $therapist->company_phone)
                             <div class="flex items-start gap-2">
-                                <i class="fas fa-phone-alt mt-1 text-secondary-600 text-sm"></i>
+                                <i class="fas fa-phone-alt mt-1 text-secondary-600"></i>
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ __('Téléphone') }}</p>
                                     <a href="tel:{{ $therapist->company_phone }}" class="text-primary-700 font-medium">
@@ -226,7 +220,7 @@
 
                         @if($therapist->share_email_publicly && $therapist->company_email)
                             <div class="flex items-start gap-2">
-                                <i class="fas fa-envelope mt-1 text-secondary-600 text-sm"></i>
+                                <i class="fas fa-envelope mt-1 text-secondary-600"></i>
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ __('Email') }}</p>
                                     <a href="mailto:{{ $therapist->company_email }}" class="text-primary-700 font-medium break-words">
@@ -239,15 +233,12 @@
                 </div>
             </x-ts-card>
 
-            {{-- SERVICES (tags) --}}
-            @php
-                $servicesTags = is_array($servicesArr) ? $servicesArr : [];
-            @endphp
-            @if(count($servicesTags) > 0)
-                <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-5">
+            {{-- ─────────────────── SERVICES TAGS ─────────────────── --}}
+            @if(count($servicesArr) > 0)
+                <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-6">
                     <div class="space-y-4">
                         <div class="flex items-center gap-2">
-                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-primary-50">
+                            <div class="w-8 h-8 rounded-2xl bg-primary-50 flex items-center justify-center">
                                 <i class="fas fa-concierge-bell text-primary-700 text-sm"></i>
                             </div>
                             <h2 class="text-lg font-semibold text-gray-900">
@@ -256,8 +247,8 @@
                         </div>
 
                         <div class="flex flex-wrap gap-2">
-                            @foreach($servicesTags as $service)
-                                <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-primary-50 text-primary-800 text-[13px] font-medium">
+                            @foreach($servicesArr as $service)
+                                <span class="px-3 py-1.5 rounded-full bg-primary-50 text-primary-800 text-[13px] font-medium break-words">
                                     {{ $service }}
                                 </span>
                             @endforeach
@@ -266,17 +257,17 @@
                 </x-ts-card>
             @endif
 
-            {{-- PRESTATIONS --}}
+            {{-- ─────────────────── PRESTATIONS ─────────────────── --}}
             @php
                 $visiblePrestations = $prestations->filter(fn($p) => $p->visible_in_portal !== false);
                 $groupedPrestations = $visiblePrestations->groupBy('name');
             @endphp
 
             @if($groupedPrestations->count() > 0)
-                <x-ts-card class="rounded-3xl shadow-md border border-secondary-50 bg-white px-5 py-5">
+                <x-ts-card class="rounded-3xl shadow-md border border-secondary-50 bg-white px-5 py-6">
                     <div class="space-y-4">
                         <div class="flex items-center gap-2">
-                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-secondary-50">
+                            <div class="w-8 h-8 rounded-2xl bg-secondary-50 flex items-center justify-center">
                                 <i class="fas fa-spa text-secondary-700 text-sm"></i>
                             </div>
                             <h2 class="text-lg font-semibold text-gray-900">
@@ -288,19 +279,17 @@
                             @foreach($groupedPrestations as $name => $group)
                                 @php
                                     /** @var \App\Models\Product $prestation */
-                                    $prestation = $group->first();
-
-                                    $hasCabinet = $group->contains(fn($p) => (bool) $p->dans_le_cabinet);
-                                    $hasDomicile = $group->contains(fn($p) => (bool) $p->adomicile);
-                                    $hasVisio   = $group->contains(fn($p) => (bool) $p->visio);
+                                    $prestation      = $group->first();
+                                    $hasCabinet      = $group->contains(fn($p) => (bool) $p->dans_le_cabinet);
+                                    $hasDomicile     = $group->contains(fn($p) => (bool) $p->adomicile);
+                                    $hasVisio        = $group->contains(fn($p) => (bool) $p->visio);
                                     $canCollectOnline = $group->contains(fn($p) => (bool) $p->collect_payment);
-
-                                    $truncated = \Illuminate\Support\Str::limit(strip_tags($prestation->description ?? ''), 120);
+                                    $truncated       = Str::limit(strip_tags($prestation->description ?? ''), 120);
                                 @endphp
 
-                                <div class="border border-gray-100 rounded-2xl px-3 py-3 bg-[#fdfbf8]">
+                                <div class="border border-gray-100 rounded-2xl px-3 py-3 bg-[#fdfbf8] space-y-2">
                                     <div class="flex items-start justify-between gap-2">
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 min-w-0">
                                             <p class="text-[15px] font-semibold text-gray-900 break-words">
                                                 {{ $prestation->name }}
                                             </p>
@@ -342,7 +331,7 @@
                                     </div>
 
                                     @if($truncated)
-                                        <p class="mt-2 text-[13px] text-gray-700 leading-snug break-words">
+                                        <p class="mt-1 text-[13px] text-gray-700 leading-snug break-words">
                                             {{ $truncated }}
                                         </p>
                                     @endif
@@ -353,12 +342,12 @@
                 </x-ts-card>
             @endif
 
-            {{-- ÉVÉNEMENTS --}}
+            {{-- ─────────────────── ÉVÉNEMENTS ─────────────────── --}}
             @if($events->count() > 0)
-                <x-ts-card class="rounded-3xl shadow-md border border-secondary-50 bg-white px-5 py-5">
+                <x-ts-card class="rounded-3xl shadow-md border border-secondary-50 bg-white px-5 py-6">
                     <div class="space-y-4">
                         <div class="flex items-center gap-2">
-                            <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-secondary-50">
+                            <div class="w-8 h-8 rounded-2xl bg-secondary-50 flex items-center justify-center">
                                 <i class="fas fa-calendar-alt text-secondary-700 text-sm"></i>
                             </div>
                             <h2 class="text-lg font-semibold text-gray-900">
@@ -373,6 +362,7 @@
                                         ? $event->number_of_spot - $event->reservations->count()
                                         : null;
                                 @endphp
+
                                 <div class="border border-gray-100 rounded-2xl px-3 py-3 bg-[#fdfbf8] space-y-2">
                                     <p class="text-[15px] font-semibold text-[#854f38] break-words">
                                         {{ $event->name }}
@@ -398,7 +388,8 @@
                                         @if($event->associatedProduct && $event->associatedProduct->price > 0)
                                             <p>
                                                 <i class="fas fa-tag mr-1 text-secondary-600 text-xs"></i>
-                                                {{ __('Prix :') }} {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                                                {{ __('Prix :') }}
+                                                {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
                                             </p>
                                         @endif
                                     </div>
@@ -429,11 +420,11 @@
                 </x-ts-card>
             @endif
 
-            {{-- TÉMOIGNAGES (mobile-friendly) --}}
-            <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-5">
+            {{-- ─────────────────── TÉMOIGNAGES ─────────────────── --}}
+            <x-ts-card class="rounded-3xl shadow-md border border-primary-50 bg-white px-5 py-6">
                 <div class="space-y-4">
                     <div class="flex items-center gap-2">
-                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-primary-50">
+                        <div class="w-8 h-8 rounded-2xl bg-primary-50 flex items-center justify-center">
                             <i class="fas fa-comments text-primary-700 text-sm"></i>
                         </div>
                         <h2 class="text-lg font-semibold text-gray-900">
@@ -446,7 +437,7 @@
                             @foreach($testimonials as $testimonial)
                                 @php
                                     $isGoogle = $testimonial->source === 'google';
-                                    $author = $isGoogle
+                                    $author   = $isGoogle
                                         ? ($testimonial->reviewer_name ?? 'Client Google')
                                         : optional($testimonial->clientProfile)->first_name;
 
@@ -458,7 +449,7 @@
                                 <div class="border-l-4 {{ $isGoogle ? 'border-[#8ea633]' : 'border-[#854f38]' }} bg-[#f9fafb] rounded-md px-3 py-3 space-y-2">
                                     <div class="flex items-center justify-between gap-2">
                                         <div class="flex items-center gap-2">
-                                            <p class="text-[13px] font-semibold text-gray-900">
+                                            <p class="text-[14px] font-semibold text-gray-900">
                                                 {{ $author ?? __('Client') }}
                                             </p>
 
@@ -483,7 +474,7 @@
                                         @endif
                                     </div>
 
-                                    <p class="text-[13px] text-gray-700 italic leading-snug whitespace-pre-line">
+                                    <p class="text-[14px] text-gray-700 italic leading-snug whitespace-pre-line break-words">
                                         "{{ $testimonial->testimonial }}"
                                     </p>
 
@@ -494,30 +485,29 @@
                             @endforeach
                         </div>
                     @else
-                        <p class="text-[13px] text-gray-600">
+                        <p class="text-[14px] text-gray-600">
                             {{ __('Les témoignages des clients seront bientôt disponibles ici.') }}
                         </p>
                     @endif
                 </div>
             </x-ts-card>
 
-            {{-- Small hint --}}
             <p class="text-[11px] text-gray-500 text-center leading-relaxed px-4">
-                {{ __('Vous pourrez à tout moment revenir sur cette fiche depuis vos favoris ou depuis une recherche de praticien.') }}
+                {{ __('Vous pourrez retrouver ce praticien via vos favoris ou une nouvelle recherche.') }}
             </p>
         </div>
 
-        {{-- MODAL: Demande d’information --}}
+        {{-- ─────────────────── MODAL: Demande d’information ─────────────────── --}}
         <div
             x-show="infoOpen"
             x-cloak
             class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
         >
             <div
-                class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 pb-6 mx-auto"
+                class="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 mx-auto"
                 x-on:click.outside="infoOpen = false"
             >
-                <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center justify-between mb-4">
                     <h2 class="text-[18px] font-semibold text-[#647a0b]">
                         {{ __('Demander une information') }}
                     </h2>
@@ -537,14 +527,12 @@
                         name="first_name"
                         label="{{ __('Prénom') }}"
                         required
-                        class="text-[14px]"
                     />
 
                     <x-ts-input
                         name="last_name"
                         label="{{ __('Nom') }}"
                         required
-                        class="text-[14px]"
                     />
 
                     <x-ts-input
@@ -552,18 +540,16 @@
                         type="email"
                         label="{{ __('Adresse email') }}"
                         required
-                        class="text-[14px]"
                     />
 
                     <x-ts-input
                         name="phone"
                         label="{{ __('Téléphone (optionnel)') }}"
                         placeholder="06 12 34 56 78"
-                        class="text-[14px]"
                     />
 
                     <div class="space-y-1">
-                        <label for="message" class="block text-[13px] font-medium text-gray-800">
+                        <label for="message" class="block text-sm font-medium text-gray-800">
                             {{ __('Votre message') }}
                         </label>
                         <textarea
@@ -620,7 +606,7 @@
         </div>
     </div>
 
-    {{-- Schema.org (reuses the same logic as your web view, but lighter) --}}
+    {{-- ─────────────────── SCHEMA.ORG (LocalBusiness + Reviews + Rating) ─────────────────── --}}
     @php
         $reviewItems = $testimonials->map(function ($t) {
             $isGoogle = $t->source === 'google';
@@ -656,7 +642,7 @@
             '@context'  => 'https://schema.org',
             '@type'     => 'LocalBusiness',
             '@id'       => url()->current(),
-            'name'      => $therapist->company_name ?? $therapist->name,
+            'name'      => $nameLabel,
             'url'       => url()->current(),
             'image'     => $therapist->profile_picture
                 ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
@@ -679,6 +665,7 @@
             ] : null,
         ];
 
+        // Nettoyage des clés null top-level
         $schemaData = array_filter($schemaData, fn($v) => !is_null($v));
     @endphp
 
