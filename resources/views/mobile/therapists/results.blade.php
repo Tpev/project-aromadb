@@ -1,13 +1,13 @@
 {{-- resources/views/mobile/therapists/results.blade.php --}}
 @php
     // Dynamic SEO text for the mobile page
-    if(isset($specialty) && isset($region)) {
+    if (isset($specialty) && isset($region)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region));
         $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade.";
-    } elseif(isset($specialty)) {
+    } elseif (isset($specialty)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty));
         $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur AromaMade.";
-    } elseif(isset($region)) {
+    } elseif (isset($region)) {
         $pageTitle = "Résultats en " . ucfirst(str_replace('-', ' ', $region));
         $pageDescription = "Recherchez des praticiens en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade.";
     } else {
@@ -36,7 +36,7 @@
         class="min-h-screen flex flex-col px-6 py-6"
         style="background: radial-gradient(circle at top, #fffaf3 0, #f7f4ec 40%, #eee7dc 100%);"
     >
-        <div class="w-full max-w-md mx-auto space-y-6">
+        <div class="w-full max-w-lg mx-auto space-y-7">
 
             {{-- Top bar: back + summary --}}
             <div class="flex items-center justify-between">
@@ -66,7 +66,7 @@
                     @endif
                 </span>
 
-                <h1 class="text-[20px] font-extrabold text-gray-900 leading-snug">
+                <h1 class="text-[21px] font-extrabold text-gray-900 leading-snug">
                     {{ $heading }}
                 </h1>
 
@@ -80,13 +80,13 @@
             </div>
 
             {{-- Results list --}}
-            <div class="space-y-4 pb-4">
+            <div class="space-y-5 pb-4">
                 @forelse($therapists as $therapist)
-                    <x-ts-card class="rounded-3xl shadow-md border border-primary-50 px-4 py-4">
-                        <div class="flex items-start gap-3">
-                            {{-- Avatar --}}
+                    <x-ts-card class="rounded-3xl shadow-lg border border-primary-50 px-4 py-4 bg-white/95">
+                        <div class="flex items-start gap-4">
+                            {{-- Avatar (bigger) --}}
                             <div class="shrink-0">
-                                <div class="w-11 h-11 rounded-2xl overflow-hidden bg-primary-50 flex items-center justify-center">
+                                <div class="w-14 h-14 rounded-2xl overflow-hidden bg-primary-50 flex items-center justify-center border border-primary-100">
                                     @php
                                         $avatar = $therapist->profile_picture
                                             ? asset('storage/' . $therapist->profile_picture)
@@ -100,7 +100,7 @@
                                             class="w-full h-full object-cover"
                                         >
                                     @else
-                                        <span class="text-[16px] font-semibold text-primary-700">
+                                        <span class="text-[18px] font-semibold text-primary-700">
                                             {{ mb_substr($therapist->name ?? 'A', 0, 1) }}
                                         </span>
                                     @endif
@@ -108,8 +108,8 @@
                             </div>
 
                             {{-- Main info --}}
-                            <div class="flex-1 space-y-1">
-                                <div class="flex items-center justify-between gap-2">
+                            <div class="flex-1 space-y-1.5">
+                                <div class="flex items-start justify-between gap-2">
                                     <div class="space-y-0.5">
                                         <div class="text-[15px] font-semibold text-gray-900 leading-tight">
                                             {{ $therapist->name }}
@@ -120,6 +120,13 @@
                                                 {{ $therapist->company_name }}
                                             </div>
                                         @endif
+
+                                        {{-- Profile description (specialty / tagline) --}}
+                                        @if(!empty($therapist->profile_description))
+                                            <div class="text-[11px] text-primary-700 leading-snug">
+                                                {{ $therapist->profile_description }}
+                                            </div>
+                                        @endif>
                                     </div>
 
                                     @if($therapist->verified ?? false)
@@ -174,7 +181,9 @@
                                 {{-- About preview --}}
                                 @php
                                     $aboutPlain = strip_tags($therapist->about ?? '');
-                                    $aboutPreview = $aboutPlain !== '' ? \Illuminate\Support\Str::limit($aboutPlain, 120) : __('Informations à venir pour ce praticien.');
+                                    $aboutPreview = $aboutPlain !== ''
+                                        ? \Illuminate\Support\Str::limit($aboutPlain, 120)
+                                        : __('Informations à venir pour ce praticien.');
                                 @endphp
 
                                 <p class="mt-2 text-[11px] text-gray-600 leading-snug">
