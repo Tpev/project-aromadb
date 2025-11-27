@@ -28,7 +28,7 @@
 
                 {{-- CLIENT – carte principale --}}
                 <x-ts-card class="rounded-3xl shadow-lg border border-primary-50">
-                    <a href="{{ route('mobile.therapists.search') }}" class="flex flex-col gap-4">
+                    <a href="{{ route('mobile.therapists.index') }}" class="flex flex-col gap-4">
                         <div class="flex items-start gap-4">
                             <div class="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-50">
                                 <i class="fas fa-user text-sm text-primary-700"></i>
