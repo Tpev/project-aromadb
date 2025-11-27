@@ -7,8 +7,9 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/mobile.js',
-                'resources/css/mobile.css',
+                'resources/js/mobile.js', 
+                'resources/css/mobile.css', 
+            ],
             refresh: true,
         }),
     ],
