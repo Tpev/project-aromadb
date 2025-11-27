@@ -156,7 +156,7 @@ class TherapistSearchController extends Controller
             ->where('is_therapist', true)
             ->firstOrFail();
 
-        // TODO: create a dedicated mobile profile view
+        // You can later build a nicer mobile profile view
         return view('mobile.therapists.show', compact('therapist'));
     }
 
