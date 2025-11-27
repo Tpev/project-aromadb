@@ -27,7 +27,7 @@ class TherapistSearchController extends Controller
             ->where('slug', '!=', '')
             ->where('visible_annuarire_admin_set', true);
 
-        // -------- Location filter (User + all practiceLocations) --------
+        // -------- Location filter (User + practiceLocations) --------
         if (!empty($data['location'])) {
             $loc = trim($data['location']);
 
@@ -45,7 +45,7 @@ class TherapistSearchController extends Controller
             });
         }
 
-        // -------- Specialty filter (JSON or plain text) --------
+        // -------- Specialty filter --------
         if (!empty($data['specialty'])) {
             $spec = trim($data['specialty']);
             $base->where(function ($q) use ($spec) {
@@ -57,7 +57,7 @@ class TherapistSearchController extends Controller
         $specialty = $data['specialty'] ?? null;
         $region    = $data['location'] ?? null;
 
-        // -------- No name provided => simple filtered list --------
+        // -------- No name => just filters --------
         if (empty($data['name'])) {
             $therapists = $base->get();
 
@@ -72,7 +72,6 @@ class TherapistSearchController extends Controller
         $nameTerm = trim($data['name']);
         $normTerm = $this->normalize($nameTerm);
 
-        // Prefilter for performance
         $prefilter = (clone $base)
             ->where(function ($q) use ($nameTerm) {
                 $q->where('name', 'like', '%' . $nameTerm . '%')
@@ -83,12 +82,10 @@ class TherapistSearchController extends Controller
             ->limit(250)
             ->get();
 
-        // If empty, widen
         if ($prefilter->isEmpty()) {
             $prefilter = (clone $base)->limit(500)->get();
         }
 
-        // Compute fuzzy score
         $scored = $prefilter->map(function ($t) use ($normTerm) {
             $fullName    = $t->name ?? '';
             $companyName = $t->company_name ?? '';
@@ -132,7 +129,7 @@ class TherapistSearchController extends Controller
         });
 
         $len       = max(1, mb_strlen($normTerm));
-        $threshold = max(1, (int) floor($len * 0.4)); // ~40% edits
+        $threshold = max(1, (int) floor($len * 0.4));
 
         $therapists = $scored
             ->filter(fn ($t) => $t->am_fuzzy_score <= $threshold)
@@ -153,31 +150,31 @@ class TherapistSearchController extends Controller
     /**
      * Mobile public profile.
      */
-    public function show($slug)
+    public function show(string $slug)
     {
         $therapist = User::where('slug', $slug)
             ->where('is_therapist', true)
             ->firstOrFail();
 
-        // You can create a dedicated mobile profile view later:
+        // TODO: create a dedicated mobile profile view
         return view('mobile.therapists.show', compact('therapist'));
     }
 
     // ----------------- Helpers -----------------
 
-    /** Normalize to lowercase ASCII, collapse spaces */
     private function normalize(string $s): string
     {
         $s = trim(mb_strtolower($s, 'UTF-8'));
         $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
-        if ($t !== false && $t !== null) $s = $t;
+        if ($t !== false && $t !== null) {
+            $s = $t;
+        }
         $s = preg_replace('/[^a-z0-9 ]+/', ' ', $s);
         $s = preg_replace('/\s+/', ' ', $s);
 
         return trim($s);
     }
 
-    /** Levenshtein with guards */
     private function lev(string $a, string $b): int
     {
         if ($a === '' || $b === '') {

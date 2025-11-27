@@ -1,21 +1,20 @@
 {{-- resources/views/mobile/therapists/results.blade.php --}}
 @php
-    // Simple dynamic title / description for mobile
+    // Dynamic SEO text for the mobile page
     if(isset($specialty) && isset($region)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region));
-        $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade Pro.";
+        $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade.";
     } elseif(isset($specialty)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty));
-        $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur AromaMade Pro.";
+        $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur AromaMade.";
     } elseif(isset($region)) {
         $pageTitle = "Résultats en " . ucfirst(str_replace('-', ' ', $region));
-        $pageDescription = "Recherchez des praticiens en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade Pro.";
+        $pageDescription = "Recherchez des praticiens en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade.";
     } else {
-        $pageTitle = "Résultats de recherche | AromaMade Pro";
-        $pageDescription = "Trouvez des praticiens en médecines douces sur AromaMade Pro.";
+        $pageTitle = "Résultats de recherche | AromaMade";
+        $pageDescription = "Trouvez des praticiens en médecines douces sur AromaMade.";
     }
 
-    // Dynamic heading used in UI
     if (isset($specialty) && isset($region)) {
         $heading = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region));
     } elseif (isset($specialty)) {
@@ -50,7 +49,7 @@
                 </a>
 
                 <span class="text-[11px] text-gray-500">
-                    {{ $count }} {{ Str::plural('praticien', $count) }}
+                    {{ $count }} {{ \Illuminate\Support\Str::plural('praticien', $count) }}
                 </span>
             </div>
 
@@ -61,7 +60,7 @@
                 >
                     <i class="fas fa-map-marker-alt mr-1.5 text-[10px]"></i>
                     @if(isset($specialty) || isset($region))
-                        {{ trim(($specialty ?? 'Toutes spécialités') . ' • ' . ($region ?? 'Tous lieux')) }}
+                        {{ trim(($specialty ?? __('Toutes spécialités')) . ' • ' . ($region ?? __('Tous lieux'))) }}
                     @else
                         {{ __('Toutes spécialités • Tous lieux') }}
                     @endif
@@ -141,7 +140,7 @@
                                             @endif
                                         </span>
                                     </div>
-                                @endif>
+                                @endif
 
                                 {{-- Services / spécialités --}}
                                 @php
@@ -192,7 +191,7 @@
                                                     ? $therapist->testimonials()->count()
                                                     : 0;
                                             @endphp
-                                            {{ $testimonialsCount }} {{ Str::plural('avis', $testimonialsCount) }}
+                                            {{ $testimonialsCount }} {{ \Illuminate\Support\Str::plural('avis', $testimonialsCount) }}
                                         </span>
                                     </div>
 
