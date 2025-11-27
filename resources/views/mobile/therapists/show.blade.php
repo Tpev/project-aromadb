@@ -132,7 +132,7 @@
                         <div class="w-full flex flex-col gap-3 mt-2">
                             <x-ts-button
                                 tag="a"
-                                href="{{ route('appointments.createPatient', $therapist->id) }}"
+                                href="{{ route('mobile.appointments.create_from_therapist', $therapist->slug) }}"
                                 class="w-full !bg-white !text-[#647a0b] !font-semibold !border-0 hover:!bg-primary-50"
                             >
                                 <i class="fas fa-calendar-plus mr-2"></i>

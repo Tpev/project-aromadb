@@ -7,6 +7,7 @@ use App\Http\Controllers\Mobile\TherapistSearchController;
 
 // Profile controller
 use App\Http\Controllers\Mobile\MobileTherapistController;
+use App\Http\Controllers\Mobile\MobileAppointmentController;
 
 // ---------------------------------------------------------
 // MOBILE AREA (single, unified group)test
@@ -45,4 +46,22 @@ Route::middleware(['web'])
         // Send information request (modal form)
         Route::post('/therapeute/{slug}/information', [MobileTherapistController::class, 'sendInformationRequest'])
             ->name('therapists.information');
+			
+		        Route::get('/therapeute/{slug}/prendre-rdv', [MobileAppointmentController::class, 'createFromTherapistSlug'])
+            ->name('appointments.create_from_therapist');
+
+        Route::post('/rdv', [MobileAppointmentController::class, 'store'])
+            ->name('appointments.store');
+
+        Route::get('/rdv/{token}', [MobileAppointmentController::class, 'show'])
+            ->name('appointments.show');
+
+        Route::get('/rdv/{token}/ics', [MobileAppointmentController::class, 'downloadICS'])
+            ->name('appointments.ics');
+
+        Route::get('/api/slots', [MobileAppointmentController::class, 'getAvailableSlotsForPatient'])
+            ->name('appointments.slots');
+
+        Route::get('/api/dates-concretes', [MobileAppointmentController::class, 'availableConcreteDatesPatient'])
+            ->name('appointments.concrete_dates');
     });
