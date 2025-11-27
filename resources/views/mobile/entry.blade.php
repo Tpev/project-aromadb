@@ -27,8 +27,11 @@
             <div class="space-y-6">
 
                 {{-- CLIENT – carte principale --}}
-                <x-ts-card class="rounded-3xl shadow-lg border border-primary-50">
-                    <a href="{{ route('mobile.therapists.index') }}" class="flex flex-col gap-4">
+                <x-ts-card class="rounded-3xl shadow-lg border border-primary-50 p-0 overflow-hidden">
+                    <a
+                        href="{{ route('mobile.therapists.index') }}"
+                        class="flex flex-col gap-4 px-4 py-4 active:scale-[0.99] transition-transform duration-100"
+                    >
                         <div class="flex items-start gap-4">
                             <div class="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-50">
                                 <i class="fas fa-user text-sm text-primary-700"></i>
@@ -58,17 +61,18 @@
                         <div class="flex items-center justify-between mt-1">
                             <div class="flex items-center gap-1.5 text-[11px] text-gray-500">
                                 <i class="fas fa-map-marker-alt text-[10px] text-secondary-500"></i>
-                                <span>{{ __('Recherche par lieu, spécialité ou type de soin.') }}</span>
+                                <span class="break-words">
+                                    {{ __('Recherche par lieu, spécialité ou type de soin.') }}
+                                </span>
                             </div>
 
-                            <x-ts-button
-                                size="xs"
-                                rounded
-                                class="!text-[11px] !px-3 !py-1 !bg-primary-600 !border-0 !text-white hover:!bg-primary-700"
+                            {{-- Faux bouton (span) pour éviter le <button> dans un <a> --}}
+                            <span
+                                class="inline-flex items-center justify-center text-[11px] px-3 py-1 rounded-full bg-primary-600 text-white font-semibold shadow-sm"
                             >
                                 {{ __('Continuer') }}
                                 <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
-                            </x-ts-button>
+                            </span>
                         </div>
                     </a>
                 </x-ts-card>
