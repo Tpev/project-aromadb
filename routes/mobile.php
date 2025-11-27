@@ -9,7 +9,7 @@ use App\Http\Controllers\Mobile\TherapistSearchController;
 use App\Http\Controllers\Mobile\MobileTherapistController;
 
 // ---------------------------------------------------------
-// MOBILE AREA (single, unified group)
+// MOBILE AREA (single, unified group)test
 // ---------------------------------------------------------
 Route::middleware(['web'])
     ->prefix('mobile')
