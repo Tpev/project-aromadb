@@ -16,22 +16,23 @@ Route::middleware(['web'])
     ->name('mobile.')
     ->group(function () {
 
-        // Entry screen: "Espace Client / Espace Praticien"
+        // ENTRY: /mobile  → mobile.entry
         Route::get('/', function () {
             return view('mobile.entry');
         })->name('entry');
 
         // ---------------------------------------------------------
         // SEARCH
+        // /mobile/recherche-praticien → *NEW* route name to avoid any collision
         // ---------------------------------------------------------
 
         // Search form page
-        Route::get('/therapeutes', [TherapistSearchController::class, 'index'])
-            ->name('therapists.index');
+        Route::get('/recherche-praticien', [TherapistSearchController::class, 'index'])
+            ->name('search.index');
 
         // Search action handler (POST from the form)
-        Route::post('/therapeutes/rechercher', [TherapistSearchController::class, 'search'])
-            ->name('therapists.search');
+        Route::post('/recherche-praticien', [TherapistSearchController::class, 'search'])
+            ->name('search.submit');
 
         // ---------------------------------------------------------
         // THERAPIST PUBLIC PROFILE (MOBILE VERSION)

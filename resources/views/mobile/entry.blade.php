@@ -29,7 +29,7 @@
                 {{-- CLIENT – carte principale --}}
                 <x-ts-card class="rounded-3xl shadow-lg border border-primary-50 p-0 overflow-hidden">
                     <a
-                        href="{{ route('mobile.therapists.index') }}"
+                        href="{{ route('mobile.search.index') }}"
                         class="flex flex-col gap-4 px-4 py-4 active:scale-[0.99] transition-transform duration-100"
                     >
                         <div class="flex items-start gap-4">

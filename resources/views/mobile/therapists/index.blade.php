@@ -34,7 +34,7 @@ Trouvez rapidement un praticien en médecines douces depuis l’app AromaMade : 
             <x-ts-card class="rounded-3xl shadow-lg border border-primary-50 px-4 py-5">
                 <form
                     method="POST"
-                    action="{{ route('mobile.therapists.search') }}"
+                    action="{{ route('mobile.search.submit') }}"
                     class="space-y-4"
                 >
                     @csrf
