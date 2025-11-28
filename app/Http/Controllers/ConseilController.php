@@ -35,8 +35,8 @@ class ConseilController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'attachment' => 'nullable|file|mimes:pdf|max:2048',
+            'image' => 'nullable|image|max:4048',
+            'attachment' => 'nullable|file|mimes:pdf|max:10048',
             'tag' => 'nullable|string|max:255',
         ]);
 
@@ -96,8 +96,8 @@ public function edit(Conseil $conseil)
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'content' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'attachment' => 'nullable|file|mimes:pdf|max:2048',
+            'image' => 'nullable|image|max:4048',
+            'attachment' => 'nullable|file|mimes:pdf|max:10048',
             'tag' => 'nullable|string|max:255',
         ]);
 
