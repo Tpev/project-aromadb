@@ -10,6 +10,7 @@ use App\Http\Controllers\Mobile\MobileTherapistController;
 use App\Http\Controllers\Mobile\MobileAppointmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\AppointmentController;
 
 
 // ---------------------------------------------------------
@@ -34,6 +35,15 @@ Route::middleware(['web'])
             ->middleware('auth')
             ->name('logout');
 
+        // 📅 INDEX RDV PRO (mobile)
+        Route::get('/rendez-vous', [AppointmentController::class, 'index'])
+            ->middleware('auth')
+            ->name('appointments.index');
+			
+			
+		Route::get('/rendez-vous/{appointment}', [AppointmentController::class, 'show'])
+			->middleware(['auth'])
+			->name('appointments.show');
 
         // ---------------------------------------------------------
         // MOBILE DASHBOARD (PRO)
@@ -81,7 +91,7 @@ Route::middleware(['web'])
             ->name('appointments.store');
 
         Route::get('/rdv/{token}', [MobileAppointmentController::class, 'show'])
-            ->name('appointments.show');
+            ->name('rdv.show');
 
         Route::get('/rdv/{token}/ics', [MobileAppointmentController::class, 'downloadICS'])
             ->name('appointments.ics');

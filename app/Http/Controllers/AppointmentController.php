@@ -31,83 +31,81 @@ class AppointmentController extends Controller
     /**
      * Display a listing of the appointments.
      */
-public function index()
-{
-    // 1. Redirige les comptes inactifs
-    if (Auth::user()->license_status === 'inactive') {
-        return redirect('/license-tiers/pricing');
-    }
+    /**
+     * Display a listing of the appointments.
+     */
+    public function index(Request $request)
+    {
+        // 1. Redirige les comptes inactifs
+        if (Auth::user()->license_status === 'inactive') {
+            return redirect('/license-tiers/pricing');
+        }
 
-    // 2. Charge tous les rendez-vous du thérapeute
-    $appointments = Appointment::where('user_id', Auth::id())
-        ->with(['clientProfile', 'product'])
-        ->get();
+        // 2. Charge tous les rendez-vous du thérapeute
+        $appointments = Appointment::where('user_id', Auth::id())
+            ->with(['clientProfile', 'product'])
+            ->get();
 
-    $events = [];
+        $events = [];
 
+        /* -------------------------------------------------------------------------
+         | Construction du tableau $events pour FullCalendar
+         | ---------------------------------------------------------------------- */
+        foreach ($appointments as $appointment) {
 
-/* -------------------------------------------------------------------------
- | Construction du tableau $events pour FullCalendar
- | ---------------------------------------------------------------------- */
-foreach ($appointments as $appointment) {
+            $isPast = Carbon::parse($appointment->appointment_date)->isPast();
 
-    $isPast = Carbon::parse($appointment->appointment_date)->isPast();
+            // ---------- Titre ----------
+            if ($appointment->external) {
+                $title = $appointment->notes ?: 'Occupé';
+            } else {
+                $client = optional($appointment->clientProfile);
+                $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? '')) ?: 'Rendez-vous';
+            }
 
-    /* ---------- Titre ---------- */
-    if ($appointment->external) {
-        // Créneau importé (pas de client lié)
-        $title = $appointment->notes ?: 'Occupé';
-    } else {
-        // Rendez-vous interne
-        $client = optional($appointment->clientProfile);
-        $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? '')) ?: 'Rendez-vous';
-    }
+            // ---------- Couleur ----------
+            $color = $appointment->external
+                ? '#999999'
+                : ($isPast ? '#854f38' : '#647a0b');
 
-    /* ---------- Couleur ---------- */
-    $color = $appointment->external
-        ? '#999999'                 // gris : occupé (Google)
-        : ($isPast ? '#854f38'      // brun : passé
-                   : '#647a0b');    // vert : futur
-
-    /* ---------- Push dans FullCalendar ---------- */
-    $events[] = [
-        'title'     => $title,
-        'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
-        'end'       => $appointment->appointment_date
-                                   ->copy()
-                                   ->addMinutes($appointment->duration ?? 0)
-                                   ->format('Y-m-d H:i:s'),
-        // ⇒ pas de lien cliquable pour les imports Google
-        'url'       => $appointment->external
-                        ? null
-                        : route('appointments.show', $appointment->id),
-        'color'     => $color,
-        'textColor' => $isPast ? '#ffffff' : '#636363',
-    ];
-}
-
-
-
-    /* -------------------------------------------------------------
-     | 4. Ajoute les indisponibilités (gris)
-     * ------------------------------------------------------------*/
-    $unavailabilities = Unavailability::where('user_id', Auth::id())
-        ->get()
-        ->map(function ($unavailability) {
-            return [
-                'title' => $unavailability->reason ?: 'Indisponible',
-                'start' => $unavailability->start_date->format('Y-m-d H:i:s'),
-                'end'   => $unavailability->end_date->format('Y-m-d H:i:s'),
-                'color' => '#808080',                        // gris
-                'url'   => route('unavailabilities.index'),
+            // ---------- Push dans FullCalendar ----------
+            $events[] = [
+                'title'     => $title,
+                'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
+                'end'       => $appointment->appointment_date
+                                        ->copy()
+                                        ->addMinutes($appointment->duration ?? 0)
+                                        ->format('Y-m-d H:i:s'),
+                'url'       => $appointment->external
+                                ? null
+                                : route('appointments.show', $appointment->id),
+                'color'     => $color,
+                'textColor' => $isPast ? '#ffffff' : '#636363',
             ];
-        });
+        }
 
-    $events = array_merge($events, $unavailabilities->toArray());
+        // 4. Indispos
+        $unavailabilities = Unavailability::where('user_id', Auth::id())
+            ->get()
+            ->map(function ($unavailability) {
+                return [
+                    'title' => $unavailability->reason ?: 'Indisponible',
+                    'start' => $unavailability->start_date->format('Y-m-d H:i:s'),
+                    'end'   => $unavailability->end_date->format('Y-m-d H:i:s'),
+                    'color' => '#808080',
+                    'url'   => route('unavailabilities.index'),
+                ];
+            });
 
-    // 5. Retourne la vue
-    return view('appointments.index', compact('appointments', 'events'));
-}
+        $events = array_merge($events, $unavailabilities->toArray());
+
+        // 🔥 Choix de la vue en fonction de la route (web vs mobile)
+        $view = $request->routeIs('mobile.*')
+            ? 'mobile.appointments.index'
+            : 'appointments.index';
+
+        return view($view, compact('appointments', 'events'));
+    }
 
 
 
@@ -257,9 +255,6 @@ public function store(Request $request)
 
 
 
-    /**
-     * Display the specified appointment.
-     */
 public function show(Appointment $appointment)
 {
     // Ensure the appointment belongs to the authenticated user
@@ -269,26 +264,41 @@ public function show(Appointment $appointment)
     $mode = 'Non spécifié';
     if ($appointment->product) {
         if ($appointment->product->visio) {
-            $mode = 'En Visio';
+            $mode = 'En visio';
         } elseif ($appointment->product->adomicile) {
-            $mode = 'À Domicile';
+            $mode = 'À domicile';
         } elseif ($appointment->product->dans_le_cabinet) {
-            $mode = 'Dans le Cabinet';
+            $mode = 'Au cabinet';
         }
     }
 
     // Get the associated meeting if it exists
     $meetingLink = null;
+    $meetingLinkPatient = null;
+
     if ($appointment->meeting) {
-        $meetingLink = route('webrtc.room', ['room' => $appointment->meeting->room_token]) . '#1'; // Construct the link
+        $meetingLink       = route('webrtc.room', ['room' => $appointment->meeting->room_token]) . '#1';
+        $meetingLinkPatient = route('webrtc.room', ['room' => $appointment->meeting->room_token]);
     }
-	
-	$meetingLinkPatient = null;
-    if ($appointment->meeting) {
-        $meetingLinkPatient = route('webrtc.room', ['room' => $appointment->meeting->room_token]); // Construct the link
-    }
-	
-    return view('appointments.show', compact('appointment', 'mode', 'meetingLink','meetingLinkPatient'));
+
+    // If request comes from /mobile/... → use mobile view
+	if (request()->routeIs('mobile.appointments.*') || request()->is('mobile/*')) {
+		return view('mobile.appointments.show1', compact(
+			'appointment',
+			'mode',
+			'meetingLink',
+			'meetingLinkPatient'
+		));
+	}
+
+
+    // Default: desktop/web view
+    return view('appointments.show', compact(
+        'appointment',
+        'mode',
+        'meetingLink',
+        'meetingLinkPatient'
+    ));
 }
 
 
