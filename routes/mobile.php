@@ -24,7 +24,6 @@ Route::middleware(['web'])
         // MOBILE LOGIN + LOGOUT
         // ---------------------------------------------------------
         Route::get('/login', [AuthenticatedSessionController::class, 'createMobile'])
-            ->middleware('guest')
             ->name('login');
 
         Route::post('/login', [AuthenticatedSessionController::class, 'storeMobile'])
