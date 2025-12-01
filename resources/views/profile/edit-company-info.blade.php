@@ -143,7 +143,34 @@
 						<p class="text-red-500">{{ $message }}</p>
 					@enderror
 				</div>
+<!-- CGV PDF Upload -->
+                <div class="details-box">
+                    <label class="details-label" for="cgv_pdf">
+                        {{ __('Conditions Générales de Vente (CGV) – PDF') }}
+                    </label>
 
+                    @if(auth()->user()->cgv_pdf_path)
+                        <p class="mb-2">
+                            {{ __('CGV actuelles :') }}
+                            <a href="{{ asset('storage/' . auth()->user()->cgv_pdf_path) }}" 
+                               target="_blank" 
+                               rel="noopener"
+                               class="text-blue-600 underline">
+                                {{ __('Voir / télécharger vos CGV') }}
+                            </a>
+                        </p>
+                    @endif
+
+                    <input type="file" id="cgv_pdf" name="cgv_pdf" class="form-control" accept="application/pdf">
+
+                    <small class="text-gray-500">
+                        {{ __('Formats acceptés : PDF uniquement. Taille maximale ~10 Mo.') }}
+                    </small>
+
+                    @error('cgv_pdf')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
 
 <!-- Willingness to Accept Online Appointments -->
 <div class="details-box">

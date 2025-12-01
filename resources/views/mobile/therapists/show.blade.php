@@ -43,7 +43,17 @@
     @section('meta_description', $meta)
 
     <div
-        x-data="{ infoOpen: false }"
+        x-data="{
+            infoOpen: false,
+            imageOpen: false,
+            imageSrc: null,
+            imageAlt: '',
+        }"
+        x-on:open-image-modal.window="
+            imageSrc = $event.detail.src;
+            imageAlt = $event.detail.alt || '';
+            imageOpen = true;
+        "
         class="min-h-screen flex flex-col px-5 py-6 bg-[#f7f4ec]"
     >
         <div class="w-full max-w-lg mx-auto space-y-6">
@@ -229,6 +239,26 @@
                                 </div>
                             </div>
                         @endif
+
+                        @if($therapist->cgv_pdf_path)
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-file-pdf mt-1 text-secondary-600"></i>
+                                <div>
+                                    <p class="font-semibold text-gray-900">
+                                        {{ __('Conditions Générales de Vente (CGV)') }}
+                                    </p>
+                                    <a
+                                        href="{{ asset('storage/' . $therapist->cgv_pdf_path) }}"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="text-primary-700 font-medium underline text-[14px] break-words"
+                                    >
+                                        {{ __('Consulter les CGV du praticien') }}
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </x-ts-card>
@@ -342,7 +372,7 @@
                 </x-ts-card>
             @endif
 
-            {{-- ─────────────────── ÉVÉNEMENTS ─────────────────── --}}
+            {{-- ─────────────────── ÉVÉNEMENTS (ACCORDION CARDS) ─────────────────── --}}
             @if($events->count() > 0)
                 <x-ts-card class="rounded-3xl shadow-md border border-secondary-50 bg-white px-5 py-6">
                     <div class="space-y-4">
@@ -355,7 +385,7 @@
                             </h2>
                         </div>
 
-                        <div class="space-y-4">
+                        <div class="space-y-3">
                             @foreach($events as $event)
                                 @php
                                     $spotsLeft = $event->limited_spot
@@ -363,56 +393,125 @@
                                         : null;
                                 @endphp
 
-                                <div class="border border-gray-100 rounded-2xl px-3 py-3 bg-[#fdfbf8] space-y-2">
-                                    <p class="text-[15px] font-semibold text-[#854f38] break-words">
-                                        {{ $event->name }}
-                                    </p>
-
-                                    <div class="text-[13px] text-gray-700 space-y-1">
-                                        <p>
-                                            <i class="fas fa-calendar-alt mr-1 text-secondary-600 text-xs"></i>
-                                            {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
-                                        </p>
-                                        <p>
-                                            <i class="fas fa-map-marker-alt mr-1 text-secondary-600 text-xs"></i>
-                                            {{ $event->location }}
-                                        </p>
-
-                                        @if($event->limited_spot)
-                                            <p>
-                                                <i class="fas fa-users mr-1 text-secondary-600 text-xs"></i>
-                                                {{ __('Places restantes :') }} {{ max($spotsLeft, 0) }}
+                                <div
+                                    x-data="{ open: false }"
+                                    class="border border-gray-100 rounded-2xl bg-[#fdfbf8] px-3 py-3"
+                                >
+                                    {{-- HEADER --}}
+                                    <button
+                                        type="button"
+                                        class="w-full flex items-start justify-between gap-3 text-left"
+                                        @click="open = !open"
+                                    >
+                                        <div class="space-y-1 min-w-0">
+                                            <p class="text-[15px] font-semibold text-[#854f38] break-words">
+                                                {{ $event->name }}
                                             </p>
-                                        @endif
 
-                                        @if($event->associatedProduct && $event->associatedProduct->price > 0)
-                                            <p>
-                                                <i class="fas fa-tag mr-1 text-secondary-600 text-xs"></i>
-                                                {{ __('Prix :') }}
-                                                {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
-                                            </p>
-                                        @endif
-                                    </div>
+                                            <div class="text-[12px] text-gray-700 space-y-0.5">
+                                                <p>
+                                                    <i class="fas fa-calendar-alt mr-1 text-secondary-600 text-xs"></i>
+                                                    {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                                                </p>
+                                                <p>
+                                                    <i class="fas fa-map-marker-alt mr-1 text-secondary-600 text-xs"></i>
+                                                    {{ $event->location }}
+                                                </p>
+                                            </div>
+                                        </div>
 
-                                    @if($event->booking_required)
-                                        <div class="pt-1">
-                                            @if(!$event->limited_spot || ($spotsLeft > 0))
-                                                <x-ts-button
-                                                    tag="a"
-                                                    href="{{ route('events.reserve.create', $event->id) }}"
-                                                    size="sm"
-                                                    rounded
-                                                    class="!text-[12px] !px-3 !py-1.5 !bg-[#854f38] !text-white !border-0 hover:!bg-[#6a3f2c]"
+                                        <div class="flex flex-col items-end justify-between gap-1 shrink-0">
+                                            @if($event->associatedProduct && $event->associatedProduct->price > 0)
+                                                <p class="text-[13px] font-semibold text-[#854f38] whitespace-nowrap">
+                                                    {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                                                </p>
+                                            @endif
+
+                                            <div class="flex items-center gap-1 text-[11px] text-gray-500">
+                                                <span x-show="!open">{{ __('Voir plus') }}</span>
+                                                <span x-show="open" x-cloak>{{ __('Voir moins') }}</span>
+                                                <i
+                                                    class="fas fa-chevron-down text-[10px] transition-transform duration-200"
+                                                    :class="open ? 'rotate-180' : ''"
+                                                ></i>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    {{-- EXPANDED CONTENT --}}
+                                    <div
+                                        x-show="open"
+                                        x-transition
+                                        x-cloak
+                                        class="mt-3 pt-3 border-t border-gray-200 space-y-3 text-[13px] text-gray-700"
+                                    >
+                                        {{-- IMAGE (16:9 preview + fullscreen modal trigger) --}}
+                                        @if($event->image)
+                                            <button
+                                                type="button"
+                                                class="w-full"
+                                                @click.stop="$dispatch('open-image-modal', { src: '{{ asset("storage/" . $event->image) }}', alt: @js($event->name) })"
+                                            >
+                                                <div
+                                                    class="relative w-full overflow-hidden rounded-xl bg-gray-100"
+                                                    style="padding-top: 56.25%;"
                                                 >
-                                                    {{ __('Réserver ma place') }}
-                                                </x-ts-button>
-                                            @else
-                                                <span class="text-[12px] font-semibold text-red-500">
-                                                    {{ __('Complet') }}
-                                                </span>
+                                                    <img
+                                                        src="{{ asset('storage/' . $event->image) }}"
+                                                        alt="{{ $event->name }}"
+                                                        class="absolute inset-0 w-full h-full object-cover"
+                                                        loading="lazy"
+                                                    >
+                                                </div>
+                                            </button>
+                                        @endif
+
+                                        {{-- DESCRIPTION --}}
+                                        @if($event->description)
+                                            <p class="leading-snug break-words">
+                                                {{ $event->description }}
+                                            </p>
+                                        @endif
+
+                                        {{-- EXTRA INFO --}}
+                                        <div class="space-y-1">
+                                            @if($event->limited_spot)
+                                                <p>
+                                                    <i class="fas fa-users mr-1 text-secondary-600 text-xs"></i>
+                                                    {{ __('Places restantes :') }} {{ max($spotsLeft, 0) }}
+                                                </p>
+                                            @endif
+
+                                            @if($event->associatedProduct && $event->associatedProduct->price > 0)
+                                                <p>
+                                                    <i class="fas fa-tag mr-1 text-secondary-600 text-xs"></i>
+                                                    {{ __('Prix :') }}
+                                                    {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                                                </p>
                                             @endif
                                         </div>
-                                    @endif
+
+                                        {{-- BOOKING --}}
+                                        @if($event->booking_required)
+                                            <div class="pt-2">
+                                                @if(!$event->limited_spot || ($spotsLeft > 0))
+                                                    <x-ts-button
+                                                        tag="a"
+                                                        href="{{ route('events.reserve.create', $event->id) }}"
+                                                        size="sm"
+                                                        rounded
+                                                        class="!text-[12px] !px-3 !py-1.5 !bg-[#854f38] !text-white !border-0 hover:!bg-[#6a3f2c]"
+                                                    >
+                                                        {{ __('Réserver ma place') }}
+                                                    </x-ts-button>
+                                                @else
+                                                    <span class="text-[12px] font-semibold text-red-500">
+                                                        {{ __('Complet') }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
@@ -604,6 +703,33 @@
                 </form>
             </div>
         </div>
+
+        {{-- ─────────────────── FULLSCREEN IMAGE MODAL ─────────────────── --}}
+        <div
+            x-show="imageOpen"
+            x-cloak
+            x-transition.opacity
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+            @click="imageOpen = false"
+        >
+            <div class="relative max-w-full max-h-full px-4" @click.stop>
+                <button
+                    type="button"
+                    class="absolute -top-3 -right-3 bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm"
+                    @click="imageOpen = false"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <img
+                    :src="imageSrc"
+                    :alt="imageAlt"
+                    class="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl bg-black"
+                >
+            </div>
+        </div>
+
+        <style>[x-cloak]{ display:none !important; }</style>
     </div>
 
     {{-- ─────────────────── SCHEMA.ORG (LocalBusiness + Reviews + Rating) ─────────────────── --}}

@@ -59,6 +59,7 @@ class User extends Authenticatable
     'featured_until',
     'featured_weight',
 	   'buffer_time_between_appointments',
+	   'cgv_pdf_path',
 
     ];
 

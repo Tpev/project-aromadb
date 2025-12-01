@@ -287,6 +287,26 @@
                         </div>
                     </li>
                 @endif
+
+                @if ($therapist->cgv_pdf_path)
+                    <li class="flex items-start">
+                        <i class="fas fa-file-pdf text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <div>
+                            <h4 class="text-xl font-semibold text-[#647a0b]">
+                                {{ __('Conditions Générales de Vente') }}
+                            </h4>
+                            <p class="text-gray-700 mt-2">
+                                <a href="{{ asset('storage/' . $therapist->cgv_pdf_path) }}"
+                                   target="_blank"
+                                   rel="noopener"
+                                   class="text-[#854f38] hover:text-[#6a3f2c] underline">
+                                    {{ __('Consulter les CGV du praticien') }}
+                                </a>
+                            </p>
+                        </div>
+                    </li>
+                @endif
+
             </ul>
         </aside>
     </div>

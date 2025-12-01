@@ -107,6 +107,9 @@ public function updateCompanyInfo(Request $request)
         'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg,heic|max:3048', // Max 2MB
         //'accept_online_appointments' => 'sometimes|boolean', // Validation rule for boolean
 		'buffer_time_between_appointments' => 'nullable|integer|min:0',
+		'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
+
+		
     ]);
 
     // Get the authenticated user
@@ -148,6 +151,17 @@ if ($request->hasFile('profile_picture')) {
     $user->profile_picture = $path320;
 }
 
+/* ──────────── CGV PDF HANDLING ──────────── */
+if ($request->hasFile('cgv_pdf')) {
+    // Delete old CGV if present
+    if ($user->cgv_pdf_path && Storage::disk('public')->exists($user->cgv_pdf_path)) {
+        Storage::disk('public')->delete($user->cgv_pdf_path);
+    }
+
+    // Store new CGV PDF (storage/app/public/cgv/...)
+    $cgvPath = $request->file('cgv_pdf')->store('cgv', 'public');
+    $user->cgv_pdf_path = $cgvPath;
+}
 /* ────────────── SLUG (if company name changed) ───────────── */
 if (!empty($validatedData['company_name']) && $user->isDirty('company_name')) {
     $user->slug = User::createUniqueSlug($validatedData['company_name'], $user->id);
@@ -183,6 +197,7 @@ public function submitOnboarding(Request $request)
         'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,heic|max:3048', // Max 2MB
         // 'accept_online_appointments' => 'sometimes|boolean',
 		 'buffer_time_between_appointments' => 'nullable|integer|min:0',
+		 'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
     ]);
 
     // Get the authenticated user
@@ -223,7 +238,17 @@ public function submitOnboarding(Request $request)
         // Update the user's profile picture path
         $user->profile_picture = $path;
     }
+/* ──────────── CGV PDF HANDLING ──────────── */
+if ($request->hasFile('cgv_pdf')) {
+    // Delete old CGV if present
+    if ($user->cgv_pdf_path && Storage::disk('public')->exists($user->cgv_pdf_path)) {
+        Storage::disk('public')->delete($user->cgv_pdf_path);
+    }
 
+    // Store new CGV PDF (storage/app/public/cgv/...)
+    $cgvPath = $request->file('cgv_pdf')->store('cgv', 'public');
+    $user->cgv_pdf_path = $cgvPath;
+}
     // Generate slug if the company name is provided and different from the current one
     if (!empty($validatedData['company_name']) && $user->isDirty('company_name')) {
         $user->slug = User::createUniqueSlug($validatedData['company_name'], $user->id);
