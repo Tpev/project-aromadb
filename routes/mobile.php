@@ -11,12 +11,7 @@ use App\Http\Controllers\Mobile\MobileAppointmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
-// MOBILE LOGIN
-Route::get('/login', [AuthenticatedSessionController::class, 'createMobile'])
-    ->name('mobile.login');
 
-Route::post('/login', [AuthenticatedSessionController::class, 'storeMobile'])
-    ->name('mobile.login.store');
 
 // ---------------------------------------------------------
 // MOBILE AREA (single, unified group)test
