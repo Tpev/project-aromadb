@@ -81,14 +81,19 @@ $upcomingAppointments = Appointment::where('user_id', $userId)
             return [$month => Carbon::create()->month($month)->translatedFormat('F')];
         })->toArray();
 
-        // Derniers rendez-vous (internes uniquement)
-        $recentAppointments = Appointment::query()
-            ->where('user_id', $userId)
-            ->where('external', false)
-            ->orderBy('appointment_date')
-            ->limit(5)
-            ->with('clientProfile')
-            ->get();
+// Prochains rendez-vous (internes uniquement)
+$recentAppointments = Appointment::query()
+    ->where('user_id', $userId)
+    ->where('appointment_date', '>=', now())   // seulement à partir de maintenant
+    ->where(function ($q) {
+        $q->where('external', false)
+          ->orWhereNull('external');          // garde les anciens en null pour compat
+    })
+    ->orderBy('appointment_date', 'asc')      // le plus proche en premier
+    ->limit(5)
+    ->with('clientProfile')
+    ->get();
+
 
         // Dernières factures
         $recentInvoices = Invoice::where('user_id', $userId)
