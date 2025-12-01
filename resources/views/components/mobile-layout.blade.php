@@ -63,9 +63,9 @@
                 </a>
 
                 {{-- AGENDA --}}
-                <a href="{{ url('/mobile/pro/agenda') }}"
+                <a href="{{ url('/mobile/rendez-vous') }}"
                    class="flex flex-col items-center text-[11px]
-                        {{ request()->is('mobile/pro/agenda*') ? 'text-[#647a0b]' : 'text-gray-500' }}">
+                        {{ request()->is('/mobile/rendez-vous') ? 'text-[#647a0b]' : 'text-gray-500' }}">
                     <i class="fas fa-calendar-alt text-lg mb-1"></i>
                     <span class="font-medium">Agenda</span>
                 </a>
