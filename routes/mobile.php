@@ -12,53 +12,72 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 
-
 // ---------------------------------------------------------
-// MOBILE AREA (single, unified group)test
+// MOBILE AREA (single, unified group)
 // ---------------------------------------------------------
 Route::middleware(['web'])
     ->prefix('mobile')
     ->name('mobile.')
     ->group(function () {
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('dashboard');
-	
-	
 
-        // ENTRY: /mobile  → mobile.entry
+        // ---------------------------------------------------------
+        // MOBILE LOGIN + LOGOUT
+        // ---------------------------------------------------------
+        Route::get('/login', [AuthenticatedSessionController::class, 'createMobile'])
+            ->middleware('guest')
+            ->name('login');
+
+        Route::post('/login', [AuthenticatedSessionController::class, 'storeMobile'])
+            ->middleware('guest')
+            ->name('login.store');
+
+        Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+            ->middleware('auth')
+            ->name('logout');
+
+
+        // ---------------------------------------------------------
+        // MOBILE DASHBOARD (PRO)
+        // ---------------------------------------------------------
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->middleware(['auth'])
+            ->name('dashboard');
+
+
+        // ---------------------------------------------------------
+        // ENTRY: /mobile → mobile.entry
+        // ---------------------------------------------------------
         Route::get('/', function () {
             return view('mobile.entry');
         })->name('entry');
 
+
         // ---------------------------------------------------------
         // SEARCH
-        // /mobile/recherche-praticien → *NEW* route name to avoid any collision
         // ---------------------------------------------------------
-
-        // Search form page
         Route::get('/recherche-praticien', [TherapistSearchController::class, 'index'])
             ->name('search.index');
 
-        // Search action handler (POST from the form)
         Route::post('/recherche-praticien', [TherapistSearchController::class, 'search'])
             ->name('search.submit');
+
 
         // ---------------------------------------------------------
         // THERAPIST PUBLIC PROFILE (MOBILE VERSION)
         // ---------------------------------------------------------
-
-        // Show therapist profile
         Route::get('/therapeute/{slug}', [MobileTherapistController::class, 'show'])
             ->name('therapists.show');
 
-        // Send information request (modal form)
         Route::post('/therapeute/{slug}/information', [MobileTherapistController::class, 'sendInformationRequest'])
             ->name('therapists.information');
-			
-		        Route::get('/therapeute/{slug}/prendre-rdv', [MobileAppointmentController::class, 'createFromTherapistSlug'])
+
+        Route::get('/therapeute/{slug}/prendre-rdv', [MobileAppointmentController::class, 'createFromTherapistSlug'])
             ->name('appointments.create_from_therapist');
 
+
+        // ---------------------------------------------------------
+        // APPOINTMENTS
+        // ---------------------------------------------------------
         Route::post('/rdv', [MobileAppointmentController::class, 'store'])
             ->name('appointments.store');
 
