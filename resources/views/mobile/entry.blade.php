@@ -87,7 +87,7 @@
 
                 {{-- PRATICIEN – carte secondaire plus compacte --}}
                 <x-ts-card class="rounded-2xl shadow-md bg-primary-600 text-white border-0 px-4 py-3">
-                    <a href="{{ route('dashboard-pro') }}" class="flex items-center justify-between gap-3">
+                    <a href="{{ route('mobile.login') }}" class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex items-center justify-center w-8 h-8 rounded-2xl bg-white/15">
                                 <i class="fas fa-leaf text-xs text-white"></i>

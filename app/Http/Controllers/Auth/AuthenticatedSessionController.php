@@ -67,4 +67,49 @@ class AuthenticatedSessionController extends Controller
 
         return redirect('/');
     }
+	/**
+ * MOBILE LOGIN FORM
+ */
+public function createMobile(): View
+{
+    return view('mobile.auth.login');
+}
+
+/**
+ * MOBILE LOGIN SUBMISSION
+ */
+public function storeMobile(Request $request)
+{
+    $request->validate([
+        'email' => 'required|string|email',
+        'password' => 'required|string',
+    ]);
+
+    if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+        $request->session()->regenerate();
+
+        $user = Auth::user();
+
+        if ($user->license_status === 'inactive') {
+            return redirect('/license-tiers/pricing');
+        }
+
+        // MOBILE redirect override
+        if ($user->is_therapist) {
+            return redirect()->intended('/mobile/dashboard');
+        }
+
+        if ($user->is_admin) {
+            return redirect()->intended('/admin');
+        }
+
+        // fallback
+        return redirect()->intended('/mobile');
+    }
+
+    return back()->withErrors([
+        'email' => __('Identifiants incorrects.'),
+    ])->onlyInput('email');
+}
+
 }
