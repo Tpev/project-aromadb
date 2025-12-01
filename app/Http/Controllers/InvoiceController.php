@@ -32,26 +32,64 @@ class InvoiceController extends Controller
     /**
      * Affiche la liste des factures.
      */
-public function index()
+public function index(Request $request)
 {
     if (Auth::user()->license_status === 'inactive') {
         return redirect('/license-tiers/pricing');
     }
 
-    $this->authorize('viewAny', Invoice::class); // Check permission to view any invoice
+    $this->authorize('viewAny', Invoice::class);
 
     // Separate invoices and quotes
     $invoices = Invoice::where('user_id', Auth::id())
         ->where('type', 'invoice')
         ->with('clientProfile')
+        ->orderByDesc('invoice_date')
         ->get();
 
     $quotes = Invoice::where('user_id', Auth::id())
         ->where('type', 'quote')
         ->with('clientProfile')
+        ->orderByDesc('invoice_date')
         ->get();
 
-    return view('invoices.index', compact('invoices', 'quotes'));
+    // Some useful aggregates for mobile UI (also harmless for web)
+    $invoiceStats = [
+        'count'            => $invoices->count(),
+        'paid_count'       => $invoices->where('status', 'Payée')->count(),
+        'outstanding_count'=> $invoices->whereIn('status', ['En attente', 'Partiellement payée'])->count(),
+        'outstanding_total'=> $invoices->sum('solde_restant ?? 0'),
+        'total_ttc'        => $invoices->sum('total_amount_with_tax'),
+    ];
+
+    $quoteStats = [
+        'count'       => $quotes->count(),
+        'accepted'    => $quotes->where('status', 'Devis Accepté')->count(),
+        'pending'     => $quotes->where('status', 'Devis')->count(),
+        'rejected'    => $quotes->where('status', 'Devis Refusé')->count(),
+        'total_ttc'   => $quotes->sum('total_amount_with_tax'),
+    ];
+
+
+ 
+        
+    // If we’re on the mobile route, use the mobile view
+    if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+        return view('mobile.invoices.index', [
+            'invoices'     => $invoices,
+            'quotes'       => $quotes,
+            'invoiceStats' => $invoiceStats,
+            'quoteStats'   => $quoteStats,
+        ]);
+    }
+
+    // Default: web view
+    return view('invoices.index', [
+        'invoices'     => $invoices,
+        'quotes'       => $quotes,
+        'invoiceStats' => $invoiceStats,
+        'quoteStats'   => $quoteStats,
+    ]);
 }
 
 

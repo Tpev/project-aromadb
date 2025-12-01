@@ -11,7 +11,8 @@ use App\Http\Controllers\Mobile\MobileAppointmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AppointmentController;
-
+use App\Http\Controllers\ClientProfileController;
+use App\Http\Controllers\InvoiceController;
 
 // ---------------------------------------------------------
 // MOBILE AREA (single, unified group)
@@ -21,6 +22,17 @@ Route::middleware(['web'])
     ->name('mobile.')
     ->group(function () {
 
+// 👤 LISTE CLIENTS (PRO - mobile)
+Route::get('/clients', [ClientProfileController::class, 'index'])
+    ->middleware('auth')
+    ->name('clients.index');
+
+// 👤 FICHE CLIENT (PRO - mobile)
+Route::get('/clients/{clientProfile}', [ClientProfileController::class, 'show'])
+    ->middleware('auth')
+    ->name('clients.show');
+    Route::get('/invoices', [InvoiceController::class, 'index'])
+        ->name('mobile.invoices.index');
         // ---------------------------------------------------------
         // MOBILE LOGIN + LOGOUT
         // ---------------------------------------------------------

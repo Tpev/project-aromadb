@@ -67,11 +67,11 @@
                    class="flex flex-col items-center text-[11px]
                         {{ request()->is('/mobile/rendez-vous') ? 'text-[#647a0b]' : 'text-gray-500' }}">
                     <i class="fas fa-calendar-alt text-lg mb-1"></i>
-                    <span class="font-medium">Agenda</span>
+                    <span class="font-medium">RDV</span>
                 </a>
 
                 {{-- CLIENTS --}}
-                <a href="{{ url('/mobile/pro/clients') }}"
+                <a href="{{ url('/mobile/clients') }}"
                    class="flex flex-col items-center text-[11px]
                         {{ request()->is('mobile/pro/clients*') ? 'text-[#647a0b]' : 'text-gray-500' }}">
                     <i class="fas fa-user-friends text-lg mb-1"></i>
@@ -79,7 +79,7 @@
                 </a>
 
                 {{-- FACTURES --}}
-                <a href="{{ url('/mobile/pro/invoices') }}"
+                <a href="{{ url('/mobile/invoices') }}"
                    class="flex flex-col items-center text-[11px]
                         {{ request()->is('mobile/pro/invoices*') ? 'text-[#647a0b]' : 'text-gray-500' }}">
                     <i class="fas fa-file-invoice text-lg mb-1"></i>

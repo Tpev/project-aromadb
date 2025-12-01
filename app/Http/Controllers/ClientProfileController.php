@@ -53,9 +53,21 @@ class ClientProfileController extends Controller
             return redirect('/license-tiers/pricing');
         }
 
-        // Get all client profiles for the logged-in therapist
-        $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
+        $userId = Auth::id();
 
+        // Get all client profiles for the logged-in therapist
+        $clientProfiles = ClientProfile::where('user_id', $userId)
+            ->with('company')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get();
+
+        // If request comes from /mobile/... → use mobile view
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.clients.index', compact('clientProfiles'));
+        }
+
+        // Default: desktop/web view
         return view('client_profiles.index', compact('clientProfiles'));
     }
 
@@ -127,7 +139,16 @@ class ClientProfileController extends Controller
         $this->authorize('view', $clientProfile);
 
         // Get related appointments, session notes, and invoices
-        $appointments = $clientProfile->appointments;
+        // Use query builder so we can reuse for mobile
+        $appointmentsQuery = $clientProfile->appointments()->with('product');
+
+        $allAppointments = $appointmentsQuery
+            ->orderByDesc('appointment_date')
+            ->get();
+
+        // For mobile, we only need a small recent subset
+        $mobileAppointments = $allAppointments->take(5);
+
         $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
         $invoices     = Invoice::where('client_profile_id', $clientProfile->id)->get();
 
@@ -138,19 +159,31 @@ class ClientProfileController extends Controller
 
         // Recharger avec la relation messages
         $clientProfile = ClientProfile::findOrFail($clientProfile->id);
-        $clientProfile->load('messages');
+        $clientProfile->load(['messages', 'company']);
 
         // Récupérer la dernière demande de témoignage, s'il y en a une
         $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
 
+        // If request comes from /mobile/... → use mobile view
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.clients.show', [
+                'clientProfile' => $clientProfile,
+                'appointments'  => $mobileAppointments,
+            ]);
+        }
+
+        // Default: desktop/web view
         return view('client_profiles.show', compact(
             'clientProfile',
-            'appointments',
+            'allAppointments',   // if you prefer $appointments in the view, rename below
             'sessionNotes',
             'invoices',
             'responses',
             'testimonialRequest'
-        ));
+        ))->with([
+            // keep compatibility with existing blade expecting `$appointments`
+            'appointments' => $allAppointments,
+        ]);
     }
 
     /**
