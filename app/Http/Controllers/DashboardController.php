@@ -216,33 +216,45 @@ $recentAppointments = Appointment::query()
             ($step3Completion === 100 || $skipStep3) &&
             ($step4Completion === 100 || $skipStep4);
 
-        return view('dashboard-pro', compact(
-            'totalClients',
-            'upcomingAppointments',
-            'totalInvoices',
-            'pendingInvoices',
-            'monthlyRevenue',
-            'appointmentsPerMonth',
-            'monthlyRevenueData',
-            'months',
-            'recentAppointments',
-            'recentInvoices',
-            'therapist',
-            // Onboarding
-            'onboardingCompleted',
-            'globalCompletion',
-            'step1Checks',
-            'step2Checks',
-            'step3Checks',
-            'step4Checks',
-            'step1Completion',
-            'step2Completion',
-            'step3Completion',
-            'step4Completion',
-            'skipStep3',
-            'skipStep4'
-        ));
+    $viewData = compact(
+        'totalClients',
+        'upcomingAppointments',
+        'totalInvoices',
+        'pendingInvoices',
+        'monthlyRevenue',
+        'appointmentsPerMonth',
+        'monthlyRevenueData',
+        'months',
+        'recentAppointments',
+        'recentInvoices',
+        'therapist',
+        // Onboarding
+        'onboardingCompleted',
+        'globalCompletion',
+        'step1Checks',
+        'step2Checks',
+        'step3Checks',
+        'step4Checks',
+        'step1Completion',
+        'step2Completion',
+        'step3Completion',
+        'step4Completion',
+        'skipStep3',
+        'skipStep4'
+    );
+
+    /* =========================================================
+     *               ⬇️ MOBILE VS DESKTOP VIEW LOGIC
+     * ======================================================= */
+
+    // Detect if route belongs to mobile.php routing file
+    if (request()->routeIs('mobile.*')) {
+        return view('mobile.dashboard-pro', $viewData);
     }
+
+    // Default desktop view
+    return view('dashboard-pro', $viewData);
+}
 
     public function generateQrCode()
     {

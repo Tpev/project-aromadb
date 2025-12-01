@@ -8,6 +8,7 @@ use App\Http\Controllers\Mobile\TherapistSearchController;
 // Profile controller
 use App\Http\Controllers\Mobile\MobileTherapistController;
 use App\Http\Controllers\Mobile\MobileAppointmentController;
+use App\Http\Controllers\DashboardController;
 
 // ---------------------------------------------------------
 // MOBILE AREA (single, unified group)test
@@ -16,7 +17,9 @@ Route::middleware(['web'])
     ->prefix('mobile')
     ->name('mobile.')
     ->group(function () {
-
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('dashboard');
         // ENTRY: /mobile  → mobile.entry
         Route::get('/', function () {
             return view('mobile.entry');
