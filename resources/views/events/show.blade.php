@@ -1,4 +1,17 @@
 {{-- resources/views/events/show.blade.php --}}
+@php
+    use App\Models\ClientProfile;
+
+    // Précharger tous les emails clients du thérapeute pour éviter les requêtes dans la boucle
+    $clientEmailsMap = ClientProfile::where('user_id', $event->user_id)
+        ->whereNotNull('email')
+        ->get()
+        ->reduce(function ($carry, $client) {
+            $carry[strtolower($client->email)] = $client->id;
+            return $carry;
+        }, []);
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -115,17 +128,49 @@
                                     <th>{{ __('Email') }}</th>
                                     <th>{{ __('Téléphone') }}</th>
                                     <th>{{ __('Date de Réservation') }}</th>
+                                    <th>{{ __('Dossier client') }}</th>
                                     <th>{{ __('Actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($event->reservations as $index => $reservation)
+                                    @php
+                                        $normalizedEmail = $reservation->email ? strtolower($reservation->email) : null;
+                                        $existingClientId = $normalizedEmail && isset($clientEmailsMap[$normalizedEmail])
+                                            ? $clientEmailsMap[$normalizedEmail]
+                                            : null;
+                                    @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $reservation->full_name }}</td>
                                         <td>{{ $reservation->email }}</td>
                                         <td>{{ $reservation->phone ?? __('N/A') }}</td>
                                         <td>{{ $reservation->created_at->format('d/m/Y H:i') }}</td>
+
+                                        {{-- Colonne "Dossier client" --}}
+                                        <td class="client-cell">
+                                            @if($existingClientId)
+                                                <span class="pill pill-success">
+                                                    {{ __('Client existant') }}
+                                                </span>
+                                                <a href="{{ route('client_profiles.show', $existingClientId) }}"
+                                                   class="pill-link"
+                                                   title="{{ __('Ouvrir le dossier client') }}">
+                                                    {{ __('Voir le dossier') }}
+                                                </a>
+                                            @elseif($reservation->email)
+                                                <button type="button"
+                                                        class="btn-primary btn-xs js-create-client-from-reservation"
+                                                        data-route="{{ route('reservations.createClient', ['event' => $event->id, 'reservation' => $reservation->id]) }}">
+                                                    {{ __('Créer un profil') }}
+                                                </button>
+                                            @else
+                                                <span class="pill pill-muted">
+                                                    {{ __('Email manquant') }}
+                                                </span>
+                                            @endif
+                                        </td>
+
                                         <td>
                                             <form action="{{ route('reservations.destroy', $reservation->id) }}" method="POST" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cette réservation ?') }}');">
                                                 @csrf
@@ -163,6 +208,63 @@
             </div>
         </div>
     </div>
+
+    {{-- JS: création du client en background (sans changer de page) --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const buttons = document.querySelectorAll('.js-create-client-from-reservation');
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', async function () {
+                    const url = this.dataset.route;
+                    if (!url) return;
+
+                    if (!confirm('{{ __("Créer un profil client à partir de cette réservation ?") }}')) {
+                        return;
+                    }
+
+                    this.disabled = true;
+                    this.textContent = '{{ __("Création...") }}';
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({}),
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok && (data.status === 'created' || data.status === 'exists')) {
+                            const cell = this.closest('.client-cell');
+                            if (cell) {
+                                cell.innerHTML = `
+                                    <span class="pill pill-success">{{ __('Client créé') }}</span>
+                                    ${data.client_profile_url
+                                        ? `<a href="${data.client_profile_url}" class="pill-link">{{ __('Voir le dossier') }}</a>`
+                                        : ''
+                                    }
+                                `;
+                            }
+                        } else {
+                            alert(data.message || '{{ __("Une erreur est survenue lors de la création du profil client.") }}');
+                            this.disabled = false;
+                            this.textContent = '{{ __("Créer un profil") }}';
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        alert('{{ __("Erreur réseau. Merci de réessayer.") }}');
+                        this.disabled = false;
+                        this.textContent = '{{ __("Créer un profil") }}';
+                    }
+                });
+            });
+        });
+    </script>
 
     <!-- Custom Styles -->
     <style>
@@ -264,6 +366,37 @@
 
         table tbody tr:nth-child(even) {
             background-color: #f7fafc;
+        }
+
+        /* Pills */
+        .pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .pill-success {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+        .pill-muted {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+        .pill-link {
+            margin-left: 8px;
+            font-size: 0.8rem;
+            color: #647a0b;
+            text-decoration: underline;
+        }
+
+        /* Small button for inline actions */
+        .btn-xs {
+            padding: 6px 10px;
+            font-size: 0.8rem;
         }
 
         /* Action Buttons */

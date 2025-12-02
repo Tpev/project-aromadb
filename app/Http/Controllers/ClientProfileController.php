@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Models\Event;
+use App\Models\Reservation;
+
 
 class ClientProfileController extends Controller
 {
@@ -284,4 +287,75 @@ class ClientProfileController extends Controller
 
         return view('client.home', compact('clientProfile', 'appointments', 'invoices', 'messages'));
     }
+	
+	    /**
+     * Créer rapidement un profil client à partir d'une réservation d'événement.
+     * Appelé en AJAX depuis la page show d'un événement.
+     */
+    public function storeFromReservation(Request $request, Event $event, Reservation $reservation)
+    {
+        $user = Auth::user();
+
+        // Sécurité : l’événement doit appartenir au thérapeute connecté
+        if (!$user || $user->id !== $event->user_id) {
+            abort(403);
+        }
+
+        // Sécurité : la réservation doit bien être liée à cet événement
+        if ((int) $reservation->event_id !== (int) $event->id) {
+            abort(404);
+        }
+
+        // Si aucun email, on ne peut pas faire le match automatique
+        if (!$reservation->email) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Impossible de créer le profil : email manquant sur la réservation.',
+            ], 422);
+        }
+
+        $normalizedEmail = strtolower(trim($reservation->email));
+
+        // Vérifier si un client existe déjà avec cet email pour ce thérapeute
+        $existing = ClientProfile::where('user_id', $user->id)
+            ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'status'              => 'exists',
+                'message'             => 'Un profil client existe déjà pour cet email.',
+                'client_profile_id'   => $existing->id,
+                'client_profile_url'  => route('client_profiles.show', $existing),
+            ]);
+        }
+
+        // Découper le nom complet en prénom / nom (simple heuristique)
+        $fullName = trim($reservation->full_name ?? '');
+        if ($fullName === '') {
+            $firstName = 'Client';
+            $lastName  = 'Événement';
+        } else {
+            $parts = preg_split('/\s+/', $fullName);
+            $firstName = array_shift($parts);
+            $lastName  = implode(' ', $parts) ?: '';
+        }
+
+        // Créer le profil minimal
+        $client = ClientProfile::create([
+            'user_id'    => $user->id,
+            'first_name' => $firstName,
+            'last_name'  => $lastName ?: '-',
+            'email'      => $reservation->email,
+            'phone'      => $reservation->phone,
+        ]);
+
+        return response()->json([
+            'status'              => 'created',
+            'message'             => 'Profil client créé avec succès.',
+            'client_profile_id'   => $client->id,
+            'client_profile_url'  => route('client_profiles.show', $client),
+        ], 201);
+    }
+
 }

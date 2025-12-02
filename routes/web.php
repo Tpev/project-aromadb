@@ -480,7 +480,11 @@ Route::get('events/{event}/reservation-success', [ReservationController::class, 
 
 Route::middleware('auth')->group(function () {
 	Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
-
+    // 👉 Nouveau : créer un profil client depuis une réservation d'événement
+    Route::post(
+        '/events/{event}/reservations/{reservation}/create-client',
+        [ClientProfileController::class, 'storeFromReservation']
+    )->name('reservations.createClient');
     Route::resource('events', EventController::class);
 });
 
