@@ -10,205 +10,410 @@
             $carry[strtolower($client->email)] = $client->id;
             return $carry;
         }, []);
+
+    $totalReservations = $event->reservations->count();
+    $availableSpots    = $event->limited_spot ? $event->number_of_spot : '∞';
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Détails de l\'Événement') }}
-        </h2>
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h2 class="font-semibold text-xl text-[#647a0b]">
+                    {{ __('Détails de l\'Événement') }}
+                </h2>
+                <p class="mt-1 text-xs text-slate-500">
+                    {{ __('Gérez cet atelier / événement directement depuis AromaMade PRO.') }}
+                </p>
+            </div>
+
+            {{-- Actions header (desktop) --}}
+            <div class="hidden md:flex items-center gap-2">
+                <a href="{{ route('events.edit', $event->id) }}"
+                   class="inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                    <i class="fas fa-edit text-[11px]"></i>
+                    <span>{{ __('Modifier') }}</span>
+                </a>
+
+                <form action="{{ route('events.destroy', $event->id) }}" method="POST"
+                      onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cet événement ?') }}');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-700 transition">
+                        <i class="fas fa-trash-alt text-[11px]"></i>
+                        <span>{{ __('Supprimer') }}</span>
+                    </button>
+                </form>
+
+                <a href="{{ route('events.index') }}"
+                   class="inline-flex items-center gap-2 rounded-full border border-[#854f38]/40 bg-white px-4 py-2 text-xs font-semibold text-[#854f38] hover:bg-[#854f38] hover:text-white transition">
+                    <i class="fas fa-arrow-left text-[11px]"></i>
+                    <span>{{ __('Retour') }}</span>
+                </a>
+            </div>
+        </div>
     </x-slot>
 
-    <div class="container mt-5">
-        <div class="event-details mx-auto p-4">
-            @if(session('success'))
-                <div class="alert alert-success animate__animated animate__fadeInDown">
-                    {{ session('success') }}
+    <div class="max-w-7xl mx-auto px-4 py-6 space-y-6 bg-[#f7fbe8]">
+
+        {{-- Alerts --}}
+        @if(session('success'))
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-800 shadow-sm">
+                <div class="flex">
+                    <span class="mr-2 mt-[2px] text-emerald-500">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                    <span>{{ session('success') }}</span>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            @if(session('error'))
-                <div class="alert alert-danger animate__animated animate__shakeX">
-                    {{ session('error') }}
+        @if(session('error'))
+            <div class="rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-800 shadow-sm">
+                <div class="flex">
+                    <span class="mr-2 mt-[2px] text-red-500">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                    <span>{{ session('error') }}</span>
                 </div>
-            @endif
+            </div>
+        @endif
 
-            <!-- Event Title -->
-            <h1 class="event-title">{{ $event->name }}</h1>
-
-            <!-- Event Image -->
-            @if($event->image)
-                <div class="event-image">
-                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}">
-                </div>
-            @endif
-
-            <!-- Event Information -->
-            <div class="event-info mt-4">
-                <!-- Description -->
-                @if($event->description)
-                    <div class="info-box">
-                        <h3 class="info-title"><i class="fas fa-info-circle mr-2"></i>{{ __('Description') }}</h3>
-                        <p class="info-text">{{ $event->description }}</p>
+        {{-- Main card --}}
+        <div class="rounded-2xl border border-[#dbe3b8] bg-white shadow-md overflow-hidden">
+            {{-- Solid green header band --}}
+            <div class="px-6 py-4 sm:px-8 sm:py-5" style="background-color: #647a0b;">
+                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between text-white">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold">
+                            {{ $event->name }}
+                        </h1>
+                        <p class="mt-1 text-xs text-white/80">
+                            {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                            · {{ $event->location }}
+                        </p>
                     </div>
-                @endif
 
-                <!-- Date and Time -->
-                <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-calendar-alt mr-2"></i>{{ __('Date et Heure') }}</h3>
-                    <p class="info-text">{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}</p>
-                </div>
+                    <div class="flex flex-wrap gap-2 justify-start md:justify-end">
+                        <span class="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold">
+                            <i class="fas fa-users mr-1 text-amber-300"></i>
+                            {{ __('Réservations :') }} {{ $totalReservations }} / {{ $availableSpots }}
+                        </span>
 
-                <!-- Duration -->
-                <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-hourglass-half mr-2"></i>{{ __('Durée') }}</h3>
-                    <p class="info-text">{{ $event->duration }} {{ __('minutes') }}</p>
-                </div>
+                        <span class="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold">
+                            <i class="fas fa-ticket-alt mr-1 text-lime-200"></i>
+                            {{ $event->booking_required ? __('Réservation requise') : __('Sans réservation obligatoire') }}
+                        </span>
 
-                <!-- Location -->
-                <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-map-marker-alt mr-2"></i>{{ __('Lieu') }}</h3>
-                    <p class="info-text">{{ $event->location }}</p>
-                </div>
-
-                <!-- Booking Required -->
-                <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-ticket-alt mr-2"></i>{{ __('Réservation Requise') }}</h3>
-                    <p class="info-text">{{ $event->booking_required ? __('Oui') : __('Non') }}</p>
-                </div>
-
-                <!-- Limited Spots and Number of Spots -->
-                <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-users mr-2"></i>{{ __('Places Limitées') }}</h3>
-                    <p class="info-text">{{ $event->limited_spot ? __('Oui') : __('Non') }}</p>
-                    @if($event->limited_spot)
-                        <p class="info-text">{{ __('Nombre de Places :') }} {{ $event->number_of_spot }}</p>
-                    @endif
-                </div>
-
-                <!-- Associated Product -->
-                @if($event->associatedProduct)
-                    <div class="info-box">
-                        <h3 class="info-title"><i class="fas fa-box mr-2"></i>{{ __('Produit Associé') }}</h3>
-                        <p class="info-text"><strong>{{ $event->associatedProduct->name }}</strong></p>
-                        <p class="info-text">{{ __('Prix TTC :') }} {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €</p>
-                        @if($event->associatedProduct->description)
-                            <p class="info-text">{{ __('Description du Produit :') }} {{ $event->associatedProduct->description }}</p>
-                        @endif
+                        <span class="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold">
+                            <i class="fas fa-globe-europe mr-1 text-sky-200"></i>
+                            @if($event->showOnPortail)
+                                {{ __('Affiché sur le portail') }}
+                            @else
+                                {{ __('Non affiché sur le portail') }}
+                            @endif
+                        </span>
                     </div>
-                @endif
-
-                <!-- Show on Portal -->
-                <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-globe mr-2"></i>{{ __('Affiché sur le Portail') }}</h3>
-                    <p class="info-text">{{ $event->showOnPortail ? __('Oui') : __('Non') }}</p>
                 </div>
             </div>
 
-            <!-- Reservations Section -->
-            @if(Auth::id() === $event->user_id)
-                <div class="reservations mt-5">
-                    <h2 class="section-title">{{ __('Liste des Réservations') }}</h2>
+            {{-- Content --}}
+            <div class="px-4 py-5 sm:px-8 sm:py-6">
+                <div class="grid gap-6 lg:grid-cols-3 lg:items-start">
+                    {{-- Left: info --}}
+                    <div class="lg:col-span-2 space-y-5">
 
-                    {{-- Booking Counter --}}
-                    @php
-                        $totalReservations = $event->reservations->count();
-                        $availableSpots = $event->limited_spot ? $event->number_of_spot : '∞';
-                    @endphp
-                    <p class="booking-counter">
-                        {{ __('Total Réservations :') }} {{ $totalReservations }} / {{ $availableSpots }}
-                    </p>
+                        {{-- Description --}}
+                        @if($event->description)
+                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 sm:px-5 sm:py-4">
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
+                                    <i class="fas fa-info-circle text-[#647a0b]"></i>
+                                    {{ __('Description') }}
+                                </h3>
+                                <p class="mt-2 text-sm leading-relaxed text-slate-800">
+                                    {{ $event->description }}
+                                </p>
+                            </div>
+                        @endif
 
-                    @if($event->reservations->count() > 0)
-                        {{-- WRAPPER pour rendre la table scrollable horizontalement si nécessaire --}}
-                        <div class="table-wrapper">
-                            <table class="table table-bordered mt-3">
-                                <thead>
-                                    <tr>
-                                        <th>{{ __('N°') }}</th>
-                                        <th>{{ __('Nom Complet') }}</th>
-                                        <th>{{ __('Email') }}</th>
-                                        <th>{{ __('Téléphone') }}</th>
-                                        <th>{{ __('Date de Réservation') }}</th>
-                                        <th>{{ __('Dossier client') }}</th>
-                                        <th>{{ __('Actions') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($event->reservations as $index => $reservation)
-                                        @php
-                                            $normalizedEmail = $reservation->email ? strtolower($reservation->email) : null;
-                                            $existingClientId = $normalizedEmail && isset($clientEmailsMap[$normalizedEmail])
-                                                ? $clientEmailsMap[$normalizedEmail]
-                                                : null;
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $index + 1 }}</td>
-                                            <td>{{ $reservation->full_name }}</td>
-                                            <td>{{ $reservation->email }}</td>
-                                            <td>{{ $reservation->phone ?? __('N/A') }}</td>
-                                            <td>{{ $reservation->created_at->format('d/m/Y H:i') }}</td>
+                        {{-- Meta grid --}}
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#854f38]">
+                                    <i class="fas fa-calendar-alt text-[#854f38]"></i>
+                                    {{ __('Date & heure') }}
+                                </h3>
+                                <p class="mt-2 text-sm font-medium text-slate-900">
+                                    {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                                </p>
+                            </div>
 
-                                            {{-- Colonne "Dossier client" --}}
-                                            <td class="client-cell">
-                                                @if($existingClientId)
-                                                    <span class="pill pill-success">
+                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#854f38]">
+                                    <i class="fas fa-hourglass-half text-[#854f38]"></i>
+                                    {{ __('Durée') }}
+                                </h3>
+                                <p class="mt-2 text-sm font-medium text-slate-900">
+                                    {{ $event->duration }} {{ __('minutes') }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3">
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
+                                    <i class="fas fa-map-marker-alt text-[#647a0b]"></i>
+                                    {{ __('Lieu') }}
+                                </h3>
+                                <p class="mt-2 text-sm font-medium text-slate-900">
+                                    {{ $event->location }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3">
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
+                                    <i class="fas fa-users text-[#647a0b]"></i>
+                                    {{ __('Places limitées') }}
+                                </h3>
+                                <p class="mt-2 text-sm font-medium text-slate-900">
+                                    {{ $event->limited_spot ? __('Oui') : __('Non') }}
+                                    @if($event->limited_spot)
+                                        · {{ __('Nombre de places :') }} {{ $event->number_of_spot }}
+                                    @endif
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Associated product --}}
+                        @if($event->associatedProduct)
+                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fffaf7] px-4 py-4 sm:px-5 sm:py-5">
+                                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                    <div>
+                                        <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#854f38]">
+                                            <i class="fas fa-box-open text-[#854f38]"></i>
+                                            {{ __('Produit associé') }}
+                                        </h3>
+                                        <p class="mt-2 text-sm font-semibold text-slate-900">
+                                            {{ $event->associatedProduct->name }}
+                                        </p>
+                                        @if($event->associatedProduct->description)
+                                            <p class="mt-1 text-xs text-slate-700 leading-relaxed">
+                                                {{ $event->associatedProduct->description }}
+                                            </p>
+                                        @endif
+                                    </div>
+
+                                    <div class="md:text-right">
+                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-[#854f38]/80">
+                                            {{ __('Prix TTC') }}
+                                        </p>
+                                        <p class="mt-1 text-2xl font-extrabold text-[#854f38]">
+                                            {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Right: image / placeholder --}}
+                    <div class="space-y-4">
+                        @if($event->image)
+                            <div class="rounded-2xl border border-[#dbe3b8] bg-[#fbfff6] p-2 shadow-sm">
+                                <img src="{{ asset('storage/' . $event->image) }}"
+                                     alt="{{ $event->name }}"
+                                     class="w-full max-h-72 object-cover rounded-xl">
+                            </div>
+                        @else
+                            <div class="rounded-2xl border border-dashed border-[#d5dfac] bg-[#fbfff6] p-5 text-sm text-slate-600 flex flex-col justify-center h-full">
+                                <p class="font-semibold text-[#647a0b]">
+                                    {{ __('Aucune image définie pour cet événement') }}
+                                </p>
+                                <p class="mt-1 text-xs">
+                                    {{ __('Ajoutez une image depuis la page d’édition pour rendre le visuel plus attractif sur votre portail.') }}
+                                </p>
+                                <a href="{{ route('events.edit', $event->id) }}
+                                   " class="mt-3 inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                                    <i class="fas fa-image text-[11px]"></i>
+                                    <span>{{ __('Ajouter une image') }}</span>
+                                </a>
+                            </div>
+                        @endif
+
+                        {{-- Small info chip --}}
+                        <div class="rounded-xl border border-[#e2ecc3] bg-[#fefaf1] px-4 py-3 text-xs text-slate-700">
+                            <p>
+                                <i class="fas fa-lightbulb text-amber-400 mr-2"></i>
+                                {{ __('Pensez à partager le lien de cet événement à vos clients pour remplir les places disponibles plus rapidement.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Reservations --}}
+        @if(Auth::id() === $event->user_id)
+            <div class="rounded-2xl border border-[#dbe3b8] bg-white shadow-md">
+                <div class="flex flex-col gap-2 border-b border-[#e2ecc3] px-4 py-3 sm:px-6 sm:py-4 md:flex-row md:items-center md:justify-between bg-[#fbfff6]">
+                    <div>
+                        <h2 class="text-base font-semibold text-[#647a0b]">
+                            {{ __('Liste des réservations') }}
+                        </h2>
+                        <p class="mt-1 text-xs text-slate-500">
+                            {{ __('Visualisez les personnes inscrites, créez rapidement des dossiers clients et gérez les réservations.') }}
+                        </p>
+                    </div>
+
+                    <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
+                        <i class="fas fa-users mr-1"></i>
+                        {{ __('Total :') }} {{ $totalReservations }} / {{ $availableSpots }}
+                    </span>
+                </div>
+
+                @if($event->reservations->count() > 0)
+                    <div class="w-full overflow-x-auto">
+                        <table class="min-w-[900px] text-sm text-left text-slate-700">
+                            <thead>
+                                <tr class="bg-[#647a0b] text-white">
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide">{{ __('N°') }}</th>
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide">{{ __('Nom complet') }}</th>
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide">{{ __('Email') }}</th>
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide">{{ __('Téléphone') }}</th>
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap">{{ __('Date de réservation') }}</th>
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap">{{ __('Dossier client') }}</th>
+                                    <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-right">{{ __('Actions') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($event->reservations as $index => $reservation)
+                                    @php
+                                        $normalizedEmail = $reservation->email ? strtolower($reservation->email) : null;
+                                        $existingClientId = $normalizedEmail && isset($clientEmailsMap[$normalizedEmail])
+                                            ? $clientEmailsMap[$normalizedEmail]
+                                            : null;
+                                    @endphp
+                                    <tr class="border-b border-[#eef3d4] odd:bg-white even:bg-[#fbfff6] hover:bg-lime-50/60">
+                                        <td class="px-4 py-3 align-top text-xs text-slate-500">
+                                            {{ $index + 1 }}
+                                        </td>
+                                        <td class="px-4 py-3 align-top text-sm font-medium text-slate-900">
+                                            {{ $reservation->full_name }}
+                                        </td>
+                                        <td class="px-4 py-3 align-top text-sm">
+                                            {{ $reservation->email }}
+                                        </td>
+                                        <td class="px-4 py-3 align-top text-sm">
+                                            {{ $reservation->phone ?? __('N/A') }}
+                                        </td>
+                                        <td class="px-4 py-3 align-top whitespace-nowrap text-sm">
+                                            {{ $reservation->created_at->format('d/m/Y H:i') }}
+                                        </td>
+
+                                        {{-- Dossier client --}}
+                                        <td class="px-4 py-3 align-top client-cell">
+                                            @if($existingClientId)
+                                                <div class="flex flex-col gap-1">
+                                                    <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
                                                         {{ __('Client existant') }}
                                                     </span>
                                                     <a href="{{ route('client_profiles.show', $existingClientId) }}"
-                                                       class="pill-link"
+                                                       class="text-xs font-medium text-[#647a0b] hover:underline"
                                                        title="{{ __('Ouvrir le dossier client') }}">
                                                         {{ __('Voir le dossier') }}
                                                     </a>
-                                                @elseif($reservation->email)
-                                                    <button type="button"
-                                                            class="btn-primary btn-xs js-create-client-from-reservation"
-                                                            data-route="{{ route('reservations.createClient', ['event' => $event->id, 'reservation' => $reservation->id]) }}">
-                                                        {{ __('Créer un profil') }}
-                                                    </button>
-                                                @else
-                                                    <span class="pill pill-muted">
-                                                        {{ __('Email manquant') }}
-                                                    </span>
-                                                @endif
-                                            </td>
+                                                </div>
+                                            @elseif($reservation->email)
+                                                <button type="button"
+                                                        class="js-create-client-from-reservation inline-flex items-center gap-1 rounded-full bg-[#647a0b] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition"
+                                                        data-route="{{ route('reservations.createClient', ['event' => $event->id, 'reservation' => $reservation->id]) }}">
+                                                    <i class="fas fa-user-plus text-[11px]"></i>
+                                                    <span>{{ __('Créer un profil') }}</span>
+                                                </button>
+                                            @else
+                                                <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 border border-slate-200">
+                                                    {{ __('Email manquant') }}
+                                                </span>
+                                            @endif
+                                        </td>
 
-                                            <td>
-                                                <form action="{{ route('reservations.destroy', $reservation->id) }}" method="POST" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cette réservation ?') }}');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn-danger">
-                                                        {{ __('Supprimer') }}
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <p>{{ __('Aucune réservation pour le moment.') }}</p>
-                    @endif
-                </div>
-            @endif
-
-            <!-- Action Buttons -->
-            <div class="action-buttons mt-6">
-                <a href="{{ route('events.edit', $event->id) }}" class="btn-primary">
-                    <i class="fas fa-edit mr-2"></i>{{ __('Modifier') }}
-                </a>
-                <form action="{{ route('events.destroy', $event->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cet événement ?') }}');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn-danger">
-                        <i class="fas fa-trash-alt mr-2"></i>{{ __('Supprimer') }}
-                    </button>
-                </form>
-                <a href="{{ route('events.index') }}" class="btn-secondary">
-                    <i class="fas fa-arrow-left mr-2"></i>{{ __('Retour à la liste') }}
-                </a>
+                                        {{-- Actions --}}
+                                        <td class="px-4 py-3 align-top text-right">
+                                            <form action="{{ route('reservations.destroy', $reservation->id) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cette réservation ?') }}');"
+                                                  class="inline-flex">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-700 transition">
+                                                    <i class="fas fa-trash-alt text-[11px]"></i>
+                                                    <span>{{ __('Supprimer') }}</span>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="py-8 text-center text-sm text-slate-500">
+                        {{ __('Aucune réservation pour le moment.') }}
+                    </div>
+                @endif
             </div>
+        @endif
+
+        {{-- Global actions bar (desktop) --}}
+        <div class="mt-6 hidden md:flex justify-center gap-3">
+            <a href="{{ route('events.edit', $event->id) }}"
+               class="inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                <i class="fas fa-edit text-xs"></i>
+                <span>{{ __('Modifier l\'événement') }}</span>
+            </a>
+
+            <form action="{{ route('events.destroy', $event->id) }}" method="POST"
+                  onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cet événement ?') }}');">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                    <span>{{ __('Supprimer l\'événement') }}</span>
+                </button>
+            </form>
+
+            <a href="{{ route('events.index') }}"
+               class="inline-flex items-center gap-2 rounded-full border border-[#854f38]/40 bg-white px-5 py-2.5 text-sm font-semibold text-[#854f38] hover:bg-[#854f38] hover:text-white transition">
+                <i class="fas fa-arrow-left text-xs"></i>
+                <span>{{ __('Retour à la liste des événements') }}</span>
+            </a>
+        </div>
+
+        {{-- Mobile footer actions --}}
+        <div class="mt-4 flex md:hidden flex-col gap-2">
+            <a href="{{ route('events.edit', $event->id) }}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                <i class="fas fa-edit text-xs"></i>
+                <span>{{ __('Modifier cet événement') }}</span>
+            </a>
+
+            <form action="{{ route('events.destroy', $event->id) }}" method="POST"
+                  onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cet événement ?') }}');">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                    <span>{{ __('Supprimer l\'événement') }}</span>
+                </button>
+            </form>
+
+            <a href="{{ route('events.index') }}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#854f38]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#854f38] hover:bg-[#854f38] hover:text-white transition">
+                <i class="fas fa-arrow-left text-xs"></i>
+                <span>{{ __('Retour à la liste des événements') }}</span>
+            </a>
         </div>
     </div>
 
@@ -227,6 +432,7 @@
                     }
 
                     this.disabled = true;
+                    this.classList.add('opacity-60', 'pointer-events-none');
                     this.textContent = '{{ __("Création...") }}';
 
                     try {
@@ -246,22 +452,31 @@
                             const cell = this.closest('.client-cell');
                             if (cell) {
                                 cell.innerHTML = `
-                                    <span class="pill pill-success">{{ __('Client créé') }}</span>
-                                    ${data.client_profile_url
-                                        ? `<a href="${data.client_profile_url}" class="pill-link">{{ __('Voir le dossier') }}</a>`
-                                        : ''
-                                    }
+                                    <div class="flex flex-col gap-1">
+                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
+                                            {{ __('Client créé') }}
+                                        </span>
+                                        ${data.client_profile_url
+                                            ? `<a href="${data.client_profile_url}"
+                                                   class="text-xs font-medium text-[#647a0b] hover:underline">
+                                                   {{ __('Voir le dossier') }}
+                                               </a>`
+                                            : ''
+                                        }
+                                    </div>
                                 `;
                             }
                         } else {
                             alert(data.message || '{{ __("Une erreur est survenue lors de la création du profil client.") }}');
                             this.disabled = false;
+                            this.classList.remove('opacity-60', 'pointer-events-none');
                             this.textContent = '{{ __("Créer un profil") }}';
                         }
                     } catch (e) {
                         console.error(e);
                         alert('{{ __("Erreur réseau. Merci de réessayer.") }}');
                         this.disabled = false;
+                        this.classList.remove('opacity-60', 'pointer-events-none');
                         this.textContent = '{{ __("Créer un profil") }}';
                     }
                 });
@@ -269,256 +484,7 @@
         });
     </script>
 
-    <!-- Custom Styles -->
-    <style>
-        .container {
-            max-width: 800px;
-            padding: 0 15px;
-        }
-
-        .event-details {
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .event-title {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 20px;
-        }
-
-        .event-image img {
-            max-width: 100%;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .event-info {
-            text-align: left;
-            margin-top: 20px;
-        }
-
-        .info-box {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f7fafc;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .info-title {
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .info-text {
-            font-size: 1rem;
-            color: #4a5568;
-            line-height: 1.6;
-        }
-
-        .reservations {
-            margin-top: 40px;
-            text-align: left;
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        /* Booking Counter */
-        .booking-counter {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #647a0b;
-            text-align: center;
-        }
-
-        /* Table wrapper to avoid overflow */
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* Table Styles */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            min-width: 700px; /* force horizontal scroll on small screens */
-        }
-
-        table thead {
-            background-color: #647a0b;
-            color: #fff;
-        }
-
-        table th, table td {
-            padding: 12px 15px;
-            border: 1px solid #e2e8f0;
-            text-align: left;
-            white-space: nowrap;
-        }
-
-        table tbody tr:nth-child(even) {
-            background-color: #f7fafc;
-        }
-
-        /* Pills */
-        .pill {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            line-height: 1;
-            white-space: nowrap;
-        }
-        .pill-success {
-            background-color: #c6f6d5;
-            color: #22543d;
-        }
-        .pill-muted {
-            background-color: #edf2f7;
-            color: #4a5568;
-        }
-        .pill-link {
-            margin-left: 8px;
-            font-size: 0.8rem;
-            color: #647a0b;
-            text-decoration: underline;
-        }
-
-        /* Small button for inline actions */
-        .btn-xs {
-            padding: 6px 10px;
-            font-size: 0.8rem;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            text-align: center;
-            margin-top: 30px;
-        }
-
-        .btn-primary, .btn-secondary, .btn-danger {
-            padding: 12px 25px;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s, color 0.3s;
-            margin: 5px;
-        }
-
-        .btn-primary {
-            background-color: #647a0b;
-            color: #fff;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #854f38;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: #854f38;
-            border: 2px solid #854f38;
-        }
-
-        .btn-secondary:hover {
-            background-color: #854f38;
-            color: #fff;
-        }
-
-        .btn-danger {
-            background-color: #e3342f;
-            color: #fff;
-            border: none;
-        }
-
-        .btn-danger:hover {
-            background-color: #cc1f1a;
-        }
-
-        /* Alerts */
-        .alert {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            text-align: left;
-        }
-
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border-left: 5px solid #28a745;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border-left: 5px solid #dc3545;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .event-title {
-                font-size: 2rem;
-            }
-
-            .event-details {
-                padding: 20px;
-            }
-
-            .info-title {
-                font-size: 1.1rem;
-            }
-
-            .info-text {
-                font-size: 0.95rem;
-            }
-
-            .btn-primary, .btn-secondary, .btn-danger {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-            }
-
-            table th, table td {
-                padding: 10px;
-                font-size: 0.9rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .action-buttons a, .action-buttons button {
-                margin: 10px 0;
-            }
-        }
-    </style>
-
-    <!-- Include FontAwesome and Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+    {{-- FontAwesome (si pas déjà chargé globalement) --}}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 </x-app-layout>
