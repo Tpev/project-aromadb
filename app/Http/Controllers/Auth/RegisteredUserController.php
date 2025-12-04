@@ -77,54 +77,49 @@ class RegisteredUserController extends Controller
      */
 public function storepro(Request $request): RedirectResponse
 {
-    // Validate the incoming request data, with the new fields set as optional.
+    // 1) Normalize email before anything else
+    $request->merge([
+        'email' => strtolower($request->input('email')),
+    ]);
+
+    // 2) Validate the incoming request data
     $request->validate([
         'company_name' => ['nullable', 'string', 'max:255'],
         'services'     => ['nullable', 'string', 'max:255'],
         'about'        => ['nullable', 'string'],
         'name'         => ['required', 'string', 'max:255'],
-        'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+        // 'lowercase' is now technically redundant since we just forced it,
+        // you can keep it or remove it.
+        'email'        => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
         'password'     => ['required', 'confirmed', Rules\Password::defaults()],
     ]);
 
-    // Use a database transaction to ensure atomicity
     DB::beginTransaction();
 
     try {
-        // Create the user with the new fields along with the registration data.
         $user = User::create([
-            'company_name'   => $request->company_name,
-            // If services is provided, cast it to valid JSON, otherwise store null.
-            'services'       => $request->services ? json_encode($request->services) : null,
-            'about'          => $request->about,
-            'name'           => $request->name,
-            'email'          => $request->email,
-            'password'       => Hash::make($request->password),
-            'is_therapist'   => true,  // Set to true for therapist registration
-            'license_product'=> 'essai',
-            'license_status' => 'actif',
+            'company_name'    => $request->company_name,
+            // 👉 here, your field "services" in the form is just a text input,
+            // so if you don't actually store JSON, you can also just do:
+            // 'services' => $request->services,
+            'services'        => $request->services ? json_encode($request->services) : null,
+            'about'           => $request->about,
+            'name'            => $request->name,
+            'email'           => $request->email, // already lowercase thanks to merge()
+            'password'        => Hash::make($request->password),
+            'is_therapist'    => true,
+            'license_product' => 'essai',
+            'license_status'  => 'actif',
         ]);
 
         // Generate a unique slug based on the company name and the user id.
         $user->slug = User::createUniqueSlug($request->company_name, $user->id);
         $user->save();
 
-/*        // Stripe integration can be added here if needed.
-        Stripe::setApiKey(config('services.stripe.secret'));
-        $customer = Customer::create([
-            'email' => $user->email,
-            'name'  => $user->name,
-            'metadata' => [
-                'user_id' => $user->id,
-            ],
-        ]);
-        $user->stripe_customer_id = $customer->id; */
-       
+        // (Stripe block is commented out in your code; leaving as-is)
 
-        // Fire the Registered event
         event(new Registered($user));
 
-        // Log the user in
         Auth::login($user);
 
         // Retrieve admin emails
@@ -138,25 +133,21 @@ public function storepro(Request $request): RedirectResponse
         Mail::to($adminEmails)->send(new AdminNewUserNotification($user));
         Log::info("Queued AdminNewUserNotification for admins.");
 
-        // Commit the transaction
         DB::commit();
 
-        // Redirect to the therapist dashboard
         return redirect()->route('dashboard-pro');
 
     } catch (\Exception $e) {
-        // Rollback the transaction on error
         DB::rollBack();
 
-        // Log the error for debugging
         Log::error("User Registration Failed: " . $e->getMessage());
 
-        // Redirect back with an error message
         return redirect()->back()
             ->withInput()
             ->withErrors(['registration_error' => 'Registration failed. Please try again.']);
     }
 }
+
 
 
 
