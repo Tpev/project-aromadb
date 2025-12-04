@@ -70,7 +70,7 @@
 
             <div class="am-card-body">
                 @if($rendezVousAVenir->isNotEmpty())
-                    <div class="table-responsive">
+                    <div class="am-table-wrapper">
                         <table class="table appointment-table"
                                id="upcomingTable">
                             <thead>
@@ -216,7 +216,7 @@
 
             <div class="am-card-body">
                 @if($rendezVousPasses->isNotEmpty())
-                    <div class="table-responsive">
+                    <div class="am-table-wrapper">
                         <table class="table appointment-table"
                                id="pastTable">
                             <thead>
@@ -491,6 +491,7 @@
 
         .am-calendar-wrapper {
             width: 100%;
+            overflow-x: auto;
         }
 
         .am-search-input {
@@ -521,10 +522,18 @@
             transform: translateY(-1px);
         }
 
+        /* Wrapper pour scroll horizontal interne */
+        .am-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
         .appointment-table {
             width: 100%;
+            min-width: 900px; /* force le scroll horizontal sur petit écran */
             border-collapse: separate;
             border-spacing: 0 8px;
+            margin-bottom: 0;
         }
 
         .appointment-table thead {
@@ -632,7 +641,6 @@
             background-color: #f3f4f6 !important;
         }
 
-        /* Gaps helpers (au cas où) */
         .gap-2 {
             gap: .5rem !important;
         }
