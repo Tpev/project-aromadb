@@ -44,6 +44,7 @@ class AppointmentController extends Controller
         // 2. Charge tous les rendez-vous du thérapeute
         $appointments = Appointment::where('user_id', Auth::id())
             ->with(['clientProfile', 'product'])
+			->orderBy('appointment_date', 'desc')
             ->get();
 
         $events = [];
