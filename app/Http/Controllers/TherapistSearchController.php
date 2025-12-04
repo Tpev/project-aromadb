@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class TherapistSearchController extends Controller
 {
@@ -27,30 +28,37 @@ class TherapistSearchController extends Controller
 
         // ----------------- Location filter (User + all practiceLocations) -----------------
         if (!empty($data['location'])) {
-            $loc = trim($data['location']);
+            // Normalize to lowercase
+            $loc = mb_strtolower(trim($data['location']), 'UTF-8');
+            $likeLoc = '%' . $loc . '%';
 
-            $base->where(function ($q) use ($loc) {
-                // Match therapist main city/state set by admin
-                $q->where('city_setByAdmin', 'like', '%' . $loc . '%')
-                  ->orWhere('state_setByAdmin', 'like', '%' . $loc . '%')
+            $base->where(function ($q) use ($likeLoc) {
+                // Match therapist main city/state set by admin (case-insensitive)
+                $q->whereRaw('LOWER(city_setByAdmin) LIKE ?', [$likeLoc])
+                  ->orWhereRaw('LOWER(state_setByAdmin) LIKE ?', [$likeLoc])
                   // ALSO match on all practice locations (cabinets)
-                  ->orWhereHas('practiceLocations', function ($lq) use ($loc) {
-                      $lq->where('city', 'like', '%' . $loc . '%')
-                         ->orWhere('postal_code', 'like', '%' . $loc . '%')
-                         ->orWhere('address_line1', 'like', '%' . $loc . '%')
-                         ->orWhere('address_line2', 'like', '%' . $loc . '%')
-                         ->orWhere('country', 'like', '%' . $loc . '%')
-                         ->orWhere('label', 'like', '%' . $loc . '%');
+                  ->orWhereHas('practiceLocations', function ($lq) use ($likeLoc) {
+                      $lq->whereRaw('LOWER(city) LIKE ?', [$likeLoc])
+                         ->orWhereRaw('LOWER(postal_code) LIKE ?', [$likeLoc])
+                         ->orWhereRaw('LOWER(address_line1) LIKE ?', [$likeLoc])
+                         ->orWhereRaw('LOWER(address_line2) LIKE ?', [$likeLoc])
+                         ->orWhereRaw('LOWER(country) LIKE ?', [$likeLoc])
+                         ->orWhereRaw('LOWER(label) LIKE ?', [$likeLoc]);
                   });
             });
         }
 
         // Specialty filter (supports JSON array or plain text)
         if (!empty($data['specialty'])) {
-            $spec = trim($data['specialty']);
-            $base->where(function ($q) use ($spec) {
+            // Normalize to lowercase
+            $spec = mb_strtolower(trim($data['specialty']), 'UTF-8');
+            $likeSpec = '%' . $spec . '%';
+
+            $base->where(function ($q) use ($spec, $likeSpec) {
+                // JSON contains is case-sensitive, so we try with normalized value
                 $q->orWhereJsonContains('services', $spec)
-                  ->orWhere('services', 'like', '%' . $spec . '%');
+                  // Fallback: cast JSON to string and lowercase for LIKE match
+                  ->orWhereRaw('LOWER(CAST(services AS CHAR)) LIKE ?', [$likeSpec]);
             });
         }
 
@@ -166,19 +174,23 @@ class TherapistSearchController extends Controller
      */
     public function filterBySpecialty($specialty)
     {
-        $specialtySearch = str_replace('-', ' ', $specialty);
+        // param is slug-like: "naturopathe", "osteopathe-energeticien", etc.
+        $specialtySearchRaw   = str_replace('-', ' ', $specialty);
+        $specialtySearch      = mb_strtolower($specialtySearchRaw, 'UTF-8');
+        $likeSpecialtySearch  = '%' . $specialtySearch . '%';
 
         $therapists = User::query()
             ->where('is_therapist', true)
             ->whereNotNull('slug')
             ->where('slug', '!=', '')
             ->where('visible_annuarire_admin_set', true)
-            ->where(function ($q) use ($specialtySearch) {
+            ->where(function ($q) use ($specialtySearch, $likeSpecialtySearch) {
                 $q->orWhereJsonContains('services', $specialtySearch)
-                  ->orWhere('services', 'like', '%' . $specialtySearch . '%');
+                  ->orWhereRaw('LOWER(CAST(services AS CHAR)) LIKE ?', [$likeSpecialtySearch]);
             })
             ->get();
 
+        $specialty = $specialtySearchRaw; // for display if you want original case-ish
         return view('results', compact('therapists', 'specialty'));
     }
 
@@ -187,28 +199,32 @@ class TherapistSearchController extends Controller
      */
     public function filterByRegion($region)
     {
-        $regionSearch = mb_convert_case(str_replace('-', ' ', $region), MB_CASE_TITLE, 'UTF-8');
+        // Original region string (with spaces instead of '-') for display
+        $regionRaw     = str_replace('-', ' ', $region);
+        $regionSearch  = mb_strtolower($regionRaw, 'UTF-8');
+        $likeRegion    = '%' . $regionSearch . '%';
 
         $therapists = User::query()
             ->where('is_therapist', true)
             ->whereNotNull('slug')
             ->where('slug', '!=', '')
             ->where('visible_annuarire_admin_set', true)
-            ->where(function ($q) use ($regionSearch) {
-                $q->where('city_setByAdmin', 'like', '%' . $regionSearch . '%')
-                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%')
+            ->where(function ($q) use ($likeRegion) {
+                $q->whereRaw('LOWER(city_setByAdmin) LIKE ?', [$likeRegion])
+                  ->orWhereRaw('LOWER(state_setByAdmin) LIKE ?', [$likeRegion])
                   // match region via practice locations too
-                  ->orWhereHas('practiceLocations', function ($lq) use ($regionSearch) {
-                      $lq->where('city', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('postal_code', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('address_line1', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('address_line2', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('country', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('label', 'like', '%' . $regionSearch . '%');
+                  ->orWhereHas('practiceLocations', function ($lq) use ($likeRegion) {
+                      $lq->whereRaw('LOWER(city) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(postal_code) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(address_line1) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(address_line2) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(country) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(label) LIKE ?', [$likeRegion]);
                   });
             })
             ->get();
 
+        $region = $regionRaw; // for display
         return view('results', compact('therapists', 'region'));
     }
 
@@ -217,32 +233,40 @@ class TherapistSearchController extends Controller
      */
     public function filterBySpecialtyRegion($specialty, $region)
     {
-        $specialtySearch = str_replace('-', ' ', $specialty);
-        $regionSearch = mb_convert_case(str_replace('-', ' ', $region), MB_CASE_TITLE, 'UTF-8');
+        $specialtySearchRaw   = str_replace('-', ' ', $specialty);
+        $specialtySearch      = mb_strtolower($specialtySearchRaw, 'UTF-8');
+        $likeSpecialtySearch  = '%' . $specialtySearch . '%';
+
+        $regionRaw     = str_replace('-', ' ', $region);
+        $regionSearch  = mb_strtolower($regionRaw, 'UTF-8');
+        $likeRegion    = '%' . $regionSearch . '%';
 
         $therapists = User::query()
             ->where('is_therapist', true)
             ->whereNotNull('slug')
             ->where('slug', '!=', '')
             ->where('visible_annuarire_admin_set', true)
-            ->where(function ($q) use ($specialtySearch) {
+            ->where(function ($q) use ($specialtySearch, $likeSpecialtySearch) {
                 $q->orWhereJsonContains('services', $specialtySearch)
-                  ->orWhere('services', 'like', '%' . $specialtySearch . '%');
+                  ->orWhereRaw('LOWER(CAST(services AS CHAR)) LIKE ?', [$likeSpecialtySearch]);
             })
-            ->where(function ($q) use ($regionSearch) {
-                $q->where('city_setByAdmin', 'like', '%' . $regionSearch . '%')
-                  ->orWhere('state_setByAdmin', 'like', '%' . $regionSearch . '%')
+            ->where(function ($q) use ($likeRegion) {
+                $q->whereRaw('LOWER(city_setByAdmin) LIKE ?', [$likeRegion])
+                  ->orWhereRaw('LOWER(state_setByAdmin) LIKE ?', [$likeRegion])
                   // also region via practice locations
-                  ->orWhereHas('practiceLocations', function ($lq) use ($regionSearch) {
-                      $lq->where('city', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('postal_code', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('address_line1', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('address_line2', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('country', 'like', '%' . $regionSearch . '%')
-                         ->orWhere('label', 'like', '%' . $regionSearch . '%');
+                  ->orWhereHas('practiceLocations', function ($lq) use ($likeRegion) {
+                      $lq->whereRaw('LOWER(city) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(postal_code) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(address_line1) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(address_line2) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(country) LIKE ?', [$likeRegion])
+                         ->orWhereRaw('LOWER(label) LIKE ?', [$likeRegion]);
                   });
             })
             ->get();
+
+        $specialty = $specialtySearchRaw;
+        $region    = $regionRaw;
 
         return view('results', compact('therapists', 'specialty', 'region'));
     }
