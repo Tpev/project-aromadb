@@ -33,11 +33,7 @@ class NewsletterRecipient extends Model
     {
         return $this->belongsTo(ClientProfile::class);
     }
-	// app/Models/NewsletterRecipient.php
-public function newsletter()
-{
-    return $this->belongsTo(Newsletter::class);
-}
+
 
 // app/Models/Newsletter.php
 public function user()
