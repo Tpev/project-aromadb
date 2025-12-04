@@ -34,79 +34,107 @@ class AppointmentController extends Controller
     /**
      * Display a listing of the appointments.
      */
-    public function index(Request $request)
-    {
-        // 1. Redirige les comptes inactifs
-        if (Auth::user()->license_status === 'inactive') {
-            return redirect('/license-tiers/pricing');
+   public function index(Request $request)
+{
+    // 1. Redirige les comptes inactifs
+    if (Auth::user()->license_status === 'inactive') {
+        return redirect('/license-tiers/pricing');
+    }
+
+    // 2. Charge tous les rendez-vous du thérapeute
+    $allAppointments = Appointment::where('user_id', Auth::id())
+        ->with(['clientProfile', 'product'])
+        ->orderBy('appointment_date', 'asc') // tri global par date croissante
+        ->get();
+
+    $events = [];
+
+    // Date/heure actuelle
+    $now = Carbon::now();
+
+    /* -------------------------------------------------------------------------
+     | Construction du tableau $events pour FullCalendar
+     | ---------------------------------------------------------------------- */
+    foreach ($allAppointments as $appointment) {
+
+        $isPast = Carbon::parse($appointment->appointment_date)->isPast();
+
+        // ---------- Titre ----------
+        if ($appointment->external) {
+            $title = $appointment->notes ?: 'Occupé';
+        } else {
+            $client = optional($appointment->clientProfile);
+            $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? '')) ?: 'Rendez-vous';
         }
 
-        // 2. Charge tous les rendez-vous du thérapeute
-        $appointments = Appointment::where('user_id', Auth::id())
-            ->with(['clientProfile', 'product'])
-			->orderBy('appointment_date', 'desc')
-            ->get();
+        // ---------- Couleur ----------
+        $color = $appointment->external
+            ? '#999999'
+            : ($isPast ? '#854f38' : '#647a0b');
 
-        $events = [];
-
-        /* -------------------------------------------------------------------------
-         | Construction du tableau $events pour FullCalendar
-         | ---------------------------------------------------------------------- */
-        foreach ($appointments as $appointment) {
-
-            $isPast = Carbon::parse($appointment->appointment_date)->isPast();
-
-            // ---------- Titre ----------
-            if ($appointment->external) {
-                $title = $appointment->notes ?: 'Occupé';
-            } else {
-                $client = optional($appointment->clientProfile);
-                $title  = trim(($client->first_name ?? '').' '.($client->last_name ?? '')) ?: 'Rendez-vous';
-            }
-
-            // ---------- Couleur ----------
-            $color = $appointment->external
-                ? '#999999'
-                : ($isPast ? '#854f38' : '#647a0b');
-
-            // ---------- Push dans FullCalendar ----------
-            $events[] = [
-                'title'     => $title,
-                'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
-                'end'       => $appointment->appointment_date
+        // ---------- Push dans FullCalendar ----------
+        $events[] = [
+            'title'     => $title,
+            'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
+            'end'       => $appointment->appointment_date
                                         ->copy()
                                         ->addMinutes($appointment->duration ?? 0)
                                         ->format('Y-m-d H:i:s'),
-                'url'       => $appointment->external
+            'url'       => $appointment->external
                                 ? null
                                 : route('appointments.show', $appointment->id),
-                'color'     => $color,
-                'textColor' => $isPast ? '#ffffff' : '#636363',
-            ];
-        }
-
-        // 4. Indispos
-        $unavailabilities = Unavailability::where('user_id', Auth::id())
-            ->get()
-            ->map(function ($unavailability) {
-                return [
-                    'title' => $unavailability->reason ?: 'Indisponible',
-                    'start' => $unavailability->start_date->format('Y-m-d H:i:s'),
-                    'end'   => $unavailability->end_date->format('Y-m-d H:i:s'),
-                    'color' => '#808080',
-                    'url'   => route('unavailabilities.index'),
-                ];
-            });
-
-        $events = array_merge($events, $unavailabilities->toArray());
-
-        // 🔥 Choix de la vue en fonction de la route (web vs mobile)
-        $view = $request->routeIs('mobile.*')
-            ? 'mobile.appointments.index'
-            : 'appointments.index';
-
-        return view($view, compact('appointments', 'events'));
+            'color'     => $color,
+            'textColor' => $isPast ? '#ffffff' : '#636363',
+        ];
     }
+
+    /* -------------------------------------------------------------------------
+     | Séparation : rendez-vous à venir / rendez-vous passés
+     | ---------------------------------------------------------------------- */
+
+    // RDV à venir : date >= maintenant, triés du plus proche au plus lointain
+    $rendezVousAVenir = $allAppointments
+        ->filter(fn ($a) => $a->appointment_date >= $now)
+        ->sortBy('appointment_date')
+        ->values();
+
+    // RDV passés : date < maintenant, triés du plus récent au plus ancien
+    $rendezVousPasses = $allAppointments
+        ->filter(fn ($a) => $a->appointment_date < $now)
+        ->sortByDesc('appointment_date')
+        ->values();
+
+    // Pour compatibilité si tu utilisais déjà $appointments dans la vue
+    $appointments = $allAppointments;
+
+    // 4. Indisponibilités
+    $unavailabilities = Unavailability::where('user_id', Auth::id())
+        ->get()
+        ->map(function ($unavailability) {
+            return [
+                'title' => $unavailability->reason ?: 'Indisponible',
+                'start' => $unavailability->start_date->format('Y-m-d H:i:s'),
+                'end'   => $unavailability->end_date->format('Y-m-d H:i:s'),
+                'color' => '#808080',
+                'url'   => route('unavailabilities.index'),
+            ];
+        });
+
+    $events = array_merge($events, $unavailabilities->toArray());
+
+    // 🔥 Choix de la vue en fonction de la route (web vs mobile)
+    $view = $request->routeIs('mobile.*')
+        ? 'mobile.appointments.index'
+        : 'appointments.index';
+
+    return view($view, [
+        'appointments'        => $appointments,
+        'rendezVousAVenir'    => $rendezVousAVenir,
+        'rendezVousPasses'    => $rendezVousPasses,
+        'events'              => $events,
+    ]);
+}
+
 
 
 
