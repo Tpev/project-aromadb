@@ -64,6 +64,33 @@ use App\Http\Controllers\SpecialAvailabilityController;
 use App\Http\Controllers\GoogleReviewController;
 use App\Http\Controllers\CorporateClientController;
 
+use App\Http\Controllers\AudienceController;
+use App\Http\Controllers\NewsletterUnsubscribeController;
+
+Route::get('/newsletters/unsubscribe/{token}', [NewsletterUnsubscribeController::class, 'show'])
+    ->name('unsubscribe.newsletter');
+
+Route::post('/newsletters/unsubscribe/{token}', [NewsletterUnsubscribeController::class, 'confirm'])
+    ->name('unsubscribe.newsletter.confirm');
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('audiences', AudienceController::class);
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('newsletters', \App\Http\Controllers\NewsletterController::class);
+	Route::post('/newsletters/upload-image', [\App\Http\Controllers\NewsletterController::class, 'uploadImage'])
+    ->name('newsletters.upload-image');
+    Route::post('newsletters/{newsletter}/send-test', [\App\Http\Controllers\NewsletterController::class, 'sendTest'])
+        ->name('newsletters.send-test');
+    Route::post('newsletters/{newsletter}/send-now', [\App\Http\Controllers\NewsletterController::class, 'sendNow'])
+        ->name('newsletters.send-now');
+		
+
+});
+
+
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('corporate-clients', CorporateClientController::class);
 });
