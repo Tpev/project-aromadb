@@ -13,29 +13,120 @@
                 {{ __('Liste des Entreprises Clientes') }}
             </h1>
 
-            <!-- Barre de Recherche et Bouton de Création -->
-            <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
-                <!-- Barre de Recherche -->
-                <div class="w-full md:w-auto">
-                    <input
-                        type="text"
-                        id="search"
-                        class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-[#854f38]"
-                        placeholder="{{ __('Recherche par nom d\'entreprise...') }}"
-                        onkeyup="filterTable()"
-                    >
-                </div>
+@php
+    $user = auth()->user();
+    $canCreateCorporate = $user->canUseFeature('client_profiles_pro'); 
+    // If you later want a dedicated permission for corporate clients,
+    // change to something like 'corporate_profiles'
 
-                <!-- Bouton Créer une Entreprise Cliente -->
+    // Determine the minimum license family that includes this feature
+    $plansConfig = config('license_features.plans', []);
+
+    // Ignore trial — trial is temporary access
+    $familyOrder = ['free', 'starter', 'pro', 'premium'];
+
+    $requiredFamily = null;
+
+    foreach ($familyOrder as $family) {
+        if (in_array('client_profiles_pro', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    // Human-readable labels
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+        : __('une formule supérieure');
+@endphp
+
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+
+    {{-- Search Bar --}}
+    <div class="w-full md:max-w-sm relative">
+        <input
+            id="search"
+            type="text"
+            placeholder="{{ __('Rechercher une entreprise...') }}"
+            onkeyup="filterTable()"
+            class="w-full rounded-xl border border-[#854f38]/40 bg-white px-4 py-2.5 text-sm shadow-sm 
+                   focus:outline-none focus:ring-2 focus:ring-[#854f38] transition" />
+
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="h-5 w-5 text-[#854f38]/70 absolute right-3 top-1/2 -translate-y-1/2"
+             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 12.65z" />
+        </svg>
+    </div>
+
+    {{-- Button area --}}
+    <div class="w-full md:w-auto flex justify-start md:justify-end">
+        <div class="relative inline-flex w-full md:w-auto">
+
+            @if($canCreateCorporate)
+                {{-- Normal green button --}}
                 <a href="{{ route('corporate-clients.create') }}"
-                   class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
-                    <!-- Icône Plus -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#647a0b] px-5 py-2.5 text-white text-sm font-semibold
+                          shadow-sm hover:bg-[#586f09] transition w-full md:w-auto">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
+                         viewBox="0 0 20 20">
                         <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
                     </svg>
+
                     {{ __('Créer une entreprise cliente') }}
                 </a>
-            </div>
+
+            @else
+                {{-- Locked button --}}
+                <a href="/license-tiers/pricing"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-200 text-gray-500 px-5 py-2.5 text-sm font-semibold
+                          border border-gray-300 shadow-sm transition hover:bg-gray-300 w-full md:w-auto">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="currentColor"
+                         viewBox="0 0 20 20">
+                        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                    </svg>
+
+                    {{ __('Créer une entreprise cliente') }}
+                </a>
+
+                {{-- Floating pill --}}
+                <div class="absolute -top-3 right-0 translate-x-2 inline-flex items-center gap-1 rounded-full 
+                            bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5 
+                            text-[10px] font-semibold text-[#854f38] shadow-sm">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
+                         viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                              d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                                 00-2 2v6a2 2 0 002 2h10a2 2 0 
+                                 002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                                 0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                              clip-rule="evenodd" />
+                    </svg>
+
+                    <span>
+                        {{ __('Disponible à partir de :') }}
+                        <span class="font-bold">{{ $requiredLabel }}</span>
+                    </span>
+                </div>
+            @endif
+
+        </div>
+    </div>
+
+</div>
+
 
             <!-- Tableau -->
             <div class="bg-white shadow overflow-hidden rounded-lg">

@@ -23,8 +23,28 @@ class AdminController extends Controller
 {
 public function updateLicenseProduct(Request $request, User $therapist)
 {
+    // Full list of allowed licenses
+    $allowed = [
+        // Legacy
+        'Starter Mensuelle',
+        'Starter Annuelle',
+        'Pro Mensuelle',
+        'Pro Annuelle',
+        'Essai Gratuit',
+
+        // New system
+        'new_free',
+        'new_trial',
+        'new_starter_mensuelle',
+        'new_starter_annuelle',
+        'new_pro_mensuelle',
+        'new_pro_annuelle',
+        'new_premium_mensuelle',
+        'new_premium_annuelle',
+    ];
+
     $request->validate([
-        'license_product' => 'required|string|in:Starter Mensuelle,Starter Annuelle,Pro Mensuelle,Pro Annuelle,Essai Gratuit',
+        'license_product' => 'required|string|in:' . implode(',', $allowed),
     ]);
 
     $therapist->license_product = $request->license_product;
@@ -32,6 +52,7 @@ public function updateLicenseProduct(Request $request, User $therapist)
 
     return back()->with('success', 'Licence mise à jour avec succès.');
 }
+
 	
 public function toggleLicense(Request $request, User $therapist)
 {

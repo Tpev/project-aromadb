@@ -3,6 +3,34 @@
     <h2 class="font-semibold text-xl" style="color:#647a0b;">CA encaissé par mois – {{ $year }}</h2>
   </x-slot>
 
+  @php
+      $user = auth()->user();
+      $canViewLivreRecettes = $user->canUseFeature('livre_recettes');
+
+      // Determine required plan (ignoring trial)
+      $plansConfig    = config('license_features.plans', []);
+      $familyOrder    = ['free', 'starter', 'pro', 'premium'];
+      $requiredFamily = null;
+
+      foreach ($familyOrder as $family) {
+          if (in_array('livre_recettes', $plansConfig[$family] ?? [], true)) {
+              $requiredFamily = $family;
+              break;
+          }
+      }
+
+      $familyLabels = [
+          'free'    => __('Gratuit'),
+          'starter' => __('Starter'),
+          'pro'     => __('PRO'),
+          'premium' => __('Premium'),
+      ];
+
+      $requiredLabel = $requiredFamily
+          ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+          : __('une formule supérieure');
+  @endphp
+
   <div class="container-fluid mt-5 details-container mx-auto p-4">
 
     {{-- Title --}}
@@ -25,36 +53,58 @@
       <a href="{{ route('receipts.index') }}" class="btn-primary">Retour au livre</a>
     </form>
 
-    {{-- Tableau principal --}}
-    <div class="table-responsive">
-      <table class="table table-bordered table-hover am-table" id="caMensuelTable">
-        <thead>
-          <tr>
-            <th style="width:70%">Mois</th>
-            <th style="width:30%" class="text-right">CA encaissé TTC (€)</th>
-          </tr>
-        </thead>
-        <tbody>
-          @php $totalAnnuel = 0; @endphp
-          @for($m=1; $m<=12; $m++)
-            @php
-              $label = \Carbon\Carbon::create($year, $m, 1)->locale('fr')->isoFormat('MMMM');
-              $moisTotal = $data[$m] ?? 0;
-              $totalAnnuel += $moisTotal;
-            @endphp
+    {{-- Bloc blur + overlay --}}
+    <div class="blur-wrapper {{ $canViewLivreRecettes ? '' : 'is-blurred' }}">
+      {{-- Tableau principal --}}
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover am-table" id="caMensuelTable">
+          <thead>
             <tr>
-              <td class="capitalize">{{ ucfirst($label) }}</td>
-              <td class="text-right">{{ number_format($moisTotal, 2, ',', ' ') }}</td>
+              <th style="width:70%">Mois</th>
+              <th style="width:30%" class="text-right">CA encaissé TTC (€)</th>
             </tr>
-          @endfor
-        </tbody>
-        <tfoot>
-          <tr style="background:#f9faf5;font-weight:700;">
-            <td>Total annuel encaissé</td>
-            <td class="text-right">{{ number_format($totalAnnuel, 2, ',', ' ') }} €</td>
-          </tr>
-        </tfoot>
-      </table>
+          </thead>
+          <tbody>
+            @php $totalAnnuel = 0; @endphp
+            @for($m=1; $m<=12; $m++)
+              @php
+                $label = \Carbon\Carbon::create($year, $m, 1)->locale('fr')->isoFormat('MMMM');
+                $moisTotal = $data[$m] ?? 0;
+                $totalAnnuel += $moisTotal;
+              @endphp
+              <tr>
+                <td class="capitalize">{{ ucfirst($label) }}</td>
+                <td class="text-right">{{ number_format($moisTotal, 2, ',', ' ') }}</td>
+              </tr>
+            @endfor
+          </tbody>
+          <tfoot>
+            <tr style="background:#f9faf5;font-weight:700;">
+              <td>Total annuel encaissé</td>
+              <td class="text-right">{{ number_format($totalAnnuel, 2, ',', ' ') }} €</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      @unless($canViewLivreRecettes)
+        {{-- Overlay above blurred content --}}
+        <div class="blur-overlay">
+          <div class="blur-overlay-inner">
+            <h3 class="blur-title">Statistiques de CA bloquées</h3>
+            <p class="blur-text">
+              Le détail du chiffre d’affaires encaissé par mois est réservé aux formules incluant le livre de recettes.
+            </p>
+            <p class="blur-text-small">
+              Disponible à partir de : <span class="blur-plan">{{ $requiredLabel }}</span>
+            </p>
+
+            <a href="/license-tiers/pricing" class="btn-primary mt-3">
+              Voir les formules & débloquer les statistiques
+            </a>
+          </div>
+        </div>
+      @endunless
     </div>
 
   </div>
@@ -126,7 +176,7 @@
       font-size:.95rem;
     }
 
-    /* Table design (same as invoices & livre) */
+    /* Table design */
     .table-responsive {
       background:#fff;
       border-radius:8px;
@@ -153,7 +203,7 @@
     }
     .text-right { text-align:right; }
 
-    /* Buttons reuse theme */
+    /* Buttons */
     .btn-primary, .btn-secondary {
       padding:10px 16px;
       border-radius:8px;
@@ -183,11 +233,66 @@
       color:#fff;
     }
 
+    /* Blur wrapper + overlay (same pattern as livre de recettes) */
+    .blur-wrapper {
+      position:relative;
+      margin-top:20px;
+    }
+    .blur-wrapper.is-blurred > .table-responsive {
+      filter: blur(4px);
+      pointer-events:none;
+      user-select:none;
+    }
+
+    .blur-overlay {
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none; /* only inner content clickable */
+    }
+    .blur-overlay-inner {
+      pointer-events:auto;
+      max-width:420px;
+      background:rgba(255,255,255,0.96);
+      border-radius:14px;
+      padding:20px 24px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.12);
+      text-align:center;
+      border:1px solid #e5e7eb;
+    }
+    .blur-title {
+      font-size:1.15rem;
+      font-weight:700;
+      color:#647a0b;
+      margin-bottom:8px;
+    }
+    .blur-text {
+      font-size:.95rem;
+      color:#4b5563;
+      margin-bottom:6px;
+    }
+    .blur-text-small {
+      font-size:.85rem;
+      color:#6b7280;
+      margin-bottom:10px;
+    }
+    .blur-plan {
+      font-weight:700;
+      color:#854f38;
+    }
+
     /* Responsive tweaks */
     @media (max-width:768px){
       .filter-form { flex-direction:column; align-items:stretch; }
       .btn-primary, .btn-secondary { width:100%; justify-content:center; }
       .am-table th, .am-table td { font-size:.9rem; padding:10px; }
+
+      .blur-overlay-inner {
+        margin:0 10px;
+        padding:16px 18px;
+      }
     }
   </style>
 </x-app-layout>

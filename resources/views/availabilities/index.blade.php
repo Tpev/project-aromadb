@@ -20,6 +20,34 @@
                 </div>
             @endif
 
+@php
+    $user = auth()->user();
+    $canUseAppointments = $user->canUseFeature('appointement');
+
+    // Determine the minimum license family that includes this feature
+    $plansConfig = config('license_features.plans', []);
+    $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial
+
+    $requiredFamily = null;
+    foreach ($familyOrder as $family) {
+        if (in_array('appointement', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+        : __('une formule supérieure');
+@endphp
+
 <!-- Recherche + Boutons -->
 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
     <!-- Search -->
@@ -34,39 +62,93 @@
     </div>
 
     <!-- Boutons actions -->
-    <div class="flex flex-wrap justify-center md:justify-end gap-2 md:gap-3 w-full md:w-auto">
-        {{-- Dispo récurrentes --}}
-        <a
-            href="{{ route('availabilities.create') }}"
-            class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
-                   bg-[#647a0b] text-white hover:bg-[#4f6108] transition duration-200 shadow-sm"
-        >
-            <i class="fas fa-calendar-plus mr-2"></i>
-            {{ __('Ajouter une Disponibilité') }}
-        </a>
+    <div class="flex flex-wrap justify-center md:justify-end gap-2 md:gap-3 w-full md:w-auto relative">
 
-        {{-- Indisponibilité --}}
-        <a
-            href="{{ route('unavailabilities.index') }}"
-            class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
-                   bg-[#854f38] text-white hover:bg-[#6a3f2c] transition duration-200 shadow-sm"
-        >
-            <i class="fas fa-ban mr-2"></i>
-            {{ __('Ajouter une Indisponibilité temporaire') }}
-        </a>
+        @if($canUseAppointments)
+            {{-- Dispo récurrentes --}}
+            <a
+                href="{{ route('availabilities.create') }}"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                       bg-[#647a0b] text-white hover:bg-[#4f6108] transition duration-200 shadow-sm"
+            >
+                <i class="fas fa-calendar-plus mr-2"></i>
+                {{ __('Ajouter une Disponibilité') }}
+            </a>
 
-        {{-- Disponibilités ponctuelles --}}
-        <a
-            href="{{ route('special-availabilities.index') }}"
-            class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
-                   border border-[#647a0b] text-[#647a0b] bg-white
-                   hover:bg-[#647a0b] hover:text-white transition duration-200 shadow-sm"
-        >
-            <i class="fas fa-star mr-2"></i>
-            {{ __('Ajouter des Disponibilités ponctuelles') }}
-        </a>
+            {{-- Indisponibilité --}}
+            <a
+                href="{{ route('unavailabilities.index') }}"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                       bg-[#854f38] text-white hover:bg-[#6a3f2c] transition duration-200 shadow-sm"
+            >
+                <i class="fas fa-ban mr-2"></i>
+                {{ __('Ajouter une Indisponibilité temporaire') }}
+            </a>
+
+            {{-- Disponibilités ponctuelles --}}
+            <a
+                href="{{ route('special-availabilities.index') }}"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                       border border-[#647a0b] text-[#647a0b] bg-white
+                       hover:bg-[#647a0b] hover:text-white transition duration-200 shadow-sm"
+            >
+                <i class="fas fa-star mr-2"></i>
+                {{ __('Ajouter des Disponibilités ponctuelles') }}
+            </a>
+        @else
+            {{-- All buttons greyed and go to pricing --}}
+            <a
+                href="/license-tiers/pricing"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                       bg-gray-200 text-gray-600 border border-gray-300
+                       hover:bg-gray-300 transition duration-200 shadow-sm"
+            >
+                <i class="fas fa-calendar-plus mr-2"></i>
+                {{ __('Ajouter une Disponibilité') }}
+            </a>
+
+            <a
+                href="/license-tiers/pricing"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                       bg-gray-200 text-gray-600 border border-gray-300
+                       hover:bg-gray-300 transition duration-200 shadow-sm"
+            >
+                <i class="fas fa-ban mr-2"></i>
+                {{ __('Ajouter une Indisponibilité temporaire') }}
+            </a>
+
+            <a
+                href="/license-tiers/pricing"
+                class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
+                       bg-gray-200 text-gray-600 border border-gray-300
+                       hover:bg-gray-300 transition duration-200 shadow-sm"
+            >
+                <i class="fas fa-star mr-2"></i>
+                {{ __('Ajouter des Disponibilités ponctuelles') }}
+            </a>
+
+            {{-- Small pill for the whole group --}}
+            <div class="absolute -top-2 -right-2 bg-[#fff1d6] border border-[#facc15]/40 
+                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#854f38]
+                        shadow-sm flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                          d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                             00-2 2v6a2 2 0 002 2h10a2 2 0 
+                             002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                             0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                          clip-rule="evenodd" />
+                </svg>
+                <span>
+                    {{ __('À partir de :') }}
+                    <span class="font-bold">{{ $requiredLabel }}</span>
+                </span>
+            </div>
+        @endif
     </div>
 </div>
+
 
 
             <!-- Tableau -->

@@ -257,38 +257,141 @@
                 <a href="{{ route('profile.edit') }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
 
-            <!-- Google Connections Section -->
-            <div class="details-box google-section mt-8">
-                <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
-                <p class="text-gray-500 text-sm mb-3">
-                    {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
-                </p>
+@php
+    $user = auth()->user();
+    $canUseIntegration = $user->canUseFeature('integration');
 
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Google Agenda connect / disconnect -->
-                    @if (auth()->user()->google_access_token)
-                        <form method="POST" action="{{ route('google.disconnect') }}" class="inline-block">
-                            @csrf
-                            <button type="submit" class="btn btn-danger">
-                                {{ __('Déconnecter Google Agenda') }}
-                            </button>
-                        </form>
-                    @else
-                        <a href="{{ route('google.connect') }}" class="btn btn-primary inline-block">
-                            {{ __('Connecter Google Agenda') }}
-                        </a>
-                    @endif
+    // Determine required license family
+    $plansConfig = config('license_features.plans', []);
+    $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial
 
-                    <!-- Google Reviews -->
-                    <a href="{{ route('pro.google-reviews.index') }}" class="btn btn-secondary inline-block">
-                        {{ __('Connecter Google Review') }}
-                    </a>
-                </div>
+    $requiredFamily = null;
+    foreach ($familyOrder as $family) {
+        if (in_array('integration', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
 
-                <small class="text-gray-500 block mt-3">
-                    {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
-                </small>
-            </div>
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? ucfirst($requiredFamily))
+        : __('une formule supérieure');
+@endphp
+
+<!-- Google Connections Section -->
+<div class="details-box google-section mt-8 relative">
+
+    {{-- Lock pill (if feature unavailable) --}}
+    @unless($canUseIntegration)
+        <div style="
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: #fff1d6;
+            border: 1px solid rgba(250,204,21,0.4);
+            padding: 2px 8px;
+            font-size: 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            color: #854f38;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.08);
+        ">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 fill="currentColor"
+                 viewBox="0 0 20 20"
+                 style="width: 12px; height: 12px;">
+                <path fill-rule="evenodd"
+                    d="M10 2a4 4 0 00-4 4v2H5a2 
+                       2 0 00-2 2v6a2 2 0 
+                       002 2h10a2 2 0 
+                       002-2v-6a2 2 0 
+                       00-2-2h-1V6a4 4 
+                       0 00-4-4zm0 6a2 2 
+                       0 00-2 2v2a2 2 
+                       0 104 0v-2a2 2 
+                       0 00-2-2z"
+                    clip-rule="evenodd" />
+            </svg>
+
+            {{ __('À partir de :') }} <strong>{{ $requiredLabel }}</strong>
+        </div>
+    @endunless
+
+    <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
+    <p class="text-gray-500 text-sm mb-3">
+        {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
+    </p>
+
+    <div class="flex flex-wrap items-center gap-3">
+
+        @if($canUseIntegration)
+            {{-- Google Agenda connect / disconnect --}}
+            @if ($user->google_access_token)
+                <form method="POST" action="{{ route('google.disconnect') }}" class="inline-block">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">
+                        {{ __('Déconnecter Google Agenda') }}
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('google.connect') }}" class="btn btn-primary inline-block">
+                    {{ __('Connecter Google Agenda') }}
+                </a>
+            @endif
+
+            {{-- Google Reviews --}}
+            <a href="{{ route('pro.google-reviews.index') }}" class="btn btn-secondary inline-block">
+                {{ __('Connecter Google Review') }}
+            </a>
+
+        @else
+            {{-- Grey-out all integration buttons --}}
+            <a href="/license-tiers/pricing"
+               class="btn"
+               style="
+                   background:#e5e7eb;
+                   border:1px solid #d1d5db;
+                   color:#6b7280;
+                   padding: 0.45rem 1rem;
+                   border-radius:6px;
+                   white-space: nowrap;
+                   font-weight:600;
+               ">
+                {{ __('Connecter Google Agenda') }}
+            </a>
+
+            <a href="/license-tiers/pricing"
+               class="btn"
+               style="
+                   background:#f2f2f2;
+                   border:1px solid #d1d5db;
+                   color:#6b7280;
+                   padding: 0.45rem 1rem;
+                   border-radius:6px;
+                   white-space: nowrap;
+                   font-weight:600;
+               ">
+                {{ __('Connecter Google Review') }}
+            </a>
+        @endif
+
+    </div>
+
+    <small class="text-gray-500 block mt-3">
+        {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
+    </small>
+</div>
+
 
         </div>
 

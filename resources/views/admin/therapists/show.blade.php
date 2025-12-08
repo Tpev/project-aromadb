@@ -455,22 +455,57 @@
     </select>
 </form>
 <!-- Update License Product -->
-<form action="{{ route('admin.therapists.updateLicenseProduct', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+<form action="{{ route('admin.therapists.updateLicenseProduct', $therapist->id) }}"
+      method="POST"
+      style="margin-bottom:40px;">
     @csrf
     @method('PUT')
+
     <h2 class="section-title">Changer l’abonnement</h2>
+
     <div>
         <label for="license_product">Type de Licence :</label>
         <select name="license_product" id="license_product">
-            <option value="Starter Mensuelle" {{ $therapist->license_product === 'Starter Mensuelle' ? 'selected' : '' }}>Starter Mensuelle</option>
-            <option value="Starter Annuelle" {{ $therapist->license_product === 'Starter Annuelle' ? 'selected' : '' }}>Starter Annuelle</option>
-            <option value="Pro Mensuelle" {{ $therapist->license_product === 'Pro Mensuelle' ? 'selected' : '' }}>Pro Mensuelle</option>
-            <option value="Pro Annuelle" {{ $therapist->license_product === 'Pro Annuelle' ? 'selected' : '' }}>Pro Annuelle</option>
-            <option value="Essai Gratuit" {{ $therapist->license_product === 'Essai Gratuit' ? 'selected' : '' }}>Essai Gratuit</option>
+
+            {{-- Legacy Plans (always kept for backward compatibility) --}}
+            <optgroup label="Anciennes formules (legacy)">
+                <option value="Essai Gratuit" {{ $therapist->license_product === 'Essai Gratuit' ? 'selected' : '' }}>Essai Gratuit (legacy)</option>
+                <option value="Starter Mensuelle" {{ $therapist->license_product === 'Starter Mensuelle' ? 'selected' : '' }}>Starter Mensuelle (legacy)</option>
+                <option value="Starter Annuelle" {{ $therapist->license_product === 'Starter Annuelle' ? 'selected' : '' }}>Starter Annuelle (legacy)</option>
+                <option value="Pro Mensuelle" {{ $therapist->license_product === 'Pro Mensuelle' ? 'selected' : '' }}>Pro Mensuelle (legacy)</option>
+                <option value="Pro Annuelle" {{ $therapist->license_product === 'Pro Annuelle' ? 'selected' : '' }}>Pro Annuelle (legacy)</option>
+            </optgroup>
+
+            {{-- New free / trial --}}
+            <optgroup label="Nouvelles formules – Gratuit / Essai">
+                <option value="new_free" {{ $therapist->license_product === 'new_free' ? 'selected' : '' }}>Gratuit (new_free)</option>
+                <option value="new_trial" {{ $therapist->license_product === 'new_trial' ? 'selected' : '' }}>Essai (new_trial)</option>
+            </optgroup>
+
+            {{-- Starter --}}
+            <optgroup label="Starter">
+                <option value="new_starter_mensuelle" {{ $therapist->license_product === 'new_starter_mensuelle' ? 'selected' : '' }}>Starter Mensuelle (new)</option>
+                <option value="new_starter_annuelle" {{ $therapist->license_product === 'new_starter_annuelle' ? 'selected' : '' }}>Starter Annuelle (new)</option>
+            </optgroup>
+
+            {{-- PRO --}}
+            <optgroup label="PRO">
+                <option value="new_pro_mensuelle" {{ $therapist->license_product === 'new_pro_mensuelle' ? 'selected' : '' }}>PRO Mensuelle (new)</option>
+                <option value="new_pro_annuelle" {{ $therapist->license_product === 'new_pro_annuelle' ? 'selected' : '' }}>PRO Annuelle (new)</option>
+            </optgroup>
+
+            {{-- Premium --}}
+            <optgroup label="Premium">
+                <option value="new_premium_mensuelle" {{ $therapist->license_product === 'new_premium_mensuelle' ? 'selected' : '' }}>Premium Mensuelle (new)</option>
+                <option value="new_premium_annuelle" {{ $therapist->license_product === 'new_premium_annuelle' ? 'selected' : '' }}>Premium Annuelle (new)</option>
+            </optgroup>
+
         </select>
     </div>
+
     <button type="submit">Mettre à jour</button>
 </form>
+
 
         <!-- New Form to Update Address Fields (Set By Admin) -->
         <form action="{{ route('admin.therapists.updateAddress', $therapist->id) }}" method="POST" style="margin-bottom:40px;">

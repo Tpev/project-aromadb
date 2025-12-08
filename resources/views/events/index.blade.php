@@ -12,15 +12,109 @@
     <div class="container mt-5">
         <h1 class="page-title">{{ __('Liste des Événements') }}</h1>
     
-        <!-- Search Bar and Create Button -->
-        <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
-            <input type="text" id="search" class="form-control" placeholder="{{ __('Recherche par nom...') }}" onkeyup="filterTable()" style="border-color: #854f38; max-width: 300px; margin-bottom: 10px;">
-    
-            <!-- Create Event Button -->
-            <a href="{{ route('events.create') }}" class="btn-primary" style="white-space: nowrap;">
+@php
+    $user = auth()->user();
+    $canCreateEvent = $user->canUseFeature('events');
+
+    // Determine the minimum license family that includes this feature
+    $plansConfig = config('license_features.plans', []);
+    $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial
+
+    $requiredFamily = null;
+    foreach ($familyOrder as $family) {
+        if (in_array('events', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+        : __('une formule supérieure');
+@endphp
+
+<!-- Search Bar and Create Button -->
+<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
+    <input
+        type="text"
+        id="search"
+        class="form-control"
+        placeholder="{{ __('Recherche par nom...') }}"
+        onkeyup="filterTable()"
+        style="border-color: #854f38; max-width: 300px; margin-bottom: 10px;"
+    >
+
+    {{-- Button + pill wrapper --}}
+    <div style="position: relative; display: inline-flex; margin-bottom: 10px;">
+
+        @if($canCreateEvent)
+            {{-- Normal green button --}}
+            <a href="{{ route('events.create') }}"
+               class="btn-primary"
+               style="white-space: nowrap;">
                 <i class="fas fa-plus mr-2"></i> {{ __('Créer un événement') }}
             </a>
-        </div>
+        @else
+            {{-- Greyed-out button that redirects to pricing --}}
+            <a href="/license-tiers/pricing"
+               class="btn"
+               style="
+                   white-space: nowrap;
+                   background-color: #e5e7eb;
+                   border: 1px solid #d1d5db;
+                   color: #6b7280;
+                   font-weight: 600;
+                   padding: 0.5rem 1rem;
+                   border-radius: 9999px;
+               ">
+                <i class="fas fa-plus mr-2"></i> {{ __('Créer un événement') }}
+            </a>
+
+            {{-- Small pill showing required plan --}}
+            <div style="
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                background-color: #fff1d6;
+                border: 1px solid rgba(250, 204, 21, 0.4);
+                border-radius: 9999px;
+                padding: 2px 8px;
+                font-size: 9px;
+                font-weight: 600;
+                color: #854f38;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            ">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 20 20"
+                     fill="currentColor"
+                     style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd"
+                          d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                             00-2 2v6a2 2 0 002 2h10a2 2 0 
+                             002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                             0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                          clip-rule="evenodd" />
+                </svg>
+                <span>
+                    {{ __('À partir de :') }}
+                    <span style="font-weight: 700;">{{ $requiredLabel }}</span>
+                </span>
+            </div>
+        @endif
+
+    </div>
+</div>
+
     
         <!-- Upcoming Events Table -->
         <div class="table-responsive mx-auto">

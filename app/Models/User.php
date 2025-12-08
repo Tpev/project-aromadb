@@ -13,6 +13,20 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * NEW LICENSE DEFINITIONS — Add nothing else here unless needed
+     */
+    public const NEW_LICENSE_PRODUCTS = [
+        'new_trial',
+        'new_free',
+        'new_starter_mensuelle',
+        'new_pro_mensuelle',
+        'new_premium_mensuelle',
+        'new_starter_annuelle',
+        'new_pro_annuelle',
+        'new_premium_annuelle',
+    ];
+
     protected $fillable = [
         'name',
         'email',
@@ -26,23 +40,24 @@ class User extends Authenticatable
         'company_phone',
         'legal_mentions',
         'slug',
-		'share_address_publicly',
+        'share_address_publicly',
         'share_phone_publicly',
         'share_email_publicly',
-		'about',
-		'services',
-		'profile_description',
-		'minimum_notice_hours', // Ensure this line is present
+        'about',
+        'services',
+        'profile_description',
+        'minimum_notice_hours',
         'profile_picture',
-		'accept_online_appointments', // Ensure this line is present
-		'stripe_account_id',
-		'stripe_customer_id', 
-		'license_product',
-		'license_status',
-		 'view_count',
+        'accept_online_appointments',
+        'stripe_account_id',
+        'stripe_customer_id',
+        'license_product',
+        'license_status',
+        'view_count',
         'verified',
         'visible_annuarire_admin_set',
-		 // New Address Fields set by Admin
+
+        // Address Fields (Admin)
         'street_address_setByAdmin',
         'address_line2_setByAdmin',
         'city_setByAdmin',
@@ -51,41 +66,46 @@ class User extends Authenticatable
         'country_setByAdmin',
         'latitude_setByAdmin',
         'longitude_setByAdmin',
-		        // --- Google Calendar ---
+
+        // Google Calendar
         'google_access_token',
         'google_refresh_token',
         'google_token_expires_at',
-		    'is_featured',
-    'featured_until',
-    'featured_weight',
-	   'buffer_time_between_appointments',
-	   'cgv_pdf_path',
 
+        // Featured Therapist
+        'is_featured',
+        'featured_until',
+        'featured_weight',
+
+        'buffer_time_between_appointments',
+        'cgv_pdf_path',
     ];
 
     protected $dates = ['last_login_at'];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-		'accept_online_appointments' => 'boolean', // Ensure this line is present
-		    'is_featured' => 'boolean',
-    'featured_until' => 'datetime',
-	'buffer_time_between_appointments' => 'integer',
+        'accept_online_appointments' => 'boolean',
+        'is_featured' => 'boolean',
+        'featured_until' => 'datetime',
+        'buffer_time_between_appointments' => 'integer',
     ];
 
-    // Relationships
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONSHIPS
+    |--------------------------------------------------------------------------
+    */
 
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
-    }    
-	public function events()
+    }
+
+    public function events()
     {
         return $this->hasMany(Event::class);
     }
@@ -103,48 +123,36 @@ class User extends Authenticatable
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
-    }    
-	public function availabilities()
+    }
+
+    public function availabilities()
     {
         return $this->hasMany(Availability::class);
     }
 
-    // Add the missing clientProfiles relationship
     public function clientProfiles()
     {
-        return $this->hasMany(ClientProfile::class); // Assuming one therapist can have multiple client profiles
+        return $this->hasMany(ClientProfile::class);
     }
-
-    // Additional methods
 
     public function isAdmin()
     {
-        return $this->is_admin; // Assuming `is_admin` is a boolean field
+        return $this->is_admin;
     }
 
     public function isTherapist()
     {
-        return $this->is_therapist; // Assuming `is_therapist` is a boolean field
+        return $this->is_therapist;
     }
 
-    /**
-     * Génère un slug unique basé sur le nom de l'entreprise.
-     *
-     * @param string $companyName
-     * @param int $userId
-     * @return string|null
-     */
     public static function createUniqueSlug($companyName, $userId)
     {
-        if (empty($companyName)) {
-            return null;
-        }
+        if (empty($companyName)) return null;
 
         $slug = Str::slug($companyName);
         $originalSlug = $slug;
         $counter = 1;
 
-        // Vérifier l'unicité du slug
         while (self::where('slug', $slug)->where('id', '!=', $userId)->exists()) {
             $slug = $originalSlug . '-' . $counter;
             $counter++;
@@ -152,77 +160,129 @@ class User extends Authenticatable
 
         return $slug;
     }
-	
-	    public function activeLicense()
+
+    public function activeLicense()
     {
         return $this->hasOne(UserLicense::class);
     }
 
-    /**
-     * Get the license history for the user.
-     */
     public function licenseHistories()
     {
         return $this->hasMany(LicenseHistory::class);
     }
-	// User.php
-public function license()
-{
-    return $this->hasOne(UserLicense::class);
-}
-public function questionnaires()
-{
-    return $this->hasMany(Questionnaire::class);
-}
-public function testimonialRequests()
-{
-    return $this->hasMany(TestimonialRequest::class, 'therapist_id');
-}
 
-/**
- * Get the testimonials made by the therapist.
- */
-public function testimonials()
-{
-    return $this->hasMany(Testimonial::class, 'therapist_id');
-}
+    public function license()
+    {
+        return $this->hasOne(UserLicense::class);
+    }
+
+    public function questionnaires()
+    {
+        return $this->hasMany(Questionnaire::class);
+    }
+
+    public function testimonialRequests()
+    {
+        return $this->hasMany(TestimonialRequest::class, 'therapist_id');
+    }
+
+    public function testimonials()
+    {
+        return $this->hasMany(Testimonial::class, 'therapist_id');
+    }
+
     public function inventoryItems()
     {
         return $this->hasMany(InventoryItem::class);
     }
-	public function informationRequests()
-{
-    return $this->hasMany(\App\Models\InformationRequest::class, 'therapist_id');
-}
-public function practiceLocations()
-{
-    return $this->hasMany(\App\Models\PracticeLocation::class);
-}
-public function scopeTherapists($q)
-{
-    return $q->where('is_therapist', true);
-}
 
-public function scopeCurrentlyFeatured($q)
-{
-    return $q->where('is_featured', true)
-        ->where(function ($q) {
-            $q->whereNull('featured_until')
-              ->orWhere('featured_until', '>', now());
-        });
-}
+    public function informationRequests()
+    {
+        return $this->hasMany(\App\Models\InformationRequest::class, 'therapist_id');
+    }
 
-public function scopeFeaturedOrdered($q)
-{
-    // Weight desc first, then rating desc, then newest
-    return $q->orderByDesc('featured_weight')
-             ->orderByDesc('average_rating')
-             ->latest('id');
-}
+    public function practiceLocations()
+    {
+        return $this->hasMany(\App\Models\PracticeLocation::class);
+    }
 
-/** Optional helper */
-public function isFeatured(): bool
-{
-    return (bool) $this->is_featured && (is_null($this->featured_until) || $this->featured_until->isFuture());
-}
+    public function scopeTherapists($q)
+    {
+        return $q->where('is_therapist', true);
+    }
+
+    public function scopeCurrentlyFeatured($q)
+    {
+        return $q->where('is_featured', true)
+            ->where(function ($q) {
+                $q->whereNull('featured_until')
+                  ->orWhere('featured_until', '>', now());
+            });
+    }
+
+    public function scopeFeaturedOrdered($q)
+    {
+        return $q->orderByDesc('featured_weight')
+                 ->orderByDesc('average_rating')
+                 ->latest('id');
+    }
+
+    public function isFeatured(): bool
+    {
+        return (bool) $this->is_featured &&
+            (is_null($this->featured_until) || $this->featured_until->isFuture());
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LICENSE LOGIC (NEW)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Legacy = any user NOT using a new license_product.
+     */
+    public function isLegacyLicense(): bool
+    {
+        if (empty($this->license_product)) {
+            return true;
+        }
+
+        return ! in_array($this->license_product, self::NEW_LICENSE_PRODUCTS, true);
+    }
+
+    /**
+     * Returns: legacy | free | trial | starter | pro | premium
+     */
+    public function licenseFamily(): ?string
+    {
+        if ($this->isLegacyLicense()) {
+            return 'legacy';
+        }
+
+        return match (true) {
+            str_starts_with($this->license_product, 'new_free')    => 'free',
+            str_starts_with($this->license_product, 'new_trial')   => 'trial',
+            str_starts_with($this->license_product, 'new_starter') => 'starter',
+            str_starts_with($this->license_product, 'new_pro')     => 'pro',
+            str_starts_with($this->license_product, 'new_premium') => 'premium',
+            default                                                => null,
+        };
+    }
+
+    /**
+     * Check if user can access a feature using the config map.
+     */
+    public function canUseFeature(string $feature): bool
+    {
+        if ($this->isLegacyLicense()) {
+            return true; // legacy gets everything
+        }
+
+        $family = $this->licenseFamily();
+        $plans = config('license_features.plans');
+
+        return in_array($feature, $plans[$family] ?? [], true);
+    }
 }

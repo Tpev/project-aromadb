@@ -11,22 +11,112 @@
     <div class="container mt-5">
         <h1 class="page-title">Liste des Prestations</h1>
 
-        <!-- Search Bar and Create Button -->
-        <div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
-            <input 
-                type="text" 
-                id="search" 
-                class="form-control mb-2 mb-md-0" 
-                placeholder="Recherche par nom de la prestation..." 
-                onkeyup="filterTable()" 
-                style="border-color: #854f38; max-width: 300px;"
-            >
+@php
+    $user = auth()->user();
+    $canCreateProduct = $user->canUseFeature('products');
 
-            <!-- Create Product Button -->
+    // Determine minimum license family that includes this feature
+    $plansConfig = config('license_features.plans', []);
+    $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trials
+
+    $requiredFamily = null;
+    foreach ($familyOrder as $family) {
+        if (in_array('products', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? ucfirst($requiredFamily))
+        : __('une formule supérieure');
+@endphp
+
+<!-- Search Bar and Create Button -->
+<div class="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+
+    {{-- Search Bar --}}
+    <input 
+        type="text" 
+        id="search" 
+        class="form-control mb-2 mb-md-0" 
+        placeholder="Recherche par nom de la prestation..." 
+        onkeyup="filterTable()" 
+        style="border-color: #854f38; max-width: 300px;"
+    >
+
+    {{-- Button Wrapper --}}
+    <div style="position: relative; display: inline-flex; margin-top: 6px;">
+
+        @if($canCreateProduct)
+            {{-- Normal usable button --}}
             <a href="{{ route('products.create') }}" class="btn-primary">
                 <i class="fas fa-plus mr-2"></i> Créer une prestation
             </a>
-        </div>
+        @else
+            {{-- Greyed-out locked button --}}
+            <a href="/license-tiers/pricing"
+               class="btn"
+               style="
+                   background-color: #e5e7eb;
+                   border: 1px solid #d1d5db;
+                   color: #6b7280;
+                   font-weight: 600;
+                   padding: 0.5rem 1rem;
+                   border-radius: 7px;
+                   white-space: nowrap;
+               ">
+                <i class="fas fa-plus mr-2"></i> Créer une prestation
+            </a>
+
+            {{-- Floating pill --}}
+            <div style="
+                position: absolute;
+                top: -10px;
+                right: -12px;
+                background-color: #fff1d6;
+                border: 1px solid rgba(250, 204, 21, 0.4);
+                padding: 2px 8px;
+                font-size: 9px;
+                border-radius: 9999px;
+                font-weight: 600;
+                color: #854f38;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            ">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     fill="currentColor"
+                     viewBox="0 0 20 20"
+                     style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd"
+                        d="M10 2a4 4 0 00-4 4v2H5a2 
+                           2 0 00-2 2v6a2 2 0 
+                           002 2h10a2 2 0 
+                           002-2v-6a2 2 0 
+                           00-2-2h-1V6a4 4 
+                           0 00-4-4zm0 6a2 2 
+                           0 00-2 2v2a2 2 
+                           0 104 0v-2a2 2 
+                           0 00-2-2z"
+                        clip-rule="evenodd" />
+                </svg>
+
+                {{ __('À partir de :') }} <strong>{{ $requiredLabel }}</strong>
+            </div>
+        @endif
+
+    </div>
+</div>
+
 
         <!-- Responsive Table -->
         <div class="table-responsive">

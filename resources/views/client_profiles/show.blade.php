@@ -38,82 +38,208 @@
 
             <hr class="my-6">
 
-            {{-- ==========================
-                 Onglets (Alpine.js)
-                 ========================== --}}
-            <div x-data="{ tab: 'Aperçu' }">
-                {{-- Header des onglets --}}
-                <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-4 text-sm">
-                    @php
-                        $tabs = [
-                            'Aperçu',
-                            'Rendez-vous',
-                            'Notes de séance',
-                            'Questionnaires',
-                            'Conseils envoyés',
-                            'Mesures',
-                            'Messagerie',
-                            'Fichiers & Documents',
-                        ];
-                    @endphp
+@php
+    $user = auth()->user();
 
-                    @foreach($tabs as $t)
-                        <button
-                            type="button"
-                            class="px-3 py-1.5 rounded-full font-semibold transition text-xs sm:text-sm"
-                            :class="tab === '{{ $t }}'
-                                ? 'bg-[#647a0b] text-white shadow-sm'
-                                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'"
-                            @click="tab = '{{ $t }}'">
-                            {{ $t }}
-                        </button>
-                    @endforeach
-                </div>
+    // Which tabs require upgrade?
+    $lockedTabs = [
+        'Conseils envoyés',
+        'Mesures',
+        'Messagerie',
+        'Fichiers & Documents',
+    ];
+
+    // Feature key for these
+    $canUseAdvanced = $user->canUseFeature('client_profile_advanced');
+@endphp
+
+
+<div x-data="{ tab: 'Aperçu' }">
+
+    {{-- Header Tabs --}}
+    <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-4 text-sm">
+
+        @php
+            $tabs = [
+                'Aperçu',
+                'Rendez-vous',
+                'Notes de séance',
+                'Questionnaires',
+                'Conseils envoyés',
+                'Mesures',
+                'Messagerie',
+                'Fichiers & Documents',
+            ];
+        @endphp
+
+        @foreach($tabs as $t)
+
+            @php
+                $isLocked = in_array($t, $lockedTabs) && !$canUseAdvanced;
+            @endphp
+
+            <div class="relative">
+                {{-- The tab button --}}
+                <button
+                    type="button"
+                    class="px-3 py-1.5 rounded-full font-semibold transition text-xs sm:text-sm flex items-center gap-1"
+                    :class="tab === '{{ $t }}'
+                        ? 'bg-[#647a0b] text-white shadow-sm'
+                        : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'"
+                    @click="
+                        @if($isLocked)
+                            window.location.href='/license-tiers/pricing'
+                        @else
+                            tab = '{{ $t }}'
+                        @endif
+                    "
+                >
+                    {{ $t }}
+                </button>
+
+                {{-- Lock pill for locked tabs --}}
+                @if($isLocked)
+                    <div class="absolute -top-2 -right-2 rounded-full bg-[#fff1d6] border border-[#facc15]/40 
+                                px-1.5 py-0.5 text-[9px] font-semibold text-[#854f38] shadow-sm flex items-center gap-1">
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
+                             viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                  d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                                     00-2 2v6a2 2 0 002 2h10a2 2 
+                                     0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                                     0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                                  clip-rule="evenodd" />
+                        </svg>
+
+                        {{ __('PRO') }}
+                    </div>
+                @endif
+            </div>
+
+        @endforeach
+
+    </div>
+
 
                 {{-- =======================
                      Onglet : Aperçu
                      ======================= --}}
                 <div x-show="tab === 'Aperçu'" x-cloak>
-                    <!-- ==========================
-                         SECTION: Invitation au compte
-                         ========================== -->
-                    <section class="bg-white p-6 rounded-2xl shadow mt-6">
-                        <h2 class="text-xl font-semibold text-gray-800 mb-4">🧾 Invitation à l’espace client</h2>
+@php
+    $user = auth()->user();
+    $canUseReview = $user->canUseFeature('espace-client');
 
-                        @if(!$clientProfile->email)
-                            <p class="text-red-600 font-semibold">
-                                Ce client n’a pas d’adresse email, l’invitation ne peut pas être envoyée.
-                            </p>
-                        @elseif($clientProfile->password)
-                            <p class="text-green-700 font-semibold">
-                                ✅ Ce client a déjà activé son compte.
-                            </p>
-                        @elseif($clientProfile->password_setup_token_hash && $clientProfile->password_setup_expires_at && $clientProfile->password_setup_expires_at->isFuture())
-                            <p class="text-yellow-700">
-                                🔁 Une invitation a déjà été envoyée le
-                                <strong>{{ $clientProfile->password_setup_expires_at->subDays(3)->format('d/m/Y H:i') }}</strong>. <br>
-                                Elle est valable jusqu’au <strong>{{ $clientProfile->password_setup_expires_at->format('d/m/Y H:i') }}</strong>.
-                            </p>
+    // Determine the minimum license family that includes this feature
+    $plansConfig = config('license_features.plans', []);
 
-                            <form action="{{ route('client.invite', $clientProfile) }}" method="POST" class="mt-4">
-                                @csrf
-                                <button type="submit" class="btn-secondary">
-                                    ❗Renvoyer une nouvelle invitation
-                                </button>
-                            </form>
-                        @else
-                            <p class="text-gray-600">
-                                Ce client n’a pas encore été invité à créer son compte.
-                            </p>
+    // Ignore 'trial' here (trial is temporary access)
+    $familyOrder = ['free', 'starter', 'pro', 'premium'];
 
-                            <form action="{{ route('client.invite', $clientProfile) }}" method="POST" class="mt-4">
-                                @csrf
-                                <button type="submit" class="btn-primary">
-                                    📩 Envoyer une invitation
-                                </button>
-                            </form>
-                        @endif
-                    </section>
+    $requiredFamily = null;
+
+    foreach ($familyOrder as $family) {
+        if (in_array('espace-client', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+        : __('une formule supérieure');
+@endphp
+
+<section class="bg-white p-6 rounded-2xl shadow mt-6">
+    <div class="flex items-start justify-between gap-3 mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">
+            🧾 Invitation à l’espace client
+        </h2>
+
+        @unless($canUseReview)
+            <div class="inline-flex items-center gap-1 rounded-full 
+                        bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5 
+                        text-[10px] font-semibold text-[#854f38] shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                          d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                             00-2 2v6a2 2 0 002 2h10a2 2 0 
+                             002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                             0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                          clip-rule="evenodd" />
+                </svg>
+                <span>
+                    {{ __('Disponible à partir de :') }}
+                    <span class="font-bold">{{ $requiredLabel }}</span>
+                </span>
+            </div>
+        @endunless
+    </div>
+
+    @if(!$canUseReview)
+        {{-- Locked state: info + CTA to upgrade --}}
+        <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+            <p class="mb-3">
+                {{ __("L’invitation à l’espace client et la gestion des avis font partie des fonctionnalités avancées.") }}
+            </p>
+
+            <a href="/license-tiers/pricing"
+               class="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-200 text-gray-700 px-4 py-2 text-sm font-semibold
+                      border border-gray-300 shadow-sm hover:bg-gray-300 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.5a.75.75 0 00-1.5 0v4.25c0 .414.336.75.75.75h3a.75.75 0 000-1.5h-2.25V6.5z"
+                          clip-rule="evenodd" />
+                </svg>
+                {{ __('Mettre à niveau pour activer cette fonctionnalité') }}
+            </a>
+        </div>
+    @else
+        {{-- Original logic when feature is available --}}
+        @if(!$clientProfile->email)
+            <p class="text-red-600 font-semibold">
+                Ce client n’a pas d’adresse email, l’invitation ne peut pas être envoyée.
+            </p>
+        @elseif($clientProfile->password)
+            <p class="text-green-700 font-semibold">
+                ✅ Ce client a déjà activé son compte.
+            </p>
+        @elseif($clientProfile->password_setup_token_hash && $clientProfile->password_setup_expires_at && $clientProfile->password_setup_expires_at->isFuture())
+            <p class="text-yellow-700">
+                🔁 Une invitation a déjà été envoyée le
+                <strong>{{ $clientProfile->password_setup_expires_at->subDays(3)->format('d/m/Y H:i') }}</strong>. <br>
+                Elle est valable jusqu’au <strong>{{ $clientProfile->password_setup_expires_at->format('d/m/Y H:i') }}</strong>.
+            </p>
+
+            <form action="{{ route('client.invite', $clientProfile) }}" method="POST" class="mt-4">
+                @csrf
+                <button type="submit" class="btn-secondary">
+                    ❗Renvoyer une nouvelle invitation
+                </button>
+            </form>
+        @else
+            <p class="text-gray-600">
+                Ce client n’a pas encore été invité à créer son compte.
+            </p>
+
+            <form action="{{ route('client.invite', $clientProfile) }}" method="POST" class="mt-4">
+                @csrf
+                <button type="submit" class="btn-primary">
+                    📩 Envoyer une invitation
+                </button>
+            </form>
+        @endif
+    @endif
+</section>
 
                     <!-- ==========================
                          Infos profil (cartes)
@@ -182,29 +308,119 @@
                         </div>
                     </div>
 
-                    @can('requestTestimonial', $clientProfile)
-                        @if(is_null($testimonialRequest))
-                            <!-- Aucune demande envoyée -->
-                            <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}"
-                                  method="POST"
-                                  class="mt-6">
-                                @csrf
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Demander un Témoignage') }}
-                                </button>
-                            </form>
-                        @elseif($testimonialRequest->status === 'pending')
-                            <!-- Demande envoyée -->
-                            <p class="mt-6 text-lg text-gray-600">
-                                {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
-                            </p>
-                        @elseif($testimonialRequest->status === 'completed')
-                            <!-- Témoignage fait -->
-                            <p class="mt-6 text-lg text-gray-600">
-                                {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
-                            </p>
-                        @endif
-                    @endcan
+@php
+    $user = auth()->user();
+    $canUseReview = $user->canUseFeature('review');
+
+    // Determine required plan (ignoring trial)
+    $plansConfig = config('license_features.plans', []);
+    $familyOrder = ['free', 'starter', 'pro', 'premium'];
+
+    $requiredFamily = null;
+
+    foreach ($familyOrder as $family) {
+        if (in_array('review', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+        : __('une formule supérieure');
+@endphp
+
+
+<section class="bg-white p-6 rounded-2xl shadow mt-6">
+
+    {{-- Title + pill --}}
+    <div class="flex items-start justify-between gap-3 mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">
+            ⭐ {{ __('Demande de Témoignage') }}
+        </h2>
+
+        @unless($canUseReview)
+            <div class="inline-flex items-center gap-1 rounded-full 
+                        bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5
+                        text-[10px] font-semibold text-[#854f38] shadow-sm">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                          d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                             00-2 2v6a2 2 0 002 2h10a2 2 0 
+                             002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                             0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                          clip-rule="evenodd" />
+                </svg>
+
+                <span>
+                    {{ __('À partir de :') }}
+                    <span class="font-bold">{{ $requiredLabel }}</span>
+                </span>
+            </div>
+        @endunless
+    </div>
+
+
+    {{-- If LOCKED --}}
+    @unless($canUseReview)
+
+        {{-- Disabled version of the original button --}}
+        <div class="mt-6">
+            <a href="/license-tiers/pricing"
+               class="inline-flex items-center justify-center gap-2 rounded-lg 
+                      bg-gray-200 text-gray-500 px-4 py-2 text-sm font-semibold 
+                      border border-gray-300 shadow-sm cursor-pointer hover:bg-gray-300 transition">
+
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 
+                             11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
+                </svg>
+
+                {{ __('Demander un Témoignage') }}
+            </a>
+        </div>
+
+    @else
+        {{-- Original allowed logic --}}
+        @can('requestTestimonial', $clientProfile)
+
+            @if(is_null($testimonialRequest))
+                <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}"
+                      method="POST"
+                      class="mt-6">
+                    @csrf
+                    <button type="submit" class="btn btn-primary">
+                        {{ __('Demander un Témoignage') }}
+                    </button>
+                </form>
+
+            @elseif($testimonialRequest->status === 'pending')
+                <p class="mt-6 text-lg text-gray-600">
+                    {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
+                </p>
+
+            @elseif($testimonialRequest->status === 'completed')
+                <p class="mt-6 text-lg text-gray-600">
+                    {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
+                </p>
+            @endif
+
+        @endcan
+    @endunless
+
+</section>
+
+
                 </div>
 
                 {{-- =======================

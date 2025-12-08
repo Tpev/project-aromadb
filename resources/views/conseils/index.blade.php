@@ -13,22 +13,122 @@
                 {{ __('Liste des Conseils') }}
             </h1>
 
-            <!-- Barre de Recherche et Bouton de Création -->
-            <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
-                <!-- Barre de Recherche -->
-                <div class="w-full md:w-auto">
-                    <input type="text" id="search" class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-[#854f38]" placeholder="{{ __('Recherche par nom de conseil...') }}" onkeyup="filterTable()">
-                </div>
+@php
+    $user = auth()->user();
+    $canCreateConseil = $user->canUseFeature('conseil');
 
-                <!-- Bouton Créer un Conseil -->
-                <a href="{{ route('conseils.create') }}" class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
-                    <!-- Icône Plus -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
-                    </svg>
-                    {{ __('Créer un conseil') }}
-                </a>
+    // Determine the minimum license needed
+    $plansConfig = config('license_features.plans', []);
+    $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial tier
+
+    $requiredFamily = null;
+    foreach ($familyOrder as $family) {
+        if (in_array('conseil', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? ucfirst($requiredFamily))
+        : __('une formule supérieure');
+@endphp
+
+
+<!-- Barre de Recherche et Bouton de Création -->
+<div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
+
+    <!-- Barre de Recherche -->
+    <div class="w-full md:w-auto">
+        <input
+            type="text"
+            id="search"
+            class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80 
+                   focus:outline-none focus:ring-2 focus:ring-[#854f38]"
+            placeholder="{{ __('Recherche par nom de conseil...') }}"
+            onkeyup="filterTable()"
+        >
+    </div>
+
+    <!-- Bouton Créer un Conseil -->
+    <div class="relative inline-flex w-full md:w-auto">
+
+        @if($canCreateConseil)
+            {{-- Normal working button --}}
+            <a href="{{ route('conseils.create') }}"
+               class="bg-[#647a0b] text-white px-4 py-2 rounded-md 
+                      hover:bg-[#854f38] transition duration-200 
+                      flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 mr-2" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1 0 
+                             110 2h-3v3a1 1 0 
+                             11-2 0v-3H6a1 1 0 
+                             110-2h3V6a1 1 0 
+                             011-1z" />
+                </svg>
+                {{ __('Créer un conseil') }}
+            </a>
+
+        @else
+            {{-- Greyed-out button with redirect --}}
+            <a href="/license-tiers/pricing"
+               class="px-4 py-2 rounded-md flex items-center justify-center
+                      bg-gray-200 text-gray-600 border border-gray-300
+                      cursor-pointer transition duration-200
+                      hover:bg-gray-300"
+               style="white-space: nowrap;">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 mr-2" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1 0 
+                             110 2h-3v3a1 1 0 
+                             11-2 0v-3H6a1 1 0 
+                             110-2h3V6a1 1 0 
+                             011-1z" />
+                </svg>
+                {{ __('Créer un conseil') }}
+            </a>
+
+            {{-- Floating pill --}}
+            <div class="absolute -top-3 -right-2 
+                        bg-[#fff1d6] border border-[#facc15]/40
+                        rounded-full px-2.5 py-0.5 text-[10px] 
+                        font-semibold text-[#854f38] shadow-sm 
+                        flex items-center gap-1">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-3 w-3" fill="currentColor"
+                     viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                          d="M10 2a4 4 0 
+                             00-4 4v2H5a2 2 0 
+                             00-2 2v6a2 2 0 
+                             002 2h10a2 2 0 
+                             002-2v-6a2 2 0 
+                             00-2-2h-1V6a4 4 
+                             0 00-4-4zm0 6a2 2 
+                             0 00-2 2v2a2 2 
+                             0 104 0v-2a2 2 
+                             0 00-2-2z"
+                          clip-rule="evenodd" />
+                </svg>
+
+                <span>{{ __('À partir de :') }} <strong>{{ $requiredLabel }}</strong></span>
             </div>
+        @endif
+
+    </div>
+</div>
+
 
             <!-- Tableau -->
             <div class="bg-white shadow overflow-hidden rounded-lg">

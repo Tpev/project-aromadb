@@ -22,21 +22,105 @@
                     séparés en rendez-vous à venir et passés.
                 </p>
 
-                <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
-                    {{-- Recherche client --}}
-                    <input type="text"
-                           id="search"
-                           class="form-control am-search-input"
-                           placeholder="Recherche par client..."
-                           onkeyup="filterTable()">
+@php
+    $user = auth()->user();
+    $canCreateAppointment = $user->canUseFeature('appointement'); // feature key
 
-                    {{-- Bouton pour créer un nouveau rendez-vous --}}
-                    <a href="{{ route('appointments.create') }}"
-                       class="btn-primary">
-                        <i class="fas fa-plus me-2"></i>
-                        Créer un rendez-vous
-                    </a>
-                </div>
+    // Determine the minimum license family that includes this feature
+    $plansConfig = config('license_features.plans', []);
+
+    // Ignore trial (temporary)
+    $familyOrder = ['free', 'starter', 'pro', 'premium'];
+
+    $requiredFamily = null;
+    foreach ($familyOrder as $family) {
+        if (in_array('appointement', $plansConfig[$family] ?? [], true)) {
+            $requiredFamily = $family;
+            break;
+        }
+    }
+
+    $familyLabels = [
+        'free'    => __('Gratuit'),
+        'starter' => __('Starter'),
+        'pro'     => __('PRO'),
+        'premium' => __('Premium'),
+    ];
+
+    $requiredLabel = $requiredFamily
+        ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
+        : __('une formule supérieure');
+@endphp
+
+<div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
+    {{-- Recherche client --}}
+    <input type="text"
+           id="search"
+           class="form-control am-search-input"
+           placeholder="Recherche par client..."
+           onkeyup="filterTable()">
+
+    {{-- Bouton pour créer un nouveau rendez-vous --}}
+    <div style="position: relative; display: inline-flex;">
+        @if($canCreateAppointment)
+            <a href="{{ route('appointments.create') }}"
+               class="btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Créer un rendez-vous
+            </a>
+        @else
+            {{-- Greyed-out version that sends to pricing --}}
+            <a href="/license-tiers/pricing"
+               class="btn"
+               style="
+                   background-color: #e5e7eb;
+                   border: 1px solid #d1d5db;
+                   color: #6b7280;
+                   font-weight: 600;
+                   padding: 0.5rem 1rem;
+                   border-radius: 9999px;
+               ">
+                <i class="fas fa-plus me-2"></i>
+                Créer un rendez-vous
+            </a>
+
+            {{-- Small pill showing required plan --}}
+            <div style="
+                position: absolute;
+                top: -10px;
+                right: -10px;
+                background-color: #fff1d6;
+                border: 1px solid rgba(250, 204, 21, 0.4);
+                border-radius: 9999px;
+                padding: 2px 8px;
+                font-size: 9px;
+                font-weight: 600;
+                color: #854f38;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            ">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 20 20"
+                     fill="currentColor"
+                     style="width: 12px; height: 12px;">
+                    <path fill-rule="evenodd"
+                          d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
+                             00-2 2v6a2 2 0 002 2h10a2 2 0 
+                             002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                             0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
+                          clip-rule="evenodd" />
+                </svg>
+                <span>
+                    {{ __('À partir de :') }}
+                    <span style="font-weight: 700;">{{ $requiredLabel }}</span>
+                </span>
+            </div>
+        @endif
+    </div>
+</div>
+
             </div>
         </div>
 
