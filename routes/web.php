@@ -63,9 +63,39 @@ use App\Http\Controllers\DocumentSigningController;
 use App\Http\Controllers\SpecialAvailabilityController;
 use App\Http\Controllers\GoogleReviewController;
 use App\Http\Controllers\CorporateClientController;
-
 use App\Http\Controllers\AudienceController;
 use App\Http\Controllers\NewsletterUnsubscribeController;
+use App\Http\Controllers\DigitalTrainingController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/digital-trainings',               [DigitalTrainingController::class, 'index'])->name('digital-trainings.index');
+    Route::get('/digital-trainings/create',        [DigitalTrainingController::class, 'create'])->name('digital-trainings.create');
+    Route::post('/digital-trainings',              [DigitalTrainingController::class, 'store'])->name('digital-trainings.store');
+	Route::get('/digital-trainings/{digitalTraining}/preview', 
+		[DigitalTrainingController::class, 'preview']
+	)->name('digital-trainings.preview');
+
+    Route::get('/digital-trainings/{digitalTraining}/edit',    [DigitalTrainingController::class, 'edit'])->name('digital-trainings.edit');
+    Route::put('/digital-trainings/{digitalTraining}',         [DigitalTrainingController::class, 'update'])->name('digital-trainings.update');
+    Route::delete('/digital-trainings/{digitalTraining}',      [DigitalTrainingController::class, 'destroy'])->name('digital-trainings.destroy');
+
+    // Builder (modules + blocks)
+    Route::get('/digital-trainings/{digitalTraining}/builder', [DigitalTrainingController::class, 'builder'])->name('digital-trainings.builder');
+
+    // Modules
+    Route::post('/digital-trainings/{digitalTraining}/modules',                           [DigitalTrainingController::class, 'storeModule'])->name('digital-trainings.modules.store');
+    Route::put('/digital-trainings/{digitalTraining}/modules/{module}',                   [DigitalTrainingController::class, 'updateModule'])->name('digital-trainings.modules.update');
+    Route::delete('/digital-trainings/{digitalTraining}/modules/{module}',                [DigitalTrainingController::class, 'destroyModule'])->name('digital-trainings.modules.destroy');
+
+    // Blocks
+    Route::post('/digital-trainings/{digitalTraining}/modules/{module}/blocks',           [DigitalTrainingController::class, 'storeBlock'])->name('digital-trainings.blocks.store');
+    Route::put('/digital-trainings/{digitalTraining}/modules/{module}/blocks/{block}',    [DigitalTrainingController::class, 'updateBlock'])->name('digital-trainings.blocks.update');
+    Route::delete('/digital-trainings/{digitalTraining}/modules/{module}/blocks/{block}', [DigitalTrainingController::class, 'destroyBlock'])->name('digital-trainings.blocks.destroy');
+});
+
+
+
+
 
 Route::get('/newsletters/unsubscribe/{token}', [NewsletterUnsubscribeController::class, 'show'])
     ->name('unsubscribe.newsletter');
