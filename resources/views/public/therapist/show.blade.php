@@ -494,11 +494,23 @@
                                     @endif
                                     
                                     <p class="mt-4 text-gray-700">{{ $event->description }}</p>
+
                                     @php
                                         $spotsLeft = $event->limited_spot ? $event->number_of_spot - $event->reservations->count() : null;
+
+                                        // URL de réservation (page publique que l'on veut partager)
+                                        $eventUrl = route('events.reserve.create', $event->id);
+
+                                        // Texte par défaut pour le post Facebook
+                                        $shareText = "Je participe à : {$event->name}";
+
+                                        // URL du partage Facebook (click-to-share)
+                                        $shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($eventUrl)
+                                                  . '&quote=' . urlencode($shareText);
                                     @endphp
-                                    @if($event->booking_required)
-                                        <div class="mt-6">
+
+                                    <div class="mt-6 flex flex-wrap gap-3 items-center">
+                                        @if($event->booking_required)
                                             @if(!$event->limited_spot || ($spotsLeft > 0))
                                                 <a href="{{ route('events.reserve.create', $event->id) }}" class="inline-block bg-[#854f38] text-white text-sm px-6 py-2 rounded-full hover:bg-[#6a3f2c] transition-colors duration-300">
                                                     {{ __('Réserver') }}
@@ -506,8 +518,17 @@
                                             @else
                                                 <p class="text-red-500 font-semibold">{{ __('Complet') }}</p>
                                             @endif
-                                        </div>
-                                    @endif
+                                        @endif
+
+                                        {{-- Bouton "Partager sur Facebook" --}}
+                                        <a href="{{ $shareUrl }}"
+                                           target="_blank"
+                                           rel="noopener"
+                                           class="inline-flex items-center bg-[#1877F2] text-white text-xs px-4 py-2 rounded-full hover:bg-[#145DBF] transition-colors duration-300">
+                                            <i class="fab fa-facebook-f mr-2"></i>
+                                            {{ __('Partager sur Facebook') }}
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
