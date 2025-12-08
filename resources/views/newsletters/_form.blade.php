@@ -14,8 +14,6 @@
     $initialSubject    = old('subject', $newsletter->subject ?? '');
     $initialPreheader  = old('preheader', $newsletter->preheader ?? '');
     $initialBgColor    = old('background_color', $newsletter->background_color ?? '#ffffff');
-    $selectedAudienceId = old('audience_id', $newsletter->audience_id ?? null);
-    $audiences = $audiences ?? collect();
 @endphp
 
 <form action="{{ $route }}"
@@ -31,7 +29,7 @@
         @method($method)
     @endif
 
-    {{-- Hidden JSON field updated by Alpine --}}
+    {{-- Hidden JSON field updated par Alpine --}}
     <input type="hidden" name="content_json" x-model="contentJson">
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-6">
@@ -89,51 +87,12 @@
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">
-                        Email d’envoi
-                    </label>
-                    <input type="email" name="from_email"
-                           value="{{ old('from_email', $newsletter->from_email ?? '') }}"
-                           class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
-                    @error('from_email')
-                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
             </div>
-        </div>
 
-        {{-- Destinataires / Audience --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">
-                    Destinataires
-                </label>
-                <select name="audience_id"
-                        class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
-                    <option value="">
-                        Tous les clients ayant un email
-                    </option>
-                    @foreach($audiences as $audience)
-                        <option value="{{ $audience->id }}"
-                                @selected($selectedAudienceId == $audience->id)>
-                            {{ $audience->name }} ({{ $audience->clients()->count() }} contacts)
-                        </option>
-                    @endforeach
-                </select>
-                <p class="mt-1 text-[11px] text-gray-400">
-                    Si aucune liste n’est choisie, la newsletter sera envoyée à tous vos clients disposant d’un email.
-                </p>
-                @error('audience_id')
-                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                @enderror
-            </div>
-            <div class="flex items-end justify-start md:justify-end">
-                <a href="{{ route('audiences.index') }}"
-                   class="text-xs text-[#647a0b] hover:text-[#854f38] underline">
-                    Gérer mes listes / audiences
-                </a>
-            </div>
+            {{-- Email d’envoi caché, forcé à contact@aromamade.com --}}
+            <input type="hidden"
+                   name="from_email"
+                   value="contact@aromamade.com">
         </div>
 
         {{-- Couleur de fond --}}
@@ -290,8 +249,8 @@
                                             <div contenteditable="true"
                                                  class="w-full min-h-[90px] rounded-lg border border-gray-300 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#647a0b] focus:border-[#647a0b] prose-sm"
                                                  :style="`text-align:${block.text_align || 'left'};`"
-                                                 @input="onEditorInput(index, $event)"
-                                                 x-html="block.html || ''">
+                                                 x-init="$el.innerHTML = block.html || ''"
+                                                 @input="onEditorInput(index, $event)">
                                             </div>
                                             <input type="hidden" :value="block.html || ''">
                                             <p class="mt-1 text-[11px] text-gray-400">
@@ -401,8 +360,8 @@
                                             <div contenteditable="true"
                                                  class="w-full min-h-[90px] rounded-lg border border-gray-300 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#647a0b] focus:border-[#647a0b]"
                                                  :style="`text-align:${block.text_align || 'left'};`"
-                                                 @input="onEditorInput(index, $event)"
-                                                 x-html="block.html || ''">
+                                                 x-init="$el.innerHTML = block.html || ''"
+                                                 @input="onEditorInput(index, $event)">
                                             </div>
                                             <input type="hidden" :value="block.html || ''">
                                         </div>
@@ -712,13 +671,12 @@
                         ];
                     }
 
-                    this.senderName    = this.$el.getAttribute('data-initial-from-name') || '';
-                    this.subjectLine   = this.$el.getAttribute('data-initial-subject') || '';
-                    this.preheaderText = this.$el.getAttribute('data-initial-preheader') || '';
+                    this.senderName      = this.$el.getAttribute('data-initial-from-name') || '';
+                    this.subjectLine     = this.$el.getAttribute('data-initial-subject') || '';
+                    this.preheaderText   = this.$el.getAttribute('data-initial-preheader') || '';
                     this.backgroundColor = this.$el.getAttribute('data-initial-bg') || '#ffffff';
 
                     this.syncJson();
-
                     this.$watch('blocks', () => this.syncJson());
                 },
 
@@ -755,8 +713,6 @@
                         block.font_size = '14px';
                         block.text_color = '#ffffff';
                         block.background_color = '#647a0b';
-                    } else if (type === 'divider') {
-                        // rien
                     }
 
                     this.blocks.push(block);
@@ -794,6 +750,8 @@
                 onEditorInput(index, event) {
                     const html = event.target.innerHTML;
                     this.blocks[index].html = html;
+
+                    // version texte brute si besoin ailleurs
                     this.blocks[index].text = html
                         .replace(/<br\s*\/?>/gi, '\n')
                         .replace(/<\/(p|div)>/gi, '\n')
@@ -809,35 +767,28 @@
                     editor.focus();
 
                     let cmd = null;
-                    let value = null;
 
-                    if (format === 'bold') {
-                        cmd = 'bold';
-                    } else if (format === 'italic') {
-                        cmd = 'italic';
-                    } else if (format === 'underline') {
-                        cmd = 'underline';
-                    } else if (format === 'left') {
-                        cmd = 'justifyLeft';
-                    } else if (format === 'center') {
-                        cmd = 'justifyCenter';
-                    } else if (format === 'right') {
-                        cmd = 'justifyRight';
-                    }
+                    if (format === 'bold') cmd = 'bold';
+                    else if (format === 'italic') cmd = 'italic';
+                    else if (format === 'underline') cmd = 'underline';
+                    else if (format === 'left') cmd = 'justifyLeft';
+                    else if (format === 'center') cmd = 'justifyCenter';
+                    else if (format === 'right') cmd = 'justifyRight';
 
                     if (cmd) {
                         try {
-                            document.execCommand(cmd, false, value);
+                            document.execCommand(cmd, false, null);
                         } catch (e) {
                             console.warn('execCommand non supporté', e);
                         }
                     }
 
                     this.blocks[idx].html = editor.innerHTML;
+
                     if (!this.blocks[idx].text_align) {
                         this.blocks[idx].text_align = 'left';
                     }
-                    if (['left','center','right'].includes(format)) {
+                    if (['left', 'center', 'right'].includes(format)) {
                         this.blocks[idx].text_align = format;
                     }
                 },

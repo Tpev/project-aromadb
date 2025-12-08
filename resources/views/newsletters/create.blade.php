@@ -20,8 +20,6 @@
             'route'          => route('newsletters.store'),
             'method'         => 'POST',
             'initialBlocks'  => $initialBlocks ?? [],
-            'newsletter'     => $newsletter,
-            'audiences'      => $audiences ?? collect(),
         ])
     </div>
 </x-app-layout>

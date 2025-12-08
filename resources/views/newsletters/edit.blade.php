@@ -30,8 +30,6 @@
             'route'         => route('newsletters.update', $newsletter),
             'method'        => 'PUT',
             'initialBlocks' => $initialBlocks ?? [],
-            'newsletter'    => $newsletter,
-            'audiences'     => $audiences ?? collect(),
         ])
 
         {{-- bloc envoi --}}
@@ -40,7 +38,6 @@
                 Envois
             </h2>
 
-            {{-- Envoi test --}}
             <form action="{{ route('newsletters.send-test', $newsletter) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 gap-2">
                 @csrf
                 <div class="flex-1">
@@ -62,19 +59,12 @@
                 </div>
             </form>
 
-            {{-- Envoi réel --}}
             <div class="border-t border-dashed border-gray-200 pt-4 flex items-center justify-between flex-col sm:flex-row gap-3">
                 <div class="text-xs text-gray-500">
-                    @if($newsletter->audience)
-                        Cette action enverra la newsletter à l’audience
-                        <span class="font-semibold">{{ $newsletter->audience->name }}</span>
-                        ({{ $newsletter->audience->clients()->count() }} contacts).
-                    @else
-                        Cette action enverra la newsletter à tous vos clients disposant d’un email.
-                    @endif
+                    Cette action enverra la newsletter à tous vos clients disposant d’un email (hors désabonnés).
                 </div>
                 <form action="{{ route('newsletters.send-now', $newsletter) }}" method="POST"
-                      onsubmit="return confirm('Envoyer cette newsletter aux destinataires sélectionnés ?');">
+                      onsubmit="return confirm('Envoyer cette newsletter à tous vos clients ?');">
                     @csrf
                     <button type="submit"
                             class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
