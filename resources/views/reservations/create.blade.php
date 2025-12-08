@@ -5,15 +5,56 @@
             <i class="fas fa-calendar-plus mr-2"></i>{{ __('Réserver une Place pour :') }} {{ $event->name }}
         </h2>
     </x-slot>
-@section('meta_description')
-Réservez votre place pour « {{ $event->name }} », animé par {{ $event->user->name }} le {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }} à {{ $event->location }}.
-@if($event->limited_spot)
-Il reste {{ $event->number_of_spot - $event->reservations->count() }} places disponibles.
-@endif
-@if($event->booking_required)
-Réservation requise.
-@endif
-@endsection
+
+    @php
+        // URL canonique de la page de réservation
+        $eventUrl = url()->current();
+
+        // Calcul des places restantes (si limité)
+        $spotsLeft = $event->limited_spot
+            ? max($event->number_of_spot - $event->reservations->count(), 0)
+            : null;
+
+        // Image Open Graph : image de l'événement ou fallback générique
+        $ogImage = $event->image
+            ? asset('storage/' . $event->image)
+            : asset('images/og-default-event.jpg'); // crée ce fichier ou change le chemin
+
+        // Description courte réutilisée pour meta_description + og:description
+        $baseText = "Réservez votre place pour « {$event->name} », animé par {$event->user->name} le "
+            . \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i')
+            . " à {$event->location}.";
+
+        if ($event->limited_spot && $spotsLeft !== null) {
+            $baseText .= " Il reste {$spotsLeft} place" . ($spotsLeft > 1 ? 's' : '') . " disponibles.";
+        }
+
+        if ($event->booking_required) {
+            $baseText .= " Réservation requise.";
+        }
+
+        $ogDescription = \Illuminate\Support\Str::limit(trim($baseText), 160, '…');
+    @endphp
+
+    {{-- Meta description classique --}}
+    @section('meta_description', $ogDescription)
+
+    {{-- Open Graph + social preview --}}
+    @section('meta_og')
+        <meta property="og:title" content="Réservez votre place pour « {{ e($event->name) }} »">
+        <meta property="og:description" content="{{ $ogDescription }}">
+        <meta property="og:url" content="{{ $eventUrl }}">
+        <meta property="og:image" content="{{ $ogImage }}">
+        <meta property="og:type" content="event">
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:locale" content="fr_FR">
+
+        {{-- Bonus Twitter card (si jamais un jour tu partages sur X/Twitter) --}}
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Réservez votre place pour « {{ e($event->name) }} »">
+        <meta name="twitter:description" content="{{ $ogDescription }}">
+        <meta name="twitter:image" content="{{ $ogImage }}">
+    @endsection
 
     <div class="container mt-5">
         <!-- Event Details Recap -->
@@ -23,7 +64,9 @@ Réservation requise.
             <!-- Event Image -->
             @if($event->image)
                 <div class="event-image mb-4">
-                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-64 object-cover rounded-lg shadow-lg">
+                    <img src="{{ asset('storage/' . $event->image) }}"
+                         alt="{{ $event->name }}"
+                         class="w-full h-64 object-cover rounded-lg shadow-lg">
                 </div>
             @endif
 
@@ -31,43 +74,56 @@ Réservation requise.
             <div class="event-info grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Date and Time -->
                 <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-calendar-alt mr-2"></i>{{ __('Date et Heure') }}</h3>
-                    <p class="info-text">{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}</p>
+                    <h3 class="info-title">
+                        <i class="fas fa-calendar-alt mr-2"></i>{{ __('Date et Heure') }}
+                    </h3>
+                    <p class="info-text">
+                        {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
+                    </p>
                 </div>
 
                 <!-- Duration -->
                 <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-hourglass-half mr-2"></i>{{ __('Durée') }}</h3>
+                    <h3 class="info-title">
+                        <i class="fas fa-hourglass-half mr-2"></i>{{ __('Durée') }}
+                    </h3>
                     <p class="info-text">{{ $event->duration }} {{ __('minutes') }}</p>
                 </div>
 
                 <!-- Location -->
                 <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-map-marker-alt mr-2"></i>{{ __('Lieu') }}</h3>
+                    <h3 class="info-title">
+                        <i class="fas fa-map-marker-alt mr-2"></i>{{ __('Lieu') }}
+                    </h3>
                     <p class="info-text">{{ $event->location }}</p>
                 </div>
 
                 <!-- Price -->
                 @if($event->associatedProduct && $event->associatedProduct->price > 0)
                     <div class="info-box">
-                        <h3 class="info-title"><i class="fas fa-tag mr-2"></i>{{ __('Prix') }}</h3>
-                        <p class="info-text">{{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €</p>
+                        <h3 class="info-title">
+                            <i class="fas fa-tag mr-2"></i>{{ __('Prix') }}
+                        </h3>
+                        <p class="info-text">
+                            {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                        </p>
                     </div>
                 @endif
 
                 <!-- Booking Required -->
                 <div class="info-box">
-                    <h3 class="info-title"><i class="fas fa-ticket-alt mr-2"></i>{{ __('Réservation Requise') }}</h3>
+                    <h3 class="info-title">
+                        <i class="fas fa-ticket-alt mr-2"></i>{{ __('Réservation Requise') }}
+                    </h3>
                     <p class="info-text">{{ $event->booking_required ? __('Oui') : __('Non') }}</p>
                 </div>
 
                 <!-- Limited Spots -->
                 @if($event->limited_spot)
                     <div class="info-box">
-                        <h3 class="info-title"><i class="fas fa-users mr-2"></i>{{ __('Nombre de Places Disponibles') }}</h3>
-                        @php
-                            $spotsLeft = $event->number_of_spot - $event->reservations->count();
-                        @endphp
+                        <h3 class="info-title">
+                            <i class="fas fa-users mr-2"></i>{{ __('Nombre de Places Disponibles') }}
+                        </h3>
                         <p class="info-text">{{ $spotsLeft }}</p>
                     </div>
                 @endif
@@ -76,7 +132,9 @@ Réservation requise.
             <!-- Event Description -->
             @if($event->description)
                 <div class="event-description mt-6">
-                    <h3 class="info-title"><i class="fas fa-info-circle mr-2"></i>{{ __('Description') }}</h3>
+                    <h3 class="info-title">
+                        <i class="fas fa-info-circle mr-2"></i>{{ __('Description') }}
+                    </h3>
                     <p class="info-text">{{ $event->description }}</p>
                 </div>
             @endif
@@ -104,14 +162,18 @@ Réservation requise.
                 @csrf
 
                 <!-- Honeypot (anti-bot) -->
-                <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;height:1px;width:1px;opacity:0;" aria-hidden="true">
+                <input type="text" name="website" tabindex="-1" autocomplete="off"
+                       style="position:absolute;left:-9999px;height:1px;width:1px;opacity:0;"
+                       aria-hidden="true">
 
                 <!-- Full Name -->
                 <div class="form-group">
                     <label for="full_name" class="form-label">
                         <i class="fas fa-user mr-2"></i>{{ __('Nom Complet') }}
                     </label>
-                    <input type="text" id="full_name" name="full_name" class="form-control" value="{{ old('full_name') }}" required>
+                    <input type="text" id="full_name" name="full_name"
+                           class="form-control"
+                           value="{{ old('full_name') }}" required>
                     @error('full_name')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -122,7 +184,9 @@ Réservation requise.
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope mr-2"></i>{{ __('Email') }}
                     </label>
-                    <input type="email" id="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                    <input type="email" id="email" name="email"
+                           class="form-control"
+                           value="{{ old('email') }}" required>
                     @error('email')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -133,7 +197,9 @@ Réservation requise.
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone mr-2"></i>{{ __('Téléphone (Optionnel)') }}
                     </label>
-                    <input type="text" id="phone" name="phone" class="form-control" value="{{ old('phone') }}">
+                    <input type="text" id="phone" name="phone"
+                           class="form-control"
+                           value="{{ old('phone') }}">
                     @error('phone')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -339,6 +405,8 @@ Réservation requise.
     </style>
 
     <!-- FontAwesome and Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
 </x-app-layout>
