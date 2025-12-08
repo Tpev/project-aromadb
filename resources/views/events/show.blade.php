@@ -13,6 +13,17 @@
 
     $totalReservations = $event->reservations->count();
     $availableSpots    = $event->limited_spot ? $event->number_of_spot : '∞';
+
+    // URL publique de réservation (celle qui a les bons tags OG)
+    $eventPublicUrl = url("/events/{$event->id}/reserve");
+
+    // Texte de base pour le post Facebook
+    $shareText = "Je participe à : {$event->name}";
+
+    // URL du partage Facebook (click-to-share)
+    $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php'
+                      . '?u=' . urlencode($eventPublicUrl)
+                      . '&quote=' . urlencode($shareText);
 @endphp
 
 <x-app-layout>
@@ -33,6 +44,15 @@
                    class="inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
                     <i class="fas fa-edit text-[11px]"></i>
                     <span>{{ __('Modifier') }}</span>
+                </a>
+
+                {{-- Partager sur Facebook (header desktop) --}}
+                <a href="{{ $facebookShareUrl }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="inline-flex items-center gap-2 rounded-full bg-[#1877F2] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#145DBF] transition">
+                    <i class="fab fa-facebook-f text-[11px]"></i>
+                    <span>{{ __('Partager sur Facebook') }}</span>
                 </a>
 
                 <form action="{{ route('events.destroy', $event->id) }}" method="POST"
@@ -231,8 +251,8 @@
                                 <p class="mt-1 text-xs">
                                     {{ __('Ajoutez une image depuis la page d’édition pour rendre le visuel plus attractif sur votre portail.') }}
                                 </p>
-                                <a href="{{ route('events.edit', $event->id) }}
-                                   " class="mt-3 inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                                <a href="{{ route('events.edit', $event->id) }}"
+                                   class="mt-3 inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
                                     <i class="fas fa-image text-[11px]"></i>
                                     <span>{{ __('Ajouter une image') }}</span>
                                 </a>
@@ -372,6 +392,15 @@
                 <span>{{ __('Modifier l\'événement') }}</span>
             </a>
 
+            {{-- Partager sur Facebook (global actions desktop) --}}
+            <a href="{{ $facebookShareUrl }}"
+               target="_blank"
+               rel="noopener"
+               class="inline-flex items-center gap-2 rounded-full bg-[#1877F2] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#145DBF] transition">
+                <i class="fab fa-facebook-f text-xs"></i>
+                <span>{{ __('Partager sur Facebook') }}</span>
+            </a>
+
             <form action="{{ route('events.destroy', $event->id) }}" method="POST"
                   onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cet événement ?') }}');">
                 @csrf
@@ -396,6 +425,15 @@
                class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
                 <i class="fas fa-edit text-xs"></i>
                 <span>{{ __('Modifier cet événement') }}</span>
+            </a>
+
+            {{-- Partager sur Facebook (mobile) --}}
+            <a href="{{ $facebookShareUrl }}"
+               target="_blank"
+               rel="noopener"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#1877F2] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#145DBF] transition">
+                <i class="fab fa-facebook-f text-xs"></i>
+                <span>{{ __('Partager sur Facebook') }}</span>
             </a>
 
             <form action="{{ route('events.destroy', $event->id) }}" method="POST"
