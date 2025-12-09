@@ -37,29 +37,54 @@
     })->values()->all();
 @endphp
 
-
 <x-guest-layout>
     <style>
         :root {
             --brand: #647a0b;
         }
-        * { box-sizing: border-box; }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        /* === Override Jetstream guest layout to be full-width on THIS page === */
+        .min-h-screen {
+            background: radial-gradient(circle at top left, #e4f0d4 0, #f3f4f6 45%, #e5e7eb 100%) !important;
+        }
+
+        /* Hide top logo block */
+        .min-h-screen > div:first-child {
+            display: none;
+        }
+
+        /* Turn the narrow card into a full-width container */
+        .min-h-screen > div:last-child {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-top: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+        }
 
         body {
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top left, #e4f0d4 0, #f3f4f6 45%, #e5e7eb 100%);
             color: #0f172a;
         }
 
-        .page-shell {
+        /* ============= MAIN PLAYER LAYOUT ============= */
+
+        .training-player-shell {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .page-header {
-            background: rgba(255, 255, 255, 0.95);
+        .training-player-header {
+            background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid #e5e7eb;
             padding: 14px 24px;
@@ -67,32 +92,65 @@
             justify-content: space-between;
             align-items: center;
         }
-        .page-header-left {
+
+        .training-header-left {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
-        .page-header-title {
-            font-size: 16px;
+
+        .training-title {
+            font-size: 18px;
             font-weight: 650;
             color: var(--brand);
         }
-        .page-header-sub {
+
+        .training-subtitle {
             font-size: 11px;
             color: #6b7280;
         }
-        .page-header-right {
+
+        .training-header-right {
             text-align: right;
             font-size: 11px;
             color: #4b5563;
         }
 
-        .page-main {
+        .training-header-right span.email {
+            color: #6b7280;
+        }
+
+        .progress-bar-outer {
+            position: relative;
+            width: 190px;
+            height: 6px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            width: 0;
+            background: linear-gradient(90deg, var(--brand), #a3e635);
+            transition: width 0.35s ease;
+        }
+
+        .training-player-main {
             flex: 1;
             width: 100%;
-            padding: 24px 32px 32px;
+            padding: 24px 24px 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .training-inner-grid {
+            width: 100%;
+            max-width: 1280px;
             display: grid;
-            grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); /* ~1/4 – 3/4 */
+            grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
             gap: 24px;
             align-items: flex-start;
         }
@@ -105,10 +163,11 @@
         }
 
         .sidebar {
-            padding: 16px 14px 14px;
+            padding: 18px 14px 16px;
             display: flex;
             flex-direction: column;
             gap: 14px;
+            min-height: 0;
         }
 
         .content {
@@ -116,6 +175,7 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
+            min-height: 0;
         }
 
         .badge-pill {
@@ -129,27 +189,11 @@
             gap: 6px;
         }
 
-        .progress-bar-outer {
-            position: relative;
-            width: 180px;
-            height: 6px;
-            border-radius: 999px;
-            background: #e5e7eb;
-            overflow: hidden;
-        }
-        .progress-bar-inner {
-            position: absolute;
-            inset: 0;
-            border-radius: 999px;
-            width: 0;
-            background: linear-gradient(90deg, var(--brand), #a3e635);
-            transition: width 0.35s ease;
-        }
-
         .sidebar-header {
             display: flex;
             gap: 10px;
         }
+
         .sidebar-cover {
             width: 56px;
             height: 56px;
@@ -161,23 +205,28 @@
             justify-content: center;
             font-size: 11px;
             color: #9ca3af;
+            flex-shrink: 0;
         }
+
         .sidebar-cover img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .sidebar-header-main {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .sidebar-title {
             font-size: 14px;
             font-weight: 600;
             color: #111827;
         }
+
         .sidebar-meta {
             font-size: 11px;
             color: #6b7280;
@@ -193,6 +242,7 @@
             gap: 8px;
             align-items: flex-start;
         }
+
         .author-avatar {
             width: 26px;
             height: 26px;
@@ -204,11 +254,14 @@
             font-size: 12px;
             font-weight: 600;
             color: var(--brand);
+            flex-shrink: 0;
         }
+
         .author-text {
             font-size: 11px;
             color: #4b5563;
         }
+
         .author-name {
             font-weight: 600;
             font-size: 11px;
@@ -221,6 +274,7 @@
             flex-wrap: wrap;
             gap: 4px;
         }
+
         .tag-chip {
             display: inline-flex;
             align-items: center;
@@ -245,48 +299,62 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
+            max-height: calc(100vh - 270px);
+            overflow: auto;
+            padding-right: 4px;
         }
+
         .module-item {
             border-radius: 12px;
             padding: 8px 9px;
             cursor: pointer;
             border: 1px solid transparent;
             font-size: 13px;
+            background: #ffffff;
         }
+
         .module-item:hover {
             background: #f9fafb;
         }
+
         .module-item.active {
             border-color: var(--brand);
             background: #f7fbe8;
             box-shadow: 0 0 0 1px rgba(100, 122, 11, 0.06);
         }
+
         .module-title-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 6px;
         }
+
         .module-title-text {
             font-size: 12px;
             font-weight: 600;
             color: #111827;
         }
+
         .module-index-pill {
             font-size: 10px;
             padding: 2px 6px;
             border-radius: 999px;
             background: #e5e7eb;
             color: #374151;
+            white-space: nowrap;
         }
+
         .module-desc {
             margin-top: 2px;
             font-size: 11px;
             color: #6b7280;
         }
+
         .block-list {
             margin-top: 5px;
         }
+
         .block-pill {
             font-size: 11px;
             padding: 3px 6px;
@@ -301,6 +369,7 @@
             border: 1px solid transparent;
             cursor: pointer;
         }
+
         .block-pill.active {
             background: var(--brand);
             color: #ffffff;
@@ -323,18 +392,22 @@
             justify-content: center;
             gap: 6px;
         }
+
         .btn-primary {
             background: var(--brand);
             color: white;
             border-color: var(--brand);
         }
+
         .btn-primary:hover {
             background: #506108;
         }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: default;
         }
+
         .btn-outline {
             background: transparent;
         }
@@ -345,20 +418,24 @@
             align-items: center;
             gap: 8px;
         }
+
         .content-meta-left {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .content-path {
             font-size: 11px;
             color: #9ca3af;
         }
+
         .content-header-title {
             font-size: 18px;
             font-weight: 630;
             color: #111827;
         }
+
         .content-subtitle {
             font-size: 13px;
             color: #6b7280;
@@ -369,8 +446,11 @@
             border: 1px solid #e5e7eb;
             background: #f9fafb;
             padding: 20px;
-            min-height: 60vh; /* larger working area */
+            min-height: 60vh;
+            max-height: calc(100vh - 260px);
+            overflow: auto;
         }
+
         .content-body-inner {
             font-size: 14px;
             line-height: 1.6;
@@ -383,6 +463,7 @@
             margin-top: 10px;
             gap: 10px;
         }
+
         .nav-side {
             font-size: 11px;
             color: #6b7280;
@@ -398,34 +479,61 @@
             margin-top: 2px;
         }
 
+        /* ============= RESPONSIVE ============= */
+
         @media (max-width: 900px) {
-            .page-main {
-                grid-template-columns: minmax(0, 1fr);
-                padding: 16px;
+            .training-player-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
             }
+
+            .training-player-main {
+                padding: 16px 10px 24px;
+            }
+
+            .training-inner-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
             .sidebar {
                 order: 2;
             }
+
             .content {
                 order: 1;
+            }
+
+            .module-list {
+                max-height: none;
+            }
+
+            .content-body {
+                max-height: none;
+                min-height: 40vh;
+            }
+
+            .progress-bar-outer {
+                width: 150px;
             }
         }
     </style>
 
-    <div class="page-shell">
-        <header class="page-header">
-            <div class="page-header-left">
-                <div class="page-header-title">
+    <div class="training-player-shell">
+        <header class="training-player-header">
+            <div class="training-header-left">
+                <div class="training-title">
                     {{ $training->title }}
                 </div>
-                <div class="page-header-sub">
+                <div class="training-subtitle">
                     {{ __('Accès direct à votre formation – AromaMade') }}
                 </div>
             </div>
-            <div class="page-header-right">
+
+            <div class="training-header-right">
                 <div style="margin-bottom:4px;">
                     {{ $participantName }}<br>
-                    <span style="color:#6b7280;">{{ $participantEmail }}</span>
+                    <span class="email">{{ $participantEmail }}</span>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
                     <span style="font-size:11px;color:#6b7280;">
@@ -440,153 +548,155 @@
             </div>
         </header>
 
-        <main class="page-main">
-            {{-- SIDEBAR --}}
-            <aside class="card sidebar">
-                <div class="sidebar-header">
-                    <div class="sidebar-cover">
-                        @if($training->cover_image_path)
-                            <img src="{{ asset('storage/'.$training->cover_image_path) }}" alt="">
-                        @else
-                            <span>IMG</span>
-                        @endif
-                    </div>
-                    <div class="sidebar-header-main">
-                        <div class="sidebar-title">
-                            {{ $training->title }}
-                        </div>
-                        <div class="sidebar-meta">
-                            @if($training->estimated_duration_minutes)
-                                {{ __('Durée estimée :') }}
-                                <strong>{{ $training->estimated_duration_minutes }} min</strong>
+        <main class="training-player-main">
+            <div class="training-inner-grid">
+                {{-- SIDEBAR --}}
+                <aside class="card sidebar">
+                    <div class="sidebar-header">
+                        <div class="sidebar-cover">
+                            @if($training->cover_image_path)
+                                <img src="{{ asset('storage/'.$training->cover_image_path) }}" alt="">
+                            @else
+                                <span>IMG</span>
                             @endif
                         </div>
-
-                        <div class="author-box">
-                            <div class="author-avatar">
-                                {{ $authorInit }}
+                        <div class="sidebar-header-main">
+                            <div class="sidebar-title">
+                                {{ $training->title }}
                             </div>
-                            <div class="author-text">
-                                <div class="author-name">{{ $authorName }}</div>
-                                <div>
-                                    <span style="opacity:.9;">
-                                        {{ __('Créateur de cette formation.') }}
-                                    </span>
-                                    @if($authorEmail)
-                                        <br>
-                                        <span style="font-size:10px;color:#9ca3af;">
-                                            {{ $authorEmail }}
+                            <div class="sidebar-meta">
+                                @if($training->estimated_duration_minutes)
+                                    {{ __('Durée estimée :') }}
+                                    <strong>{{ $training->estimated_duration_minutes }} min</strong>
+                                @endif
+                            </div>
+
+                            <div class="author-box">
+                                <div class="author-avatar">
+                                    {{ $authorInit }}
+                                </div>
+                                <div class="author-text">
+                                    <div class="author-name">{{ $authorName }}</div>
+                                    <div>
+                                        <span style="opacity:.9;">
+                                            {{ __('Créateur de cette formation.') }}
                                         </span>
-                                    @endif
+                                        @if($authorEmail)
+                                            <br>
+                                            <span style="font-size:10px;color:#9ca3af;">
+                                                {{ $authorEmail }}
+                                            </span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                @if($training->tags)
-                    <div class="tag-list">
-                        @foreach($training->tags as $tag)
-                            <span class="tag-chip">{{ $tag }}</span>
-                        @endforeach
-                    </div>
-                @endif
+                    @if($training->tags)
+                        <div class="tag-list">
+                            @foreach($training->tags as $tag)
+                                <span class="tag-chip">{{ $tag }}</span>
+                            @endforeach
+                        </div>
+                    @endif
 
-                <div>
-                    <div class="sidebar-section-title">
-                        {{ __('Contenu de la formation') }}
-                    </div>
+                    <div>
+                        <div class="sidebar-section-title">
+                            {{ __('Contenu de la formation') }}
+                        </div>
 
-                    <div class="module-list">
-                        @foreach($modules as $index => $module)
-                            <div class="module-item"
-                                 data-module-index="{{ $index }}"
-                                 onclick="selectModule({{ $index }})">
-                                <div class="module-title-row">
-                                    <div class="module-title-text">
-                                        {{ $module->title ?? __('Module :num', ['num' => $index + 1]) }}
+                        <div class="module-list">
+                            @foreach($modules as $index => $module)
+                                <div class="module-item"
+                                     data-module-index="{{ $index }}"
+                                     onclick="selectModule({{ $index }})">
+                                    <div class="module-title-row">
+                                        <div class="module-title-text">
+                                            {{ $module->title ?? __('Module :num', ['num' => $index + 1]) }}
+                                        </div>
+                                        <div class="module-index-pill">
+                                            {{ 'M'.($index + 1) }}
+                                        </div>
                                     </div>
-                                    <div class="module-index-pill">
-                                        {{ 'M'.($index + 1) }}
-                                    </div>
+                                    @if($module->description)
+                                        <div class="module-desc">
+                                            {{ $module->description }}
+                                        </div>
+                                    @endif
+
+                                    @php
+                                        $blocks = $module->sorted_blocks ?? $module->blocks ?? collect();
+                                    @endphp
+                                    @if($blocks->count())
+                                        <div class="block-list">
+                                            @foreach($blocks as $bIndex => $block)
+                                                @php
+                                                    $icon = '📝';
+                                                    if ($block->type === 'pdf') {
+                                                        $icon = '📄';
+                                                    } elseif ($block->type === 'video_url') {
+                                                        $icon = '🎬';
+                                                    }
+                                                @endphp
+                                                <span class="block-pill"
+                                                      data-module-index="{{ $index }}"
+                                                      data-block-index="{{ $bIndex }}"
+                                                      onclick="event.stopPropagation(); selectBlock({{ $index }}, {{ $bIndex }})">
+                                                    <span>{{ $icon }}</span>
+                                                    <span>{{ $block->title ?: __('Contenu :num', ['num' => $bIndex + 1]) }}</span>
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
-                                @if($module->description)
-                                    <div class="module-desc">
-                                        {{ $module->description }}
-                                    </div>
-                                @endif
-
-                                @php
-                                    $blocks = $module->sorted_blocks ?? $module->blocks ?? collect();
-                                @endphp
-                                @if($blocks->count())
-                                    <div class="block-list">
-                                        @foreach($blocks as $bIndex => $block)
-                                            @php
-                                                $icon = '📝';
-                                                if ($block->type === 'pdf') {
-                                                    $icon = '📄';
-                                                } elseif ($block->type === 'video_url') {
-                                                    $icon = '🎬';
-                                                }
-                                            @endphp
-                                            <span class="block-pill"
-                                                  data-module-index="{{ $index }}"
-                                                  data-block-index="{{ $bIndex }}"
-                                                  onclick="event.stopPropagation(); selectBlock({{ $index }}, {{ $bIndex }})">
-                                                <span>{{ $icon }}</span>
-                                                <span>{{ $block->title ?: __('Contenu :num', ['num' => $bIndex + 1]) }}</span>
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
-                </div>
 
-                <div class="sidebar-footer">
-                    <form action="{{ route('digital-trainings.access.complete', $enrollment->access_token) }}"
-                          method="POST" style="margin-top:10px;">
-                        @csrf
-                        <button type="submit"
-                                class="btn btn-primary"
-                                style="width:100%;">
-                            ✅ {{ __('Marquer la formation comme terminée') }}
+                    <div class="sidebar-footer">
+                        <form action="{{ route('digital-trainings.access.complete', $enrollment->access_token) }}"
+                              method="POST" style="margin-top:10px;">
+                            @csrf
+                            <button type="submit"
+                                    class="btn btn-primary"
+                                    style="width:100%;">
+                                ✅ {{ __('Marquer la formation comme terminée') }}
+                            </button>
+                        </form>
+                    </div>
+                </aside>
+
+                {{-- MAIN CONTENT --}}
+                <section class="card content">
+                    <div class="content-meta-row">
+                        <div class="content-meta-left">
+                            <div class="content-path" id="content-path"></div>
+                            <div class="content-header-title" id="block-title"></div>
+                            <div class="content-subtitle" id="block-subtitle"></div>
+                        </div>
+                        <div class="nav-side">
+                            <span class="badge-pill">
+                                <span>👣</span>
+                                <span id="stepIndicator">0/0</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="content-body">
+                        <div id="block-content" class="content-body-inner"></div>
+                    </div>
+
+                    <div class="nav-buttons">
+                        <button class="btn btn-outline" id="btnPrev" onclick="goPrev()">
+                            ← {{ __('Précédent') }}
                         </button>
-                    </form>
-                </div>
-            </aside>
-
-            {{-- MAIN CONTENT --}}
-            <section class="card content">
-                <div class="content-meta-row">
-                    <div class="content-meta-left">
-                        <div class="content-path" id="content-path"></div>
-                        <div class="content-header-title" id="block-title"></div>
-                        <div class="content-subtitle" id="block-subtitle"></div>
+                        <button class="btn btn-outline" id="btnNext" onclick="goNext()" style="margin-left:auto;">
+                            {{ __('Suivant') }} →
+                        </button>
                     </div>
-                    <div class="nav-side">
-                        <span class="badge-pill">
-                            <span>👣</span>
-                            <span id="stepIndicator">0/0</span>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="content-body">
-                    <div id="block-content" class="content-body-inner"></div>
-                </div>
-
-                <div class="nav-buttons">
-                    <button class="btn btn-outline" id="btnPrev" onclick="goPrev()">
-                        ← {{ __('Précédent') }}
-                    </button>
-                    <button class="btn btn-outline" id="btnNext" onclick="goNext()" style="margin-left:auto;">
-                        {{ __('Suivant') }} →
-                    </button>
-                </div>
-            </section>
+                </section>
+            </div>
         </main>
     </div>
 
