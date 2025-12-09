@@ -372,4 +372,41 @@ class DigitalTrainingController extends Controller
             abort(403);
         }
     }
+	    /* =========================================================
+     * PUBLIC SHOW PAGE (landing)
+     * ======================================================= */
+
+    /**
+     * Public landing page for a digital training.
+     * Example URL: /formations/mon-super-programme
+     */
+    public function publicShow(DigitalTraining $digitalTraining)
+    {
+        // Only show published trainings
+        if ($digitalTraining->status !== 'published') {
+            abort(404);
+        }
+
+        // Load therapist (owner)
+        $training  = $digitalTraining->load('user');
+        $therapist = $training->user;
+
+        // Build therapist public URL: /pro/{slug}
+        $therapistPublicUrl = null;
+        if ($therapist) {
+            // adapt this if your User model uses another field
+            $slug = $therapist->slug ?? $therapist->pro_slug ?? null;
+
+            if ($slug) {
+                $therapistPublicUrl = url('/pro/' . $slug);
+            }
+        }
+
+        return view('digital-trainings.public.show', compact(
+            'training',
+            'therapist',
+            'therapistPublicUrl'
+        ));
+    }
+
 }

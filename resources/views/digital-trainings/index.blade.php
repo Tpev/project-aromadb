@@ -145,6 +145,15 @@
 
                                         {{-- Ligne 2 : actions secondaires --}}
                                         <div class="flex flex-wrap justify-end gap-2">
+                                            {{-- Lien public (seulement si publié) --}}
+                                            @if($training->status === 'published')
+                                                <button type="button"
+                                                        onclick="copyTrainingPublicLink('{{ route('digital-trainings.public.show', $training) }}', '{{ addslashes($training->title) }}')"
+                                                        class="inline-flex items-center gap-1 rounded-full border border-emerald-200 px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50">
+                                                    🔗 <span class="hidden sm:inline">{{ __('Lien public') }}</span>
+                                                </button>
+                                            @endif
+
                                             {{-- Paramètres --}}
                                             <a href="{{ route('digital-trainings.edit', $training) }}"
                                                class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50">
@@ -174,4 +183,42 @@
             @endif
         </div>
     </div>
+
+    {{-- Toast for "link copied" --}}
+    <div id="trainingPublicLinkToast"
+         class="fixed inset-x-0 bottom-4 z-40 flex justify-center pointer-events-none hidden">
+        <div class="pointer-events-auto rounded-full bg-slate-900/90 px-4 py-2 text-xs text-slate-50 shadow-lg flex items-center gap-2">
+            <span>🔗</span>
+            <span id="trainingPublicLinkToastText">
+                {{ __('Lien copié') }}
+            </span>
+        </div>
+    </div>
+
+    <script>
+        function copyTrainingPublicLink(url, title) {
+            const toast      = document.getElementById('trainingPublicLinkToast');
+            const toastText  = document.getElementById('trainingPublicLinkToastText');
+            const message    = "{{ __('Lien public copié pour') }} " + '"' + title + '"';
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url)
+                    .then(function () {
+                        if (toast && toastText) {
+                            toastText.textContent = message;
+                            toast.classList.remove('hidden');
+                            setTimeout(function () {
+                                toast.classList.add('hidden');
+                            }, 2500);
+                        }
+                    })
+                    .catch(function () {
+                        window.prompt("{{ __('Copiez ce lien :') }}", url);
+                    });
+            } else {
+                // Fallback anciens navigateurs
+                window.prompt("{{ __('Copiez ce lien :') }}", url);
+            }
+        }
+    </script>
 </x-app-layout>
