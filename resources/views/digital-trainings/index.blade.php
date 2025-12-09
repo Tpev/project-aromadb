@@ -13,13 +13,19 @@
                 </div>
             @endif
 
-            <div class="flex items-center justify-between mb-4">
-                <h1 class="text-2xl font-semibold text-slate-800">
-                    {{ __('Vos formations digitales') }}
-                </h1>
+            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
+                <div>
+                    <h1 class="text-2xl font-semibold text-slate-800">
+                        {{ __('Vos formations digitales') }}
+                    </h1>
+                    <p class="mt-1 text-xs text-slate-500">
+                        {{ __('Créez, gérez et partagez vos formations en ligne avec vos clients.') }}
+                    </p>
+                </div>
                 <a href="{{ route('digital-trainings.create') }}"
-                   class="inline-flex items-center rounded-lg bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#506108]">
-                    + {{ __('Créer une formation') }}
+                   class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#506108]">
+                    <span class="mr-1 text-base">+</span>
+                    <span>{{ __('Créer une formation') }}</span>
                 </a>
             </div>
 
@@ -39,22 +45,25 @@
                             <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                         @foreach($trainings as $training)
-                            <tr class="border-b last:border-0">
-                                <td class="px-4 py-3">
+                            <tr class="hover:bg-slate-50/60">
+                                {{-- Titre + tags --}}
+                                <td class="px-4 py-3 align-top">
                                     <div class="flex items-center gap-3">
                                         @if($training->cover_image_path)
                                             <img src="{{ asset('storage/'.$training->cover_image_path) }}"
                                                  alt=""
-                                                 class="h-10 w-10 rounded-md object-cover">
+                                                 class="h-10 w-10 rounded-md object-cover flex-shrink-0">
                                         @else
-                                            <div class="h-10 w-10 rounded-md bg-slate-100 flex items-center justify-center text-xs text-slate-400">
+                                            <div class="h-10 w-10 rounded-md bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 flex-shrink-0">
                                                 {{ __('IMG') }}
                                             </div>
                                         @endif
-                                        <div>
-                                            <div class="font-medium text-slate-800">{{ $training->title }}</div>
+                                        <div class="min-w-0">
+                                            <div class="font-medium text-slate-800 truncate">
+                                                {{ $training->title }}
+                                            </div>
                                             @if($training->tags)
                                                 <div class="mt-1 flex flex-wrap gap-1">
                                                     @foreach($training->tags as $tag)
@@ -67,75 +76,94 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3">
+
+                                {{-- Accès --}}
+                                <td class="px-4 py-3 align-top">
                                     @if($training->access_type === 'public')
-                                        <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
                                             {{ __('Public') }}
                                         </span>
                                     @elseif($training->access_type === 'private')
-                                        <span class="rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                                             {{ __('Privé') }}
                                         </span>
                                     @else
-                                        <span class="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
                                             {{ __('Abonnement') }}
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
+
+                                {{-- Statut --}}
+                                <td class="px-4 py-3 align-top">
                                     @if($training->status === 'draft')
-                                        <span class="rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                                             {{ __('Brouillon') }}
                                         </span>
                                     @elseif($training->status === 'published')
-                                        <span class="rounded-full bg-[#647a0b]/10 px-2.5 py-0.5 text-xs font-medium text-[#647a0b]">
+                                        <span class="inline-flex items-center rounded-full bg-[#647a0b]/10 px-2.5 py-0.5 text-xs font-medium text-[#647a0b]">
                                             {{ __('Publié') }}
                                         </span>
                                     @else
-                                        <span class="rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700">
+                                        <span class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-700">
                                             {{ __('Archivé') }}
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
-                                    @if($training->is_free)
-                                        <span class="text-xs text-emerald-700 font-semibold">{{ __('Gratuit') }}</span>
-                                    @elseif($training->formatted_price)
-                                        <span>{{ $training->formatted_price }}</span>
-                                    @else
-                                        <span class="text-xs text-slate-400">—</span>
-                                    @endif
+
+                                {{-- Tarif (placeholder for now) --}}
+                                <td class="px-4 py-3 align-top">
+                                    <span class="text-xs text-slate-400">—</span>
                                 </td>
-                                <td class="px-4 py-3 text-right">
-                                    <div class="inline-flex gap-2">
-                                        <a href="{{ route('digital-trainings.builder', $training) }}"
-                                           class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                                            {{ __('Éditer le contenu') }}
-                                        </a>
-                                        <a href="{{ route('digital-trainings.edit', $training) }}"
-                                           class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                                            {{ __('Paramètres') }}
-                                        </a>
-										<a href="{{ route('digital-trainings.preview', $training) }}"
-   class="rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50">
-    {{ __('Prévisualiser') }}
-</a>
-<a href="{{ route('digital-trainings.enrollments.index', $training) }}"
-   class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-    👥 {{ __('Inviter des clients / voir les participants') }}
-</a>
 
+                                {{-- Actions --}}
+                                <td class="px-4 py-3 align-top text-right">
+                                    <div class="inline-flex flex-col items-end gap-1">
 
-                                        <form action="{{ route('digital-trainings.destroy', $training) }}"
-                                              method="POST"
-                                              onsubmit="return confirm('Supprimer cette formation ?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                    class="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50">
-                                                {{ __('Supprimer') }}
-                                            </button>
-                                        </form>
+                                        {{-- Ligne 1 : actions principales --}}
+                                        <div class="flex flex-wrap justify-end gap-2">
+                                            {{-- Builder / contenu --}}
+                                            <a href="{{ route('digital-trainings.builder', $training) }}"
+                                               class="inline-flex items-center gap-1 rounded-full bg-[#647a0b]/10 px-3 py-1.5 text-xs font-semibold text-[#647a0b] hover:bg-[#647a0b]/20">
+                                                🧱 <span class="hidden sm:inline">{{ __('Contenu') }}</span>
+                                                <span class="sm:hidden">{{ __('Éditer') }}</span>
+                                            </a>
+
+                                            {{-- Inviter / participants --}}
+                                            <a href="{{ route('digital-trainings.enrollments.index', $training) }}"
+                                               class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                                👥 <span class="hidden sm:inline">{{ __('Participants') }}</span>
+                                            </a>
+
+                                            {{-- Preview --}}
+                                            <a href="{{ route('digital-trainings.preview', $training) }}"
+                                               target="_blank"
+                                               class="inline-flex items-center gap-1 rounded-full border border-sky-200 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50">
+                                                👁 <span class="hidden sm:inline">{{ __('Prévisualiser') }}</span>
+                                            </a>
+                                        </div>
+
+                                        {{-- Ligne 2 : actions secondaires --}}
+                                        <div class="flex flex-wrap justify-end gap-2">
+                                            {{-- Paramètres --}}
+                                            <a href="{{ route('digital-trainings.edit', $training) }}"
+                                               class="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50">
+                                                ⚙️ <span class="hidden sm:inline">{{ __('Paramètres') }}</span>
+                                            </a>
+
+                                            {{-- Supprimer --}}
+                                            <form action="{{ route('digital-trainings.destroy', $training) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('Supprimer cette formation ?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1 rounded-full border border-rose-200 px-2.5 py-1 text-[11px] font-medium text-rose-700 hover:bg-rose-50">
+                                                    🗑 <span class="hidden sm:inline">{{ __('Supprimer') }}</span>
+                                                </button>
+                                            </form>
+                                        </div>
+
                                     </div>
                                 </td>
                             </tr>

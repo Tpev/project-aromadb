@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DigitalTrainingAccessMail;
+use Illuminate\Support\Facades\Log;
 
 class DigitalTrainingEnrollmentController extends Controller
 {
@@ -65,11 +66,15 @@ class DigitalTrainingEnrollmentController extends Controller
         ]);
 
         // Send email with access link (Magic Login style)
-        try {
-            Mail::to($email)->send(new DigitalTrainingAccessMail($enrollment));
-        } catch (\Throwable $e) {
-            // You might want to log errors here
-        }
+        // IMPORTANT: no silent failure now
+        Mail::to($email)->send(new DigitalTrainingAccessMail($enrollment));
+
+        // If you still want logging, you can uncomment this:
+        // Log::info('DigitalTraining access email sent', [
+        //     'training_id' => $digitalTraining->id,
+        //     'enrollment_id' => $enrollment->id,
+        //     'email' => $email,
+        // ]);
 
         return redirect()
             ->route('digital-trainings.enrollments.index', $digitalTraining)
