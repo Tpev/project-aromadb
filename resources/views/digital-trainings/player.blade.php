@@ -10,11 +10,7 @@
     <title>{{ $training->title }} - {{ config('app.name') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {{-- If you use Vite/Tailwind globally, you can plug it here if needed --}}
-    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
-
     <style>
-        /* Minimal layout styling if Tailwind is not loaded */
         body {
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -261,7 +257,7 @@
                             <div style="font-size:11px;color:#6b7280;margin-top:2px;">
                                 {{ \Illuminate\Support\Str::limit($module->description, 80) }}
                             </div>
-                        @endif>
+                        @endif
 
                         @if($module->sorted_blocks->isNotEmpty())
                             <div class="block-list">
@@ -340,22 +336,24 @@
 </div>
 
 <script>
-    const modules = @json($modules->values()->map(function($m) {
-        return [
-            'id'          => $m->id,
-            'title'       => $m->title,
-            'description' => $m->description,
-            'blocks'      => $m->sorted_blocks->map(function($b) {
-                return [
-                    'id'        => $b->id,
-                    'type'      => $b->type,
-                    'title'     => $b->title,
-                    'content'   => $b->content,
-                    'file_path' => $b->file_path,
-                ];
-            })->values(),
-        ];
-    }));
+    const modules = @json(
+        $modules->map(function($m) {
+            return [
+                'id'          => $m->id,
+                'title'       => $m->title,
+                'description' => $m->description,
+                'blocks'      => $m->sorted_blocks->map(function($b) {
+                    return [
+                        'id'        => $b->id,
+                        'type'      => $b->type,
+                        'title'     => $b->title,
+                        'content'   => $b->content,
+                        'file_path' => $b->file_path,
+                    ];
+                })->values()->all(),
+            ];
+        })->values()->all()
+    );
 
     let currentModuleIndex = 0;
     let currentBlockIndex  = 0;
@@ -442,7 +440,7 @@
         if (block.type === 'text') {
             const escaped = block.content ? block.content.replace(/\n/g, '<br>') : '';
             html = `<div style="font-size:14px;line-height:1.6;color:#111827;">${escaped}</div>`;
-        } else if (block.type === 'video_url') {
+            } else if (block.type === 'video_url') {
             const url = block.content || '';
             html = `
                 <div style="display:flex;flex-direction:column;gap:8px;">
@@ -480,11 +478,9 @@
     }
 
     function updateActiveUI() {
-        // modules
         document.querySelectorAll('.module-item').forEach((el, idx) => {
             el.classList.toggle('active', idx === currentModuleIndex);
         });
-        // block pills
         document.querySelectorAll('.block-pill').forEach((el) => {
             const mi = parseInt(el.getAttribute('data-module-index'), 10);
             const bi = parseInt(el.getAttribute('data-block-index'), 10);
@@ -509,7 +505,6 @@
         nextBtn.disabled = (idx === flat.length - 1);
     }
 
-    // Init: select first module/block that has blocks
     (function init() {
         let found = false;
         modules.forEach((m, mi) => {
