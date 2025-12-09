@@ -70,7 +70,18 @@ use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 
 Route::get('/beta/editor', function () {
-    return view('tools.konva-editor');
+
+    $user = Auth::user();
+
+    // Load the events belonging to this therapist
+    $events = Event::where('user_id', $user->id)
+        ->orderBy('start_date_time', 'asc')   // adapt to your column (start_at / starts_at)
+        ->get();
+
+    return view('tools.konva-editor', [
+        'events' => $events,
+    ]);
+
 })->name('konva.editor')->middleware(['auth']);
 
 
