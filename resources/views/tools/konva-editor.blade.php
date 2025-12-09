@@ -250,6 +250,29 @@
             <div class="editor-main-grid">
                 {{-- LEFT SIDEBAR – Tools --}}
                 <aside class="space-y-4">
+
+                    {{-- Section: Templates --}}
+                    <div class="toolbar-card glass-card">
+                        <div class="mb-2 flex items-center justify-between gap-2">
+                            <span class="toolbar-title">Templates rapides</span>
+                            <span class="badge-soft">Beta</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mb-2">
+                            Charge un canevas pré-structuré pour aller plus vite.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="btnTemplateQuote" type="button" class="pill-btn pill-btn-ghost">
+                                💬 Citation
+                            </button>
+                            <button id="btnTemplatePromo" type="button" class="pill-btn pill-btn-ghost">
+                                ⭐ Promo
+                            </button>
+                            <button id="btnTemplateEvent" type="button" class="pill-btn pill-btn-ghost">
+                                📅 Atelier
+                            </button>
+                        </div>
+                    </div>
+
                     {{-- Section: Contenu --}}
                     <div class="toolbar-card glass-card">
                         <div class="mb-2 flex items-center justify-between gap-2">
@@ -307,17 +330,40 @@
                                    class="w-full accent-[#647a0b]">
                         </div>
 
-                        <div class="flex items-center justify-between gap-2 text-[11px] text-slate-600">
-                            <span>Couleur de fond</span>
+                        <div class="flex flex-col gap-2 text-[11px] text-slate-600">
+                            <div class="flex items-center justify-between gap-2">
+                                <span>Couleur de fond</span>
+                                <div class="flex items-center gap-2">
+                                    <input id="bgColorPicker"
+                                           type="color"
+                                           value="#f9fafb"
+                                           class="h-7 w-12 cursor-pointer rounded-md border border-slate-200 bg-white p-0">
+                                    <button id="btnResetBg" type="button"
+                                            class="pill-btn-ghost pill-btn px-2 py-1 text-[10px]">
+                                        Réinitialiser
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- Presets --}}
                             <div class="flex items-center gap-2">
-                                <input id="bgColorPicker"
-                                       type="color"
-                                       value="#f9fafb"
-                                       class="h-7 w-12 cursor-pointer rounded-md border border-slate-200 bg-white p-0">
-                                <button id="btnResetBg" type="button"
-                                        class="pill-btn-ghost pill-btn px-2 py-1 text-[10px]">
-                                    Réinitialiser
-                                </button>
+                                <span class="small-label" style="margin-bottom:0;">Préréglages</span>
+                                <button type="button"
+                                        class="h-4 w-4 rounded-full border border-slate-200"
+                                        style="background:#647a0b"
+                                        data-bg="#647a0b"></button>
+                                <button type="button"
+                                        class="h-4 w-4 rounded-full border border-slate-200"
+                                        style="background:#e5f0c8"
+                                        data-bg="#e5f0c8"></button>
+                                <button type="button"
+                                        class="h-4 w-4 rounded-full border border-slate-200"
+                                        style="background:#fef3c7"
+                                        data-bg="#fef3c7"></button>
+                                <button type="button"
+                                        class="h-4 w-4 rounded-full border border-slate-200"
+                                        style="background:#f3f4f6"
+                                        data-bg="#f3f4f6"></button>
                             </div>
                         </div>
 
@@ -462,7 +508,14 @@
                                     </button>
                                 </div>
 
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="small-label" style="margin-bottom:0;">Alignement</span>
+                                    <button type="button" class="z-order-btn text-[10px]" id="btnAlignLeft">⯇</button>
+                                    <button type="button" class="z-order-btn text-[10px]" id="btnAlignCenter">⬌</button>
+                                    <button type="button" class="z-order-btn text-[10px]" id="btnAlignRight">⯈</button>
+                                </div>
+
+                                <div class="flex items-center gap-2 mt-1">
                                     <div class="flex flex-col flex-1 gap-1">
                                         <span class="small-label">Couleur texte</span>
                                         <input id="textColor" type="color"
@@ -471,10 +524,23 @@
                                 </div>
                             </div>
 
-                            {{-- Z-order controls --}}
+                            {{-- Image controls --}}
+                            <div id="imageControls" class="space-y-2 border-t border-dashed border-slate-200 pt-2 hidden">
+                                <div class="small-label">Image</div>
+                                <div class="range-row">
+                                    <span class="small-label" style="margin-bottom:0;">Lumière</span>
+                                    <input id="imgBrightness" type="range" min="-0.5" max="0.5" step="0.05" value="0">
+                                </div>
+                                <div class="range-row">
+                                    <span class="small-label" style="margin-bottom:0;">Contraste</span>
+                                    <input id="imgContrast" type="range" min="-0.5" max="0.5" step="0.05" value="0">
+                                </div>
+                            </div>
+
+                            {{-- Z-order & duplicate controls --}}
                             <div class="border-t border-dashed border-slate-200 pt-2">
-                                <div class="small-label mb-1">Ordre des calques</div>
-                                <div class="flex flex-wrap gap-1.5">
+                                <div class="small-label mb-1">Ordre des calques & actions</div>
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
                                     <button id="btnZTop" type="button" class="z-order-btn" title="Amener tout devant">
                                         ⬆⬆ Avant-plan
                                     </button>
@@ -488,6 +554,9 @@
                                         ⬇⬇ Arrière-plan
                                     </button>
                                 </div>
+                                <button id="btnDuplicate" type="button" class="z-order-btn" title="Dupliquer l’élément">
+                                    📑 Dupliquer
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -518,6 +587,10 @@
             const toggleGrid          = document.getElementById('toggleGrid');
             const btnUndo             = document.getElementById('btnUndo');
 
+            const btnTemplateQuote    = document.getElementById('btnTemplateQuote');
+            const btnTemplatePromo    = document.getElementById('btnTemplatePromo');
+            const btnTemplateEvent    = document.getElementById('btnTemplateEvent');
+
             const layersList          = document.getElementById('layersList');
             const selectionPanel      = document.getElementById('selectionPanel');
             const noSelectionHint     = document.getElementById('noSelectionHint');
@@ -538,11 +611,19 @@
             const textFontSize        = document.getElementById('textFontSize');
             const btnToggleBold       = document.getElementById('btnToggleBold');
             const textColor           = document.getElementById('textColor');
+            const btnAlignLeft        = document.getElementById('btnAlignLeft');
+            const btnAlignCenter      = document.getElementById('btnAlignCenter');
+            const btnAlignRight       = document.getElementById('btnAlignRight');
+
+            const imageControls       = document.getElementById('imageControls');
+            const imgBrightness       = document.getElementById('imgBrightness');
+            const imgContrast         = document.getElementById('imgContrast');
 
             const btnZTop             = document.getElementById('btnZTop');
             const btnZUp              = document.getElementById('btnZUp');
             const btnZDown            = document.getElementById('btnZDown');
             const btnZBottom          = document.getElementById('btnZBottom');
+            const btnDuplicate        = document.getElementById('btnDuplicate');
 
             // === Konva setup ===
             const size = wrapper.clientWidth; // square
@@ -552,9 +633,9 @@
                 height: size
             });
 
-            const backgroundLayer = new Konva.Layer();
-            const gridLayer       = new Konva.Layer();
-            const mainLayer       = new Konva.Layer();
+            const backgroundLayer = new Konva.Layer({ name: 'backgroundLayer' });
+            const gridLayer       = new Konva.Layer({ name: 'gridLayer' });
+            const mainLayer       = new Konva.Layer({ name: 'mainLayer' });
 
             stage.add(backgroundLayer);
             stage.add(gridLayer);
@@ -566,13 +647,15 @@
                 y: 0,
                 width: stage.width(),
                 height: stage.height(),
-                fill: '#f9fafb'
+                fill: '#f9fafb',
+                name: 'bgRect'
             });
             backgroundLayer.add(bgRect);
             backgroundLayer.draw();
 
             // Transformer for selection
             const transformer = new Konva.Transformer({
+                name: 'mainTransformer',
                 rotateEnabled: true,
                 enabledAnchors: [
                     'top-left', 'top-right',
@@ -626,11 +709,16 @@
 
             function registerElement(node, type, name) {
                 const id = newElementId();
+                const finalName = name || type;
+
                 node.setAttr('amId', id);
+                node.setAttr('amType', type);
+                node.setAttr('amName', finalName);
+
                 elementMeta[id] = {
                     id: id,
                     type: type,
-                    name: name || type
+                    name: finalName
                 };
                 refreshLayersList();
                 saveHistory();
@@ -641,6 +729,30 @@
                 if (id && elementMeta[id]) {
                     delete elementMeta[id];
                 }
+            }
+
+            // === Helpers ===
+            function clearCanvasKeepBg() {
+                mainLayer.destroyChildren();
+                mainLayer.add(transformer);
+                selectedNode = null;
+                Object.keys(elementMeta).forEach(k => delete elementMeta[k]);
+                updateInspector();
+                refreshLayersList();
+                mainLayer.draw();
+            }
+
+            function withTextNode(callback) {
+                if (!selectedNode) return;
+                const textNode = selectedNode.findOne('Text') || selectedNode;
+                callback(textNode);
+                const rect = selectedNode.findOne('Rect');
+                if (rect && textNode) {
+                    rect.width(textNode.width() + 32);
+                    rect.height(textNode.height() + 16);
+                }
+                mainLayer.batchDraw();
+                saveHistory();
             }
 
             // === Grid ===
@@ -682,7 +794,7 @@
                 saveHistory();
             });
 
-            // === Background color ===
+            // === Background color + presets ===
             bgColorPicker.addEventListener('input', (e) => {
                 bgRect.fill(e.target.value);
                 backgroundLayer.draw();
@@ -697,6 +809,16 @@
                 backgroundLayer.draw();
                 bgColorPicker.value = '#f9fafb';
                 saveHistory();
+            });
+
+            document.querySelectorAll('[data-bg]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const color = btn.getAttribute('data-bg');
+                    bgRect.fill(color);
+                    backgroundLayer.draw();
+                    bgColorPicker.value = color;
+                    saveHistory();
+                });
             });
 
             // === Zoom ===
@@ -1007,7 +1129,7 @@
                 if (history.length < 2) return;
                 history.pop();
                 const previous = history[history.length - 1];
-                // simple approach: reload page
+                // simple approach: reload page (history kept only in this session)
                 window.location.reload();
             });
 
@@ -1015,12 +1137,12 @@
             function refreshLayersList() {
                 layersList.innerHTML = '';
 
-                // order by drawing order (bottom -> top)
                 const children = mainLayer.getChildren((n) => n !== transformer);
 
                 const ordered = children.map(node => {
                     const id = node.getAttr('amId');
-                    return { node, id, meta: elementMeta[id] || null };
+                    const meta = elementMeta[id] || null;
+                    return { node, id, meta };
                 }).filter(item => item.id);
 
                 if (ordered.length === 0) {
@@ -1032,6 +1154,8 @@
                 }
 
                 ordered.forEach((item, idx) => {
+                    const node = item.node;
+
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = 'layer-item-btn';
@@ -1055,18 +1179,20 @@
                     const iconSpan = document.createElement('span');
                     iconSpan.style.fontSize = '0.9rem';
 
+                    const meta = item.meta || {};
+                    const typeAttr = meta.type || node.getAttr('amType') || node.getClassName();
                     let icon = '⬛';
                     let labelType = 'Autre';
-                    if (item.meta && item.meta.type === 'image') {
+                    if (typeAttr === 'image') {
                         icon = '🖼️';
                         labelType = 'Image';
-                    } else if (item.meta && item.meta.type === 'text') {
+                    } else if (typeAttr === 'text') {
                         icon = '✏️';
                         labelType = 'Texte';
-                    } else if (item.meta && item.meta.type === 'shape-rect') {
+                    } else if (typeAttr === 'shape-rect') {
                         icon = '◼️';
                         labelType = 'Rectangle';
-                    } else if (item.meta && item.meta.type === 'shape-circle') {
+                    } else if (typeAttr === 'shape-circle') {
                         icon = '⚪';
                         labelType = 'Cercle';
                     }
@@ -1074,7 +1200,8 @@
                     iconSpan.textContent = icon;
 
                     const label = document.createElement('span');
-                    label.textContent = (item.meta && item.meta.name) || ('Calque ' + (idx + 1));
+                    const nodeName = meta.name || node.getAttr('amName') || ('Calque ' + (idx + 1));
+                    label.textContent = nodeName;
                     label.style.fontWeight = '500';
 
                     titleRow.appendChild(iconSpan);
@@ -1093,15 +1220,56 @@
                     left.appendChild(subRow);
 
                     const right = document.createElement('div');
-                    right.style.fontSize = '0.7rem';
-                    right.style.color = '#6b7280';
-                    right.textContent = 'Z ' + idx;
+                    right.style.display = 'flex';
+                    right.style.alignItems = 'center';
+                    right.style.gap = '0.25rem';
+
+                    const zLabel = document.createElement('span');
+                    zLabel.style.fontSize = '0.7rem';
+                    zLabel.style.color = '#6b7280';
+                    zLabel.textContent = 'Z ' + idx;
+
+                    const eyeBtn = document.createElement('button');
+                    eyeBtn.type = 'button';
+                    eyeBtn.style.fontSize = '0.8rem';
+                    eyeBtn.style.border = 'none';
+                    eyeBtn.style.background = 'transparent';
+                    eyeBtn.style.cursor = 'pointer';
+                    eyeBtn.textContent = node.visible() ? '👁️' : '🚫';
+
+                    eyeBtn.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        node.visible(!node.visible());
+                        eyeBtn.textContent = node.visible() ? '👁️' : '🚫';
+                        mainLayer.draw();
+                    });
+
+                    const lockBtn = document.createElement('button');
+                    lockBtn.type = 'button';
+                    lockBtn.style.fontSize = '0.8rem';
+                    lockBtn.style.border = 'none';
+                    lockBtn.style.background = 'transparent';
+                    lockBtn.style.cursor = 'pointer';
+                    lockBtn.textContent = node.draggable() ? '🔓' : '🔒';
+
+                    lockBtn.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        const newDraggable = !node.draggable();
+                        node.draggable(newDraggable);
+                        node.opacity(newDraggable ? 1 : 0.6);
+                        lockBtn.textContent = newDraggable ? '🔓' : '🔒';
+                        mainLayer.draw();
+                    });
+
+                    right.appendChild(zLabel);
+                    right.appendChild(eyeBtn);
+                    right.appendChild(lockBtn);
 
                     btn.appendChild(left);
                     btn.appendChild(right);
 
                     btn.addEventListener('click', () => {
-                        setSelection(item.node);
+                        setSelection(node);
                     });
 
                     layersList.appendChild(btn);
@@ -1121,7 +1289,8 @@
 
                 const id = selectedNode.getAttr('amId');
                 const meta = elementMeta[id] || {};
-                const type = meta.type || selectedNode.getClassName();
+                const typeAttr = meta.type || selectedNode.getAttr('amType') || selectedNode.getClassName();
+                let type = typeAttr;
 
                 // Type badge
                 let badgeLabel = 'Élément';
@@ -1132,7 +1301,7 @@
                 selectionTypeBadge.textContent = badgeLabel;
 
                 // Name
-                inputLayerName.value = meta.name || '';
+                inputLayerName.value = meta.name || selectedNode.getAttr('amName') || '';
 
                 // Opacity
                 const opacity = Math.round((selectedNode.opacity() || 1) * 100);
@@ -1142,6 +1311,7 @@
                 // Reset panel visibility
                 shapeControls.classList.add('hidden');
                 textControls.classList.add('hidden');
+                imageControls.classList.add('hidden');
 
                 // Shape controls
                 if (type === 'shape-rect' || type === 'shape-circle') {
@@ -1183,8 +1353,8 @@
 
                     textFontSize.value = Math.round(textNode.fontSize() || 26);
 
-                    const weight = textNode.fontStyle() || textNode.fontVariant() || '';
-                    if ((textNode.fontStyle && textNode.fontStyle().includes('bold')) || weight.includes('bold')) {
+                    const style = textNode.fontStyle ? textNode.fontStyle() : '';
+                    if (style && style.includes('bold')) {
                         btnToggleBold.classList.add('is-active');
                     } else {
                         btnToggleBold.classList.remove('is-active');
@@ -1197,6 +1367,16 @@
                         textColor.value = '#111827';
                     }
                 }
+
+                // Image controls
+                if (type === 'image') {
+                    imageControls.classList.remove('hidden');
+                    const img = selectedNode;
+                    img.cache();
+                    img.filters([Konva.Filters.Brighten, Konva.Filters.Contrast]);
+                    imgBrightness.value = img.brightness() || 0;
+                    imgContrast.value   = img.contrast() || 0;
+                }
             }
 
             // === Inspector events ===
@@ -1206,6 +1386,7 @@
                 if (!id) return;
                 elementMeta[id] = elementMeta[id] || {};
                 elementMeta[id].name = inputLayerName.value;
+                selectedNode.setAttr('amName', inputLayerName.value);
                 refreshLayersList();
             });
 
@@ -1250,58 +1431,67 @@
 
             // Text
             textFontFamily.addEventListener('change', () => {
-                if (!selectedNode) return;
-                const textNode = selectedNode.findOne('Text') || selectedNode;
-                let font = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-                if (textFontFamily.value === 'serif') {
-                    font = '"Playfair Display", "Times New Roman", serif';
-                } else if (textFontFamily.value === 'sans') {
-                    font = '"Raleway", system-ui, -apple-system, sans-serif';
-                }
-                textNode.fontFamily(font);
-                mainLayer.batchDraw();
-                saveHistory();
+                withTextNode((textNode) => {
+                    let font = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+                    if (textFontFamily.value === 'serif') {
+                        font = '"Playfair Display", "Times New Roman", serif';
+                    } else if (textFontFamily.value === 'sans') {
+                        font = '"Raleway", system-ui, -apple-system, sans-serif';
+                    }
+                    textNode.fontFamily(font);
+                });
             });
 
             textFontSize.addEventListener('change', () => {
-                if (!selectedNode) return;
-                const textNode = selectedNode.findOne('Text') || selectedNode;
-                const size = parseInt(textFontSize.value, 10) || 26;
-                textNode.fontSize(size);
-
-                const rect = selectedNode.findOne('Rect');
-                if (rect && textNode) {
-                    rect.width(textNode.width() + 32);
-                    rect.height(textNode.height() + 16);
-                }
-
-                mainLayer.batchDraw();
-                saveHistory();
+                withTextNode((textNode) => {
+                    const size = parseInt(textFontSize.value, 10) || 26;
+                    textNode.fontSize(size);
+                });
             });
 
             btnToggleBold.addEventListener('click', () => {
-                if (!selectedNode) return;
-                const textNode = selectedNode.findOne('Text') || selectedNode;
-                const current = textNode.fontStyle && textNode.fontStyle() || 'normal';
-                const newStyle = current.includes('bold') ? 'normal' : 'bold';
-                if (textNode.fontStyle) {
-                    textNode.fontStyle(newStyle);
-                }
-                btnToggleBold.classList.toggle('is-active');
-                mainLayer.batchDraw();
-                saveHistory();
+                withTextNode((textNode) => {
+                    const current = textNode.fontStyle ? textNode.fontStyle() : 'normal';
+                    const newStyle = current.includes('bold') ? 'normal' : 'bold';
+                    textNode.fontStyle && textNode.fontStyle(newStyle);
+                    btnToggleBold.classList.toggle('is-active');
+                });
             });
 
             textColor.addEventListener('input', () => {
-                if (!selectedNode) return;
-                const textNode = selectedNode.findOne('Text') || selectedNode;
-                textNode.fill(textColor.value);
-                mainLayer.batchDraw();
+                withTextNode((textNode) => {
+                    textNode.fill(textColor.value);
+                });
             });
 
             textColor.addEventListener('change', () => saveHistory());
 
-            // === Z-order ===
+            btnAlignLeft.addEventListener('click', () => {
+                withTextNode((t) => t.align('left'));
+            });
+            btnAlignCenter.addEventListener('click', () => {
+                withTextNode((t) => t.align('center'));
+            });
+            btnAlignRight.addEventListener('click', () => {
+                withTextNode((t) => t.align('right'));
+            });
+
+            // Image filters
+            imgBrightness.addEventListener('input', () => {
+                if (!selectedNode) return;
+                selectedNode.brightness(parseFloat(imgBrightness.value));
+                mainLayer.batchDraw();
+            });
+            imgContrast.addEventListener('input', () => {
+                if (!selectedNode) return;
+                selectedNode.contrast(parseFloat(imgContrast.value));
+                mainLayer.batchDraw();
+            });
+
+            imgBrightness.addEventListener('change', () => saveHistory());
+            imgContrast.addEventListener('change', () => saveHistory());
+
+            // === Z-order & duplicate ===
             function updateZ(action) {
                 if (!selectedNode) return;
 
@@ -1309,7 +1499,6 @@
                     selectedNode.moveToTop();
                 } else if (action === 'bottom') {
                     selectedNode.moveToBottom();
-                    // keep transformer on top of main elements
                     transformer.moveToTop();
                 } else if (action === 'up') {
                     selectedNode.moveUp();
@@ -1327,6 +1516,306 @@
             btnZBottom.addEventListener('click', () => updateZ('bottom'));
             btnZUp.addEventListener('click', () => updateZ('up'));
             btnZDown.addEventListener('click', () => updateZ('down'));
+
+            btnDuplicate.addEventListener('click', () => {
+                if (!selectedNode) return;
+                const id = selectedNode.getAttr('amId');
+                const meta = elementMeta[id] || {};
+                const clone = selectedNode.clone({
+                    x: selectedNode.x() + 20,
+                    y: selectedNode.y() + 20
+                });
+                mainLayer.add(clone);
+                mainLayer.draw();
+                registerElement(clone, meta.type || selectedNode.getAttr('amType') || 'element', (meta.name || 'Élément') + ' (copie)');
+                setSelection(clone);
+            });
+
+            // === Templates ===
+            function addQuoteTemplate() {
+                clearCanvasKeepBg();
+
+                // Bande centrale
+                const band = new Konva.Rect({
+                    x: stage.width() * 0.1,
+                    y: stage.height() * 0.2,
+                    width: stage.width() * 0.8,
+                    height: stage.height() * 0.6,
+                    cornerRadius: 32,
+                    fill: '#ffffff',
+                    stroke: '#e5e7eb',
+                    strokeWidth: 1
+                });
+                mainLayer.add(band);
+                registerElement(band, 'shape-rect', 'Bloc citation');
+
+                // Texte citation
+                const quoteText = new Konva.Text({
+                    text: '« Votre bien-être est un voyage, pas une destination. »',
+                    x: stage.width() * 0.15,
+                    y: stage.height() * 0.27,
+                    width: stage.width() * 0.7,
+                    fontFamily: '"Playfair Display", "Times New Roman", serif',
+                    fontSize: 28,
+                    fill: '#111827',
+                    align: 'center',
+                    lineHeight: 1.3
+                });
+                const quoteGroup = new Konva.Group({
+                    x: 0,
+                    y: 0,
+                    draggable: true
+                });
+                quoteGroup.add(quoteText);
+                mainLayer.add(quoteGroup);
+                registerElement(quoteGroup, 'text', 'Citation');
+
+                // Auteur
+                const authorText = new Konva.Text({
+                    text: '— Votre nom / AromaMade',
+                    x: stage.width() * 0.2,
+                    y: stage.height() * 0.55,
+                    width: stage.width() * 0.6,
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 16,
+                    fill: '#6b7280',
+                    align: 'center'
+                });
+                const authorGroup = new Konva.Group({
+                    x: 0,
+                    y: 0,
+                    draggable: true
+                });
+                authorGroup.add(authorText);
+                mainLayer.add(authorGroup);
+                registerElement(authorGroup, 'text', 'Auteur');
+
+                mainLayer.draw();
+            }
+
+            function addPromoTemplate() {
+                clearCanvasKeepBg();
+
+                // Top bande
+                const topBand = new Konva.Rect({
+                    x: 0,
+                    y: 0,
+                    width: stage.width(),
+                    height: stage.height() * 0.18,
+                    fill: '#647a0b'
+                });
+                mainLayer.add(topBand);
+                registerElement(topBand, 'shape-rect', 'Bande haute');
+
+                const topText = new Konva.Text({
+                    text: 'Offre spéciale bien-être',
+                    x: 0,
+                    y: stage.height() * 0.06,
+                    width: stage.width(),
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 22,
+                    fill: '#fefce8',
+                    align: 'center'
+                });
+                const topGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                topGroup.add(topText);
+                mainLayer.add(topGroup);
+                registerElement(topGroup, 'text', 'Titre promo');
+
+                // Bloc central pour image / visuel
+                const centerRect = new Konva.Rect({
+                    x: stage.width() * 0.09,
+                    y: stage.height() * 0.22,
+                    width: stage.width() * 0.82,
+                    height: stage.height() * 0.45,
+                    cornerRadius: 30,
+                    fill: '#f9fafb',
+                    stroke: '#e5e7eb',
+                    strokeWidth: 1,
+                    dash: [6, 4]
+                });
+                mainLayer.add(centerRect);
+                registerElement(centerRect, 'shape-rect', 'Zone image');
+
+                const hint = new Konva.Text({
+                    text: 'Ajoutez votre photo ou visuel ici',
+                    x: stage.width() * 0.12,
+                    y: stage.height() * 0.37,
+                    width: stage.width() * 0.76,
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 16,
+                    fill: '#9ca3af',
+                    align: 'center'
+                });
+                const hintGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                hintGroup.add(hint);
+                mainLayer.add(hintGroup);
+                registerElement(hintGroup, 'text', 'Texte visuel');
+
+                // Bande CTA
+                const ctaRect = new Konva.Rect({
+                    x: stage.width() * 0.18,
+                    y: stage.height() * 0.74,
+                    width: stage.width() * 0.64,
+                    height: stage.height() * 0.12,
+                    cornerRadius: 999,
+                    fill: '#f97316'
+                });
+                mainLayer.add(ctaRect);
+                registerElement(ctaRect, 'shape-rect', 'Bouton CTA');
+
+                const ctaText = new Konva.Text({
+                    text: '-20% sur votre première séance',
+                    x: stage.width() * 0.18,
+                    y: stage.height() * 0.77,
+                    width: stage.width() * 0.64,
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 18,
+                    fill: '#111827',
+                    align: 'center'
+                });
+                const ctaGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                ctaGroup.add(ctaText);
+                mainLayer.add(ctaGroup);
+                registerElement(ctaGroup, 'text', 'Texte CTA');
+
+                mainLayer.draw();
+            }
+
+            function addEventTemplate() {
+                clearCanvasKeepBg();
+
+                // Badge date
+                const dateRect = new Konva.Rect({
+                    x: stage.width() * 0.08,
+                    y: stage.height() * 0.08,
+                    width: 110,
+                    height: 110,
+                    cornerRadius: 26,
+                    fill: '#fef3c7',
+                    stroke: '#f59e0b',
+                    strokeWidth: 1.5
+                });
+                mainLayer.add(dateRect);
+                registerElement(dateRect, 'shape-rect', 'Badge date');
+
+                const dateText = new Konva.Text({
+                    text: 'SAM\n12 OCT',
+                    x: stage.width() * 0.08,
+                    y: stage.height() * 0.1,
+                    width: 110,
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 18,
+                    fill: '#92400e',
+                    align: 'center',
+                    lineHeight: 1.2
+                });
+                const dateGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                dateGroup.add(dateText);
+                mainLayer.add(dateGroup);
+                registerElement(dateGroup, 'text', 'Texte date');
+
+                // Titre atelier
+                const titleText = new Konva.Text({
+                    text: 'Atelier : Découvrir les huiles essentielles',
+                    x: stage.width() * 0.25,
+                    y: stage.height() * 0.12,
+                    width: stage.width() * 0.65,
+                    fontFamily: '"Playfair Display", "Times New Roman", serif',
+                    fontSize: 24,
+                    fill: '#0f172a',
+                    align: 'left',
+                    lineHeight: 1.2
+                });
+                const titleGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                titleGroup.add(titleText);
+                mainLayer.add(titleGroup);
+                registerElement(titleGroup, 'text', 'Titre atelier');
+
+                // Sous-texte
+                const subText = new Konva.Text({
+                    text: 'En ligne ou en cabinet · 2h de pratique\nPlaces limitées · Réservation obligatoire',
+                    x: stage.width() * 0.25,
+                    y: stage.height() * 0.27,
+                    width: stage.width() * 0.65,
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 14,
+                    fill: '#4b5563',
+                    align: 'left',
+                    lineHeight: 1.4
+                });
+                const subGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                subGroup.add(subText);
+                mainLayer.add(subGroup);
+                registerElement(subGroup, 'text', 'Infos atelier');
+
+                // Bande bas URL
+                const bottomRect = new Konva.Rect({
+                    x: 0,
+                    y: stage.height() * 0.84,
+                    width: stage.width(),
+                    height: stage.height() * 0.16,
+                    fill: '#111827'
+                });
+                mainLayer.add(bottomRect);
+                registerElement(bottomRect, 'shape-rect', 'Bande bas');
+
+                const urlText = new Konva.Text({
+                    text: 'Réserver sur aromamade.com/pro/votrenom',
+                    x: 0,
+                    y: stage.height() * 0.89,
+                    width: stage.width(),
+                    fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                    fontSize: 16,
+                    fill: '#f9fafb',
+                    align: 'center'
+                });
+                const urlGroup = new Konva.Group({ x: 0, y: 0, draggable: true });
+                urlGroup.add(urlText);
+                mainLayer.add(urlGroup);
+                registerElement(urlGroup, 'text', 'URL');
+
+                mainLayer.draw();
+            }
+
+            btnTemplateQuote.addEventListener('click', addQuoteTemplate);
+            btnTemplatePromo.addEventListener('click', addPromoTemplate);
+            btnTemplateEvent.addEventListener('click', addEventTemplate);
+
+            // === Keyboard shortcuts ===
+            document.addEventListener('keydown', (e) => {
+                const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
+                if (['input', 'textarea', 'select'].includes(tag)) return;
+
+                if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNode) {
+                    e.preventDefault();
+                    btnDeleteSelection.click();
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd' && selectedNode) {
+                    e.preventDefault();
+                    btnDuplicate.click();
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                    e.preventDefault();
+                    btnUndo.click();
+                }
+
+                if (!selectedNode) return;
+
+                const step = e.shiftKey ? 10 : 2;
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault();
+                    const pos = selectedNode.position();
+                    if (e.key === 'ArrowUp') selectedNode.y(pos.y - step);
+                    if (e.key === 'ArrowDown') selectedNode.y(pos.y + step);
+                    if (e.key === 'ArrowLeft') selectedNode.x(pos.x - step);
+                    if (e.key === 'ArrowRight') selectedNode.x(pos.x + step);
+                    mainLayer.batchDraw();
+                    saveHistory();
+                }
+            });
 
             // === Export ===
             btnExport.addEventListener('click', () => {
