@@ -58,10 +58,14 @@
                                 {{ __('Sélectionner un profil client (optionnel)') }}
                             </label>
                             <select name="client_profile_id"
+                                    id="client_profile_id"
                                     class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
                                 <option value="">{{ __('Aucun / saisir manuellement') }}</option>
                                 @foreach($clientProfiles as $client)
-                                    <option value="{{ $client->id }}" {{ old('client_profile_id') == $client->id ? 'selected' : '' }}>
+                                    <option value="{{ $client->id }}"
+                                            data-name="{{ trim($client->last_name.' '.$client->first_name) }}"
+                                            data-email="{{ $client->email }}"
+                                        {{ old('client_profile_id') == $client->id ? 'selected' : '' }}>
                                         {{ $client->last_name }} {{ $client->first_name }}
                                         @if($client->email)
                                             – {{ $client->email }}
@@ -80,6 +84,7 @@
                             </label>
                             <input type="text"
                                    name="participant_name"
+                                   id="participant_name"
                                    value="{{ old('participant_name') }}"
                                    class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
                                    placeholder="{{ __('Ex : Marie Dupont') }}">
@@ -96,10 +101,14 @@
                             </label>
                             <input type="email"
                                    name="participant_email"
+                                   id="participant_email"
                                    value="{{ old('participant_email') }}"
                                    required
                                    class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
                                    placeholder="prenom.nom@email.com">
+                            <p class="mt-1 text-[11px] text-slate-500">
+                                {{ __('L’email sera utilisé pour envoyer le lien d’accès à la formation.') }}
+                            </p>
                         </div>
                     </div>
 
@@ -138,6 +147,7 @@
                                     <th class="px-3 py-2 text-left font-semibold">{{ __('Progression') }}</th>
                                     <th class="px-3 py-2 text-left font-semibold">{{ __('Dernier accès') }}</th>
                                     <th class="px-3 py-2 text-left font-semibold">{{ __('Créé le') }}</th>
+                                    <th class="px-3 py-2 text-left font-semibold text-right">{{ __('Actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -181,6 +191,19 @@
                                         <td class="px-3 py-2 text-slate-600">
                                             {{ $enrollment->created_at->format('d/m/Y') }}
                                         </td>
+                                        <td class="px-3 py-2 text-right">
+                                            <form action="{{ route('digital-trainings.enrollments.destroy', [$training, $enrollment]) }}"
+                                                  method="POST"
+                                                  class="inline-flex items-center gap-2"
+                                                  onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir révoquer cet accès ?') }}');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline">
+                                                    {{ __('Révoquer l’accès') }}
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -190,4 +213,51 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const select      = document.getElementById('client_profile_id');
+            const nameInput   = document.getElementById('participant_name');
+            const emailInput  = document.getElementById('participant_email');
+
+            if (!select || !nameInput || !emailInput) {
+                return;
+            }
+
+            function syncFromSelect(force = false) {
+                const option = select.options[select.selectedIndex];
+                if (!option) return;
+
+                const value = select.value;
+                const name  = option.dataset.name || '';
+                const email = option.dataset.email || '';
+
+                if (!value) {
+                    // aucun profil -> on laisse ce que l'utilisateur a tapé
+                    if (force) {
+                        // si on veut vraiment reset, on pourrait décommenter :
+                        // nameInput.value = '';
+                        // emailInput.value = '';
+                    }
+                    return;
+                }
+
+                // On pré-remplit uniquement si le champ est vide ou si on force
+                if ((force || !nameInput.value.trim()) && name) {
+                    nameInput.value = name;
+                }
+
+                if ((force || !emailInput.value.trim()) && email) {
+                    emailInput.value = email;
+                }
+            }
+
+            select.addEventListener('change', function () {
+                syncFromSelect(true);
+            });
+
+            // Au chargement : si un profil est déjà sélectionné et que les champs sont vides, on auto-remplit
+            syncFromSelect(false);
+        });
+    </script>
 </x-app-layout>

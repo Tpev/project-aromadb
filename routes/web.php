@@ -85,6 +85,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('enrollments', [DigitalTrainingEnrollmentController::class, 'store'])
             ->name('digital-trainings.enrollments.store');
+		Route::delete('/digital-trainings/{digitalTraining}/enrollments/{enrollment}', [DigitalTrainingEnrollmentController::class, 'destroy'])
+    ->name('digital-trainings.enrollments.destroy');
+
     });
 
     // Future: public client access via token (to implement later)

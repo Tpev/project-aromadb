@@ -1,7 +1,5 @@
 <?php
 
-// app/Http/Controllers/DigitalTrainingEnrollmentController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\DigitalTraining;
@@ -12,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DigitalTrainingAccessMail;
-use Illuminate\Support\Facades\Log;
 
 class DigitalTrainingEnrollmentController extends Controller
 {
@@ -65,20 +62,28 @@ class DigitalTrainingEnrollmentController extends Controller
             'source'              => 'manual',
         ]);
 
-        // Send email with access link (Magic Login style)
-        // IMPORTANT: no silent failure now
+        // Send email with access link
         Mail::to($email)->send(new DigitalTrainingAccessMail($enrollment));
-
-        // If you still want logging, you can uncomment this:
-        // Log::info('DigitalTraining access email sent', [
-        //     'training_id' => $digitalTraining->id,
-        //     'enrollment_id' => $enrollment->id,
-        //     'email' => $email,
-        // ]);
 
         return redirect()
             ->route('digital-trainings.enrollments.index', $digitalTraining)
             ->with('success', 'Accès créé et invitation envoyée au client.');
+    }
+
+    public function destroy(DigitalTraining $digitalTraining, DigitalTrainingEnrollment $enrollment)
+    {
+        $this->authorizeOwner($digitalTraining);
+
+        // Sécurité : s’assurer que l’accès appartient bien à cette formation
+        if ($enrollment->digital_training_id !== $digitalTraining->id) {
+            abort(404);
+        }
+
+        $enrollment->delete();
+
+        return redirect()
+            ->route('digital-trainings.enrollments.index', $digitalTraining)
+            ->with('success', 'L’accès du participant a été révoqué.');
     }
 
     protected function authorizeOwner(DigitalTraining $training): void
