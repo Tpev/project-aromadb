@@ -69,6 +69,11 @@ use App\Http\Controllers\DigitalTrainingController;
 use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 
+Route::get('/beta/editor', function () {
+    return view('tools.konva-editor');
+})->name('konva.editor')->middleware(['auth']);
+
+
 Route::get('/formations/{digitalTraining:slug}', [DigitalTrainingController::class, 'publicShow'])
     ->name('digital-trainings.public.show');
 // === Public training access via magic token ===
