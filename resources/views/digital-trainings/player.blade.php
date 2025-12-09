@@ -175,7 +175,8 @@
             display: flex;
             flex-direction: column;
             gap: 14px;
-            min-height: 0;
+            min-height: calc(100vh - 150px); /* header + paddings */
+            min-width: 0;
         }
 
         .badge-pill {
@@ -445,16 +446,24 @@
             border-radius: 14px;
             border: 1px solid #e5e7eb;
             background: #f9fafb;
-            padding: 20px;
-            min-height: 60vh;
-            max-height: calc(100vh - 260px);
-            overflow: auto;
+            padding: 16px;
+            flex: 1;          /* take remaining height */
+            min-height: 0;    /* allow flex shrinking */
+            overflow: hidden; /* inner handles scroll */
+        }
+
+        #block-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .content-body-inner {
             font-size: 14px;
             line-height: 1.6;
             color: #111827;
+            flex: 1;
+            overflow: auto;
         }
 
         .nav-buttons {
@@ -477,6 +486,117 @@
             font-size: 12px;
             padding: 8px 10px;
             margin-top: 2px;
+        }
+
+        /* ============= PDF SPECIFIC ============= */
+
+        .pdf-block {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+        }
+
+        .pdf-main {
+            flex: 1;
+            min-height: 75vh;  /* tall viewport area (Option B) */
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+        }
+
+        .pdf-main embed {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .pdf-footer {
+            font-size: 12px;
+            color: #6b7280;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pdf-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pdf-action-link {
+            font-size: 12px;
+            color: #647a0b;
+            text-decoration: underline;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            background: none;
+        }
+
+        /* Fullscreen overlay (Option C) */
+        .pdf-fullscreen-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .pdf-fullscreen-overlay.active {
+            display: flex;
+        }
+
+        .pdf-fullscreen-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 1400px;
+            max-height: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pdf-fullscreen-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #e5e7eb;
+            font-size: 13px;
+        }
+
+        .pdf-fullscreen-bar button {
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            background: transparent;
+            color: #f9fafb;
+        }
+
+        .pdf-fullscreen-frame-wrapper {
+            flex: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid #4b5563;
+        }
+
+        .pdf-fullscreen-frame-wrapper embed {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
         /* ============= RESPONSIVE ============= */
@@ -502,6 +622,7 @@
 
             .content {
                 order: 1;
+                min-height: calc(100vh - 140px);
             }
 
             .module-list {
@@ -509,8 +630,11 @@
             }
 
             .content-body {
-                max-height: none;
-                min-height: 40vh;
+                min-height: 50vh;
+            }
+
+            .pdf-main {
+                min-height: 60vh;
             }
 
             .progress-bar-outer {
@@ -684,7 +808,9 @@
                     </div>
 
                     <div class="content-body">
-                        <div id="block-content" class="content-body-inner"></div>
+                        <div id="block-content">
+                            <div class="content-body-inner"></div>
+                        </div>
                     </div>
 
                     <div class="nav-buttons">
@@ -698,6 +824,19 @@
                 </section>
             </div>
         </main>
+    </div>
+
+    {{-- Fullscreen PDF overlay (Option C) --}}
+    <div id="pdfFullscreenOverlay" class="pdf-fullscreen-overlay" onclick="handlePdfOverlayClick(event)">
+        <div class="pdf-fullscreen-inner">
+            <div class="pdf-fullscreen-bar">
+                <div>{{ __('Affichage du document en plein écran') }}</div>
+                <button type="button" onclick="closePdfFullscreen()">✕ {{ __('Fermer') }}</button>
+            </div>
+            <div class="pdf-fullscreen-frame-wrapper">
+                <embed id="pdfFullscreenFrame" src="about:blank" type="application/pdf">
+            </div>
+        </div>
     </div>
 
     <script>
@@ -765,7 +904,7 @@
             const metaTitle   = document.getElementById('block-title');
             const metaSub     = document.getElementById('block-subtitle');
             const metaPath    = document.getElementById('content-path');
-            const contentWrap = document.getElementById('block-content');
+            const contentWrap = document.querySelector('#block-content .content-body-inner');
             const stepInd     = document.getElementById('stepIndicator');
 
             const module = modules[currentModuleIndex];
@@ -818,13 +957,20 @@
                 const filePath = block.file_path ? `{{ rtrim(config('app.url'), '/') }}/storage/` + block.file_path : null;
                 if (filePath) {
                     html = `
-                        <div style="display:flex;flex-direction:column;gap:8px;height:100%;">
-                            <div style="flex:1;min-height:420px;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
-                                <embed src="${filePath}#toolbar=1&navpanes=0" type="application/pdf" style="width:100%;height:100%;">
+                        <div class="pdf-block">
+                            <div class="pdf-main">
+                                <embed src="${filePath}#toolbar=1&navpanes=0" type="application/pdf">
                             </div>
-                            <div style="font-size:12px;color:#6b7280;">
-                                Si le document ne s’affiche pas, vous pouvez
-                                <a href="${filePath}" target="_blank" style="color:#647a0b;text-decoration:underline;">télécharger le PDF</a>.
+                            <div class="pdf-footer">
+                                <div>
+                                    Si le document ne s’affiche pas correctement, vous pouvez
+                                    <a href="${filePath}" target="_blank" style="color:#647a0b;text-decoration:underline;">télécharger le PDF</a>.
+                                </div>
+                                <div class="pdf-actions">
+                                    <button type="button" class="pdf-action-link" onclick="openPdfFullscreen('${filePath}')">
+                                        🗖 Afficher en plein écran
+                                    </button>
+                                </div>
                             </div>
                         </div>`;
                 } else {
@@ -864,6 +1010,32 @@
 
             prevBtn.disabled = (idx === 0);
             nextBtn.disabled = (idx === flat.length - 1);
+        }
+
+        // ==== PDF FULLSCREEN (Option C) ====
+        function openPdfFullscreen(path) {
+            const overlay = document.getElementById('pdfFullscreenOverlay');
+            const frame   = document.getElementById('pdfFullscreenFrame');
+
+            frame.setAttribute('src', path + '#toolbar=1&navpanes=0');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePdfFullscreen() {
+            const overlay = document.getElementById('pdfFullscreenOverlay');
+            const frame   = document.getElementById('pdfFullscreenFrame');
+
+            overlay.classList.remove('active');
+            frame.setAttribute('src', 'about:blank');
+            document.body.style.overflow = '';
+        }
+
+        function handlePdfOverlayClick(e) {
+            // close if click background, not inner content
+            if (e.target.id === 'pdfFullscreenOverlay') {
+                closePdfFullscreen();
+            }
         }
 
         (function init() {
