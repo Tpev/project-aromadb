@@ -22,6 +22,7 @@ class DigitalTraining extends Model
         'access_type',
         'status',
         'estimated_duration_minutes',
+		'product_id',  
     ];
 
     protected $casts = [
@@ -50,4 +51,11 @@ class DigitalTraining extends Model
 
         return number_format($this->price_cents / 100, 2, ',', ' ') . ' €';
     }
+	// app/Models/DigitalTraining.php
+
+public function enrollments()
+{
+    return $this->hasMany(DigitalTrainingEnrollment::class);
+}
+
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DigitalTraining;
 use App\Models\TrainingModule;
 use App\Models\TrainingBlock;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,9 @@ use Illuminate\Support\Str;
 
 class DigitalTrainingController extends Controller
 {
+    /* =========================================================
+     * INDEX : list all trainings for therapist
+     * ======================================================= */
     public function index()
     {
         $user = Auth::user();
@@ -27,9 +31,21 @@ class DigitalTrainingController extends Controller
         return view('digital-trainings.index', compact('trainings'));
     }
 
+    /* =========================================================
+     * CREATE / STORE
+     * ======================================================= */
+
     public function create()
     {
-        return view('digital-trainings.create');
+        $user = Auth::user();
+
+        $products = Product::where('user_id', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        $training = new DigitalTraining();
+
+        return view('digital-trainings.create', compact('training', 'products'));
     }
 
     public function store(Request $request)
@@ -37,45 +53,38 @@ class DigitalTrainingController extends Controller
         $user = Auth::user();
 
         $data = $request->validate([
-            'title'                     => 'required|string|max:255',
-            'description'               => 'nullable|string',
-            'cover_image'               => 'nullable|image|max:8048',
-            'tags'                      => 'nullable|string', // "stress, sommeil"
-            'is_free'                   => 'nullable|boolean',
-            'price_eur'                 => 'nullable|numeric|min:0',
-            'tax_rate'                  => 'nullable|numeric|min:0|max:100',
-            'access_type'               => 'required|in:public,private,subscription',
-            'status'                    => 'required|in:draft,published,archived',
-            'estimated_duration_minutes'=> 'nullable|integer|min:1',
+            'title'                      => 'required|string|max:255',
+            'description'                => 'nullable|string',
+            'cover_image'                => 'nullable|image|max:8048',
+            'tags'                       => 'nullable|string',
+            'access_type'                => 'required|in:public,private,subscription',
+            'status'                     => 'required|in:draft,published,archived',
+            'estimated_duration_minutes' => 'nullable|integer|min:1',
+            'product_id'                 => 'nullable|exists:products,id',
         ]);
 
+        // Slug unique
         $slugBase = Str::slug($data['title']);
-        $slug = $slugBase;
-        $i = 1;
+        $slug     = $slugBase;
+        $i        = 1;
         while (DigitalTraining::where('slug', $slug)->exists()) {
             $slug = $slugBase . '-' . $i++;
         }
 
+        // Cover image
         $coverPath = null;
         if ($request->hasFile('cover_image')) {
             $coverPath = $request->file('cover_image')->store('digital-trainings/covers', 'public');
         }
 
+        // Tags: "stress, sommeil" -> ['stress', 'sommeil']
         $tags = null;
         if (!empty($data['tags'])) {
             $tags = collect(explode(',', $data['tags']))
-                ->map(fn($t) => trim($t))
+                ->map(fn ($t) => trim($t))
                 ->filter()
                 ->values()
                 ->toArray();
-        }
-
-        $isFree = (bool)($data['is_free'] ?? false);
-        $priceCents = null;
-        $taxRate = $data['tax_rate'] ?? 0;
-
-        if (!$isFree && isset($data['price_eur'])) {
-            $priceCents = (int)round($data['price_eur'] * 100);
         }
 
         $training = DigitalTraining::create([
@@ -85,12 +94,10 @@ class DigitalTrainingController extends Controller
             'description'                => $data['description'] ?? null,
             'cover_image_path'           => $coverPath,
             'tags'                       => $tags,
-            'is_free'                    => $isFree,
-            'price_cents'                => $priceCents,
-            'tax_rate'                   => $taxRate,
             'access_type'                => $data['access_type'],
             'status'                     => $data['status'],
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? null,
+            'product_id'                 => $data['product_id'] ?? null,
         ]);
 
         return redirect()
@@ -98,14 +105,23 @@ class DigitalTrainingController extends Controller
             ->with('success', 'Formation digitale créée. Vous pouvez maintenant ajouter des modules et du contenu.');
     }
 
+    /* =========================================================
+     * EDIT / UPDATE / DELETE
+     * ======================================================= */
+
     public function edit(DigitalTraining $digitalTraining)
     {
         $this->authorizeOwner($digitalTraining);
 
-        return view('digital-trainings.edit', [
-            'training' => $digitalTraining,
-            'tagsString' => $digitalTraining->tags ? implode(', ', $digitalTraining->tags) : '',
-        ]);
+        $user = Auth::user();
+
+        $products = Product::where('user_id', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        $training = $digitalTraining;
+
+        return view('digital-trainings.edit', compact('training', 'products'));
     }
 
     public function update(Request $request, DigitalTraining $digitalTraining)
@@ -113,55 +129,48 @@ class DigitalTrainingController extends Controller
         $this->authorizeOwner($digitalTraining);
 
         $data = $request->validate([
-            'title'                     => 'required|string|max:255',
-            'description'               => 'nullable|string',
-            'cover_image'               => 'nullable|image|max:8048',
-            'tags'                      => 'nullable|string',
-            'is_free'                   => 'nullable|boolean',
-            'price_eur'                 => 'nullable|numeric|min:0',
-            'tax_rate'                  => 'nullable|numeric|min:0|max:100',
-            'access_type'               => 'required|in:public,private,subscription',
-            'status'                    => 'required|in:draft,published,archived',
-            'estimated_duration_minutes'=> 'nullable|integer|min:1',
+            'title'                      => 'required|string|max:255',
+            'description'                => 'nullable|string',
+            'cover_image'                => 'nullable|image|max:8048',
+            'tags'                       => 'nullable|string',
+            'access_type'                => 'required|in:public,private,subscription',
+            'status'                     => 'required|in:draft,published,archived',
+            'estimated_duration_minutes' => 'nullable|integer|min:1',
+            'product_id'                 => 'nullable|exists:products,id',
         ]);
 
+        // Cover replacement
         if ($request->hasFile('cover_image')) {
             if ($digitalTraining->cover_image_path) {
                 Storage::disk('public')->delete($digitalTraining->cover_image_path);
             }
+
             $digitalTraining->cover_image_path = $request->file('cover_image')
                 ->store('digital-trainings/covers', 'public');
         }
 
+        // Tags
         $tags = null;
         if (!empty($data['tags'])) {
             $tags = collect(explode(',', $data['tags']))
-                ->map(fn($t) => trim($t))
+                ->map(fn ($t) => trim($t))
                 ->filter()
                 ->values()
                 ->toArray();
-        }
-
-        $isFree = (bool)($data['is_free'] ?? false);
-        $priceCents = null;
-        if (!$isFree && isset($data['price_eur'])) {
-            $priceCents = (int)round($data['price_eur'] * 100);
         }
 
         $digitalTraining->update([
             'title'                      => $data['title'],
             'description'                => $data['description'] ?? null,
             'tags'                       => $tags,
-            'is_free'                    => $isFree,
-            'price_cents'                => $priceCents,
-            'tax_rate'                   => $data['tax_rate'] ?? $digitalTraining->tax_rate,
             'access_type'                => $data['access_type'],
             'status'                     => $data['status'],
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? null,
+            'product_id'                 => $data['product_id'] ?? null,
         ]);
 
         return redirect()
-            ->route('digital-trainings.index')
+            ->route('digital-trainings.builder', $digitalTraining)
             ->with('success', 'Formation mise à jour.');
     }
 
@@ -169,7 +178,6 @@ class DigitalTrainingController extends Controller
     {
         $this->authorizeOwner($digitalTraining);
 
-        // delete cover file
         if ($digitalTraining->cover_image_path) {
             Storage::disk('public')->delete($digitalTraining->cover_image_path);
         }
@@ -181,9 +189,10 @@ class DigitalTrainingController extends Controller
             ->with('success', 'Formation supprimée.');
     }
 
-    /**
-     * Builder screen: modules + blocks
-     */
+    /* =========================================================
+     * BUILDER (modules + blocks)
+     * ======================================================= */
+
     public function builder(DigitalTraining $digitalTraining)
     {
         $this->authorizeOwner($digitalTraining);
@@ -193,7 +202,9 @@ class DigitalTrainingController extends Controller
         return view('digital-trainings.builder', compact('training'));
     }
 
-    /* ========== MODULES ========== */
+    /* =========================================================
+     * MODULES
+     * ======================================================= */
 
     public function storeModule(Request $request, DigitalTraining $digitalTraining)
     {
@@ -240,7 +251,9 @@ class DigitalTrainingController extends Controller
         return back()->with('success', 'Module supprimé.');
     }
 
-    /* ========== BLOCKS ========== */
+    /* =========================================================
+     * BLOCKS (content)
+     * ======================================================= */
 
     public function storeBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module)
     {
@@ -248,10 +261,10 @@ class DigitalTrainingController extends Controller
         $this->authorizeModule($digitalTraining, $module);
 
         $data = $request->validate([
-            'type'      => 'required|in:text,video_url,pdf',
-            'title'     => 'nullable|string|max:255',
-            'content'   => 'nullable|string',
-            'file'      => 'nullable|file|mimes:pdf|max:20480',
+            'type'    => 'required|in:text,video_url,pdf',
+            'title'   => 'nullable|string|max:255',
+            'content' => 'nullable|string',
+            'file'    => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
         $filePath = null;
@@ -282,13 +295,27 @@ class DigitalTrainingController extends Controller
         $data = $request->validate([
             'title'   => 'nullable|string|max:255',
             'content' => 'nullable|string',
+            'file'    => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
-        // For simplicity we don't change type/file here
-        $block->update([
-            'title'   => $data['title'] ?? $block->title,
-            'content' => $block->type === 'pdf' ? $block->content : ($data['content'] ?? $block->content),
-        ]);
+        // For PDFs, allow replacing the file
+        if ($block->type === 'pdf' && $request->hasFile('file')) {
+            if ($block->file_path) {
+                Storage::disk('public')->delete($block->file_path);
+            }
+
+            $block->file_path = $request->file('file')
+                ->store('digital-trainings/blocks', 'public');
+        }
+
+        $block->title = $data['title'] ?? $block->title;
+
+        if ($block->type !== 'pdf') {
+            // For text / video_url, update content
+            $block->content = $data['content'] ?? $block->content;
+        }
+
+        $block->save();
 
         return back()->with('success', 'Contenu mis à jour.');
     }
@@ -308,7 +335,22 @@ class DigitalTrainingController extends Controller
         return back()->with('success', 'Contenu supprimé.');
     }
 
-    /* ========== Small helpers ========== */
+    /* =========================================================
+     * PREVIEW (internal player-like view)
+     * ======================================================= */
+
+    public function preview(DigitalTraining $digitalTraining)
+    {
+        $this->authorizeOwner($digitalTraining);
+
+        $training = $digitalTraining->load('modules.blocks');
+
+        return view('digital-trainings.preview', compact('training'));
+    }
+
+    /* =========================================================
+     * Small helpers
+     * ======================================================= */
 
     protected function authorizeOwner(DigitalTraining $training): void
     {
@@ -330,13 +372,4 @@ class DigitalTrainingController extends Controller
             abort(403);
         }
     }
-	public function preview(DigitalTraining $digitalTraining)
-{
-    $this->authorizeOwner($digitalTraining);
-
-    $training = $digitalTraining->load('modules.blocks');
-
-    return view('digital-trainings.preview', compact('training'));
-}
-
 }

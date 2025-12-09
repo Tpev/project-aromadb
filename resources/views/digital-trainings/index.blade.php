@@ -120,6 +120,11 @@
    class="rounded-lg border border-sky-200 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-50">
     {{ __('Prévisualiser') }}
 </a>
+<a href="{{ route('digital-trainings.enrollments.index', $training) }}"
+   class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+    👥 {{ __('Inviter des clients / voir les participants') }}
+</a>
+
 
                                         <form action="{{ route('digital-trainings.destroy', $training) }}"
                                               method="POST"

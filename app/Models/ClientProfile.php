@@ -110,5 +110,11 @@ public function getIsCorporateAttribute(): bool
 {
     return !is_null($this->company_id);
 }
+// app/Models/ClientProfile.php
+
+public function trainingEnrollments()
+{
+    return $this->hasMany(DigitalTrainingEnrollment::class);
+}
 
 }

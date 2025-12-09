@@ -66,6 +66,33 @@ use App\Http\Controllers\CorporateClientController;
 use App\Http\Controllers\AudienceController;
 use App\Http\Controllers\NewsletterUnsubscribeController;
 use App\Http\Controllers\DigitalTrainingController;
+use App\Http\Controllers\DigitalTrainingEnrollmentController;
+use App\Http\Controllers\PublicTrainingAccessController;
+
+// === Public training access via magic token ===
+Route::get('/training-access/{token}', [PublicTrainingAccessController::class, 'show'])
+    ->name('digital-trainings.access.show');
+
+Route::post('/training-access/{token}/complete', [PublicTrainingAccessController::class, 'markCompleted'])
+    ->name('digital-trainings.access.complete');
+
+Route::middleware(['auth'])->group(function () {
+    // ...
+
+    Route::prefix('digital-trainings/{digitalTraining}')->group(function () {
+        Route::get('enrollments', [DigitalTrainingEnrollmentController::class, 'index'])
+            ->name('digital-trainings.enrollments.index');
+
+        Route::post('enrollments', [DigitalTrainingEnrollmentController::class, 'store'])
+            ->name('digital-trainings.enrollments.store');
+    });
+
+    // Future: public client access via token (to implement later)
+    // Route::get('training-access/{token}', [PublicTrainingAccessController::class, 'show'])
+    //     ->name('digital-trainings.access.show');
+});
+
+
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/digital-trainings',               [DigitalTrainingController::class, 'index'])->name('digital-trainings.index');
