@@ -1,6 +1,24 @@
 {{-- resources/views/digital-trainings/player.blade.php --}}
 @php
     $brandGreen = '#647a0b';
+
+    // Precompute a clean PHP array for JS to avoid nested closures inside @json
+    $jsModules = $modules->map(function ($m) {
+        return [
+            'id'          => $m->id,
+            'title'       => $m->title,
+            'description' => $m->description,
+            'blocks'      => $m->sorted_blocks->map(function ($b) {
+                return [
+                    'id'        => $b->id,
+                    'type'      => $b->type,
+                    'title'     => $b->title,
+                    'content'   => $b->content,
+                    'file_path' => $b->file_path,
+                ];
+            })->values()->all(),
+        ];
+    })->values()->all();
 @endphp
 
 <!DOCTYPE html>
@@ -311,17 +329,11 @@
             </div>
 
             <div id="current-meta">
-                <div class="content-header-title" id="block-title">
-                    {{-- Filled by JS --}}
-                </div>
-                <div class="content-subtitle" id="block-subtitle">
-                    {{-- Filled by JS --}}
-                </div>
+                <div class="content-header-title" id="block-title"></div>
+                <div class="content-subtitle" id="block-subtitle"></div>
             </div>
 
-            <div class="content-body" id="block-content">
-                {{-- Filled by JS --}}
-            </div>
+            <div class="content-body" id="block-content"></div>
 
             <div class="nav-buttons">
                 <button class="btn" id="btnPrev" onclick="goPrev()">
@@ -336,24 +348,8 @@
 </div>
 
 <script>
-    const modules = @json(
-        $modules->map(function($m) {
-            return [
-                'id'          => $m->id,
-                'title'       => $m->title,
-                'description' => $m->description,
-                'blocks'      => $m->sorted_blocks->map(function($b) {
-                    return [
-                        'id'        => $b->id,
-                        'type'      => $b->type,
-                        'title'     => $b->title,
-                        'content'   => $b->content,
-                        'file_path' => $b->file_path,
-                    ];
-                })->values()->all(),
-            ];
-        })->values()->all()
-    );
+    // Precomputed PHP array -> JSON, no nested closures
+    const modules = @json($jsModules);
 
     let currentModuleIndex = 0;
     let currentBlockIndex  = 0;
@@ -370,6 +366,25 @@
         currentBlockIndex  = bIndex;
         updateActiveUI();
         renderCurrentBlock();
+    }
+
+    function flattenBlocks() {
+        const flat = [];
+        modules.forEach((m, mi) => {
+            (m.blocks || []).forEach((b, bi) => {
+                flat.push({ moduleIndex: mi, blockIndex: bi });
+            });
+        });
+        return flat;
+    }
+
+    function findCurrentFlatIndex(flat) {
+        for (let i = 0; i < flat.length; i++) {
+            if (flat[i].moduleIndex === currentModuleIndex && flat[i].blockIndex === currentBlockIndex) {
+                return i;
+            }
+        }
+        return null;
     }
 
     function goPrev() {
@@ -392,25 +407,6 @@
         currentBlockIndex  = next.blockIndex;
         updateActiveUI();
         renderCurrentBlock();
-    }
-
-    function flattenBlocks() {
-        const flat = [];
-        modules.forEach((m, mi) => {
-            (m.blocks || []).forEach((b, bi) => {
-                flat.push({ moduleIndex: mi, blockIndex: bi });
-            });
-        });
-        return flat;
-    }
-
-    function findCurrentFlatIndex(flat) {
-        for (let i = 0; i < flat.length; i++) {
-            if (flat[i].moduleIndex === currentModuleIndex && flat[i].blockIndex === currentBlockIndex) {
-                return i;
-            }
-        }
-        return null;
     }
 
     function renderCurrentBlock() {
@@ -440,7 +436,7 @@
         if (block.type === 'text') {
             const escaped = block.content ? block.content.replace(/\n/g, '<br>') : '';
             html = `<div style="font-size:14px;line-height:1.6;color:#111827;">${escaped}</div>`;
-            } else if (block.type === 'video_url') {
+        } else if (block.type === 'video_url') {
             const url = block.content || '';
             html = `
                 <div style="display:flex;flex-direction:column;gap:8px;">
@@ -505,6 +501,7 @@
         nextBtn.disabled = (idx === flat.length - 1);
     }
 
+    // Init
     (function init() {
         let found = false;
         modules.forEach((m, mi) => {
