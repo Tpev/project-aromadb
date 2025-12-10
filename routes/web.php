@@ -69,19 +69,24 @@ use App\Http\Controllers\DigitalTrainingController;
 use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 
+
+
+Route::get('/beta/brand', function () {
+    return view('tools.brand-assistant');
+})->name('beta.brand');
 Route::get('/beta/editor', function () {
+    $user = auth()->user();
 
-    $user = Auth::user();
-
-    // Load the events belonging to this therapist
     $events = Event::where('user_id', $user->id)
-        ->orderBy('start_date_time', 'asc')   // adapt to your column (start_at / starts_at)
+        ->orderBy('start_date_time', 'asc')
         ->get();
 
-    return view('tools.konva-editor', [
-        'events' => $events,
-    ]);
+    $konvaTemplates = config('konva.templates', []);
 
+    return view('tools.konva-editor', [
+        'events'         => $events,
+        'konvaTemplates' => $konvaTemplates,
+    ]);
 })->name('konva.editor')->middleware(['auth']);
 
 

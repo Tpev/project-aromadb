@@ -181,29 +181,19 @@
         </div>
 
         <div class="grid grid-cols-2 gap-1.5 text-[11px]">
-            <button id="btnTemplateQuote" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                💬 Citation
-            </button>
-            <button id="btnTemplatePromo" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                💸 Promo
-            </button>
-            <button id="btnTemplateEvent" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                📅 Atelier
-            </button>
-            <button id="btnTemplateTestimonial" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                ⭐ Avis client
-            </button>
-            <button id="btnTemplateTip" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                🌿 Astuce
-            </button>
-            <button id="btnTemplateBeforeAfter" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                🔁 Avant / Après
-            </button>
-            <button id="btnTemplateChecklist" type="button" class="pill-btn pill-btn-ghost w-full justify-center">
-                ✅ Checklist
-            </button>
+            @foreach($konvaTemplates ?? [] as $tpl)
+                <button
+                    type="button"
+                    class="pill-btn pill-btn-ghost w-full justify-center js-template-btn"
+                    data-template="{{ $tpl['id'] }}"
+                    title="{{ $tpl['hint'] ?? '' }}"
+                >
+                    {{ $tpl['label'] }}
+                </button>
+            @endforeach
         </div>
     </div>
+
 
     {{-- Section: Historique / Infos --}}
     <div class="toolbar-card glass-card">
