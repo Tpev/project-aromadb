@@ -1009,6 +1009,14 @@ Route::get('/trainings/{training}/lesson/{lesson}', [TrainingController::class, 
 
 });
 
+// routes/web.php
+Route::middleware(['auth'])->group(function () {
+    Route::post('/admin/impersonate/{user}', [\App\Http\Controllers\AdminImpersonationController::class, 'start'])
+        ->name('admin.impersonate.start');
+
+    Route::post('/admin/impersonate/stop', [\App\Http\Controllers\AdminImpersonationController::class, 'stop'])
+        ->name('admin.impersonate.stop');
+});
 
 
 // Admin License routes

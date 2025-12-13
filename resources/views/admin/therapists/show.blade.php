@@ -44,18 +44,15 @@
         background-color: #f1f5f9;
     }
 
-    .text-right {
-        text-align: right;
-    }
+    .text-right { text-align: right; }
 
     .text-sm {
         font-size: 0.85rem;
         color: #000 !important; /* Force black for small text */
     }
 
-    .text-gray-500 {
-        color: #000 !important; /* Override any gray to black */
-    }
+    .text-gray-500 { color: #000 !important; }
+
         /* Full-Screen Background Video */
         #bg-video {
             position: fixed;
@@ -86,9 +83,7 @@
             z-index: 1; /* Ensure content is above the video */
         }
 
-        .mt-5 {
-            margin-top: 2rem;
-        }
+        .mt-5 { margin-top: 2rem; }
 
         .page-title {
             font-size: 2.5rem;
@@ -191,13 +186,8 @@
             margin-right: 15px;
         }
 
-        .checkmark {
-            color: #28a745;
-        }
-
-        .crossmark {
-            color: #dc3545;
-        }
+        .checkmark { color: #28a745; }
+        .crossmark { color: #dc3545; }
 
         /* Radial Progress */
         .onboarding-score, .engagement-score {
@@ -261,9 +251,7 @@
             transition: transform 0.2s;
         }
 
-        .stat-box:hover {
-            transform: translateY(-5px);
-        }
+        .stat-box:hover { transform: translateY(-5px); }
 
         .stat-box h4 {
             font-size: 1.2rem;
@@ -280,9 +268,7 @@
         }
 
         /* Basic Form Styles */
-        form div {
-            margin-bottom: 15px;
-        }
+        form div { margin-bottom: 15px; }
         form label {
             font-size: 1.2rem;
             color: #f0f0f0;
@@ -305,6 +291,37 @@
             cursor: pointer;
         }
 
+        /* ---- Impersonation UI ---- */
+        .impersonation-actions {
+            margin-top: 14px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .imp-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+            background: rgba(100, 122, 11, 0.85); /* your green-ish */
+            transition: transform .08s ease, opacity .2s ease;
+        }
+        .imp-btn:hover { opacity: .92; transform: translateY(-1px); }
+        .imp-btn.secondary {
+            background: rgba(255,255,255,0.12);
+        }
+        .imp-note {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .therapist-info-card {
@@ -318,8 +335,10 @@
                 margin-bottom: 20px;
             }
 
-            .stat-grid {
-                grid-template-columns: 1fr;
+            .stat-grid { grid-template-columns: 1fr; }
+
+            .impersonation-actions {
+                justify-content: center;
             }
         }
     </style>
@@ -347,80 +366,109 @@
 
         <!-- Therapist Info Card -->
         <div class="therapist-info-card">
-  @php
-     $avatarUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($therapist->profile_picture);
-     $ver       = $therapist->updated_at?->timestamp ?? time(); // fallback if null
- @endphp
- <img src="{{ $avatarUrl }}?v={{ $ver }}" alt="Avatar" class="avatar-large">
-            <div class="info">
+            @php
+                $avatarUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($therapist->profile_picture);
+                $ver       = $therapist->updated_at?->timestamp ?? time(); // fallback if null
+            @endphp
+
+            <img src="{{ $avatarUrl }}?v={{ $ver }}" alt="Avatar" class="avatar-large">
+
+            <div class="info" style="width:100%;">
                 <h2>{{ $therapist->name }}</h2>
                 <p><strong>Email:</strong> {{ $therapist->email }}</p>
                 <p><strong>Slug:</strong> {{ $therapist->slug ?? 'Not set' }}</p>
                 <p><strong>Stripe Account ID:</strong> {{ $therapist->stripe_account_id ?? 'Not set' }}</p>
                 <p><strong>Accepts Online Booking:</strong> {{ $therapist->accepts_online_booking ? 'Yes' : 'No' }}</p>
+
+                {{-- ✅ NEW: Impersonation buttons --}}
+                <div class="impersonation-actions">
+                    @if(session()->has('impersonator_id'))
+                        <form method="POST" action="{{ route('admin.impersonate.stop') }}" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="imp-btn secondary">
+                                Revenir à mon compte admin
+                            </button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('admin.impersonate.start', $therapist->id) }}" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="imp-btn">
+                                Se connecter en tant que {{ $therapist->first_name ?? $therapist->name }}
+                            </button>
+                        </form>
+                    @endif
+                </div>
+
+                @if(session()->has('impersonator_id'))
+                    <div class="imp-note">
+                        Vous êtes actuellement connecté en tant que <strong>{{ auth()->user()->name }}</strong>.
+                    </div>
+                @endif
             </div>
         </div>
-<h2 class="section-title">Contenus créés par ce thérapeute</h2>
-<table class="styled-summary-table">
-    <thead>
-        <tr>
-            <th>Élément</th>
-            <th>Nombre</th>
-            <th>Dernière création</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach([
-            'products' => 'Prestations',
-            'availabilities' => 'Disponibilités',
-            'appointments' => 'Rendez-vous',
-            'invoices' => 'Factures',
-            'quotes' => 'Devis',
-            'clientProfiles' => 'Profils clients',
-            'events' => 'Événements',
-            'inventoryItems' => 'Articles d\'inventaire'
-        ] as $key => $label)
-            <tr>
-                <td>{{ $label }}</td>
-                <td class="text-right">{{ $counts[$key] }}</td>
-                <td class="text-right text-sm text-gray-500">
-                    {{ $lastTimestamps[$key] ? $lastTimestamps[$key]->format('d/m/Y H:i') : '—' }}
-                </td>
-            </tr>
-        @endforeach
-    </tbody>
-</table>
+
+        <h2 class="section-title">Contenus créés par ce thérapeute</h2>
+        <table class="styled-summary-table">
+            <thead>
+                <tr>
+                    <th>Élément</th>
+                    <th>Nombre</th>
+                    <th>Dernière création</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach([
+                    'products' => 'Prestations',
+                    'availabilities' => 'Disponibilités',
+                    'appointments' => 'Rendez-vous',
+                    'invoices' => 'Factures',
+                    'quotes' => 'Devis',
+                    'clientProfiles' => 'Profils clients',
+                    'events' => 'Événements',
+                    'inventoryItems' => 'Articles d\'inventaire'
+                ] as $key => $label)
+                    <tr>
+                        <td>{{ $label }}</td>
+                        <td class="text-right">{{ $counts[$key] }}</td>
+                        <td class="text-right text-sm text-gray-500">
+                            {{ $lastTimestamps[$key] ? $lastTimestamps[$key]->format('d/m/Y H:i') : '—' }}
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
 
         @if(session('success'))
             <div style="color: green; margin-bottom: 20px;">
                 {{ session('success') }}
             </div>
         @endif
-{{-- Toggle Featured --}}
-<form action="{{ route('admin.therapists.updateFeatured', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
-    @csrf
-    @method('PUT')
-    <h2 class="section-title">Mise en avant (Featured)</h2>
 
-    <div>
-        <label for="is_featured">Mettre à la une :</label>
-        <input type="checkbox" name="is_featured" id="is_featured" value="1" {{ $therapist->is_featured ? 'checked' : '' }}>
-    </div>
+        {{-- Toggle Featured --}}
+        <form action="{{ route('admin.therapists.updateFeatured', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
+            @csrf
+            @method('PUT')
+            <h2 class="section-title">Mise en avant (Featured)</h2>
 
-    <div style="margin-top:10px;">
-        <label for="featured_until">Jusqu’au (optionnel) :</label>
-        <input type="datetime-local" name="featured_until" id="featured_until"
-               value="{{ $therapist->featured_until ? $therapist->featured_until->format('Y-m-d\TH:i') : '' }}">
-    </div>
+            <div>
+                <label for="is_featured">Mettre à la une :</label>
+                <input type="checkbox" name="is_featured" id="is_featured" value="1" {{ $therapist->is_featured ? 'checked' : '' }}>
+            </div>
 
-    <div style="margin-top:10px;">
-        <label for="featured_weight">Poids (0–100, optionnel) :</label>
-        <input type="number" min="0" max="100" name="featured_weight" id="featured_weight"
-               value="{{ old('featured_weight', $therapist->featured_weight ?? 0) }}">
-    </div>
+            <div style="margin-top:10px;">
+                <label for="featured_until">Jusqu’au (optionnel) :</label>
+                <input type="datetime-local" name="featured_until" id="featured_until"
+                       value="{{ $therapist->featured_until ? $therapist->featured_until->format('Y-m-d\TH:i') : '' }}">
+            </div>
 
-    <button type="submit" style="margin-top:12px;">Mettre à jour</button>
-</form>
+            <div style="margin-top:10px;">
+                <label for="featured_weight">Poids (0–100, optionnel) :</label>
+                <input type="number" min="0" max="100" name="featured_weight" id="featured_weight"
+                       value="{{ old('featured_weight', $therapist->featured_weight ?? 0) }}">
+            </div>
+
+            <button type="submit" style="margin-top:12px;">Mettre à jour</button>
+        </form>
 
         <!-- Form to update the therapist's profile picture -->
         <form action="{{ route('admin.therapists.updatePicture', $therapist->id) }}" method="POST" enctype="multipart/form-data" style="margin-bottom:40px;">
@@ -445,67 +493,62 @@
             </div>
             <button type="submit">Update Settings</button>
         </form>
-<form action="{{ route('admin.therapists.toggleLicense', $therapist->id) }}" method="POST" style="margin-bottom: 40px;">
-    @csrf
-    @method('PUT')
-    <label for="license_status">Statut de la licence :</label>
-    <select name="license_status" id="license_status" onchange="this.form.submit()">
-        <option value="active" {{ $therapist->license_status === 'active' ? 'selected' : '' }}>Active</option>
-        <option value="inactive" {{ $therapist->license_status === 'inactive' ? 'selected' : '' }}>Inactive</option>
-    </select>
-</form>
-<!-- Update License Product -->
-<form action="{{ route('admin.therapists.updateLicenseProduct', $therapist->id) }}"
-      method="POST"
-      style="margin-bottom:40px;">
-    @csrf
-    @method('PUT')
 
-    <h2 class="section-title">Changer l’abonnement</h2>
+        <form action="{{ route('admin.therapists.toggleLicense', $therapist->id) }}" method="POST" style="margin-bottom: 40px;">
+            @csrf
+            @method('PUT')
+            <label for="license_status">Statut de la licence :</label>
+            <select name="license_status" id="license_status" onchange="this.form.submit()">
+                <option value="active" {{ $therapist->license_status === 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ $therapist->license_status === 'inactive' ? 'selected' : '' }}>Inactive</option>
+            </select>
+        </form>
 
-    <div>
-        <label for="license_product">Type de Licence :</label>
-        <select name="license_product" id="license_product">
+        <!-- Update License Product -->
+        <form action="{{ route('admin.therapists.updateLicenseProduct', $therapist->id) }}"
+              method="POST"
+              style="margin-bottom:40px;">
+            @csrf
+            @method('PUT')
 
-            {{-- Legacy Plans (always kept for backward compatibility) --}}
-            <optgroup label="Anciennes formules (legacy)">
-                <option value="Essai Gratuit" {{ $therapist->license_product === 'Essai Gratuit' ? 'selected' : '' }}>Essai Gratuit (legacy)</option>
-                <option value="Starter Mensuelle" {{ $therapist->license_product === 'Starter Mensuelle' ? 'selected' : '' }}>Starter Mensuelle (legacy)</option>
-                <option value="Starter Annuelle" {{ $therapist->license_product === 'Starter Annuelle' ? 'selected' : '' }}>Starter Annuelle (legacy)</option>
-                <option value="Pro Mensuelle" {{ $therapist->license_product === 'Pro Mensuelle' ? 'selected' : '' }}>Pro Mensuelle (legacy)</option>
-                <option value="Pro Annuelle" {{ $therapist->license_product === 'Pro Annuelle' ? 'selected' : '' }}>Pro Annuelle (legacy)</option>
-            </optgroup>
+            <h2 class="section-title">Changer l’abonnement</h2>
 
-            {{-- New free / trial --}}
-            <optgroup label="Nouvelles formules – Gratuit / Essai">
-                <option value="new_free" {{ $therapist->license_product === 'new_free' ? 'selected' : '' }}>Gratuit (new_free)</option>
-                <option value="new_trial" {{ $therapist->license_product === 'new_trial' ? 'selected' : '' }}>Essai (new_trial)</option>
-            </optgroup>
+            <div>
+                <label for="license_product">Type de Licence :</label>
+                <select name="license_product" id="license_product">
+                    {{-- Legacy Plans --}}
+                    <optgroup label="Anciennes formules (legacy)">
+                        <option value="Essai Gratuit" {{ $therapist->license_product === 'Essai Gratuit' ? 'selected' : '' }}>Essai Gratuit (legacy)</option>
+                        <option value="Starter Mensuelle" {{ $therapist->license_product === 'Starter Mensuelle' ? 'selected' : '' }}>Starter Mensuelle (legacy)</option>
+                        <option value="Starter Annuelle" {{ $therapist->license_product === 'Starter Annuelle' ? 'selected' : '' }}>Starter Annuelle (legacy)</option>
+                        <option value="Pro Mensuelle" {{ $therapist->license_product === 'Pro Mensuelle' ? 'selected' : '' }}>Pro Mensuelle (legacy)</option>
+                        <option value="Pro Annuelle" {{ $therapist->license_product === 'Pro Annuelle' ? 'selected' : '' }}>Pro Annuelle (legacy)</option>
+                    </optgroup>
 
-            {{-- Starter --}}
-            <optgroup label="Starter">
-                <option value="new_starter_mensuelle" {{ $therapist->license_product === 'new_starter_mensuelle' ? 'selected' : '' }}>Starter Mensuelle (new)</option>
-                <option value="new_starter_annuelle" {{ $therapist->license_product === 'new_starter_annuelle' ? 'selected' : '' }}>Starter Annuelle (new)</option>
-            </optgroup>
+                    <optgroup label="Nouvelles formules – Gratuit / Essai">
+                        <option value="new_free" {{ $therapist->license_product === 'new_free' ? 'selected' : '' }}>Gratuit (new_free)</option>
+                        <option value="new_trial" {{ $therapist->license_product === 'new_trial' ? 'selected' : '' }}>Essai (new_trial)</option>
+                    </optgroup>
 
-            {{-- PRO --}}
-            <optgroup label="PRO">
-                <option value="new_pro_mensuelle" {{ $therapist->license_product === 'new_pro_mensuelle' ? 'selected' : '' }}>PRO Mensuelle (new)</option>
-                <option value="new_pro_annuelle" {{ $therapist->license_product === 'new_pro_annuelle' ? 'selected' : '' }}>PRO Annuelle (new)</option>
-            </optgroup>
+                    <optgroup label="Starter">
+                        <option value="new_starter_mensuelle" {{ $therapist->license_product === 'new_starter_mensuelle' ? 'selected' : '' }}>Starter Mensuelle (new)</option>
+                        <option value="new_starter_annuelle" {{ $therapist->license_product === 'new_starter_annuelle' ? 'selected' : '' }}>Starter Annuelle (new)</option>
+                    </optgroup>
 
-            {{-- Premium --}}
-            <optgroup label="Premium">
-                <option value="new_premium_mensuelle" {{ $therapist->license_product === 'new_premium_mensuelle' ? 'selected' : '' }}>Premium Mensuelle (new)</option>
-                <option value="new_premium_annuelle" {{ $therapist->license_product === 'new_premium_annuelle' ? 'selected' : '' }}>Premium Annuelle (new)</option>
-            </optgroup>
+                    <optgroup label="PRO">
+                        <option value="new_pro_mensuelle" {{ $therapist->license_product === 'new_pro_mensuelle' ? 'selected' : '' }}>PRO Mensuelle (new)</option>
+                        <option value="new_pro_annuelle" {{ $therapist->license_product === 'new_pro_annuelle' ? 'selected' : '' }}>PRO Annuelle (new)</option>
+                    </optgroup>
 
-        </select>
-    </div>
+                    <optgroup label="Premium">
+                        <option value="new_premium_mensuelle" {{ $therapist->license_product === 'new_premium_mensuelle' ? 'selected' : '' }}>Premium Mensuelle (new)</option>
+                        <option value="new_premium_annuelle" {{ $therapist->license_product === 'new_premium_annuelle' ? 'selected' : '' }}>Premium Annuelle (new)</option>
+                    </optgroup>
+                </select>
+            </div>
 
-    <button type="submit">Mettre à jour</button>
-</form>
-
+            <button type="submit">Mettre à jour</button>
+        </form>
 
         <!-- New Form to Update Address Fields (Set By Admin) -->
         <form action="{{ route('admin.therapists.updateAddress', $therapist->id) }}" method="POST" style="margin-bottom:40px;">
@@ -526,33 +569,31 @@
             </div>
             <div>
                 <label for="state_setByAdmin">Region:</label>
-				<select name="state_setByAdmin" id="state_setByAdmin">
-					<option value="">Select Region</option>
-					@php
-						$regions = [
-							"Auvergne-Rhône-Alpes",
-							"Bourgogne-Franche-Comté",
-							"Bretagne",
-							"Centre-Val de Loire",
-							"Corse",
-							"Grand Est",
-							"Hauts-de-France",
-							"Ile-de-France",
-							"Normandie",
-							"Nouvelle-Aquitaine",
-							"Occitanie",
-							"Pays de la Loire",
-							"Provence Alpes Côte d’Azur",
-						];
-					@endphp
-
-					@foreach($regions as $region)
-						<option value="{{ $region }}" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == $region) ? 'selected' : '' }}>
-							{{ $region }}
-						</option>
-					@endforeach
-				</select>
-
+                <select name="state_setByAdmin" id="state_setByAdmin">
+                    <option value="">Select Region</option>
+                    @php
+                        $regions = [
+                            "Auvergne-Rhône-Alpes",
+                            "Bourgogne-Franche-Comté",
+                            "Bretagne",
+                            "Centre-Val de Loire",
+                            "Corse",
+                            "Grand Est",
+                            "Hauts-de-France",
+                            "Ile-de-France",
+                            "Normandie",
+                            "Nouvelle-Aquitaine",
+                            "Occitanie",
+                            "Pays de la Loire",
+                            "Provence Alpes Côte d’Azur",
+                        ];
+                    @endphp
+                    @foreach($regions as $region)
+                        <option value="{{ $region }}" {{ (old('state_setByAdmin', $therapist->state_setByAdmin) == $region) ? 'selected' : '' }}>
+                            {{ $region }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <label for="postal_code_setByAdmin">Postal Code:</label>
@@ -573,69 +614,64 @@
             <button type="submit">Update Address</button>
         </form>
 
+        <!-- Onboarding Checklist -->
+        <h2 class="section-title">Onboarding Checklist</h2>
+        <ul class="checklist">
+            @foreach([
+                'slug' => 'Has a Slug',
+                'stripe_account_id' => 'Has set up Stripe',
+                'accept_online_appointments' => 'Accepts Online Booking',
+                'products' => 'Has created a Prestation',
+                'availabilities' => 'Has created a Disponibilité',
+                'appointments' => 'Has created an Appointment',
+                'invoices' => 'Has created an Invoice',
+                'quote' => 'Has created a Quote',
+                'clientProfiles' => 'Has created a Client Profile',
+                'events' => 'Has created an Event',
+                'inventoryItems' => 'Has created an Inventory Item',
+            ] as $attribute => $description)
+                <li>
+                    @if($attribute === 'accept_online_appointments')
+                        @if($therapist->accept_online_appointments)
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @elseif(in_array($attribute, ['slug', 'stripe_account_id']))
+                        @if($therapist->$attribute)
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @elseif($attribute === 'quote')
+                        @if($therapist->invoices()->where('type', 'quote')->exists())
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @else
+                        @if($therapist->$attribute()->exists())
+                            <span class="checkmark">&#10003;</span> {{ $description }}
+                        @else
+                            <span class="crossmark">&#10007;</span> {{ $description }}
+                        @endif
+                    @endif
+                </li>
+            @endforeach
+        </ul>
 
-
-<!-- Onboarding Checklist -->
-<h2 class="section-title">Onboarding Checklist</h2>
-<ul class="checklist">
-    @foreach([
-        'slug' => 'Has a Slug',
-        'stripe_account_id' => 'Has set up Stripe',
-        'accept_online_appointments' => 'Accepts Online Booking',
-        'products' => 'Has created a Prestation',
-        'availabilities' => 'Has created a Disponibilité',
-        'appointments' => 'Has created an Appointment',
-        'invoices' => 'Has created an Invoice',
-        'quote' => 'Has created a Quote',
-        'clientProfiles' => 'Has created a Client Profile',
-        'events' => 'Has created an Event',
-        'inventoryItems' => 'Has created an Inventory Item',
-    ] as $attribute => $description)
-        <li>
-            @if($attribute === 'accept_online_appointments')
-                @if($therapist->accept_online_appointments)
-                    <span class="checkmark">&#10003;</span> {{ $description }}
-                @else
-                    <span class="crossmark">&#10007;</span> {{ $description }}
-                @endif
-            @elseif(in_array($attribute, ['slug', 'stripe_account_id']))
-                @if($therapist->$attribute)
-                    <span class="checkmark">&#10003;</span> {{ $description }}
-                @else
-                    <span class="crossmark">&#10007;</span> {{ $description }}
-                @endif
-            @elseif($attribute === 'quote')
-                @if($therapist->invoices()->where('type', 'quote')->exists())
-                    <span class="checkmark">&#10003;</span> {{ $description }}
-                @else
-                    <span class="crossmark">&#10007;</span> {{ $description }}
-                @endif
-            @else
-                @if($therapist->$attribute()->exists())
-                    <span class="checkmark">&#10003;</span> {{ $description }}
-                @else
-                    <span class="crossmark">&#10007;</span> {{ $description }}
-                @endif
-            @endif
-        </li>
-    @endforeach
-</ul>
-
-<!-- Onboarding Score -->
-<h2 class="section-title">Onboarding Score</h2>
-<div class="onboarding-score">
-    <div class="radial-progress" data-percentage="{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}">
-        <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" class="background-circle"></circle>
-            <circle cx="50" cy="50" r="45" class="progress-circle"
-                style="stroke-dashoffset: {{ 282 - (282 * ($therapist->onboarding_score / $therapist->onboarding_total)) }};"></circle>
-        </svg>
-        <div class="percentage">{{ round(($therapist->onboarding_score / $therapist->onboarding_total) * 100) }}%</div>
-    </div>
-</div>
-
-
-
+        <!-- Onboarding Score -->
+        <h2 class="section-title">Onboarding Score</h2>
+        <div class="onboarding-score">
+            <div class="radial-progress" data-percentage="{{ ($therapist->onboarding_score / $therapist->onboarding_total) * 100 }}">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" class="background-circle"></circle>
+                    <circle cx="50" cy="50" r="45" class="progress-circle"
+                        style="stroke-dashoffset: {{ 282 - (282 * ($therapist->onboarding_score / $therapist->onboarding_total)) }};"></circle>
+                </svg>
+                <div class="percentage">{{ round(($therapist->onboarding_score / $therapist->onboarding_total) * 100) }}%</div>
+            </div>
+        </div>
 
         <!-- Monthly Usage Statistics -->
         <h2 class="section-title">Monthly Usage Statistics</h2>
