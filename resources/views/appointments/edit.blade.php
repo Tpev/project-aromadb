@@ -63,25 +63,17 @@
         $therapist = auth()->user();
         $practiceLocations = $therapist->practiceLocations ?? collect();
 
-        // Group products by name with modes, same as create_therapist
+        // Group products by name with modes (same logic as create_therapist)
         $productsByName = $products->groupBy('name');
         $productModes = [];
         foreach ($productsByName as $productName => $group) {
             $modes = [];
             foreach ($group as $p) {
-                if ($p->adomicile) {
-                    $modes[] = ['mode' => 'À Domicile', 'slug' => 'domicile', 'product' => $p];
-                }
-                if ($p->dans_le_cabinet) {
-                    $modes[] = ['mode' => 'Dans le Cabinet', 'slug' => 'cabinet', 'product' => $p];
-                }
-                if ($p->visio || $p->en_visio) {
-                    $modes[] = ['mode' => 'En Visio', 'slug' => 'visio', 'product' => $p];
-                }
+                if ($p->adomicile)        $modes[] = ['mode' => 'À Domicile',     'slug' => 'domicile', 'product' => $p];
+                if ($p->dans_le_cabinet)  $modes[] = ['mode' => 'Dans le Cabinet', 'slug' => 'cabinet',  'product' => $p];
+                if ($p->visio || $p->en_visio) $modes[] = ['mode' => 'En Visio', 'slug' => 'visio',    'product' => $p];
             }
-            if (!empty($modes)) {
-                $productModes[$productName] = $modes;
-            }
+            if (!empty($modes)) $productModes[$productName] = $modes;
         }
 
         $appointmentDate = $appointment->appointment_date
@@ -92,14 +84,16 @@
             ? \Carbon\Carbon::parse($appointment->appointment_date)->format('H:i')
             : null;
 
-        $initialProductId    = old('product_id', $appointment->product_id);
-        $initialModeSlug     = old('type', $appointment->type);
-        $initialLocationId   = old('practice_location_id', $appointment->practice_location_id);
-        $initialAppointmentDate = old('appointment_date', $appointmentDate);
-        $initialAppointmentTime = old('appointment_time', $appointmentTime);
+        $initialProductId        = old('product_id', $appointment->product_id);
+        $initialModeSlug         = old('type', $appointment->type);
+        $initialLocationId       = old('practice_location_id', $appointment->practice_location_id);
+        $initialAppointmentDate  = old('appointment_date', $appointmentDate);
+        $initialAppointmentTime  = old('appointment_time', $appointmentTime);
 
         $initialProduct      = $products->firstWhere('id', $initialProductId);
         $initialProductName  = old('product_name', $initialProduct ? $initialProduct->name : null);
+
+        $editingAppointmentId = $appointment->id;
     @endphp
 
     <div class="container mt-5">
@@ -121,6 +115,9 @@
                 @csrf
                 @method('PUT')
 
+                {{-- Important: helps server-side skip self-conflict and/or bypass buffer rules --}}
+                <input type="hidden" name="editing_appointment_id" value="{{ $editingAppointmentId }}">
+
                 {{-- Client selection --}}
                 <div class="details-box">
                     <label class="details-label">Client</label>
@@ -136,14 +133,13 @@
                     @error('client_profile_id')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>
 
-                {{-- Prestation (by name, like patient/therapist create) --}}
+                {{-- Prestation (by name) --}}
                 <div class="details-box">
                     <label class="details-label">Prestation</label>
                     <select id="product_name" name="product_name" class="form-control" required>
                         <option value="" disabled {{ $initialProductName ? '' : 'selected' }}>Sélectionner une prestation</option>
                         @foreach($productModes as $productName => $modes)
-                            <option value="{{ $productName }}"
-                                {{ $initialProductName === $productName ? 'selected' : '' }}>
+                            <option value="{{ $productName }}" {{ $initialProductName === $productName ? 'selected' : '' }}>
                                 {{ $productName }}
                             </option>
                         @endforeach
@@ -151,7 +147,7 @@
                     @error('product_name')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>
 
-                {{-- Mode de consultation --}}
+                {{-- Mode --}}
                 <div class="details-box" id="consultation-mode-section" style="display:none;">
                     <label class="details-label">Mode de Consultation</label>
                     <select id="consultation_mode" class="form-control" required>
@@ -164,7 +160,7 @@
                 <input type="hidden" name="product_id" id="product_id" value="{{ $initialProductId }}">
                 <input type="hidden" name="type" id="selected_mode_slug" value="{{ $initialModeSlug }}">
 
-                {{-- Cabinet location --}}
+                {{-- Cabinet --}}
                 <div class="details-box" id="cabinet-location-section" style="display:none;">
                     <label class="details-label">Cabinet</label>
                     <select id="practice_location_id" name="practice_location_id" class="form-control">
@@ -172,7 +168,7 @@
                         @foreach($practiceLocations as $loc)
                             <option value="{{ $loc->id }}"
                                     data-address="{{ $loc->full_address ?? ($loc->address_line1 . ', ' . $loc->postal_code . ' ' . $loc->city) }}"
-                                {{ (string) $initialLocationId === (string) $loc->id ? 'selected' : '' }}>
+                                    {{ (string) $initialLocationId === (string) $loc->id ? 'selected' : '' }}>
                                 {{ $loc->label }}
                             </option>
                         @endforeach
@@ -180,13 +176,12 @@
                     <p class="text-red-500 mt-1 d-none" id="location-error"></p>
                 </div>
 
-                {{-- Cabinet address preview --}}
                 <div class="details-box" id="therapist-address-section" style="display:none;">
                     <label class="details-label">Adresse du Cabinet</label>
                     <p id="therapist-address" class="form-control-static"></p>
                 </div>
 
-                {{-- Domicile address --}}
+                {{-- Domicile --}}
                 <div class="details-box" id="client-address-section" style="display:none;">
                     <label class="details-label">Adresse du Domicile</label>
                     <input type="text" id="address" name="address" class="form-control"
@@ -199,18 +194,16 @@
                     <label class="details-label">Date</label>
                     <input type="text" id="appointment_date" name="appointment_date" class="form-control"
                            placeholder="Sélectionner une date"
-                           value="{{ $initialAppointmentDate }}">
+                           value="{{ $initialAppointmentDate }}" required>
                     <p id="date-loading-message" class="text-muted mt-1" style="display:none;">Chargement des dates…</p>
                     @error('appointment_date')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>
 
-                {{-- Time (grid) --}}
+                {{-- Time --}}
                 <div class="details-box">
                     <label class="details-label">Horaire</label>
-                    <input type="hidden" id="appointment_time" name="appointment_time" value="{{ $initialAppointmentTime }}">
-                    <div id="time-slots-container" class="mt-2 text-muted">
-                        Sélectionnez prestation, mode et date.
-                    </div>
+                    <input type="hidden" id="appointment_time" name="appointment_time" value="{{ $initialAppointmentTime }}" required>
+                    <div id="time-slots-container" class="mt-2 text-muted">Sélectionnez prestation, mode et date.</div>
                     <p id="no-slots-message" class="text-red-500 mt-1" style="display:none;"></p>
                     @error('appointment_time')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>
@@ -262,6 +255,8 @@ const INITIAL_LOCATION_ID  = @json($initialLocationId);
 const INITIAL_DATE         = @json($initialAppointmentDate);
 const therapistId          = '{{ $therapist->id }}';
 
+const EDITING_APPOINTMENT_ID = @json($editingAppointmentId);
+
 let allowedDates = [];
 let currentSlotsRequestId = 0;
 
@@ -274,18 +269,7 @@ $(function() {
         minDate: "today",
         locale: "fr",
         disableMobile: true,
-        enable: [],
-        onChange: function(selectedDates, dateStr) {
-            const productId = $('#product_id').val();
-            const modeSlug  = $('#selected_mode_slug').val();
-            const locId     = (modeSlug === 'cabinet') ? $('#practice_location_id').val() : null;
-
-            if (dateStr && productId) {
-                fetchSlots(dateStr, productId, modeSlug, locId);
-            } else {
-                resetSlotsUI();
-            }
-        }
+        enable: []
     });
 
     function resetSlotsUI() {
@@ -294,49 +278,42 @@ $(function() {
         $('#no-slots-message').hide().text('');
     }
 
+    /**
+     * ✅ Use THERAPIST endpoints (same as create_therapist)
+     * + pass exclude_appointment_id so the current appointment doesn't block itself
+     */
     function fetchDates(productId, modeSlug, locationId = null) {
         $('#date-loading-message').show().text('Chargement des dates…');
 
-        $.post('{{ route("appointments.available-dates-concrete-patient") }}', {
+        $.post('{{ route("appointments.available-dates-concrete-therapist") }}', {
             product_id: productId,
-            therapist_id: therapistId,
             mode: modeSlug,
-            location_id: (modeSlug === 'cabinet' ? locationId : null),
+            location_id: locationId,
             days: 60,
+
+            // ⭐ crucial for edit
+            exclude_appointment_id: EDITING_APPOINTMENT_ID,
+
             _token: '{{ csrf_token() }}'
         })
         .done(res => {
             allowedDates = res.dates || [];
-            if (!allowedDates.length) {
-                fp.set('enable', []);
-                fp.set('disable', [true]);
-                fp.clear();
-                resetSlotsUI();
-                alert('Aucune date disponible pour cette prestation.');
-                return;
-            }
             fp.set('enable', allowedDates);
-            fp.set('disable', []);
-            // don't clear INITIAL_DATE if it exists and is valid – flatpickr will handle it
+
+            // Don't nuke the edit date if it exists (avoid fp.clear() here)
             resetSlotsUI();
         })
         .fail(() => {
             allowedDates = [];
             fp.set('enable', []);
-            fp.set('disable', [true]);
             fp.clear();
             resetSlotsUI();
-            alert('Une erreur est survenue lors du chargement des dates.');
+            alert('Erreur lors du chargement des dates.');
         })
         .always(() => $('#date-loading-message').hide().text(''));
     }
 
     function fetchSlots(date, productId, modeSlug, locationId = null) {
-        if (modeSlug === 'cabinet' && !locationId) {
-            resetSlotsUI();
-            return;
-        }
-
         currentSlotsRequestId++;
         const reqId = currentSlotsRequestId;
 
@@ -344,29 +321,29 @@ $(function() {
         $('#time-slots-container').html('<span class="text-muted">Chargement des créneaux…</span>');
         $('#no-slots-message').hide().text('');
 
-        $.post('{{ route("appointments.available-slots-patient") }}', {
+        $.post('{{ route("appointments.available-slots-therapist") }}', {
             date: date,
             product_id: productId,
-            therapist_id: therapistId,
             mode: modeSlug,
-            location_id: (modeSlug === 'cabinet' ? locationId : null),
+            location_id: locationId,
+
+            // ⭐ crucial for edit
+            exclude_appointment_id: EDITING_APPOINTMENT_ID,
+
             _token: '{{ csrf_token() }}'
         })
         .done(res => {
             if (reqId !== currentSlotsRequestId) return;
 
-            if (!Array.isArray(res.slots) || !res.slots.length) {
-                $('#time-slots-container').html('<span class="text-muted">Aucun créneau disponible pour cette date.</span>');
-                $('#no-slots-message')
-                    .text('Aucun créneau n’est disponible pour ce jour. Merci de choisir une autre date.')
-                    .show();
+            if (!res.slots || !res.slots.length) {
+                $('#time-slots-container').html('<span class="text-muted">Aucun créneau disponible.</span>');
+                $('#no-slots-message').text('Pas de créneaux pour ce jour').show();
                 return;
             }
 
             let html = '<div class="time-slots-grid">';
-            res.slots.forEach(slot => {
-                const t = slot.start;
-                html += `<button type="button" class="time-slot-btn" data-time="${t}">${t}</button>`;
+            res.slots.forEach(s => {
+                html += `<button type="button" class="time-slot-btn" data-time="${s.start}">${s.start}</button>`;
             });
             html += '</div>';
             $('#time-slots-container').html(html);
@@ -374,41 +351,51 @@ $(function() {
             if (OLD_TIME) {
                 $('#appointment_time').val(OLD_TIME);
                 $('#time-slots-container .time-slot-btn').each(function () {
-                    if ($(this).data('time') === OLD_TIME) {
-                        $(this).addClass('active');
-                    }
+                    if ($(this).data('time') === OLD_TIME) $(this).addClass('active');
                 });
             }
         })
         .fail(() => {
-            $('#time-slots-container').html('<span class="text-red-500">Erreur lors de la récupération des créneaux disponibles.</span>');
+            $('#time-slots-container').html('<span class="text-red-500">Erreur lors de la récupération.</span>');
         });
     }
 
-    // Time slot click
-    $(document).on('click', '.time-slot-btn', function () {
+    function refreshDates() {
+        const productId = $('#product_id').val();
+        const slug      = $('#selected_mode_slug').val();
+        const loc       = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
+
+        if (!productId || !slug || (slug === 'cabinet' && !loc)) {
+            allowedDates = [];
+            fp.set('enable', []);
+            fp.clear();
+            resetSlotsUI();
+            return;
+        }
+        fetchDates(productId, slug, loc);
+    }
+
+    // slot click
+    $(document).on('click', '.time-slot-btn', function() {
         $('.time-slot-btn').removeClass('active');
         $(this).addClass('active');
-        const time = $(this).data('time');
-        $('#appointment_time').val(time);
-        $('#no-slots-message').hide().text('');
+        $('#appointment_time').val($(this).data('time'));
+        $('#no-slots-message').hide();
     });
 
-    // PRODUCT --> update mode dropdown
+    // product change -> populate mode
     $('#product_name').on('change', function () {
         const name  = $(this).val();
         const modes = PRODUCT_MODES[name] || [];
         const $mode = $('#consultation_mode').empty();
 
         $mode.append('<option value="" disabled selected>Sélectionner le mode</option>');
+        modes.forEach(m => $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${m.mode}</option>`));
         $('#consultation-mode-section').toggle(modes.length > 0);
-
-        modes.forEach(m => {
-            $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${m.mode}</option>`);
-        });
 
         $('#product_id').val('');
         $('#selected_mode_slug').val('');
+
         $('#cabinet-location-section').hide();
         $('#therapist-address-section').hide();
         $('#client-address-section').hide();
@@ -417,12 +404,11 @@ $(function() {
 
         allowedDates = [];
         fp.set('enable', []);
-        fp.set('disable', []);
         fp.clear();
         resetSlotsUI();
     });
 
-    // MODE --> update UI + fetch dates
+    // mode change -> show sections + refresh
     $('#consultation_mode').on('change', function () {
         const productId = $(this).val();
         const slug      = $(this).find(':selected').data('slug');
@@ -432,7 +418,6 @@ $(function() {
 
         resetSlotsUI();
         fp.set('enable', []);
-        fp.set('disable', []);
         fp.clear();
 
         if (slug === 'cabinet') {
@@ -446,64 +431,69 @@ $(function() {
             $('#client-address-section').hide();
         }
 
-        if (slug !== 'cabinet') {
-            fetchDates(productId, slug, null);
-        }
+        refreshDates();
     });
 
-    // CABINET --> fetch dates + show address
+    // cabinet change -> update address + refresh
     $('#practice_location_id').on('change', function () {
-        const locId   = $(this).val();
-        const address = $(this).find(':selected').data('address') || '';
-        $('#therapist-address').text(address || 'Adresse non disponible.');
+        const $opt = $(this).find(':selected');
         $('#therapist-address-section').show();
+        $('#therapist-address').text($opt.data('address') || '—');
+        refreshDates();
+    });
 
+    // date change -> fetch slots
+    $('#appointment_date').on('change', function () {
+        const date      = $(this).val();
         const productId = $('#product_id').val();
         const slug      = $('#selected_mode_slug').val();
-        if (productId && slug === 'cabinet') {
-            fetchDates(productId, slug, locId);
-            $('#location-error').addClass('d-none').text('');
-        }
+        const loc       = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
+
+        if (date && productId && slug) fetchSlots(date, productId, slug, loc);
+        else resetSlotsUI();
     });
 
-    // ---------- Initialisation (edit mode) ----------
+    // ---- init edit values ----
     if (INITIAL_PRODUCT_NAME) {
         $('#product_name').val(INITIAL_PRODUCT_NAME).trigger('change');
 
-        // attendre que le dropdown mode soit rempli
         setTimeout(function () {
-            if (INITIAL_MODE_SLUG && INITIAL_PRODUCT_NAME in PRODUCT_MODES) {
-                const modes = PRODUCT_MODES[INITIAL_PRODUCT_NAME] || [];
-                const target = modes.find(m => m.product.id == @json($initialProductId) && m.slug === INITIAL_MODE_SLUG)
-                           || modes.find(m => m.slug === INITIAL_MODE_SLUG)
-                           || modes[0];
+            // fill mode select & select current mode/product
+            const modes = PRODUCT_MODES[INITIAL_PRODUCT_NAME] || [];
+            const match = modes.find(m => String(m.product.id) === String(@json($initialProductId)) && m.slug === INITIAL_MODE_SLUG)
+                       || modes.find(m => m.slug === INITIAL_MODE_SLUG)
+                       || modes[0];
 
-                if (target) {
-                    $('#consultation_mode option').each(function () {
-                        if ($(this).val() == target.product.id && $(this).data('slug') === target.slug) {
-                            $(this).prop('selected', true);
-                        }
-                    });
-                    $('#consultation_mode').trigger('change');
-                }
+            if (match) {
+                $('#consultation_mode option').each(function () {
+                    if (String($(this).val()) === String(match.product.id) && $(this).data('slug') === match.slug) {
+                        $(this).prop('selected', true);
+                    }
+                });
+                $('#consultation_mode').trigger('change');
             }
 
             if (INITIAL_MODE_SLUG === 'cabinet' && INITIAL_LOCATION_ID) {
                 $('#practice_location_id').val(INITIAL_LOCATION_ID).trigger('change');
             }
 
+            // set date + fetch slots
             if (INITIAL_DATE) {
                 setTimeout(function () {
                     fp.setDate(INITIAL_DATE, true);
-                    const slug  = $('#selected_mode_slug').val();
-                    const locId = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
-                    const productId = $('#product_id').val();
-                    if (productId) {
-                        fetchSlots(INITIAL_DATE, productId, slug, locId);
+
+                    const slug = $('#selected_mode_slug').val();
+                    const loc  = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
+                    const pid  = $('#product_id').val();
+
+                    if (pid && slug) {
+                        // important: refresh dates first so the date is enabled, then fetch slots
+                        refreshDates();
+                        setTimeout(() => fetchSlots(INITIAL_DATE, pid, slug, loc), 350);
                     }
-                }, 600);
+                }, 450);
             }
-        }, 300);
+        }, 250);
     }
 
 });
