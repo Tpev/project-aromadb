@@ -115,7 +115,7 @@
                                 {{ $client->first_name }} {{ $client->last_name }}
                             </option>
                         @endforeach
-                            <option value="new">➕ Nouveau client</option>
+                        <option value="new">➕ Nouveau client</option>
                     </select>
                 </div>
 
@@ -231,12 +231,17 @@
             $('#no-slots-message').hide().text('');
         }
 
+        /**
+         * THERAPIST endpoints (no minimum notice / allow last-minute)
+         * IMPORTANT: These routes must exist:
+         * - appointments.available-dates-concrete-therapist
+         * - appointments.available-slots-therapist
+         */
         function fetchDates(productId, modeSlug, locationId = null) {
             $('#date-loading-message').show();
 
-            $.post('{{ route("appointments.available-dates-concrete-patient") }}', {
+            $.post('{{ route("appointments.available-dates-concrete-therapist") }}', {
                 product_id: productId,
-                therapist_id: therapistId,
                 mode: modeSlug,
                 location_id: locationId,
                 days: 60,
@@ -258,16 +263,16 @@
 
             $('#time-slots-container').html('<span class="text-muted">Chargement des créneaux…</span>');
 
-            $.post('{{ route("appointments.available-slots-patient") }}', {
+            $.post('{{ route("appointments.available-slots-therapist") }}', {
                 date,
                 product_id: productId,
-                therapist_id: therapistId,
                 mode: modeSlug,
                 location_id: locationId,
                 _token: '{{ csrf_token() }}'
             })
             .done(res => {
                 if (reqId !== currentSlotsRequestId) return;
+
                 if (!res.slots || !res.slots.length) {
                     $('#time-slots-container').html('<span class="text-muted">Aucun créneau disponible.</span>');
                     $('#no-slots-message').text('Pas de créneaux pour ce jour').show();
@@ -334,7 +339,6 @@
             fp.clear();
             resetSlotsUI();
 
-            // Re-evaluate (here: will just clear, but keeps logic centralized)
             refreshDates();
         });
 

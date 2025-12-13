@@ -2048,6 +2048,206 @@ private function computeSlotsForPatient(
     return $slots;
 }
 
+public function getAvailableSlotsForTherapist(Request $request)
+{
+    $request->validate([
+        'date'       => 'required|date_format:Y-m-d',
+        'product_id' => 'required|exists:products,id',
+        'mode'       => 'nullable|string|in:cabinet,visio,domicile',
+        'location_id'=> 'nullable|integer',
+    ]);
+
+    // Security: therapist creating for himself only
+    $therapistId = Auth::id();
+
+    $product  = Product::findOrFail((int) $request->product_id);
+    $duration = (int) ($product->duration ?? 0);
+
+    $mode = $this->resolvePatientMode($product, $request->input('mode')); // reuse ok
+    $locationId = null;
+
+    if ($mode === 'cabinet') {
+        $request->validate([
+            'location_id' => ['required','integer','exists:practice_locations,id'],
+        ]);
+
+        $locationId = (int) $request->location_id;
+
+        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
+            ->where('user_id', $therapistId)
+            ->exists();
+
+        if (!$ownsLocation) {
+            return response()->json(['slots' => [], 'message' => 'Invalid location.'], 422);
+        }
+    }
+
+    $date = Carbon::createFromFormat('Y-m-d', $request->date);
+
+    // IMPORTANT: therapist-side slots => no minimum notice
+    $slots = $this->computeSlotsForTherapist($therapistId, $product, $date, $mode, $locationId);
+
+    return response()->json(['slots' => $slots]);
+}
+
+private function computeSlotsForTherapist(
+    int $therapistId,
+    \App\Models\Product $product,
+    \Carbon\Carbon $date,
+    string $mode,
+    ?int $locationId = null
+): array {
+    $duration = (int) ($product->duration ?? 0);
+    if ($duration <= 0) return [];
+
+    $therapist     = \App\Models\User::findOrFail($therapistId);
+    $bufferMinutes = (int) ($therapist->buffer_time_between_appointments ?? 0);
+    $now           = Carbon::now();
+
+    $dayOfWeek0 = $date->dayOfWeekIso - 1;
+
+    // Weekly + Special (same logic as patient, but therapistId is Auth::id())
+    $weeklyQuery = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($q) use ($product) {
+            $q->where('applies_to_all', true)
+              ->orWhereHas('products', fn($qq) => $qq->where('products.id', $product->id));
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $weeklyQuery->where('practice_location_id', $locationId);
+    }
+
+    $specialQuery = SpecialAvailability::where('user_id', $therapistId)
+        ->whereDate('date', $date->format('Y-m-d'))
+        ->where(function ($q) use ($product) {
+            $q->where('applies_to_all', true)
+              ->orWhereHas('products', fn($qq) => $qq->where('products.id', $product->id));
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $specialQuery->where('practice_location_id', $locationId);
+    }
+
+    $availabilities = $weeklyQuery->get()->concat($specialQuery->get());
+    if ($availabilities->isEmpty()) return [];
+
+    $existingAppointments = Appointment::where('user_id', $therapistId)
+        ->whereDate('appointment_date', $date->format('Y-m-d'))
+        ->get();
+
+    $unavailabilities = Unavailability::where('user_id', $therapistId)
+        ->where(function ($q) use ($date) {
+            $d = $date->format('Y-m-d');
+            $q->whereDate('start_date', '<=', $d)
+              ->whereDate('end_date',   '>=', $d);
+        })
+        ->get();
+
+    $slots = [];
+
+    foreach ($availabilities as $availability) {
+        $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)->setDateFrom($date);
+        $availabilityEnd   = Carbon::createFromFormat('H:i:s', $availability->end_time)->setDateFrom($date);
+
+        while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
+            $slotStart = $availabilityStart->copy();
+            $slotEnd   = $availabilityStart->copy()->addMinutes($duration);
+
+            // Therapist-side: allow “last-minute”, but don’t show slots in the past
+            if ($slotStart->lt($now)) {
+                $availabilityStart->addMinutes(15);
+                continue;
+            }
+
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                if ($bufferMinutes > 0) {
+                    $appointmentStart = $appointmentStart->copy()->subMinutes($bufferMinutes);
+                    $appointmentEnd   = $appointmentEnd->copy()->addMinutes($bufferMinutes);
+                }
+
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
+                $unavailabilityStart = Carbon::parse($unavailability->start_date);
+                $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
+                return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
+            });
+
+            if (!$isBooked && !$isUnavailable) {
+                $slots[] = ['start' => $slotStart->format('H:i'), 'end' => $slotEnd->format('H:i')];
+            }
+
+            $availabilityStart->addMinutes(15);
+        }
+    }
+
+    return collect($slots)->unique(fn($s) => $s['start'].'-'.$s['end'])->sortBy('start')->values()->all();
+}
+public function availableConcreteDatesTherapist(Request $request)
+{
+    $request->validate([
+        'product_id'   => 'required|exists:products,id',
+        'mode'         => 'nullable|string|in:cabinet,visio,domicile',
+        'location_id'  => 'nullable|integer',
+        'days'         => 'nullable|integer|min:1|max:90',
+    ]);
+
+    // Therapist creating for himself only
+    $therapistId = (int) Auth::id();
+    $product     = Product::findOrFail((int) $request->product_id);
+
+    // Reuse your resolver (works fine)
+    $mode = $this->resolvePatientMode($product, $request->input('mode'));
+
+    $locationId = null;
+    if ($mode === 'cabinet') {
+        $request->validate([
+            'location_id' => ['required','integer','exists:practice_locations,id'],
+        ]);
+
+        $locationId = (int) $request->location_id;
+
+        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
+            ->where('user_id', $therapistId)
+            ->exists();
+
+        if (!$ownsLocation) {
+            return response()->json([
+                'dates' => [],
+                'message' => 'Invalid location for this therapist.',
+            ], 422);
+        }
+    }
+
+    $days   = (int) $request->input('days', 60);
+    $today  = Carbon::today();
+    $dates  = [];
+
+    for ($i = 0; $i < $days; $i++) {
+        $dateObj   = $today->copy()->addDays($i);
+        $dateStr   = $dateObj->format('Y-m-d');
+
+        // IMPORTANT: compute slots therapist-side (no minimum notice)
+        $slots = $this->computeSlotsForTherapist(
+            $therapistId,
+            $product,
+            $dateObj,
+            $mode,
+            $locationId
+        );
+
+        if (!empty($slots)) {
+            $dates[] = $dateStr;
+        }
+    }
+
+    return response()->json(['dates' => $dates]);
+}
 
 
 

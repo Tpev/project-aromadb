@@ -212,6 +212,13 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('special-availabilities', SpecialAvailabilityController::class)
         ->except(['show']);
 });
+Route::middleware(['auth'])->group(function () {
+    Route::post('/appointments/available-slots-therapist', [AppointmentController::class, 'getAvailableSlotsForTherapist'])
+        ->name('appointments.available-slots-therapist');
+
+    Route::post('/appointments/available-dates-concrete-therapist', [AppointmentController::class, 'availableConcreteDatesTherapist'])
+        ->name('appointments.available-dates-concrete-therapist');
+});
 
 Route::post(
     '/appointments/available-dates-concrete-patient',
