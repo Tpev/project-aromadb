@@ -22,9 +22,7 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
             'user',
             'clientProfile',
             'practiceLocation',
-            // If you have a meeting relation, this will load it without failing if it doesn't exist
-            // (Laravel will fail if relation truly doesn't exist; remove if you don't have it.)
-            'meeting',
+            'meeting', // uses Meeting::appointment_id + Appointment::meeting() hasOne
         ]);
 
         $this->appointment = $appointment;
@@ -41,56 +39,57 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
         $cabinetAddress = null;
         if ($this->appointment->practiceLocation) {
             $pl = $this->appointment->practiceLocation;
+
             $cabinetAddress = $pl->full_address
                 ?? trim(collect([
-                        $pl->address_line1,
-                        trim(($pl->postal_code ?? '') . ' ' . ($pl->city ?? '')),
-                    ])->filter()->implode("\n"));
+                    $pl->address_line1,
+                    trim(($pl->postal_code ?? '') . ' ' . ($pl->city ?? '')),
+                ])->filter()->implode("\n"));
+
         } elseif (($this->appointment->type ?? null) === 'cabinet') {
             // Fallback (old behavior) if type says cabinet but no location stored
             $cabinetAddress = $this->appointment->user?->company_address;
         }
 
-        // --- Visio link resolution (robust) ---
+        /**
+         * Visio link resolution (safe)
+         * - Only provide a URL if appointment is truly visio
+         * - Prefer Meeting.room_token (your current model)
+         * - Keep compatibility with older columns if you ever had them
+         */
+        $visioUrl = null;
+
+        // 1) Determine if appointment is visio
         $isVisio = false;
 
-        // 1) Based on product flags (recommended)
+        // Based on product flags (recommended)
         if ($this->appointment->product) {
             $isVisio = (bool) ($this->appointment->product->visio ?? false);
         }
 
-        // 2) Fallback based on appointment type/mode if you use it
+        // Fallback based on appointment type/mode (if you use it somewhere)
         if (!$isVisio && in_array(($this->appointment->type ?? null), ['visio', 'video', 'teleconsultation'], true)) {
             $isVisio = true;
         }
 
-        $visioUrl = null;
-
+        // 2) Build URL if visio
         if ($isVisio) {
-            // If you store directly on appointment
+            // Backward/optional direct fields (won't break if absent)
             $visioUrl = $this->appointment->visio_url
                 ?? $this->appointment->meeting_url
                 ?? null;
 
-            // If you have a Meeting model related to appointment
-            if (!$visioUrl && $this->appointment->relationLoaded('meeting') && $this->appointment->meeting) {
-                $meeting = $this->appointment->meeting;
+            // Preferred: Meeting with room_token
+            if (!$visioUrl && $this->appointment->meeting && !empty($this->appointment->meeting->room_token)) {
+                // Adjust if your join route differs
+                $visioUrl = url('/meeting/' . $this->appointment->meeting->room_token);
 
-                $visioUrl = $meeting->join_url
-                    ?? $meeting->url
-                    ?? $meeting->room_url
-                    ?? null;
-
-                // If your meeting is token-based and you generate URL from token
-                if (!$visioUrl && !empty($meeting->token)) {
-                    // Adjust the path to your real route
-                    $visioUrl = url('/meeting/' . $meeting->token);
-                }
+                // If you have a named route instead, use:
+                // $visioUrl = route('meetings.join', $this->appointment->meeting->room_token);
             }
 
-            // If appointment has a token (some setups)
+            // Optional fallback if you had appointment-level token in some older setup
             if (!$visioUrl && !empty($this->appointment->meeting_token)) {
-                // Adjust the path to your real route
                 $visioUrl = url('/meeting/' . $this->appointment->meeting_token);
             }
         }

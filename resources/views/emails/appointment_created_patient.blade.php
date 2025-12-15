@@ -1,3 +1,5 @@
+{{-- resources/views/emails/appointment_created_patient.blade.php --}}
+
 @component('mail::message')
 # Bonjour {{ $appointment->clientProfile->first_name }},
 
