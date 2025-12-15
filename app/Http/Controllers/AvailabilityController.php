@@ -77,32 +77,54 @@ class AvailabilityController extends Controller
             }
         }
 
-        // Check overlap (par utilisateur, même règle qu’avant)
+        $start = $request->start_time . ':00';
+        $end   = $request->end_time . ':00';
+
+        /**
+         * Overlap logic (NEW):
+         * - same day + overlapping time
+         * - AND (location rules):
+         *   - if new dispo is global (practice_location_id = null) => it conflicts with ANY existing dispo
+         *   - if new dispo is for a specific location => it conflicts with:
+         *        a) existing dispos for the SAME location
+         *        b) existing global dispos (null)
+         *   => but it does NOT conflict with other locations (so overlap across locations is allowed)
+         */
         $overlap = Availability::where('user_id', Auth::id())
             ->where('day_of_week', $request->day_of_week)
-            ->where(function ($query) use ($request) {
-                $query->whereBetween('start_time', [$request->start_time . ':00', $request->end_time . ':00'])
-                    ->orWhereBetween('end_time', [$request->start_time . ':00', $request->end_time . ':00'])
-                    ->orWhere(function ($q) use ($request) {
-                        $q->where('start_time', '<=', $request->start_time . ':00')
-                          ->where('end_time', '>=', $request->end_time . ':00');
+            ->where(function ($locQ) use ($request) {
+                // new dispo = GLOBAL -> no location filter => conflicts with any location
+                if (!$request->filled('practice_location_id')) {
+                    return;
+                }
+
+                // new dispo = specific location -> conflicts with same location OR global
+                $locQ->whereNull('practice_location_id')
+                    ->orWhere('practice_location_id', $request->practice_location_id);
+            })
+            ->where(function ($timeQ) use ($start, $end) {
+                $timeQ->whereBetween('start_time', [$start, $end])
+                    ->orWhereBetween('end_time', [$start, $end])
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('start_time', '<=', $start)
+                          ->where('end_time', '>=', $end);
                     });
             })
             ->exists();
 
         if ($overlap) {
             return redirect()->back()
-                ->withErrors(['start_time' => 'Les heures se chevauchent avec une disponibilité existante.'])
+                ->withErrors(['start_time' => 'Les heures se chevauchent avec une disponibilité existante (même lieu ou lieu global).'])
                 ->withInput();
         }
 
         // Create
         $availability = Availability::create([
             'user_id'              => Auth::id(),
-            'practice_location_id' => $request->practice_location_id, // NEW
+            'practice_location_id' => $request->practice_location_id,
             'day_of_week'          => $request->day_of_week,
-            'start_time'           => $request->start_time . ':00',
-            'end_time'             => $request->end_time . ':00',
+            'start_time'           => $start,
+            'end_time'             => $end,
             'applies_to_all'       => $request->has('applies_to_all'),
         ]);
 
@@ -164,32 +186,43 @@ class AvailabilityController extends Controller
             }
         }
 
-        // Overlap check (exclure la dispo courante)
+        $start = $request->start_time . ':00';
+        $end   = $request->end_time . ':00';
+
+        // Overlap check (NEW rules + exclude current)
         $overlap = Availability::where('user_id', Auth::id())
             ->where('day_of_week', $request->day_of_week)
             ->where('id', '!=', $availability->id)
-            ->where(function ($query) use ($request) {
-                $query->whereBetween('start_time', [$request->start_time . ':00', $request->end_time . ':00'])
-                    ->orWhereBetween('end_time', [$request->start_time . ':00', $request->end_time . ':00'])
-                    ->orWhere(function ($q) use ($request) {
-                        $q->where('start_time', '<=', $request->start_time . ':00')
-                          ->where('end_time', '>=', $request->end_time . ':00');
+            ->where(function ($locQ) use ($request) {
+                if (!$request->filled('practice_location_id')) {
+                    return;
+                }
+
+                $locQ->whereNull('practice_location_id')
+                    ->orWhere('practice_location_id', $request->practice_location_id);
+            })
+            ->where(function ($timeQ) use ($start, $end) {
+                $timeQ->whereBetween('start_time', [$start, $end])
+                    ->orWhereBetween('end_time', [$start, $end])
+                    ->orWhere(function ($q) use ($start, $end) {
+                        $q->where('start_time', '<=', $start)
+                          ->where('end_time', '>=', $end);
                     });
             })
             ->exists();
 
         if ($overlap) {
             return redirect()->back()
-                ->withErrors(['start_time' => 'Les heures se chevauchent avec une disponibilité existante.'])
+                ->withErrors(['start_time' => 'Les heures se chevauchent avec une disponibilité existante (même lieu ou lieu global).'])
                 ->withInput();
         }
 
         // Update
         $availability->update([
-            'practice_location_id' => $request->practice_location_id, // NEW
+            'practice_location_id' => $request->practice_location_id,
             'day_of_week'          => $request->day_of_week,
-            'start_time'           => $request->start_time . ':00',
-            'end_time'             => $request->end_time . ':00',
+            'start_time'           => $start,
+            'end_time'             => $end,
             'applies_to_all'       => $request->has('applies_to_all'),
         ]);
 

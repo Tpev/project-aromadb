@@ -255,70 +255,107 @@ class DigitalTrainingController extends Controller
      * BLOCKS (content)
      * ======================================================= */
 
-    public function storeBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module)
-    {
-        $this->authorizeOwner($digitalTraining);
-        $this->authorizeModule($digitalTraining, $module);
+public function storeBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module)
+{
+    $this->authorizeOwner($digitalTraining);
+    $this->authorizeModule($digitalTraining, $module);
 
-        $data = $request->validate([
-            'type'    => 'required|in:text,video_url,pdf',
-            'title'   => 'nullable|string|max:255',
-            'content' => 'nullable|string',
-            'file'    => 'nullable|file|mimes:pdf|max:20480',
-        ]);
+    $data = $request->validate([
+        'type'    => 'required|in:text,video_url,pdf',
+        'title'   => 'nullable|string|max:255',
+        'content' => 'nullable|string',
 
-        $filePath = null;
-        if ($data['type'] === 'pdf' && $request->hasFile('file')) {
-            $filePath = $request->file('file')
-                ->store('digital-trainings/blocks', 'public');
+        // We'll accept file for BOTH pdf and video_url (conditionally handled below)
+        'file'    => 'nullable|file|max:512000', // 500MB (adjust if needed)
+    ]);
+
+    $filePath = null;
+
+    if ($request->hasFile('file')) {
+        if ($data['type'] === 'pdf') {
+            // enforce PDF
+            $request->validate([
+                'file' => 'file|mimes:pdf|max:20480', // 20MB for PDFs
+            ]);
+
+            $filePath = $request->file('file')->store('digital-trainings/blocks', 'public');
         }
 
-        $maxOrder = $module->blocks()->max('display_order') ?? 0;
+        if ($data['type'] === 'video_url') {
+            // enforce video formats
+            $request->validate([
+                'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000', // 500MB
+            ]);
 
-        $module->blocks()->create([
-            'type'          => $data['type'],
-            'title'         => $data['title'] ?? null,
-            'content'       => $data['type'] === 'pdf' ? null : ($data['content'] ?? null),
-            'file_path'     => $filePath,
-            'display_order' => $maxOrder + 1,
-        ]);
-
-        return back()->with('success', 'Contenu ajouté au module.');
+            $filePath = $request->file('file')->store('digital-trainings/videos', 'public');
+        }
     }
 
-    public function updateBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
-    {
-        $this->authorizeOwner($digitalTraining);
-        $this->authorizeModule($digitalTraining, $module);
-        $this->authorizeBlock($module, $block);
+    $maxOrder = $module->blocks()->max('display_order') ?? 0;
 
-        $data = $request->validate([
-            'title'   => 'nullable|string|max:255',
-            'content' => 'nullable|string',
-            'file'    => 'nullable|file|mimes:pdf|max:20480',
-        ]);
+    $module->blocks()->create([
+        'type'          => $data['type'],
+        'title'         => $data['title'] ?? null,
+        'content'       => $data['type'] === 'pdf' ? null : ($data['content'] ?? null),
+        'file_path'     => $filePath,
+        'display_order' => $maxOrder + 1,
+    ]);
 
-        // For PDFs, allow replacing the file
-        if ($block->type === 'pdf' && $request->hasFile('file')) {
+    return back()->with('success', 'Contenu ajouté au module.');
+}
+
+
+public function updateBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
+{
+    $this->authorizeOwner($digitalTraining);
+    $this->authorizeModule($digitalTraining, $module);
+    $this->authorizeBlock($module, $block);
+
+    $data = $request->validate([
+        'title'   => 'nullable|string|max:255',
+        'content' => 'nullable|string',
+        'file'    => 'nullable|file|max:512000', // 500MB (adjust if needed)
+    ]);
+
+    // Replace file if provided (pdf OR video)
+    if ($request->hasFile('file')) {
+
+        if ($block->type === 'pdf') {
+            $request->validate([
+                'file' => 'file|mimes:pdf|max:20480',
+            ]);
+
             if ($block->file_path) {
                 Storage::disk('public')->delete($block->file_path);
             }
 
-            $block->file_path = $request->file('file')
-                ->store('digital-trainings/blocks', 'public');
+            $block->file_path = $request->file('file')->store('digital-trainings/blocks', 'public');
         }
 
-        $block->title = $data['title'] ?? $block->title;
+        if ($block->type === 'video_url') {
+            $request->validate([
+                'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000',
+            ]);
 
-        if ($block->type !== 'pdf') {
-            // For text / video_url, update content
-            $block->content = $data['content'] ?? $block->content;
+            if ($block->file_path) {
+                Storage::disk('public')->delete($block->file_path);
+            }
+
+            $block->file_path = $request->file('file')->store('digital-trainings/videos', 'public');
         }
-
-        $block->save();
-
-        return back()->with('success', 'Contenu mis à jour.');
     }
+
+    $block->title = $data['title'] ?? $block->title;
+
+    if ($block->type !== 'pdf') {
+        $block->content = $data['content'] ?? $block->content;
+    }
+
+    $block->save();
+
+    return back()->with('success', 'Contenu mis à jour.');
+}
+
 
     public function destroyBlock(DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
     {

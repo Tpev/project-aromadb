@@ -1,7 +1,5 @@
 <?php
 
-// app/Mail/DigitalTrainingAccessMail.php
-
 namespace App\Mail;
 
 use App\Models\DigitalTrainingEnrollment;
@@ -23,14 +21,22 @@ class DigitalTrainingAccessMail extends Mailable
     public function build()
     {
         $training = $this->enrollment->training;
-        $accessUrl = url('/training-access/' . $this->enrollment->access_token); // future route
+        $practitioner = optional($training->user);
 
-        return $this->subject('Accès à votre formation : ' . $training->title)
+        $accessUrl = url('/training-access/' . $this->enrollment->access_token);
+
+        $subject = $practitioner->name
+            ? $practitioner->name . ' vous a donné accès à une formation'
+            : 'Accès à votre formation';
+
+        return $this
+            ->subject($subject)
             ->view('emails.digital-trainings.access')
             ->with([
-                'training'  => $training,
-                'enrollment'=> $this->enrollment,
-                'accessUrl' => $accessUrl,
+                'training'     => $training,
+                'enrollment'   => $this->enrollment,
+                'accessUrl'    => $accessUrl,
+                'practitioner' => $practitioner,
             ]);
     }
 }

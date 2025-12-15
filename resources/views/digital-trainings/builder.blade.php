@@ -81,7 +81,7 @@
                                     <div class="text-[11px] text-slate-500">
                                         ⏱ {{ __('Durée estimée :') }}
                                         <span class="font-medium text-slate-800">
-                                            {{ $training->estimated_duration_minutes }} min
+                                            {{ $training->estimated_duration_minutes }} h
                                         </span>
                                     </div>
                                 @endif
@@ -339,12 +339,27 @@
                                                             <div class="prose prose-xs max-w-none text-slate-700 line-clamp-3">
                                                                 {{ \Illuminate\Support\Str::limit(strip_tags($block->content), 120) }}
                                                             </div>
-                                                        @elseif($block->type === 'video_url' && $block->content)
-                                                            <div class="text-[11px] text-slate-600">
-                                                                {{ __('URL vidéo :') }}
-                                                                <span class="underline">
-                                                                    {{ \Illuminate\Support\Str::limit($block->content, 50) }}
-                                                                </span>
+                                                        @elseif($block->type === 'video_url')
+                                                            <div class="space-y-1 text-[11px] text-slate-600">
+                                                                @if($block->file_path)
+                                                                    <div>
+                                                                        {{ __('Vidéo uploadée :') }}
+                                                                        <span class="underline">{{ __('Fichier associé') }}</span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if($block->content)
+                                                                    <div>
+                                                                        {{ __('URL vidéo :') }}
+                                                                        <span class="underline">
+                                                                            {{ \Illuminate\Support\Str::limit($block->content, 50) }}
+                                                                        </span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if(!$block->file_path && !$block->content)
+                                                                    <div class="text-slate-400">{{ __('Aucune vidéo renseignée.') }}</div>
+                                                                @endif
                                                             </div>
                                                         @elseif($block->type === 'pdf' && $block->file_path)
                                                             <div class="text-[11px] text-slate-600">
@@ -501,7 +516,7 @@
                                                 </span>
                                             @elseif($block->type === 'video_url')
                                                 <span class="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 border border-sky-100 text-sky-700">
-                                                    🎥 {{ __('Vidéo (URL)') }}
+                                                    🎥 {{ __('Vidéo') }}
                                                 </span>
                                             @else
                                                 <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 border border-amber-100 text-amber-700">
@@ -548,16 +563,42 @@
                                                     </p>
                                                 </div>
                                             @elseif($block->type === 'video_url')
-                                                <div>
-                                                    <label class="block text-[11px] text-slate-600 mb-1">
-                                                        {{ __('URL de la vidéo') }}
-                                                    </label>
-                                                    <textarea name="content" rows="3"
-                                                              class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
-                                                              placeholder="{{ __('Coller l’URL de votre vidéo (YouTube, Vimeo, etc.)') }}">{{ $block->content }}</textarea>
-                                                    <p class="mt-1 text-[10px] text-slate-400">
-                                                        {{ __('Collez une URL publique (YouTube, Vimeo…). Elle sera intégrée automatiquement dans le lecteur.') }}
-                                                    </p>
+                                                <div class="space-y-3">
+                                                    {{-- URL --}}
+                                                    <div>
+                                                        <label class="block text-[11px] text-slate-600 mb-1">
+                                                            {{ __('URL de la vidéo (optionnel)') }}
+                                                        </label>
+                                                        <textarea name="content" rows="3"
+                                                                  class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                                  placeholder="{{ __('Coller l’URL de votre vidéo (YouTube, Vimeo, etc.)') }}">{{ $block->content }}</textarea>
+                                                        <p class="mt-1 text-[10px] text-slate-400">
+                                                            {{ __('Collez une URL publique (YouTube, Vimeo…).') }}
+                                                        </p>
+                                                    </div>
+
+                                                    {{-- Current uploaded video --}}
+                                                    @if($block->file_path)
+                                                        <div class="text-[11px] text-slate-600">
+                                                            {{ __('Vidéo actuelle :') }}
+                                                            <a href="{{ asset('storage/'.$block->file_path) }}" target="_blank" class="underline">
+                                                                {{ __('Ouvrir le fichier') }}
+                                                            </a>
+                                                        </div>
+                                                    @endif
+
+                                                    {{-- Upload / replace video --}}
+                                                    <div>
+                                                        <label class="block text-[11px] text-slate-600 mb-1">
+                                                            {{ __('Uploader / remplacer une vidéo (optionnel)') }}
+                                                        </label>
+                                                        <input type="file" name="file"
+                                                               accept="video/mp4,video/webm,video/quicktime,video/*"
+                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                        <p class="mt-1 text-[10px] text-slate-400">
+                                                            {{ __('Formats conseillés : MP4 / WebM. Si un fichier est uploadé, il pourra être prioritaire à l’affichage.') }}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             @elseif($block->type === 'pdf')
                                                 <div class="space-y-2">
@@ -668,7 +709,7 @@
                                     </form>
                                 </div>
 
-                                {{-- Create VIDEO --}}
+                                {{-- Create VIDEO (with upload progress if file is selected) --}}
                                 <div x-show="activeAction === 'create' && activeModuleId === {{ $module->id }} && activeType === 'video_url'"
                                      x-cloak
                                      class="space-y-3">
@@ -684,7 +725,9 @@
                                     <form action="{{ route('digital-trainings.blocks.store', [$training, $module]) }}"
                                           method="POST"
                                           enctype="multipart/form-data"
-                                          class="space-y-3">
+                                          class="space-y-3"
+                                          data-video-upload-form
+                                          data-redirect-url="{{ route('digital-trainings.builder', $training) }}">
                                         @csrf
                                         <input type="hidden" name="type" value="video_url">
 
@@ -697,17 +740,46 @@
                                                    placeholder="{{ __('Ex : Vidéo d’introduction') }}">
                                         </div>
 
+                                        {{-- URL (optional) --}}
                                         <div>
                                             <label class="block text-[11px] text-slate-600 mb-1">
-                                                {{ __('URL de la vidéo') }}
+                                                {{ __('URL de la vidéo (optionnel)') }}
                                             </label>
                                             <textarea name="content" rows="3"
                                                       class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
                                                       placeholder="{{ __('Coller l’URL de votre vidéo (YouTube, Vimeo, etc.)') }}"></textarea>
                                             <p class="mt-1 text-[10px] text-slate-400">
-                                                {{ __('Votre client verra la vidéo intégrée dans un lecteur plein écran adapté.') }}
+                                                {{ __('Collez une URL publique (YouTube, Vimeo…). Si vous uploadez un fichier, l’URL peut rester vide.') }}
                                             </p>
                                         </div>
+
+                                        {{-- Upload (optional) --}}
+                                        <div>
+                                            <label class="block text-[11px] text-slate-600 mb-1">
+                                                {{ __('Uploader une vidéo (optionnel)') }}
+                                            </label>
+                                            <input type="file" name="file"
+                                                   accept="video/mp4,video/webm,video/quicktime,video/*"
+                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                            <p class="mt-1 text-[10px] text-slate-400">
+                                                {{ __('Formats conseillés : MP4 / WebM. Vous pouvez aussi utiliser uniquement une URL.') }}
+                                            </p>
+                                        </div>
+
+                                        {{-- Progress UI (hidden by default) --}}
+                                        <div class="hidden" data-upload-ui>
+                                            <div class="flex items-center justify-between text-[11px] text-slate-600 mb-1">
+                                                <span data-upload-label>{{ __('Envoi de la vidéo…') }}</span>
+                                                <span class="font-semibold" data-upload-percent>0%</span>
+                                            </div>
+                                            <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
+                                                <div class="h-2 rounded-full bg-[#647a0b]" style="width:0%" data-upload-bar></div>
+                                            </div>
+                                            <div class="mt-2 text-[11px] text-slate-500" data-upload-detail></div>
+                                        </div>
+
+                                        {{-- Error UI --}}
+                                        <div class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700" data-upload-error></div>
 
                                         <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                                             <button type="button"
@@ -717,7 +789,8 @@
                                             </button>
                                             <div class="flex gap-2">
                                                 <button type="submit"
-                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
+                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]"
+                                                        data-upload-submit>
                                                     {{ __('Créer ce contenu') }}
                                                 </button>
                                             </div>
@@ -794,6 +867,7 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // ===== QUILL INIT =====
             const toolbarOptions = [
                 [{ header: [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'strike'],
@@ -811,9 +885,7 @@
 
                 const quill = new Quill(el, {
                     theme: 'snow',
-                    modules: {
-                        toolbar: toolbarOptions
-                    }
+                    modules: { toolbar: toolbarOptions }
                 });
 
                 // Initial value (for edit)
@@ -828,6 +900,97 @@
                         hiddenInput.value = quill.root.innerHTML;
                     });
                 }
+            });
+
+            // ===== VIDEO UPLOAD PROGRESS (XHR) =====
+            document.querySelectorAll('form[data-video-upload-form]').forEach((form) => {
+                form.addEventListener('submit', (e) => {
+                    const fileInput = form.querySelector('input[type="file"][name="file"]');
+                    const hasFile   = fileInput && fileInput.files && fileInput.files.length > 0;
+
+                    // If no file, allow normal submit (URL-only)
+                    if (!hasFile) return;
+
+                    e.preventDefault();
+
+                    const submitBtn = form.querySelector('[data-upload-submit]');
+                    const ui        = form.querySelector('[data-upload-ui]');
+                    const bar       = form.querySelector('[data-upload-bar]');
+                    const percentEl = form.querySelector('[data-upload-percent]');
+                    const labelEl   = form.querySelector('[data-upload-label]');
+                    const detailEl  = form.querySelector('[data-upload-detail]');
+                    const errorBox  = form.querySelector('[data-upload-error]');
+
+                    // Reset UI
+                    if (errorBox) { errorBox.classList.add('hidden'); errorBox.textContent = ''; }
+                    if (ui) ui.classList.remove('hidden');
+                    if (bar) bar.style.width = '0%';
+                    if (percentEl) percentEl.textContent = '0%';
+                    if (labelEl) labelEl.textContent = 'Envoi de la vidéo…';
+                    if (detailEl) detailEl.textContent = 'Merci de ne pas fermer cette fenêtre pendant l’upload.';
+                    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Upload…'; }
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', form.getAttribute('action'), true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                    // CSRF header (safe + helps if needed)
+                    const token = form.querySelector('input[name="_token"]')?.value;
+                    if (token) xhr.setRequestHeader('X-CSRF-TOKEN', token);
+
+                    xhr.upload.onprogress = (evt) => {
+                        if (!evt.lengthComputable) return;
+                        const pct = Math.round((evt.loaded / evt.total) * 100);
+                        if (bar) bar.style.width = pct + '%';
+                        if (percentEl) percentEl.textContent = pct + '%';
+                    };
+
+                    xhr.onload = () => {
+                        const ok = xhr.status >= 200 && xhr.status < 300;
+
+                        if (ok) {
+                            if (bar) bar.style.width = '100%';
+                            if (percentEl) percentEl.textContent = '100%';
+                            if (labelEl) labelEl.textContent = 'Upload terminé ✅';
+                            if (detailEl) detailEl.textContent = 'On finalise l’enregistrement…';
+
+                            const redirect = form.getAttribute('data-redirect-url') || window.location.href;
+                            window.location.href = redirect;
+                            return;
+                        }
+
+                        // Error
+                        let msg = "Une erreur est survenue pendant l’upload.";
+                        try {
+                            const json = JSON.parse(xhr.responseText || '{}');
+                            if (json.message) msg = json.message;
+                            if (json.errors) {
+                                const firstKey = Object.keys(json.errors)[0];
+                                if (firstKey && json.errors[firstKey]?.[0]) msg = json.errors[firstKey][0];
+                            }
+                        } catch (_) {}
+
+                        if (errorBox) {
+                            errorBox.textContent = msg;
+                            errorBox.classList.remove('hidden');
+                        }
+                        if (labelEl) labelEl.textContent = 'Upload échoué ❌';
+                        if (detailEl) detailEl.textContent = 'Vérifiez votre fichier et réessayez.';
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Créer ce contenu'; }
+                    };
+
+                    xhr.onerror = () => {
+                        if (errorBox) {
+                            errorBox.textContent = "Erreur réseau pendant l’upload. Réessayez.";
+                            errorBox.classList.remove('hidden');
+                        }
+                        if (labelEl) labelEl.textContent = 'Upload interrompu ❌';
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Créer ce contenu'; }
+                    };
+
+                    const formData = new FormData(form);
+                    xhr.send(formData);
+                });
             });
         });
     </script>

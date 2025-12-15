@@ -39,25 +39,14 @@
 
 <x-guest-layout>
     <style>
-        :root {
-            --brand: #647a0b;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
+        :root { --brand: #647a0b; }
+        * { box-sizing: border-box; }
 
         /* === Override Jetstream guest layout to be full-width on THIS page === */
         .min-h-screen {
             background: radial-gradient(circle at top left, #e4f0d4 0, #f3f4f6 45%, #e5e7eb 100%) !important;
         }
-
-        /* Hide top logo block */
-        .min-h-screen > div:first-child {
-            display: none;
-        }
-
-        /* Turn the narrow card into a full-width container */
+        .min-h-screen > div:first-child { display: none; }
         .min-h-screen > div:last-child {
             width: 100% !important;
             max-width: 100% !important;
@@ -75,14 +64,7 @@
             color: #0f172a;
         }
 
-        /* ============= MAIN PLAYER LAYOUT ============= */
-
-        .training-player-shell {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
+        .training-player-shell { min-height: 100vh; display: flex; flex-direction: column; }
         .training-player-header {
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(10px);
@@ -92,33 +74,11 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        .training-header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .training-title {
-            font-size: 18px;
-            font-weight: 650;
-            color: var(--brand);
-        }
-
-        .training-subtitle {
-            font-size: 11px;
-            color: #6b7280;
-        }
-
-        .training-header-right {
-            text-align: right;
-            font-size: 11px;
-            color: #4b5563;
-        }
-
-        .training-header-right span.email {
-            color: #6b7280;
-        }
+        .training-header-left { display: flex; flex-direction: column; gap: 4px; }
+        .training-title { font-size: 18px; font-weight: 650; color: var(--brand); }
+        .training-subtitle { font-size: 11px; color: #6b7280; }
+        .training-header-right { text-align: right; font-size: 11px; color: #4b5563; }
+        .training-header-right span.email { color: #6b7280; }
 
         .progress-bar-outer {
             position: relative;
@@ -128,7 +88,6 @@
             background: #e5e7eb;
             overflow: hidden;
         }
-
         .progress-bar-inner {
             position: absolute;
             inset: 0;
@@ -145,7 +104,6 @@
             display: flex;
             justify-content: center;
         }
-
         .training-inner-grid {
             width: 100%;
             max-width: 1280px;
@@ -154,7 +112,6 @@
             gap: 24px;
             align-items: flex-start;
         }
-
         .card {
             background: #ffffff;
             border-radius: 18px;
@@ -169,13 +126,12 @@
             gap: 14px;
             min-height: 0;
         }
-
         .content {
             padding: 18px 18px 16px;
             display: flex;
             flex-direction: column;
             gap: 14px;
-            min-height: calc(100vh - 150px); /* header + paddings */
+            min-height: calc(100vh - 150px);
             min-width: 0;
         }
 
@@ -190,11 +146,7 @@
             gap: 6px;
         }
 
-        .sidebar-header {
-            display: flex;
-            gap: 10px;
-        }
-
+        .sidebar-header { display: flex; gap: 10px; }
         .sidebar-cover {
             width: 56px;
             height: 56px;
@@ -208,30 +160,11 @@
             color: #9ca3af;
             flex-shrink: 0;
         }
+        .sidebar-cover img { width: 100%; height: 100%; object-fit: cover; }
 
-        .sidebar-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .sidebar-header-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .sidebar-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .sidebar-meta {
-            font-size: 11px;
-            color: #6b7280;
-        }
+        .sidebar-header-main { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-title { font-size: 14px; font-weight: 600; color: #111827; }
+        .sidebar-meta { font-size: 11px; color: #6b7280; }
 
         .author-box {
             margin-top: 4px;
@@ -243,7 +176,6 @@
             gap: 8px;
             align-items: flex-start;
         }
-
         .author-avatar {
             width: 26px;
             height: 26px;
@@ -257,43 +189,13 @@
             color: var(--brand);
             flex-shrink: 0;
         }
+        .author-text { font-size: 11px; color: #4b5563; }
+        .author-name { font-weight: 600; font-size: 11px; color: #111827; }
 
-        .author-text {
-            font-size: 11px;
-            color: #4b5563;
-        }
+        .tag-list { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+        .tag-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; background: #f3f4f6; font-size: 10px; color: #4b5563; }
 
-        .author-name {
-            font-weight: 600;
-            font-size: 11px;
-            color: #111827;
-        }
-
-        .tag-list {
-            margin-top: 4px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-
-        .tag-chip {
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: #f3f4f6;
-            font-size: 10px;
-            color: #4b5563;
-        }
-
-        .sidebar-section-title {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: #9ca3af;
-            margin-top: 4px;
-        }
+        .sidebar-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #9ca3af; margin-top: 4px; }
 
         .module-list {
             margin-top: 6px;
@@ -304,7 +206,6 @@
             overflow: auto;
             padding-right: 4px;
         }
-
         .module-item {
             border-radius: 12px;
             padding: 8px 9px;
@@ -313,49 +214,18 @@
             font-size: 13px;
             background: #ffffff;
         }
-
-        .module-item:hover {
-            background: #f9fafb;
-        }
-
+        .module-item:hover { background: #f9fafb; }
         .module-item.active {
             border-color: var(--brand);
             background: #f7fbe8;
             box-shadow: 0 0 0 1px rgba(100, 122, 11, 0.06);
         }
+        .module-title-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+        .module-title-text { font-size: 12px; font-weight: 600; color: #111827; }
+        .module-index-pill { font-size: 10px; padding: 2px 6px; border-radius: 999px; background: #e5e7eb; color: #374151; white-space: nowrap; }
+        .module-desc { margin-top: 2px; font-size: 11px; color: #6b7280; }
 
-        .module-title-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .module-title-text {
-            font-size: 12px;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        .module-index-pill {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 999px;
-            background: #e5e7eb;
-            color: #374151;
-            white-space: nowrap;
-        }
-
-        .module-desc {
-            margin-top: 2px;
-            font-size: 11px;
-            color: #6b7280;
-        }
-
-        .block-list {
-            margin-top: 5px;
-        }
-
+        .block-list { margin-top: 5px; }
         .block-pill {
             font-size: 11px;
             padding: 3px 6px;
@@ -370,16 +240,9 @@
             border: 1px solid transparent;
             cursor: pointer;
         }
+        .block-pill.active { background: var(--brand); color: #ffffff; border-color: var(--brand); }
 
-        .block-pill.active {
-            background: var(--brand);
-            color: #ffffff;
-            border-color: var(--brand);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-        }
+        .sidebar-footer { margin-top: auto; }
 
         .btn {
             border-radius: 999px;
@@ -393,124 +256,36 @@
             justify-content: center;
             gap: 6px;
         }
+        .btn-primary { background: var(--brand); color: white; border-color: var(--brand); }
+        .btn-primary:hover { background: #506108; }
+        .btn:disabled { opacity: 0.5; cursor: default; }
+        .btn-outline { background: transparent; }
 
-        .btn-primary {
-            background: var(--brand);
-            color: white;
-            border-color: var(--brand);
-        }
-
-        .btn-primary:hover {
-            background: #506108;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: default;
-        }
-
-        .btn-outline {
-            background: transparent;
-        }
-
-        .content-meta-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .content-meta-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .content-path {
-            font-size: 11px;
-            color: #9ca3af;
-        }
-
-        .content-header-title {
-            font-size: 18px;
-            font-weight: 630;
-            color: #111827;
-        }
-
-        .content-subtitle {
-            font-size: 13px;
-            color: #6b7280;
-        }
+        .content-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .content-meta-left { display: flex; flex-direction: column; gap: 4px; }
+        .content-path { font-size: 11px; color: #9ca3af; }
+        .content-header-title { font-size: 18px; font-weight: 630; color: #111827; }
+        .content-subtitle { font-size: 13px; color: #6b7280; }
 
         .content-body {
             border-radius: 14px;
             border: 1px solid #e5e7eb;
             background: #f9fafb;
             padding: 16px;
-            flex: 1;          /* take remaining height */
-            min-height: 0;    /* allow flex shrinking */
-            overflow: hidden; /* inner handles scroll */
-        }
-
-        #block-content {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .content-body-inner {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #111827;
             flex: 1;
-            overflow: auto;
+            min-height: 0;
+            overflow: hidden;
         }
+        #block-content { height: 100%; display: flex; flex-direction: column; }
+        .content-body-inner { font-size: 14px; line-height: 1.6; color: #111827; flex: 1; overflow: auto; }
 
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            gap: 10px;
-        }
-
-        .nav-side {
-            font-size: 11px;
-            color: #6b7280;
-        }
-
-        .alert-success {
-            border-radius: 10px;
-            border: 1px solid #bbf7d0;
-            background: #ecfdf3;
-            color: #166534;
-            font-size: 12px;
-            padding: 8px 10px;
-            margin-top: 2px;
-        }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 10px; gap: 10px; }
+        .nav-side { font-size: 11px; color: #6b7280; }
 
         /* ============= PDF SPECIFIC ============= */
-
-        .pdf-block {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            height: 100%;
-        }
-
-        .pdf-main {
-            flex: 1;
-            min-height: 75vh;  /* tall viewport area (Option B) */
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #e5e7eb;
-            background: #ffffff;
-        }
-
-        .pdf-main embed {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+        .pdf-block { display: flex; flex-direction: column; gap: 8px; height: 100%; }
+        .pdf-main { flex: 1; min-height: 75vh; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; background: #ffffff; }
+        .pdf-main embed { width: 100%; height: 100%; display: block; }
 
         .pdf-footer {
             font-size: 12px;
@@ -521,25 +296,9 @@
             align-items: center;
             justify-content: space-between;
         }
+        .pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .pdf-action-link { font-size: 12px; color: #647a0b; text-decoration: underline; cursor: pointer; border: none; padding: 0; background: none; }
 
-        .pdf-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .pdf-action-link {
-            font-size: 12px;
-            color: #647a0b;
-            text-decoration: underline;
-            cursor: pointer;
-            border: none;
-            padding: 0;
-            background: none;
-        }
-
-        /* Fullscreen overlay (Option C) */
         .pdf-fullscreen-overlay {
             position: fixed;
             inset: 0;
@@ -550,10 +309,7 @@
             justify-content: center;
             padding: 16px;
         }
-
-        .pdf-fullscreen-overlay.active {
-            display: flex;
-        }
+        .pdf-fullscreen-overlay.active { display: flex; }
 
         .pdf-fullscreen-inner {
             position: relative;
@@ -566,15 +322,7 @@
             flex-direction: column;
             gap: 8px;
         }
-
-        .pdf-fullscreen-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #e5e7eb;
-            font-size: 13px;
-        }
-
+        .pdf-fullscreen-bar { display: flex; justify-content: space-between; align-items: center; color: #e5e7eb; font-size: 13px; }
         .pdf-fullscreen-bar button {
             border-radius: 999px;
             border: 1px solid #e5e7eb;
@@ -584,74 +332,27 @@
             background: transparent;
             color: #f9fafb;
         }
-
-        .pdf-fullscreen-frame-wrapper {
-            flex: 1;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            border: 1px solid #4b5563;
-        }
-
-        .pdf-fullscreen-frame-wrapper embed {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* ============= RESPONSIVE ============= */
+        .pdf-fullscreen-frame-wrapper { flex: 1; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid #4b5563; }
+        .pdf-fullscreen-frame-wrapper embed { width: 100%; height: 100%; display: block; }
 
         @media (max-width: 900px) {
-            .training-player-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-
-            .training-player-main {
-                padding: 16px 10px 24px;
-            }
-
-            .training-inner-grid {
-                grid-template-columns: minmax(0, 1fr);
-            }
-
-            .sidebar {
-                order: 2;
-            }
-
-            .content {
-                order: 1;
-                min-height: calc(100vh - 140px);
-            }
-
-            .module-list {
-                max-height: none;
-            }
-
-            .content-body {
-                min-height: 50vh;
-            }
-
-            .pdf-main {
-                min-height: 60vh;
-            }
-
-            .progress-bar-outer {
-                width: 150px;
-            }
+            .training-player-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .training-player-main { padding: 16px 10px 24px; }
+            .training-inner-grid { grid-template-columns: minmax(0, 1fr); }
+            .sidebar { order: 2; }
+            .content { order: 1; min-height: calc(100vh - 140px); }
+            .module-list { max-height: none; }
+            .content-body { min-height: 50vh; }
+            .pdf-main { min-height: 60vh; }
+            .progress-bar-outer { width: 150px; }
         }
     </style>
 
     <div class="training-player-shell">
         <header class="training-player-header">
             <div class="training-header-left">
-                <div class="training-title">
-                    {{ $training->title }}
-                </div>
-                <div class="training-subtitle">
-                    {{ __('Accès direct à votre formation – AromaMade') }}
-                </div>
+                <div class="training-title">{{ $training->title }}</div>
+                <div class="training-subtitle">{{ __('Accès direct à votre formation – AromaMade') }}</div>
             </div>
 
             <div class="training-header-right">
@@ -664,9 +365,7 @@
                         {{ __('Progrès : :p%', ['p' => $progress]) }}
                     </span>
                     <div class="progress-bar-outer">
-                        <div class="progress-bar-inner"
-                             id="globalProgressBar"
-                             style="width: {{ $progress }}%;"></div>
+                        <div class="progress-bar-inner" id="globalProgressBar" style="width: {{ $progress }}%;"></div>
                     </div>
                 </div>
             </div>
@@ -685,31 +384,21 @@
                             @endif
                         </div>
                         <div class="sidebar-header-main">
-                            <div class="sidebar-title">
-                                {{ $training->title }}
-                            </div>
+                            <div class="sidebar-title">{{ $training->title }}</div>
                             <div class="sidebar-meta">
                                 @if($training->estimated_duration_minutes)
-                                    {{ __('Durée estimée :') }}
-                                    <strong>{{ $training->estimated_duration_minutes }} min</strong>
+                                    {{ __('Durée estimée :') }} <strong>{{ $training->estimated_duration_minutes }} h</strong>
                                 @endif
                             </div>
 
                             <div class="author-box">
-                                <div class="author-avatar">
-                                    {{ $authorInit }}
-                                </div>
+                                <div class="author-avatar">{{ $authorInit }}</div>
                                 <div class="author-text">
                                     <div class="author-name">{{ $authorName }}</div>
                                     <div>
-                                        <span style="opacity:.9;">
-                                            {{ __('Créateur de cette formation.') }}
-                                        </span>
+                                        <span style="opacity:.9;">{{ __('Créateur de cette formation.') }}</span>
                                         @if($authorEmail)
-                                            <br>
-                                            <span style="font-size:10px;color:#9ca3af;">
-                                                {{ $authorEmail }}
-                                            </span>
+                                            <br><span style="font-size:10px;color:#9ca3af;">{{ $authorEmail }}</span>
                                         @endif
                                     </div>
                                 </div>
@@ -726,9 +415,7 @@
                     @endif
 
                     <div>
-                        <div class="sidebar-section-title">
-                            {{ __('Contenu de la formation') }}
-                        </div>
+                        <div class="sidebar-section-title">{{ __('Contenu de la formation') }}</div>
 
                         <div class="module-list">
                             @foreach($modules as $index => $module)
@@ -739,29 +426,21 @@
                                         <div class="module-title-text">
                                             {{ $module->title ?? __('Module :num', ['num' => $index + 1]) }}
                                         </div>
-                                        <div class="module-index-pill">
-                                            {{ 'M'.($index + 1) }}
-                                        </div>
+                                        <div class="module-index-pill">{{ 'M'.($index + 1) }}</div>
                                     </div>
+
                                     @if($module->description)
-                                        <div class="module-desc">
-                                            {{ $module->description }}
-                                        </div>
+                                        <div class="module-desc">{{ $module->description }}</div>
                                     @endif
 
-                                    @php
-                                        $blocks = $module->sorted_blocks ?? $module->blocks ?? collect();
-                                    @endphp
+                                    @php $blocks = $module->sorted_blocks ?? $module->blocks ?? collect(); @endphp
                                     @if($blocks->count())
                                         <div class="block-list">
                                             @foreach($blocks as $bIndex => $block)
                                                 @php
                                                     $icon = '📝';
-                                                    if ($block->type === 'pdf') {
-                                                        $icon = '📄';
-                                                    } elseif ($block->type === 'video_url') {
-                                                        $icon = '🎬';
-                                                    }
+                                                    if ($block->type === 'pdf') $icon = '📄';
+                                                    elseif ($block->type === 'video_url') $icon = '🎬';
                                                 @endphp
                                                 <span class="block-pill"
                                                       data-module-index="{{ $index }}"
@@ -782,9 +461,7 @@
                         <form action="{{ route('digital-trainings.access.complete', $enrollment->access_token) }}"
                               method="POST" style="margin-top:10px;">
                             @csrf
-                            <button type="submit"
-                                    class="btn btn-primary"
-                                    style="width:100%;">
+                            <button type="submit" class="btn btn-primary" style="width:100%;">
                                 ✅ {{ __('Marquer la formation comme terminée') }}
                             </button>
                         </form>
@@ -814,12 +491,8 @@
                     </div>
 
                     <div class="nav-buttons">
-                        <button class="btn btn-outline" id="btnPrev" onclick="goPrev()">
-                            ← {{ __('Précédent') }}
-                        </button>
-                        <button class="btn btn-outline" id="btnNext" onclick="goNext()" style="margin-left:auto;">
-                            {{ __('Suivant') }} →
-                        </button>
+                        <button class="btn btn-outline" id="btnPrev" onclick="goPrev()">← {{ __('Précédent') }}</button>
+                        <button class="btn btn-outline" id="btnNext" onclick="goNext()" style="margin-left:auto;">{{ __('Suivant') }} →</button>
                     </div>
                 </section>
             </div>
@@ -844,6 +517,32 @@
 
         let currentModuleIndex = 0;
         let currentBlockIndex  = 0;
+
+        function escapeHtml(str) {
+            return (str || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function getVideoEmbedUrl(url) {
+            if (!url) return '';
+
+            // YouTube watch?v= / youtu.be
+            const ytWatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+            const ytShort = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+            if (ytWatch && ytWatch[1]) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+            if (ytShort && ytShort[1]) return `https://www.youtube.com/embed/${ytShort[1]}`;
+
+            // Vimeo
+            const vimeo = url.match(/vimeo\.com\/(\d+)/);
+            if (vimeo && vimeo[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+            // Fallback
+            return url;
+        }
 
         function selectModule(mIndex) {
             currentModuleIndex = mIndex;
@@ -871,18 +570,16 @@
 
         function findCurrentFlatIndex(flat) {
             for (let i = 0; i < flat.length; i++) {
-                if (flat[i].moduleIndex === currentModuleIndex && flat[i].blockIndex === currentBlockIndex) {
-                    return i;
-                }
+                if (flat[i].moduleIndex === currentModuleIndex && flat[i].blockIndex === currentBlockIndex) return i;
             }
             return null;
         }
 
         function goPrev() {
             const flat = flattenBlocks();
-            const currentFlatIndex = findCurrentFlatIndex(flat);
-            if (currentFlatIndex === null || currentFlatIndex <= 0) return;
-            const prev = flat[currentFlatIndex - 1];
+            const idx = findCurrentFlatIndex(flat);
+            if (idx === null || idx <= 0) return;
+            const prev = flat[idx - 1];
             currentModuleIndex = prev.moduleIndex;
             currentBlockIndex  = prev.blockIndex;
             updateActiveUI();
@@ -891,9 +588,9 @@
 
         function goNext() {
             const flat = flattenBlocks();
-            const currentFlatIndex = findCurrentFlatIndex(flat);
-            if (currentFlatIndex === null || currentFlatIndex >= flat.length - 1) return;
-            const next = flat[currentFlatIndex + 1];
+            const idx = findCurrentFlatIndex(flat);
+            if (idx === null || idx >= flat.length - 1) return;
+            const next = flat[idx + 1];
             currentModuleIndex = next.moduleIndex;
             currentBlockIndex  = next.blockIndex;
             updateActiveUI();
@@ -938,21 +635,61 @@
             let html = '';
 
             if (block.type === 'text') {
-                const content = block.content || '';
-                html = `<div>${content}</div>`;
+                html = `<div>${block.content || ''}</div>`;
             } else if (block.type === 'video_url') {
-                const url = block.content || '';
-                html = `
-                    <div style="display:flex;flex-direction:column;gap:8px;">
-                        <div style="position:relative;width:100%;padding-bottom:56.25%;border-radius:12px;overflow:hidden;background:#0f172a;">
-                            <iframe src="${url}" frameborder="0" allowfullscreen
-                                    style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+                // Uploaded file has priority
+                if (block.file_path) {
+                    const src = `{{ rtrim(config('app.url'), '/') }}/storage/` + block.file_path;
+                    const url = block.content || '';
+
+                    html = `
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <div style="position:relative;width:100%;border-radius:12px;overflow:hidden;background:#0f172a;border:1px solid #e5e7eb;">
+                                <video controls preload="metadata" style="width:100%;height:auto;display:block;">
+                                    <source src="${src}">
+                                    {{ __('Votre navigateur ne supporte pas la lecture vidéo.') }}
+                                </video>
+                            </div>
+
+                            <div style="font-size:12px;color:#6b7280;">
+                                <a href="${src}" target="_blank" style="color:#647a0b;text-decoration:underline;">
+                                    {{ __('Ouvrir la vidéo dans un nouvel onglet') }}
+                                </a>
+                            </div>
+
+                            ${url ? `
+                                <div style="border:1px solid #e5e7eb;background:#ffffff;border-radius:12px;padding:10px;">
+                                    <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:4px;">
+                                        {{ __('URL (optionnelle) :') }}
+                                    </div>
+                                    <div style="font-size:11px;color:#6b7280;word-break:break-all;">
+                                        ${escapeHtml(url)}
+                                    </div>
+                                </div>
+                            ` : ``}
                         </div>
-                        <div style="font-size:12px;color:#6b7280;">
-                            Si la vidéo ne s’affiche pas correctement, vous pouvez
-                            <a href="${url}" target="_blank" style="color:#647a0b;text-decoration:underline;">ouvrir la vidéo dans un nouvel onglet</a>.
-                        </div>
-                    </div>`;
+                    `;
+                } else {
+                    // Fallback to URL embed
+                    const raw = block.content || '';
+                    const embed = getVideoEmbedUrl(raw);
+
+                    if (!raw) {
+                        html = `<p style="font-size:13px;color:#6b7280;">Aucune vidéo n’est renseignée pour ce contenu.</p>`;
+                    } else {
+                        html = `
+                            <div style="display:flex;flex-direction:column;gap:8px;">
+                                <div style="position:relative;width:100%;padding-bottom:56.25%;border-radius:12px;overflow:hidden;background:#0f172a;">
+                                    <iframe src="${embed}" frameborder="0" allowfullscreen
+                                            style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+                                </div>
+                                <div style="font-size:12px;color:#6b7280;">
+                                    Si la vidéo ne s’affiche pas correctement, vous pouvez
+                                    <a href="${raw}" target="_blank" style="color:#647a0b;text-decoration:underline;">ouvrir la vidéo dans un nouvel onglet</a>.
+                                </div>
+                            </div>`;
+                    }
+                }
             } else if (block.type === 'pdf') {
                 const filePath = block.file_path ? `{{ rtrim(config('app.url'), '/') }}/storage/` + block.file_path : null;
                 if (filePath) {
@@ -991,8 +728,7 @@
             document.querySelectorAll('.block-pill').forEach((el) => {
                 const mi = parseInt(el.getAttribute('data-module-index'), 10);
                 const bi = parseInt(el.getAttribute('data-block-index'), 10);
-                const active = (mi === currentModuleIndex && bi === currentBlockIndex);
-                el.classList.toggle('active', active);
+                el.classList.toggle('active', (mi === currentModuleIndex && bi === currentBlockIndex));
             });
         }
 
@@ -1032,10 +768,7 @@
         }
 
         function handlePdfOverlayClick(e) {
-            // close if click background, not inner content
-            if (e.target.id === 'pdfFullscreenOverlay') {
-                closePdfFullscreen();
-            }
+            if (e.target.id === 'pdfFullscreenOverlay') closePdfFullscreen();
         }
 
         (function init() {
@@ -1047,10 +780,7 @@
                     found = true;
                 }
             });
-            if (!found) {
-                currentModuleIndex = 0;
-                currentBlockIndex  = 0;
-            }
+            if (!found) { currentModuleIndex = 0; currentBlockIndex = 0; }
             updateActiveUI();
             renderCurrentBlock();
         })();

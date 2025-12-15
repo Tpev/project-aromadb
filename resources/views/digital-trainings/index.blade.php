@@ -41,7 +41,6 @@
                             <th class="px-4 py-3">{{ __('Titre') }}</th>
                             <th class="px-4 py-3">{{ __('Accès') }}</th>
                             <th class="px-4 py-3">{{ __('Statut') }}</th>
-                            <th class="px-4 py-3">{{ __('Tarif') }}</th>
                             <th class="px-4 py-3 text-right">{{ __('Actions') }}</th>
                         </tr>
                         </thead>
@@ -111,10 +110,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Tarif (placeholder for now) --}}
-                                <td class="px-4 py-3 align-top">
-                                    <span class="text-xs text-slate-400">—</span>
-                                </td>
+
 
                                 {{-- Actions --}}
                                 <td class="px-4 py-3 align-top text-right">

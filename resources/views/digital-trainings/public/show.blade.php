@@ -87,7 +87,7 @@
                         <div class="mt-5 flex flex-wrap gap-2 justify-center md:justify-start text-xs md:text-sm">
                             @if($duration)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
-                                    ⏱ {{ __('Durée estimée : :min min', ['min' => $duration]) }}
+                                    ⏱ {{ __('Durée estimée : :min h', ['min' => $duration]) }}
                                 </span>
                             @endif
 

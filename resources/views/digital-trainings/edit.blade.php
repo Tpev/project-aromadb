@@ -114,23 +114,8 @@
 
                 {{-- Accès, statut, durée --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-800 mb-1">
-                            {{ __('Type d’accès') }} <span class="text-rose-500">*</span>
-                        </label>
-                        <select name="access_type"
-                                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
-                            <option value="public" {{ old('access_type', $training->access_type) === 'public' ? 'selected' : '' }}>
-                                {{ __('Public (accessible à tous)') }}
-                            </option>
-                            <option value="private" {{ old('access_type', $training->access_type) === 'private' ? 'selected' : '' }}>
-                                {{ __('Privé (uniquement sur invitation)') }}
-                            </option>
-                            <option value="subscription" {{ old('access_type', $training->access_type) === 'subscription' ? 'selected' : '' }}>
-                                {{ __('Réservé aux abonnements') }}
-                            </option>
-                        </select>
-                    </div>
+					<input type="hidden" name="access_type" value="public">
+
 
                     <div>
                         <label class="block text-sm font-medium text-slate-800 mb-1">
@@ -152,7 +137,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-slate-800 mb-1">
-                            {{ __('Durée estimée (minutes)') }}
+                            {{ __('Durée estimée (heures)') }}
                         </label>
                         <input type="number"
                                name="estimated_duration_minutes"

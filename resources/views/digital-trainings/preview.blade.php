@@ -61,7 +61,7 @@
                             </div>
                             @if($training->estimated_duration_minutes)
                                 <div class="mt-1 text-xs text-slate-600">
-                                    {{ __('Durée estimée :') }} {{ $training->estimated_duration_minutes }} min
+                                    {{ __('Durée estimée :') }} {{ $training->estimated_duration_minutes }} h
                                 </div>
                             @endif
                             @if($training->tags)
@@ -141,16 +141,10 @@
                 <div class="flex flex-col lg:flex-row gap-4">
                     {{-- MAIN CONTENT --}}
                     <div class="flex-1 rounded-2xl bg-white shadow-sm border border-slate-100 p-5 flex flex-col">
-                        <div id="preview-module-label" class="text-xs font-semibold uppercase tracking-wide text-[#647a0b] mb-1">
-                            {{-- Filled by JS --}}
-                        </div>
-                        <h1 id="preview-title" class="text-xl font-semibold text-slate-900 mb-3">
-                            {{-- Filled by JS --}}
-                        </h1>
+                        <div id="preview-module-label" class="text-xs font-semibold uppercase tracking-wide text-[#647a0b] mb-1"></div>
+                        <h1 id="preview-title" class="text-xl font-semibold text-slate-900 mb-3"></h1>
 
-                        <div id="preview-content" class="flex-1 text-sm text-slate-700 leading-relaxed">
-                            {{-- Filled by JS --}}
-                        </div>
+                        <div id="preview-content" class="flex-1 text-sm text-slate-700 leading-relaxed"></div>
 
                         {{-- NAVIGATION FOOTER --}}
                         <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
@@ -227,6 +221,32 @@
             const blocks = @json($flatBlocks);
             let currentIndex = 0;
 
+            function escapeHtml(str) {
+                return (str || '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
+            }
+
+            function getVideoEmbedUrl(url) {
+                if (!url) return '';
+
+                // YouTube (watch, youtu.be)
+                const ytWatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+                const ytShort = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+                if (ytWatch && ytWatch[1]) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+                if (ytShort && ytShort[1]) return `https://www.youtube.com/embed/${ytShort[1]}`;
+
+                // Vimeo
+                const vimeo = url.match(/vimeo\.com\/(\d+)/);
+                if (vimeo && vimeo[1]) return `https://player.vimeo.com/video/${vimeo[1]}`;
+
+                // If already an embed URL or other provider, fallback to raw
+                return url;
+            }
+
             function renderBlock(index) {
                 if (!blocks.length) return;
                 if (index < 0 || index >= blocks.length) return;
@@ -249,21 +269,11 @@
                 const percent  = Math.round((position / total) * 100);
 
                 // Labels & progress
-                if (moduleLabel) {
-                    moduleLabel.textContent = block.module_title ? block.module_title.toUpperCase() : '';
-                }
-                if (titleEl) {
-                    titleEl.textContent = block.title || '{{ __('Contenu') }} ' + position;
-                }
-                if (posLabel) {
-                    posLabel.textContent = position + ' / ' + total;
-                }
-                if (progressBar) {
-                    progressBar.style.width = percent + '%';
-                }
-                if (progressLabel) {
-                    progressLabel.textContent = percent + '%';
-                }
+                if (moduleLabel) moduleLabel.textContent = block.module_title ? block.module_title.toUpperCase() : '';
+                if (titleEl) titleEl.textContent = block.title || '{{ __('Contenu') }} ' + position;
+                if (posLabel) posLabel.textContent = position + ' / ' + total;
+                if (progressBar) progressBar.style.width = percent + '%';
+                if (progressLabel) progressLabel.textContent = percent + '%';
 
                 // Main content
                 let html = '';
@@ -276,20 +286,57 @@
                         </div>
                     `;
                 } else if (block.type === 'video_url') {
-                    const url = block.content || '';
-                    html = `
-                        <div class="space-y-4">
-                            <div class="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 bg-black/80">
-                                <iframe src="${url}"
-                                        class="w-full h-full"
-                                        allowfullscreen
-                                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    // 1) Uploaded video takes priority
+                    if (block.file_path) {
+                        const src = `/storage/${block.file_path}`;
+                        html = `
+                            <div class="space-y-4">
+                                <div class="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 bg-black">
+                                    <video class="w-full h-full" controls preload="metadata">
+                                        <source src="${src}">
+                                        {{ __('Votre navigateur ne supporte pas la lecture vidéo.') }}
+                                    </video>
+                                </div>
+
+                                ${block.content ? `
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                        <div class="text-[11px] font-semibold text-slate-700">{{ __('URL (optionnelle) :') }}</div>
+                                        <div class="text-[11px] text-slate-600 break-all">${escapeHtml(block.content)}</div>
+                                    </div>
+                                ` : ''}
+
+                                <p class="text-[11px] text-slate-500">
+                                    {{ __('Aperçu : lecture de la vidéo uploadée (fichier).') }}
+                                </p>
                             </div>
-                            <p class="text-[11px] text-slate-500">
-                                ${url}
-                            </p>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        // 2) Fallback to URL embed
+                        const url = block.content || '';
+                        const embed = getVideoEmbedUrl(url);
+
+                        if (!url) {
+                            html = `
+                                <p class="text-sm text-slate-500">
+                                    {{ __('Aucune vidéo renseignée : ajoutez une URL ou uploadez un fichier dans le builder.') }}
+                                </p>
+                            `;
+                        } else {
+                            html = `
+                                <div class="space-y-4">
+                                    <div class="aspect-video w-full rounded-xl overflow-hidden border border-slate-200 bg-black/80">
+                                        <iframe src="${embed}"
+                                                class="w-full h-full"
+                                                allowfullscreen
+                                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 break-all">
+                                        ${escapeHtml(url)}
+                                    </p>
+                                </div>
+                            `;
+                        }
+                    }
                 } else if (block.type === 'pdf') {
                     if (block.file_path) {
                         const src = `/storage/${block.file_path}#toolbar=1&navpanes=1&scrollbar=1`;
@@ -325,17 +372,11 @@
                     `;
                 }
 
-                if (contentEl) {
-                    contentEl.innerHTML = html;
-                }
+                if (contentEl) contentEl.innerHTML = html;
 
                 // Buttons state
-                if (prevBtn) {
-                    prevBtn.disabled = currentIndex === 0;
-                }
-                if (nextBtn) {
-                    nextBtn.disabled = currentIndex === total - 1;
-                }
+                if (prevBtn) prevBtn.disabled = currentIndex === 0;
+                if (nextBtn) nextBtn.disabled = currentIndex === total - 1;
 
                 // Highlight active TOC item
                 const tocItems = document.querySelectorAll('.toc-item');
@@ -349,26 +390,12 @@
                 });
             }
 
-            function goToIndex(index) {
-                renderBlock(index);
-            }
-
-            function goToPreviousBlock() {
-                if (currentIndex > 0) {
-                    renderBlock(currentIndex - 1);
-                }
-            }
-
-            function goToNextBlock() {
-                if (currentIndex < blocks.length - 1) {
-                    renderBlock(currentIndex + 1);
-                }
-            }
+            function goToIndex(index) { renderBlock(index); }
+            function goToPreviousBlock() { if (currentIndex > 0) renderBlock(currentIndex - 1); }
+            function goToNextBlock() { if (currentIndex < blocks.length - 1) renderBlock(currentIndex + 1); }
 
             document.addEventListener('DOMContentLoaded', () => {
-                if (blocks.length) {
-                    renderBlock(0);
-                }
+                if (blocks.length) renderBlock(0);
             });
         </script>
     @endif
