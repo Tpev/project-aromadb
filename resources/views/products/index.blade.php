@@ -54,6 +54,25 @@
 
     {{-- Button Wrapper --}}
     <div style="position: relative; display: inline-flex; margin-top: 6px;">
+{{-- Packs index button --}}
+<a href="{{ route('pack-products.index') }}"
+   class="btn"
+   style="
+       background-color: #f1f5f9;
+       border: 1px solid #cbd5e1;
+       color: #334155;
+       font-weight: 600;
+       padding: 0.5rem 1rem;
+       border-radius: 7px;
+       white-space: nowrap;
+       margin-right: 10px;
+       display: inline-flex;
+       align-items: center;
+       gap: 6px;
+   ">
+    <i class="fas fa-layer-group"></i>
+    Packs & suivis
+</a>
 
         @if($canCreateProduct)
             {{-- Normal usable button --}}

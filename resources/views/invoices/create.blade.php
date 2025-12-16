@@ -48,10 +48,12 @@
                         <label class="details-label" for="invoice_date">{{ __('Date de Facture') }}</label>
                         <input type="date" id="invoice_date" name="invoice_date" class="form-control" value="{{ old('invoice_date', date('Y-m-d')) }}" required>
                     </div>
+
                     <div class="details-box">
                         <label class="details-label" for="due_date">{{ __('Date d\'échéance') }}</label>
                         <input type="date" id="due_date" name="due_date" class="form-control" value="{{ old('due_date') }}">
                     </div>
+
                     <div class="details-box">
                         <label class="details-label" for="notes">{{ __('Notes') }}</label>
                         <textarea id="notes" name="notes" class="form-control">{{ old('notes') }}</textarea>
@@ -82,12 +84,18 @@
                         </table>
                     </div>
 
-                    <div class="flex gap-2 mt-2">
+                    <div class="flex gap-2 mt-2 flex-wrap">
                         <button type="button" class="btn-primary" onclick="addProductItem()">
                             {{ __('Ajouter une prestation') }}
                         </button>
+
                         <button type="button" class="btn-primary" onclick="openInventoryModal()">
                             {{ __('Ajouter depuis l\'inventaire') }}
+                        </button>
+
+                        {{-- ✅ NEW: add pack --}}
+                        <button type="button" class="btn-primary" onclick="openPackModal()">
+                            {{ __('Ajouter un pack') }}
                         </button>
                     </div>
                 </div>
@@ -137,6 +145,44 @@
         </div>
     </div>
 
+    {{-- ✅ NEW: Modal packs --}}
+    <div id="packModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-[#647a0b]">
+                {{ __('Ajouter un pack') }}
+            </h2>
+
+            <div class="mb-4">
+                <label class="block font-semibold">{{ __('Pack') }}</label>
+                <select id="pack_product_id" class="form-control">
+                    <option value="">{{ __('Sélectionnez un pack') }}</option>
+                    @foreach($packProducts ?? [] as $pack)
+                        <option
+                            value="{{ $pack->id }}"
+                            data-name="{{ $pack->name }}"
+                            data-price="{{ $pack->price ?? 0 }}"          {{-- HT --}}
+                            data-tax="{{ $pack->tax_rate ?? 0 }}"
+                        >
+                            {{ $pack->name }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-xs text-slate-500 mt-2">
+                    {{ __('Le pack sera ajouté comme une ligne personnalisée (facturation).') }}
+                </p>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" class="btn-secondary" onclick="closePackModal()">
+                    {{ __('Annuler') }}
+                </button>
+                <button type="button" class="btn-primary" onclick="addPackItem()">
+                    {{ __('Ajouter') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- JS -->
     <script>
         let itemIndex = 0;
@@ -146,7 +192,10 @@
             const idx = itemIndex++;
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="hidden" name="items[${idx}][type]" value="product">Prest.</td>
+                <td>
+                    <input type="hidden" name="items[${idx}][type]" value="product">
+                    Prest.
+                </td>
                 <td>
                     <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateRow(this)">
                         <option value="">{{ __('Sélectionnez') }}</option>
@@ -157,16 +206,24 @@
                             >{{ $p->name }}</option>
                         @endforeach
                     </select>
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
                 </td>
                 <td><input type="text" name="items[${idx}][description]" class="form-control"></td>
                 <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="1" min="1" onchange="updateRow(this)"></td>
                 <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" readonly></td>
                 <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" readonly></td>
-                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amt" readonly></td>
-                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-ttc" readonly></td>
+                <td><input type="number" class="form-control tax-amt" readonly></td>
+                <td><input type="number" class="form-control total-ttc" readonly></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
             table.appendChild(row);
+        }
+
+        function openInventoryModal() {
+            document.getElementById('inventoryModal').classList.remove('hidden');
+        }
+        function closeInventoryModal() {
+            document.getElementById('inventoryModal').classList.add('hidden');
         }
 
         function addInventoryItem() {
@@ -176,42 +233,102 @@
             if (!opt.value) return;
 
             const ttc = (opt.dataset.unitType === 'ml')
-                ? parseFloat(opt.dataset.ttcPerMl)
-                : parseFloat(opt.dataset.ttcUnit);
-            const tax = parseFloat(opt.dataset.tax) || 0;
-            const ht  = ttc / (1 + tax/100);
+                ? parseFloat(opt.dataset.ttcPerMl || '0')
+                : parseFloat(opt.dataset.ttcUnit || '0');
+
+            const tax = parseFloat(opt.dataset.tax || '0') || 0;
+            const ht  = tax > 0 ? (ttc / (1 + tax/100)) : ttc;
 
             const table = document.querySelector('#invoice-items-table tbody');
             const idx   = itemIndex++;
             const row   = document.createElement('tr');
             row.innerHTML = `
-                <td><input type="hidden" name="items[${idx}][type]" value="inventory">Inv.</td>
+                <td>
+                    <input type="hidden" name="items[${idx}][type]" value="inventory">
+                    Inv.
+                </td>
                 <td>
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="${opt.value}">
-                    ${opt.text}
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    ${escapeHtml(opt.text)}
                 </td>
-                <td><input type="text" name="items[${idx}][description]" class="form-control" value="${opt.dataset.name}" readonly></td>
+                <td><input type="text" name="items[${idx}][description]" class="form-control" value="${escapeHtml(opt.dataset.name || '')}" readonly></td>
                 <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="${qty}" readonly></td>
                 <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" value="${ht.toFixed(2)}" readonly></td>
                 <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" value="${tax.toFixed(2)}" readonly></td>
-                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amt" value="${(ht*qty*(tax/100)).toFixed(2)}" readonly></td>
-                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-ttc" value="${(ttc*qty).toFixed(2)}" readonly></td>
+                <td><input type="number" class="form-control tax-amt" value="${(ht*qty*(tax/100)).toFixed(2)}" readonly></td>
+                <td><input type="number" class="form-control total-ttc" value="${(ttc*qty).toFixed(2)}" readonly></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
             table.appendChild(row);
             closeInventoryModal();
         }
 
+        // ✅ NEW: pack modal controls
+        function openPackModal() {
+            document.getElementById('packModal').classList.remove('hidden');
+        }
+        function closePackModal() {
+            document.getElementById('packModal').classList.add('hidden');
+        }
+
+        // ✅ NEW: add pack as a custom line
+        function addPackItem() {
+            const sel = document.getElementById('pack_product_id');
+            const opt = sel.options[sel.selectedIndex];
+            if (!opt.value) return;
+
+            const name = opt.dataset.name || 'Pack';
+            const ht   = parseFloat(opt.dataset.price || '0') || 0;
+            const tax  = parseFloat(opt.dataset.tax || '0') || 0;
+
+            const qty = 1;
+            const taxAmt = ht * qty * (tax/100);
+            const ttc = (ht * qty) + taxAmt;
+
+            const table = document.querySelector('#invoice-items-table tbody');
+            const idx   = itemIndex++;
+            const row   = document.createElement('tr');
+
+            row.innerHTML = `
+                <td>
+                    <input type="hidden" name="items[${idx}][type]" value="custom">
+                    Pack
+                </td>
+                <td>
+                    —
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                </td>
+                <td>
+                    <input type="text" name="items[${idx}][description]" class="form-control" value="Pack : ${escapeHtml(name)}" readonly>
+                </td>
+                <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="${qty}" min="1" readonly></td>
+                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" value="${ht.toFixed(2)}" readonly></td>
+                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" value="${tax.toFixed(2)}" readonly></td>
+                <td><input type="number" class="form-control tax-amt" value="${taxAmt.toFixed(2)}" readonly></td>
+                <td><input type="number" class="form-control total-ttc" value="${ttc.toFixed(2)}" readonly></td>
+                <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
+            `;
+
+            table.appendChild(row);
+            closePackModal();
+        }
+
         function updateRow(el) {
-            const row   = el.closest('tr');
+            const row    = el.closest('tr');
             const select = row.querySelector('.product-select');
-            const selected = select ? select.selectedOptions[0] : null;
-            const price = selected ? parseFloat(selected.dataset.price) || 0 : 0;
-            const tax   = selected ? parseFloat(selected.dataset.tax) || 0 : 0;
-            const qty   = parseFloat(row.querySelector('input[name*="[quantity]"]').value) || 1;
-            const ht    = price;
-            const amt   = ht * qty * (tax/100);
-            const ttc   = (ht * qty) + amt;
+            if (!select) return;
+
+            const selected = select.selectedOptions[0];
+            const price = selected ? parseFloat(selected.dataset.price || '0') : 0;
+            const tax   = selected ? parseFloat(selected.dataset.tax || '0') : 0;
+            const qtyEl = row.querySelector('input[name*="[quantity]"]');
+            const qty   = qtyEl ? (parseFloat(qtyEl.value) || 1) : 1;
+
+            const ht  = price;
+            const amt = ht * qty * (tax/100);
+            const ttc = (ht * qty) + amt;
 
             row.querySelector('.unit-price').value = ht.toFixed(2);
             row.querySelector('.tax-rate').value   = tax.toFixed(2);
@@ -223,23 +340,16 @@
             btn.closest('tr').remove();
         }
 
-        function openInventoryModal() {
-            document.getElementById('inventoryModal').classList.remove('hidden');
-        }
-        function closeInventoryModal() {
-            document.getElementById('inventoryModal').classList.add('hidden');
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[s]));
         }
     </script>
 
     <style>
-        .container-fluid {
-            max-width: 1200px;
-        }
-
-        .input-section {
-            max-width: 600px;
-            margin-bottom: 30px;
-        }
+        .container-fluid { max-width: 1200px; }
+        .input-section { max-width: 600px; margin-bottom: 30px; }
 
         .details-container {
             background-color: #f9f9f9;
@@ -257,9 +367,7 @@
             text-align: center;
         }
 
-        .details-box {
-            margin-bottom: 15px;
-        }
+        .details-box { margin-bottom: 15px; }
 
         .details-label {
             font-weight: bold;
@@ -286,9 +394,7 @@
             cursor: pointer;
         }
 
-        .btn-primary:hover {
-            background-color: #854f38;
-        }
+        .btn-primary:hover { background-color: #854f38; }
 
         .btn-secondary {
             background-color: transparent;
@@ -305,37 +411,13 @@
             color: #fff;
         }
 
-        .text-red-500 {
-            color: #e3342f;
-            font-size: 0.875rem;
-        }
+        .text-red-500 { color: #e3342f; font-size: 0.875rem; }
 
-        /* Styles pour la table des articles */
-        #invoice-items-table {
-            width: 100%;
-            margin-bottom: 15px;
-            table-layout: auto;
-        }
-
-        #invoice-items-table th, #invoice-items-table td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        #invoice-items-table th {
-            background-color: #647a0b;
-            color: #fff;
-            white-space: nowrap;
-        }
-
-        #invoice-items-table td {
-            border-bottom: 1px solid #ccc;
-        }
-
-        #invoice-items-table td input,
-        #invoice-items-table td select {
-            width: 100%;
-        }
+        #invoice-items-table { width: 100%; margin-bottom: 15px; table-layout: auto; }
+        #invoice-items-table th, #invoice-items-table td { padding: 8px; text-align: left; }
+        #invoice-items-table th { background-color: #647a0b; color: #fff; white-space: nowrap; }
+        #invoice-items-table td { border-bottom: 1px solid #ccc; }
+        #invoice-items-table td input, #invoice-items-table td select { width: 100%; }
 
         .btn-danger {
             background-color: #e3342f;
@@ -346,29 +428,12 @@
             cursor: pointer;
         }
 
-        .btn-danger:hover {
-            background-color: #cc1f1a;
-        }
-
-        .readonly-field {
-            background-color: #e9ecef;
-            cursor: not-allowed;
-        }
+        .btn-danger:hover { background-color: #cc1f1a; }
 
         @media (max-width: 768px) {
-            .details-title {
-                font-size: 1.5rem;
-            }
-
-            .btn-primary, .btn-secondary {
-                width: 100%;
-                text-align: center;
-                margin-bottom: 10px;
-            }
-
-            #invoice-items-table th, #invoice-items-table td {
-                padding: 6px;
-            }
+            .details-title { font-size: 1.5rem; }
+            .btn-primary, .btn-secondary { width: 100%; text-align: center; margin-bottom: 10px; }
+            #invoice-items-table th, #invoice-items-table td { padding: 6px; }
         }
     </style>
 </x-app-layout>

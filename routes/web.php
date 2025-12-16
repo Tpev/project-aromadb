@@ -70,6 +70,11 @@ use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 use App\Http\Controllers\PackProductController;
 use App\Http\Controllers\PublicPackCheckoutController;
+// routes/web.php
+Route::middleware(['auth'])->group(function () {
+    Route::post('/invoices/from-pack/{packPurchase}', [InvoiceController::class, 'createFromPackPurchase'])
+        ->name('invoices.fromPackPurchase');
+});
 
 Route::get('/pro/{slug}/packs/{pack}/checkout', [PublicPackCheckoutController::class, 'show'])
     ->name('packs.checkout.show');

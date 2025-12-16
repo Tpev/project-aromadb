@@ -23,6 +23,7 @@ use App\Notifications\AppointmentBooked;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use App\Models\SpecialAvailability;
+use App\Models\PackPurchase;
 
 class AppointmentController extends Controller
 {
@@ -231,6 +232,11 @@ public function store(Request $request)
     } else {
         $clientProfileId = $request->client_profile_id;
         $clientProfile   = ClientProfile::findOrFail($clientProfileId);
+
+        // Sécurité multi-tenant : le client doit appartenir au thérapeute
+        if ((int) $clientProfile->user_id !== (int) $therapistId) {
+            return back()->withErrors(['client_profile_id' => 'Ce client n’appartient pas à votre compte.'])->withInput();
+        }
     }
 
     // Datetime
@@ -253,7 +259,48 @@ public function store(Request $request)
         'product_id'            => $request->product_id,
         'duration'              => $duration,
         'practice_location_id'  => $mode === 'cabinet' ? $locationId : null,
+        // Si ton modèle Appointment a un champ "type" (comme dans storePatient), on le renseigne sans casser:
+        'type'                  => $mode,
     ]);
+
+    /* ============================================================
+       ✅ PACK AUTO-CONSUMPTION (création par le thérapeute)
+       - Si le client a un pack actif non expiré incluant cette prestation
+         avec des crédits restants => on consomme 1 crédit.
+       - Ici il n'y a pas de Stripe dans ce flow, mais ça garde la cohérence.
+       - IMPORTANT: ne casse pas la création même si erreur pack.
+       ============================================================ */
+    try {
+        $now = Carbon::now();
+
+        $packPurchase = \App\Models\PackPurchase::query()
+            ->where('user_id', $therapistId)
+            ->where('client_profile_id', $clientProfileId)
+            ->where('status', 'active')
+            ->where(function ($q) use ($now) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', $now);
+            })
+            ->whereHas('items', function ($q) use ($product) {
+                $q->where('product_id', $product->id)
+                  ->where('quantity_remaining', '>', 0);
+            })
+            ->orderByRaw('ISNULL(expires_at) ASC')
+            ->orderBy('expires_at', 'asc')
+            ->orderBy('purchased_at', 'asc')
+            ->first();
+
+        if ($packPurchase) {
+            $packPurchase->consumeProduct($product->id, 1);
+
+            // Optionnel: tracer dans notes (sans casser)
+            // $appointment->update([
+            //     'notes' => trim(($appointment->notes ?? '') . "\n[Pack] Crédit utilisé (PackPurchase #{$packPurchase->id})"),
+            // ]);
+        }
+    } catch (\Exception $e) {
+        Log::warning('Pack auto-consumption (therapist store) skipped due to error: ' . $e->getMessage());
+    }
 
     // Meeting visio si applicable
     if ($product->visio) {
@@ -281,6 +328,7 @@ public function store(Request $request)
 
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
+
 
 
 
@@ -830,9 +878,6 @@ public function createPatient($therapistId)
 }
 
 
-    /**
-     * Store a newly created appointment from a patient.
-     */
 public function storePatient(Request $request)
 {
     // Messages d'erreur personnalisés
@@ -979,6 +1024,69 @@ public function storePatient(Request $request)
         Log::error('Failed to send appointment notification: ' . $e->getMessage());
     }
 
+    /* ============================================================
+       ✅ PACK AUTO-CONSUMPTION (ne casse pas le flow Stripe existant)
+       - Si le client a un pack actif non expiré incluant cette prestation
+         avec des crédits restants => on consomme 1 crédit et on confirme
+         sans paiement.
+       ============================================================ */
+    try {
+        // On ne tente que si on a un email (sinon on ne peut pas "matcher" un client réel)
+        // (si ton système autorise des clientProfiles sans email, tu peux enlever ce guard)
+        if (!empty($clientProfile->email)) {
+            $now = Carbon::now();
+
+            // Cherche un pack "le plus urgent à consommer" (expire bientôt, FIFO)
+            $packPurchase = \App\Models\PackPurchase::query()
+                ->where('user_id', $therapist->id)
+                ->where('client_profile_id', $clientProfile->id)
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', $now);
+                })
+                ->whereHas('items', function ($q) use ($product) {
+                    $q->where('product_id', $product->id)
+                      ->where('quantity_remaining', '>', 0);
+                })
+                // Non-null expires_at d'abord (priorité aux packs qui expirent), puis date la plus proche
+                ->orderByRaw('ISNULL(expires_at) ASC')
+                ->orderBy('expires_at', 'asc')
+                ->orderBy('purchased_at', 'asc')
+                ->first();
+
+            if ($packPurchase) {
+                // Consomme 1 crédit (ta méthode fait déjà transaction + locks + expired/exhausted)
+                $packPurchase->consumeProduct($product->id, 1);
+
+                // Confirmer sans paiement
+                $appointment->update([
+                    'status' => 'confirmed',
+                    // Optionnel : garde une trace dans les notes (ne casse rien)
+                    // 'notes' => trim(($appointment->notes ?? '') . "\n[Pack] Crédit utilisé (PackPurchase #{$packPurchase->id})"),
+                ]);
+
+                // Emails (même logique que "pas de paiement requis")
+                try {
+                    if ($appointment->clientProfile->email) {
+                        Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                    }
+                    if ($therapist->email) {
+                        Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Erreur envoi emails (pack auto-consumption) : " . $e->getMessage());
+                }
+
+                return redirect()->route('appointments.showPatient', $appointment->token)
+                    ->with('success', 'Votre rendez-vous a été réservé avec succès. Votre pack a été utilisé automatiquement.');
+            }
+        }
+    } catch (\Exception $e) {
+        // IMPORTANT: ne pas casser la réservation si un souci pack (on log et on continue le flow normal)
+        Log::warning('Pack auto-consumption skipped due to error: ' . $e->getMessage());
+    }
+
     /* ---------------------- Paiement Stripe si requis ---------------------- */
     if (!empty($product->collect_payment)) {
         if ($therapist->stripe_account_id) {
@@ -1059,6 +1167,7 @@ public function storePatient(Request $request)
     return redirect()->route('appointments.showPatient', $appointment->token)
                      ->with('success', 'Votre rendez-vous a été réservé avec succès.');
 }
+
 
 
 
