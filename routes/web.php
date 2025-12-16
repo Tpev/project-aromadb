@@ -68,7 +68,33 @@ use App\Http\Controllers\NewsletterUnsubscribeController;
 use App\Http\Controllers\DigitalTrainingController;
 use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
+use App\Http\Controllers\PackProductController;
+use App\Http\Controllers\PublicPackCheckoutController;
 
+Route::get('/pro/{slug}/packs/{pack}/checkout', [PublicPackCheckoutController::class, 'show'])
+    ->name('packs.checkout.show');
+
+Route::post('/pro/{slug}/packs/{pack}/checkout', [PublicPackCheckoutController::class, 'store'])
+    ->name('packs.checkout.store');
+
+Route::get('/packs/checkout/success', [PublicPackCheckoutController::class, 'success'])
+    ->name('packs.checkout.success');
+
+Route::get('/packs/checkout/cancel', [PublicPackCheckoutController::class, 'cancel'])
+    ->name('packs.checkout.cancel');
+
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('pack-products', PackProductController::class);
+
+    Route::post('pack-products/{packProduct}/assign', [PackProductController::class, 'assignToClient'])
+        ->name('pack-products.assign');
+	Route::post('/client-profiles/{clientProfile}/packs/assign', [ClientProfilePackController::class, 'assign'])
+    ->name('client_profiles.packs.assign');
+
+});
 
 
 Route::get('/beta/brand', function () {

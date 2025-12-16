@@ -21,30 +21,69 @@ class PublicTherapistController extends Controller
      */
 public function show($slug)
 {
-    // Trouver le thérapeute par slug et s'assurer que l'utilisateur est un thérapeute
     $therapist = User::where('slug', $slug)
-                     ->where('is_therapist', true)
-                     ->firstOrFail();
+        ->where('is_therapist', true)
+        ->firstOrFail();
 
-	        // Incrémenter le compteur de vues
-        $therapist->increment('view_count');	
-    // Charger les témoignages paginés
+    $therapist->increment('view_count');
+
     $testimonials = $therapist->testimonials()
-    ->orderByRaw('COALESCE(external_created_at, created_at) DESC')
-    ->paginate(5);
+        ->orderByRaw('COALESCE(external_created_at, created_at) DESC')
+        ->paginate(5);
 
-	 $prestations = $therapist->products()->orderBy('display_order')->get();
-// Fetch upcoming events for the therapist
-    // Fetch upcoming events for the therapist that are set to be shown on the portal
+    // ✅ Prestations unitaires (Product)
+    $prestations = $therapist->products()
+        ->orderBy('display_order')
+        ->get();
+
+    // ✅ Packs (PackProduct) + contenu (items + product)
+    $packProducts = \App\Models\PackProduct::where('user_id', $therapist->id)
+        ->with(['items.product'])
+        ->orderBy('name')
+        ->get();
+
+    // ✅ Calcul “prix à l’unité” + “économie” sur chaque pack (en mémoire)
+    $packProducts->each(function ($pack) {
+        $items = $pack->items ?? collect();
+
+        $unitTotalTtc = (float) $items->sum(function ($it) {
+            $qty = (int) ($it->quantity ?? 1);
+
+            $p = $it->product;
+            if (!$p) return 0;
+
+            // Product::getPriceInclTaxAttribute() existe déjà chez toi
+            $unitPriceTtc = (float) ($p->price_incl_tax ?? 0);
+
+            return $qty * $unitPriceTtc;
+        });
+
+        $packPriceTtc = (float) ($pack->price_incl_tax ?? 0);
+
+        $pack->unit_total_price = $unitTotalTtc;
+        $pack->saving_amount    = max(0, $unitTotalTtc - $packPriceTtc);
+        $pack->saving_percent   = ($unitTotalTtc > 0 && $pack->saving_amount > 0)
+            ? round(($pack->saving_amount / $unitTotalTtc) * 100)
+            : 0;
+    });
+
     $events = Event::where('user_id', $therapist->id)
         ->where('start_date_time', '>=', Carbon::now())
         ->where('showOnPortail', true)
         ->orderBy('start_date_time', 'asc')
-        ->with('associatedProduct') // Eager load the associated product
+        ->with('associatedProduct')
         ->get();
-    // Passer les données au vue
-    return view('public.therapist.show', compact('therapist', 'testimonials','prestations','events'));
+
+    return view('public.therapist.show', compact(
+        'therapist',
+        'testimonials',
+        'prestations',
+        'packProducts',
+        'events'
+    ));
 }
+
+
 
 
 public function sendInformationRequest(Request $request, $slug)

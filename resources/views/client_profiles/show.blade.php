@@ -63,12 +63,14 @@
             $tabs = [
                 'Aperçu',
                 'Rendez-vous',
+				'Forfaits',
                 'Notes de séance',
                 'Questionnaires',
                 'Conseils envoyés',
                 'Mesures',
                 'Messagerie',
                 'Fichiers & Documents',
+				
             ];
         @endphp
 
@@ -239,6 +241,8 @@
             </form>
         @endif
     @endif
+	
+	
 </section>
 
                     <!-- ==========================
@@ -422,7 +426,231 @@
 
 
                 </div>
+{{-- =======================
+     Onglet : Forfaits
+     ======================= --}}
+<div x-show="tab === 'Forfaits'" x-cloak>
+    <style>
+        :root{
+            --brand:#647a0b;
+            --brown:#854f38;
+            --cream:#f7f2ea;
+        }
+        .am-card{ background:#fff; border-radius:1rem; box-shadow:0 10px 25px rgba(15,23,42,.06); border:1px solid rgba(15,23,42,.08); }
+        .am-badge{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem .6rem; border-radius:999px; font-weight:800; font-size:.75rem; border:1px solid rgba(15,23,42,.10); }
+        .am-dot{ width:.45rem; height:.45rem; border-radius:999px; display:inline-block; }
+        .am-input{ width:100%; border-radius:.9rem; border-color: rgb(203 213 225); }
+        .am-input:focus{ border-color: var(--brand); --tw-ring-color: var(--brand); }
+        .am-row:hover{ background: rgba(100,122,11,0.06); }
+        .am-th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; font-weight:900; }
+    </style>
 
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+        {{-- Left: Purchases list --}}
+        <div class="lg:col-span-2 am-card p-5">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900">🎁 Forfaits du client</h2>
+                    <p class="mt-1 text-xs text-slate-600">Suivi des crédits disponibles et de l’historique.</p>
+                </div>
+            </div>
+
+            <div class="mt-4 overflow-x-auto rounded-xl ring-1 ring-slate-200">
+                <table class="min-w-full text-sm bg-white">
+                    <thead style="background:linear-gradient(90deg, rgba(100,122,11,0.10), rgba(133,79,56,0.08));">
+                        <tr class="text-slate-700">
+                            <th class="px-3 py-2 text-left am-th">Pack</th>
+                            <th class="px-3 py-2 text-left am-th">Statut</th>
+                            <th class="px-3 py-2 text-left am-th">Crédits</th>
+                            <th class="px-3 py-2 text-left am-th">Achat</th>
+                            <th class="px-3 py-2 text-left am-th">Expiration</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+@forelse($packPurchases as $p)
+    @php
+        $rem = (int) $p->items->sum('quantity_remaining');
+        $tot = (int) $p->items->sum('quantity_total');
+        $rowId = 'pack_'.$p->id;
+    @endphp
+
+    {{-- Row summary --}}
+    <tr class="am-row" x-data="{ open:false }">
+        <td class="px-3 py-2">
+            <div class="font-extrabold text-slate-900">{{ $p->pack?->name ?? 'Pack supprimé' }}</div>
+            <div class="text-xs text-slate-600">
+                {{ $p->items->count() }} ligne(s) •
+                <button type="button"
+                        class="underline font-semibold"
+                        @click="open = !open">
+                    <span x-text="open ? 'Masquer détails' : 'Voir détails'"></span>
+                </button>
+            </div>
+        </td>
+
+        <td class="px-3 py-2">
+            @if($p->status === 'active')
+                <span class="am-badge" style="color:var(--brand); background:rgba(100,122,11,0.06); border-color:rgba(100,122,11,0.25);">
+                    <span class="am-dot" style="background:var(--brand)"></span> Actif
+                </span>
+            @elseif($p->status === 'exhausted')
+                <span class="am-badge" style="color:var(--brown); background:rgba(133,79,56,0.06); border-color:rgba(133,79,56,0.22);">
+                    <span class="am-dot" style="background:var(--brown)"></span> Terminé
+                </span>
+            @elseif($p->status === 'expired')
+                <span class="am-badge" style="color:#334155; background:rgba(15,23,42,0.04);">
+                    <span class="am-dot" style="background:#64748b"></span> Expiré
+                </span>
+            @else
+                <span class="am-badge" style="color:#334155; background:rgba(15,23,42,0.04);">
+                    <span class="am-dot" style="background:#64748b"></span> {{ $p->status }}
+                </span>
+            @endif
+        </td>
+
+        <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold"
+                  style="background: rgba(133,79,56,0.10); color: var(--brown); border: 1px solid rgba(133,79,56,0.18);">
+                {{ $rem }} / {{ $tot }}
+            </span>
+        </td>
+
+        <td class="px-3 py-2 text-slate-700">
+            {{ optional($p->purchased_at)->format('d/m/Y') ?? '—' }}
+        </td>
+
+        <td class="px-3 py-2 text-slate-700">
+            {{ optional($p->expires_at)->format('d/m/Y') ?? '—' }}
+        </td>
+
+        {{-- Details row --}}
+        <tr x-show="open" x-cloak class="bg-slate-50">
+            <td colspan="5" class="px-3 py-3">
+                <div class="rounded-xl bg-white border border-slate-200 p-3">
+                    <div class="text-sm font-extrabold text-slate-900 mb-2">Détail des crédits</div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="text-slate-600">
+                                    <th class="text-left py-2 pr-3 text-xs uppercase font-extrabold">Produit / Prestation</th>
+                                    <th class="text-left py-2 pr-3 text-xs uppercase font-extrabold">Total</th>
+                                    <th class="text-left py-2 pr-3 text-xs uppercase font-extrabold">Restant</th>
+                                    <th class="text-left py-2 pr-3 text-xs uppercase font-extrabold">Consommé</th>
+                                    <th class="text-left py-2 pr-3 text-xs uppercase font-extrabold">Progression</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach($p->items as $it)
+                                    @php
+                                        $total = (int) ($it->quantity_total ?? 0);
+                                        $left  = (int) ($it->quantity_remaining ?? 0);
+                                        $used  = max(0, $total - $left);
+                                        $pct   = $total > 0 ? round(($used / $total) * 100) : 0;
+
+                                        // adapte le champ selon ton modèle:
+                                        // $label = $it->product?->name ?? $it->label ?? '—';
+                                        $label = $it->product?->name
+                                            ?? $it->product_name
+                                            ?? $it->label
+                                            ?? '—';
+                                    @endphp
+                                    <tr>
+                                        <td class="py-2 pr-3 font-semibold text-slate-900">
+                                            {{ $label }}
+                                        </td>
+                                        <td class="py-2 pr-3 text-slate-700">{{ $total }}</td>
+                                        <td class="py-2 pr-3 text-slate-700">{{ $left }}</td>
+                                        <td class="py-2 pr-3 text-slate-700">{{ $used }}</td>
+                                        <td class="py-2 pr-3">
+                                            <div class="w-48 max-w-full">
+                                                <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
+                                                    <div class="h-2 rounded-full"
+                                                         style="width: {{ $pct }}%; background: var(--brand);"></div>
+                                                </div>
+                                                <div class="text-xs text-slate-500 mt-1">{{ $pct }}%</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-2 text-xs text-slate-500">
+                        Astuce : tu peux consommer automatiquement une unité quand un RDV lié à ce produit est créé/complété.
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </tr>
+@empty
+    <tr>
+        <td colspan="5" class="px-3 py-10 text-center text-slate-600">
+            Aucun forfait attribué à ce client pour l’instant.
+        </td>
+    </tr>
+@endforelse
+</tbody>
+
+                </table>
+            </div>
+
+            <div class="mt-3 text-xs text-slate-600">
+                Prochain step : sur le formulaire “Créer rendez-vous”, on pourra choisir “Utiliser un forfait” pour consommer un crédit.
+            </div>
+        </div>
+
+        {{-- Right: Quick assign --}}
+        <div class="am-card p-5">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900">➕ Attribuer un forfait</h3>
+                    <p class="mt-1 text-xs text-slate-600">Attribuez un pack actif en 10 secondes.</p>
+                </div>
+            </div>
+
+            <form action="{{ route('client_profiles.packs.assign', $clientProfile->id) }}" method="POST" class="mt-4 space-y-3">
+                @csrf
+
+                <div>
+                    <label class="text-sm font-semibold text-slate-700">Pack</label>
+                    <select name="pack_product_id" required class="mt-1 am-input">
+                        <option value="">— Choisir un pack —</option>
+                        @foreach($availablePacks as $pack)
+                            <option value="{{ $pack->id }}">{{ $pack->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm font-semibold text-slate-700">Date d’achat</label>
+                        <input type="date" name="purchased_at" class="mt-1 am-input">
+                    </div>
+                    <div>
+                        <label class="text-sm font-semibold text-slate-700">Expiration</label>
+                        <input type="date" name="expires_at" class="mt-1 am-input">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-semibold text-slate-700">Note (optionnel)</label>
+                    <textarea name="notes" rows="2" class="mt-1 am-input"></textarea>
+                </div>
+
+                <button class="w-full rounded-xl px-4 py-2 text-sm font-extrabold text-white shadow-sm hover:opacity-95 transition"
+                        style="background:var(--brand);">
+                    Attribuer
+                </button>
+
+                <p class="text-xs text-slate-500">
+                    Les crédits initiaux sont copiés depuis le contenu du pack.
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
                 {{-- =======================
                      Onglet : Rendez-vous
                      ======================= --}}
@@ -1202,6 +1430,7 @@
                             </div>
                         @endif
                     </section>
+
 
                     {{-- Helpers UI: copy + surlignage nouveau document --}}
                     <script>

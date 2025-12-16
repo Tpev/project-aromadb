@@ -16,7 +16,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Models\Event;
 use App\Models\Reservation;
-
+use App\Models\PackProduct;
+use App\Models\PackPurchase;
 
 class ClientProfileController extends Controller
 {
@@ -137,57 +138,88 @@ class ClientProfileController extends Controller
      * @param  ClientProfile  $clientProfile
      * @return \Illuminate\Http\Response
      */
-    public function show(ClientProfile $clientProfile)
-    {
-        $this->authorize('view', $clientProfile);
+   public function show(ClientProfile $clientProfile)
+{
+    $this->authorize('view', $clientProfile);
 
-        // Get related appointments, session notes, and invoices
-        // Use query builder so we can reuse for mobile
-        $appointmentsQuery = $clientProfile->appointments()->with('product');
+    // -----------------------------
+    // Appointments (desktop + mobile)
+    // -----------------------------
+    $appointmentsQuery = $clientProfile->appointments()->with('product');
 
-        $allAppointments = $appointmentsQuery
-            ->orderByDesc('appointment_date')
-            ->get();
+    $allAppointments = $appointmentsQuery
+        ->orderByDesc('appointment_date')
+        ->get();
 
-        // For mobile, we only need a small recent subset
-        $mobileAppointments = $allAppointments->take(5);
+    $mobileAppointments = $allAppointments->take(5);
 
-        $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
-        $invoices     = Invoice::where('client_profile_id', $clientProfile->id)->get();
+    // -----------------------------
+    // Session notes + invoices
+    // -----------------------------
+    $sessionNotes = SessionNote::where('client_profile_id', $clientProfile->id)->get();
+    $invoices     = Invoice::where('client_profile_id', $clientProfile->id)->get();
 
-        // Fetch only the questionnaires belonging to the authenticated therapist
-        $responses = Response::with('questionnaire')
-            ->where('client_profile_id', $clientProfile->id)
-            ->get();
+    // -----------------------------
+    // Questionnaires responses (therapist-owned questionnaires assumed by existing logic)
+    // -----------------------------
+    $responses = Response::with('questionnaire')
+        ->where('client_profile_id', $clientProfile->id)
+        ->get();
 
-        // Recharger avec la relation messages
-        $clientProfile = ClientProfile::findOrFail($clientProfile->id);
-        $clientProfile->load(['messages', 'company']);
+    // -----------------------------
+    // Reload client with messages + company (keep your existing behavior)
+    // -----------------------------
+    $clientProfile = ClientProfile::findOrFail($clientProfile->id);
+    $clientProfile->load(['messages', 'company']);
 
-        // Récupérer la dernière demande de témoignage, s'il y en a une
-        $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
+    // -----------------------------
+    // Testimonial
+    // -----------------------------
+    $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
 
-        // If request comes from /mobile/... → use mobile view
-        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
-            return view('mobile.clients.show', [
-                'clientProfile' => $clientProfile,
-                'appointments'  => $mobileAppointments,
-            ]);
-        }
+    // -----------------------------
+    // PACKS (Forfaits) — NEW
+    // -----------------------------
+    $packPurchases = PackPurchase::with(['pack', 'items.product'])
+        ->where('client_profile_id', $clientProfile->id)
+        ->latest()
+        ->get();
 
-        // Default: desktop/web view
-        return view('client_profiles.show', compact(
-            'clientProfile',
-            'allAppointments',   // if you prefer $appointments in the view, rename below
-            'sessionNotes',
-            'invoices',
-            'responses',
-            'testimonialRequest'
-        ))->with([
-            // keep compatibility with existing blade expecting `$appointments`
-            'appointments' => $allAppointments,
+    $availablePacks = PackProduct::where('user_id', auth()->id())
+        ->where('is_active', true)
+        ->orderBy('name')
+        ->get();
+
+    // -----------------------------
+    // Mobile view
+    // -----------------------------
+    if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+        return view('mobile.clients.show', [
+            'clientProfile' => $clientProfile,
+            'appointments'  => $mobileAppointments,
+
+            // packs (optional for mobile, harmless if not used)
+            'packPurchases' => $packPurchases,
         ]);
     }
+
+    // -----------------------------
+    // Desktop/web view
+    // -----------------------------
+    return view('client_profiles.show', compact(
+        'clientProfile',
+        'allAppointments',
+        'sessionNotes',
+        'invoices',
+        'responses',
+        'testimonialRequest',
+        'packPurchases',
+        'availablePacks',
+    ))->with([
+        // keep compatibility with existing blade expecting `$appointments`
+        'appointments' => $allAppointments,
+    ]);
+}
 
     /**
      * Show the form for editing the specified client profile.
