@@ -168,7 +168,7 @@
 
                         <!-- Profile Description -->
                         <div class="details-box">
-                            <label class="details-label" for="profile_description">{{ __('Votre spécialité') }}</label>
+                            <label class="details-label" for="profile_description">{{ __('Titre et spécialités') }}</label>
                             <textarea id="profile_description" name="profile_description"
                                       class="form-control">{{ old('profile_description', auth()->user()->profile_description) }}</textarea>
                             <!-- Helper text -->
