@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InformationRequestMail;
 use App\Models\InformationRequest;
+use App\Models\DigitalTraining;
 
 class PublicTherapistController extends Controller
 {
@@ -67,6 +68,12 @@ public function show($slug)
             : 0;
     });
 
+	$trainings = DigitalTraining::query()
+		->where('user_id', $therapist->id)
+		->where('status', 'published') // adjust to your real value if different
+		->orderByDesc('created_at')
+		->get();
+
     $events = Event::where('user_id', $therapist->id)
         ->where('start_date_time', '>=', Carbon::now())
         ->where('showOnPortail', true)
@@ -79,7 +86,8 @@ public function show($slug)
         'testimonials',
         'prestations',
         'packProducts',
-        'events'
+        'events',
+		'trainings'
     ));
 }
 

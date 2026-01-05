@@ -14,7 +14,11 @@
         </div>
     </x-slot>
 
-    <div class="container mt-6">
+    @php
+        $oldIsFree = (bool) old('is_free', false);
+    @endphp
+
+    <div class="container mt-6" x-data="{ isFree: {{ $oldIsFree ? 'true' : 'false' }} }">
         <div class="mx-auto max-w-4xl bg-white shadow-sm rounded-2xl border border-slate-100 p-6">
             <form action="{{ route('digital-trainings.store') }}"
                   method="POST"
@@ -88,10 +92,66 @@
                     </div>
                 </div>
 
+                {{-- Pricing --}}
+                <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">{{ __('Tarification') }}</p>
+                            <p class="text-[11px] text-slate-500">
+                                {{ __('Définissez un prix TTC ou cochez "Formation gratuite".') }}
+                            </p>
+                        </div>
+
+                        <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
+                            <input type="checkbox"
+                                   name="is_free"
+                                   value="1"
+                                   x-model="isFree"
+                                   class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                            {{ __('Formation gratuite') }}
+                        </label>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-800 mb-1">
+                                {{ __('Prix TTC (€)') }}
+                            </label>
+                            <input type="text"
+                                   name="price_eur"
+                                   value="{{ old('price_eur') }}"
+                                   :disabled="isFree"
+                                   :class="isFree ? 'opacity-50 cursor-not-allowed' : ''"
+                                   placeholder="Ex : 29,90"
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                            @error('price_eur') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-800 mb-1">
+                                {{ __('TVA (%)') }}
+                            </label>
+                            <input type="number"
+                                   name="tax_rate"
+                                   value="{{ old('tax_rate', 0) }}"
+                                   min="0" max="100" step="0.01"
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                            @error('tax_rate') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="text-[11px] text-slate-500 leading-relaxed">
+                            <div class="rounded-xl bg-white border border-slate-100 p-3 h-full">
+                                <p class="font-semibold text-slate-700 mb-1">{{ __('Note') }}</p>
+                                <p>{{ __('Le prix est stocké en centimes (TTC). Exemple : 29,90 € → 2990.') }}</p>
+                                <p class="mt-1">{{ __('La TVA est indicative pour l’affichage / logique future.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Accès, statut, durée --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-			<input type="hidden" name="access_type" value="public">
-
+                    <input type="hidden" name="access_type" value="public">
 
                     <div>
                         <label class="block text-sm font-medium text-slate-800 mb-1">
@@ -113,7 +173,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-slate-800 mb-1">
-                            {{ __('Durée estimée (heures)') }}
+                            {{ __('Durée estimée (minutes)') }}
                         </label>
                         <input type="number"
                                name="estimated_duration_minutes"
@@ -147,7 +207,7 @@
                         @endforeach
                     </select>
                     <p class="mt-1 text-[11px] text-slate-500">
-                        {{ __('Optionnel : permet de relier cette formation à une prestation existante pour la facturation (achat en ligne, pack séance + formation, etc.).') }}
+                        {{ __('Optionnel : relier cette formation à une prestation existante (pack séance + formation, etc.).') }}
                     </p>
                 </div>
 

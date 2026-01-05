@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class DigitalTrainingController extends Controller
 {
@@ -57,13 +58,51 @@ class DigitalTrainingController extends Controller
             'description'                => 'nullable|string',
             'cover_image'                => 'nullable|image|max:8048',
             'tags'                       => 'nullable|string',
+
+            // Pricing
+            'is_free'                    => 'nullable|boolean',
+            'price_eur'                  => 'nullable|string', // parsed manually to allow "12,50"
+            'tax_rate'                   => 'nullable|numeric|min:0|max:100',
+
             'access_type'                => 'required|in:public,private,subscription',
             'status'                     => 'required|in:draft,published,archived',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
-            'product_id'                 => 'nullable|exists:products,id',
+
+            'product_id'                 => [
+                'nullable',
+                Rule::exists('products', 'id')->where(fn($q) => $q->where('user_id', $user->id)),
+            ],
         ]);
 
-        // Slug unique
+        // -------- Pricing normalize
+        $isFree = (bool) ($request->boolean('is_free'));
+        $priceCents = null;
+
+        if (!$isFree) {
+            // require price for paid trainings
+            if ($request->filled('price_eur') === false) {
+                return back()->withErrors(['price_eur' => 'Veuillez indiquer un prix (ou cocher "Formation gratuite").'])->withInput();
+            }
+
+            $raw = (string) $request->input('price_eur');
+            $raw = str_replace([' ', '€'], '', $raw);
+            $raw = str_replace(',', '.', $raw);
+
+            if (!is_numeric($raw)) {
+                return back()->withErrors(['price_eur' => 'Veuillez indiquer un prix valide.'])->withInput();
+            }
+
+            $eur = (float) $raw;
+            if ($eur < 0) {
+                return back()->withErrors(['price_eur' => 'Le prix ne peut pas être négatif.'])->withInput();
+            }
+
+            $priceCents = (int) round($eur * 100);
+        }
+
+        $taxRate = $request->filled('tax_rate') ? (float) $request->input('tax_rate') : 0.0;
+
+        // -------- Slug unique
         $slugBase = Str::slug($data['title']);
         $slug     = $slugBase;
         $i        = 1;
@@ -71,13 +110,13 @@ class DigitalTrainingController extends Controller
             $slug = $slugBase . '-' . $i++;
         }
 
-        // Cover image
+        // -------- Cover image
         $coverPath = null;
         if ($request->hasFile('cover_image')) {
             $coverPath = $request->file('cover_image')->store('digital-trainings/covers', 'public');
         }
 
-        // Tags: "stress, sommeil" -> ['stress', 'sommeil']
+        // -------- Tags: "stress, sommeil" -> ['stress', 'sommeil']
         $tags = null;
         if (!empty($data['tags'])) {
             $tags = collect(explode(',', $data['tags']))
@@ -94,6 +133,12 @@ class DigitalTrainingController extends Controller
             'description'                => $data['description'] ?? null,
             'cover_image_path'           => $coverPath,
             'tags'                       => $tags,
+
+            // Pricing
+            'is_free'                    => $isFree,
+            'price_cents'                => $priceCents,
+            'tax_rate'                   => $taxRate,
+
             'access_type'                => $data['access_type'],
             'status'                     => $data['status'],
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? null,
@@ -128,15 +173,27 @@ class DigitalTrainingController extends Controller
     {
         $this->authorizeOwner($digitalTraining);
 
+        $user = Auth::user();
+
         $data = $request->validate([
             'title'                      => 'required|string|max:255',
             'description'                => 'nullable|string',
             'cover_image'                => 'nullable|image|max:8048',
             'tags'                       => 'nullable|string',
+
+            // Pricing
+            'is_free'                    => 'nullable|boolean',
+            'price_eur'                  => 'nullable|string',
+            'tax_rate'                   => 'nullable|numeric|min:0|max:100',
+
             'access_type'                => 'required|in:public,private,subscription',
             'status'                     => 'required|in:draft,published,archived',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
-            'product_id'                 => 'nullable|exists:products,id',
+
+            'product_id'                 => [
+                'nullable',
+                Rule::exists('products', 'id')->where(fn($q) => $q->where('user_id', $user->id)),
+            ],
         ]);
 
         // Cover replacement
@@ -159,10 +216,43 @@ class DigitalTrainingController extends Controller
                 ->toArray();
         }
 
+        // Pricing normalize
+        $isFree = (bool) ($request->boolean('is_free'));
+        $priceCents = null;
+
+        if (!$isFree) {
+            if ($request->filled('price_eur') === false) {
+                return back()->withErrors(['price_eur' => 'Veuillez indiquer un prix (ou cocher "Formation gratuite").'])->withInput();
+            }
+
+            $raw = (string) $request->input('price_eur');
+            $raw = str_replace([' ', '€'], '', $raw);
+            $raw = str_replace(',', '.', $raw);
+
+            if (!is_numeric($raw)) {
+                return back()->withErrors(['price_eur' => 'Veuillez indiquer un prix valide.'])->withInput();
+            }
+
+            $eur = (float) $raw;
+            if ($eur < 0) {
+                return back()->withErrors(['price_eur' => 'Le prix ne peut pas être négatif.'])->withInput();
+            }
+
+            $priceCents = (int) round($eur * 100);
+        }
+
+        $taxRate = $request->filled('tax_rate') ? (float) $request->input('tax_rate') : 0.0;
+
         $digitalTraining->update([
             'title'                      => $data['title'],
             'description'                => $data['description'] ?? null,
             'tags'                       => $tags,
+
+            // Pricing
+            'is_free'                    => $isFree,
+            'price_cents'                => $priceCents,
+            'tax_rate'                   => $taxRate,
+
             'access_type'                => $data['access_type'],
             'status'                     => $data['status'],
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? null,
@@ -255,107 +345,95 @@ class DigitalTrainingController extends Controller
      * BLOCKS (content)
      * ======================================================= */
 
-public function storeBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module)
-{
-    $this->authorizeOwner($digitalTraining);
-    $this->authorizeModule($digitalTraining, $module);
+    public function storeBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module)
+    {
+        $this->authorizeOwner($digitalTraining);
+        $this->authorizeModule($digitalTraining, $module);
 
-    $data = $request->validate([
-        'type'    => 'required|in:text,video_url,pdf',
-        'title'   => 'nullable|string|max:255',
-        'content' => 'nullable|string',
+        $data = $request->validate([
+            'type'    => 'required|in:text,video_url,pdf',
+            'title'   => 'nullable|string|max:255',
+            'content' => 'nullable|string',
+            'file'    => 'nullable|file|max:512000', // 500MB
+        ]);
 
-        // We'll accept file for BOTH pdf and video_url (conditionally handled below)
-        'file'    => 'nullable|file|max:512000', // 500MB (adjust if needed)
-    ]);
+        $filePath = null;
 
-    $filePath = null;
-
-    if ($request->hasFile('file')) {
-        if ($data['type'] === 'pdf') {
-            // enforce PDF
-            $request->validate([
-                'file' => 'file|mimes:pdf|max:20480', // 20MB for PDFs
-            ]);
-
-            $filePath = $request->file('file')->store('digital-trainings/blocks', 'public');
-        }
-
-        if ($data['type'] === 'video_url') {
-            // enforce video formats
-            $request->validate([
-                'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000', // 500MB
-            ]);
-
-            $filePath = $request->file('file')->store('digital-trainings/videos', 'public');
-        }
-    }
-
-    $maxOrder = $module->blocks()->max('display_order') ?? 0;
-
-    $module->blocks()->create([
-        'type'          => $data['type'],
-        'title'         => $data['title'] ?? null,
-        'content'       => $data['type'] === 'pdf' ? null : ($data['content'] ?? null),
-        'file_path'     => $filePath,
-        'display_order' => $maxOrder + 1,
-    ]);
-
-    return back()->with('success', 'Contenu ajouté au module.');
-}
-
-
-public function updateBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
-{
-    $this->authorizeOwner($digitalTraining);
-    $this->authorizeModule($digitalTraining, $module);
-    $this->authorizeBlock($module, $block);
-
-    $data = $request->validate([
-        'title'   => 'nullable|string|max:255',
-        'content' => 'nullable|string',
-        'file'    => 'nullable|file|max:512000', // 500MB (adjust if needed)
-    ]);
-
-    // Replace file if provided (pdf OR video)
-    if ($request->hasFile('file')) {
-
-        if ($block->type === 'pdf') {
-            $request->validate([
-                'file' => 'file|mimes:pdf|max:20480',
-            ]);
-
-            if ($block->file_path) {
-                Storage::disk('public')->delete($block->file_path);
+        if ($request->hasFile('file')) {
+            if ($data['type'] === 'pdf') {
+                $request->validate([
+                    'file' => 'file|mimes:pdf|max:20480',
+                ]);
+                $filePath = $request->file('file')->store('digital-trainings/blocks', 'public');
             }
 
-            $block->file_path = $request->file('file')->store('digital-trainings/blocks', 'public');
+            if ($data['type'] === 'video_url') {
+                $request->validate([
+                    'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000',
+                ]);
+                $filePath = $request->file('file')->store('digital-trainings/videos', 'public');
+            }
         }
 
-        if ($block->type === 'video_url') {
-            $request->validate([
-                'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000',
-            ]);
+        $maxOrder = $module->blocks()->max('display_order') ?? 0;
 
-            if ($block->file_path) {
-                Storage::disk('public')->delete($block->file_path);
+        $module->blocks()->create([
+            'type'          => $data['type'],
+            'title'         => $data['title'] ?? null,
+            'content'       => $data['type'] === 'pdf' ? null : ($data['content'] ?? null),
+            'file_path'     => $filePath,
+            'display_order' => $maxOrder + 1,
+        ]);
+
+        return back()->with('success', 'Contenu ajouté au module.');
+    }
+
+    public function updateBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
+    {
+        $this->authorizeOwner($digitalTraining);
+        $this->authorizeModule($digitalTraining, $module);
+        $this->authorizeBlock($module, $block);
+
+        $data = $request->validate([
+            'title'   => 'nullable|string|max:255',
+            'content' => 'nullable|string',
+            'file'    => 'nullable|file|max:512000',
+        ]);
+
+        if ($request->hasFile('file')) {
+            if ($block->type === 'pdf') {
+                $request->validate([
+                    'file' => 'file|mimes:pdf|max:20480',
+                ]);
+
+                if ($block->file_path) {
+                    Storage::disk('public')->delete($block->file_path);
+                }
+                $block->file_path = $request->file('file')->store('digital-trainings/blocks', 'public');
             }
 
-            $block->file_path = $request->file('file')->store('digital-trainings/videos', 'public');
+            if ($block->type === 'video_url') {
+                $request->validate([
+                    'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000',
+                ]);
+
+                if ($block->file_path) {
+                    Storage::disk('public')->delete($block->file_path);
+                }
+                $block->file_path = $request->file('file')->store('digital-trainings/videos', 'public');
+            }
         }
+
+        $block->title = $data['title'] ?? $block->title;
+
+        if ($block->type !== 'pdf') {
+            $block->content = $data['content'] ?? $block->content;
+        }
+
+        $block->save();
+
+        return back()->with('success', 'Contenu mis à jour.');
     }
-
-    $block->title = $data['title'] ?? $block->title;
-
-    if ($block->type !== 'pdf') {
-        $block->content = $data['content'] ?? $block->content;
-    }
-
-    $block->save();
-
-    return back()->with('success', 'Contenu mis à jour.');
-}
-
 
     public function destroyBlock(DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
     {
@@ -373,7 +451,7 @@ public function updateBlock(Request $request, DigitalTraining $digitalTraining, 
     }
 
     /* =========================================================
-     * PREVIEW (internal player-like view)
+     * PREVIEW
      * ======================================================= */
 
     public function preview(DigitalTraining $digitalTraining)
@@ -383,6 +461,34 @@ public function updateBlock(Request $request, DigitalTraining $digitalTraining, 
         $training = $digitalTraining->load('modules.blocks');
 
         return view('digital-trainings.preview', compact('training'));
+    }
+
+    /* =========================================================
+     * PUBLIC SHOW PAGE
+     * ======================================================= */
+
+    public function publicShow(DigitalTraining $digitalTraining)
+    {
+        if ($digitalTraining->status !== 'published') {
+            abort(404);
+        }
+
+        $training  = $digitalTraining->load('user', 'modules.blocks');
+        $therapist = $training->user;
+
+        $therapistPublicUrl = null;
+        if ($therapist) {
+            $slug = $therapist->slug ?? $therapist->pro_slug ?? null;
+            if ($slug) {
+                $therapistPublicUrl = url('/pro/' . $slug);
+            }
+        }
+
+        return view('digital-trainings.public.show', compact(
+            'training',
+            'therapist',
+            'therapistPublicUrl'
+        ));
     }
 
     /* =========================================================
@@ -409,41 +515,4 @@ public function updateBlock(Request $request, DigitalTraining $digitalTraining, 
             abort(403);
         }
     }
-	    /* =========================================================
-     * PUBLIC SHOW PAGE (landing)
-     * ======================================================= */
-
-    /**
-     * Public landing page for a digital training.
-     * Example URL: /formations/mon-super-programme
-     */
-    public function publicShow(DigitalTraining $digitalTraining)
-    {
-        // Only show published trainings
-        if ($digitalTraining->status !== 'published') {
-            abort(404);
-        }
-
-        // Load therapist (owner)
-        $training  = $digitalTraining->load('user');
-        $therapist = $training->user;
-
-        // Build therapist public URL: /pro/{slug}
-        $therapistPublicUrl = null;
-        if ($therapist) {
-            // adapt this if your User model uses another field
-            $slug = $therapist->slug ?? $therapist->pro_slug ?? null;
-
-            if ($slug) {
-                $therapistPublicUrl = url('/pro/' . $slug);
-            }
-        }
-
-        return view('digital-trainings.public.show', compact(
-            'training',
-            'therapist',
-            'therapistPublicUrl'
-        ));
-    }
-
 }

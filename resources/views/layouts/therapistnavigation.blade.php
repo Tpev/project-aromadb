@@ -185,6 +185,9 @@
                             </a>
                             <a href="{{ route('inventory_items.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Inventaire') }}
+                            </a>                            
+							<a href="{{ route('digital-trainings.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                {{ __('Formation') }}
                             </a>
                         </div>
                     </div>
@@ -372,6 +375,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('inventory_items.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Inventaire') }}
+            </x-responsive-nav-link>            
+			<x-responsive-nav-link :href="route('digital-trainings.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Formation') }}
             </x-responsive-nav-link>
 
             <!-- Portail -->

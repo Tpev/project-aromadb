@@ -20,6 +20,8 @@ class PackPurchase extends Model
         'status',
         'notes',
 		'stripe_session_id',
+		   'purchase_type',
+   'digital_training_id',
     ];
 
     protected $casts = [

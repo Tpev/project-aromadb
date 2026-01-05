@@ -16,6 +16,19 @@
 
     $duration = $training->estimated_duration_minutes ?? null;
 
+    // nicer duration label (minutes -> "1h30" or "45 min")
+    $durationLabel = null;
+    if ($duration) {
+        $mins = (int) $duration;
+        if ($mins >= 60) {
+            $h = intdiv($mins, 60);
+            $m = $mins % 60;
+            $durationLabel = $m > 0 ? ($h . 'h' . str_pad((string)$m, 2, '0', STR_PAD_LEFT)) : ($h . 'h');
+        } else {
+            $durationLabel = $mins . ' min';
+        }
+    }
+
     // Therapist bits (can be null)
     $therapist = $therapist ?? null;
     $therapistPublicUrl = $therapistPublicUrl ?? null;
@@ -24,10 +37,19 @@
         $therapistName = $therapist->company_name ?: $therapist->name;
         $therapistInit = mb_strtoupper(mb_substr($therapistName, 0, 1));
         $therapistCity = $therapist->city_setByAdmin ?? $therapist->city ?? null;
+
+        // BUY URL (no named route to avoid RouteNotFoundException)
+        // Make sure to define a route that matches this URL.
+        $buyUrl = url('/pro/' . $therapist->slug . '/trainings/' . $training->id . '/checkout');
+    } else {
+        $buyUrl = null;
     }
 
     // Modules (for “plan de formation”)
     $modules = $training->modules ?? collect();
+
+    // Can we show a buy button?
+    $canBuy = (!$isFree && !is_null($priceCts) && !empty($buyUrl));
 @endphp
 
 <x-app-layout>
@@ -85,9 +107,9 @@
 
                         {{-- Meta pills: durée, prix/free --}}
                         <div class="mt-5 flex flex-wrap gap-2 justify-center md:justify-start text-xs md:text-sm">
-                            @if($duration)
+                            @if($durationLabel)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
-                                    ⏱ {{ __('Durée estimée : :min h', ['min' => $duration]) }}
+                                    ⏱ {{ __('Durée estimée : :d', ['d' => $durationLabel]) }}
                                 </span>
                             @endif
 
@@ -97,7 +119,7 @@
                                 </span>
                             @elseif($priceStr)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
-                                    💶 {{ __('Tarif indicatif : :price', ['price' => $priceStr]) }}
+                                    💶 {{ __('Tarif : :price', ['price' => $priceStr]) }}
                                 </span>
                             @else
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
@@ -117,21 +139,31 @@
                             </div>
                         @endif
 
-                        {{-- CTA: go to therapist public page to book/contact --}}
+                        {{-- CTA --}}
                         <div class="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
-                            @if($therapistPublicUrl)
-                                <a href="{{ $therapistPublicUrl }}"
-                                   class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
+                            {{-- BUY button --}}
+                            @if($canBuy)
+                                <a href="{{ $buyUrl }}"
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
                                           transition-colors duration-200">
-                                    📅 {{ __('Contacter / Prendre rendez-vous') }}
+                                    🔒 {{ __('Acheter la formation') }}
                                 </a>
+                            @endif
 
+                            @if($therapistPublicUrl)
                                 <a href="{{ $therapistPublicUrl }}"
-                                   class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-[#854f38] text-white font-semibold
                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#6a3f2c]
                                           transition-colors duration-200">
                                     🌿 {{ __('Voir la page du thérapeute') }}
+                                </a>
+
+                                <a href="{{ $therapistPublicUrl }}"
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white/10 text-white font-semibold
+                                          text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-white/15
+                                          border border-white/30 transition-colors duration-200">
+                                    📅 {{ __('Contacter / Prendre rendez-vous') }}
                                 </a>
                             @else
                                 <span class="text-xs md:text-sm text-white/80">
@@ -139,6 +171,12 @@
                                 </span>
                             @endif
                         </div>
+
+                        @if($canBuy)
+                            <p class="mt-3 text-[11px] text-white/80">
+                                {{ __('Paiement sécurisé. Accès envoyé par email après confirmation du paiement.') }}
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -162,6 +200,24 @@
                         </p>
                     @endif
                 </article>
+
+                {{-- Secondary buy CTA (below description) --}}
+                @if($canBuy)
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="{{ $buyUrl }}"
+                           class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
+                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                            🔒 {{ __('Acheter maintenant (:price)', ['price' => $priceStr]) }}
+                        </a>
+                        @if($therapistPublicUrl)
+                            <a href="{{ $therapistPublicUrl }}"
+                               class="inline-flex items-center border border-[#e4e8d5] text-[#647a0b] font-medium
+                                      px-6 py-2.5 rounded-full text-sm bg-white hover:bg-[#f4f6ec] transition-colors duration-200">
+                                🌿 {{ __('Voir le thérapeute') }}
+                            </a>
+                        @endif
+                    </div>
+                @endif
             </section>
 
             {{-- Plan de la formation (modules listing) --}}
@@ -186,21 +242,18 @@
                                 $blocks = $module->sorted_blocks ?? $module->blocks ?? collect();
                                 $blocksCount = $blocks->count();
 
-                                // Small summary of content types
                                 $hasText   = $blocks->contains(fn($b) => $b->type === 'text');
                                 $hasVideo  = $blocks->contains(fn($b) => $b->type === 'video_url');
                                 $hasPdf    = $blocks->contains(fn($b) => $b->type === 'pdf');
                             @endphp
 
                             <div class="bg-white border border-[#e4e8d5] rounded-lg p-4 md:p-5 flex gap-4">
-                                {{-- Index --}}
                                 <div class="flex-shrink-0">
                                     <div class="w-10 h-10 rounded-full bg-[#647a0b] text-white flex items-center justify-center font-semibold text-sm">
                                         {{ $displayIndex }}
                                     </div>
                                 </div>
 
-                                {{-- Content --}}
                                 <div class="flex-1">
                                     <div class="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
                                         <h3 class="text-sm md:text-base font-semibold text-[#647a0b]">
@@ -257,7 +310,6 @@
                     </h2>
 
                     <div class="mt-6 flex flex-col md:flex-row items-start gap-6">
-                        {{-- Avatar --}}
                         <div class="shrink-0">
                             @if($therapist->profile_picture)
                                 @php
@@ -280,7 +332,6 @@
                             @endif
                         </div>
 
-                        {{-- Text + CTA --}}
                         <div class="flex-1 space-y-3 text-sm md:text-base text-gray-700">
                             <div>
                                 <p class="text-lg md:text-xl font-semibold text-[#647a0b]">
@@ -303,25 +354,28 @@
                                 </p>
                             @endif
 
-                            @if($therapistPublicUrl)
-                                <div class="pt-3 flex flex-wrap gap-3">
-                                    <a href="{{ $therapistPublicUrl }}"
-                                       class="inline-flex items-center bg-[#647a0b] text-white font-semibold
+                            <div class="pt-3 flex flex-wrap gap-3">
+                                @if($canBuy)
+                                    <a href="{{ $buyUrl }}"
+                                       class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
                                               px-5 py-2 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
-                                        📅 {{ __('Prendre rendez-vous') }}
+                                        🔒 {{ __('Acheter la formation') }}
                                     </a>
+                                @endif
+
+                                @if($therapistPublicUrl)
                                     <a href="{{ $therapistPublicUrl }}"
                                        class="inline-flex items-center border border-[#e4e8d5] text-[#647a0b] font-medium
                                               px-5 py-2 rounded-full text-sm bg-white hover:bg-[#f4f6ec] transition-colors duration-200">
                                         🌿 {{ __('Voir sa page publique') }}
                                     </a>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
 
                     <p class="mt-6 text-xs md:text-sm text-gray-500">
-                        {{ __('L’accès à la formation se fait via un lien sécurisé envoyé par email une fois que votre thérapeute a créé votre accès dans AromaMade.') }}
+                        {{ __('L’accès à la formation se fait via un lien sécurisé envoyé par email une fois la commande confirmée.') }}
                     </p>
                 </section>
             @endif

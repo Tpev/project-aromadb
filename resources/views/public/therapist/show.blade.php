@@ -562,6 +562,141 @@
     @endif
 </div>
 
+{{-- =========================
+     Formations & Contenus digitaux
+     ========================= --}}
+@if(($trainings ?? collect())->count() > 0)
+<div class="bg-white shadow rounded-lg p-8 mt-8">
+    <div class="flex items-start sm:items-center justify-between gap-6">
+        <div>
+            <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                <i class="fas fa-graduation-cap text-[#854f38] mr-3"></i>
+                {{ __('Formations & contenus digitaux') }}
+            </h3>
+            <p class="mt-2 text-gray-600 text-base">
+                {{ __('Accédez à des ressources en ligne pour apprendre, progresser et pratiquer à votre rythme.') }}
+            </p>
+        </div>
+
+        {{-- optional small badge --}}
+        <div class="hidden sm:flex items-center gap-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7] text-xs font-bold">
+                {{ $trainings->count() }} {{ __('contenu(s)') }}
+            </span>
+        </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        @foreach($trainings as $training)
+            @php
+                $url = route('digital-trainings.public.show', $training->slug);
+
+                $cover = $training->cover_image_path
+                    ? asset('storage/' . ltrim($training->cover_image_path, '/'))
+                    : null;
+
+                $desc = strip_tags((string)($training->description ?? ''));
+                $descTruncated = \Illuminate\Support\Str::limit($desc, 160);
+
+                $tags = is_array($training->tags ?? null) ? $training->tags : [];
+                $tags = collect($tags)->filter()->unique()->take(4)->values();
+
+                $isFree = (bool)($training->is_free ?? false);
+                $priceLabel = $training->formatted_price; // accessor from model (null if free)
+                $duration = (int)($training->estimated_duration_minutes ?? 0);
+                $accessType = (string)($training->access_type ?? '');
+            @endphp
+
+            <a href="{{ $url }}"
+               class="group block border border-gray-200 rounded-2xl overflow-hidden bg-[#f9fafb]
+                      hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none
+                      focus:ring-2 focus:ring-[#8ea633]/40">
+
+                {{-- Cover --}}
+                <div class="relative h-48 bg-gradient-to-br from-[#e8f0d8] to-white">
+                    @if($cover)
+                        <img src="{{ $cover }}"
+                             alt="{{ $training->title }}"
+                             class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                    @else
+                        <div class="absolute inset-0 flex items-center justify-center text-[#647a0b]/70">
+                            <i class="fas fa-leaf text-4xl"></i>
+                        </div>
+                    @endif
+
+                    {{-- Top badges --}}
+                    <div class="absolute top-4 left-4 flex flex-wrap gap-2">
+                        @if($isFree)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-[#647a0b] border border-[#dfe8c7] text-xs font-bold">
+                                {{ __('Gratuit') }}
+                            </span>
+                        @elseif($priceLabel)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-[#854f38] border border-[#eadfd8] text-xs font-bold">
+                                {{ $priceLabel }}
+                            </span>
+                        @endif
+
+                        @if(!empty($accessType))
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-gray-700 border border-gray-200 text-xs font-semibold">
+                                {{ $accessType }}
+                            </span>
+                        @endif
+                    </div>
+
+                    {{-- Sub-info --}}
+                    <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs">
+                        @if($duration > 0)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-gray-700">
+                                <span class="mr-1">⏱</span> {{ $duration }} {{ __('min') }}
+                            </span>
+                        @endif
+
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-[#647a0b] font-semibold">
+                            {{ __('Voir le détail') }} <i class="fas fa-arrow-right ml-2 text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Content --}}
+                <div class="p-6">
+                    <h4 class="text-xl font-extrabold text-[#647a0b] leading-snug line-clamp-2">
+                        {{ $training->title }}
+                    </h4>
+
+                    @if(!empty($descTruncated))
+                        <p class="mt-3 text-gray-700 leading-relaxed line-clamp-3">
+                            {{ $descTruncated }}
+                        </p>
+                    @endif
+
+                    {{-- Tags --}}
+                    @if($tags->count() > 0)
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            @foreach($tags as $tag)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b] text-xs font-semibold">
+                                    #{{ $tag }}
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    {{-- CTA bar --}}
+                    <div class="mt-6">
+                        <div class="w-full inline-flex items-center justify-center rounded-full
+                                    bg-[#647a0b] text-white font-semibold py-2.5
+                                    group-hover:bg-[#8ea633] transition-colors">
+                            <i class="fas fa-play-circle mr-2"></i>
+                            {{ __('Découvrir') }}
+                        </div>
+                    </div>
+                </div>
+            </a>
+        @endforeach
+    </div>
+</div>
+@endif
+
 
 
 
