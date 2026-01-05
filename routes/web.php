@@ -865,6 +865,8 @@ Route::get('/accounting/receipts', [ReceiptController::class, 'index'])->name('r
 Route::get('/accounting/receipts/export', [ReceiptController::class, 'exportCsv'])->name('receipts.export')->middleware('auth');
 Route::get('/accounting/ca-monthly', [ReceiptController::class, 'caMonthly'])->name('receipts.caMonthly')->middleware('auth');
 // routes/web.php
+    Route::get('/receipts/create', [ReceiptController::class, 'create'])->name('receipts.create');
+    Route::post('/receipts', [ReceiptController::class, 'store'])->name('receipts.store');
 Route::post('/receipts/{receipt}/reverse', [\App\Http\Controllers\ReceiptController::class, 'reverse'])
     ->name('receipts.reverse');
 
