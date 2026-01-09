@@ -2104,10 +2104,13 @@ private function computeSlotsForPatient(
         return [];
     }
 
-    // Existing appointments that day
-    $existingAppointments = Appointment::where('user_id', $therapistId)
-        ->whereDate('appointment_date', $date->format('Y-m-d'))
-        ->get();
+$existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
+    ->whereDate('appointment_date', $date->format('Y-m-d'));
+
+$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+
+$existingAppointments = $existingAppointmentsQuery->get();
+
 
     // Unavailabilities covering that day
     $unavailabilities = Unavailability::where('user_id', $therapistId)
@@ -2254,9 +2257,13 @@ private function computeSlotsForTherapist(
     $availabilities = $weeklyQuery->get()->concat($specialQuery->get());
     if ($availabilities->isEmpty()) return [];
 
-    $existingAppointments = Appointment::where('user_id', $therapistId)
-        ->whereDate('appointment_date', $date->format('Y-m-d'))
-        ->get();
+$existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
+    ->whereDate('appointment_date', $date->format('Y-m-d'));
+
+$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+
+$existingAppointments = $existingAppointmentsQuery->get();
+
 
     $unavailabilities = Unavailability::where('user_id', $therapistId)
         ->where(function ($q) use ($date) {
