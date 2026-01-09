@@ -953,7 +953,8 @@ Route::get('/book-appointment/{therapist}', [AppointmentController::class, 'crea
 Route::post('/book-appointment', [AppointmentController::class, 'storePatient'])->name('appointments.storePatient');
 Route::get('/appointment-confirmation/{token}', [AppointmentController::class, 'showPatient'])->name('appointments.showPatient');
 Route::get('/appointment-ics/{token}', [AppointmentController::class, 'downloadICS'])->name('appointments.downloadICS');
-
+Route::post('/appointment-confirmation/{token}/cancel', [AppointmentController::class, 'cancelFromMagicLink'])
+    ->name('appointment.confirmation.cancel');
 });
 
 

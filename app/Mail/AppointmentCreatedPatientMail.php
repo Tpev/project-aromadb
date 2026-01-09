@@ -80,11 +80,26 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
             }
         }
 
+        // ✅ Magic link confirmation page URL
+        // You said you want to keep the GET route name "appointments.showPatient"
+        $confirmationUrl = route('appointments.showPatient', ['token' => $this->appointment->token]);
+
+        // ✅ Cancellation cutoff message (based on therapist setting)
+        $cutoffHours = max(0, (int) ($this->appointment->user?->cancellation_notice_hours ?? 0));
+        $latestCancelAt = null;
+
+        if ($cutoffHours > 0 && $this->appointment->appointment_date) {
+            $latestCancelAt = $this->appointment->appointment_date->copy()->subHours($cutoffHours);
+        }
+
         return $this->subject('Confirmation de votre rendez-vous')
             ->markdown('emails.appointment_created_patient', [
-                'modes'          => $modes,
-                'cabinetAddress' => $cabinetAddress,
-                'visioUrl'       => $visioUrl,
+                'modes'           => $modes,
+                'cabinetAddress'  => $cabinetAddress,
+                'visioUrl'        => $visioUrl,
+                'confirmationUrl' => $confirmationUrl,
+                'cutoffHours'     => $cutoffHours,
+                'latestCancelAt'  => $latestCancelAt,
             ]);
     }
 }

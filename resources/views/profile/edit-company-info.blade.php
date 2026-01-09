@@ -286,7 +286,29 @@
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
+						<div class="details-box">
+    <label class="details-label" for="cancellation_notice_hours">
+        {{ __('Délai minimum d\'annulation client (heures avant le rendez-vous)') }}
+    </label>
+
+    <input type="number"
+           id="cancellation_notice_hours"
+           name="cancellation_notice_hours"
+           class="form-control"
+           min="0"
+           step="1"
+           value="{{ old('cancellation_notice_hours', auth()->user()->cancellation_notice_hours ?? 0) }}">
+
+    <small class="text-gray-500">
+        {{ __('Ex : 24 = annulation possible jusqu\'à 24h avant. 0 = annulation possible à tout moment.') }}
+    </small>
+
+    @error('cancellation_notice_hours')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
+</div>
                     </div>
+
 
                     {{-- TAB 4: Mentions légales & CGV --}}
                     <div x-show="activeTab === 'legal'" x-cloak>

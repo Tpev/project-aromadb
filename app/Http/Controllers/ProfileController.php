@@ -108,6 +108,8 @@ public function updateCompanyInfo(Request $request)
         //'accept_online_appointments' => 'sometimes|boolean', // Validation rule for boolean
 		'buffer_time_between_appointments' => 'nullable|integer|min:0',
 		'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
+		'cancellation_notice_hours' => 'nullable|integer|min:0|max:720',
+
 
 		
     ]);
@@ -166,6 +168,7 @@ if ($request->hasFile('cgv_pdf')) {
 if (!empty($validatedData['company_name']) && $user->isDirty('company_name')) {
     $user->slug = User::createUniqueSlug($validatedData['company_name'], $user->id);
 }
+$user->cancellation_notice_hours = (int) ($request->input('cancellation_notice_hours', 0));
 
 /* ─────────────── SAVE AND REDIRECT ─────────────── */
 $user->save();

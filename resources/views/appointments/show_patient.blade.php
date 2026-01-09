@@ -15,11 +15,9 @@
         } elseif ($appointment->product?->adomicile) {
             $mode = 'domicile';
         } else {
-            // default fallback
             $mode = 'cabinet';
         }
 
-        // Helper labels
         $modeLabel = [
             'cabinet'  => __('Dans le Cabinet'),
             'visio'    => __('En Visio'),
@@ -28,8 +26,6 @@
 
         // Address strings
         $cabinetLabel = $appointment->practiceLocation?->label;
-        // Prefer model accessor `full_address` if you have it (as in your PracticeLocation model),
-        // otherwise manually reconstruct the address here.
         $cabinetFullAddress = $appointment->practiceLocation?->full_address
             ?? trim(collect([
                 $appointment->practiceLocation?->address_line1,
@@ -41,10 +37,28 @@
                 $appointment->practiceLocation?->country,
             ])->filter()->implode("\n"));
 
-        // Fallback company address if no specific practice location
         $fallbackCompanyAddress = $appointment->user?->company_address;
-        // Client address (for domicile)
         $clientAddress = $appointment->clientProfile?->address ?? $appointment->address ?? null;
+
+        // Cancellation rules (therapist setting)
+        $cutoffHours = max(0, (int) ($appointment->user?->cancellation_notice_hours ?? 0));
+        $isCancelled = in_array($appointment->status, ['cancelled', 'canceled', 'Annulée', 'Annulee'], true);
+
+        $canCancel = true;
+        $latestCancelAt = null;
+
+        if ($appointment->appointment_date) {
+            $latestCancelAt = $appointment->appointment_date->copy()->subHours($cutoffHours);
+            if ($cutoffHours > 0) {
+                $canCancel = now()->lte($latestCancelAt);
+            }
+            // Also prevent cancel if appointment is in the past
+            if ($appointment->appointment_date->isPast()) {
+                $canCancel = false;
+            }
+        } else {
+            $canCancel = false;
+        }
     @endphp
 
     <style>
@@ -61,27 +75,81 @@
         .confirmation-title { font-size: 2rem; font-weight: bold; color: #6d9c2e; text-align: center; margin-bottom: 25px; }
         .confirmation-label { font-weight: bold; color: #6d9c2e; font-size: 1.1rem; }
         .confirmation-content { font-size: 1rem; color: #4f4f4f; margin-bottom: 15px; line-height: 1.5; }
+
         .btn-home {
             background-color: #6d9c2e; color: #fff; font-size: 1.2rem; padding: 10px 25px; border-radius: 30px; border: none;
             text-align: center; cursor: pointer; display: inline-block; transition: background-color 0.3s ease-in-out; text-decoration: none;
         }
         .btn-home:hover { background-color: #56781f; }
+
+        .btn-danger {
+            background-color: #d9534f; color: #fff; font-size: 1.1rem; padding: 10px 25px; border-radius: 30px; border: none;
+            text-align: center; cursor: pointer; display: inline-block; transition: background-color 0.3s ease-in-out; text-decoration: none;
+        }
+        .btn-danger:hover { background-color: #c9302c; }
+
+        .btn-disabled {
+            background-color: #cfd8c3 !important;
+            color: #ffffff !important;
+            cursor: not-allowed !important;
+            opacity: 0.9;
+        }
+
+        .alert {
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+        .alert-success { background: #e7f6e7; color: #2f6b2f; border: 1px solid #bfe6bf; }
+        .alert-error { background: #fdecec; color: #8a2b2b; border: 1px solid #f3b6b6; }
+
         .icon-success { color: #6d9c2e; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; }
         .icon-pending { color: #ffc107; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; animation: spin 2s linear infinite; }
+        .icon-cancel  { color: #d9534f; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         @media (max-width: 768px) {
             .confirmation-container { padding: 20px; }
             .confirmation-title { font-size: 1.8rem; }
             .confirmation-content { font-size: 0.95rem; }
-            .btn-home { font-size: 1rem; padding: 10px 20px; }
-            .icon-success, .icon-pending { font-size: 2.5rem; }
+            .btn-home, .btn-danger { font-size: 1rem; padding: 10px 20px; }
+            .icon-success, .icon-pending, .icon-cancel { font-size: 2.5rem; }
         }
     </style>
 
     <div class="confirmation-container">
-        @if($appointment->status === 'Payée' || $appointment->status === 'confirmed')
-            <i class="fas fa-check-circle icon-success"></i>
 
+        {{-- Flash messages --}}
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-error">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if($isCancelled)
+            <i class="fas fa-times-circle icon-cancel"></i>
+            <h1 class="confirmation-title">{{ __('Rendez-vous Annulé') }}</h1>
+
+            <div class="confirmation-content">
+                <p>{{ __('Ce rendez-vous a été annulé.') }}</p>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ url('/') }}" class="btn-home">
+                    <i class="fas fa-home mr-2"></i> {{ __('Retour à l\'Accueil') }}
+                </a>
+            </div>
+
+        @elseif($appointment->status === 'Payée' || $appointment->status === 'confirmed')
+            <i class="fas fa-check-circle icon-success"></i>
             <h1 class="confirmation-title">{{ __('Rendez-vous Confirmé') }}</h1>
 
             {{-- Core infos --}}
@@ -160,6 +228,32 @@
                 </a>
             </div>
 
+            {{-- Cancel (disabled if too late) --}}
+            <div class="text-center mt-4">
+                @if($canCancel)
+                    <form method="POST"
+                          action="{{ route('appointment.confirmation.cancel', $appointment->token) }}"
+                          onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous ?') }}');">
+                        @csrf
+                        <button type="submit" class="btn-danger">
+                            <i class="fas fa-times mr-2"></i> {{ __('Annuler le rendez-vous') }}
+                        </button>
+                    </form>
+                @else
+                    <button type="button" class="btn-danger btn-disabled" disabled>
+                        <i class="fas fa-lock mr-2"></i> {{ __('Annulation non disponible') }}
+                    </button>
+
+                    <div class="alert alert-error mt-3">
+                        @if($cutoffHours > 0 && $latestCancelAt)
+                            {{ __('L’annulation en ligne n’est plus possible à moins de :hours heure(s) du rendez-vous.', ['hours' => $cutoffHours]) }}
+                        @else
+                            {{ __('L’annulation en ligne n’est pas disponible pour ce rendez-vous.') }}
+                        @endif
+                    </div>
+                @endif
+            </div>
+
             {{-- Home --}}
             <div class="text-center mt-4">
                 <a href="{{ url('/') }}" class="btn-home">
@@ -169,7 +263,6 @@
 
         @elseif($appointment->status === 'pending')
             <i class="fas fa-spinner fa-spin icon-pending"></i>
-
             <h1 class="confirmation-title">{{ __('Rendez-vous en Attente de Paiement') }}</h1>
 
             <div class="confirmation-content">
@@ -184,6 +277,34 @@
                 <a href="{{ route('checkout.resume', $appointment->stripe_session_id) }}" class="btn-home">
                     <i class="fas fa-credit-card mr-2"></i> {{ __('Procéder au Paiement') }}
                 </a>
+            </div>
+
+            {{-- Cancel (disabled if too late) --}}
+            <div class="text-center mt-4">
+                @if(!$isCancelled)
+                    @if($canCancel)
+                        <form method="POST"
+                              action="{{ route('appointment.confirmation.cancel', $appointment->token) }}"
+                              onsubmit="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous ?') }}');">
+                            @csrf
+                            <button type="submit" class="btn-danger">
+                                <i class="fas fa-times mr-2"></i> {{ __('Annuler le rendez-vous') }}
+                            </button>
+                        </form>
+                    @else
+                        <button type="button" class="btn-danger btn-disabled" disabled>
+                            <i class="fas fa-lock mr-2"></i> {{ __('Annulation non disponible') }}
+                        </button>
+
+                        <div class="alert alert-error mt-3">
+                            @if($cutoffHours > 0 && $latestCancelAt)
+                                {{ __('L’annulation en ligne n’est plus possible à moins de :hours heure(s) du rendez-vous.', ['hours' => $cutoffHours]) }}
+                            @else
+                                {{ __('L’annulation en ligne n’est pas disponible pour ce rendez-vous.') }}
+                            @endif
+                        </div>
+                    @endif
+                @endif
             </div>
 
             <div class="text-center mt-4">

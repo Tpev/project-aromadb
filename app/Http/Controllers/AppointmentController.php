@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use App\Models\SpecialAvailability;
 use App\Models\PackPurchase;
+use App\Mail\AppointmentCancelledByClient;
 
 class AppointmentController extends Controller
 {
@@ -2380,7 +2381,14 @@ public function availableConcreteDatesTherapist(Request $request)
 
 private function applyBlockingAppointmentsFilter($query)
 {
-    // Exclude external "all-day multi-day" blocks (Google all-day spanning multiple days)
+    // 1) Cancelled appointments should NOT block new appointments.
+    // Keep NULL statuses blocking (often used for external blocks / legacy).
+    $query->where(function ($q) {
+        $q->whereNull('status')
+          ->orWhereNotIn('status', ['cancelled', 'canceled', 'Annulée', 'Annulee']);
+    });
+
+    // 2) Exclude external "all-day multi-day" blocks (Google all-day spanning multiple days)
     // Keep everything else blocking.
     return $query->whereRaw(
         'NOT (external = 1 AND TIME(appointment_date) = "00:00:00" AND COALESCE(duration,0) >= 2880 AND MOD(COALESCE(duration,0),1440) = 0)'
@@ -2388,4 +2396,49 @@ private function applyBlockingAppointmentsFilter($query)
 }
 
 
+public function cancelFromMagicLink(Request $request, string $token)
+{
+    $appointment = Appointment::where('token', $token)->firstOrFail();
+
+    // already cancelled?
+    if (in_array($appointment->status, ['cancelled'], true)) {
+        return redirect()
+            ->route('appointment.confirmation', $token)
+            ->with('success', __('Ce rendez-vous est déjà annulé.'));
+    }
+
+    // don’t allow cancellation for past appointments
+    if ($appointment->appointment_date && $appointment->appointment_date->isPast()) {
+        return redirect()
+            ->route('appointment.confirmation', $token)
+            ->with('error', __('Ce rendez-vous est déjà passé et ne peut plus être annulé.'));
+    }
+
+    // cancellation cutoff (therapist setting)
+    $cutoffHours = max(0, (int) ($appointment->user?->cancellation_notice_hours ?? 0));
+
+    if ($cutoffHours > 0 && $appointment->appointment_date) {
+        $latestCancelAt = $appointment->appointment_date->copy()->subHours($cutoffHours);
+
+        if (now()->greaterThan($latestCancelAt)) {
+            return redirect()
+                ->route('appointment.confirmation', $token)
+                ->with('error', __('L’annulation en ligne n’est plus possible à moins de :hours heure(s) du rendez-vous. Merci de contacter votre thérapeute.', [
+                    'hours' => $cutoffHours
+                ]));
+        }
+    }
+
+    // cancel
+    $appointment->status = 'cancelled';
+    $appointment->save();
+
+    // email therapist
+    $therapistEmail = $appointment->user?->company_email ?: $appointment->user?->email;
+    if ($therapistEmail) {
+        Mail::to($therapistEmail)->send(new AppointmentCancelledByClient($appointment));
+    }
+
+return redirect()->route('appointments.showPatient', ['token' => $token]);
+}
 }
