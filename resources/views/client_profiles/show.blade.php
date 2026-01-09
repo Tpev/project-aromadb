@@ -658,10 +658,11 @@
                     <div class="row mt-4">
                         <div class="col-md-12">
                             <h2 class="details-title">{{ __('Rendez-vous de ce client') }}</h2>
-                            <a href="{{ route('appointments.create', $clientProfile->id) }}"
-                               class="btn btn-primary mb-3">
-                                {{ __('Créer un Rendez-vous') }}
-                            </a>
+							<a href="{{ route('appointments.create', ['client_profile_id' => $clientProfile->id]) }}"
+							   class="btn btn-primary mb-3">
+								{{ __('Créer un Rendez-vous') }}
+							</a>
+
 
                             @if($appointments->isEmpty())
                                 <p>Aucun rendez-vous trouvé pour ce client.</p>

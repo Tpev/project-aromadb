@@ -108,15 +108,22 @@
                 {{-- Client selection --}}
                 <div class="details-box">
                     <label class="details-label">Client</label>
-                    <select name="client_profile_id" class="form-control" required>
-                        <option value="" disabled selected>-- Sélectionner un client --</option>
-                        @foreach($clientProfiles as $client)
-                            <option value="{{ $client->id }}">
-                                {{ $client->first_name }} {{ $client->last_name }}
-                            </option>
-                        @endforeach
-                        <option value="new">➕ Nouveau client</option>
-                    </select>
+					@php
+						$selectedClientId = old('client_profile_id', request()->query('client_profile_id'));
+					@endphp
+
+					<select name="client_profile_id" class="form-control" required>
+						<option value="" disabled {{ $selectedClientId ? '' : 'selected' }}>
+							-- Sélectionner un client --
+						</option>
+
+						@foreach($clientProfiles as $client)
+							<option value="{{ $client->id }}" @selected((string)$selectedClientId === (string)$client->id)>
+								{{ $client->first_name }} {{ $client->last_name }}
+							</option>
+						@endforeach
+					</select>
+
                 </div>
 
                 {{-- Prestation --}}
