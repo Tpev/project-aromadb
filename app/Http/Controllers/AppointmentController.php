@@ -638,11 +638,17 @@ private function isAvailable(
     }
 
     // 5) Conflits avec d'autres rendez-vous (global par thérapeute, avec buffer)
-    $conflictingAppointments = Appointment::where('user_id', (int) $therapistId)
-        ->where(function ($q) use ($bufferedStart, $bufferedEnd) {
-            $q->where('appointment_date', '<', $bufferedEnd)
-              ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$bufferedStart]);
-        });
+	$conflictingAppointments = Appointment::where('user_id', (int) $therapistId);
+
+	// ✅ ignore external all-day multi-day events
+	$conflictingAppointments = $this->applyBlockingAppointmentsFilter($conflictingAppointments);
+
+	// ✅ overlap check (use COALESCE for safety)
+	$conflictingAppointments->where(function ($q) use ($bufferedStart, $bufferedEnd) {
+		$q->where('appointment_date', '<', $bufferedEnd)
+		  ->whereRaw("DATE_ADD(appointment_date, INTERVAL COALESCE(duration,60) MINUTE) > ?", [$bufferedStart]);
+	});
+
 
     if ($excludeAppointmentId) {
         $conflictingAppointments->where('id', '!=', $excludeAppointmentId);
@@ -782,12 +788,16 @@ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $produ
     }
 
     // 3) RDV existants pour ce jour (hors RDV en cours d'édition)
-    $existingAppointments = Appointment::where('user_id', (int) $therapistId)
-        ->whereDate('appointment_date', $date)
-        ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
-            return $query->where('id', '!=', $excludeAppointmentId);
-        })
-        ->get();
+$existingAppointmentsQuery = Appointment::where('user_id', (int) $therapistId)
+    ->whereDate('appointment_date', $date)
+    ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
+        return $query->where('id', '!=', $excludeAppointmentId);
+    });
+
+$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+
+$existingAppointments = $existingAppointmentsQuery->get();
+
 
     // 4) Indisponibilités couvrant ce jour
     $unavailabilities = Unavailability::where('user_id', (int) $therapistId)
@@ -1330,10 +1340,13 @@ public function getAvailableSlotsForPatient(Request $request)
         return response()->json(['slots' => []]);
     }
 
-    // 7) Existing appointments (global — a therapist can't be double-booked)
-    $existingAppointments = Appointment::where('user_id', $therapistId)
-        ->whereDate('appointment_date', $request->date)
-        ->get();
+$existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
+    ->whereDate('appointment_date', $request->date);
+
+$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+
+$existingAppointments = $existingAppointmentsQuery->get();
+
 
     // 8) Unavailabilities (support multi-day spans)
     $unavailabilities = Unavailability::where('user_id', $therapistId)
@@ -2358,6 +2371,14 @@ public function availableConcreteDatesTherapist(Request $request)
     return response()->json(['dates' => $dates]);
 }
 
+private function applyBlockingAppointmentsFilter($query)
+{
+    // Exclude external "all-day multi-day" blocks (Google all-day spanning multiple days)
+    // Keep everything else blocking.
+    return $query->whereRaw(
+        'NOT (external = 1 AND TIME(appointment_date) = "00:00:00" AND COALESCE(duration,0) >= 2880 AND MOD(COALESCE(duration,0),1440) = 0)'
+    );
+}
 
 
 }
