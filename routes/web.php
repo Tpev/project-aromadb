@@ -71,6 +71,24 @@ use App\Http\Controllers\PublicTrainingAccessController;
 use App\Http\Controllers\PackProductController;
 use App\Http\Controllers\PublicPackCheckoutController;
 // routes/web.php
+
+use App\Http\Controllers\GiftVoucherController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('dashboard-pro')->group(function () {
+        Route::get('/bons-cadeaux', [GiftVoucherController::class, 'index'])->name('pro.gift-vouchers.index');
+        Route::get('/bons-cadeaux/create', [GiftVoucherController::class, 'create'])->name('pro.gift-vouchers.create');
+        Route::post('/bons-cadeaux', [GiftVoucherController::class, 'store'])->name('pro.gift-vouchers.store');
+
+        Route::get('/bons-cadeaux/{voucher}', [GiftVoucherController::class, 'show'])->name('pro.gift-vouchers.show');
+        Route::get('/bons-cadeaux/{voucher}/pdf', [GiftVoucherController::class, 'downloadPdf'])->name('pro.gift-vouchers.pdf');
+        Route::post('/bons-cadeaux/{voucher}/resend', [GiftVoucherController::class, 'resendEmails'])->name('pro.gift-vouchers.resend');
+        Route::post('/bons-cadeaux/{voucher}/redeem', [GiftVoucherController::class, 'redeem'])->name('pro.gift-vouchers.redeem');
+        Route::post('/bons-cadeaux/{voucher}/disable', [GiftVoucherController::class, 'disable'])->name('pro.gift-vouchers.disable');
+    });
+});
+
+
 Route::middleware(['auth'])->group(function () {
     Route::post('/invoices/from-pack/{packPurchase}', [InvoiceController::class, 'createFromPackPurchase'])
         ->name('invoices.fromPackPurchase');
