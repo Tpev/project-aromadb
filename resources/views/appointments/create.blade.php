@@ -180,6 +180,13 @@
                     <label class="details-label">Date</label>
                     <input type="text" id="appointment_date" name="appointment_date" class="form-control" placeholder="Sélectionner une date" required>
                     <p id="date-loading-message" class="text-muted mt-1" style="display:none;">Chargement des dates…</p>
+                    <div class="mt-2 flex items-center gap-2">
+                        <input type="checkbox" id="backfill_past" name="backfill_past" value="1" class="rounded border-gray-300">
+                        <label for="backfill_past" class="text-sm text-gray-600">
+                            Saisie d’un rendez-vous passé (aucun e-mail, pas de contrôle de disponibilité)
+                        </label>
+                    </div>
+                    <p id="backfill-hint" class="text-muted mt-1" style="display:none;">Mode rendez-vous passé activé : choisissez une date passée et un horaire, puis enregistrez.</p>
                 </div>
 
                 {{-- Time --}}
@@ -231,6 +238,65 @@
             disableMobile: true,
             enable: []
         });
+
+        function isBackfillMode() {
+            return $('#backfill_past').is(':checked');
+        }
+
+        function enableBackfillModeUI() {
+            // allow selecting any past day; skip AJAX availability
+            fp.set('minDate', null);
+            fp.set('maxDate', 'today');
+            fp.set('enable', [() => true]);
+            fp.clear();
+            resetSlotsUI();
+            $('#date-loading-message').hide();
+            $('#backfill-hint').show();
+        }
+
+        function disableBackfillModeUIAndRefresh() {
+            fp.set('maxDate', null);
+            fp.set('minDate', 'today');
+            $('#backfill-hint').hide();
+            refreshDates();
+        }
+
+        function renderSlots(slotStarts) {
+            if (!slotStarts || !slotStarts.length) {
+                $('#time-slots-container').html('<span class="text-muted">Aucun créneau.</span>');
+                $('#no-slots-message').text('Pas de créneaux pour ce jour').show();
+                return;
+            }
+            let html = '<div class="time-slots-grid">';
+            slotStarts.forEach(t => {
+                html += `<button type="button" class="time-slot-btn" data-time="${t}">${t}</button>`;
+            });
+            html += '</div>';
+            $('#time-slots-container').html(html);
+            $('#no-slots-message').hide();
+        }
+
+        function renderManualSlotsEvery15Min() {
+            const slots = [];
+            for (let h = 0; h < 24; h++) {
+                for (let m = 0; m < 60; m += 15) {
+                    const hh = String(h).padStart(2, '0');
+                    const mm = String(m).padStart(2, '0');
+                    slots.push(`${hh}:${mm}`);
+                }
+            }
+            renderSlots(slots);
+        }
+
+        // Backfill toggle
+        $('#backfill_past').on('change', function() {
+            if (isBackfillMode()) {
+                enableBackfillModeUI();
+            } else {
+                disableBackfillModeUIAndRefresh();
+            }
+        });
+
 
         function resetSlotsUI() {
             $('#appointment_time').val('');
@@ -286,12 +352,7 @@
                     return;
                 }
 
-                let html = '<div class="time-slots-grid">';
-                res.slots.forEach(s => {
-                    html += `<button type="button" class="time-slot-btn" data-time="${s.start}">${s.start}</button>`;
-                });
-                html += '</div>';
-                $('#time-slots-container').html(html);
+                renderSlots(res.slots.map(s => s.start));
             })
             .fail(() => {
                 $('#time-slots-container').html('<span class="text-red-500">Erreur lors de la récupération.</span>');
@@ -303,6 +364,11 @@
          * If we don't have enough info yet, just clear the calendar & slots.
          */
         function refreshDates() {
+            if (isBackfillMode()) {
+                enableBackfillModeUI();
+                return;
+            }
+
             const productId = $('#product_id').val();
             const slug      = $('#selected_mode_slug').val();
             const loc       = slug === 'cabinet' ? $('#practice_location_id').val() : null;
@@ -390,6 +456,17 @@
             const productId = $('#product_id').val();
             const slug      = $('#selected_mode_slug').val();
             const loc       = slug === 'cabinet' ? $('#practice_location_id').val() : null;
+
+            if (!date) {
+                resetSlotsUI();
+                return;
+            }
+
+            if (isBackfillMode()) {
+                // Past appointment: allow any time selection without checking availability
+                renderManualSlotsEvery15Min();
+                return;
+            }
 
             if (date && productId && slug) {
                 fetchSlots(date, productId, slug, loc);

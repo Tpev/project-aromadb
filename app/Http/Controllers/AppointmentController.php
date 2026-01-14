@@ -243,8 +243,24 @@ public function store(Request $request)
     // Datetime
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date.' '.$request->appointment_time);
 
+    // Backfill mode: allow therapists to register past appointments without notifications
+    $isBackfillRequested = $request->boolean('backfill_past');
+    $isPastAppointment   = $appointmentDateTime->lt(now());
+
+    // Safety: backfill flag is only allowed for past dates
+    if ($isBackfillRequested && !$isPastAppointment) {
+        return redirect()->back()
+            ->withErrors(['appointment_date' => 'Le mode « rendez-vous passé » ne peut être utilisé que pour une date passée.'])
+            ->withInput();
+    }
+
+    $skipAvailability   = $isPastAppointment || $isBackfillRequested;
+    $skipNotifications  = $isPastAppointment || $isBackfillRequested;
+
+
     // Vérification disponibilité (passe mode + location)
-    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, null, $locationId, $mode)) {
+    // If therapist is backfilling a past appointment, skip availability checks.
+    if (!$skipAvailability && !$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, null, $locationId, $mode)) {
         return redirect()->back()
             ->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])
             ->withInput();
@@ -322,10 +338,13 @@ public function store(Request $request)
     $appointment->load('clientProfile','user','product');
 
     // Envoi emails
-    $therapistEmail = $appointment->user->email;
-    $patientEmail   = $appointment->clientProfile->email;
-    if (!empty($patientEmail))  { Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment)); }
-    if (!empty($therapistEmail)){ Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment)); }
+    // If therapist is backfilling a past appointment, do NOT send notifications.
+    if (!$skipNotifications) {
+        $therapistEmail = $appointment->user->email;
+        $patientEmail   = $appointment->clientProfile->email;
+        if (!empty($patientEmail))  { Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment)); }
+        if (!empty($therapistEmail)){ Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment)); }
+    }
 
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
