@@ -126,14 +126,25 @@ public function store(Request $request)
 {
     $validatedData = $request->validate([
         'client_profile_id' => 'required|exists:client_profiles,id',
-        'invoice_date' => 'required|date',
-        'due_date' => 'nullable|date|after_or_equal:invoice_date',
-        'items.*.product_id' => 'nullable|exists:products,id',
-        'items.*.inventory_item_id' => 'nullable|exists:inventory_items,id',
-        'items.*.quantity' => 'required|numeric|min:0.01',
-        'items.*.unit_price' => 'required|numeric|min:0', // utilisé uniquement pour lignes personnalisées
-        'items.*.description' => 'nullable|string',
-        'notes' => 'nullable|string',
+        'invoice_date'      => 'required|date',
+        'due_date'          => 'nullable|date|after_or_equal:invoice_date',
+        'notes'             => 'nullable|string',
+
+        // Discounts (global)
+        'global_discount_type'  => 'nullable|in:percent,amount',
+        'global_discount_value' => 'nullable|numeric|min:0',
+
+        // Items
+        'items'                     => 'required|array|min:1',
+        'items.*.product_id'         => 'nullable|exists:products,id',
+        'items.*.inventory_item_id'  => 'nullable|exists:inventory_items,id',
+        'items.*.quantity'           => 'required|numeric|min:0.01',
+        'items.*.unit_price'         => 'required|numeric|min:0', // only for custom lines
+        'items.*.description'        => 'nullable|string',
+
+        // Discounts (per line)
+        'items.*.line_discount_type'  => 'nullable|in:percent,amount',
+        'items.*.line_discount_value' => 'nullable|numeric|min:0',
     ]);
 
     $invoice = DB::transaction(function () use ($validatedData) {
@@ -144,110 +155,36 @@ public function store(Request $request)
 
         $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
 
-        return Invoice::create([
-            'client_profile_id' => $validatedData['client_profile_id'],
-            'user_id' => Auth::id(),
-            'invoice_date' => $validatedData['invoice_date'],
-            'due_date' => $validatedData['due_date'],
-            'notes' => $validatedData['notes'],
-            'invoice_number' => $nextInvoiceNumber,
-            'total_amount' => 0,
-            'total_tax_amount' => 0,
-            'total_amount_with_tax' => 0,
-            'status' => 'En attente',
+        $invoice = Invoice::create([
+            'client_profile_id'      => $validatedData['client_profile_id'],
+            'user_id'                => Auth::id(),
+            'invoice_date'           => $validatedData['invoice_date'],
+            'due_date'               => $validatedData['due_date'] ?? null,
+            'notes'                  => $validatedData['notes'] ?? null,
+            'invoice_number'         => $nextInvoiceNumber,
+            'status'                 => 'En attente',
+            'type'                   => 'invoice',
+
+            // Totals will be recomputed
+            'total_amount'           => 0,
+            'total_tax_amount'       => 0,
+            'total_amount_with_tax'  => 0,
+
+            // Global discount fields (computed later)
+            'global_discount_type'   => $validatedData['global_discount_type'] ?? null,
+            'global_discount_value'  => $validatedData['global_discount_value'] ?? null,
+            'global_discount_amount_ht' => 0,
         ]);
+
+        $this->recomputeInvoiceTotalsWithDiscounts(
+            $invoice,
+            $validatedData['items'] ?? [],
+            $validatedData['global_discount_type'] ?? null,
+            $validatedData['global_discount_value'] ?? null
+        );
+
+        return $invoice;
     });
-
-    $totalAmount = 0;
-    $totalTaxAmount = 0;
-
-    foreach ($validatedData['items'] as $item) {
-        $description = $item['description'] ?? '';
-        $quantity = $item['quantity'];
-        $type = null;
-        $unitPriceHt = 0;
-        $taxRate = 0;
-        $unitPriceTtc = 0;
-
-        if (isset($item['product_id'])) {
-            $type = 'product';
-        } elseif (isset($item['inventory_item_id'])) {
-            $type = 'inventory';
-        }
-
-        if ($type === 'product') {
-            $product = Product::where('id', $item['product_id'])->where('user_id', Auth::id())->firstOrFail();
-            $description = $description ?: $product->name;
-            $taxRate = $product->tax_rate;
-            $unitPriceHt = $product->price;
-            $unitPriceTtc = $unitPriceHt * (1 + $taxRate / 100);
-
-            $invoice->items()->create([
-                'type' => 'product',
-                'product_id' => $product->id,
-                'description' => $description,
-                'quantity' => $quantity,
-                'unit_price' => $unitPriceHt,
-                'tax_rate' => $taxRate,
-                'tax_amount' => $unitPriceHt * $quantity * ($taxRate / 100),
-                'total_price' => $unitPriceHt * $quantity,
-                'total_price_with_tax' => $unitPriceHt * $quantity * (1 + $taxRate / 100),
-            ]);
-        } elseif ($type === 'inventory') {
-            $inv = InventoryItem::where('id', $item['inventory_item_id'])->where('user_id', Auth::id())->firstOrFail();
-            $description = $description ?: $inv->name;
-            $taxRate = $inv->vat_rate_sale ?? 0;
-
-            // Choix du prix TTC selon unit_type
-            if ($inv->unit_type === 'ml') {
-                $unitPriceTtc = $inv->selling_price_per_ml;
-            } else { // unit
-                $unitPriceTtc = $inv->selling_price;
-            }
-
-            // Conversion TTC → HT
-            $unitPriceHt = $taxRate > 0 ? $unitPriceTtc / (1 + $taxRate / 100) : $unitPriceTtc;
-
-            $invoice->items()->create([
-                'type' => 'inventory',
-                'inventory_item_id' => $inv->id,
-                'description' => $description,
-                'quantity' => $quantity,
-                'unit_price' => $unitPriceHt,
-                'tax_rate' => $taxRate,
-                'tax_amount' => $unitPriceHt * $quantity * ($taxRate / 100),
-                'total_price' => $unitPriceHt * $quantity,
-                'total_price_with_tax' => $unitPriceTtc * $quantity,
-            ]);
-        } else {
-            // Ligne personnalisée
-            $unitPriceHt = $item['unit_price'];
-            $taxRate = 0;
-            $unitPriceTtc = $unitPriceHt;
-
-            $invoice->items()->create([
-                'type' => 'custom',
-                'description' => $description,
-                'quantity' => $quantity,
-                'unit_price' => $unitPriceHt,
-                'tax_rate' => $taxRate,
-                'tax_amount' => $unitPriceHt * $quantity * ($taxRate / 100),
-                'total_price' => $unitPriceHt * $quantity,
-                'total_price_with_tax' => $unitPriceHt * $quantity * (1 + $taxRate / 100),
-            ]);
-        }
-
-        $total = $unitPriceHt * $quantity;
-        $tax = $total * ($taxRate / 100);
-        $totalAmount += $total;
-        $totalTaxAmount += $tax;
-    }
-
-    $invoice->update([
-        'total_amount' => $totalAmount,
-        'total_tax_amount' => $totalTaxAmount,
-        'total_amount_with_tax' => $totalAmount + $totalTaxAmount,
-    ]);
 
     return redirect()->route('invoices.show', $invoice)->with('success', 'Facture créée avec succès.');
 }
@@ -297,129 +234,58 @@ public function update(Request $request, Invoice $invoice)
     $this->authorize('update', $invoice);
 
     $validatedData = $request->validate([
-        'client_profile_id'      => 'required|exists:client_profiles,id',
-        'invoice_date'           => 'required|date',
-        'due_date'               => 'nullable|date|after_or_equal:invoice_date',
+        'client_profile_id' => 'required|exists:client_profiles,id',
+        'invoice_date'      => 'required|date',
+        'due_date'          => 'nullable|date|after_or_equal:invoice_date',
+        'notes'             => 'nullable|string',
+
+        // Discounts (global)
+        'global_discount_type'  => 'nullable|in:percent,amount',
+        'global_discount_value' => 'nullable|numeric|min:0',
+
+        // Items
+        'items'                     => 'required|array|min:1',
         'items.*.product_id'         => 'nullable|exists:products,id',
         'items.*.inventory_item_id'  => 'nullable|exists:inventory_items,id',
         'items.*.quantity'           => 'required|numeric|min:0.01',
         'items.*.unit_price'         => 'required|numeric|min:0', // only for custom lines
         'items.*.description'        => 'nullable|string',
-        'notes'                  => 'nullable|string',
+
+        // Discounts (per line)
+        'items.*.line_discount_type'  => 'nullable|in:percent,amount',
+        'items.*.line_discount_value' => 'nullable|numeric|min:0',
     ]);
 
-    DB::transaction(function() use ($validatedData, $invoice) {
-        // 1) Update basic invoice fields
+    DB::transaction(function () use ($validatedData, $invoice) {
+        // Update basic invoice fields
         $invoice->update([
-            'client_profile_id'   => $validatedData['client_profile_id'],
-            'invoice_date'        => $validatedData['invoice_date'],
-            'due_date'            => $validatedData['due_date'],
-            'notes'               => $validatedData['notes'],
+            'client_profile_id'        => $validatedData['client_profile_id'],
+            'invoice_date'             => $validatedData['invoice_date'],
+            'due_date'                 => $validatedData['due_date'] ?? null,
+            'notes'                    => $validatedData['notes'] ?? null,
+
+            'global_discount_type'     => $validatedData['global_discount_type'] ?? null,
+            'global_discount_value'    => $validatedData['global_discount_value'] ?? null,
+            'global_discount_amount_ht'=> 0,
+
+            // Totals will be recomputed
+            'total_amount'             => 0,
+            'total_tax_amount'         => 0,
+            'total_amount_with_tax'    => 0,
         ]);
 
-        // 2) Remove existing items
+        // Remove existing items then rebuild
         $invoice->items()->delete();
 
-        // 3) Re-create all items, recompute totals
-        $totalAmount   = 0;
-        $totalTaxAmount = 0;
-
-        foreach ($validatedData['items'] as $item) {
-            $qty         = $item['quantity'];
-            $desc        = $item['description'] ?? '';
-            $type        = isset($item['product_id'])
-                             ? 'product'
-                             : (isset($item['inventory_item_id']) ? 'inventory' : 'custom');
-            $unitPriceHt = 0;
-            $unitPriceTtc = 0;
-            $taxRate     = 0;
-
-            if ($type === 'product') {
-                $prod     = Product::where('id', $item['product_id'])
-                                   ->where('user_id', Auth::id())
-                                   ->firstOrFail();
-                $desc     = $desc ?: $prod->name;
-                $taxRate  = $prod->tax_rate;
-                $unitPriceHt  = $prod->price;
-                $unitPriceTtc = $unitPriceHt * (1 + $taxRate/100);
-
-                $invoice->items()->create([
-                    'type'                 => 'product',
-                    'product_id'           => $prod->id,
-                    'description'          => $desc,
-                    'quantity'             => $qty,
-                    'unit_price'           => $unitPriceHt,
-                    'tax_rate'             => $taxRate,
-                    'tax_amount'           => $unitPriceHt * $qty * ($taxRate/100),
-                    'total_price'          => $unitPriceHt * $qty,
-                    'total_price_with_tax' => $unitPriceHt * $qty * (1 + $taxRate/100),
-                ]);
-            }
-            elseif ($type === 'inventory') {
-                $inv      = InventoryItem::where('id', $item['inventory_item_id'])
-                                         ->where('user_id', Auth::id())
-                                         ->firstOrFail();
-                $desc     = $desc ?: $inv->name;
-                $taxRate  = $inv->vat_rate_sale ?? 0;
-
-                // choose TTC price per unit_type
-                if ($inv->unit_type === 'ml') {
-                    $unitPriceTtc = $inv->selling_price_per_ml;
-                } else {
-                    $unitPriceTtc = $inv->selling_price;
-                }
-
-                // compute HT
-                $unitPriceHt = $taxRate > 0
-                    ? $unitPriceTtc / (1 + $taxRate/100)
-                    : $unitPriceTtc;
-
-                $invoice->items()->create([
-                    'type'                 => 'inventory',
-                    'inventory_item_id'    => $inv->id,
-                    'description'          => $desc,
-                    'quantity'             => $qty,
-                    'unit_price'           => $unitPriceHt,
-                    'tax_rate'             => $taxRate,
-                    'tax_amount'           => $unitPriceHt * $qty * ($taxRate/100),
-                    'total_price'          => $unitPriceHt * $qty,
-                    'total_price_with_tax' => $unitPriceTtc * $qty,
-                ]);
-            }
-            else {
-                // custom line
-                $unitPriceHt  = $item['unit_price'];
-                $taxRate      = 0;
-                $unitPriceTtc = $unitPriceHt;
-
-                $invoice->items()->create([
-                    'type'                 => 'custom',
-                    'description'          => $desc,
-                    'quantity'             => $qty,
-                    'unit_price'           => $unitPriceHt,
-                    'tax_rate'             => $taxRate,
-                    'tax_amount'           => $unitPriceHt * $qty * ($taxRate/100),
-                    'total_price'          => $unitPriceHt * $qty,
-                    'total_price_with_tax' => $unitPriceHt * $qty * (1 + $taxRate/100),
-                ]);
-            }
-
-            // accumulate
-            $totalAmount   += $unitPriceHt * $qty;
-            $totalTaxAmount += ($unitPriceHt * $qty) * ($taxRate/100);
-        }
-
-        // 4) Update invoice totals
-        $invoice->update([
-            'total_amount'           => $totalAmount,
-            'total_tax_amount'       => $totalTaxAmount,
-            'total_amount_with_tax'  => $totalAmount + $totalTaxAmount,
-        ]);
+        $this->recomputeInvoiceTotalsWithDiscounts(
+            $invoice,
+            $validatedData['items'] ?? [],
+            $validatedData['global_discount_type'] ?? null,
+            $validatedData['global_discount_value'] ?? null
+        );
     });
 
-    return redirect()
-        ->route('invoices.show', $invoice)
-        ->with('success', __('Facture mise à jour avec succès.'));
+    return redirect()->route('invoices.show', $invoice)->with('success', 'Facture mise à jour avec succès.');
 }
 
     /**
@@ -820,102 +686,64 @@ public function createQuote(Request $request)
 public function storeQuote(Request $request)
 {
     $validated = $request->validate([
-        'client_profile_id'       => 'required|exists:client_profiles,id',
-        'quote_date'              => 'required|date',
-        'valid_until'             => 'nullable|date|after_or_equal:quote_date',
-        'items.*.type'            => 'required|in:product,inventory',
-        'items.*.product_id'      => 'nullable|exists:products,id',
-        'items.*.inventory_item_id'=>'nullable|exists:inventory_items,id',
-        'items.*.quantity'        => 'required|numeric|min:0.01',
-        'items.*.unit_price'      => 'required|numeric|min:0', // only custom
-        'items.*.description'     => 'nullable|string',
-        'notes'                   => 'nullable|string',
+        'client_profile_id'            => 'required|exists:client_profiles,id',
+        'quote_date'                   => 'required|date',
+        'valid_until'                  => 'nullable|date|after_or_equal:quote_date',
+        'items'                        => 'required|array|min:1',
+        'items.*.type'                 => 'required|in:product,inventory,custom',
+        'items.*.product_id'           => 'nullable|exists:products,id',
+        'items.*.inventory_item_id'    => 'nullable|exists:inventory_items,id',
+        'items.*.quantity'             => 'required|numeric|min:0.01',
+        'items.*.unit_price'           => 'nullable|numeric|min:0', // used for custom
+        'items.*.description'          => 'nullable|string',
+        'items.*.line_discount_type'   => 'nullable|in:percent,amount',
+        'items.*.line_discount_value'  => 'nullable|numeric|min:0',
+        'global_discount_type'         => 'nullable|in:percent,amount',
+        'global_discount_value'        => 'nullable|numeric|min:0',
+        'notes'                        => 'nullable|string',
     ]);
 
-    $quote = DB::transaction(function() use($validated){
-        $last = Invoice::where('type','quote')
-                       ->where('user_id',auth()->id())
-                       ->orderByDesc('id')->first();
-        $num  = 'D-'.str_pad(($last?->id ?? 0)+1,5,'0',STR_PAD_LEFT);
+    $quote = DB::transaction(function () use ($validated) {
+        $last = Invoice::where('type', 'quote')
+            ->where('user_id', auth()->id())
+            ->orderByDesc('id')
+            ->first();
 
-        return Invoice::create([
-            'client_profile_id'  => $validated['client_profile_id'],
-            'user_id'            => auth()->id(),
-            'invoice_date'       => $validated['quote_date'],
-            'due_date'           => $validated['valid_until'],
-            'notes'              => $validated['notes'],
-            'status'             => 'Devis',
-            'type'               => 'quote',
-            'quote_number'       => $num,
-            'total_amount'       => 0,
-            'total_tax_amount'   => 0,
-            'total_amount_with_tax'=>0,
+        $num = 'D-' . str_pad(($last?->id ?? 0) + 1, 5, '0', STR_PAD_LEFT);
+
+        /** @var \App\Models\Invoice $quote */
+        $quote = Invoice::create([
+            'client_profile_id'        => $validated['client_profile_id'],
+            'user_id'                  => auth()->id(),
+            // Keep your existing storage mapping
+            'invoice_date'             => $validated['quote_date'],
+            'due_date'                 => $validated['valid_until'] ?? null,
+            'notes'                    => $validated['notes'] ?? null,
+            'status'                   => 'Devis',
+            'type'                     => 'quote',
+            'quote_number'             => $num,
+            'total_amount'             => 0,
+            'total_tax_amount'         => 0,
+            'total_amount_with_tax'    => 0,
+            'global_discount_type'     => $validated['global_discount_type'] ?? null,
+            'global_discount_value'    => $validated['global_discount_value'] ?? null,
+            'global_discount_amount_ht'=> 0,
         ]);
+
+        // Recompute + persist items + totals (line discounts + global discount allocation)
+        $this->recomputeInvoiceTotalsWithDiscounts(
+            $quote,
+            $validated['items'] ?? [],
+            $validated['global_discount_type'] ?? null,
+            $validated['global_discount_value'] ?? null
+        );
+
+        return $quote;
     });
 
-    $totHT  = 0;
-    $totTax = 0;
-
-    foreach($validated['items'] as $item) {
-        $qty = $item['quantity'];
-        $desc= $item['description'] ?? '';
-        $type= $item['type'];
-
-        if($type==='product') {
-            $prod     = Product::where('id',$item['product_id'])
-                               ->where('user_id',auth()->id())
-                               ->firstOrFail();
-            $desc     = $desc ?: $prod->name;
-            $taxRate  = $prod->tax_rate;
-            $htUnit   = $prod->price;
-            $ttcLine  = $htUnit*$qty*(1+$taxRate/100);
-        }
-        elseif($type==='inventory') {
-            $inv      = InventoryItem::where('id',$item['inventory_item_id'])
-                                     ->where('user_id',auth()->id())
-                                     ->firstOrFail();
-            $desc     = $desc ?: $inv->name;
-            $taxRate  = $inv->vat_rate_sale ?? 0;
-            $ttcUnit  = ($inv->unit_type==='ml')
-                           ? $inv->selling_price_per_ml
-                           : $inv->selling_price;
-            $htUnit   = $ttcUnit / (1+$taxRate/100);
-            $ttcLine  = $ttcUnit * $qty;
-        }
-        else {
-            $htUnit   = $item['unit_price'];
-            $taxRate  = 0;
-            $ttcLine  = $htUnit*$qty;
-        }
-
-        $taxAmt   = $htUnit*$qty*($taxRate/100);
-        $totHT   += $htUnit*$qty;
-        $totTax  += $taxAmt;
-
-        $quote->items()->create([
-            'type'                 => $type,
-            'product_id'           => $item['product_id'] ?? null,
-            'inventory_item_id'    => $item['inventory_item_id'] ?? null,
-            'description'          => $desc,
-            'quantity'             => $qty,
-            'unit_price'           => $htUnit,
-            'tax_rate'             => $taxRate,
-            'tax_amount'           => $taxAmt,
-            'total_price'          => $htUnit*$qty,
-            'total_price_with_tax' => $ttcLine,
-        ]);
-    }
-
-    $quote->update([
-        'total_amount'         => $totHT,
-        'total_tax_amount'     => $totTax,
-        'total_amount_with_tax'=> $totHT + $totTax,
-    ]);
-
-    return redirect()->route('invoices.showQuote',$quote)
-                     ->with('success','Devis créé avec succès.');
+    return redirect()->route('invoices.showQuote', $quote)
+        ->with('success', 'Devis créé avec succès.');
 }
-
 
 public function editQuote(Invoice $quote)
 {
@@ -932,105 +760,50 @@ public function updateQuote(Request $request, Invoice $quote)
     $this->authorize('update', $quote);
 
     $validated = $request->validate([
-        'client_profile_id'      => 'required|exists:client_profiles,id',
-        'quote_date'             => 'required|date',
-        'valid_until'            => 'nullable|date|after_or_equal:quote_date',
-        'items.*.product_id'     => 'nullable|exists:products,id',
-        'items.*.inventory_item_id' => 'nullable|exists:inventory_items,id',
-        'items.*.quantity'       => 'required|numeric|min:0.01',
-        'notes'                  => 'nullable|string',
+        'client_profile_id'            => 'required|exists:client_profiles,id',
+        'quote_date'                   => 'required|date',
+        'valid_until'                  => 'nullable|date|after_or_equal:quote_date',
+        'items'                        => 'required|array|min:1',
+        'items.*.type'                 => 'required|in:product,inventory,custom',
+        'items.*.product_id'           => 'nullable|exists:products,id',
+        'items.*.inventory_item_id'    => 'nullable|exists:inventory_items,id',
+        'items.*.quantity'             => 'required|numeric|min:0.01',
+        'items.*.unit_price'           => 'nullable|numeric|min:0',
+        'items.*.description'          => 'nullable|string',
+        'items.*.line_discount_type'   => 'nullable|in:percent,amount',
+        'items.*.line_discount_value'  => 'nullable|numeric|min:0',
+        'global_discount_type'         => 'nullable|in:percent,amount',
+        'global_discount_value'        => 'nullable|numeric|min:0',
+        'notes'                        => 'nullable|string',
     ]);
 
-    DB::transaction(function() use ($validated, $quote) {
-        // Met à jour les infos générales
+    DB::transaction(function () use ($validated, $quote) {
+        // Update header fields
         $quote->update([
-            'client_profile_id' => $validated['client_profile_id'],
-            'invoice_date'      => $validated['quote_date'],
-            'due_date'          => $validated['valid_until'],
-            'notes'             => $validated['notes'],
+            'client_profile_id'        => $validated['client_profile_id'],
+            'invoice_date'             => $validated['quote_date'],
+            'due_date'                 => $validated['valid_until'] ?? null,
+            'notes'                    => $validated['notes'] ?? null,
+            'global_discount_type'     => $validated['global_discount_type'] ?? null,
+            'global_discount_value'    => $validated['global_discount_value'] ?? null,
+            'global_discount_amount_ht'=> 0,
         ]);
 
-        // Supprime les anciennes lignes
+        // Replace items then recompute totals
         $quote->items()->delete();
 
-        $totalHT  = 0;
-        $totalTax = 0;
-
-        foreach ($validated['items'] as $item) {
-            // Détecte le type
-            if (!empty($item['product_id'])) {
-                $type = 'product';
-                $model = Product::where('user_id',Auth::id())
-                                ->findOrFail($item['product_id']);
-                $name        = $model->name;
-                $taxRate     = $model->tax_rate;
-                $priceHT     = $model->price;
-                $priceTTC    = $priceHT * (1 + $taxRate/100);
-            }
-            elseif (!empty($item['inventory_item_id'])) {
-                $type = 'inventory';
-                $model = InventoryItem::where('user_id',Auth::id())
-                                      ->findOrFail($item['inventory_item_id']);
-                $name    = $model->name;
-                $taxRate = $model->vat_rate_sale ?: 0;
-                // Choix des tarifs comme pour la facture
-                if ($model->unit_type === 'ml') {
-                    $priceTTC = $model->selling_price_per_ml;
-                } else {
-                    $priceTTC = $model->selling_price;
-                }
-                $priceHT = $taxRate>0
-                    ? $priceTTC / (1 + $taxRate/100)
-                    : $priceTTC;
-            }
-            else {
-                $type    = 'custom';
-                $name    = '';
-                $taxRate = 0;
-                $priceHT = $item['unit_price'] ?? 0;
-                $priceTTC = $priceHT;
-            }
-
-            $qty    = $item['quantity'];
-            $desc   = $item['description'] ?? $name;
-            $totalLigneHT  = $priceHT  * $qty;
-            $taxLigne      = $totalLigneHT * ($taxRate/100);
-            $totalLigneTTC = $priceTTC * $qty;
-
-            // Crée la ligne
-            $quote->items()->create([
-                'type'                  => $type,
-                'product_id'            => $type==='product'   ? $model->id : null,
-                'inventory_item_id'     => $type==='inventory' ? $model->id : null,
-                'description'           => $desc,
-                'quantity'              => $qty,
-                'unit_price'            => $priceHT,
-                'tax_rate'              => $taxRate,
-                'tax_amount'            => $taxLigne,
-                'total_price'           => $totalLigneHT,
-                'total_price_with_tax'  => $totalLigneTTC,
-            ]);
-
-            $totalHT  += $totalLigneHT;
-            $totalTax += $taxLigne;
-        }
-
-        // Met à jour les totaux du devis
-        $quote->update([
-            'total_amount'           => $totalHT,
-            'total_tax_amount'       => $totalTax,
-            'total_amount_with_tax'  => $totalHT + $totalTax,
-        ]);
+        $this->recomputeInvoiceTotalsWithDiscounts(
+            $quote,
+            $validated['items'] ?? [],
+            $validated['global_discount_type'] ?? null,
+            $validated['global_discount_value'] ?? null
+        );
     });
 
-    return redirect()
-        ->route('invoices.showQuote', $quote)
-        ->with('success','Devis mis à jour avec succès.');
+    return redirect()->route('invoices.showQuote', $quote)
+        ->with('success', 'Devis mis à jour avec succès.');
 }
 
-/**
- * Affiche un devis spécifique.
- */
 public function showQuote($id)
 {
     // On charge clientProfile, items.product et items.inventoryItem
@@ -1229,5 +1002,216 @@ public function createFromPackPurchase(PackPurchase $packPurchase)
         ->with('success', 'Facture du pack créée avec succès.');
 }
 
+
+
+/**
+ * Recompute invoice totals applying:
+ *  - per-line discount (percent or amount)
+ *  - global discount (percent or amount) allocated proportionally across lines
+ *
+ * All discounts are applied on HT amounts so VAT remains correct, even with multiple VAT rates.
+ *
+ * @param  \App\Models\Invoice  $invoice
+ * @param  array  $items
+ * @param  string|null  $globalDiscountType   percent|amount|null
+ * @param  float|int|string|null  $globalDiscountValue
+ * @return void
+ */
+private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $items, ?string $globalDiscountType, $globalDiscountValue): void
+{
+    // 1) Create items with LINE discounts applied (but not global yet)
+    $lines = [];
+
+    foreach ($items as $item) {
+        $quantity = (float) ($item['quantity'] ?? 0);
+        if ($quantity <= 0) {
+            continue;
+        }
+
+        $desc = $item['description'] ?? '';
+
+        // Determine line type (stay compatible with your existing payloads)
+        $type = null;
+        if (!empty($item['type'])) {
+            $type = $item['type'];
+        } elseif (!empty($item['product_id'])) {
+            $type = 'product';
+        } elseif (!empty($item['inventory_item_id'])) {
+            $type = 'inventory';
+        } else {
+            $type = 'custom';
+        }
+
+        $unitPriceHt  = 0.0;
+        $taxRate      = 0.0;
+
+        $productId = null;
+        $inventoryItemId = null;
+
+        if ($type === 'product') {
+            $prod = Product::where('id', $item['product_id'])
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
+
+            $productId = $prod->id;
+            $desc = $desc ?: $prod->name;
+            $taxRate = (float) ($prod->tax_rate ?? 0);
+            $unitPriceHt = (float) ($prod->price ?? 0);
+        } elseif ($type === 'inventory') {
+            $inv = InventoryItem::where('id', $item['inventory_item_id'])
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
+
+            $inventoryItemId = $inv->id;
+            $desc = $desc ?: $inv->name;
+
+            $taxRate = (float) ($inv->vat_rate_sale ?? 0);
+
+            // In your UI, inventory selling prices are TTC; we convert to HT for storage & computations.
+            $unitPriceTtc = 0.0;
+            if (($inv->unit_type ?? null) === 'ml') {
+                $unitPriceTtc = (float) ($inv->selling_price_per_ml ?? 0);
+            } else {
+                $unitPriceTtc = (float) ($inv->selling_price ?? 0);
+            }
+
+            $unitPriceHt = $taxRate > 0 ? ($unitPriceTtc / (1 + $taxRate / 100)) : $unitPriceTtc;
+        } else {
+            // custom line: unit_price is assumed HT
+            $unitPriceHt = (float) ($item['unit_price'] ?? 0);
+            $taxRate = (float) ($item['tax_rate'] ?? 0); // if you allow custom VAT later; otherwise keep 0
+            if (!$taxRate) {
+                $taxRate = 0.0;
+            }
+        }
+
+        $baseHt = $unitPriceHt * $quantity;
+
+        // LINE DISCOUNT (HT)
+        $lineDiscountType  = $item['line_discount_type'] ?? null; // percent|amount|null
+        $lineDiscountValue = isset($item['line_discount_value']) ? (float) $item['line_discount_value'] : null;
+
+        $lineDiscountAmountHt = 0.0;
+        if ($lineDiscountType && $lineDiscountValue !== null) {
+            if ($lineDiscountType === 'percent') {
+                $lineDiscountAmountHt = $baseHt * ($lineDiscountValue / 100);
+            } elseif ($lineDiscountType === 'amount') {
+                $lineDiscountAmountHt = $lineDiscountValue;
+            }
+            $lineDiscountAmountHt = max(0, min($lineDiscountAmountHt, $baseHt));
+        }
+
+        $netHtAfterLine = $baseHt - $lineDiscountAmountHt;
+        $taxAfterLine   = $netHtAfterLine * ($taxRate / 100);
+        $ttcAfterLine   = $netHtAfterLine + $taxAfterLine;
+
+        $created = $invoice->items()->create([
+            'type' => $type,
+            'product_id' => $productId,
+            'inventory_item_id' => $inventoryItemId,
+            'description' => $desc,
+            'quantity' => $quantity,
+            'unit_price' => round($unitPriceHt, 6),
+            'tax_rate' => round($taxRate, 2),
+
+            'line_discount_type' => $lineDiscountType,
+            'line_discount_value' => $lineDiscountValue,
+            'line_discount_amount_ht' => round($lineDiscountAmountHt, 2),
+            'global_discount_amount_ht' => 0,
+
+            'total_price_before_discount' => round($baseHt, 2),
+
+            // temp totals (after line discount, before global discount)
+            'total_price' => round($netHtAfterLine, 2),
+            'tax_amount' => round($taxAfterLine, 2),
+            'total_price_with_tax' => round($ttcAfterLine, 2),
+        ]);
+
+        $lines[] = [
+            'id' => $created->id,
+            'net_ht_after_line' => $netHtAfterLine,
+        ];
+    }
+
+    // If no lines, keep totals at 0
+    if (count($lines) === 0) {
+        $invoice->update([
+            'global_discount_amount_ht' => 0,
+            'total_amount' => 0,
+            'total_tax_amount' => 0,
+            'total_amount_with_tax' => 0,
+        ]);
+        return;
+    }
+
+    $subtotalHt = array_sum(array_map(fn ($l) => $l['net_ht_after_line'], $lines));
+
+    // 2) Compute GLOBAL DISCOUNT (HT) on subtotal after line discounts
+    $globalDiscountHt = 0.0;
+    if ($globalDiscountType && $globalDiscountValue !== null && $subtotalHt > 0) {
+        $gv = (float) $globalDiscountValue;
+        if ($globalDiscountType === 'percent') {
+            $globalDiscountHt = $subtotalHt * ($gv / 100);
+        } elseif ($globalDiscountType === 'amount') {
+            $globalDiscountHt = $gv;
+        }
+        $globalDiscountHt = max(0, min($globalDiscountHt, $subtotalHt));
+    }
+    $globalDiscountHt = round($globalDiscountHt, 2);
+
+    // 3) Allocate global discount proportionally across lines (fix rounding on last line)
+    $allocations = [];
+    $running = 0.0;
+    $lastIndex = count($lines) - 1;
+
+    foreach ($lines as $i => $l) {
+        if ($subtotalHt <= 0 || $globalDiscountHt <= 0) {
+            $alloc = 0.0;
+        } else {
+            $alloc = ($i === $lastIndex)
+                ? round($globalDiscountHt - $running, 2)
+                : round($globalDiscountHt * ($l['net_ht_after_line'] / $subtotalHt), 2);
+        }
+        $running += $alloc;
+        $allocations[$l['id']] = $alloc;
+    }
+
+    // 4) Apply allocations, recompute VAT per line, sum totals
+    $totalHt = 0.0;
+    $totalTax = 0.0;
+
+    foreach ($lines as $l) {
+        $itemModel = $invoice->items()->find($l['id']);
+        if (!$itemModel) {
+            continue;
+        }
+
+        $allocHt = (float) ($allocations[$l['id']] ?? 0);
+        $taxRate = (float) ($itemModel->tax_rate ?? 0);
+
+        $htBeforeGlobal = (float) ($itemModel->total_price ?? 0); // already after line discount
+        $htFinal = max(0, $htBeforeGlobal - $allocHt);
+
+        $taxFinal = $htFinal * ($taxRate / 100);
+        $ttcFinal = $htFinal + $taxFinal;
+
+        $itemModel->update([
+            'global_discount_amount_ht' => round($allocHt, 2),
+            'total_price' => round($htFinal, 2),
+            'tax_amount' => round($taxFinal, 2),
+            'total_price_with_tax' => round($ttcFinal, 2),
+        ]);
+
+        $totalHt += $htFinal;
+        $totalTax += $taxFinal;
+    }
+
+    $invoice->update([
+        'global_discount_amount_ht' => $globalDiscountHt,
+        'total_amount' => round($totalHt, 2),
+        'total_tax_amount' => round($totalTax, 2),
+        'total_amount_with_tax' => round($totalHt + $totalTax, 2),
+    ]);
+}
 
 }

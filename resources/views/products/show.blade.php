@@ -127,11 +127,13 @@
                     <div class="product-details">
                         <p class="product-label">{{ __('Mode de Prestation') }}</p>
                         <p class="product-value">
-                            {{ method_exists($product, 'getConsultationModes') ? $product->getConsultationModes() : implode(', ', array_filter([
-                                $product->visio ? __('Visio') : null,
-                                $product->adomicile ? __('À domicile') : null,
-                                $product->dans_le_cabinet ? __('Dans le cabinet') : null,
-                            ])) }}
+{{ method_exists($product, 'getConsultationModes') ? $product->getConsultationModes() : implode(', ', array_filter([
+    $product->visio ? __('Visio') : null,
+    $product->adomicile ? __('À domicile') : null,
+    ($product->en_entreprise ?? false) ? __('En entreprise') : null,
+    $product->dans_le_cabinet ? __('Dans le cabinet') : null,
+])) }}
+
                         </p>
                     </div>
                 </div>

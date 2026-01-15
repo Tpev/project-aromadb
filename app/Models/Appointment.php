@@ -90,7 +90,7 @@ class Appointment extends Model
     /* ------------------------------------------------------------------ */
 
     /**
-     * Returns one of: 'cabinet' | 'visio' | 'domicile'
+     * Returns one of: 'cabinet' | 'visio' | 'domicile' | 'entreprise'
      */
     public function getResolvedMode(): string
     {
@@ -106,6 +106,9 @@ class Appointment extends Model
         if ($product?->adomicile) {
             return 'domicile';
         }
+        if (!empty($product?->en_entreprise)) {
+            return 'entreprise';
+        }
 
         // Default
         return 'cabinet';
@@ -119,7 +122,8 @@ class Appointment extends Model
         return [
             'cabinet'  => __('Dans le Cabinet'),
             'visio'    => __('En Visio'),
-            'domicile' => __('À Domicile'),
+            'domicile'   => __('À Domicile'),
+            'entreprise' => __('En entreprise'),
         ][$this->getResolvedMode()] ?? __('Non spécifié');
     }
 
@@ -135,7 +139,7 @@ class Appointment extends Model
             return 'Visio';
         }
 
-        if ($mode === 'domicile') {
+        if ($mode === 'domicile' || $mode === 'entreprise') {
             return $this->address
                 ?: ($this->clientProfile?->address ?: 'Domicile client');
         }

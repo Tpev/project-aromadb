@@ -177,10 +177,16 @@
                             <td>{{ $product->duration }}</td>
                             <td>{{ $product->can_be_booked_online ? 'Oui' : 'Non' }}</td>
                             <td>
-                                @if($product->visio) Visio
-                                @elseif($product->adomicile) À domicile
-                                @else Dans le cabinet
-                                @endif
+@if($product->visio)
+    Visio
+@elseif($product->adomicile)
+    À domicile
+@elseif($product->en_entreprise ?? false)
+    En entreprise
+@else
+    Dans le cabinet
+@endif
+
                             </td>
                             <td>{{ $product->max_per_day }}</td>
                         </tr>

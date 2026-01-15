@@ -89,11 +89,13 @@
                 <!-- Mode de prestation -->
                 <div class="details-box">
                     <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
-                    <select id="mode" name="mode" class="form-control" required>
-                        <option value="visio" {{ old('mode') == 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
-                        <option value="adomicile" {{ old('mode') == 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
-                        <option value="dans_le_cabinet" {{ old('mode') == 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
-                    </select>
+					<select id="mode" name="mode" class="form-control" required>
+						<option value="visio" {{ old('mode') == 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
+						<option value="adomicile" {{ old('mode') == 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
+						<option value="en_entreprise" {{ old('mode') == 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
+						<option value="dans_le_cabinet" {{ old('mode') == 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
+					</select>
+
                     @error('mode')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror

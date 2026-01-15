@@ -49,6 +49,16 @@
                     </div>
                 </div>
 
+@php
+    $modeSlug = $appointment->type ?? (method_exists($appointment, 'getResolvedMode') ? $appointment->getResolvedMode() : null);
+    $isDomicileLike = in_array($modeSlug, ['domicile','entreprise'], true);
+
+    $modeLabel = method_exists($appointment, 'getResolvedModeLabel')
+        ? $appointment->getResolvedModeLabel()
+        : ($modeSlug ? ucfirst($modeSlug) : __('Non spécifié'));
+@endphp
+
+
                 <div class="row">
                     <div class="col-md-4">
                         <label class="details-label">{{ __('Durée') }}</label>
@@ -60,9 +70,39 @@
                     </div>
                     <div class="col-md-4">
                         <label class="details-label">{{ __('Mode') }}</label>
-                        <p class="details-value">{{ $mode }}</p>
+                        <p class="details-value">{{ $modeLabel }}</p>
                     </div>
                 </div>
+
+                {{-- Adresse (cabinet / domicile / entreprise) --}}
+                @if($modeSlug === 'cabinet')
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <label class="details-label">{{ __('Cabinet') }}</label>
+                            <p class="details-value">
+                                @php
+                                    $loc = $appointment->practiceLocation ?? null;
+                                @endphp
+                                @if($loc)
+                                    {{ $loc->label }}
+                                    <br>
+                                    <span class="text-muted">
+                                        {{ $loc->full_address ?? trim(($loc->address_line1 ?? '') . ', ' . ($loc->postal_code ?? '') . ' ' . ($loc->city ?? '')) }}
+                                    </span>
+                                @else
+                                    {{ __('Non renseigné') }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                @elseif($isDomicileLike)
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <label class="details-label">{{ $modeSlug === 'entreprise' ? __('Adresse de l’entreprise') : __('Adresse du domicile') }}</label>
+                            <p class="details-value">{{ $appointment->address ?: ($appointment->clientProfile->address ?? __('Non renseigné')) }}</p>
+                        </div>
+                    </div>
+                @endif
         @if($meetingLink)
             <div class="mt-4">
                 <strong>Votre lien de connexion :</strong>

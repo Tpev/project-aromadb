@@ -27,6 +27,9 @@ class Invoice extends Model
 		'payment_link', // Add this line
 		'type',
 		'quote_number',
+        'global_discount_type',
+        'global_discount_value',
+        'global_discount_amount_ht',
     ];
 
 protected $attributes = [

@@ -74,16 +74,26 @@
                     @error('duration') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Mode de prestation -->
-                <div class="details-box">
-                    <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
-                    <select id="mode" name="mode" class="form-control" required>
-                        <option value="visio" {{ old('mode', $product->visio ? 'visio' : '') == 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
-                        <option value="adomicile" {{ old('mode', $product->adomicile ? 'adomicile' : '') == 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
-                        <option value="dans_le_cabinet" {{ old('mode', $product->dans_le_cabinet ? 'dans_le_cabinet' : '') == 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
-                    </select>
-                    @error('mode') <p class="text-red-500">{{ $message }}</p> @enderror
-                </div>
+				@php
+					$currentMode = old(
+						'mode',
+						$product->visio ? 'visio'
+							: ($product->adomicile ? 'adomicile'
+								: (($product->en_entreprise ?? false) ? 'en_entreprise'
+									: 'dans_le_cabinet'))
+					);
+				@endphp
+
+				<div class="details-box">
+					<label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
+					<select id="mode" name="mode" class="form-control" required>
+						<option value="visio" {{ $currentMode === 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
+						<option value="adomicile" {{ $currentMode === 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
+						<option value="en_entreprise" {{ $currentMode === 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
+						<option value="dans_le_cabinet" {{ $currentMode === 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
+					</select>
+					@error('mode') <p class="text-red-500">{{ $message }}</p> @enderror
+				</div>
 
                 <!-- Peut être réservé en ligne -->
                 <div class="details-box">

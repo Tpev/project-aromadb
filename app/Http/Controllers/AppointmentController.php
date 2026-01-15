@@ -582,12 +582,14 @@ private function isAvailable(
     // 1) Récup produit & mode
     $product = Product::findOrFail((int) $productId);
 
-    if (!in_array($mode, ['cabinet','visio','domicile'], true)) {
+    if (!in_array($mode, ['cabinet','visio','domicile','entreprise'], true)) {
         // Déduction simple si le mode n'est pas fourni
         $modes = [];
         if ($product->dans_le_cabinet) $modes[] = 'cabinet';
         if ($product->visio)           $modes[] = 'visio';
         if ($product->adomicile)       $modes[] = 'domicile';
+    if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
+        if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
         $mode = count($modes) === 1 ? $modes[0] : 'cabinet';
     }
 
@@ -721,6 +723,8 @@ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $produ
     if ($product->dans_le_cabinet) $modes[] = 'cabinet';
     if ($product->visio)           $modes[] = 'visio';
     if ($product->adomicile)       $modes[] = 'domicile';
+    if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
+        if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
 
     $locationId = null;
     $mode       = null;
@@ -956,13 +960,15 @@ public function storePatient(Request $request)
             $mode = 'visio';
         } elseif (!empty($product->adomicile)) {
             $mode = 'domicile';
+        } elseif (!empty($product->en_entreprise)) {
+            $mode = 'entreprise';
         } else {
             $mode = 'autre';
         }
     }
 
     // Si le produit nécessite une adresse (domicile), exiger l'adresse
-    if ($mode === 'domicile' || !empty($product->adomicile)) {
+    if ($mode === 'domicile' || $mode === 'entreprise' || !empty($product->adomicile) || !empty($product->en_entreprise)) {
         $request->validate([
             'address' => 'required|string|max:255',
         ], $messages);
@@ -1283,13 +1289,15 @@ public function getAvailableSlotsForPatient(Request $request)
 
     // 2) Resolve mode
     $requestedMode = $request->input('mode');
-    $mode = in_array($requestedMode, ['cabinet','visio','domicile'], true)
+    $mode = in_array($requestedMode, ['cabinet','visio','domicile','entreprise'], true)
         ? $requestedMode
         : (function() use ($product) {
             $modes = [];
             if ($product->dans_le_cabinet) $modes[] = 'cabinet';
             if ($product->visio)           $modes[] = 'visio';
             if ($product->adomicile)       $modes[] = 'domicile';
+    if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
+        if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
             if (count($modes) === 1) return $modes[0];
             return 'cabinet';
         })();
@@ -1444,7 +1452,7 @@ public function availableConcreteDatesPatient(Request $request)
     $request->validate([
         'therapist_id' => 'required|exists:users,id',
         'product_id'   => 'required|exists:products,id',
-        'mode'         => 'nullable|string|in:cabinet,visio,domicile',
+        'mode'         => 'nullable|string|in:cabinet,visio,domicile,entreprise',
         'location_id'  => 'nullable|integer',
         'days'         => 'nullable|integer|min:1|max:90',
     ]);
@@ -2018,14 +2026,20 @@ protected function createInvoiceFromAppointment(Appointment $appointment)
 private function resolveMode(\App\Models\Product $product, ?string $requested = null): string
 {
     // Si l'UI envoie 'mode', on respecte
-    if (in_array($requested, ['cabinet','visio','domicile'], true)) {
+    if (in_array($requested, ['cabinet','visio','domicile','entreprise'], true)) {
         return $requested;
     }
 
-    // Sinon on essaie de déduire
-    if ($product->dans_le_cabinet && !$product->visio && !$product->adomicile) return 'cabinet';
-    if ($product->visio && !$product->dans_le_cabinet && !$product->adomicile) return 'visio';
-    if ($product->adomicile && !$product->dans_le_cabinet && !$product->visio) return 'domicile';
+    // Sinon on essaie de déduire (cas simple: un seul mode actif)
+    $modes = [];
+    if ($product->dans_le_cabinet) $modes[] = 'cabinet';
+    if ($product->visio)           $modes[] = 'visio';
+    if ($product->adomicile)       $modes[] = 'domicile';
+    if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
+
+    if (count($modes) === 1) {
+        return $modes[0];
+    }
 
     // Ambigu : par défaut "cabinet" (l'UI devrait envoyer le mode dans ce cas)
     return 'cabinet';
@@ -2056,7 +2070,7 @@ public function destroy(Appointment $appointment)
  */
 private function resolvePatientMode(\App\Models\Product $product, ?string $requested): string
 {
-    if (in_array($requested, ['cabinet', 'visio', 'domicile'], true)) {
+    if (in_array($requested, ['cabinet', 'visio', 'domicile', 'entreprise'], true)) {
         return $requested;
     }
 
@@ -2069,6 +2083,9 @@ private function resolvePatientMode(\App\Models\Product $product, ?string $reque
     }
     if ($product->adomicile) {
         $modes[] = 'domicile';
+    }
+    if (!empty($product->en_entreprise)) {
+        $modes[] = 'entreprise';
     }
 
     if (count($modes) === 1) {
@@ -2198,7 +2215,7 @@ public function getAvailableSlotsForTherapist(Request $request)
     $request->validate([
         'date'       => 'required|date_format:Y-m-d',
         'product_id' => 'required|exists:products,id',
-        'mode'       => 'nullable|string|in:cabinet,visio,domicile',
+        'mode'       => 'nullable|string|in:cabinet,visio,domicile,entreprise',
         'location_id'=> 'nullable|integer',
     ]);
 
@@ -2341,7 +2358,7 @@ public function availableConcreteDatesTherapist(Request $request)
 {
     $request->validate([
         'product_id'   => 'required|exists:products,id',
-        'mode'         => 'nullable|string|in:cabinet,visio,domicile',
+        'mode'         => 'nullable|string|in:cabinet,visio,domicile,entreprise',
         'location_id'  => 'nullable|integer',
         'days'         => 'nullable|integer|min:1|max:90',
     ]);

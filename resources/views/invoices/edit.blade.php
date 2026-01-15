@@ -17,7 +17,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('invoices.update', $invoice) }}" method="POST">
+            <form id="invoiceEditForm" action="{{ route('invoices.update', $invoice) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -69,6 +69,8 @@
                                     <th>{{ __('Quantité') }}</th>
                                     <th>{{ __('P.U. HT (€)') }}</th>
                                     <th>{{ __('TVA (%)') }}</th>
+                                    <th>{{ __('Remise') }}</th>
+                                    <th>{{ __('Valeur remise') }}</th>
                                     <th>{{ __('Montant Taxe (€)') }}</th>
                                     <th>{{ __('Total TTC (€)') }}</th>
                                     <th>{{ __('Action') }}</th>
@@ -76,15 +78,27 @@
                             </thead>
                             <tbody>
                                 @foreach($invoice->items as $i => $item)
+                                    @php
+                                        // For existing custom lines, attempt to split "name — details"
+                                        $rawDesc = old("items.$i.description", $item->description ?? '');
+                                        $cName = $rawDesc;
+                                        $cDetails = '';
+                                        if (is_string($rawDesc)) {
+                                            if (str_contains($rawDesc, ' — ')) {
+                                                [$cName, $cDetails] = array_pad(explode(' — ', $rawDesc, 2), 2, '');
+                                            } elseif (str_contains($rawDesc, ' - ')) {
+                                                [$cName, $cDetails] = array_pad(explode(' - ', $rawDesc, 2), 2, '');
+                                            }
+                                        }
+                                    @endphp
+
                                     <tr>
-                                        {{-- hidden type --}}
                                         <input type="hidden" name="items[{{ $i }}][type]" value="{{ $item->type }}">
 
                                         <td class="align-middle text-center">
-                                            {{ ucfirst($item->type) }}
+                                            {{ $item->type === 'custom' ? __('Libre') : ucfirst($item->type) }}
                                         </td>
 
-                                        {{-- product select or inventory --}}
                                         <td>
                                             @if($item->type === 'product')
                                                 <select name="items[{{ $i }}][product_id]" class="form-control product-select" onchange="updateItem(this)" data-preload="true">
@@ -98,6 +112,7 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                <input type="hidden" name="items[{{ $i }}][inventory_item_id]" value="">
                                             @elseif($item->type === 'inventory')
                                                 <select name="items[{{ $i }}][inventory_item_id]" class="form-control inventory-select" onchange="updateInventoryItem(this)" data-preload="true">
                                                     <option value="">{{ __('Sélectionnez un article') }}</option>
@@ -112,48 +127,98 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
+                                                <input type="hidden" name="items[{{ $i }}][product_id]" value="">
                                             @else
-                                                <em>{{ __('Personnalisé') }}</em>
+                                                {{-- Custom: allow editing name --}}
+                                                <input type="hidden" name="items[{{ $i }}][product_id]" value="">
+                                                <input type="hidden" name="items[{{ $i }}][inventory_item_id]" value="">
+                                                <input type="text"
+                                                       class="form-control custom-name"
+                                                       value="{{ old("items.$i.custom_name", trim($cName)) }}"
+                                                       placeholder="Ex: Consultation, Atelier, Prestation…"
+                                                       oninput="recomputeAllTotals()">
                                             @endif
                                         </td>
 
-                                        {{-- common fields --}}
                                         <td>
-                                            <input type="text" name="items[{{ $i }}][description]"
-                                                   class="form-control description-input"
-                                                   value="{{ old("items.$i.description", $item->description) }}">
+                                            @if($item->type === 'custom')
+                                                <input type="text"
+                                                       class="form-control custom-details"
+                                                       value="{{ old("items.$i.custom_details", trim($cDetails)) }}"
+                                                       placeholder="Détails (optionnel)"
+                                                       oninput="recomputeAllTotals()">
+
+                                                {{-- Real saved field --}}
+                                                <input type="hidden"
+                                                       name="items[{{ $i }}][description]"
+                                                       class="form-control description-input custom-description-hidden"
+                                                       value="{{ $rawDesc }}">
+                                            @else
+                                                <input type="text" name="items[{{ $i }}][description]"
+                                                       class="form-control description-input"
+                                                       value="{{ $rawDesc }}"
+                                                       oninput="recomputeAllTotals()">
+                                            @endif
                                         </td>
+
                                         <td>
                                             <input type="number" name="items[{{ $i }}][quantity]"
                                                    class="form-control quantity-input"
-                                                   min="1" value="{{ old("items.$i.quantity", $item->quantity) }}"
-                                                   onchange="updateItem(this)">
+                                                   min="0.01" step="0.01"
+                                                   value="{{ old("items.$i.quantity", $item->quantity) }}"
+                                                   oninput="recomputeAllTotals()">
                                         </td>
+
                                         <td>
                                             <input type="number" name="items[{{ $i }}][unit_price]"
                                                    class="form-control unit-price-input"
                                                    step="0.01" min="0"
                                                    value="{{ old("items.$i.unit_price", $item->unit_price) }}"
-                                                   onchange="updateItem(this)" data-manual="true">
+                                                   oninput="recomputeAllTotals()">
                                         </td>
+
                                         <td>
                                             <input type="number" name="items[{{ $i }}][tax_rate]"
                                                    class="form-control tax-rate-input"
-                                                   step="0.01" readonly
-                                                   value="{{ old("items.$i.tax_rate", $item->tax_rate) }}">
+                                                   step="0.01"
+                                                   value="{{ old("items.$i.tax_rate", $item->tax_rate) }}"
+                                                   @if($item->type !== 'custom') readonly @endif
+                                                   oninput="recomputeAllTotals()">
                                         </td>
+
+                                        <td>
+                                            @php $ldt = old("items.$i.line_discount_type", $item->line_discount_type); @endphp
+                                            <select name="items[{{ $i }}][line_discount_type]"
+                                                    class="form-control line-discount-type"
+                                                    onchange="recomputeAllTotals()">
+                                                <option value="" {{ $ldt ? '' : 'selected' }}>—</option>
+                                                <option value="percent" {{ $ldt === 'percent' ? 'selected' : '' }}>%</option>
+                                                <option value="amount" {{ $ldt === 'amount' ? 'selected' : '' }}>€</option>
+                                            </select>
+                                        </td>
+
+                                        <td>
+                                            <input type="number" step="0.01" min="0"
+                                                   name="items[{{ $i }}][line_discount_value]"
+                                                   class="form-control line-discount-value"
+                                                   value="{{ old("items.$i.line_discount_value", $item->line_discount_value) }}"
+                                                   oninput="recomputeAllTotals()">
+                                        </td>
+
                                         <td>
                                             <input type="number" name="items[{{ $i }}][tax_amount]"
                                                    class="form-control tax-amount-input"
                                                    readonly
                                                    value="{{ old("items.$i.tax_amount", $item->tax_amount) }}">
                                         </td>
+
                                         <td>
                                             <input type="number" name="items[{{ $i }}][total_price_with_tax]"
                                                    class="form-control total-price-with-tax-input readonly-field"
                                                    readonly
                                                    value="{{ old("items.$i.total_price_with_tax", $item->total_price_with_tax) }}">
                                         </td>
+
                                         <td>
                                             <button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button>
                                         </td>
@@ -163,10 +228,43 @@
                         </table>
                     </div>
 
-                    <div class="mt-3 flex gap-2">
+                    <div class="mt-3 flex gap-2 flex-wrap">
                         <button type="button" class="btn-primary" onclick="addProductItem()">{{ __('Ajouter Produit') }}</button>
                         <button type="button" class="btn-primary" onclick="addInventoryItem()">{{ __('Ajouter Inventaire') }}</button>
-                     
+                        <button type="button" class="btn-primary" onclick="addCustomItem()">{{ __('Ajouter une ligne libre') }}</button>
+                    </div>
+                </div>
+
+                {{-- Global discount + totals --}}
+                <div class="mt-4 p-4 bg-white rounded-lg border" style="border-color: rgba(100,122,11,0.25);">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="details-label">{{ __('Remise globale') }}</label>
+                            @php $gdt = old('global_discount_type', $invoice->global_discount_type); @endphp
+                            <select id="global_discount_type" name="global_discount_type" class="form-control" onchange="recomputeAllTotals()">
+                                <option value="" {{ $gdt ? '' : 'selected' }}>{{ __('Aucune') }}</option>
+                                <option value="percent" {{ $gdt === 'percent' ? 'selected' : '' }}>%</option>
+                                <option value="amount" {{ $gdt === 'amount' ? 'selected' : '' }}>€</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="details-label">{{ __('Valeur') }}</label>
+                            <input id="global_discount_value" type="number" step="0.01" min="0" name="global_discount_value" class="form-control"
+                                   value="{{ old('global_discount_value', $invoice->global_discount_value) }}" oninput="recomputeAllTotals()">
+                        </div>
+                        <div class="text-sm text-slate-500 flex items-end">
+                            {{ __('La remise globale est répartie au prorata des lignes pour conserver une TVA correcte.') }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                        <div class="flex justify-between"><span>{{ __('Sous-total HT') }}</span><strong><span id="ui_subtotal_ht">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Total remises ligne (HT)') }}</span><strong>-<span id="ui_line_discounts_ht">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Remise globale (HT)') }}</span><strong>-<span id="ui_global_discount_ht">0.00</span> €</strong></div>
+
+                        <div class="flex justify-between"><span>{{ __('Total HT') }}</span><strong><span id="ui_total_ht">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Total TVA') }}</span><strong><span id="ui_total_tva">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Total TTC') }}</span><strong><span id="ui_total_ttc">0.00</span> €</strong></div>
                     </div>
                 </div>
 
@@ -178,22 +276,162 @@
         </div>
     </div>
 
-    {{-- JavaScript --}}
     <script>
         let itemIndex = {{ $invoice->items->count() }};
 
+        // utils
+        function _num(v, fallback = 0) {
+            const n = parseFloat(v);
+            return Number.isFinite(n) ? n : fallback;
+        }
+        function _clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+        function _money(n) { return (Math.round((n + Number.EPSILON) * 100) / 100); }
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[s]));
+        }
+
+        function computeLineDiscountHt(baseHt, type, value) {
+            if (!type || value === null || value === undefined || value === '') return 0;
+            const v = _num(value, 0);
+            let d = 0;
+            if (type === 'percent') d = baseHt * (v / 100);
+            else if (type === 'amount') d = v;
+            return _money(_clamp(d, 0, baseHt));
+        }
+        function computeGlobalDiscountHt(subtotalHt, type, value) {
+            if (!type || value === null || value === undefined || value === '' || subtotalHt <= 0) return 0;
+            const v = _num(value, 0);
+            let d = 0;
+            if (type === 'percent') d = subtotalHt * (v / 100);
+            else if (type === 'amount') d = v;
+            return _money(_clamp(d, 0, subtotalHt));
+        }
+
+        // custom name/details -> description
+        function syncCustomDescriptions() {
+            const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
+            rows.forEach(row => {
+                const type = row.querySelector('input[name*="[type]"]')?.value;
+                if (type !== 'custom') return;
+
+                const nameEl = row.querySelector('.custom-name');
+                const detailsEl = row.querySelector('.custom-details');
+                const hiddenDescEl = row.querySelector('.custom-description-hidden');
+
+                if (!hiddenDescEl) return;
+
+                const name = (nameEl?.value || '').trim();
+                const details = (detailsEl?.value || '').trim();
+
+                if (name && details) hiddenDescEl.value = `${name} — ${details}`;
+                else if (name) hiddenDescEl.value = name;
+                else hiddenDescEl.value = details;
+            });
+        }
+
+        function recomputeAllTotals() {
+            syncCustomDescriptions();
+
+            const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
+            const lines = [];
+
+            let subtotalHt = 0;
+            let lineDiscountsHt = 0;
+
+            for (const row of rows) {
+                const qtyEl  = row.querySelector('.quantity-input');
+                const unitEl = row.querySelector('.unit-price-input');
+                const taxEl  = row.querySelector('.tax-rate-input');
+
+                if (!qtyEl || !unitEl || !taxEl) continue;
+
+                const qty = _num(qtyEl.value, 1);
+                const unitHt = _num(unitEl.value, 0);
+                const taxRate = _num(taxEl.value, 0);
+
+                const baseHt = unitHt * qty;
+
+                const discTypeEl = row.querySelector('.line-discount-type');
+                const discValEl  = row.querySelector('.line-discount-value');
+
+                const discType = discTypeEl ? discTypeEl.value : '';
+                const discVal  = discValEl ? discValEl.value : '';
+
+                const lineDiscHt = computeLineDiscountHt(baseHt, discType, discVal);
+                const netHtAfterLine = _money(baseHt - lineDiscHt);
+
+                subtotalHt += netHtAfterLine;
+                lineDiscountsHt += lineDiscHt;
+
+                lines.push({ row, taxRate, netHtAfterLine, globalAllocHt: 0 });
+            }
+
+            const gType = document.getElementById('global_discount_type')?.value || '';
+            const gVal  = document.getElementById('global_discount_value')?.value || '';
+            const globalDiscountHt = computeGlobalDiscountHt(subtotalHt, gType, gVal);
+
+            let running = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const l = lines[i];
+                let alloc = 0;
+                if (subtotalHt > 0 && globalDiscountHt > 0) {
+                    if (i === lines.length - 1) alloc = _money(globalDiscountHt - running);
+                    else alloc = _money(globalDiscountHt * (l.netHtAfterLine / subtotalHt));
+                }
+                running = _money(running + alloc);
+                l.globalAllocHt = _money(_clamp(alloc, 0, l.netHtAfterLine));
+            }
+
+            let totalHt = 0, totalTva = 0, totalTtc = 0;
+
+            for (const l of lines) {
+                const netHtFinal = _money(l.netHtAfterLine - l.globalAllocHt);
+                const taxAmt = _money(netHtFinal * (l.taxRate / 100));
+                const ttc = _money(netHtFinal + taxAmt);
+
+                const taxAmtEl = l.row.querySelector('.tax-amount-input');
+                const ttcEl = l.row.querySelector('.total-price-with-tax-input');
+                if (taxAmtEl) taxAmtEl.value = taxAmt.toFixed(2);
+                if (ttcEl) ttcEl.value = ttc.toFixed(2);
+
+                totalHt += netHtFinal;
+                totalTva += taxAmt;
+                totalTtc += ttc;
+            }
+
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = _money(val).toFixed(2);
+            };
+
+            setText('ui_subtotal_ht', subtotalHt);
+            setText('ui_line_discounts_ht', lineDiscountsHt);
+            setText('ui_global_discount_ht', globalDiscountHt);
+            setText('ui_total_ht', totalHt);
+            setText('ui_total_tva', totalTva);
+            setText('ui_total_ttc', totalTtc);
+        }
+
         function removeItem(btn) {
-            btn.closest('tr').remove();
+            const tr = btn?.closest?.('tr');
+            if (tr) tr.remove();
+            recomputeAllTotals();
         }
 
         function addProductItem() {
             const tbody = document.querySelector('#invoice-items-table tbody');
+            const idx = itemIndex++;
             const row = document.createElement('tr');
+
             row.innerHTML = `
-                <input type="hidden" name="items[${itemIndex}][type]" value="product">
-                <td class="text-center">{{ __('Produit') }}</td>
+                <input type="hidden" name="items[${idx}][type]" value="product">
+
+                <td class="align-middle text-center">{{ __('Product') }}</td>
+
                 <td>
-                    <select name="items[${itemIndex}][product_id]" class="form-control product-select" onchange="updateItem(this)">
+                    <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateItem(this)">
                         <option value="">{{ __('Sélectionnez un produit') }}</option>
                         @foreach($products as $prod)
                             <option value="{{ $prod->id }}"
@@ -203,27 +441,46 @@
                             </option>
                         @endforeach
                     </select>
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
                 </td>
-                <td><input type="text" name="items[${itemIndex}][description]" class="form-control description-input"></td>
-                <td><input type="number" name="items[${itemIndex}][quantity]" class="form-control quantity-input" value="1" min="1" onchange="updateItem(this)"></td>
-                <td><input type="number" name="items[${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" onchange="updateItem(this)" data-manual="false"></td>
-                <td><input type="number" name="items[${itemIndex}][tax_rate]" class="form-control tax-rate-input" readonly></td>
-                <td><input type="number" name="items[${itemIndex}][tax_amount]" class="form-control tax-amount-input" readonly></td>
-                <td><input type="number" name="items[${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly></td>
+
+                <td><input type="text" name="items[${idx}][description]" class="form-control description-input" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][quantity]" class="form-control quantity-input" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" value="0.00" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly value="0.00"></td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+                </td>
+
+                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amount-input" readonly value="0.00"></td>
+                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly value="0.00"></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button></td>
             `;
+
             tbody.append(row);
-            itemIndex++;
+            recomputeAllTotals();
         }
 
         function addInventoryItem() {
             const tbody = document.querySelector('#invoice-items-table tbody');
+            const idx = itemIndex++;
             const row = document.createElement('tr');
+
             row.innerHTML = `
-                <input type="hidden" name="items[${itemIndex}][type]" value="inventory">
-                <td class="text-center">{{ __('Inventaire') }}</td>
+                <input type="hidden" name="items[${idx}][type]" value="inventory">
+
+                <td class="align-middle text-center">{{ __('Inventory') }}</td>
+
                 <td>
-                    <select name="items[${itemIndex}][inventory_item_id]" class="form-control inventory-select" onchange="updateInventoryItem(this)">
+                    <select name="items[${idx}][inventory_item_id]" class="form-control inventory-select" onchange="updateInventoryItem(this)">
                         <option value="">{{ __('Sélectionnez un article') }}</option>
                         @foreach($inventoryItems as $inv)
                             <option value="{{ $inv->id }}"
@@ -235,79 +492,137 @@
                             </option>
                         @endforeach
                     </select>
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
                 </td>
-                <td><input type="text" name="items[${itemIndex}][description]" class="form-control description-input"></td>
-                <td><input type="number" name="items[${itemIndex}][quantity]" class="form-control quantity-input" value="1" min="1" onchange="updateInventoryItem(this)"></td>
-                <td><input type="number" name="items[${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" readonly></td>
-                <td><input type="number" name="items[${itemIndex}][tax_rate]" class="form-control tax-rate-input" readonly></td>
-                <td><input type="number" name="items[${itemIndex}][tax_amount]" class="form-control tax-amount-input" readonly></td>
-                <td><input type="number" name="items[${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly></td>
+
+                <td><input type="text" name="items[${idx}][description]" class="form-control description-input" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][quantity]" class="form-control quantity-input" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" readonly value="0.00"></td>
+                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly value="0.00"></td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+                </td>
+
+                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amount-input" readonly value="0.00"></td>
+                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly value="0.00"></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button></td>
             `;
+
             tbody.append(row);
-            itemIndex++;
+            recomputeAllTotals();
         }
 
         function addCustomItem() {
             const tbody = document.querySelector('#invoice-items-table tbody');
+            const idx = itemIndex++;
             const row = document.createElement('tr');
+
             row.innerHTML = `
-                <input type="hidden" name="items[${itemIndex}][type]" value="custom">
-                <td class="text-center">{{ __('Personnalisé') }}</td>
-                <td><input type="text" name="items[${itemIndex}][description]" class="form-control description-input"></td>
-                <td><input type="number" name="items[${itemIndex}][quantity]" class="form-control quantity-input" value="1" min="1" onchange="updateItem(this)"></td>
-                <td><input type="number" name="items[${itemIndex}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" onchange="updateItem(this)" data-manual="true"></td>
-                <td><input type="number" name="items[${itemIndex}][tax_rate]" class="form-control tax-rate-input" readonly value="0"></td>
-                <td><input type="number" name="items[${itemIndex}][tax_amount]" class="form-control tax-amount-input" readonly></td>
-                <td><input type="number" name="items[${itemIndex}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly></td>
+                <input type="hidden" name="items[${idx}][type]" value="custom">
+
+                <td class="align-middle text-center">{{ __('Libre') }}</td>
+
+                <td>
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                    <input type="text" class="form-control custom-name" placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
+                </td>
+
+                <td>
+                    <input type="text" class="form-control custom-details" placeholder="Détails (optionnel)" oninput="recomputeAllTotals()">
+                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
+                </td>
+
+                <td><input type="number" name="items[${idx}][quantity]" class="form-control quantity-input" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price-input" value="0.00" step="0.01" min="0" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate-input" value="0.00" step="0.01" min="0" oninput="recomputeAllTotals()"></td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+                </td>
+
+                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amount-input" readonly value="0.00"></td>
+                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly value="0.00"></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button></td>
             `;
+
             tbody.append(row);
-            itemIndex++;
+            recomputeAllTotals();
         }
 
         function updateItem(el) {
             const row = el.closest('tr');
-            const qty = parseFloat(row.querySelector('.quantity-input').value) || 1;
-            const price = parseFloat(row.querySelector('.unit-price-input').value) || 0;
-            const tax = parseFloat(row.querySelector('.tax-rate-input').value) || 0;
-            const totalHt = qty * price;
-            const taxAmt = totalHt * (tax/100);
-            row.querySelector('.tax-amount-input').value = taxAmt.toFixed(2);
-            row.querySelector('.total-price-with-tax-input').value = (totalHt + taxAmt).toFixed(2);
+            if (!row) return;
+
+            if (el.classList.contains('product-select')) {
+                const opt = el.options[el.selectedIndex];
+                const price = _num(opt?.dataset?.price, 0);
+                const taxRate = _num(opt?.dataset?.taxRate, 0);
+
+                const unitEl = row.querySelector('.unit-price-input');
+                const taxEl  = row.querySelector('.tax-rate-input');
+
+                if (unitEl) unitEl.value = price.toFixed(2);
+                if (taxEl)  taxEl.value  = taxRate.toFixed(2);
+            }
+
+            recomputeAllTotals();
         }
+
         function updateInventoryItem(el) {
             const row = el.closest('tr');
             const sel = row.querySelector('.inventory-select');
-            const opt = sel.options[sel.selectedIndex];
-            const unitType = opt.dataset.unitType;
+            const opt = sel?.options?.[sel.selectedIndex];
+            if (!opt) { recomputeAllTotals(); return; }
+
+            const unitType = opt.dataset.unitType || 'unit';
             const priceTtc = unitType === 'unit'
-                ? parseFloat(opt.dataset.priceUnit)
-                : parseFloat(opt.dataset.priceMl);
-            const tax = parseFloat(opt.dataset.taxRate) || 0;
-            const qty = parseFloat(row.querySelector('.quantity-input').value) || 1;
-            const priceHt = priceTtc / (1 + tax/100);
-            row.querySelector('.unit-price-input').value = priceHt.toFixed(2);
-            row.querySelector('.tax-rate-input').value = tax.toFixed(2);
-            row.querySelector('.tax-amount-input').value = (priceHt*qty*(tax/100)).toFixed(2);
-            row.querySelector('.total-price-with-tax-input').value = (priceTtc*qty).toFixed(2);
+                ? _num(opt.dataset.priceUnit, 0)
+                : _num(opt.dataset.priceMl, 0);
+
+            const taxRate = _num(opt.dataset.taxRate, 0);
+            const unitHt = taxRate > 0 ? (priceTtc / (1 + taxRate / 100)) : priceTtc;
+
+            const unitEl = row.querySelector('.unit-price-input');
+            const taxEl  = row.querySelector('.tax-rate-input');
+            if (unitEl) unitEl.value = unitHt.toFixed(2);
+            if (taxEl)  taxEl.value  = taxRate.toFixed(2);
+
+            recomputeAllTotals();
         }
 
         window.onload = () => {
-            document.querySelectorAll('.product-select[data-preload="true"]').forEach(updateItem);
-            document.querySelectorAll('.inventory-select[data-preload="true"]').forEach(updateInventoryItem);
+            document.querySelectorAll('.product-select[data-preload="true"]').forEach(sel => updateItem(sel));
+            document.querySelectorAll('.inventory-select[data-preload="true"]').forEach(sel => updateInventoryItem(sel));
+            recomputeAllTotals();
+
+            const form = document.getElementById('invoiceEditForm');
+            if (form) {
+                form.addEventListener('submit', () => {
+                    syncCustomDescriptions();
+                });
+            }
         };
     </script>
 
-        <style>
-        .container-fluid {
-            max-width: 1200px;
-        }
-
-        .input-section {
-            max-width: 600px;
-            margin-bottom: 30px;
-        }
+    <style>
+        .container-fluid { max-width: 1200px; }
+        .input-section { max-width: 600px; margin-bottom: 30px; }
 
         .details-container {
             background-color: #f9f9f9;
@@ -325,9 +640,7 @@
             text-align: center;
         }
 
-        .details-box {
-            margin-bottom: 15px;
-        }
+        .details-box { margin-bottom: 15px; }
 
         .details-label {
             font-weight: bold;
@@ -353,10 +666,7 @@
             display: inline-block;
             cursor: pointer;
         }
-
-        .btn-primary:hover {
-            background-color: #854f38;
-        }
+        .btn-primary:hover { background-color: #854f38; }
 
         .btn-secondary {
             background-color: transparent;
@@ -367,44 +677,15 @@
             text-decoration: none;
             display: inline-block;
         }
+        .btn-secondary:hover { background-color: #854f38; color: #fff; }
 
-        .btn-secondary:hover {
-            background-color: #854f38;
-            color: #fff;
-        }
+        .text-red-500 { color: #e3342f; font-size: 0.875rem; }
 
-        .text-red-500 {
-            color: #e3342f;
-            font-size: 0.875rem;
-        }
-
-        /* Styles pour la table des articles */
-        #invoice-items-table {
-            width: 100%;
-            margin-bottom: 15px;
-            table-layout: auto; /* Better layout */
-        }
-
-        #invoice-items-table th, #invoice-items-table td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        #invoice-items-table th {
-            background-color: #647a0b;
-            color: #fff;
-            white-space: nowrap;
-        }
-
-        #invoice-items-table td {
-            border-bottom: 1px solid #ccc;
-        }
-
-        #invoice-items-table td input,
-        #invoice-items-table td select {
-            width: 100%; /* Ensure full width */
-            /* Removed or adjusted max-width to allow expansion */
-        }
+        #invoice-items-table { width: 100%; margin-bottom: 15px; table-layout: auto; }
+        #invoice-items-table th, #invoice-items-table td { padding: 8px; text-align: left; }
+        #invoice-items-table th { background-color: #647a0b; color: #fff; white-space: nowrap; }
+        #invoice-items-table td { border-bottom: 1px solid #ccc; }
+        #invoice-items-table td input, #invoice-items-table td select { width: 100%; }
 
         .btn-danger {
             background-color: #e3342f;
@@ -414,32 +695,14 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        .btn-danger:hover { background-color: #cc1f1a; }
 
-        .btn-danger:hover {
-            background-color: #cc1f1a;
-        }
+        .readonly-field { background-color: #e9ecef; cursor: not-allowed; }
 
-        /* Custom class to grey out readonly fields */
-        .readonly-field {
-            background-color: #e9ecef; /* Light grey background */
-            cursor: not-allowed; /* Indicate non-editable */
-        }
-
-        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .details-title {
-                font-size: 1.5rem;
-            }
-
-            .btn-primary, .btn-secondary {
-                width: 100%;
-                text-align: center;
-                margin-bottom: 10px;
-            }
-
-            #invoice-items-table th, #invoice-items-table td {
-                padding: 6px;
-            }
+            .details-title { font-size: 1.5rem; }
+            .btn-primary, .btn-secondary { width: 100%; text-align: center; margin-bottom: 10px; }
+            #invoice-items-table th, #invoice-items-table td { padding: 6px; }
         }
     </style>
 </x-app-layout>

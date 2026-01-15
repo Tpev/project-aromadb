@@ -267,6 +267,10 @@
                 if ($p->adomicile) {
                     $modes[] = ['mode' => 'À Domicile', 'slug' => 'domicile', 'product' => $p];
                 }
+
+                if (!empty($p->en_entreprise)) {
+                    $modes[] = ['mode' => 'En entreprise', 'slug' => 'entreprise', 'product' => $p];
+                }
                 if ($p->dans_le_cabinet) {
                     $modes[] = ['mode' => 'Dans le Cabinet', 'slug' => 'cabinet', 'product' => $p];
                 }
@@ -582,6 +586,7 @@
                     if (mode === 'cabinet') return 'Cabinet';
                     if (mode === 'visio') return 'Visio';
                     if (mode === 'domicile') return 'Domicile';
+                    if (mode === 'entreprise') return 'Entreprise';
                     return mode;
                 })();
 
@@ -603,7 +608,7 @@
 
                 // domicile address section only step2
                 const slug = $('#selected_mode_slug').val();
-                $('#client-address-section').toggle(slug === 'domicile');
+                $('#client-address-section').toggle(slug === 'domicile' || slug === 'entreprise');
 
                 // keep hidden location name used by backend
                 const locId = $('#practice_location_id').val();

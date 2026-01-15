@@ -18,6 +18,11 @@ class InvoiceItem extends Model
         'tax_amount',
         'total_price',
         'total_price_with_tax',
+        'line_discount_type',
+        'line_discount_value',
+        'line_discount_amount_ht',
+        'global_discount_amount_ht',
+        'total_price_before_discount',
     ];
 
     public function product()

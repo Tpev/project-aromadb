@@ -197,6 +197,7 @@
                                         <th style="width:10%">{{ __('Quantité') }}</th>
                                         <th style="width:10%">{{ __('P.U. (€)') }}</th>
                                         <th style="width:10%">{{ __('Taxe (%)') }}</th>
+                                        <th style="width:10%">{{ __('Remise HT (€)') }}</th>
                                         <th style="width:10%">{{ __('Total HT (€)') }}</th>
                                         <th style="width:10%">{{ __('Montant Taxe (€)') }}</th>
                                         <th style="width:10%">{{ __('Total TTC (€)') }}</th>
@@ -218,6 +219,8 @@
                                         <td>{{ $item->quantity }}</td>
                                         <td>{{ number_format($item->unit_price * (1 + $item->tax_rate / 100), 2, ',', ' ') }} €</td>
                                         <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+                                        @php $remise_ht = (float)($item->line_discount_amount_ht ?? 0) + (float)($item->global_discount_amount_ht ?? 0); @endphp
+                                        <td>{{ $remise_ht > 0 ? number_format($remise_ht, 2, ',', ' ') . ' €' : '—' }}</td>
                                         <td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
                                         <td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
                                         <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
@@ -232,6 +235,10 @@
                             <div class="col-md-6"></div>
                             <div class="col-md-6">
                                 <div class="totals-container">
+                                    @if(($invoice->global_discount_amount_ht ?? 0) > 0)
+                                    <p class="total"><strong>{{ __('Remise globale (HT)') }} :</strong>
+                                        -{{ number_format($invoice->global_discount_amount_ht, 2, ',', ' ') }} €</p>
+                                    @endif
                                     <p class="total"><strong>{{ __('Total HT') }} :</strong>
                                         {{ number_format($invoice->total_amount, 2, ',', ' ') }} €</p>
                                     <p class="total"><strong>{{ __('Total Taxe') }} :</strong>

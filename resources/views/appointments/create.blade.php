@@ -71,6 +71,9 @@
                 if ($p->adomicile) {
                     $modes[] = ['mode' => 'À Domicile', 'slug' => 'domicile', 'product' => $p];
                 }
+                if (!empty($p->en_entreprise)) {
+                    $modes[] = ['mode' => 'En entreprise', 'slug' => 'entreprise', 'product' => $p];
+                }
                 if ($p->dans_le_cabinet) {
                     $modes[] = ['mode' => 'Dans le Cabinet', 'slug' => 'cabinet', 'product' => $p];
                 }
@@ -147,7 +150,7 @@
 
                 {{-- Hidden final values --}}
                 <input type="hidden" name="product_id" id="product_id">
-                <input type="hidden" name="type" id="selected_mode_slug"> {{-- cabinet/visio/domicile --}}
+                <input type="hidden" name="type" id="selected_mode_slug"> {{-- cabinet/visio/domicile/entreprise --}}
 
                 {{-- Cabinet location --}}
                 <div class="details-box" id="cabinet-location-section" style="display:none;">
@@ -171,8 +174,8 @@
 
                 {{-- Domicile address --}}
                 <div class="details-box" id="client-address-section" style="display:none;">
-                    <label class="details-label">Adresse du Domicile</label>
-                    <input type="text" id="address" name="address" class="form-control">
+                    <label class="details-label">Adresse (domicile / entreprise)</label>
+                    <input type="text" id="address" name="address" class="form-control" placeholder="Adresse complète">
                 </div>
 
                 {{-- Date --}}
@@ -430,7 +433,7 @@
             if (slug === 'cabinet') {
                 $('#cabinet-location-section').show();
                 $('#client-address-section').hide();
-            } else if (slug === 'domicile') {
+            } else if (slug === 'domicile' || slug === 'entreprise') {
                 $('#cabinet-location-section').hide();
                 $('#client-address-section').show();
             } else {

@@ -176,7 +176,15 @@
             <tbody>
                 @foreach($invoice->items as $item)
                     <tr>
-                        <td>{{ $item->name }}</td>
+                        <td>
+                            @if($item->type === 'product' && $item->product)
+                                {{ $item->product->name }}
+                            @elseif($item->type === 'inventory' && $item->inventoryItem)
+                                {{ $item->inventoryItem->name }}
+                            @else
+                                {{ $item->description }}
+                            @endif
+                        </td>
                         <td>{{ $item->description }}</td>
                         <td>{{ $item->quantity }}</td>
                         <td>{{ number_format($item->unit_price, 2, ',', ' ') }} €</td>

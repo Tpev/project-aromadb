@@ -7,21 +7,30 @@
 
     @php
         // Derive the actual consultation mode for this appointment
-        $mode = null;
-        if ($appointment->practiceLocation) {
-            $mode = 'cabinet';
-        } elseif ($appointment->product?->visio) {
-            $mode = 'visio';
-        } elseif ($appointment->product?->adomicile) {
-            $mode = 'domicile';
-        } else {
-            $mode = 'cabinet';
+        // Prefer stored type / resolved mode to avoid mis-detecting "entreprise"
+        $mode = $appointment->type
+            ?? (method_exists($appointment, 'getResolvedMode') ? $appointment->getResolvedMode() : null);
+
+        // Backward compatibility fallback (old appointments)
+        if (!$mode) {
+            if ($appointment->practiceLocation) {
+                $mode = 'cabinet';
+            } elseif ($appointment->product?->visio) {
+                $mode = 'visio';
+            } elseif ($appointment->product?->adomicile) {
+                $mode = 'domicile';
+            } elseif (!empty($appointment->product?->en_entreprise)) {
+                $mode = 'entreprise';
+            } else {
+                $mode = 'cabinet';
+            }
         }
 
         $modeLabel = [
-            'cabinet'  => __('Dans le Cabinet'),
-            'visio'    => __('En Visio'),
-            'domicile' => __('À Domicile'),
+            'cabinet'     => __('Dans le Cabinet'),
+            'visio'       => __('En Visio'),
+            'domicile'    => __('À Domicile'),
+            'entreprise'  => __('En entreprise'),
         ][$mode] ?? __('Non spécifié');
 
         // Address strings
@@ -38,7 +47,7 @@
             ])->filter()->implode("\n"));
 
         $fallbackCompanyAddress = $appointment->user?->company_address;
-        $clientAddress = $appointment->clientProfile?->address ?? $appointment->address ?? null;
+        $clientAddress = $appointment->address ?? $appointment->clientProfile?->address ?? null;
 
         // Cancellation rules (therapist setting)
         $cutoffHours = max(0, (int) ($appointment->user?->cancellation_notice_hours ?? 0));
@@ -207,10 +216,12 @@
                         </p>
                     </div>
 
-                @elseif($mode === 'domicile')
+                @elseif($mode === 'domicile' || $mode === 'entreprise')
                     <div class="confirmation-content">
                         <p>
-                            <span class="confirmation-label">{{ __('Votre adresse') }}:</span><br>
+                            <span class="confirmation-label">
+                                {{ $mode === 'entreprise' ? __('Adresse de l’entreprise') : __('Votre adresse') }}:
+                            </span><br>
                             {!! nl2br(e($clientAddress ?? __('Adresse non disponible'))) !!}
                         </p>
                     </div>

@@ -20,10 +20,11 @@
             @endif
 
             @php
-                $selectedClientId = old('client_profile_id', optional($selectedClient)->id ?? null);
+                // Avoid "Undefined variable $selectedClient"
+                $selectedClientId = old('client_profile_id', isset($selectedClient) ? $selectedClient->id : null);
             @endphp
 
-            <form action="{{ route('invoices.store') }}" method="POST">
+            <form id="invoiceForm" action="{{ route('invoices.store') }}" method="POST">
                 @csrf
 
                 <!-- Métadonnées de la facture -->
@@ -73,6 +74,8 @@
                                     <th>{{ __('Quantité') }}</th>
                                     <th>{{ __('P.U. HT (€)') }}</th>
                                     <th>{{ __('TVA (%)') }}</th>
+                                    <th>{{ __('Remise') }}</th>
+                                    <th>{{ __('Valeur remise') }}</th>
                                     <th>{{ __('Montant TVA (€)') }}</th>
                                     <th>{{ __('Total TTC (€)') }}</th>
                                     <th>{{ __('Action') }}</th>
@@ -93,10 +96,47 @@
                             {{ __('Ajouter depuis l\'inventaire') }}
                         </button>
 
-                        {{-- ✅ NEW: add pack --}}
+                        {{-- pack --}}
                         <button type="button" class="btn-primary" onclick="openPackModal()">
                             {{ __('Ajouter un pack') }}
                         </button>
+
+                        {{-- custom --}}
+                        <button type="button" class="btn-primary" onclick="addCustomItem()">
+                            {{ __('Ajouter une ligne libre') }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remise globale + Totaux -->
+                <div class="mt-4 p-4 bg-white rounded-lg border" style="border-color: rgba(100,122,11,0.25);">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="details-label">{{ __('Remise globale') }}</label>
+                            <select id="global_discount_type" name="global_discount_type" class="form-control" onchange="recomputeAllTotals()">
+                                <option value="">{{ __('Aucune') }}</option>
+                                <option value="percent" {{ old('global_discount_type') === 'percent' ? 'selected' : '' }}>%</option>
+                                <option value="amount" {{ old('global_discount_type') === 'amount' ? 'selected' : '' }}>€</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="details-label">{{ __('Valeur') }}</label>
+                            <input id="global_discount_value" type="number" step="0.01" min="0" name="global_discount_value" class="form-control"
+                                   value="{{ old('global_discount_value') }}" oninput="recomputeAllTotals()">
+                        </div>
+                        <div class="text-sm text-slate-500 flex items-end">
+                            {{ __('La remise globale est répartie au prorata des lignes pour conserver une TVA correcte.') }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                        <div class="flex justify-between"><span>{{ __('Sous-total HT') }}</span><strong><span id="ui_subtotal_ht">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Total remises ligne (HT)') }}</span><strong>-<span id="ui_line_discounts_ht">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Remise globale (HT)') }}</span><strong>-<span id="ui_global_discount_ht">0.00</span> €</strong></div>
+
+                        <div class="flex justify-between"><span>{{ __('Total HT') }}</span><strong><span id="ui_total_ht">0.00</span> €</strong></div>
+                        <div class="flex justify-between"><span>{{ __('Total TVA') }}</span><strong><span id="ui_total_tva">0.00</span> €</strong></div>
+                        <div class="flex justify-between md:col-span-1"><span>{{ __('Total TTC') }}</span><strong><span id="ui_total_ttc">0.00</span> €</strong></div>
                     </div>
                 </div>
 
@@ -145,7 +185,7 @@
         </div>
     </div>
 
-    {{-- ✅ NEW: Modal packs --}}
+    {{-- Modal packs --}}
     <div id="packModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div class="bg-white rounded-lg p-6 w-full max-w-xl shadow-lg">
             <h2 class="text-xl font-semibold mb-4 text-[#647a0b]">
@@ -160,7 +200,7 @@
                         <option
                             value="{{ $pack->id }}"
                             data-name="{{ $pack->name }}"
-                            data-price="{{ $pack->price ?? 0 }}"          {{-- HT --}}
+                            data-price="{{ $pack->price ?? 0 }}"
                             data-tax="{{ $pack->tax_rate ?? 0 }}"
                         >
                             {{ $pack->name }}
@@ -183,21 +223,165 @@
         </div>
     </div>
 
-    <!-- JS -->
     <script>
         let itemIndex = 0;
 
+        // ---------- utils ----------
+        function _num(v, fallback = 0) {
+            const n = parseFloat(v);
+            return Number.isFinite(n) ? n : fallback;
+        }
+        function _clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+        function _money(n) { return (Math.round((n + Number.EPSILON) * 100) / 100); }
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[s]));
+        }
+
+        function computeLineDiscountHt(baseHt, type, value) {
+            if (!type || value === null || value === undefined || value === '') return 0;
+            const v = _num(value, 0);
+            let d = 0;
+            if (type === 'percent') d = baseHt * (v / 100);
+            else if (type === 'amount') d = v;
+            return _money(_clamp(d, 0, baseHt));
+        }
+        function computeGlobalDiscountHt(subtotalHt, type, value) {
+            if (!type || value === null || value === undefined || value === '' || subtotalHt <= 0) return 0;
+            const v = _num(value, 0);
+            let d = 0;
+            if (type === 'percent') d = subtotalHt * (v / 100);
+            else if (type === 'amount') d = v;
+            return _money(_clamp(d, 0, subtotalHt));
+        }
+
+        // ✅ Custom lines: store nice "Article name + details" into the real items[][description]
+        function syncCustomDescriptions() {
+            const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
+            rows.forEach(row => {
+                const type = row.querySelector('input[name*="[type]"]')?.value;
+                if (type !== 'custom') return;
+
+                const nameEl = row.querySelector('.custom-name');
+                const detailsEl = row.querySelector('.custom-details');
+                const hiddenDescEl = row.querySelector('.custom-description-hidden');
+
+                if (!hiddenDescEl) return;
+
+                const name = (nameEl?.value || '').trim();
+                const details = (detailsEl?.value || '').trim();
+
+                if (name && details) hiddenDescEl.value = `${name} — ${details}`;
+                else if (name) hiddenDescEl.value = name;
+                else hiddenDescEl.value = details; // fallback
+            });
+        }
+
+        // ---------- totals ----------
+        function recomputeAllTotals() {
+            // Make sure custom hidden descriptions are up to date (no impact on totals, but good habit)
+            syncCustomDescriptions();
+
+            const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
+            const lines = [];
+
+            let subtotalHt = 0;
+            let lineDiscountsHt = 0;
+
+            for (const row of rows) {
+                const qtyEl   = row.querySelector('input[name*="[quantity]"]');
+                const priceEl = row.querySelector('input[name*="[unit_price]"]');
+                const taxEl   = row.querySelector('input[name*="[tax_rate]"]');
+
+                if (!qtyEl || !priceEl || !taxEl) continue;
+
+                const qty     = _num(qtyEl.value, 1);
+                const unitHt  = _num(priceEl.value, 0);
+                const taxRate = _num(taxEl.value, 0);
+
+                const baseHt = unitHt * qty;
+
+                const discTypeEl = row.querySelector('.line-discount-type');
+                const discValEl  = row.querySelector('.line-discount-value');
+
+                const discType = discTypeEl ? discTypeEl.value : '';
+                const discVal  = discValEl ? discValEl.value : '';
+
+                const lineDiscHt = computeLineDiscountHt(baseHt, discType, discVal);
+                const netHtAfterLine = _money(baseHt - lineDiscHt);
+
+                subtotalHt += netHtAfterLine;
+                lineDiscountsHt += lineDiscHt;
+
+                lines.push({
+                    row,
+                    taxRate,
+                    netHtAfterLine,
+                    globalAllocHt: 0,
+                });
+            }
+
+            const gType = document.getElementById('global_discount_type')?.value || '';
+            const gVal  = document.getElementById('global_discount_value')?.value || '';
+            const globalDiscountHt = computeGlobalDiscountHt(subtotalHt, gType, gVal);
+
+            let running = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const l = lines[i];
+                let alloc = 0;
+                if (subtotalHt > 0 && globalDiscountHt > 0) {
+                    if (i === lines.length - 1) alloc = _money(globalDiscountHt - running);
+                    else alloc = _money(globalDiscountHt * (l.netHtAfterLine / subtotalHt));
+                }
+                running = _money(running + alloc);
+                l.globalAllocHt = _money(_clamp(alloc, 0, l.netHtAfterLine));
+            }
+
+            let totalHt = 0, totalTva = 0, totalTtc = 0;
+
+            for (const l of lines) {
+                const netHtFinal = _money(l.netHtAfterLine - l.globalAllocHt);
+                const taxAmt = _money(netHtFinal * (l.taxRate / 100));
+                const ttc = _money(netHtFinal + taxAmt);
+
+                const taxAmtEl = l.row.querySelector('.tax-amt');
+                const ttcEl    = l.row.querySelector('.total-ttc');
+
+                if (taxAmtEl) taxAmtEl.value = taxAmt.toFixed(2);
+                if (ttcEl)    ttcEl.value = ttc.toFixed(2);
+
+                totalHt += netHtFinal;
+                totalTva += taxAmt;
+                totalTtc += ttc;
+            }
+
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = _money(val).toFixed(2);
+            };
+
+            setText('ui_subtotal_ht', subtotalHt);
+            setText('ui_line_discounts_ht', lineDiscountsHt);
+            setText('ui_global_discount_ht', globalDiscountHt);
+            setText('ui_total_ht', totalHt);
+            setText('ui_total_tva', totalTva);
+            setText('ui_total_ttc', totalTtc);
+        }
+
+        // ---------- row builders ----------
         function addProductItem() {
             const table = document.querySelector('#invoice-items-table tbody');
             const idx = itemIndex++;
             const row = document.createElement('tr');
+
             row.innerHTML = `
                 <td>
                     <input type="hidden" name="items[${idx}][type]" value="product">
                     Prest.
                 </td>
                 <td>
-                    <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateRow(this)">
+                    <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateProductRow(this)">
                         <option value="">{{ __('Sélectionnez') }}</option>
                         @foreach($products as $p)
                             <option value="{{ $p->id }}"
@@ -208,143 +392,267 @@
                     </select>
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
                 </td>
-                <td><input type="text" name="items[${idx}][description]" class="form-control"></td>
-                <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="1" min="1" onchange="updateRow(this)"></td>
-                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" readonly></td>
-                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" readonly></td>
-                <td><input type="number" class="form-control tax-amt" readonly></td>
-                <td><input type="number" class="form-control total-ttc" readonly></td>
+                <td><input type="text" name="items[${idx}][description]" class="form-control" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" readonly value="0.00"></td>
+                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" readonly value="0.00"></td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+                </td>
+
+                <td><input type="number" class="form-control tax-amt" readonly value="0.00"></td>
+                <td><input type="number" class="form-control total-ttc" readonly value="0.00"></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
+
             table.appendChild(row);
+            recomputeAllTotals();
         }
 
-        function openInventoryModal() {
-            document.getElementById('inventoryModal').classList.remove('hidden');
+        function addCustomItem() {
+            const table = document.querySelector('#invoice-items-table tbody');
+            const idx = itemIndex++;
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td>
+                    <input type="hidden" name="items[${idx}][type]" value="custom">
+                    Libre
+                </td>
+
+                <td>
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+
+                    <input type="text"
+                           class="form-control custom-name"
+                           placeholder="Ex: Consultation, Atelier, Prestation…"
+                           oninput="recomputeAllTotals()">
+                </td>
+
+                <td>
+                    <input type="text"
+                           class="form-control custom-details"
+                           placeholder="Détails (optionnel)"
+                           oninput="recomputeAllTotals()">
+
+                    {{-- ✅ real field saved in DB --}}
+                    <input type="hidden"
+                           name="items[${idx}][description]"
+                           class="custom-description-hidden"
+                           value="">
+                </td>
+
+                <td>
+                    <input type="number" step="0.01" min="0.01"
+                           name="items[${idx}][quantity]" class="form-control"
+                           value="1" oninput="recomputeAllTotals()">
+                </td>
+
+                <td>
+                    <input type="number" step="0.01" min="0"
+                           name="items[${idx}][unit_price]" class="form-control unit-price"
+                           value="0.00" oninput="recomputeAllTotals()">
+                </td>
+
+                <td>
+                    <input type="number" step="0.01" min="0"
+                           name="items[${idx}][tax_rate]" class="form-control tax-rate"
+                           value="0.00" oninput="recomputeAllTotals()">
+                </td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type"
+                            onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0"
+                           name="items[${idx}][line_discount_value]"
+                           class="form-control line-discount-value"
+                           value="" oninput="recomputeAllTotals()">
+                </td>
+
+                <td><input type="number" class="form-control tax-amt" readonly value="0.00"></td>
+                <td><input type="number" class="form-control total-ttc" readonly value="0.00"></td>
+                <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
+            `;
+
+            table.appendChild(row);
+            recomputeAllTotals();
         }
-        function closeInventoryModal() {
-            document.getElementById('inventoryModal').classList.add('hidden');
+
+        // ---------- product row update ----------
+        function updateProductRow(el) {
+            const row = el.closest('tr');
+            if (!row) return;
+
+            const opt = el.selectedOptions[0];
+            const price = opt ? _num(opt.dataset.price, 0) : 0;
+            const tax   = opt ? _num(opt.dataset.tax, 0) : 0;
+
+            const unitEl = row.querySelector('.unit-price');
+            const taxEl  = row.querySelector('.tax-rate');
+
+            if (unitEl) unitEl.value = price.toFixed(2);
+            if (taxEl)  taxEl.value  = tax.toFixed(2);
+
+            recomputeAllTotals();
         }
+
+        // ---------- inventory modal ----------
+        function openInventoryModal() { document.getElementById('inventoryModal').classList.remove('hidden'); }
+        function closeInventoryModal() { document.getElementById('inventoryModal').classList.add('hidden'); }
 
         function addInventoryItem() {
             const sel = document.getElementById('inventory_item_id');
             const opt = sel.options[sel.selectedIndex];
-            const qty = parseFloat(document.getElementById('inventory_quantity').value) || 1;
+            const qty = _num(document.getElementById('inventory_quantity').value, 1);
+
             if (!opt.value) return;
 
-            const ttc = (opt.dataset.unitType === 'ml')
-                ? parseFloat(opt.dataset.ttcPerMl || '0')
-                : parseFloat(opt.dataset.ttcUnit || '0');
+            const ttcUnit = _num(opt.dataset.ttcUnit, 0);
+            const ttcMl   = _num(opt.dataset.ttcPerMl, 0);
+            const tax     = _num(opt.dataset.tax, 0);
+            const unitType = opt.dataset.unitType || 'unit';
 
-            const tax = parseFloat(opt.dataset.tax || '0') || 0;
+            const ttc = (unitType === 'ml') ? ttcMl : ttcUnit;
             const ht  = tax > 0 ? (ttc / (1 + tax/100)) : ttc;
 
             const table = document.querySelector('#invoice-items-table tbody');
-            const idx   = itemIndex++;
-            const row   = document.createElement('tr');
+            const idx = itemIndex++;
+            const row = document.createElement('tr');
+
             row.innerHTML = `
                 <td>
                     <input type="hidden" name="items[${idx}][type]" value="inventory">
                     Inv.
                 </td>
+
                 <td>
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="${opt.value}">
                     <input type="hidden" name="items[${idx}][product_id]" value="">
                     ${escapeHtml(opt.text)}
                 </td>
-                <td><input type="text" name="items[${idx}][description]" class="form-control" value="${escapeHtml(opt.dataset.name || '')}" readonly></td>
+
+                <td>
+                    <input type="text" name="items[${idx}][description]" class="form-control"
+                           value="${escapeHtml(opt.dataset.name || '')}" readonly>
+                </td>
+
                 <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="${qty}" readonly></td>
                 <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" value="${ht.toFixed(2)}" readonly></td>
                 <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" value="${tax.toFixed(2)}" readonly></td>
-                <td><input type="number" class="form-control tax-amt" value="${(ht*qty*(tax/100)).toFixed(2)}" readonly></td>
-                <td><input type="number" class="form-control total-ttc" value="${(ttc*qty).toFixed(2)}" readonly></td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+                </td>
+
+                <td><input type="number" class="form-control tax-amt" readonly value="0.00"></td>
+                <td><input type="number" class="form-control total-ttc" readonly value="0.00"></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
+
             table.appendChild(row);
+            recomputeAllTotals();
             closeInventoryModal();
         }
 
-        // ✅ NEW: pack modal controls
-        function openPackModal() {
-            document.getElementById('packModal').classList.remove('hidden');
-        }
-        function closePackModal() {
-            document.getElementById('packModal').classList.add('hidden');
-        }
+        // ---------- pack modal ----------
+        function openPackModal() { document.getElementById('packModal').classList.remove('hidden'); }
+        function closePackModal() { document.getElementById('packModal').classList.add('hidden'); }
 
-        // ✅ NEW: add pack as a custom line
         function addPackItem() {
             const sel = document.getElementById('pack_product_id');
             const opt = sel.options[sel.selectedIndex];
             if (!opt.value) return;
 
             const name = opt.dataset.name || 'Pack';
-            const ht   = parseFloat(opt.dataset.price || '0') || 0;
-            const tax  = parseFloat(opt.dataset.tax || '0') || 0;
-
-            const qty = 1;
-            const taxAmt = ht * qty * (tax/100);
-            const ttc = (ht * qty) + taxAmt;
+            const ht   = _num(opt.dataset.price, 0);
+            const tax  = _num(opt.dataset.tax, 0);
 
             const table = document.querySelector('#invoice-items-table tbody');
-            const idx   = itemIndex++;
-            const row   = document.createElement('tr');
+            const idx = itemIndex++;
+            const row = document.createElement('tr');
 
             row.innerHTML = `
                 <td>
                     <input type="hidden" name="items[${idx}][type]" value="custom">
                     Pack
                 </td>
+
                 <td>
-                    —
                     <input type="hidden" name="items[${idx}][product_id]" value="">
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                    <input type="text" class="form-control custom-name" value="Pack : ${escapeHtml(name)}" oninput="recomputeAllTotals()">
+                </td>
+
+                <td>
+                    <input type="text" class="form-control custom-details" value="" placeholder="Détails (optionnel)" oninput="recomputeAllTotals()">
+                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
+                </td>
+
+                <td><input type="number" step="0.01" min="0.01" name="items[${idx}][quantity]" class="form-control" value="1" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" step="0.01" min="0" name="items[${idx}][unit_price]" class="form-control unit-price" value="${ht.toFixed(2)}" oninput="recomputeAllTotals()"></td>
+                <td><input type="number" step="0.01" min="0" name="items[${idx}][tax_rate]" class="form-control tax-rate" value="${tax.toFixed(2)}" oninput="recomputeAllTotals()"></td>
+
+                <td>
+                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
                 </td>
                 <td>
-                    <input type="text" name="items[${idx}][description]" class="form-control" value="Pack : ${escapeHtml(name)}" readonly>
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
                 </td>
-                <td><input type="number" name="items[${idx}][quantity]" class="form-control" value="${qty}" min="1" readonly></td>
-                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price" value="${ht.toFixed(2)}" readonly></td>
-                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate" value="${tax.toFixed(2)}" readonly></td>
-                <td><input type="number" class="form-control tax-amt" value="${taxAmt.toFixed(2)}" readonly></td>
-                <td><input type="number" class="form-control total-ttc" value="${ttc.toFixed(2)}" readonly></td>
+
+                <td><input type="number" class="form-control tax-amt" readonly value="0.00"></td>
+                <td><input type="number" class="form-control total-ttc" readonly value="0.00"></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">×</button></td>
             `;
 
             table.appendChild(row);
+            recomputeAllTotals();
             closePackModal();
         }
 
-        function updateRow(el) {
-            const row    = el.closest('tr');
-            const select = row.querySelector('.product-select');
-            if (!select) return;
-
-            const selected = select.selectedOptions[0];
-            const price = selected ? parseFloat(selected.dataset.price || '0') : 0;
-            const tax   = selected ? parseFloat(selected.dataset.tax || '0') : 0;
-            const qtyEl = row.querySelector('input[name*="[quantity]"]');
-            const qty   = qtyEl ? (parseFloat(qtyEl.value) || 1) : 1;
-
-            const ht  = price;
-            const amt = ht * qty * (tax/100);
-            const ttc = (ht * qty) + amt;
-
-            row.querySelector('.unit-price').value = ht.toFixed(2);
-            row.querySelector('.tax-rate').value   = tax.toFixed(2);
-            row.querySelector('.tax-amt').value    = amt.toFixed(2);
-            row.querySelector('.total-ttc').value  = ttc.toFixed(2);
-        }
-
+        // ---------- remove ----------
         function removeItem(btn) {
-            btn.closest('tr').remove();
+            const tr = btn?.closest?.('tr');
+            if (tr) tr.remove();
+            recomputeAllTotals();
         }
 
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, s => ({
-                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-            }[s]));
-        }
+        // submit: ensure custom descriptions are synced
+        document.addEventListener('DOMContentLoaded', () => {
+            recomputeAllTotals();
+
+            const form = document.getElementById('invoiceForm');
+            if (form) {
+                form.addEventListener('submit', () => {
+                    syncCustomDescriptions();
+                });
+            }
+        });
     </script>
 
     <style>
