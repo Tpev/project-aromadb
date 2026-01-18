@@ -1,15 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#647a0b;">
             {{ __('Modifier la facture') }} - #{{ $invoice->invoice_number }}
         </h2>
     </x-slot>
 
-    <div class="container-fluid mt-5">
-        <div class="details-container mx-auto p-4">
+    <div class="am-wrap">
+        <div class="am-card">
             @if ($errors->any())
-                <div class="mb-4 text-red-500">
-                    <ul class="list-disc pl-5">
+                <div class="am-alert">
+                    <div class="am-alert-title">{{ __('Erreurs') }}</div>
+                    <ul class="am-alert-list">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -17,65 +18,80 @@
                 </div>
             @endif
 
-            <form id="invoiceEditForm" action="{{ route('invoices.update', $invoice) }}" method="POST">
+            <form id="invoiceEditForm" action="{{ route('invoices.update', $invoice) }}" method="POST" class="am-form">
                 @csrf
                 @method('PUT')
 
                 {{-- Client, dates, notes --}}
-                <div class="input-section">
-                    <div class="details-box">
-                        <label class="details-label" for="client_profile_id">{{ __('Client') }}</label>
-                        <select id="client_profile_id" name="client_profile_id" class="form-control" required>
+                <div class="am-grid">
+                    <div class="am-field am-col-6">
+                        <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
+                        <select id="client_profile_id" name="client_profile_id" class="am-input" required>
                             @foreach($clients as $client)
-                                <option value="{{ $client->id }}" {{ old('client_profile_id', $invoice->client_profile_id) == $client->id ? 'selected' : '' }}>
+                                <option value="{{ $client->id }}"
+                                    {{ old('client_profile_id', $invoice->client_profile_id) == $client->id ? 'selected' : '' }}>
                                     {{ $client->first_name }} {{ $client->last_name }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('client_profile_id')<p class="text-red-500">{{ $message }}</p>@enderror
+                        @error('client_profile_id')<p class="am-err">{{ $message }}</p>@enderror
                     </div>
 
-                    <div class="details-box">
-                        <label class="details-label" for="invoice_date">{{ __('Date de Facture') }}</label>
-                        <input type="date" id="invoice_date" name="invoice_date" class="form-control"
+                    <div class="am-field am-col-3">
+                        <label class="am-label" for="invoice_date">{{ __('Date de facture') }}</label>
+                        <input type="date" id="invoice_date" name="invoice_date" class="am-input"
                                value="{{ old('invoice_date', $invoice->invoice_date->format('Y-m-d')) }}" required>
-                        @error('invoice_date')<p class="text-red-500">{{ $message }}</p>@enderror
+                        @error('invoice_date')<p class="am-err">{{ $message }}</p>@enderror
                     </div>
 
-                    <div class="details-box">
-                        <label class="details-label" for="due_date">{{ __('Date d\'échéance') }}</label>
-                        <input type="date" id="due_date" name="due_date" class="form-control"
+                    <div class="am-field am-col-3">
+                        <label class="am-label" for="due_date">{{ __('Date d’échéance') }}</label>
+                        <input type="date" id="due_date" name="due_date" class="am-input"
                                value="{{ old('due_date', optional($invoice->due_date)->format('Y-m-d')) }}">
-                        @error('due_date')<p class="text-red-500">{{ $message }}</p>@enderror
+                        @error('due_date')<p class="am-err">{{ $message }}</p>@enderror
                     </div>
 
-                    <div class="details-box">
-                        <label class="details-label" for="notes">{{ __('Notes') }}</label>
-                        <textarea id="notes" name="notes" class="form-control">{{ old('notes', $invoice->notes) }}</textarea>
-                        @error('notes')<p class="text-red-500">{{ $message }}</p>@enderror
+                    <div class="am-field am-col-12">
+                        <label class="am-label" for="notes">{{ __('Notes') }}</label>
+                        <textarea id="notes" name="notes" class="am-input am-textarea" rows="3">{{ old('notes', $invoice->notes) }}</textarea>
+                        @error('notes')<p class="am-err">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
                 {{-- Articles --}}
-                <div class="details-box">
-                    <label class="details-label">{{ __('Articles de la facture') }}</label>
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="invoice-items-table">
+                <div class="am-section">
+                    <div class="am-section-head am-section-head--row">
+                        <div>
+                            <div class="am-section-title">{{ __('Articles de la facture') }}</div>
+                            <div class="am-muted">{{ __('Modifiez les lignes existantes ou ajoutez-en de nouvelles.') }}</div>
+                        </div>
+
+                        <div class="am-actions">
+                            <button type="button" class="am-btn am-btn-primary" onclick="addProductItem()">{{ __('Ajouter une prestation') }}</button>
+                            <button type="button" class="am-btn am-btn-primary" onclick="openInventoryModal()">{{ __('Ajouter depuis l\'inventaire') }}</button>
+                            <button type="button" class="am-btn am-btn-primary" onclick="openPackModal()">{{ __('Ajouter un pack') }}</button>
+                            <button type="button" class="am-btn am-btn-primary" onclick="addCustomItem()">{{ __('Ajouter une ligne libre') }}</button>
+                        </div>
+                    </div>
+
+                    <div class="am-table-wrap">
+                        <table class="am-table" id="invoice-items-table">
                             <thead>
                                 <tr>
-                                    <th>{{ __('Type') }}</th>
-                                    <th>{{ __('Produit/Inventaire') }}</th>
-                                    <th>{{ __('Description') }}</th>
-                                    <th>{{ __('Quantité') }}</th>
-                                    <th>{{ __('P.U. HT (€)') }}</th>
-                                    <th>{{ __('TVA (%)') }}</th>
-                                    <th>{{ __('Remise') }}</th>
-                                    <th>{{ __('Valeur remise') }}</th>
-                                    <th>{{ __('Montant Taxe (€)') }}</th>
-                                    <th>{{ __('Total TTC (€)') }}</th>
-                                    <th>{{ __('Action') }}</th>
+                                    <th class="am-th am-th--type">{{ __('Type') }}</th>
+                                    <th class="am-th am-th--product">{{ __('Produit / Article') }}</th>
+                                    <th class="am-th am-th--desc">{{ __('Description') }}</th>
+                                    <th class="am-th am-th--qty">{{ __('Quantité') }}</th>
+                                    <th class="am-th am-th--unit">{{ __('P.U. HT') }}</th>
+                                    <th class="am-th am-th--tax">{{ __('TVA') }}</th>
+                                    <th class="am-th am-th--discType">{{ __('Remise') }}</th>
+                                    <th class="am-th am-th--discVal">{{ __('Valeur remise') }}</th>
+                                    <th class="am-th am-th--taxAmt">{{ __('Montant TVA') }}</th>
+                                    <th class="am-th am-th--totalTtc">{{ __('Total TTC') }}</th>
+                                    <th class="am-th am-th--act">{{ __('Action') }}</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 @foreach($invoice->items as $i => $item)
                                     @php
@@ -90,18 +106,28 @@
                                                 [$cName, $cDetails] = array_pad(explode(' - ', $rawDesc, 2), 2, '');
                                             }
                                         }
+                                        $ldt = old("items.$i.line_discount_type", $item->line_discount_type);
                                     @endphp
 
                                     <tr>
-                                        <input type="hidden" name="items[{{ $i }}][type]" value="{{ $item->type }}">
+                                        <td class="am-td am-td--type">
+                                            @if($item->type === 'product')
+                                                <span class="am-pill">Prest.</span>
+                                            @elseif($item->type === 'inventory')
+                                                <span class="am-pill am-pill--inv">Inv.</span>
+                                            @else
+                                                <span class="am-pill am-pill--alt">Libre</span>
+                                            @endif
 
-                                        <td class="align-middle text-center">
-                                            {{ $item->type === 'custom' ? __('Libre') : ucfirst($item->type) }}
+                                            <input type="hidden" name="items[{{ $i }}][type]" value="{{ $item->type }}">
                                         </td>
 
-                                        <td>
+                                        <td class="am-td am-td--product">
                                             @if($item->type === 'product')
-                                                <select name="items[{{ $i }}][product_id]" class="form-control product-select" onchange="updateItem(this)" data-preload="true">
+                                                <select name="items[{{ $i }}][product_id]"
+                                                        class="am-input product-select"
+                                                        onchange="updateItem(this)"
+                                                        data-preload="true">
                                                     <option value="">{{ __('Sélectionnez un produit') }}</option>
                                                     @foreach($products as $prod)
                                                         <option value="{{ $prod->id }}"
@@ -114,7 +140,10 @@
                                                 </select>
                                                 <input type="hidden" name="items[{{ $i }}][inventory_item_id]" value="">
                                             @elseif($item->type === 'inventory')
-                                                <select name="items[{{ $i }}][inventory_item_id]" class="form-control inventory-select" onchange="updateInventoryItem(this)" data-preload="true">
+                                                <select name="items[{{ $i }}][inventory_item_id]"
+                                                        class="am-input inventory-select"
+                                                        onchange="updateInventoryItem(this)"
+                                                        data-preload="true">
                                                     <option value="">{{ __('Sélectionnez un article') }}</option>
                                                     @foreach($inventoryItems as $inv)
                                                         <option value="{{ $inv->id }}"
@@ -132,64 +161,68 @@
                                                 {{-- Custom: allow editing name --}}
                                                 <input type="hidden" name="items[{{ $i }}][product_id]" value="">
                                                 <input type="hidden" name="items[{{ $i }}][inventory_item_id]" value="">
+
                                                 <input type="text"
-                                                       class="form-control custom-name"
+                                                       class="am-input custom-name"
                                                        value="{{ old("items.$i.custom_name", trim($cName)) }}"
                                                        placeholder="Ex: Consultation, Atelier, Prestation…"
                                                        oninput="recomputeAllTotals()">
                                             @endif
                                         </td>
 
-                                        <td>
+                                        <td class="am-td am-td--desc">
                                             @if($item->type === 'custom')
                                                 <input type="text"
-                                                       class="form-control custom-details"
+                                                       class="am-input custom-details"
                                                        value="{{ old("items.$i.custom_details", trim($cDetails)) }}"
-                                                       placeholder="Détails (optionnel)"
+                                                       placeholder="{{ __('Détails (optionnel)') }}"
                                                        oninput="recomputeAllTotals()">
 
                                                 {{-- Real saved field --}}
                                                 <input type="hidden"
                                                        name="items[{{ $i }}][description]"
-                                                       class="form-control description-input custom-description-hidden"
+                                                       class="custom-description-hidden"
                                                        value="{{ $rawDesc }}">
                                             @else
-                                                <input type="text" name="items[{{ $i }}][description]"
-                                                       class="form-control description-input"
+                                                <input type="text"
+                                                       name="items[{{ $i }}][description]"
+                                                       class="am-input description-input"
                                                        value="{{ $rawDesc }}"
                                                        oninput="recomputeAllTotals()">
                                             @endif
                                         </td>
 
-                                        <td>
-                                            <input type="number" name="items[{{ $i }}][quantity]"
-                                                   class="form-control quantity-input"
-                                                   min="0.01" step="0.01"
+                                        <td class="am-td am-td--qty">
+                                            <input type="number"
+                                                   name="items[{{ $i }}][quantity]"
+                                                   class="am-input am-num quantity-input"
+                                                   min="0.01" step="0.01" inputmode="decimal"
                                                    value="{{ old("items.$i.quantity", $item->quantity) }}"
                                                    oninput="recomputeAllTotals()">
                                         </td>
 
-                                        <td>
-                                            <input type="number" name="items[{{ $i }}][unit_price]"
-                                                   class="form-control unit-price-input"
-                                                   step="0.01" min="0"
+                                        <td class="am-td am-td--unit">
+                                            <input type="number"
+                                                   name="items[{{ $i }}][unit_price]"
+                                                   class="am-input am-num unit-price-input"
+                                                   step="0.01" min="0" inputmode="decimal"
                                                    value="{{ old("items.$i.unit_price", $item->unit_price) }}"
                                                    oninput="recomputeAllTotals()">
                                         </td>
 
-                                        <td>
-                                            <input type="number" name="items[{{ $i }}][tax_rate]"
-                                                   class="form-control tax-rate-input"
-                                                   step="0.01"
+                                        <td class="am-td am-td--tax">
+                                            <input type="number"
+                                                   name="items[{{ $i }}][tax_rate]"
+                                                   class="am-input am-num tax-rate-input @if($item->type !== 'custom') am-readonly @endif"
+                                                   step="0.01" inputmode="decimal"
                                                    value="{{ old("items.$i.tax_rate", $item->tax_rate) }}"
                                                    @if($item->type !== 'custom') readonly @endif
                                                    oninput="recomputeAllTotals()">
                                         </td>
 
-                                        <td>
-                                            @php $ldt = old("items.$i.line_discount_type", $item->line_discount_type); @endphp
+                                        <td class="am-td am-td--discType">
                                             <select name="items[{{ $i }}][line_discount_type]"
-                                                    class="form-control line-discount-type"
+                                                    class="am-input line-discount-type"
                                                     onchange="recomputeAllTotals()">
                                                 <option value="" {{ $ldt ? '' : 'selected' }}>—</option>
                                                 <option value="percent" {{ $ldt === 'percent' ? 'selected' : '' }}>%</option>
@@ -197,89 +230,180 @@
                                             </select>
                                         </td>
 
-                                        <td>
+                                        <td class="am-td am-td--discVal">
                                             <input type="number" step="0.01" min="0"
                                                    name="items[{{ $i }}][line_discount_value]"
-                                                   class="form-control line-discount-value"
+                                                   class="am-input am-num line-discount-value"
                                                    value="{{ old("items.$i.line_discount_value", $item->line_discount_value) }}"
+                                                   inputmode="decimal"
                                                    oninput="recomputeAllTotals()">
                                         </td>
 
-                                        <td>
-                                            <input type="number" name="items[{{ $i }}][tax_amount]"
-                                                   class="form-control tax-amount-input"
+                                        <td class="am-td am-td--taxAmt">
+                                            <input type="number"
+                                                   name="items[{{ $i }}][tax_amount]"
+                                                   class="am-input am-num am-readonly tax-amount-input"
                                                    readonly
                                                    value="{{ old("items.$i.tax_amount", $item->tax_amount) }}">
                                         </td>
 
-                                        <td>
-                                            <input type="number" name="items[{{ $i }}][total_price_with_tax]"
-                                                   class="form-control total-price-with-tax-input readonly-field"
+                                        <td class="am-td am-td--totalTtc">
+                                            <input type="number"
+                                                   name="items[{{ $i }}][total_price_with_tax]"
+                                                   class="am-input am-num am-readonly total-price-with-tax-input"
                                                    readonly
                                                    value="{{ old("items.$i.total_price_with_tax", $item->total_price_with_tax) }}">
                                         </td>
 
-                                        <td>
-                                            <button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button>
+                                        <td class="am-td am-td--act">
+                                            <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-
-                    <div class="mt-3 flex gap-2 flex-wrap">
-                        <button type="button" class="btn-primary" onclick="addProductItem()">{{ __('Ajouter Produit') }}</button>
-                        <button type="button" class="btn-primary" onclick="addInventoryItem()">{{ __('Ajouter Inventaire') }}</button>
-                        <button type="button" class="btn-primary" onclick="addCustomItem()">{{ __('Ajouter une ligne libre') }}</button>
-                    </div>
                 </div>
 
                 {{-- Global discount + totals --}}
-                <div class="mt-4 p-4 bg-white rounded-lg border" style="border-color: rgba(100,122,11,0.25);">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="am-section">
+                    <div class="am-section-head">
                         <div>
-                            <label class="details-label">{{ __('Remise globale') }}</label>
+                            <div class="am-section-title">{{ __('Remise globale & Totaux') }}</div>
+                            <div class="am-muted">{{ __('La remise globale est répartie au prorata des lignes pour conserver une TVA correcte.') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="am-discount-row">
+                        <div class="am-field" style="min-width:220px;">
+                            <label class="am-label">{{ __('Remise globale') }}</label>
                             @php $gdt = old('global_discount_type', $invoice->global_discount_type); @endphp
-                            <select id="global_discount_type" name="global_discount_type" class="form-control" onchange="recomputeAllTotals()">
+                            <select id="global_discount_type" name="global_discount_type" class="am-input" onchange="recomputeAllTotals()">
                                 <option value="" {{ $gdt ? '' : 'selected' }}>{{ __('Aucune') }}</option>
                                 <option value="percent" {{ $gdt === 'percent' ? 'selected' : '' }}>%</option>
                                 <option value="amount" {{ $gdt === 'amount' ? 'selected' : '' }}>€</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="details-label">{{ __('Valeur') }}</label>
-                            <input id="global_discount_value" type="number" step="0.01" min="0" name="global_discount_value" class="form-control"
-                                   value="{{ old('global_discount_value', $invoice->global_discount_value) }}" oninput="recomputeAllTotals()">
+
+                        <div class="am-field" style="min-width:220px;">
+                            <label class="am-label">{{ __('Valeur') }}</label>
+                            <input id="global_discount_value" type="number" step="0.01" min="0"
+                                   name="global_discount_value" class="am-input"
+                                   value="{{ old('global_discount_value', $invoice->global_discount_value) }}"
+                                   inputmode="decimal"
+                                   oninput="recomputeAllTotals()">
                         </div>
-                        <div class="text-sm text-slate-500 flex items-end">
-                            {{ __('La remise globale est répartie au prorata des lignes pour conserver une TVA correcte.') }}
+
+                        <div class="am-chip">
+                            <span class="am-chip-dot"></span>
+                            <span>{{ __('TVA au prorata') }}</span>
                         </div>
                     </div>
 
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                        <div class="flex justify-between"><span>{{ __('Sous-total HT') }}</span><strong><span id="ui_subtotal_ht">0.00</span> €</strong></div>
-                        <div class="flex justify-between"><span>{{ __('Total remises ligne (HT)') }}</span><strong>-<span id="ui_line_discounts_ht">0.00</span> €</strong></div>
-                        <div class="flex justify-between"><span>{{ __('Remise globale (HT)') }}</span><strong>-<span id="ui_global_discount_ht">0.00</span> €</strong></div>
+                    <div class="am-totals am-totals--wide">
+                        <div class="am-totals-row"><span>{{ __('Sous-total HT') }}</span><strong><span id="ui_subtotal_ht">0.00</span> €</strong></div>
+                        <div class="am-totals-row"><span>{{ __('Total remises ligne (HT)') }}</span><strong>-<span id="ui_line_discounts_ht">0.00</span> €</strong></div>
+                        <div class="am-totals-row"><span>{{ __('Remise globale (HT)') }}</span><strong>-<span id="ui_global_discount_ht">0.00</span> €</strong></div>
 
-                        <div class="flex justify-between"><span>{{ __('Total HT') }}</span><strong><span id="ui_total_ht">0.00</span> €</strong></div>
-                        <div class="flex justify-between"><span>{{ __('Total TVA') }}</span><strong><span id="ui_total_tva">0.00</span> €</strong></div>
-                        <div class="flex justify-between"><span>{{ __('Total TTC') }}</span><strong><span id="ui_total_ttc">0.00</span> €</strong></div>
+                        <div class="am-totals-row am-totals-row--total"><span>{{ __('Total HT') }}</span><strong><span id="ui_total_ht">0.00</span> €</strong></div>
+                        <div class="am-totals-row"><span>{{ __('Total TVA') }}</span><strong><span id="ui_total_tva">0.00</span> €</strong></div>
+                        <div class="am-totals-row am-totals-row--total"><span>{{ __('Total TTC') }}</span><strong><span id="ui_total_ttc">0.00</span> €</strong></div>
                     </div>
                 </div>
 
-                <div class="mt-4">
-                    <button type="submit" class="btn-primary">{{ __('Mettre à jour la Facture') }}</button>
-                    <a href="{{ route('invoices.show', $invoice) }}" class="btn-secondary">{{ __('Annuler') }}</a>
+                <div class="am-footer">
+                    <button type="submit" class="am-btn am-btn-primary am-btn-lg">{{ __('Mettre à jour la facture') }}</button>
+                    <a href="{{ route('invoices.show', $invoice) }}" class="am-btn am-btn-secondary am-btn-lg">{{ __('Annuler') }}</a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    {{-- Modal inventaire (EDIT) --}}
+    <div id="inventoryModal" class="am-modal hidden" aria-hidden="true">
+        <div class="am-modal-backdrop" onclick="closeInventoryModal()"></div>
+        <div class="am-modal-panel" role="dialog" aria-modal="true" aria-labelledby="amInvTitle">
+            <div class="am-modal-head">
+                <h2 id="amInvTitle" class="am-modal-title">{{ __('Ajouter un article depuis l’inventaire') }}</h2>
+                <button type="button" class="am-x" onclick="closeInventoryModal()" aria-label="{{ __('Fermer') }}">×</button>
+            </div>
+
+            <div class="am-modal-body">
+                <div class="am-field">
+                    <label class="am-label">{{ __('Article') }}</label>
+                    <select id="inventory_item_id" class="am-input">
+                        <option value="">{{ __('Sélectionnez un article') }}</option>
+                        @foreach($inventoryItems as $inv)
+                            <option
+                                value="{{ $inv->id }}"
+                                data-name="{{ $inv->name }}"
+                                data-unit-type="{{ $inv->unit_type }}"
+                                data-ttc-unit="{{ $inv->selling_price }}"
+                                data-ttc-per-ml="{{ $inv->selling_price_per_ml }}"
+                                data-tax="{{ $inv->vat_rate_sale }}"
+                            >
+                                {{ $inv->name }} ({{ $inv->unit_type }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="am-field">
+                    <label class="am-label">{{ __('Quantité à facturer') }}</label>
+                    <input type="number" id="inventory_quantity" class="am-input" min="1" value="1" inputmode="decimal">
+                </div>
+            </div>
+
+            <div class="am-modal-foot">
+                <button type="button" class="am-btn am-btn-secondary" onclick="closeInventoryModal()">{{ __('Annuler') }}</button>
+                <button type="button" class="am-btn am-btn-primary" onclick="addInventoryItemFromModal()">{{ __('Ajouter') }}</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal packs (EDIT) --}}
+    <div id="packModal" class="am-modal hidden" aria-hidden="true">
+        <div class="am-modal-backdrop" onclick="closePackModal()"></div>
+        <div class="am-modal-panel" role="dialog" aria-modal="true" aria-labelledby="amPackTitle">
+            <div class="am-modal-head">
+                <h2 id="amPackTitle" class="am-modal-title">{{ __('Ajouter un pack') }}</h2>
+                <button type="button" class="am-x" onclick="closePackModal()" aria-label="{{ __('Fermer') }}">×</button>
+            </div>
+
+            <div class="am-modal-body">
+                <div class="am-field">
+                    <label class="am-label">{{ __('Pack') }}</label>
+                    <select id="pack_product_id" class="am-input">
+                        <option value="">{{ __('Sélectionnez un pack') }}</option>
+                        @foreach($packProducts ?? [] as $pack)
+                            <option
+                                value="{{ $pack->id }}"
+                                data-name="{{ $pack->name }}"
+                                data-price="{{ $pack->price ?? 0 }}"
+                                data-tax="{{ $pack->tax_rate ?? 0 }}"
+                            >
+                                {{ $pack->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <div class="am-muted" style="margin-top:8px; font-size:.88rem;">
+                        {{ __('Le pack sera ajouté comme une ligne personnalisée (facturation).') }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="am-modal-foot">
+                <button type="button" class="am-btn am-btn-secondary" onclick="closePackModal()">{{ __('Annuler') }}</button>
+                <button type="button" class="am-btn am-btn-primary" onclick="addPackItemFromModal()">{{ __('Ajouter') }}</button>
+            </div>
         </div>
     </div>
 
     <script>
         let itemIndex = {{ $invoice->items->count() }};
 
-        // utils
+        // ---------- utils ----------
         function _num(v, fallback = 0) {
             const n = parseFloat(v);
             return Number.isFinite(n) ? n : fallback;
@@ -309,7 +433,7 @@
             return _money(_clamp(d, 0, subtotalHt));
         }
 
-        // custom name/details -> description
+        // ✅ Custom lines: store "name — details" into items[][description]
         function syncCustomDescriptions() {
             const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
             rows.forEach(row => {
@@ -319,7 +443,6 @@
                 const nameEl = row.querySelector('.custom-name');
                 const detailsEl = row.querySelector('.custom-details');
                 const hiddenDescEl = row.querySelector('.custom-description-hidden');
-
                 if (!hiddenDescEl) return;
 
                 const name = (nameEl?.value || '').trim();
@@ -331,6 +454,7 @@
             });
         }
 
+        // ---------- totals ----------
         function recomputeAllTotals() {
             syncCustomDescriptions();
 
@@ -392,9 +516,9 @@
                 const ttc = _money(netHtFinal + taxAmt);
 
                 const taxAmtEl = l.row.querySelector('.tax-amount-input');
-                const ttcEl = l.row.querySelector('.total-price-with-tax-input');
+                const ttcEl    = l.row.querySelector('.total-price-with-tax-input');
                 if (taxAmtEl) taxAmtEl.value = taxAmt.toFixed(2);
-                if (ttcEl) ttcEl.value = ttc.toFixed(2);
+                if (ttcEl)    ttcEl.value = ttc.toFixed(2);
 
                 totalHt += netHtFinal;
                 totalTva += taxAmt;
@@ -414,29 +538,30 @@
             setText('ui_total_ttc', totalTtc);
         }
 
+        // ---------- row helpers ----------
         function removeItem(btn) {
             const tr = btn?.closest?.('tr');
             if (tr) tr.remove();
             recomputeAllTotals();
         }
 
+        // ---------- add rows (edit) ----------
         function addProductItem() {
             const tbody = document.querySelector('#invoice-items-table tbody');
             const idx = itemIndex++;
             const row = document.createElement('tr');
 
             row.innerHTML = `
-                <input type="hidden" name="items[${idx}][type]" value="product">
+                <td class="am-td am-td--type">
+                    <span class="am-pill">Prest.</span>
+                    <input type="hidden" name="items[${idx}][type]" value="product">
+                </td>
 
-                <td class="align-middle text-center">{{ __('Product') }}</td>
-
-                <td>
-                    <select name="items[${idx}][product_id]" class="form-control product-select" onchange="updateItem(this)">
+                <td class="am-td am-td--product">
+                    <select name="items[${idx}][product_id]" class="am-input product-select" onchange="updateItem(this)">
                         <option value="">{{ __('Sélectionnez un produit') }}</option>
                         @foreach($products as $prod)
-                            <option value="{{ $prod->id }}"
-                                    data-price="{{ $prod->price }}"
-                                    data-tax-rate="{{ $prod->tax_rate }}">
+                            <option value="{{ $prod->id }}" data-price="{{ $prod->price }}" data-tax-rate="{{ $prod->tax_rate }}">
                                 {{ $prod->name }}
                             </option>
                         @endforeach
@@ -444,76 +569,49 @@
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
                 </td>
 
-                <td><input type="text" name="items[${idx}][description]" class="form-control description-input" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][quantity]" class="form-control quantity-input" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" value="0.00" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly value="0.00"></td>
+                <td class="am-td am-td--desc">
+                    <input type="text" name="items[${idx}][description]" class="am-input description-input" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
+                </td>
 
-                <td>
-                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                <td class="am-td am-td--qty">
+                    <input type="number" name="items[${idx}][quantity]" class="am-input am-num quantity-input"
+                           value="1" min="0.01" step="0.01" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--unit">
+                    <input type="number" name="items[${idx}][unit_price]" class="am-input am-num unit-price-input"
+                           step="0.01" min="0" inputmode="decimal" value="0.00" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--tax">
+                    <input type="number" name="items[${idx}][tax_rate]" class="am-input am-num tax-rate-input am-readonly"
+                           step="0.01" inputmode="decimal" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--discType">
+                    <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
                         <option value="">—</option>
                         <option value="percent">%</option>
                         <option value="amount">€</option>
                     </select>
                 </td>
-                <td>
-                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+
+                <td class="am-td am-td--discVal">
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]"
+                           class="am-input am-num line-discount-value" value="" inputmode="decimal" oninput="recomputeAllTotals()">
                 </td>
 
-                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amount-input" readonly value="0.00"></td>
-                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly value="0.00"></td>
-                <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button></td>
-            `;
-
-            tbody.append(row);
-            recomputeAllTotals();
-        }
-
-        function addInventoryItem() {
-            const tbody = document.querySelector('#invoice-items-table tbody');
-            const idx = itemIndex++;
-            const row = document.createElement('tr');
-
-            row.innerHTML = `
-                <input type="hidden" name="items[${idx}][type]" value="inventory">
-
-                <td class="align-middle text-center">{{ __('Inventory') }}</td>
-
-                <td>
-                    <select name="items[${idx}][inventory_item_id]" class="form-control inventory-select" onchange="updateInventoryItem(this)">
-                        <option value="">{{ __('Sélectionnez un article') }}</option>
-                        @foreach($inventoryItems as $inv)
-                            <option value="{{ $inv->id }}"
-                                    data-unit-type="{{ $inv->unit_type }}"
-                                    data-price-ml="{{ $inv->selling_price_per_ml }}"
-                                    data-price-unit="{{ $inv->selling_price }}"
-                                    data-tax-rate="{{ $inv->vat_rate_sale }}">
-                                {{ $inv->name }} ({{ $inv->unit_type }})
-                            </option>
-                        @endforeach
-                    </select>
-                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                <td class="am-td am-td--taxAmt">
+                    <input type="number" name="items[${idx}][tax_amount]" class="am-input am-num am-readonly tax-amount-input" readonly value="0.00">
                 </td>
 
-                <td><input type="text" name="items[${idx}][description]" class="form-control description-input" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][quantity]" class="form-control quantity-input" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price-input" step="0.01" min="0" readonly value="0.00"></td>
-                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate-input" step="0.01" readonly value="0.00"></td>
-
-                <td>
-                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
-                        <option value="">—</option>
-                        <option value="percent">%</option>
-                        <option value="amount">€</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+                <td class="am-td am-td--totalTtc">
+                    <input type="number" name="items[${idx}][total_price_with_tax]" class="am-input am-num am-readonly total-price-with-tax-input" readonly value="0.00">
                 </td>
 
-                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amount-input" readonly value="0.00"></td>
-                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly value="0.00"></td>
-                <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button></td>
+                <td class="am-td am-td--act">
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                </td>
             `;
 
             tbody.append(row);
@@ -526,45 +624,246 @@
             const row = document.createElement('tr');
 
             row.innerHTML = `
-                <input type="hidden" name="items[${idx}][type]" value="custom">
-
-                <td class="align-middle text-center">{{ __('Libre') }}</td>
-
-                <td>
-                    <input type="hidden" name="items[${idx}][product_id]" value="">
-                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
-                    <input type="text" class="form-control custom-name" placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
+                <td class="am-td am-td--type">
+                    <span class="am-pill am-pill--alt">Libre</span>
+                    <input type="hidden" name="items[${idx}][type]" value="custom">
                 </td>
 
-                <td>
-                    <input type="text" class="form-control custom-details" placeholder="Détails (optionnel)" oninput="recomputeAllTotals()">
+                <td class="am-td am-td--product">
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                    <input type="text" class="am-input custom-name" placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--desc">
+                    <input type="text" class="am-input custom-details" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
                     <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
                 </td>
 
-                <td><input type="number" name="items[${idx}][quantity]" class="form-control quantity-input" value="1" min="0.01" step="0.01" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][unit_price]" class="form-control unit-price-input" value="0.00" step="0.01" min="0" oninput="recomputeAllTotals()"></td>
-                <td><input type="number" name="items[${idx}][tax_rate]" class="form-control tax-rate-input" value="0.00" step="0.01" min="0" oninput="recomputeAllTotals()"></td>
+                <td class="am-td am-td--qty">
+                    <input type="number" name="items[${idx}][quantity]" class="am-input am-num quantity-input"
+                           value="1" min="0.01" step="0.01" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
 
-                <td>
-                    <select name="items[${idx}][line_discount_type]" class="form-control line-discount-type" onchange="recomputeAllTotals()">
+                <td class="am-td am-td--unit">
+                    <input type="number" name="items[${idx}][unit_price]" class="am-input am-num unit-price-input"
+                           value="0.00" step="0.01" min="0" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--tax">
+                    <input type="number" name="items[${idx}][tax_rate]" class="am-input am-num tax-rate-input"
+                           value="0.00" step="0.01" min="0" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--discType">
+                    <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
                         <option value="">—</option>
                         <option value="percent">%</option>
                         <option value="amount">€</option>
                     </select>
                 </td>
-                <td>
-                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="form-control line-discount-value" value="" oninput="recomputeAllTotals()">
+
+                <td class="am-td am-td--discVal">
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]"
+                           class="am-input am-num line-discount-value" value="" inputmode="decimal" oninput="recomputeAllTotals()">
                 </td>
 
-                <td><input type="number" name="items[${idx}][tax_amount]" class="form-control tax-amount-input" readonly value="0.00"></td>
-                <td><input type="number" name="items[${idx}][total_price_with_tax]" class="form-control total-price-with-tax-input readonly-field" readonly value="0.00"></td>
-                <td><button type="button" class="btn btn-danger" onclick="removeItem(this)">-</button></td>
+                <td class="am-td am-td--taxAmt">
+                    <input type="number" name="items[${idx}][tax_amount]" class="am-input am-num am-readonly tax-amount-input" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--totalTtc">
+                    <input type="number" name="items[${idx}][total_price_with_tax]" class="am-input am-num am-readonly total-price-with-tax-input" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--act">
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                </td>
             `;
 
             tbody.append(row);
             recomputeAllTotals();
         }
 
+        // inventory row is created from modal (so we can keep edit UX consistent)
+        function openInventoryModal() {
+            const m = document.getElementById('inventoryModal');
+            m.classList.remove('hidden');
+            m.setAttribute('aria-hidden','false');
+        }
+        function closeInventoryModal() {
+            const m = document.getElementById('inventoryModal');
+            m.classList.add('hidden');
+            m.setAttribute('aria-hidden','true');
+        }
+
+        function addInventoryItemFromModal() {
+            const sel = document.getElementById('inventory_item_id');
+            const opt = sel.options[sel.selectedIndex];
+            const qty = _num(document.getElementById('inventory_quantity').value, 1);
+            if (!opt.value) return;
+
+            const ttcUnit = _num(opt.dataset.ttcUnit, 0);
+            const ttcMl   = _num(opt.dataset.ttcPerMl, 0);
+            const tax     = _num(opt.dataset.tax, 0);
+            const unitType = opt.dataset.unitType || 'unit';
+
+            const ttc = (unitType === 'ml') ? ttcMl : ttcUnit;
+            const ht  = tax > 0 ? (ttc / (1 + tax/100)) : ttc;
+
+            const tbody = document.querySelector('#invoice-items-table tbody');
+            const idx = itemIndex++;
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td class="am-td am-td--type">
+                    <span class="am-pill am-pill--inv">Inv.</span>
+                    <input type="hidden" name="items[${idx}][type]" value="inventory">
+                </td>
+
+                <td class="am-td am-td--product">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="${opt.value}">
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <div class="am-input am-readonly">${escapeHtml(opt.text)}</div>
+                </td>
+
+                <td class="am-td am-td--desc">
+                    <input type="text" name="items[${idx}][description]" class="am-input am-readonly description-input"
+                           value="${escapeHtml(opt.dataset.name || '')}" readonly>
+                </td>
+
+                <td class="am-td am-td--qty">
+                    <input type="number" name="items[${idx}][quantity]" class="am-input am-num am-readonly quantity-input" value="${qty}" readonly>
+                </td>
+
+                <td class="am-td am-td--unit">
+                    <input type="number" name="items[${idx}][unit_price]" class="am-input am-num am-readonly unit-price-input" value="${ht.toFixed(2)}" readonly>
+                </td>
+
+                <td class="am-td am-td--tax">
+                    <input type="number" name="items[${idx}][tax_rate]" class="am-input am-num am-readonly tax-rate-input" value="${tax.toFixed(2)}" readonly>
+                </td>
+
+                <td class="am-td am-td--discType">
+                    <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+
+                <td class="am-td am-td--discVal">
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]"
+                           class="am-input am-num line-discount-value" value="" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--taxAmt">
+                    <input type="number" name="items[${idx}][tax_amount]" class="am-input am-num am-readonly tax-amount-input" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--totalTtc">
+                    <input type="number" name="items[${idx}][total_price_with_tax]" class="am-input am-num am-readonly total-price-with-tax-input" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--act">
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                </td>
+            `;
+
+            tbody.append(row);
+            recomputeAllTotals();
+            closeInventoryModal();
+        }
+
+        // pack modal
+        function openPackModal() {
+            const m = document.getElementById('packModal');
+            m.classList.remove('hidden');
+            m.setAttribute('aria-hidden','false');
+        }
+        function closePackModal() {
+            const m = document.getElementById('packModal');
+            m.classList.add('hidden');
+            m.setAttribute('aria-hidden','true');
+        }
+
+        function addPackItemFromModal() {
+            const sel = document.getElementById('pack_product_id');
+            const opt = sel.options[sel.selectedIndex];
+            if (!opt.value) return;
+
+            const name = opt.dataset.name || 'Pack';
+            const ht   = _num(opt.dataset.price, 0);
+            const tax  = _num(opt.dataset.tax, 0);
+
+            const tbody = document.querySelector('#invoice-items-table tbody');
+            const idx = itemIndex++;
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td class="am-td am-td--type">
+                    <span class="am-pill am-pill--alt">Pack</span>
+                    <input type="hidden" name="items[${idx}][type]" value="custom">
+                </td>
+
+                <td class="am-td am-td--product">
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                    <input type="text" class="am-input custom-name" value="Pack : ${escapeHtml(name)}" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--desc">
+                    <input type="text" class="am-input custom-details" value="" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
+                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
+                </td>
+
+                <td class="am-td am-td--qty">
+                    <input type="number" name="items[${idx}][quantity]" class="am-input am-num quantity-input"
+                           value="1" min="0.01" step="0.01" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--unit">
+                    <input type="number" name="items[${idx}][unit_price]" class="am-input am-num unit-price-input"
+                           value="${ht.toFixed(2)}" step="0.01" min="0" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--tax">
+                    <input type="number" name="items[${idx}][tax_rate]" class="am-input am-num tax-rate-input"
+                           value="${tax.toFixed(2)}" step="0.01" min="0" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--discType">
+                    <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">—</option>
+                        <option value="percent">%</option>
+                        <option value="amount">€</option>
+                    </select>
+                </td>
+
+                <td class="am-td am-td--discVal">
+                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]"
+                           class="am-input am-num line-discount-value" value="" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--taxAmt">
+                    <input type="number" name="items[${idx}][tax_amount]" class="am-input am-num am-readonly tax-amount-input" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--totalTtc">
+                    <input type="number" name="items[${idx}][total_price_with_tax]" class="am-input am-num am-readonly total-price-with-tax-input" readonly value="0.00">
+                </td>
+
+                <td class="am-td am-td--act">
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                </td>
+            `;
+
+            tbody.append(row);
+            recomputeAllTotals();
+            closePackModal();
+        }
+
+        // ---------- select updates ----------
         function updateItem(el) {
             const row = el.closest('tr');
             if (!row) return;
@@ -606,103 +905,287 @@
             recomputeAllTotals();
         }
 
+        // ---------- init ----------
         window.onload = () => {
             document.querySelectorAll('.product-select[data-preload="true"]').forEach(sel => updateItem(sel));
             document.querySelectorAll('.inventory-select[data-preload="true"]').forEach(sel => updateInventoryItem(sel));
             recomputeAllTotals();
 
             const form = document.getElementById('invoiceEditForm');
-            if (form) {
-                form.addEventListener('submit', () => {
-                    syncCustomDescriptions();
-                });
-            }
+            if (form) form.addEventListener('submit', () => syncCustomDescriptions());
         };
     </script>
 
     <style>
-        .container-fluid { max-width: 1200px; }
-        .input-section { max-width: 600px; margin-bottom: 30px; }
-
-        .details-container {
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
+        /* Same UI system as create invoice (shared styles, inline) */
+        .am-wrap{ width:100%; padding:18px 16px 36px; }
+        .am-card{
+            width:100%;
+            max-width:1400px;
+            margin:0 auto;
+            background:#f9f9f9;
+            border-radius:14px;
+            padding:18px;
+            box-shadow:0 10px 25px rgba(0,0,0,.06);
+            border:1px solid rgba(0,0,0,.04);
         }
 
-        .details-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 20px;
-            text-align: center;
+        .am-alert{
+            background:#fff;
+            border:1px solid #f1c0c0;
+            border-left:5px solid #e3342f;
+            border-radius:12px;
+            padding:12px 14px;
+            margin-bottom:14px;
+        }
+        .am-alert-title{ font-weight:800; color:#b91c1c; margin-bottom:6px; }
+        .am-alert-list{ margin:0; padding-left:18px; color:#7f1d1d; }
+        .am-err{ margin-top:6px; color:#e3342f; font-size:.875rem; }
+
+        .am-form{ width:100%; }
+        .am-grid{ display:flex; flex-wrap:wrap; gap:14px; }
+        .am-col-12{ flex:0 0 100%; }
+        .am-col-6{ flex:1 1 520px; min-width:280px; }
+        .am-col-3{ flex:1 1 240px; min-width:220px; }
+        .am-field{ width:100%; }
+
+        .am-label{
+            font-weight:800;
+            color:#647a0b;
+            display:block;
+            margin-bottom:6px;
+            font-size:.95rem;
+        }
+        .am-input{
+            width:100%;
+            padding:10px 11px;
+            border:1px solid #d1d5db;
+            border-radius:10px;
+            background:#fff;
+            outline:none;
+            transition:box-shadow .15s, border-color .15s;
+            font-size:.95rem;
+        }
+        .am-input:focus{
+            border-color:rgba(100,122,11,.55);
+            box-shadow:0 0 0 3px rgba(100,122,11,.15);
+        }
+        .am-textarea{ resize:vertical; }
+
+        .am-section{
+            margin-top:14px;
+            background:#fff;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:14px;
+            box-shadow:0 2px 12px rgba(0,0,0,.04);
+        }
+        .am-section-head{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:14px;
+            margin-bottom:10px;
+        }
+        .am-section-head--row{ align-items:center; flex-wrap:wrap; }
+        .am-section-title{ font-weight:900; color:#111827; font-size:1.05rem; margin-bottom:2px; }
+        .am-muted{ color:#6b7280; font-size:.9rem; }
+
+        .am-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+        .am-btn{
+            border:none;
+            border-radius:12px;
+            padding:10px 14px;
+            font-weight:800;
+            cursor:pointer;
+            text-decoration:none;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            line-height:1;
+            transition:transform .04s ease, opacity .15s ease;
+            user-select:none;
+            white-space:nowrap;
+        }
+        .am-btn:active{ transform:translateY(1px); }
+        .am-btn-primary{ background:#647a0b; color:#fff; }
+        .am-btn-primary:hover{ opacity:.92; }
+        .am-btn-secondary{ background:transparent; color:#854f38; border:1px solid #854f38; }
+        .am-btn-secondary:hover{ background:#854f38; color:#fff; }
+        .am-btn-danger{ background:#e3342f; color:#fff; }
+        .am-btn-danger:hover{ opacity:.92; }
+        .am-btn-lg{ padding:12px 16px; border-radius:14px; }
+        .am-icon{ padding:8px 12px; border-radius:12px; }
+
+        .am-table-wrap{
+            width:100%;
+            overflow:auto;
+            border-radius:12px;
+            border:1px solid #e5e7eb;
+        }
+        .am-table{
+            width:100%;
+            border-collapse:separate;
+            border-spacing:0;
+            min-width:1120px;
+            background:#fff;
+        }
+        .am-th{
+            position:sticky;
+            top:0;
+            background:#647a0b;
+            color:#fff;
+            text-align:left;
+            font-weight:900;
+            padding:10px 10px;
+            font-size:.9rem;
+            white-space:nowrap;
+            z-index:1;
+            border-bottom:1px solid rgba(255,255,255,.18);
+        }
+        .am-td{
+            padding:10px;
+            border-bottom:1px solid #f1f5f9;
+            vertical-align:middle;
+            background:#fff;
         }
 
-        .details-box { margin-bottom: 15px; }
+        .am-th--type, .am-td--type{ width:90px; }
+        .am-th--product, .am-td--product{ min-width:280px; }
+        .am-th--desc, .am-td--desc{ min-width:260px; }
+        .am-th--qty, .am-td--qty{ width:120px; }
+        .am-th--unit, .am-td--unit{ width:140px; }
+        .am-th--tax, .am-td--tax{ width:110px; }
+        .am-th--discType, .am-td--discType{ width:140px; }
+        .am-th--discVal, .am-td--discVal{ width:140px; }
+        .am-th--taxAmt, .am-td--taxAmt{ width:160px; }
+        .am-th--totalTtc, .am-td--totalTtc{ width:150px; }
+        .am-th--act, .am-td--act{ width:86px; text-align:center; }
 
-        .details-label {
-            font-weight: bold;
-            color: #647a0b;
-            display: block;
-            margin-bottom: 5px;
+        .am-table .am-input{ border-radius:10px; padding:9px 10px; }
+        .am-num{ text-align:right; font-variant-numeric:tabular-nums; min-width:92px; }
+
+        .am-readonly{ background:#f3f4f6 !important; cursor:not-allowed; }
+
+        .am-pill{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            padding:6px 10px;
+            border-radius:999px;
+            font-weight:900;
+            font-size:.82rem;
+            background:rgba(100,122,11,.12);
+            color:#374151;
+            border:1px solid rgba(100,122,11,.25);
+            white-space:nowrap;
+        }
+        .am-pill--alt{ background:rgba(133,79,56,.12); border-color:rgba(133,79,56,.25); }
+        .am-pill--inv{ background:rgba(17,24,39,.08); border-color:rgba(17,24,39,.18); }
+
+        .am-discount-row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            align-items:flex-end;
+            margin-bottom:12px;
+        }
+        .am-chip{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            background:#f7f7f7;
+            border:1px solid #e5e7eb;
+            border-radius:999px;
+            padding:10px 12px;
+            font-size:.9rem;
+            color:#374151;
+        }
+        .am-chip-dot{ width:10px; height:10px; border-radius:999px; background:#647a0b; display:inline-block; }
+
+        .am-totals{
+            margin-left:auto;
+            max-width:620px;
+            background:#fff;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:12px 14px;
+        }
+        .am-totals--wide{ max-width:720px; }
+        .am-totals-row{
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            padding:8px 0;
+            border-bottom:1px dashed #eef2f7;
+            font-size:.98rem;
+        }
+        .am-totals-row:last-child{ border-bottom:none; }
+        .am-totals-row--total{ font-size:1.06rem; }
+
+        .am-footer{
+            display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            justify-content:flex-end;
+            margin-top:14px;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .am-modal{
+            position:fixed;
+            inset:0;
+            z-index:50;
+            display:grid;
+            place-items:center;
+            padding:16px;
+        }
+        .am-modal.hidden{ display:none; }
+        .am-modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.55); }
+        .am-modal-panel{
+            position:relative;
+            width:100%;
+            max-width:560px;
+            background:#fff;
+            border-radius:16px;
+            box-shadow:0 20px 60px rgba(0,0,0,.25);
+            border:1px solid rgba(0,0,0,.06);
+            overflow:hidden;
+        }
+        .am-modal-head{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:14px 14px 10px;
+            border-bottom:1px solid #eef2f7;
+        }
+        .am-modal-title{ font-weight:900; font-size:1.05rem; color:#647a0b; }
+        .am-x{
+            width:36px; height:36px;
+            border-radius:10px;
+            border:1px solid #e5e7eb;
+            background:#fff;
+            font-size:20px;
+            line-height:1;
+            cursor:pointer;
+        }
+        .am-modal-body{ padding:14px; }
+        .am-modal-foot{
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            padding:12px 14px 14px;
+            border-top:1px solid #eef2f7;
         }
 
-        .btn-primary {
-            background-color: #647a0b;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-        }
-        .btn-primary:hover { background-color: #854f38; }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: #854f38;
-            padding: 10px 20px;
-            border: 1px solid #854f38;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-secondary:hover { background-color: #854f38; color: #fff; }
-
-        .text-red-500 { color: #e3342f; font-size: 0.875rem; }
-
-        #invoice-items-table { width: 100%; margin-bottom: 15px; table-layout: auto; }
-        #invoice-items-table th, #invoice-items-table td { padding: 8px; text-align: left; }
-        #invoice-items-table th { background-color: #647a0b; color: #fff; white-space: nowrap; }
-        #invoice-items-table td { border-bottom: 1px solid #ccc; }
-        #invoice-items-table td input, #invoice-items-table td select { width: 100%; }
-
-        .btn-danger {
-            background-color: #e3342f;
-            color: #fff;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .btn-danger:hover { background-color: #cc1f1a; }
-
-        .readonly-field { background-color: #e9ecef; cursor: not-allowed; }
-
-        @media (max-width: 768px) {
-            .details-title { font-size: 1.5rem; }
-            .btn-primary, .btn-secondary { width: 100%; text-align: center; margin-bottom: 10px; }
-            #invoice-items-table th, #invoice-items-table td { padding: 6px; }
+        @media (max-width:768px){
+            .am-card{ padding:14px; }
+            .am-actions{ justify-content:stretch; }
+            .am-actions .am-btn{ flex:1 1 auto; width:100%; }
+            .am-footer{ justify-content:stretch; }
+            .am-footer .am-btn{ width:100%; }
+            .am-totals{ max-width:100%; }
         }
     </style>
 </x-app-layout>
+
