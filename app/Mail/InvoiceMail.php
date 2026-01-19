@@ -25,6 +25,15 @@ class InvoiceMail extends Mailable implements ShouldQueue
 
     public function build()
     {
+        // Ensure relations needed by PDF + email are available (queued mails reload models without relations)
+        $this->invoice->loadMissing([
+            'user',
+            'clientProfile.company',
+            'corporateClient',
+            'items.product',
+            'items.inventoryItem',
+        ]);
+
         // build the PDF from the same view you use in generatePDF()
         $pdf = PDF::loadView('invoices.pdf', [
             'invoice' => $this->invoice,

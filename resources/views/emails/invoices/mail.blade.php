@@ -1,22 +1,47 @@
 @php
-    $cp      = $invoice->clientProfile;
-    $company = $cp->company ?? null;
+    $cp   = $invoice->clientProfile;
+    $corp = $invoice->corporateClient;
 
-    $billingFirst = $cp->first_name_billing ?: $cp->first_name;
-    $billingLast  = $cp->last_name_billing  ?: $cp->last_name;
+    // Company via client profile (legacy)
+    $company = $cp?->company;
+
+    // Display name + billing contact (robust for corporate-only invoices)
+    if ($corp) {
+        $recipientCompanyName = $corp->trade_name ?: $corp->name;
+        $billingFirst = $corp->main_contact_first_name;
+        $billingLast  = $corp->main_contact_last_name;
+    } else {
+        $billingFirst = $cp?->first_name_billing ?: $cp?->first_name;
+        $billingLast  = $cp?->last_name_billing  ?: $cp?->last_name;
+        $recipientCompanyName = $company?->name;
+    }
+
+    $billingFullName = trim(($billingFirst ?? '').' '.($billingLast ?? ''));
 @endphp
 
 @component('mail::message')
-@if($company)
+@if($corp)
 # Bonjour,
 
 Veuillez trouver ci-joint la facture n° **{{ $invoice->invoice_number }}** destinée à :
 
-**{{ $company->name }}**  
-À l’attention de **{{ $billingFirst }} {{ $billingLast }}**.
+**{{ $recipientCompanyName }}**
+@if($billingFullName)
+À l’attention de **{{ $billingFullName }}**.
+@endif
+
+@elseif($company)
+# Bonjour,
+
+Veuillez trouver ci-joint la facture n° **{{ $invoice->invoice_number }}** destinée à :
+
+**{{ $company->name }}**
+@if($billingFullName)
+À l’attention de **{{ $billingFullName }}**.
+@endif
 
 @else
-# Bonjour {{ $billingFirst }},
+# Bonjour {{ $billingFirst ?? '' }},
 
 Veuillez trouver ci-joint votre facture n° **{{ $invoice->invoice_number }}**.
 @endif

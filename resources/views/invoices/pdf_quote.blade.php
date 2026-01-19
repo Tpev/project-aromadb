@@ -290,9 +290,11 @@
         </div>
     @endif
 
-    <div class="legal-mentions">
-        Merci pour votre confiance.
-    </div>
+    @if($user->legal_mentions)
+        <div class="legal-mentions">
+            {{ $user->legal_mentions }}
+        </div>
+    @endif
 
     <div class="footer">
         {{ $user->company_name ?? '' }}

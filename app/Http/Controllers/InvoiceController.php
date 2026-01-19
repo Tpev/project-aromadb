@@ -392,20 +392,14 @@ public function clientPdf(Invoice $invoice)
         abort(403, 'Vous n\'êtes pas autorisé à accéder à cette facture.');
     }
 
-    // Eager load everything we need (do NOT hard-depend on corporateClient relationship)
-    $relations = [
+    // eager load everything we need (including optional corporate client)
+    $invoice->load([
         'user',
         'clientProfile',
+        'corporateClient',
         'items.product',
         'items.inventoryItem',
-    ];
-
-    // Only eager-load corporateClient if the relationship exists on the model
-    if (method_exists($invoice, 'corporateClient')) {
-        $relations[] = 'corporateClient';
-    }
-
-    $invoice->load($relations);
+    ]);
 
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
@@ -417,20 +411,14 @@ public function generatePDF(Invoice $invoice)
 {
     $this->authorize('view', $invoice);
 
-    // Eager load everything we need (do NOT hard-depend on corporateClient relationship)
-    $relations = [
+    // eager load everything we need
+    $invoice->load([
         'user',
         'clientProfile',
+        'corporateClient',
         'items.product',
         'items.inventoryItem',
-    ];
-
-    // Only eager-load corporateClient if the relationship exists on the model
-    if (method_exists($invoice, 'corporateClient')) {
-        $relations[] = 'corporateClient';
-    }
-
-    $invoice->load($relations);
+    ]);
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
@@ -506,36 +494,45 @@ public function sendEmail(Invoice $invoice)
     $this->authorize('view', $invoice);
 
     // eager-load everything the PDF and email view need
-    $invoice->load([
-        'user',
-        'clientProfile.company',   // ⬅️ important for queued mails
-        'items.product',
-        'items.inventoryItem',
-    ]);
+	$invoice->load([
+		'user',
+		'clientProfile.company',   // ⬅️ important for queued mails
+		'corporateClient',         // ⬅️ NEW: facture directe entreprise
+		'items.product',
+		'items.inventoryItem',
+	]);
 
-    $client  = $invoice->clientProfile;
-    $company = $client?->company;
+   $client = $invoice->clientProfile;
 
-    // Determine recipient(s)
-    $to = null;
-    $cc = null;
+// Entreprise possible via:
+// - facture directe corporate_client_id
+// - ou client rattaché à une entreprise
+$companyFromClient = $client?->company;
+$company = $invoice->corporateClient ?: $companyFromClient;
 
-    if ($company && $company->billing_email) {
-        // Entreprise avec email de facturation dédié
-        $to = $company->billing_email;
-        $cc = $client->email; // copie au bénéficiaire si renseigné
-    } elseif ($company && $company->email) {
-        // Entreprise sans "billing_email" mais avec email général
-        $to = $company->email;
+// Determine recipient(s)
+$to = null;
+$cc = null;
+
+// 1) Si entreprise: priorité billing_email puis main_contact_email
+if ($company) {
+    $to = $company->billing_email ?: $company->main_contact_email;
+
+    // CC au bénéficiaire si on a un client individuel rattaché
+    if ($to && $client?->email && $client->email !== $to) {
         $cc = $client->email;
-    } elseif ($client && $client->email) {
-        // Client "normal" (pas d'entreprise)
-        $to = $client->email;
     }
+}
 
-    if (!$to) {
-        return back()->with('error', "Aucune adresse email de facturation n'est définie (client ou entreprise).");
-    }
+// 2) Sinon client “classique”
+if (!$to && $client) {
+    $to = $client->email_billing ?: $client->email;
+}
+
+if (!$to) {
+    return back()->with('error', "Aucune adresse email de facturation n'est définie (client ou entreprise).");
+}
+
 
     $therapistName = Auth::user()->name;
 
@@ -996,6 +993,7 @@ public function generateQuotePDF(Invoice $invoice)
     $invoice->load([
         'user',
         'clientProfile',
+        'corporateClient',
         'items.product',
         'items.inventoryItem', // <— pour les inventaires
     ]);
@@ -1009,24 +1007,45 @@ public function generateQuotePDF(Invoice $invoice)
 public function sendQuoteEmail(Invoice $quote)
 {
     $this->authorize('view', $quote);
+$quote->load(['corporateClient', 'clientProfile.company']);
 
     if ($quote->type !== 'quote') {
         return redirect()->back()->with('error', 'Ce document n\'est pas un devis.');
     }
+$client = $quote->clientProfile;
 
-    $client = $quote->clientProfile;
+// Entreprise possible via:
+// - devis direct corporate_client_id
+// - ou client rattaché à une entreprise
+$companyFromClient = $client?->company;
+$company = $quote->corporateClient ?: $companyFromClient;
 
-    // 1) Email de facturation prioritaire, sinon email du client
+// 1) Email destinataire
+$toEmail = null;
+
+if ($company) {
+    $toEmail = $company->billing_email ?: $company->main_contact_email;
+}
+
+if (!$toEmail && $client) {
     $toEmail = $client->email_billing ?: $client->email;
+}
 
-    if (!$toEmail) {
-        return redirect()->back()->with('error', 'Le client n\'a pas d\'adresse email.');
+if (!$toEmail) {
+    return redirect()->back()->with('error', 'Aucune adresse email de facturation n\'est définie (client ou entreprise).');
+}
+
+// 2) Nom du contact (pour le contenu du mail)
+if ($company) {
+    $contactName = trim(($company->main_contact_first_name ?? '').' '.($company->main_contact_last_name ?? ''));
+    if (!$contactName) {
+        $contactName = $company->trade_name ?: $company->name;
     }
-
-    // 2) Nom du contact de facturation pour le contenu de l’email
+} else {
     $billingFirst = $client->first_name_billing ?: $client->first_name;
     $billingLast  = $client->last_name_billing  ?: $client->last_name;
     $contactName  = trim($billingFirst.' '.$billingLast);
+}
 
     try {
         $therapistName = Auth::user()->name;
