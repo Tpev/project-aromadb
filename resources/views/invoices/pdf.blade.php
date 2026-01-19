@@ -44,16 +44,18 @@
         .header-logo-cell { width: 48%; }
         .header-meta-cell { width: 52%; text-align: right; }
 
-        /* ✅ Logo box fix (DomPDF-friendly, consistent size) */
-        .logo-box {
-            width: 260px;    /* adjust if you want bigger/smaller */
-            height: 85px;    /* controls vertical space */
-        }
-        .logo-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* keep ratio */
-        }
+		.logo-box {
+			width: 360px;
+			height: 300px;
+		}
+
+		.logo-box img {
+			max-width: 100%;
+			max-height: 100%;
+			width: auto;
+			height: auto;
+		}
+
 
         /* Badge meta (top-right) */
         .meta-badge {
