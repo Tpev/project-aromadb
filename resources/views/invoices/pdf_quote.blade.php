@@ -7,7 +7,6 @@
     @php
         $user = $invoice->user;
 
-        // fallback ancien devis si aucune couleur
         $brandColor = $user?->invoice_primary_color ?: '#854f38';
 
         $logoFile = null;
@@ -32,7 +31,17 @@
         .header-table td { vertical-align: top; }
         .header-logo-cell { width: 48%; }
         .header-meta-cell { width: 52%; text-align: right; }
-        .logo-img { max-height: 62px; max-width: 240px; }
+
+        /* ✅ Logo box fix */
+        .logo-box {
+            width: 260px;
+            height: 85px;
+        }
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
 
         .meta-badge {
             display: inline-block;
@@ -107,7 +116,9 @@
         <tr>
             <td class="header-logo-cell">
                 @if($logoFile)
-                    <img class="logo-img" src="{{ $logoFile }}" alt="Logo">
+                    <div class="logo-box">
+                        <img src="{{ $logoFile }}" alt="Logo">
+                    </div>
                 @endif
             </td>
             <td class="header-meta-cell">

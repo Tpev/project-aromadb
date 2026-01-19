@@ -23,7 +23,7 @@
         $invoiceDate = $invoice->invoice_date ? \Illuminate\Support\Carbon::parse($invoice->invoice_date) : null;
         $dueDate     = $invoice->due_date ? \Illuminate\Support\Carbon::parse($invoice->due_date) : null;
 
-        // Remise globale (si ton modèle la stocke)
+        // Remise globale
         $globalDiscountHt = (float) ($invoice->global_discount_amount_ht ?? 0);
     @endphp
 
@@ -44,7 +44,16 @@
         .header-logo-cell { width: 48%; }
         .header-meta-cell { width: 52%; text-align: right; }
 
-        .logo-img { max-height: 62px; max-width: 240px; }
+        /* ✅ Logo box fix (DomPDF-friendly, consistent size) */
+        .logo-box {
+            width: 260px;    /* adjust if you want bigger/smaller */
+            height: 85px;    /* controls vertical space */
+        }
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* keep ratio */
+        }
 
         /* Badge meta (top-right) */
         .meta-badge {
@@ -130,15 +139,8 @@
         .totals-table tr.total-ttc td.label { color: {{ $brandColor }}; }
 
         /* Notes / legal */
-        .notes {
-            margin-top: 12px;
-            font-size: 11px;
-        }
-        .notes-title {
-            margin: 0 0 4px 0;
-            font-weight: 700;
-            color: {{ $brandColor }};
-        }
+        .notes { margin-top: 12px; font-size: 11px; }
+        .notes-title { margin: 0 0 4px 0; font-weight: 700; color: {{ $brandColor }}; }
         .legal-mentions {
             font-size: 9px;
             color: #666;
@@ -165,7 +167,9 @@
         <tr>
             <td class="header-logo-cell">
                 @if($logoFile)
-                    <img class="logo-img" src="{{ $logoFile }}" alt="Logo">
+                    <div class="logo-box">
+                        <img src="{{ $logoFile }}" alt="Logo">
+                    </div>
                 @endif
             </td>
             <td class="header-meta-cell">
@@ -290,7 +294,6 @@
                 if($item->type === 'product' && $item->product) $name = $item->product->name;
                 if($item->type === 'inventory' && $item->inventoryItem) $name = $item->inventoryItem->name;
 
-                // Remises par ligne (compat avec ton devis)
                 $lineDiscount = (float) ($item->line_discount_amount_ht ?? 0);
                 $globalDiscountOnLine = (float) ($item->global_discount_amount_ht ?? 0);
                 $discountHt = $lineDiscount + $globalDiscountOnLine;
@@ -310,7 +313,7 @@
         </tbody>
     </table>
 
-    {{-- TOTAUX + REMISE GLOBALE --}}
+    {{-- TOTAUX --}}
     <div class="totals-wrap">
         <table class="totals-table">
             @if($globalDiscountHt > 0)
@@ -334,7 +337,6 @@
         </table>
     </div>
 
-    {{-- Notes --}}
     @if($invoice->notes)
         <div class="notes">
             <div class="notes-title">Notes</div>
@@ -342,7 +344,6 @@
         </div>
     @endif
 
-    {{-- Mentions légales --}}
     @if($user->legal_mentions)
         <div class="legal-mentions">
             {{ $user->legal_mentions }}
