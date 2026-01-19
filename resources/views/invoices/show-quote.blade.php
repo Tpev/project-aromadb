@@ -5,6 +5,29 @@
         </h2>
     </x-slot>
 
+    @php
+        $cp   = $quote->clientProfile;
+        $corp = null;
+        if (!empty($quote->corporate_client_id)) {
+            $corp = method_exists($quote, 'corporateClient') ? $quote->corporateClient : \App\Models\CorporateClient::find($quote->corporate_client_id);
+        }
+        $isCorporate = (bool) $corp;
+    
+        $displayName = $isCorporate
+            ? ($corp->trade_name ?: $corp->name)
+            : trim(($cp?->first_name ?? '') . ' ' . ($cp?->last_name ?? ''));
+    
+        $billingEmail = $isCorporate
+            ? ($corp->billing_email ?: $corp->main_contact_email)
+            : ($cp?->email);
+    
+        $billingPhone = $isCorporate
+            ? ($corp->billing_phone ?: $corp->main_contact_phone)
+            : ($cp?->phone);
+    @endphp
+    
+    
+
     <div class="container-fluid mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Détails du devis') }} #{{ $quote->quote_number ?? $quote->id }}</h1>
@@ -16,7 +39,7 @@
                         <i class="fas fa-user icon"></i>
                         <div class="invoice-details">
                             <p class="invoice-label">{{ __('Client') }}</p>
-                            <p class="invoice-value">{{ $quote->clientProfile->first_name }} {{ $quote->clientProfile->last_name }}</p>
+                            <p class="invoice-value">{{ $displayName }}</p>
                         </div>
                     </div>
                 </div>

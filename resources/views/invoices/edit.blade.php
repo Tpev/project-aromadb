@@ -25,16 +25,83 @@
                 {{-- Client, dates, notes --}}
                 <div class="am-grid">
                     <div class="am-field am-col-6">
-                        <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
-                        <select id="client_profile_id" name="client_profile_id" class="am-input" required>
-                            @foreach($clients as $client)
-                                <option value="{{ $client->id }}"
-                                    {{ old('client_profile_id', $invoice->client_profile_id) == $client->id ? 'selected' : '' }}>
-                                    {{ $client->first_name }} {{ $client->last_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('client_profile_id')<p class="am-err">{{ $message }}</p>@enderror
+                        <label class="am-label">{{ __('Facturer à') }}</label>
+
+                        @php
+                            $billTo = old('bill_to', !empty($invoice->corporate_client_id) ? 'corporate' : 'client');
+                            $corporateClients = $corporateClients ?? collect();
+                        @endphp
+
+                        <div class="flex items-center gap-4 mb-2">
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="bill_to" value="client" {{ $billTo === 'client' ? 'checked' : '' }}>
+                                <span>{{ __('Particulier') }}</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="bill_to" value="corporate" {{ $billTo === 'corporate' ? 'checked' : '' }}>
+                                <span>{{ __('Entreprise') }}</span>
+                            </label>
+                        </div>
+
+                        <div id="billto-client-wrap">
+                            <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
+                            <select id="client_profile_id" name="client_profile_id" class="am-input">
+                                <option value="">{{ __('— Sélectionner —') }}</option>
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}"
+                                        {{ old('client_profile_id', $invoice->client_profile_id) == $client->id ? 'selected' : '' }}>
+                                        {{ $client->first_name }} {{ $client->last_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('client_profile_id')<p class="am-err">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div id="billto-corporate-wrap" class="mt-3">
+                            <label class="am-label" for="corporate_client_id">{{ __('Entreprise') }}</label>
+                            <select id="corporate_client_id" name="corporate_client_id" class="am-input">
+                                <option value="">{{ __('— Sélectionner —') }}</option>
+                                @foreach($corporateClients as $corp)
+                                    <option value="{{ $corp->id }}"
+                                        {{ old('corporate_client_id', $invoice->corporate_client_id) == $corp->id ? 'selected' : '' }}>
+                                        {{ $corp->trade_name ?: $corp->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('corporate_client_id')<p class="am-err">{{ $message }}</p>@enderror
+                        </div>
+
+                        <script>
+                            (function () {
+                                const radios = document.querySelectorAll('input[name="bill_to"]');
+                                const wrapClient = document.getElementById('billto-client-wrap');
+                                const wrapCorp   = document.getElementById('billto-corporate-wrap');
+                                const selClient  = document.getElementById('client_profile_id');
+                                const selCorp    = document.getElementById('corporate_client_id');
+
+                                function sync() {
+                                    const v = document.querySelector('input[name="bill_to"]:checked')?.value || 'client';
+                                    const isCorp = (v === 'corporate');
+
+                                    wrapClient.style.display = isCorp ? 'none' : '';
+                                    wrapCorp.style.display   = isCorp ? '' : 'none';
+
+                                    // Required toggles
+                                    if (selClient) selClient.required = !isCorp;
+                                    if (selCorp)   selCorp.required   = isCorp;
+
+                                    // Clear the other select to avoid sending both
+                                    if (isCorp) {
+                                        if (selClient) selClient.value = '';
+                                    } else {
+                                        if (selCorp) selCorp.value = '';
+                                    }
+                                }
+
+                                radios.forEach(r => r.addEventListener('change', sync));
+                                sync();
+                            })();
+                        </script>
                     </div>
 
                     <div class="am-field am-col-3">

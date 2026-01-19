@@ -25,6 +25,8 @@
             @php
                 // Avoid "Undefined variable $selectedClient"
                 $selectedClientId = old('client_profile_id', isset($selectedClient) ? $selectedClient->id : null);
+                $selectedCorporateId = old('corporate_client_id', isset($selectedCorporateClient) ? $selectedCorporateClient->id : null);
+                $billingTarget = old('billing_target', $selectedCorporateId ? 'corporate' : 'client');
 
                 $gType = old('global_discount_type');
                 $gVal  = old('global_discount_value');
@@ -36,19 +38,50 @@
                 {{-- Metadata --}}
                 <div class="am-grid">
                     <div class="am-field am-col-6">
-                        <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
-                        <select id="client_profile_id" name="client_profile_id" class="am-input" required>
-                            <option value="">{{ __('Sélectionnez un client') }}</option>
-                            @foreach($clients as $client)
-                                <option value="{{ $client->id }}"
-                                        {{ (string)$selectedClientId === (string)$client->id ? 'selected' : '' }}>
-                                    {{ $client->first_name }} {{ $client->last_name }}
-                                    @if($client->company)
-                                        — 👔 {{ $client->company->name }}
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="am-label">{{ __('Facturer à') }}</label>
+
+                        <div class="am-inline-radio" style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+                            <label style="display:flex; gap:8px; align-items:center;">
+                                <input type="radio" name="billing_target" value="client" {{ $billingTarget === 'client' ? 'checked' : '' }}>
+                                <span>{{ __('Particulier') }}</span>
+                            </label>
+                            <label style="display:flex; gap:8px; align-items:center;">
+                                <input type="radio" name="billing_target" value="corporate" {{ $billingTarget === 'corporate' ? 'checked' : '' }}>
+                                <span>{{ __('Entreprise') }}</span>
+                            </label>
+                        </div>
+
+                        <div id="billToClientWrap">
+                            <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
+                            <select id="client_profile_id" name="client_profile_id" class="am-input">
+                                <option value="">{{ __('Sélectionnez un client') }}</option>
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}"
+                                            {{ (string)$selectedClientId === (string)$client->id ? 'selected' : '' }}>
+                                        {{ $client->first_name }} {{ $client->last_name }}
+                                        @if($client->company)
+                                            — 👔 {{ $client->company->name }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div id="billToCorporateWrap" style="display:none; margin-top:12px;">
+                            <label class="am-label" for="corporate_client_id">{{ __('Entreprise') }}</label>
+                            <select id="corporate_client_id" name="corporate_client_id" class="am-input">
+                                <option value="">{{ __('Sélectionnez une entreprise') }}</option>
+                                @foreach($corporateClients ?? [] as $corp)
+                                    <option value="{{ $corp->id }}"
+                                            {{ (string)$selectedCorporateId === (string)$corp->id ? 'selected' : '' }}>
+                                        {{ $corp->name }}
+                                        @if(!empty($corp->trade_name) && $corp->trade_name !== $corp->name)
+                                            — {{ $corp->trade_name }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="am-field am-col-3">
@@ -159,6 +192,49 @@
                     <a href="{{ route('invoices.index') }}" class="am-btn am-btn-secondary am-btn-lg">{{ __('Retour à la liste') }}</a>
                 </div>
             </form>
+            <script>
+                (function () {
+                    function syncBillingTarget() {
+                        const target = (document.querySelector('input[name="billing_target"]:checked') || {}).value || 'client';
+
+                        const clientWrap = document.getElementById('billToClientWrap');
+                        const corpWrap   = document.getElementById('billToCorporateWrap');
+
+                        const clientSel = document.getElementById('client_profile_id');
+                        const corpSel   = document.getElementById('corporate_client_id');
+
+                        if (!clientWrap || !corpWrap || !clientSel || !corpSel) return;
+
+                        if (target === 'corporate') {
+                            clientWrap.style.display = 'none';
+                            corpWrap.style.display   = 'block';
+
+                            clientSel.removeAttribute('required');
+                            corpSel.setAttribute('required', 'required');
+
+                            // Avoid submitting both
+                            clientSel.value = '';
+                        } else {
+                            clientWrap.style.display = 'block';
+                            corpWrap.style.display   = 'none';
+
+                            corpSel.removeAttribute('required');
+                            clientSel.setAttribute('required', 'required');
+
+                            // Avoid submitting both
+                            corpSel.value = '';
+                        }
+                    }
+
+                    document.querySelectorAll('input[name="billing_target"]').forEach(r => {
+                        r.addEventListener('change', syncBillingTarget);
+                    });
+
+                    // Initial state
+                    syncBillingTarget();
+                })();
+            </script>
+
         </div>
     </div>
 

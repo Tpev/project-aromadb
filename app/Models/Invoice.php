@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use App\Models\ClientProfile;
+use App\Models\CorporateClient;
 
 class Invoice extends Model
 {
@@ -94,5 +95,9 @@ public function getSoldeRestantAttribute(): float
     $ttc = (float) $this->total_amount_with_tax;
     return max(0, $ttc - $this->total_encaisse);
 }	
+public function corporateClient()
+{
+    return $this->belongsTo(CorporateClient::class, 'corporate_client_id');
+}
 	
 }

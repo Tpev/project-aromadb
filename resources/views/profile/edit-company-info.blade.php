@@ -357,6 +357,88 @@
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
+						{{-- =========================
+     BRANDING FACTURES / DEVIS
+     ========================= --}}
+<div class="details-box mt-6">
+    <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold text-lg" style="color:#647a0b;">
+            {{ __('Branding des factures') }}
+        </h3>
+    </div>
+
+    {{-- Aperçu logo actuel --}}
+    @php
+        $logoPath = auth()->user()->invoice_logo_path
+            ? asset('storage/' . auth()->user()->invoice_logo_path)
+            : null;
+    @endphp
+
+    @if($logoPath)
+        <div class="mb-3">
+            <div class="text-sm text-gray-600 mb-2">{{ __('Logo actuel :') }}</div>
+            <img src="{{ $logoPath }}" alt="Logo" style="max-height:70px; max-width:220px;">
+        </div>
+
+        <div class="mb-4">
+            <label class="inline-flex items-center gap-2">
+                <input type="checkbox" name="remove_invoice_logo" value="1">
+                <span class="text-sm text-gray-700">{{ __('Supprimer le logo') }}</span>
+            </label>
+            @error('remove_invoice_logo')
+                <p class="text-red-500">{{ $message }}</p>
+            @enderror
+        </div>
+    @endif
+
+    {{-- Upload nouveau logo --}}
+    <div class="mb-4">
+        <label class="details-label" for="invoice_logo">{{ __('Logo pour factures (PNG/JPG/WebP/SVG)') }}</label>
+        <input type="file" id="invoice_logo" name="invoice_logo" class="form-control"
+               accept=".png,.jpg,.jpeg,.webp,.svg">
+        <p class="text-xs text-gray-500 mt-1">
+            {{ __('Recommandé : PNG transparent, largeur ~300–600px. Max 4 Mo.') }}
+        </p>
+        @error('invoice_logo')
+            <p class="text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+
+    {{-- Couleur primaire --}}
+    @php
+        $currentColor = old('invoice_primary_color', auth()->user()->invoice_primary_color ?: '#647a0b');
+    @endphp
+
+    <div class="mb-2">
+        <label class="details-label" for="invoice_primary_color">{{ __('Couleur principale (factures & devis)') }}</label>
+
+        <div class="flex items-center gap-3">
+            <input type="color"
+                   id="invoice_primary_color_picker"
+                   value="{{ $currentColor }}"
+                   class="h-10 w-14 p-1 border border-gray-300 rounded"
+                   oninput="document.getElementById('invoice_primary_color').value = this.value">
+
+            <input type="text"
+                   id="invoice_primary_color"
+                   name="invoice_primary_color"
+                   class="form-control"
+                   style="max-width:160px;"
+                   value="{{ $currentColor }}"
+                   placeholder="#647a0b"
+                   oninput="document.getElementById('invoice_primary_color_picker').value = this.value">
+        </div>
+
+        <p class="text-xs text-gray-500 mt-1">
+            {{ __('Format attendu : #RRGGBB') }}
+        </p>
+
+        @error('invoice_primary_color')
+            <p class="text-red-500">{{ $message }}</p>
+        @enderror
+    </div>
+</div>
+
                     </div>
 
                     {{-- Form actions (always visible) --}}

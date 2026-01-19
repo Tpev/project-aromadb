@@ -342,7 +342,23 @@
                                 <tr class="hover:bg-[#fdece6] cursor-pointer"
                                     onclick="window.location='{{ route('invoices.show', $invoice->id) }}'">
                                     <td class="px-4 py-2">
-                                        {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                                        @php
+                                            $cp = $invoice->clientProfile;
+                                            $corp = null;
+
+                                            if (!empty($invoice->corporate_client_id)) {
+                                                $corp = $invoice->corporateClient ?? \App\Models\CorporateClient::find($invoice->corporate_client_id);
+                                            }
+
+                                            $clientLabel = $corp
+                                                ? ($corp->trade_name ?: $corp->name)
+                                                : trim(($cp?->first_name ?? '') . ' ' . ($cp?->last_name ?? ''));
+
+                                            if (!$clientLabel) {
+                                                $clientLabel = '—';
+                                            }
+                                        @endphp
+                                        {{ $clientLabel }}
                                     </td>
                                     <td class="px-4 py-2">
                                         {{ number_format($invoice->total_amount, 2, ',', ' ') }} €

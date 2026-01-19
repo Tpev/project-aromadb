@@ -75,10 +75,62 @@
             </div>
 
             @php
-                $cp      = $invoice->clientProfile;
-                $company = $cp->company ?? null;
-                $billingFirst = $cp->first_name_billing ?: $cp->first_name;
-                $billingLast  = $cp->last_name_billing  ?: $cp->last_name;
+                $cp = $invoice->clientProfile;
+
+                // Corporate billing (Option A): invoice may target a CorporateClient directly.
+                $corp = null;
+                if (!empty($invoice->corporate_client_id)) {
+                    $corp = $invoice->corporateClient ?? null;
+                    if (!$corp) {
+                        $corp = \App\Models\CorporateClient::find($invoice->corporate_client_id);
+                    }
+                }
+                if (!$corp && !empty($invoice->corporate_client_id)) {
+                    // Fallback in case relation is not eager loaded (or not defined yet)
+                    $corp = \App\Models\CorporateClient::where('id', $invoice->corporate_client_id)->first();
+                }
+
+                $isCorporate = (bool) $corp;
+
+                // "company" is used in the UI below. For corporate invoices we treat the corporate client as the company.
+                $company = $isCorporate ? $corp : ($cp?->company ?? null);
+
+                // Billing person (for individuals: billing names if provided; for corporate: main contact if provided)
+                $billingFirst = $isCorporate
+                    ? ($corp->main_contact_first_name ?? '')
+                    : ($cp?->first_name_billing ?: ($cp?->first_name ?? ''));
+
+                $billingLast  = $isCorporate
+                    ? ($corp->main_contact_last_name ?? '')
+                    : ($cp?->last_name_billing ?: ($cp?->last_name ?? ''));
+
+                $billingContactName = trim(($billingFirst . ' ' . $billingLast));
+
+                // Display name for "client / bénéficiaire"
+                $billToName = $isCorporate
+                    ? ($corp->trade_name ?: $corp->name)
+                    : trim(($cp?->first_name ?? '') . ' ' . ($cp?->last_name ?? ''));
+
+                // Billing address / contact details
+                $billingEmail = $isCorporate
+                    ? ($corp->billing_email ?: ($corp->main_contact_email ?? null))
+                    : ($cp?->email ?? null);
+
+                $billingPhone = $isCorporate
+                    ? ($corp->billing_phone ?: ($corp->main_contact_phone ?? null))
+                    : ($cp?->phone ?? null);
+
+                $billingAddress = $isCorporate
+                    ? ($corp->billing_address ?? null)
+                    : ($cp?->billing_address ?? ($cp?->address ?? null));
+
+                $billingZip = $isCorporate
+                    ? ($corp->billing_zip ?? null)
+                    : ($cp?->billing_zip ?? ($cp?->zip ?? null));
+
+                $billingCity = $isCorporate
+                    ? ($corp->billing_city ?? null)
+                    : ($cp?->billing_city ?? ($cp?->city ?? null));
             @endphp
 
             {{-- Infos facture --}}
@@ -90,16 +142,23 @@
                         <div class="invoice-details">
                             <p class="invoice-label">{{ __('Client / Bénéficiaire') }}</p>
                             <p class="invoice-value">
-                                @if($company)
+                                @if($isCorporate)
+                                    <span class="font-semibold block">{{ $billToName }}</span>
+                                    @if(!empty($billingContactName))
+                                        <span class="text-sm text-gray-600 block">
+                                            Contact : {{ $billingContactName }}
+                                        </span>
+                                    @endif
+                                @elseif($company)
                                     <span class="font-semibold block">{{ $company->name }}</span>
                                     <span class="text-sm text-gray-600 block">
                                         Bénéficiaire (profil client) :
-                                        {{ $cp->first_name }} {{ $cp->last_name }}
+                                        {{ $cp?->first_name }} {{ $cp?->last_name }}
                                     </span>
                                 @else
                                     <span class="block">
                                         Bénéficiaire (profil client) :
-                                        {{ $cp->first_name }} {{ $cp->last_name }}
+                                        {{ $cp?->first_name }} {{ $cp?->last_name }}
                                     </span>
                                 @endif
                             </p>
@@ -114,7 +173,9 @@
                         <div class="invoice-details">
                             <p class="invoice-label">{{ __('Facturé à') }}</p>
                             <p class="invoice-value">
-                                @if($company)
+                                @if($isCorporate)
+                                    {{ $billToName }}@if(!empty($billingContactName)) – À l’attention de {{ $billingContactName }}@endif
+                                @elseif($company)
                                     {{ $company->name }} – À l’attention de {{ $billingFirst }} {{ $billingLast }}
                                 @else
                                     {{ $billingFirst }} {{ $billingLast }}

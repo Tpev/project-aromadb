@@ -219,17 +219,24 @@
                  SECTION: Factures liées à cette entreprise
                  ========================== --}}
             @php
-                // Récupère toutes les factures des clients rattachés à cette entreprise
-                $invoices = $company->clientProfiles
+                // Factures via clients individuels rattachés
+                $linkedInvoices = $company->clientProfiles
                     ? $company->clientProfiles->flatMap(function ($cp) {
                         return $cp->invoices ?? collect();
                     })
                     : collect();
 
-                // On ne garde que les vraies factures (pas les devis)
-                $invoices = $invoices->filter(function ($inv) {
-                    return ($inv->type ?? 'invoice') === 'invoice';
-                })->sortByDesc('invoice_date');
+                // Factures directes facturées à l'entreprise (Option A) — passé par le controller
+                $directInvoices = $directInvoices ?? collect();
+
+                // Merge + ne garder que les factures (pas les devis)
+                $invoices = $linkedInvoices
+                    ->merge($directInvoices)
+                    ->filter(function ($inv) {
+                        return ($inv->type ?? 'invoice') === 'invoice';
+                    })
+                    // tri stable: dernier créé en premier
+                    ->sortByDesc('id');
             @endphp
 
             <section class="bg-white p-6 rounded-2xl shadow mt-6">
@@ -248,7 +255,7 @@
 
                 @if($invoices->isEmpty())
                     <p class="text-muted text-sm">
-                        Aucune facture n’est encore associée aux clients de cette entreprise.
+                        Aucune facture n’est encore associée à cette entreprise.
                     </p>
                 @else
                     <div class="table-responsive mx-auto">
@@ -265,18 +272,20 @@
                             </thead>
                             <tbody>
                                 @foreach($invoices as $invoice)
+                                    @php
+                                        $benef = '—';
+                                        if (!empty($invoice->corporate_client_id)) {
+                                            // facture directe entreprise -> on affiche l'entreprise
+                                            $benef = $company->trade_name ?: $company->name;
+                                        } elseif ($invoice->clientProfile) {
+                                            $benef = trim(($invoice->clientProfile->first_name ?? '').' '.($invoice->clientProfile->last_name ?? '')) ?: '—';
+                                        }
+                                    @endphp
                                     <tr>
                                         <td>#{{ $invoice->invoice_number }}</td>
+                                        <td>{{ $benef }}</td>
                                         <td>
-                                            @if($invoice->clientProfile)
-                                                {{ $invoice->clientProfile->first_name }}
-                                                {{ $invoice->clientProfile->last_name }}
-                                            @else
-                                                —
-                                            @endif
-                                        </td>
-                                        <td>
-                                            {{ optional($invoice->invoice_date)->format('d/m/Y') ?? '—' }}
+                                            {{ $invoice->invoice_date ? \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') : '—' }}
                                         </td>
                                         <td>
                                             {{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €

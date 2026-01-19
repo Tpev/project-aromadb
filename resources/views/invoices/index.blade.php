@@ -170,7 +170,21 @@
                                         {{ $invoice->invoice_number }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                                        @php
+                                            $corp = null;
+                                            if (!empty($invoice->corporate_client_id)) {
+                                                $corp = $invoice->corporateClient ?? null;
+                                                if (!$corp) {
+                                                    $corp = \App\Models\CorporateClient::find($invoice->corporate_client_id);
+                                                }
+                                            }
+                                            $client = $invoice->clientProfile ?? null;
+                                        @endphp
+                                        @if($invoice->corporate_client_id && $corp)
+                                            {{ $corp->trade_name ?: $corp->name }}
+                                        @else
+                                            {{ $client?->first_name }} {{ $client?->last_name }}
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}
@@ -333,7 +347,21 @@
 
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    {{ $quote->clientProfile->first_name }} {{ $quote->clientProfile->last_name }}
+                    @php
+                                            $corp = null;
+                                            if (!empty($quote->corporate_client_id)) {
+                                                $corp = $quote->corporateClient ?? null;
+                                                if (!$corp) {
+                                                    $corp = \App\Models\CorporateClient::find($quote->corporate_client_id);
+                                                }
+                                            }
+                                            $client = $quote->clientProfile ?? null;
+                                        @endphp
+                                        @if($quote->corporate_client_id && $corp)
+                                            {{ $corp->trade_name ?: $corp->name }}
+                                        @else
+                                            {{ $client?->first_name }} {{ $client?->last_name }}
+                                        @endif
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     {{ \Carbon\Carbon::parse($quote->invoice_date)->format('d/m/Y') }}

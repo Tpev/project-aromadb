@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\ClientProfile;
+use App\Models\CorporateClient;
 use App\Models\Product;
 use App\Models\InventoryItem;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use PDF;
 use Illuminate\Support\Facades\DB; // Import DB facade
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 use App\Mail\InvoiceMail;
 use Stripe\Stripe;
 use Stripe\PaymentLink;
@@ -46,13 +49,13 @@ public function index(Request $request)
     $invoices = Invoice::where('user_id', Auth::id())
         ->where('type', 'invoice')
         ->with('clientProfile')
-        ->orderByDesc('invoice_date')
+        ->orderByDesc('id')
         ->get();
 
     $quotes = Invoice::where('user_id', Auth::id())
         ->where('type', 'quote')
         ->with('clientProfile')
-        ->orderByDesc('invoice_date')
+        ->orderByDesc('id')
         ->get();
 
     // Some useful aggregates for mobile UI (also harmless for web)
@@ -98,21 +101,38 @@ public function index(Request $request)
 public function create(Request $request)
 {
     $clients        = ClientProfile::where('user_id', auth()->id())->get();
+    $corporateClients = CorporateClient::where('user_id', auth()->id())->get();
     $products       = Product::where('user_id', auth()->id())->get();
     $inventoryItems = InventoryItem::where('user_id', auth()->id())->get();
 
     // ✅ Packs sold by this therapist
     $packProducts = PackProduct::where('user_id', auth()->id())->get();
 
-    $selectedClient  = $request->input('client_id') ? ClientProfile::find($request->input('client_id')) : null;
+    $selectedClient = null;
+    $selectedCorporateClient = null;
+
+    // Support both legacy ?client_id=... and current ?client_profile_id=...
+    $selectedClientId    = $request->input('client_profile_id') ?? $request->input('client_id');
+    $selectedCorporateId = $request->input('corporate_client_id');
+
+    if ($selectedClientId) {
+        $selectedClient = ClientProfile::where('user_id', auth()->id())->find($selectedClientId);
+    }
+
+    if ($selectedCorporateId) {
+        $selectedCorporateClient = CorporateClient::where('user_id', auth()->id())->find($selectedCorporateId);
+    }
+
     $selectedProduct = $request->input('product_id') ? Product::find($request->input('product_id')) : null;
 
     return view('invoices.create', compact(
         'clients',
+        'corporateClients',
         'products',
         'inventoryItems',
         'packProducts',
         'selectedClient',
+        'selectedCorporateClient',
         'selectedProduct'
     ));
 }
@@ -124,28 +144,52 @@ public function create(Request $request)
  */
 public function store(Request $request)
 {
-    $validatedData = $request->validate([
-        'client_profile_id' => 'required|exists:client_profiles,id',
-        'invoice_date'      => 'required|date',
-        'due_date'          => 'nullable|date|after_or_equal:invoice_date',
-        'notes'             => 'nullable|string',
+    $validator = Validator::make($request->all(), [
+        // Billing target (exactly one)
+        'client_profile_id'    => ['nullable', Rule::exists('client_profiles', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'corporate_client_id'  => ['nullable', Rule::exists('corporate_clients', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+
+        'invoice_date'      => ['required', 'date'],
+        'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
+        'notes'             => ['nullable', 'string'],
 
         // Discounts (global)
-        'global_discount_type'  => 'nullable|in:percent,amount',
-        'global_discount_value' => 'nullable|numeric|min:0',
+        'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
+        'global_discount_value' => ['nullable', 'numeric', 'min:0'],
 
         // Items
-        'items'                     => 'required|array|min:1',
-        'items.*.product_id'         => 'nullable|exists:products,id',
-        'items.*.inventory_item_id'  => 'nullable|exists:inventory_items,id',
-        'items.*.quantity'           => 'required|numeric|min:0.01',
-        'items.*.unit_price'         => 'required|numeric|min:0', // only for custom lines
-        'items.*.description'        => 'nullable|string',
+        'items'                     => ['required', 'array', 'min:1'],
+        'items.*.product_id'         => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.inventory_item_id'  => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.description'        => ['nullable', 'string', 'max:255'],
+        'items.*.quantity'           => ['required', 'numeric', 'min:1'],
+        'items.*.unit_price'         => ['required', 'numeric', 'min:0'],
+        'items.*.tax_rate'           => ['required', 'numeric', 'min:0'],
+        'items.*.unit_type'          => ['nullable', Rule::in(['unit', 'ml'])],
+        'items.*.unit_price_ht'      => ['nullable', 'numeric', 'min:0'],
+
+        // Packs
+        'items.*.pack_product_id'    => ['nullable', Rule::exists('pack_products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
 
         // Discounts (per line)
-        'items.*.line_discount_type'  => 'nullable|in:percent,amount',
-        'items.*.line_discount_value' => 'nullable|numeric|min:0',
+        'items.*.line_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
+        'items.*.line_discount_value' => ['nullable', 'numeric', 'min:0'],
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+        $hasClient = (bool) $request->input('client_profile_id');
+        $hasCorp   = (bool) $request->input('corporate_client_id');
+
+        if (!$hasClient && !$hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner un client OU une entreprise.");
+        }
+
+        if ($hasClient && $hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner soit un client, soit une entreprise (pas les deux).");
+        }
+    });
+
+    $validatedData = $validator->validate();
 
     $invoice = DB::transaction(function () use ($validatedData) {
         $lastInvoice = Invoice::where('user_id', Auth::id())
@@ -156,7 +200,7 @@ public function store(Request $request)
         $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
 
         $invoice = Invoice::create([
-            'client_profile_id'      => $validatedData['client_profile_id'],
+            'client_profile_id'      => $validatedData['client_profile_id'] ?? null,
             'user_id'                => Auth::id(),
             'invoice_date'           => $validatedData['invoice_date'],
             'due_date'               => $validatedData['due_date'] ?? null,
@@ -175,6 +219,13 @@ public function store(Request $request)
             'global_discount_value'  => $validatedData['global_discount_value'] ?? null,
             'global_discount_amount_ht' => 0,
         ]);
+
+        // Optional: invoice is billed directly to a corporate client
+        if (!empty($validatedData['corporate_client_id'])) {
+            $invoice->corporate_client_id = $validatedData['corporate_client_id'];
+            $invoice->save();
+        }
+
 
         $this->recomputeInvoiceTotalsWithDiscounts(
             $invoice,
@@ -218,10 +269,11 @@ public function edit(Invoice $invoice)
     $this->authorize('update', $invoice);
 
     $clients        = ClientProfile::where('user_id', Auth::id())->get();
+    $corporateClients = CorporateClient::where('user_id', Auth::id())->get();
     $products       = Product::where('user_id', Auth::id())->get();
     $inventoryItems = InventoryItem::where('user_id', Auth::id())->get();
 
-    return view('invoices.edit', compact('invoice', 'clients', 'products', 'inventoryItems'));
+    return view('invoices.edit', compact('invoice', 'clients', 'corporateClients', 'products', 'inventoryItems'));
 }
 /**
  * Met à jour une facture existante.
@@ -233,33 +285,57 @@ public function update(Request $request, Invoice $invoice)
 {
     $this->authorize('update', $invoice);
 
-    $validatedData = $request->validate([
-        'client_profile_id' => 'required|exists:client_profiles,id',
-        'invoice_date'      => 'required|date',
-        'due_date'          => 'nullable|date|after_or_equal:invoice_date',
-        'notes'             => 'nullable|string',
+    $validator = Validator::make($request->all(), [
+        // Billing target (exactly one)
+        'client_profile_id'    => ['nullable', Rule::exists('client_profiles', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'corporate_client_id'  => ['nullable', Rule::exists('corporate_clients', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+
+        'invoice_date'      => ['required', 'date'],
+        'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
+        'notes'             => ['nullable', 'string'],
 
         // Discounts (global)
-        'global_discount_type'  => 'nullable|in:percent,amount',
-        'global_discount_value' => 'nullable|numeric|min:0',
+        'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
+        'global_discount_value' => ['nullable', 'numeric', 'min:0'],
 
         // Items
-        'items'                     => 'required|array|min:1',
-        'items.*.product_id'         => 'nullable|exists:products,id',
-        'items.*.inventory_item_id'  => 'nullable|exists:inventory_items,id',
-        'items.*.quantity'           => 'required|numeric|min:0.01',
-        'items.*.unit_price'         => 'required|numeric|min:0', // only for custom lines
-        'items.*.description'        => 'nullable|string',
+        'items'                     => ['required', 'array', 'min:1'],
+        'items.*.product_id'         => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.inventory_item_id'  => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.description'        => ['nullable', 'string', 'max:255'],
+        'items.*.quantity'           => ['required', 'numeric', 'min:1'],
+        'items.*.unit_price'         => ['required', 'numeric', 'min:0'],
+        'items.*.tax_rate'           => ['required', 'numeric', 'min:0'],
+        'items.*.unit_type'          => ['nullable', Rule::in(['unit', 'ml'])],
+        'items.*.unit_price_ht'      => ['nullable', 'numeric', 'min:0'],
+
+        // Packs
+        'items.*.pack_product_id'    => ['nullable', Rule::exists('pack_products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
 
         // Discounts (per line)
-        'items.*.line_discount_type'  => 'nullable|in:percent,amount',
-        'items.*.line_discount_value' => 'nullable|numeric|min:0',
+        'items.*.line_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
+        'items.*.line_discount_value' => ['nullable', 'numeric', 'min:0'],
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+        $hasClient = (bool) $request->input('client_profile_id');
+        $hasCorp   = (bool) $request->input('corporate_client_id');
+
+        if (!$hasClient && !$hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner un client OU une entreprise.");
+        }
+
+        if ($hasClient && $hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner soit un client, soit une entreprise (pas les deux).");
+        }
+    });
+
+    $validatedData = $validator->validate();
 
     DB::transaction(function () use ($validatedData, $invoice) {
         // Update basic invoice fields
         $invoice->update([
-            'client_profile_id'        => $validatedData['client_profile_id'],
+            'client_profile_id'        => $validatedData['client_profile_id'] ?? null,
             'invoice_date'             => $validatedData['invoice_date'],
             'due_date'                 => $validatedData['due_date'] ?? null,
             'notes'                    => $validatedData['notes'] ?? null,
@@ -273,6 +349,11 @@ public function update(Request $request, Invoice $invoice)
             'total_tax_amount'         => 0,
             'total_amount_with_tax'    => 0,
         ]);
+
+        // Set / clear corporate billing target
+        $invoice->corporate_client_id = $validatedData['corporate_client_id'] ?? null;
+        $invoice->save();
+
 
         // Remove existing items then rebuild
         $invoice->items()->delete();
@@ -311,10 +392,20 @@ public function clientPdf(Invoice $invoice)
         abort(403, 'Vous n\'êtes pas autorisé à accéder à cette facture.');
     }
 
-    $invoice->load([
-  'user','clientProfile',
-  'items.product','items.inventoryItem',
-]);
+    // Eager load everything we need (do NOT hard-depend on corporateClient relationship)
+    $relations = [
+        'user',
+        'clientProfile',
+        'items.product',
+        'items.inventoryItem',
+    ];
+
+    // Only eager-load corporateClient if the relationship exists on the model
+    if (method_exists($invoice, 'corporateClient')) {
+        $relations[] = 'corporateClient';
+    }
+
+    $invoice->load($relations);
 
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
@@ -326,13 +417,20 @@ public function generatePDF(Invoice $invoice)
 {
     $this->authorize('view', $invoice);
 
-    // eager load everything we need
-    $invoice->load([
+    // Eager load everything we need (do NOT hard-depend on corporateClient relationship)
+    $relations = [
         'user',
         'clientProfile',
         'items.product',
         'items.inventoryItem',
-    ]);
+    ];
+
+    // Only eager-load corporateClient if the relationship exists on the model
+    if (method_exists($invoice, 'corporateClient')) {
+        $relations[] = 'corporateClient';
+    }
+
+    $invoice->load($relations);
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
@@ -677,31 +775,52 @@ protected function syncProductWithStripe(StripeClient $stripe, Product $product,
 public function createQuote(Request $request)
 {
     $clients        = ClientProfile::where('user_id', auth()->id())->get();
+    $corporateClients = CorporateClient::where('user_id', auth()->id())->get();
     $products       = Product::where('user_id', auth()->id())->get();
     $inventoryItems = InventoryItem::where('user_id', auth()->id())->get();
 
-    return view('invoices.create-quote', compact('clients','products','inventoryItems'));
+    return view('invoices.create-quote', compact('clients','corporateClients','products','inventoryItems'));
 }
 
 public function storeQuote(Request $request)
 {
-    $validated = $request->validate([
-        'client_profile_id'            => 'required|exists:client_profiles,id',
-        'quote_date'                   => 'required|date',
-        'valid_until'                  => 'nullable|date|after_or_equal:quote_date',
-        'items'                        => 'required|array|min:1',
-        'items.*.type'                 => 'required|in:product,inventory,custom',
-        'items.*.product_id'           => 'nullable|exists:products,id',
-        'items.*.inventory_item_id'    => 'nullable|exists:inventory_items,id',
-        'items.*.quantity'             => 'required|numeric|min:0.01',
-        'items.*.unit_price'           => 'nullable|numeric|min:0', // used for custom
-        'items.*.description'          => 'nullable|string',
-        'items.*.line_discount_type'   => 'nullable|in:percent,amount',
-        'items.*.line_discount_value'  => 'nullable|numeric|min:0',
-        'global_discount_type'         => 'nullable|in:percent,amount',
-        'global_discount_value'        => 'nullable|numeric|min:0',
-        'notes'                        => 'nullable|string',
+    $validator = Validator::make($request->all(), [
+        // Billing target (exactly one)
+        'client_profile_id'    => ['nullable', Rule::exists('client_profiles', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'corporate_client_id'  => ['nullable', Rule::exists('corporate_clients', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+
+        'quote_date'                   => ['required', 'date'],
+        'valid_until'                  => ['nullable', 'date', 'after_or_equal:quote_date'],
+
+        'items'                        => ['required', 'array', 'min:1'],
+        'items.*.type'                 => ['required', Rule::in(['product','inventory','custom'])],
+        'items.*.product_id'           => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.inventory_item_id'    => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.quantity'             => ['required', 'numeric', 'min:0.01'],
+        'items.*.unit_price'           => ['nullable', 'numeric', 'min:0'], // used for custom
+        'items.*.description'          => ['nullable', 'string'],
+        'items.*.line_discount_type'   => ['nullable', Rule::in(['percent','amount'])],
+        'items.*.line_discount_value'  => ['nullable', 'numeric', 'min:0'],
+
+        'global_discount_type'         => ['nullable', Rule::in(['percent','amount'])],
+        'global_discount_value'        => ['nullable', 'numeric', 'min:0'],
+        'notes'                        => ['nullable', 'string'],
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+        $hasClient = (bool) $request->input('client_profile_id');
+        $hasCorp   = (bool) $request->input('corporate_client_id');
+
+        if (!$hasClient && !$hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner un client OU une entreprise.");
+        }
+
+        if ($hasClient && $hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner soit un client, soit une entreprise (pas les deux).");
+        }
+    });
+
+    $validated = $validator->validate();
 
     $quote = DB::transaction(function () use ($validated) {
         $last = Invoice::where('type', 'quote')
@@ -713,7 +832,7 @@ public function storeQuote(Request $request)
 
         /** @var \App\Models\Invoice $quote */
         $quote = Invoice::create([
-            'client_profile_id'        => $validated['client_profile_id'],
+            'client_profile_id'        => $validated['client_profile_id'] ?? null,
             'user_id'                  => auth()->id(),
             // Keep your existing storage mapping
             'invoice_date'             => $validated['quote_date'],
@@ -729,6 +848,13 @@ public function storeQuote(Request $request)
             'global_discount_value'    => $validated['global_discount_value'] ?? null,
             'global_discount_amount_ht'=> 0,
         ]);
+
+        // Optional: quote is billed directly to a corporate client
+        if (!empty($validated['corporate_client_id'])) {
+            $quote->corporate_client_id = $validated['corporate_client_id'];
+            $quote->save();
+        }
+
 
         // Recompute + persist items + totals (line discounts + global discount allocation)
         $this->recomputeInvoiceTotalsWithDiscounts(
@@ -750,37 +876,58 @@ public function editQuote(Invoice $quote)
     $this->authorize('update', $quote);
 
     $clients        = ClientProfile::where('user_id', Auth::id())->get();
+    $corporateClients = CorporateClient::where('user_id', Auth::id())->get();
     $products       = Product::where('user_id', Auth::id())->get();
     $inventoryItems = InventoryItem::where('user_id', Auth::id())->get();
 
-    return view('invoices.edit-quote', compact('quote', 'clients', 'products', 'inventoryItems'));
+    return view('invoices.edit-quote', compact('quote', 'clients', 'corporateClients', 'products', 'inventoryItems'));
 }
 public function updateQuote(Request $request, Invoice $quote)
 {
     $this->authorize('update', $quote);
 
-    $validated = $request->validate([
-        'client_profile_id'            => 'required|exists:client_profiles,id',
-        'quote_date'                   => 'required|date',
-        'valid_until'                  => 'nullable|date|after_or_equal:quote_date',
-        'items'                        => 'required|array|min:1',
-        'items.*.type'                 => 'required|in:product,inventory,custom',
-        'items.*.product_id'           => 'nullable|exists:products,id',
-        'items.*.inventory_item_id'    => 'nullable|exists:inventory_items,id',
-        'items.*.quantity'             => 'required|numeric|min:0.01',
-        'items.*.unit_price'           => 'nullable|numeric|min:0',
-        'items.*.description'          => 'nullable|string',
-        'items.*.line_discount_type'   => 'nullable|in:percent,amount',
-        'items.*.line_discount_value'  => 'nullable|numeric|min:0',
-        'global_discount_type'         => 'nullable|in:percent,amount',
-        'global_discount_value'        => 'nullable|numeric|min:0',
-        'notes'                        => 'nullable|string',
+    $validator = Validator::make($request->all(), [
+        // Billing target (exactly one)
+        'client_profile_id'    => ['nullable', Rule::exists('client_profiles', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'corporate_client_id'  => ['nullable', Rule::exists('corporate_clients', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+
+        'quote_date'                   => ['required', 'date'],
+        'valid_until'                  => ['nullable', 'date', 'after_or_equal:quote_date'],
+
+        'items'                        => ['required', 'array', 'min:1'],
+        'items.*.type'                 => ['required', Rule::in(['product','inventory','custom'])],
+        'items.*.product_id'           => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.inventory_item_id'    => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.quantity'             => ['required', 'numeric', 'min:0.01'],
+        'items.*.unit_price'           => ['nullable', 'numeric', 'min:0'], // used for custom
+        'items.*.description'          => ['nullable', 'string'],
+        'items.*.line_discount_type'   => ['nullable', Rule::in(['percent','amount'])],
+        'items.*.line_discount_value'  => ['nullable', 'numeric', 'min:0'],
+
+        'global_discount_type'         => ['nullable', Rule::in(['percent','amount'])],
+        'global_discount_value'        => ['nullable', 'numeric', 'min:0'],
+        'notes'                        => ['nullable', 'string'],
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+        $hasClient = (bool) $request->input('client_profile_id');
+        $hasCorp   = (bool) $request->input('corporate_client_id');
+
+        if (!$hasClient && !$hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner un client OU une entreprise.");
+        }
+
+        if ($hasClient && $hasCorp) {
+            $validator->errors()->add('client_profile_id', "Veuillez sélectionner soit un client, soit une entreprise (pas les deux).");
+        }
+    });
+
+    $validated = $validator->validate();
 
     DB::transaction(function () use ($validated, $quote) {
         // Update header fields
         $quote->update([
-            'client_profile_id'        => $validated['client_profile_id'],
+            'client_profile_id'        => $validated['client_profile_id'] ?? null,
             'invoice_date'             => $validated['quote_date'],
             'due_date'                 => $validated['valid_until'] ?? null,
             'notes'                    => $validated['notes'] ?? null,
@@ -788,6 +935,11 @@ public function updateQuote(Request $request, Invoice $quote)
             'global_discount_value'    => $validated['global_discount_value'] ?? null,
             'global_discount_amount_ht'=> 0,
         ]);
+
+    // Set / clear corporate billing target
+    $quote->corporate_client_id = $validated['corporate_client_id'] ?? null;
+    $quote->save();
+
 
         // Replace items then recompute totals
         $quote->items()->delete();

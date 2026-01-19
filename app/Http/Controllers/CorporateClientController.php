@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CorporateClient;
 use App\Models\ClientProfile;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -65,10 +66,18 @@ class CorporateClientController extends Controller
     public function show(CorporateClient $corporateClient)
     {
         $company = $this->ownedCompaniesQuery()
-            ->with('clientProfiles')
+            // also load invoices for linked individuals (so the view doesn't trigger N+1)
+            ->with(['clientProfiles', 'clientProfiles.invoices'])
             ->findOrFail($corporateClient->id);
 
-        return view('corporate_clients.show', compact('company'));
+        // Invoices/quotes billed directly to the corporate entity (Option A)
+        $directInvoices = Invoice::query()
+            ->where('user_id', auth()->id())
+            ->where('corporate_client_id', $company->id)
+            ->orderByDesc('id')
+            ->get();
+
+        return view('corporate_clients.show', compact('company', 'directInvoices'));
     }
 
     public function edit(CorporateClient $corporateClient)

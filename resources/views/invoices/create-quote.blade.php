@@ -6,8 +6,16 @@
     </x-slot>
 
     @php
-        // Support param ?client_profile_id=...
+        // Support param ?client_profile_id=... or ?corporate_client_id=... or ?company_id=...
         $selectedClientId = old('client_profile_id', request('client_profile_id'));
+        $selectedCorporateId = old('corporate_client_id', request('corporate_client_id', request('company_id')));
+
+        $billTo = old('bill_to', $selectedCorporateId ? 'corporate' : 'person');
+
+        // Fallback if controller didn't pass corporate clients (avoid breaking existing flows)
+        $corporateClients = $corporateClients ?? \App\Models\CorporateClient::where('user_id', auth()->id())
+            ->orderByRaw('COALESCE(trade_name, name) ASC')
+            ->get();
     @endphp
 
     <div class="am-wrap">
@@ -32,9 +40,17 @@
 
                 {{-- Top form fields --}}
                 <div class="am-grid">
-                    <div class="am-field am-col-6">
+                    <div class="am-field am-col-3">
+                        <label class="am-label" for="bill_to">{{ __('Facturer à') }}</label>
+                        <select id="bill_to" name="bill_to" class="am-input">
+                            <option value="person" {{ $billTo === 'person' ? 'selected' : '' }}>{{ __('Particulier') }}</option>
+                            <option value="corporate" {{ $billTo === 'corporate' ? 'selected' : '' }}>{{ __('Entreprise') }}</option>
+                        </select>
+                    </div>
+
+                    <div class="am-field am-col-6" id="person_client_field">
                         <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
-                        <select id="client_profile_id" name="client_profile_id" class="am-input" required>
+                        <select id="client_profile_id" name="client_profile_id" class="am-input">
                             <option value="">{{ __('Sélectionnez un client') }}</option>
                             @foreach($clients as $c)
                                 <option value="{{ $c->id }}" {{ (string)$selectedClientId === (string)$c->id ? 'selected' : '' }}>
@@ -43,6 +59,19 @@
                             @endforeach
                         </select>
                         @error('client_profile_id')<p class="am-error">{{ $message }}</p>@enderror
+                    </div>
+
+                    <div class="am-field am-col-6" id="corporate_client_field" style="display:none;">
+                        <label class="am-label" for="corporate_client_id">{{ __('Entreprise') }}</label>
+                        <select id="corporate_client_id" name="corporate_client_id" class="am-input">
+                            <option value="">{{ __('Sélectionnez une entreprise') }}</option>
+                            @foreach($corporateClients as $cc)
+                                <option value="{{ $cc->id }}" {{ (string)$selectedCorporateId === (string)$cc->id ? 'selected' : '' }}>
+                                    {{ $cc->trade_name ?: $cc->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('corporate_client_id')<p class="am-error">{{ $message }}</p>@enderror
                     </div>
 
                     <div class="am-field am-col-3">
@@ -973,4 +1002,39 @@
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button { opacity: .6; }
     </style>
+
+    <script>
+        (function () {
+            function syncBillTo() {
+                var billTo = document.getElementById('bill_to');
+                var personField = document.getElementById('person_client_field');
+                var corpField = document.getElementById('corporate_client_field');
+                var clientSel = document.getElementById('client_profile_id');
+                var corpSel = document.getElementById('corporate_client_id');
+
+                if (!billTo || !personField || !corpField) return;
+
+                var isCorp = billTo.value === 'corporate';
+
+                personField.style.display = isCorp ? 'none' : '';
+                corpField.style.display = isCorp ? '' : 'none';
+
+                if (clientSel) {
+                    clientSel.required = !isCorp;
+                    if (isCorp) clientSel.value = '';
+                }
+                if (corpSel) {
+                    corpSel.required = isCorp;
+                    if (!isCorp) corpSel.value = '';
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var billTo = document.getElementById('bill_to');
+                if (billTo) billTo.addEventListener('change', syncBillTo);
+                syncBillTo();
+            });
+        })();
+    </script>
+
 </x-app-layout>
