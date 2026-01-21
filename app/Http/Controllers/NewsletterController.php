@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\NewsletterOptOut;
+use App\Models\NewsletterMonthlyUsage;
 
 class NewsletterController extends Controller
 {
@@ -205,9 +206,16 @@ class NewsletterController extends Controller
             'client'         => $client,
             'unsubscribeUrl' => null,
         ], function ($message) use ($newsletter, $to) {
-            $message->to($to)
-                ->from($newsletter->from_email, $newsletter->from_name)
-                ->subject('[TEST] ' . $newsletter->subject);
+$user = $newsletter->user;
+
+$message->to($to)
+    ->from($newsletter->from_email, $newsletter->from_name)
+    ->replyTo(
+        $user?->email ?? config('mail.from.address'),
+        $user?->name  ?? config('mail.from.name')
+    )
+    ->subject('[TEST] ' . $newsletter->subject);
+
         });
 
         return back()->with('success', 'Email de test envoyé à ' . $to);
@@ -229,17 +237,33 @@ public function sendNow(Newsletter $newsletter)
         ->map(fn ($e) => strtolower($e))
         ->toArray();
 
-    // Tous les clients avec email
-    $clients = ClientProfile::where('user_id', $user->id)
-        ->whereNotNull('email')
-        ->get()
+    // Base query: clients with email, excluding opt-outs
+    $baseClientQuery = ClientProfile::query()
+        ->where('user_id', $user->id)
+        ->whereNotNull('email');
+
+    // If an audience is selected, restrict to that audience clients
+    if ($newsletter->audience_id) {
+        $audience = Audience::where('user_id', $user->id)
+            ->where('id', $newsletter->audience_id)
+            ->firstOrFail();
+
+        $clientIds = $audience->clients()->pluck('client_profiles.id');
+
+        $baseClientQuery->whereIn('id', $clientIds);
+    }
+
+    $clients = $baseClientQuery->get()
         ->filter(function ($client) use ($optedOutEmails) {
             return !in_array(strtolower($client->email), $optedOutEmails, true);
         });
 
     if ($clients->isEmpty()) {
-        return back()->with('error', 'Aucun client avec email disponible pour l’envoi (ou tous sont désabonnés).');
+        return back()->with('error', 'Aucun client avec email disponible pour l’envoi (ou tous sont désabonnés / hors audience).');
     }
+
+    // ---- QUOTA CHECK (added) ----
+    $this->assertNewsletterQuota($user, $clients->count());
 
     // On nettoie les destinataires pré-existants pour cette newsletter
     $newsletter->recipients()->delete();
@@ -256,6 +280,9 @@ public function sendNow(Newsletter $newsletter)
         $this->sendNewsletterEmail($newsletter, $client, $recipient);
     }
 
+    // increment usage AFTER successful loop
+    $this->incrementNewsletterUsage($user, $clients->count());
+
     $newsletter->status            = 'sent';
     $newsletter->sent_at           = now();
     $newsletter->recipients_count  = $newsletter->recipients()->count();
@@ -265,6 +292,7 @@ public function sendNow(Newsletter $newsletter)
         ->route('newsletters.index')
         ->with('success', 'Newsletter envoyée à ' . $newsletter->recipients_count . ' destinataires.');
 }
+
 
 
 protected function sendNewsletterEmail(Newsletter $newsletter, $client, NewsletterRecipient $recipient): void
@@ -278,8 +306,14 @@ protected function sendNewsletterEmail(Newsletter $newsletter, $client, Newslett
         'client'         => $client,
         'unsubscribeUrl' => $unsubscribeUrl,
     ], function ($message) use ($newsletter, $recipient) {
+        $user = $newsletter->user; // relies on Newsletter->user() relation
+
         $message->to($recipient->email)
             ->from($newsletter->from_email, $newsletter->from_name)
+            ->replyTo(
+                $user?->email ?? config('mail.from.address'),
+                $user?->name  ?? config('mail.from.name')
+            )
             ->subject($newsletter->subject);
     });
 
@@ -288,6 +322,50 @@ protected function sendNewsletterEmail(Newsletter $newsletter, $client, Newslett
     $recipient->save();
 }
 
+
+protected function newsletterMonthKey(): string
+{
+    return now()->format('Y-m'); // YYYY-MM
+}
+
+protected function newsletterMonthlyQuotaFor($user): int
+{
+    // Option A: config-based (fast)
+    return (int) config('newsletters.monthly_quota', 2000);
+
+    // Option B (recommended later): per-license / per-user field
+    // return (int) ($user->newsletter_monthly_quota ?? 2000);
+}
+
+protected function assertNewsletterQuota($user, int $toSend): void
+{
+    $month = $this->newsletterMonthKey();
+    $quota = $this->newsletterMonthlyQuotaFor($user);
+
+    $usage = NewsletterMonthlyUsage::firstOrCreate(
+        ['user_id' => $user->id, 'month' => $month],
+        ['sent_count' => 0]
+    );
+
+    if (($usage->sent_count + $toSend) > $quota) {
+        abort(
+            429,
+            "Quota newsletters dépassé pour {$month}. Envoyés: {$usage->sent_count}/{$quota}. Tentative: +{$toSend}."
+        );
+    }
+}
+
+protected function incrementNewsletterUsage($user, int $sent): void
+{
+    $month = $this->newsletterMonthKey();
+
+    $usage = NewsletterMonthlyUsage::firstOrCreate(
+        ['user_id' => $user->id, 'month' => $month],
+        ['sent_count' => 0]
+    );
+
+    $usage->increment('sent_count', $sent);
+}
 
     protected function authorizeNewsletter(Newsletter $newsletter): void
     {

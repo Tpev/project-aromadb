@@ -59,20 +59,28 @@
                 </div>
             </form>
 
-            <div class="border-t border-dashed border-gray-200 pt-4 flex items-center justify-between flex-col sm:flex-row gap-3">
-                <div class="text-xs text-gray-500">
-                    Cette action enverra la newsletter à tous vos clients disposant d’un email (hors désabonnés).
-                </div>
-                <form action="{{ route('newsletters.send-now', $newsletter) }}" method="POST"
-                      onsubmit="return confirm('Envoyer cette newsletter à tous vos clients ?');">
-                    @csrf
-                    <button type="submit"
-                            class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                            style="background-color:#854f38;">
-                        Envoyer maintenant
-                    </button>
-                </form>
-            </div>
+@php
+    $audienceLabel = $newsletter->audience
+        ? 'l’audience “' . e($newsletter->audience->name) . '”'
+        : 'tous vos clients';
+@endphp
+
+<div class="border-t border-dashed border-gray-200 pt-4 flex items-center justify-between flex-col sm:flex-row gap-3">
+    <div class="text-xs text-gray-500">
+        Cette action enverra la newsletter à {{ $audienceLabel }} disposant d’un email (hors désabonnés).
+    </div>
+
+    <form action="{{ route('newsletters.send-now', $newsletter) }}" method="POST"
+          onsubmit="return confirm('Envoyer cette newsletter à {{ $audienceLabel }} ?');">
+        @csrf
+        <button type="submit"
+                class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
+                style="background-color:#854f38;">
+            Envoyer maintenant
+        </button>
+    </form>
+</div>
+
         </div>
     </div>
 </x-app-layout>

@@ -88,6 +88,23 @@
                     @enderror
                 </div>
             </div>
+			<div class="mt-4">
+				<label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
+				<select name="audience_id" class="w-full rounded-lg border-gray-300">
+					<option value="">Tous mes clients (par défaut)</option>
+					@foreach($audiences as $audience)
+						<option value="{{ $audience->id }}"
+							@selected(old('audience_id', $newsletter->audience_id ?? null) == $audience->id)
+						>
+							{{ $audience->name }}
+						</option>
+					@endforeach
+				</select>
+<p class="text-xs text-gray-500 mt-1">
+    Choisissez l’audience ciblée pour l’envoi. Vous pouvez la modifier tant que la newsletter n’est pas envoyée.
+</p>
+
+			</div>
 
             {{-- Email d’envoi caché, forcé à contact@aromamade.com --}}
             <input type="hidden"

@@ -1,0 +1,15 @@
+<?php
+
+// app/Models/NewsletterMonthlyUsage.php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class NewsletterMonthlyUsage extends Model
+{
+    protected $fillable = [
+        'user_id',
+        'month',
+        'sent_count',
+    ];
+}

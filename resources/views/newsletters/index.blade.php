@@ -19,18 +19,70 @@
             </div>
         @endif
 
-        <div class="flex items-center justify-between mb-6">
+        @php
+            $quotaLimit = (int) config('newsletters.monthly_quota', 2000);
+            $monthKey   = now()->format('Y-m');
+
+            $usageRow = \App\Models\NewsletterMonthlyUsage::where('user_id', auth()->id())
+                ->where('month', $monthKey)
+                ->first();
+
+            $quotaUsed = (int) ($usageRow->sent_count ?? 0);
+            $pctRaw    = $quotaLimit > 0 ? ($quotaUsed / $quotaLimit) * 100 : 0;
+            $pct       = (int) round(min(100, max(0, $pctRaw)));
+
+            $barClass = $pct >= 100 ? 'bg-red-500' : ($pct >= 80 ? 'bg-orange-500' : 'bg-green-600');
+        @endphp
+
+        {{-- Header + actions --}}
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Vos newsletters</h1>
                 <p class="text-sm text-gray-500 mt-1">
                     Créez et envoyez des emails professionnels à vos clients.
                 </p>
+
+                {{-- Quota progress --}}
+                <div class="mt-4 p-4 rounded-xl border border-gray-200 bg-white shadow-sm max-w-xl">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="text-sm font-semibold text-gray-800">
+                            Quota d’envoi ({{ $monthKey }})
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            {{ number_format($quotaUsed) }} / {{ number_format($quotaLimit) }} emails
+                        </div>
+                    </div>
+
+                    <div class="mt-2 w-full h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div class="h-full {{ $barClass }}" style="width: {{ $pct }}%;"></div>
+                    </div>
+
+                    <div class="mt-2 text-xs text-gray-500">
+                        {{ $pct }}% utilisé
+                        @if($quotaLimit > 0)
+                            · Reste {{ number_format(max(0, $quotaLimit - $quotaUsed)) }} emails
+                        @endif
+                    </div>
+                </div>
             </div>
-            <a href="{{ route('newsletters.create') }}"
-               class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-               style="background-color:#647a0b;">
-                <span class="mr-2">+</span> Nouvelle newsletter
-            </a>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('audiences.index') }}"
+                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50">
+                    Gérer les audiences
+                </a>
+
+                <a href="{{ route('audiences.create') }}"
+                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50">
+                    Créer une audience
+                </a>
+
+                <a href="{{ route('newsletters.create') }}"
+                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
+                   style="background-color:#647a0b;">
+                    <span class="mr-2">+</span> Nouvelle newsletter
+                </a>
+            </div>
         </div>
 
         @if($newsletters->isEmpty())
