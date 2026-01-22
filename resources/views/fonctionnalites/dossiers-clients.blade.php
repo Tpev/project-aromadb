@@ -289,7 +289,102 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
             </div>
         </div>
     </section>
+<section style="padding:64px 0;background:#ffffff;">
+    <div style="max-width:1100px;margin:0 auto;padding:0 24px;">
+        <div style="
+            background:#ffffff;
+            border:1px solid #e5e7eb;
+            border-radius:16px;
+            padding:32px;
+        ">
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                flex-wrap:wrap;
+                gap:24px;
+            ">
+                <div style="max-width:620px;">
+                    <h3 style="
+                        font-size:1.5rem;
+                        font-weight:700;
+                        color:#647a0b;
+                        margin-bottom:8px;
+                    ">
+                        Vous êtes praticien ? Découvrez la page dédiée à votre métier
+                    </h3>
 
+                    <p style="
+                        color:#4b5563;
+                        line-height:1.7;
+                        font-size:1.05rem;
+                    ">
+                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
+                    </p>
+                </div>
+
+                <div style="
+                    display:flex;
+                    flex-wrap:wrap;
+                    gap:12px;
+                ">
+                    <a href="{{ url('/metiers/naturopathe') }}"
+                       title="Logiciel pour naturopathe"
+                       style="
+                           display:inline-flex;
+                           align-items:center;
+                           gap:8px;
+                           padding:10px 16px;
+                           border-radius:999px;
+                           background:rgba(100,122,11,.08);
+                           border:1px solid rgba(100,122,11,.2);
+                           color:#647a0b;
+                           font-weight:700;
+                           font-size:.95rem;
+                           text-decoration:none;
+                           transition:all .25s ease;
+                       "
+                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
+                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                    >
+                        🌿 Logiciel naturopathe
+                    </a>
+
+                    <a href="{{ url('/metiers/sophrologue') }}"
+                       title="Logiciel pour sophrologue"
+                       style="
+                           display:inline-flex;
+                           align-items:center;
+                           gap:8px;
+                           padding:10px 16px;
+                           border-radius:999px;
+                           background:rgba(100,122,11,.08);
+                           border:1px solid rgba(100,122,11,.2);
+                           color:#647a0b;
+                           font-weight:700;
+                           font-size:.95rem;
+                           text-decoration:none;
+                           transition:all .25s ease;
+                       "
+                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
+                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                    >
+                        🧘 Logiciel sophrologue
+                    </a>
+                </div>
+            </div>
+
+            <p style="
+                margin-top:20px;
+                font-size:.85rem;
+                color:#6b7280;
+            ">
+               
+            </p>
+        </div>
+    </div>
+</section>
     <!-- CTA -->
     <section class="py-16 bg-green-100">
         <div class="container mx-auto text-center px-4">

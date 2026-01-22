@@ -1155,7 +1155,13 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/license-tiers/pricing', [LicenseTierController::class, 'pricing'])->name('license-tiers.pricing')->middleware('auth');
 
+Route::get('/metiers/naturopathe', function () {
+    return view('metiers.naturopathe');
+})->name('metiers.naturopathe');
 
+Route::get('/metiers/sophrologue', function () {
+    return view('metiers.sophrologue');
+})->name('metiers.sophrologue');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/mobile.php';
