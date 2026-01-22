@@ -613,6 +613,200 @@
             </div>
             <button type="submit">Update Address</button>
         </form>
+{{-- =========================
+     SECTION: Parrainage
+========================= --}}
+@php
+    // --- Who referred THIS therapist? (signup via code)
+    $referrerUser = null;
+    if (!empty($therapist->referred_by_user_id)) {
+        $referrerUser = \App\Models\User::find($therapist->referred_by_user_id);
+    }
+
+    // --- Stats this therapist generated (as referrer)
+    $invitesSent = \App\Models\ReferralInvite::where('referrer_user_id', $therapist->id)->count();
+    $invitesOpened = \App\Models\ReferralInvite::where('referrer_user_id', $therapist->id)->where('status', 'opened')->count();
+    $invitesSignedUp = \App\Models\ReferralInvite::where('referrer_user_id', $therapist->id)->where('status', 'signed_up')->count();
+    $invitesPaid = \App\Models\ReferralInvite::where('referrer_user_id', $therapist->id)->where('status', 'paid')->count();
+    $invitesExpired = \App\Models\ReferralInvite::where('referrer_user_id', $therapist->id)->where('status', 'expired')->count();
+
+    // Users who signed up with this therapist as referrer (via ?ref=CODE or invite attribution)
+    $referredUsersCount = \App\Models\User::where('referred_by_user_id', $therapist->id)->count();
+
+    // Paid conversions tracked on users (if you set referral_converted_at)
+    $referredUsersPaidCount = \App\Models\User::where('referred_by_user_id', $therapist->id)
+        ->whereNotNull('referral_converted_at')
+        ->count();
+
+    // Referral code owned by this therapist
+    $myReferralCode = \App\Models\ReferralCode::where('user_id', $therapist->id)->first();
+
+    // Latest referred users (for quick admin view)
+    $latestReferredUsers = \App\Models\User::where('referred_by_user_id', $therapist->id)
+        ->orderByDesc('id')
+        ->limit(8)
+        ->get(['id','name','email','created_at','license_product','license_status','referral_code_used','referral_attributed_at']);
+
+    // Latest invites sent by this therapist
+    $latestInvites = \App\Models\ReferralInvite::where('referrer_user_id', $therapist->id)
+        ->orderByDesc('id')
+        ->limit(8)
+        ->get();
+@endphp
+
+<h2 class="section-title">Parrainage</h2>
+
+<div class="stat-grid">
+    <div class="stat-box">
+        <h4>Invitations envoyées</h4>
+        <p>{{ $invitesSent }}</p>
+    </div>
+    <div class="stat-box">
+        <h4>Invitations ouvertes</h4>
+        <p>{{ $invitesOpened }}</p>
+    </div>
+    <div class="stat-box">
+        <h4>Inscrits (attribués)</h4>
+        <p>{{ $referredUsersCount }}</p>
+    </div>
+    <div class="stat-box">
+        <h4>Payants (attribués)</h4>
+        <p>{{ $referredUsersPaidCount }}</p>
+    </div>
+</div>
+
+<table class="styled-summary-table">
+    <thead>
+        <tr>
+            <th>Élément</th>
+            <th>Détail</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Recruté via parrainage ?</td>
+            <td class="text-right">
+                @if($therapist->referred_by_user_id)
+                    Oui ✅
+                @else
+                    Non —
+                @endif
+            </td>
+        </tr>
+
+        <tr>
+            <td>Parrain (User ID)</td>
+            <td class="text-right">
+                {{ $therapist->referred_by_user_id ?? '—' }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>Parrain (email)</td>
+            <td class="text-right">
+                {{ $referrerUser?->email ?? '—' }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>Code utilisé à l’inscription</td>
+            <td class="text-right">
+                <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
+                    {{ $therapist->referral_code_used ?? '—' }}
+                </span>
+            </td>
+        </tr>
+
+        <tr>
+            <td>Attribution (date)</td>
+            <td class="text-right">
+                {{ $therapist->referral_attributed_at ? \Carbon\Carbon::parse($therapist->referral_attributed_at)->format('d/m/Y H:i') : '—' }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>Code de parrainage du thérapeute</td>
+            <td class="text-right">
+                @if($myReferralCode)
+                    <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
+                        {{ $myReferralCode->code }}
+                    </span>
+                @else
+                    —
+                @endif
+            </td>
+        </tr>
+
+        <tr>
+            <td>Invitations (détail)</td>
+            <td class="text-right">
+                Ouvertes: {{ $invitesOpened }} • Inscrits: {{ $invitesSignedUp }} • Payants: {{ $invitesPaid }} • Expirées: {{ $invitesExpired }}
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+{{-- Latest referred users --}}
+@if($latestReferredUsers->isNotEmpty())
+    <h2 class="section-title" style="margin-top:30px;">Derniers inscrits attribués</h2>
+    <table class="styled-summary-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Inscription</th>
+                <th>Licence</th>
+                <th>Statut</th>
+                <th>Code utilisé</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($latestReferredUsers as $u)
+                <tr>
+                    <td>#{{ $u->id }} — {{ $u->name }}</td>
+                    <td class="text-right">{{ $u->email }}</td>
+                    <td class="text-right">{{ $u->created_at?->format('d/m/Y') ?? '—' }}</td>
+                    <td class="text-right">{{ $u->license_product ?? '—' }}</td>
+                    <td class="text-right">{{ $u->license_status ?? '—' }}</td>
+                    <td class="text-right">
+                        <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">
+                            {{ $u->referral_code_used ?? '—' }}
+                        </span>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+@endif
+
+{{-- Latest invites --}}
+@if($latestInvites->isNotEmpty())
+    <h2 class="section-title" style="margin-top:30px;">Dernières invitations envoyées</h2>
+    <table class="styled-summary-table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Statut</th>
+                <th>Créée</th>
+                <th>Ouverte</th>
+                <th>Inscription</th>
+                <th>Paiement</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($latestInvites as $inv)
+                <tr>
+                    <td>{{ $inv->email }}</td>
+                    <td class="text-right">{{ $inv->status }}</td>
+                    <td class="text-right">{{ $inv->created_at?->format('d/m/Y') ?? '—' }}</td>
+                    <td class="text-right">{{ $inv->opened_at?->format('d/m/Y') ?? '—' }}</td>
+                    <td class="text-right">{{ $inv->signed_up_at?->format('d/m/Y') ?? '—' }}</td>
+                    <td class="text-right">{{ $inv->paid_at?->format('d/m/Y') ?? '—' }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+@endif
 
         <!-- Onboarding Checklist -->
         <h2 class="section-title">Onboarding Checklist</h2>

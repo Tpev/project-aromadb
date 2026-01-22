@@ -144,6 +144,9 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                 </div>
                 <!-- Hidden field to mark user as therapist -->
                 <input type="hidden" name="is_therapist" value="true">
+				<input type="hidden" name="ref" value="{{ request('ref') }}">
+				<input type="hidden" name="invite" value="{{ request('invite') }}">
+
                 <!-- Navigation: Previous & Submit -->
                 <div class="flex items-center justify-between mt-6">
                     <button type="button" id="prev1" class="bg-gray-300 text-gray-700 py-2 px-4 rounded">

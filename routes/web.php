@@ -70,9 +70,18 @@ use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 use App\Http\Controllers\PackProductController;
 use App\Http\Controllers\PublicPackCheckoutController;
-// routes/web.php
-
 use App\Http\Controllers\GiftVoucherController;
+use App\Http\Controllers\Pro\ReferralController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
+    Route::post('/pro/referrals/invite', [ReferralController::class, 'invite'])->name('pro.referrals.invite');
+    Route::post('/pro/referrals/invite/{invite}/resend', [ReferralController::class, 'resend'])->name('pro.referrals.resend');
+});
+
+// Public tracking + redirect
+Route::get('/pro/referrals/accept/{token}', [ReferralController::class, 'accept'])
+    ->name('pro.referrals.accept');
 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('dashboard-pro')->group(function () {

@@ -21,7 +21,7 @@ use Stripe\Stripe;
 use Stripe\Customer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use App\Services\ReferralService;
 
 class RegisteredUserController extends Controller
 {
@@ -115,6 +115,20 @@ public function storepro(Request $request): RedirectResponse
         // Generate a unique slug based on the company name and the user id.
         $user->slug = User::createUniqueSlug($request->company_name, $user->id);
         $user->save();
+	try {
+    $refCode = $request->input('ref') ?? $request->query('ref');
+    $inviteToken = $request->input('invite') ?? $request->query('invite');
+
+    if ($refCode || $inviteToken) {
+        app(\App\Services\ReferralService::class)->attributeNewUser($user, $refCode, $inviteToken);
+    }
+} catch (\Throwable $e) {
+    Log::warning('[referrals] attribution failed: ' . $e->getMessage(), [
+        'user_id' => $user->id ?? null,
+        'ref' => $request->input('ref') ?? $request->query('ref'),
+        'invite' => $request->input('invite') ?? $request->query('invite'),
+    ]);
+}
 
         // (Stripe block is commented out in your code; leaving as-is)
 
