@@ -243,23 +243,52 @@
         </div>
 
         {{-- Column 3 : Contact --}}
+		@php
+    // Practice locations (cabinet)
+    $practiceLocations = collect($therapist->practiceLocations ?? [])
+        ->filter(fn($l) => !empty($l?->full_address) || !empty($l?->address_line1) || !empty($l?->city))
+        ->sortByDesc(fn($l) => (bool)($l->is_primary ?? false))
+        ->values();
+@endphp
         <aside>
             <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
                 <i class="fas fa-address-book text-[#854f38] mr-3"></i> {{ __('Contact') }}
             </h3>
 
             <ul class="mt-6 space-y-6">
-                @if ($therapist->share_address_publicly)
-                    <li class="flex items-start">
-                        <i class="fas fa-map-marker-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
-                        <div>
-                            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Adresse') }}</h4>
-                            <p class="text-gray-700 mt-2">
-                                {{ $therapist->company_address ?? __('Adresse non disponible.') }}
-                            </p>
+@if ($therapist->share_address_publicly)
+    <li class="flex items-start">
+        <i class="fas fa-map-marker-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
+        <div>
+            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Cabinet') }}</h4>
+
+            @if($practiceLocations->count() > 0)
+                <div class="mt-2 space-y-3">
+                    @foreach($practiceLocations as $loc)
+                        <div class="text-gray-700">
+                            @if(!empty($loc->label))
+                                <div class="font-semibold text-gray-900">{{ $loc->label }}</div>
+                            @endif
+
+                            <div>
+                                {{ $loc->full_address ?? __('Adresse non disponible.') }}
+                            </div>
+
+                            @if(!empty($loc->is_primary))
+                                <div class="mt-1 inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7]">
+                                    {{ __('Cabinet principal') }}
+                                </div>
+                            @endif
                         </div>
-                    </li>
-                @endif
+                    @endforeach
+                </div>
+            @else
+                <p class="text-gray-700 mt-2">{{ __('Adresse non disponible.') }}</p>
+            @endif
+        </div>
+    </li>
+@endif
+
 
                 @if ($therapist->share_phone_publicly)
                     <li class="flex items-start">
@@ -1166,15 +1195,24 @@
         'image'     => $therapist->profile_picture
                         ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
                         : null,
-        'address'   => ($therapist->share_address_publicly && $therapist->company_address)
-                        ? [
-                            '@type'           => 'PostalAddress',
-                            'streetAddress'   => $therapist->company_address,
-                            'addressLocality' => $therapist->city_setByAdmin,
-                            'addressRegion'   => $therapist->state_setByAdmin,
-                            'addressCountry'  => 'FR',
-                          ]
-                        : null,
+'address'   => ($therapist->share_address_publicly && $practiceLocations->count() > 0)
+    ? (
+        $practiceLocations->map(function ($loc) {
+            $street = trim(collect([$loc->address_line1, $loc->address_line2])->filter()->implode(', '));
+
+            $addr = [
+                '@type'           => 'PostalAddress',
+                'streetAddress'   => $street ?: null,
+                'postalCode'      => $loc->postal_code ?: null,
+                'addressLocality' => $loc->city ?: null,
+                'addressCountry'  => $loc->country ?: 'FR',
+            ];
+
+            return array_filter($addr, fn($v) => !is_null($v) && $v !== '');
+        })->values()->all()
+    )
+    : null,
+
         'telephone' => $therapist->share_phone_publicly ? $therapist->company_phone : null,
         'review'    => $reviewItems,
         'aggregateRating' => $averageRating ? [
