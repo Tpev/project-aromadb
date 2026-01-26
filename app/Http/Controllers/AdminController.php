@@ -627,6 +627,9 @@ public function updateFeatured(Request $request, User $therapist)
 
     return back()->with('success', 'Featured settings updated successfully.');
 }
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 public function weeklyUsage()
 {
     // Admin gate (same logic as your other pages)
@@ -634,7 +637,6 @@ public function weeklyUsage()
         return redirect('/')->with('error', 'Unauthorized access');
     }
 
-    // Default last 12 weeks (including current week)
     $weeksBack = (int) request('weeks', 12);
     if ($weeksBack < 4) $weeksBack = 4;
     if ($weeksBack > 104) $weeksBack = 104;
@@ -643,102 +645,114 @@ public function weeklyUsage()
     $end = Carbon::now($tz)->endOfDay();
     $start = Carbon::now($tz)->startOfWeek()->subWeeks($weeksBack - 1)->startOfDay();
 
-    // Helper: ISO yearweek key (MySQL/MariaDB)
-    // YEARWEEK(date, 3) => ISO week (Mon-Sun)
+    // MySQL ISO week key (Mon-Sun)
     $yearWeekExpr = "YEARWEEK(created_at, 3)";
 
-    // IMPORTANT:
-    // - Adjust therapist/user owner columns if needed.
-    //   I’m assuming:
-    //   appointments.therapist_id exists
-    //   invoices.therapist_id exists
-    //
-    // If your schema uses user_id, replace therapist_id -> user_id.
-
-    $appointments = DB::table('appointments')
+    // ---- Appointments per week
+    $appointmentsRows = DB::table('appointments')
         ->whereBetween('created_at', [$start, $end])
         ->selectRaw("$yearWeekExpr as yw")
         ->selectRaw("COUNT(*) as appointments_count")
         ->selectRaw("COUNT(DISTINCT user_id) as appointments_users")
         ->groupBy('yw')
-        ->pluck(DB::raw("JSON_OBJECT('appointments_count', appointments_count, 'appointments_users', appointments_users)"), 'yw');
+        ->get();
 
-    $invoices = DB::table('invoices')
+    $appointments = [];
+    foreach ($appointmentsRows as $r) {
+        $appointments[(int) $r->yw] = [
+            'count' => (int) $r->appointments_count,
+            'users' => (int) $r->appointments_users,
+        ];
+    }
+
+    // ---- Invoices per week (type=invoice)
+    $invoicesRows = DB::table('invoices')
         ->whereBetween('created_at', [$start, $end])
         ->where('type', 'invoice')
         ->selectRaw("$yearWeekExpr as yw")
         ->selectRaw("COUNT(*) as invoices_count")
         ->selectRaw("COUNT(DISTINCT user_id) as invoices_users")
         ->groupBy('yw')
-        ->pluck(DB::raw("JSON_OBJECT('invoices_count', invoices_count, 'invoices_users', invoices_users)"), 'yw');
+        ->get();
 
-    $quotes = DB::table('invoices')
+    $invoices = [];
+    foreach ($invoicesRows as $r) {
+        $invoices[(int) $r->yw] = [
+            'count' => (int) $r->invoices_count,
+            'users' => (int) $r->invoices_users,
+        ];
+    }
+
+    // ---- Quotes per week (type=quote)
+    $quotesRows = DB::table('invoices')
         ->whereBetween('created_at', [$start, $end])
         ->where('type', 'quote')
         ->selectRaw("$yearWeekExpr as yw")
         ->selectRaw("COUNT(*) as quotes_count")
         ->selectRaw("COUNT(DISTINCT user_id) as quotes_users")
         ->groupBy('yw')
-        ->pluck(DB::raw("JSON_OBJECT('quotes_count', quotes_count, 'quotes_users', quotes_users)"), 'yw');
+        ->get();
 
-    // Build a continuous list of weeks (so empty weeks still show)
+    $quotes = [];
+    foreach ($quotesRows as $r) {
+        $quotes[(int) $r->yw] = [
+            'count' => (int) $r->quotes_count,
+            'users' => (int) $r->quotes_users,
+        ];
+    }
+
+    // Build continuous list of weeks (so empty weeks still show)
     $weeks = [];
     $cursor = $start->copy()->startOfWeek();
+
     while ($cursor->lte($end)) {
-        $weekStart = $cursor->copy();
+        $weekStart = $cursor->copy()->startOfWeek();
         $weekEnd = $cursor->copy()->endOfWeek();
 
-        // ISO yearweek key for matching the SQL YEARWEEK(...,3)
-        // We compute it in PHP reliably:
+        // Match MySQL YEARWEEK(...,3) format: YYYYWW (ISO week year + week number)
         $isoYear = (int) $weekStart->isoWeekYear;
         $isoWeek = (int) $weekStart->isoWeek;
         $yw = (int) sprintf('%d%02d', $isoYear, $isoWeek);
 
-        $a = isset($appointments[$yw]) ? json_decode($appointments[$yw], true) : [];
-        $i = isset($invoices[$yw]) ? json_decode($invoices[$yw], true) : [];
-        $q = isset($quotes[$yw]) ? json_decode($quotes[$yw], true) : [];
+        $a = $appointments[$yw] ?? ['count' => 0, 'users' => 0];
+        $i = $invoices[$yw] ?? ['count' => 0, 'users' => 0];
+        $q = $quotes[$yw] ?? ['count' => 0, 'users' => 0];
 
-        $appointmentsCount = (int) ($a['appointments_count'] ?? 0);
-        $appointmentsUsers = (int) ($a['appointments_users'] ?? 0);
-
-        $invoicesCount = (int) ($i['invoices_count'] ?? 0);
-        $invoicesUsers = (int) ($i['invoices_users'] ?? 0);
-
-        $quotesCount = (int) ($q['quotes_count'] ?? 0);
-        $quotesUsers = (int) ($q['quotes_users'] ?? 0);
-
-        // Active therapists this week (union distinct therapist_id across tracked tables)
+        // Active users across ALL tracked tables for the week
         $activeUsers = DB::query()
             ->fromSub(
                 DB::table('appointments')
                     ->whereBetween('created_at', [$weekStart, $weekEnd])
-                    ->selectRaw("DISTINCT user_id as tid")
+                    ->selectRaw("DISTINCT user_id as uid")
                     ->union(
                         DB::table('invoices')
                             ->whereBetween('created_at', [$weekStart, $weekEnd])
-                            ->selectRaw("DISTINCT user_id as tid")
+                            ->selectRaw("DISTINCT user_id as uid")
                     ),
                 'u'
             )
-            ->count('tid');
+            ->count('uid');
 
         $weeks[] = [
             'yw' => $yw,
             'week_start' => $weekStart->copy(),
             'week_end' => $weekEnd->copy(),
-            'appointments_count' => $appointmentsCount,
-            'appointments_users' => $appointmentsUsers,
-            'invoices_count' => $invoicesCount,
-            'invoices_users' => $invoicesUsers,
-            'quotes_count' => $quotesCount,
-            'quotes_users' => $quotesUsers,
+
+            'appointments_count' => (int) $a['count'],
+            'appointments_users' => (int) $a['users'],
+
+            'invoices_count' => (int) $i['count'],
+            'invoices_users' => (int) $i['users'],
+
+            'quotes_count' => (int) $q['count'],
+            'quotes_users' => (int) $q['users'],
+
             'active_users' => (int) $activeUsers,
         ];
 
         $cursor->addWeek();
     }
 
-    // Totals on the range
     $totals = [
         'appointments' => array_sum(array_column($weeks, 'appointments_count')),
         'invoices'     => array_sum(array_column($weeks, 'invoices_count')),
@@ -747,4 +761,5 @@ public function weeklyUsage()
 
     return view('admin.usage.weekly', compact('weeks', 'weeksBack', 'start', 'end', 'totals'));
 }
+
 }
