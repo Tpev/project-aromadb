@@ -627,8 +627,7 @@ public function updateFeatured(Request $request, User $therapist)
 
     return back()->with('success', 'Featured settings updated successfully.');
 }
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+
 
 public function weeklyUsage()
 {
