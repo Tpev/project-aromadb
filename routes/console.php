@@ -34,6 +34,8 @@ Schedule::command(SendOneHourReminder::class)->hourly();
 // Fetch FB data
 Schedule::command(FetchFacebookMetrics::class)->hourly();
 
+// Event reminder
+Schedule::command('events:send-reminders')->everyMinute();
 
 // Expired Trial
 Schedule::command(UpdateLicenseStatus::class)->daily();

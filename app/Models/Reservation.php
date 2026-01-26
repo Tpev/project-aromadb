@@ -11,8 +11,13 @@ class Reservation extends Model
         'full_name',
         'email',
         'phone',
+		'reminder_24h_sent_at',
+        'reminder_1h_sent_at',
     ];
-
+    protected $casts = [
+        'reminder_24h_sent_at' => 'datetime',
+        'reminder_1h_sent_at'  => 'datetime',
+    ];
     /**
      * Get the event that owns the reservation.
      */
