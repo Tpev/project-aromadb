@@ -1077,6 +1077,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/admin/impersonate/stop', [\App\Http\Controllers\AdminImpersonationController::class, 'stop'])
         ->name('admin.impersonate.stop');
+		
+	    Route::get('/admin/usage/weekly', [AdminController::class, 'weeklyUsage'])
+        ->name('admin.usage.weekly');
 });
 
 
@@ -1171,6 +1174,39 @@ Route::get('/metiers/naturopathe', function () {
 Route::get('/metiers/sophrologue', function () {
     return view('metiers.sophrologue');
 })->name('metiers.sophrologue');
+
+// Aide AGENDA
+
+Route::view(
+    '/aide/agenda/creer-un-rendez-vous-en-ligne',
+    'aide.agenda.creer-un-rendez-vous-en-ligne'
+)->name('aide.agenda.creer-rendez-vous');
+
+Route::view(
+    '/aide/agenda/configurer-disponibilites',
+    'aide.agenda.configurer-disponibilites'
+)->name('aide.agenda.configurer-disponibilites');
+
+Route::view(
+    '/aide/agenda/gerer-indisponibilites',
+    'aide.agenda.gerer-indisponibilites'
+)->name('aide.agenda.gerer-indisponibilites');
+
+Route::view(
+    '/aide/agenda/duree-prestation-temps-de-pause',
+    'aide.agenda.duree-prestation-temps-de-pause'
+)->name('aide.agenda.duree-prestation-temps-de-pause');
+
+Route::view(
+    '/aide/agenda/creer-un-atelier-ou-evenement',
+    'aide.agenda.creer-un-atelier-ou-evenement'
+)->name('aide.agenda.creer-atelier-evenement');
+
+Route::view(
+    '/aide/agenda/synchroniser-calendrier',
+    'aide.agenda.synchroniser-calendrier'
+)->name('aide.agenda.synchroniser-calendrier');
+
 
 require __DIR__.'/auth.php';
 require __DIR__.'/mobile.php';
