@@ -659,7 +659,7 @@ public function weeklyUsage()
         ->whereBetween('created_at', [$start, $end])
         ->selectRaw("$yearWeekExpr as yw")
         ->selectRaw("COUNT(*) as appointments_count")
-        ->selectRaw("COUNT(DISTINCT therapist_id) as appointments_users")
+        ->selectRaw("COUNT(DISTINCT user_id) as appointments_users")
         ->groupBy('yw')
         ->pluck(DB::raw("JSON_OBJECT('appointments_count', appointments_count, 'appointments_users', appointments_users)"), 'yw');
 
@@ -668,7 +668,7 @@ public function weeklyUsage()
         ->where('type', 'invoice')
         ->selectRaw("$yearWeekExpr as yw")
         ->selectRaw("COUNT(*) as invoices_count")
-        ->selectRaw("COUNT(DISTINCT therapist_id) as invoices_users")
+        ->selectRaw("COUNT(DISTINCT user_id) as invoices_users")
         ->groupBy('yw')
         ->pluck(DB::raw("JSON_OBJECT('invoices_count', invoices_count, 'invoices_users', invoices_users)"), 'yw');
 
@@ -677,7 +677,7 @@ public function weeklyUsage()
         ->where('type', 'quote')
         ->selectRaw("$yearWeekExpr as yw")
         ->selectRaw("COUNT(*) as quotes_count")
-        ->selectRaw("COUNT(DISTINCT therapist_id) as quotes_users")
+        ->selectRaw("COUNT(DISTINCT user_id) as quotes_users")
         ->groupBy('yw')
         ->pluck(DB::raw("JSON_OBJECT('quotes_count', quotes_count, 'quotes_users', quotes_users)"), 'yw');
 
@@ -712,11 +712,11 @@ public function weeklyUsage()
             ->fromSub(
                 DB::table('appointments')
                     ->whereBetween('created_at', [$weekStart, $weekEnd])
-                    ->selectRaw("DISTINCT therapist_id as tid")
+                    ->selectRaw("DISTINCT user_id as tid")
                     ->union(
                         DB::table('invoices')
                             ->whereBetween('created_at', [$weekStart, $weekEnd])
-                            ->selectRaw("DISTINCT therapist_id as tid")
+                            ->selectRaw("DISTINCT user_id as tid")
                     ),
                 'u'
             )
