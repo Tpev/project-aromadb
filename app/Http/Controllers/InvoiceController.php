@@ -686,6 +686,8 @@ protected function syncProductWithStripe(StripeClient $stripe, Product $product,
      */
     protected function syncPriceWithStripe(StripeClient $stripe, Product $product, string $stripeAccountId): string
     {
+		// ✅ Make sure the Stripe Product exists (new products don't have stripe_product_id yet)
+		$this->syncProductWithStripe($stripe, $product, $stripeAccountId);
         // If the product already has a Stripe Price ID, retrieve and compare
         if ($product->stripe_price_id) {
             try {
