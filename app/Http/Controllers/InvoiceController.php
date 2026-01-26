@@ -556,85 +556,98 @@ if (!$to) {
 
 
 
+use Stripe\StripeClient;
+use Stripe\Exception\ApiErrorException;
+use Illuminate\Support\Facades\Log;
+
 public function createPaymentLink(Invoice $invoice)
 {
-    $this->authorize('update', $invoice);
-    $invoice->load('user', 'items.product', 'items.inventoryItem');
+    // Safety: only invoices (no quotes)
+    if (($invoice->type ?? 'invoice') !== 'invoice') {
+        return back()->with('error', "Un lien de paiement Stripe ne peut être créé que pour une facture (pas un devis).");
+    }
 
-    if ($invoice->payment_link) {
-        return back()->with('error', 'Un lien de paiement existe déjà.');
+    $user = $invoice->user;
+
+    // Stripe Connect account required
+    $stripeAccountId = $user->stripe_account_id ?? null;
+    if (!$stripeAccountId) {
+        return back()->with('error', "Veuillez d’abord connecter votre compte Stripe pour générer un lien de paiement.");
+    }
+
+    // Final amount TTC in cents (must be >= 1)
+    $totalTtc = (float) ($invoice->total_amount_with_tax ?? 0);
+    $amountCents = (int) round($totalTtc * 100);
+
+    if ($amountCents < 1) {
+        return back()->with('error', "Montant trop faible pour Stripe (minimum 0,01€). Vérifiez la remise appliquée.");
     }
 
     $stripe = new StripeClient(config('services.stripe.secret'));
-    $lineItems = [];
 
-    foreach ($invoice->items as $item) {
-        // --- PRODUCT LINE ---
-        if ($item->type === 'product' && $item->product) {
-            $priceId = $this->syncPriceWithStripe(
-                $stripe,
-                $item->product,
-                $invoice->user->stripe_account_id
-            );
+    // Label shown in Stripe Checkout
+    $number = $invoice->invoice_number ?? $invoice->id;
+    $label  = "Facture n°" . $number;
 
-            $lineItems[] = [
-                'price'    => $priceId,
-                'quantity' => $item->quantity,
-            ];
-        }
+    // (Optional) Redirect back to invoice after payment
+    $redirectUrl = url("/invoices/{$invoice->id}");
 
-        // --- INVENTORY LINE ---
-        elseif ($item->type === 'inventory' && $item->inventoryItem) {
-            $inv       = $item->inventoryItem;
-            $qty       = $item->quantity;
-            $unitType  = $inv->unit_type;
-            $unitTtc   = $unitType === 'ml'
-                           ? $inv->selling_price_per_ml
-                           : $inv->selling_price;
-            $unitAmount = intval(round($unitTtc * 100));
+    try {
+        // One line item = final invoice total TTC
+        $paymentLink = $stripe->paymentLinks->create([
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'eur',
+                    'unit_amount' => $amountCents,
+                    'product_data' => [
+                        'name' => $label,
+                        'metadata' => [
+                            'invoice_id' => (string) $invoice->id,
+                            'user_id' => (string) $invoice->user_id,
+                        ],
+                    ],
+                ],
+                'quantity' => 1,
+            ]],
 
-            try {
-                // 1) Create a Stripe Product for this inventory item
-                $stripeProduct = $stripe->products->create([
-                    'name'        => $inv->name,
-                    'description' => $item->description,
-                ], ['stripe_account' => $invoice->user->stripe_account_id]);
-
-                // 2) Create a one-off Stripe Price for that product
-                $stripePrice = $stripe->prices->create([
-                    'product'     => $stripeProduct->id,
-                    'unit_amount' => $unitAmount,
-                    'currency'    => 'eur',
-                ], ['stripe_account' => $invoice->user->stripe_account_id]);
-
-                // 3) Add to the line items
-                $lineItems[] = [
-                    'price'    => $stripePrice->id,
-                    'quantity' => $qty,
-                ];
-
-            } catch (ApiErrorException $e) {
-                Log::error("Stripe Inventory Price Creation Failed for InvoiceItem {$item->id}: " . $e->getMessage());
-                return back()->with('error', 'Impossible de créer le prix Stripe pour un article d’inventaire.');
-            }
-        }
-    }
-
-    // Create the Payment Link with only `price`‐based lines
-    $paymentLink = $stripe->paymentLinks->create([
-        'line_items' => $lineItems,
-        'after_completion' => [
-            'type' => 'redirect',
-            'redirect' => [
-                'url' => route('therapist.show', $invoice->user->slug),
+            // Optional: helps UX after payment
+            'after_completion' => [
+                'type' => 'redirect',
+                'redirect' => ['url' => $redirectUrl],
             ],
-        ],
-    ], ['stripe_account' => $invoice->user->stripe_account_id]);
+        ], [
+            // IMPORTANT: create on the connected account
+            'stripe_account' => $stripeAccountId,
+        ]);
 
-    $invoice->update(['payment_link' => $paymentLink->url]);
+        $invoice->payment_link = $paymentLink->url;
+        $invoice->save();
 
-    return back()->with('success', 'Lien de paiement généré avec succès.');
+        return back()->with('success', "Lien de paiement Stripe créé avec succès.");
+
+    } catch (ApiErrorException $e) {
+        Log::error("Stripe API Error while creating payment link: " . $e->getMessage(), [
+            'invoice_id' => $invoice->id,
+            'user_id' => $invoice->user_id,
+            'stripe_account_id' => $stripeAccountId,
+            'amount_cents' => $amountCents,
+            'request_id' => method_exists($e, 'getRequestId') ? $e->getRequestId() : null,
+            'stripe_code' => method_exists($e, 'getStripeCode') ? $e->getStripeCode() : null,
+            'param' => method_exists($e, 'getStripeParam') ? $e->getStripeParam() : null,
+            'http_status' => method_exists($e, 'getHttpStatus') ? $e->getHttpStatus() : null,
+        ]);
+
+        return back()->with('error', "Erreur Stripe lors de la création du lien de paiement : " . $e->getMessage());
+    } catch (\Throwable $e) {
+        Log::error("Error creating Stripe payment link: " . $e->getMessage(), [
+            'invoice_id' => $invoice->id,
+            'user_id' => $invoice->user_id,
+        ]);
+
+        return back()->with('error', "Erreur lors de la création du lien de paiement.");
+    }
 }
+
 
 
 
