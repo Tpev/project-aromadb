@@ -387,7 +387,8 @@
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" />
                                                 </svg>
-                                                {{ __('Envoyée le') }} {{ \Carbon\Carbon::parse($invoice->sent_at)->format('d/m/Y à H:i') }}
+                                                {{ __('Envoyée le') }} {{ \Carbon\Carbon::parse($quote->sent_at)->format('d/m/Y à H:i') }}
+
                                             </span>
                                         @endif
                                     </td>
