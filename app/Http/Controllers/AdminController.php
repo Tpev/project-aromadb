@@ -631,7 +631,6 @@ public function updateFeatured(Request $request, User $therapist)
 
 public function weeklyUsage()
 {
-    // Admin gate (same logic as your other pages)
     if (!auth()->user() || !auth()->user()->isAdmin()) {
         return redirect('/')->with('error', 'Unauthorized access');
     }
@@ -641,66 +640,110 @@ public function weeklyUsage()
     if ($weeksBack > 104) $weeksBack = 104;
 
     $tz = 'Europe/Paris';
-    $end = Carbon::now($tz)->endOfDay();
-    $start = Carbon::now($tz)->startOfWeek()->subWeeks($weeksBack - 1)->startOfDay();
+    $end = \Carbon\Carbon::now($tz)->endOfDay();
+    $start = \Carbon\Carbon::now($tz)->startOfWeek()->subWeeks($weeksBack - 1)->startOfDay();
 
-    // MySQL ISO week key (Mon-Sun)
-    $yearWeekExpr = "YEARWEEK(created_at, 3)";
+    // Helper: aggregate a table by ISO yearweek on a date column
+    $weeklyAgg = function (
+        string $table,
+        string $dateCol = 'created_at',
+        ?string $userCol = 'user_id',
+        ?callable $modify = null
+    ) use ($start, $end) {
+        $yearWeekExpr = "YEARWEEK($dateCol, 3)";
 
-    // ---- Appointments per week
-    $appointmentsRows = DB::table('appointments')
-        ->whereBetween('created_at', [$start, $end])
-        ->selectRaw("$yearWeekExpr as yw")
-        ->selectRaw("COUNT(*) as appointments_count")
-        ->selectRaw("COUNT(DISTINCT user_id) as appointments_users")
-        ->groupBy('yw')
-        ->get();
+        $q = DB::table($table)
+            ->whereNotNull($dateCol)
+            ->whereBetween($dateCol, [$start, $end])
+            ->selectRaw("$yearWeekExpr as yw")
+            ->selectRaw("COUNT(*) as c");
 
-    $appointments = [];
-    foreach ($appointmentsRows as $r) {
-        $appointments[(int) $r->yw] = [
-            'count' => (int) $r->appointments_count,
-            'users' => (int) $r->appointments_users,
-        ];
-    }
+        if ($userCol) {
+            $q->selectRaw("COUNT(DISTINCT $userCol) as u");
+        } else {
+            $q->selectRaw("0 as u");
+        }
 
-    // ---- Invoices per week (type=invoice)
-    $invoicesRows = DB::table('invoices')
-        ->whereBetween('created_at', [$start, $end])
-        ->where('type', 'invoice')
-        ->selectRaw("$yearWeekExpr as yw")
-        ->selectRaw("COUNT(*) as invoices_count")
-        ->selectRaw("COUNT(DISTINCT user_id) as invoices_users")
-        ->groupBy('yw')
-        ->get();
+        if ($modify) {
+            $modify($q);
+        }
 
-    $invoices = [];
-    foreach ($invoicesRows as $r) {
-        $invoices[(int) $r->yw] = [
-            'count' => (int) $r->invoices_count,
-            'users' => (int) $r->invoices_users,
-        ];
-    }
+        $rows = $q->groupBy('yw')->get();
 
-    // ---- Quotes per week (type=quote)
-    $quotesRows = DB::table('invoices')
-        ->whereBetween('created_at', [$start, $end])
-        ->where('type', 'quote')
-        ->selectRaw("$yearWeekExpr as yw")
-        ->selectRaw("COUNT(*) as quotes_count")
-        ->selectRaw("COUNT(DISTINCT user_id) as quotes_users")
-        ->groupBy('yw')
-        ->get();
+        $out = [];
+        foreach ($rows as $r) {
+            $out[(int) $r->yw] = [
+                'count' => (int) $r->c,
+                'users' => (int) $r->u,
+            ];
+        }
+        return $out;
+    };
 
-    $quotes = [];
-    foreach ($quotesRows as $r) {
-        $quotes[(int) $r->yw] = [
-            'count' => (int) $r->quotes_count,
-            'users' => (int) $r->quotes_users,
-        ];
-    }
+    // Helper: meetings are owned via appointments.user_id (join)
+    $weeklyMeetingsAgg = function () use ($start, $end) {
+        $yearWeekExpr = "YEARWEEK(meetings.created_at, 3)";
 
-    // Build continuous list of weeks (so empty weeks still show)
+        $rows = DB::table('meetings')
+            ->join('appointments', 'appointments.id', '=', 'meetings.appointment_id')
+            ->whereBetween('meetings.created_at', [$start, $end])
+            ->selectRaw("$yearWeekExpr as yw")
+            ->selectRaw("COUNT(*) as c")
+            ->selectRaw("COUNT(DISTINCT appointments.user_id) as u")
+            ->groupBy('yw')
+            ->get();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $out[(int) $r->yw] = [
+                'count' => (int) $r->c,
+                'users' => (int) $r->u,
+            ];
+        }
+        return $out;
+    };
+
+    // --- Series (per metric)
+    $series = [];
+
+    // Agenda
+    $series['appointments_created'] = $weeklyAgg('appointments', 'created_at', 'user_id');
+    $series['meetings_created']     = $weeklyMeetingsAgg();
+
+    // Billing
+    $series['invoices_created'] = $weeklyAgg('invoices', 'created_at', 'user_id', function ($q) {
+        $q->where('type', 'invoice');
+    });
+    $series['quotes_created'] = $weeklyAgg('invoices', 'created_at', 'user_id', function ($q) {
+        $q->where('type', 'quote');
+    });
+    $series['corporate_clients_created'] = $weeklyAgg('corporate_clients', 'created_at', 'user_id');
+
+    // Questionnaires
+    $series['questionnaires_created'] = $weeklyAgg('questionnaires', 'created_at', 'user_id');
+
+    // Packs
+    $series['pack_products_created'] = $weeklyAgg('pack_products', 'created_at', 'user_id');
+
+    // Newsletters (3 angles)
+    $series['newsletters_created']   = $weeklyAgg('newsletters', 'created_at', 'user_id');
+    $series['newsletters_scheduled'] = $weeklyAgg('newsletters', 'scheduled_at', 'user_id');
+    $series['newsletters_sent']      = $weeklyAgg('newsletters', 'sent_at', 'user_id');
+
+    // Referrals (multiple milestone timestamps)
+    $series['referrals_invited'] = $weeklyAgg('referral_invites', 'created_at', 'referrer_user_id');
+    $series['referrals_opened']  = $weeklyAgg('referral_invites', 'opened_at', 'referrer_user_id');
+    $series['referrals_signed']  = $weeklyAgg('referral_invites', 'signed_up_at', 'referrer_user_id');
+    $series['referrals_paid']    = $weeklyAgg('referral_invites', 'paid_at', 'referrer_user_id');
+    $series['referrals_rewarded']= $weeklyAgg('referral_invites', 'reward_granted_at', 'referrer_user_id');
+
+    // Documents (no user_id in your model => totals only)
+    $series['doc_signings_created'] = $weeklyAgg('document_signings', 'created_at', null);
+    $series['doc_signings_completed'] = $weeklyAgg('document_signings', 'updated_at', null, function ($q) {
+        $q->where('status', 'completed');
+    });
+
+    // Build continuous list of weeks so empty weeks show
     $weeks = [];
     $cursor = $start->copy()->startOfWeek();
 
@@ -708,16 +751,30 @@ public function weeklyUsage()
         $weekStart = $cursor->copy()->startOfWeek();
         $weekEnd = $cursor->copy()->endOfWeek();
 
-        // Match MySQL YEARWEEK(...,3) format: YYYYWW (ISO week year + week number)
         $isoYear = (int) $weekStart->isoWeekYear;
         $isoWeek = (int) $weekStart->isoWeek;
         $yw = (int) sprintf('%d%02d', $isoYear, $isoWeek);
 
-        $a = $appointments[$yw] ?? ['count' => 0, 'users' => 0];
-        $i = $invoices[$yw] ?? ['count' => 0, 'users' => 0];
-        $q = $quotes[$yw] ?? ['count' => 0, 'users' => 0];
+        // Pull metrics for that week
+        $row = [
+            'yw' => $yw,
+            'week_start' => $weekStart->copy(),
+            'week_end' => $weekEnd->copy(),
+        ];
 
-        // Active users across ALL tracked tables for the week
+        foreach ($series as $key => $data) {
+            $row[$key.'_count'] = (int) (($data[$yw]['count'] ?? 0));
+            $row[$key.'_users'] = (int) (($data[$yw]['users'] ?? 0));
+        }
+
+        // "Active users" across core creation actions (cheap approximation)
+        // (appointments_created OR invoices_created OR newsletters_sent OR pack_products_created OR questionnaires_created)
+        $active = [];
+        $coreKeys = ['appointments_created','invoices_created','newsletters_sent','pack_products_created','questionnaires_created','corporate_clients_created'];
+        foreach ($coreKeys as $k) {
+            $active[] = $series[$k] ?? [];
+        }
+        // We compute active users by union of user_ids for the week (few queries, acceptable for 12–26 weeks)
         $activeUsers = DB::query()
             ->fromSub(
                 DB::table('appointments')
@@ -727,38 +784,48 @@ public function weeklyUsage()
                         DB::table('invoices')
                             ->whereBetween('created_at', [$weekStart, $weekEnd])
                             ->selectRaw("DISTINCT user_id as uid")
+                    )
+                    ->union(
+                        DB::table('newsletters')
+                            ->whereBetween('sent_at', [$weekStart, $weekEnd])
+                            ->whereNotNull('sent_at')
+                            ->selectRaw("DISTINCT user_id as uid")
+                    )
+                    ->union(
+                        DB::table('pack_products')
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->selectRaw("DISTINCT user_id as uid")
+                    )
+                    ->union(
+                        DB::table('questionnaires')
+                            ->whereBetween('created_at', [$weekStart, $weekEnd])
+                            ->selectRaw("DISTINCT user_id as uid")
                     ),
                 'u'
             )
             ->count('uid');
 
-        $weeks[] = [
-            'yw' => $yw,
-            'week_start' => $weekStart->copy(),
-            'week_end' => $weekEnd->copy(),
+        $row['active_users'] = (int) $activeUsers;
 
-            'appointments_count' => (int) $a['count'],
-            'appointments_users' => (int) $a['users'],
-
-            'invoices_count' => (int) $i['count'],
-            'invoices_users' => (int) $i['users'],
-
-            'quotes_count' => (int) $q['count'],
-            'quotes_users' => (int) $q['users'],
-
-            'active_users' => (int) $activeUsers,
-        ];
-
+        $weeks[] = $row;
         $cursor->addWeek();
     }
 
+    // Totals (simple)
     $totals = [
-        'appointments' => array_sum(array_column($weeks, 'appointments_count')),
-        'invoices'     => array_sum(array_column($weeks, 'invoices_count')),
-        'quotes'       => array_sum(array_column($weeks, 'quotes_count')),
+        'appointments' => array_sum(array_column($weeks, 'appointments_created_count')),
+        'meetings'     => array_sum(array_column($weeks, 'meetings_created_count')),
+        'invoices'     => array_sum(array_column($weeks, 'invoices_created_count')),
+        'quotes'       => array_sum(array_column($weeks, 'quotes_created_count')),
+        'corporates'   => array_sum(array_column($weeks, 'corporate_clients_created_count')),
+        'news_sent'    => array_sum(array_column($weeks, 'newsletters_sent_count')),
+        'packs'        => array_sum(array_column($weeks, 'pack_products_created_count')),
+        'quest'        => array_sum(array_column($weeks, 'questionnaires_created_count')),
+        'ref_inv'      => array_sum(array_column($weeks, 'referrals_invited_count')),
     ];
 
     return view('admin.usage.weekly', compact('weeks', 'weeksBack', 'start', 'end', 'totals'));
 }
+
 
 }
