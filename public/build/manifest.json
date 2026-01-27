@@ -1,0 +1,34 @@
+{
+  "_bootstrap-z-Rg4TxU.js": {
+    "file": "assets/bootstrap-z-Rg4TxU.js",
+    "name": "bootstrap"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-6-ES1AZh.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/css/mobile.css": {
+    "file": "assets/mobile-Ci4BoAPl.css",
+    "src": "resources/css/mobile.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BFKCoR0d.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_bootstrap-z-Rg4TxU.js"
+    ]
+  },
+  "resources/js/mobile.js": {
+    "file": "assets/mobile-Deo0mm1b.js",
+    "name": "mobile",
+    "src": "resources/js/mobile.js",
+    "isEntry": true,
+    "imports": [
+      "_bootstrap-z-Rg4TxU.js"
+    ]
+  }
+}
