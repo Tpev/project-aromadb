@@ -86,11 +86,9 @@
                                     wrapClient.style.display = isCorp ? 'none' : '';
                                     wrapCorp.style.display   = isCorp ? '' : 'none';
 
-                                    // Required toggles
                                     if (selClient) selClient.required = !isCorp;
                                     if (selCorp)   selCorp.required   = isCorp;
 
-                                    // Clear the other select to avoid sending both
                                     if (isCorp) {
                                         if (selClient) selClient.value = '';
                                     } else {
@@ -162,18 +160,26 @@
                             <tbody>
                                 @foreach($invoice->items as $i => $item)
                                     @php
-                                        // For existing custom lines, attempt to split "name — details"
-                                        $rawDesc = old("items.$i.description", $item->description ?? '');
-                                        $cName = $rawDesc;
-                                        $cDetails = '';
-                                        if (is_string($rawDesc)) {
-                                            if (str_contains($rawDesc, ' — ')) {
-                                                [$cName, $cDetails] = array_pad(explode(' — ', $rawDesc, 2), 2, '');
-                                            } elseif (str_contains($rawDesc, ' - ')) {
-                                                [$cName, $cDetails] = array_pad(explode(' - ', $rawDesc, 2), 2, '');
+                                        $ldt = old("items.$i.line_discount_type", $item->line_discount_type);
+
+                                        // ✅ Custom: prefer label + description (new schema),
+                                        // but keep backward compatibility for older invoices that had "Nom — Détails" in description.
+                                        $rawLabel = old("items.$i.label", $item->label ?? '');
+                                        $rawDesc  = old("items.$i.description", $item->description ?? '');
+
+                                        $cName = trim((string)$rawLabel);
+                                        $cDetails = trim((string)$rawDesc);
+
+                                        if ($item->type === 'custom' && $cName === '' && is_string($rawDesc)) {
+                                            $legacy = trim($rawDesc);
+                                            if (str_contains($legacy, ' — ')) {
+                                                [$left, $right] = array_map('trim', explode(' — ', $legacy, 2));
+                                                if ($left !== '' && $right !== '') { $cName = $left; $cDetails = $right; }
+                                            } elseif (str_contains($legacy, ' - ')) {
+                                                [$left, $right] = array_map('trim', explode(' - ', $legacy, 2));
+                                                if ($left !== '' && $right !== '') { $cName = $left; $cDetails = $right; }
                                             }
                                         }
-                                        $ldt = old("items.$i.line_discount_type", $item->line_discount_type);
                                     @endphp
 
                                     <tr>
@@ -206,6 +212,7 @@
                                                     @endforeach
                                                 </select>
                                                 <input type="hidden" name="items[{{ $i }}][inventory_item_id]" value="">
+                                                <input type="hidden" name="items[{{ $i }}][label]" value="">
                                             @elseif($item->type === 'inventory')
                                                 <select name="items[{{ $i }}][inventory_item_id]"
                                                         class="am-input inventory-select"
@@ -224,14 +231,16 @@
                                                     @endforeach
                                                 </select>
                                                 <input type="hidden" name="items[{{ $i }}][product_id]" value="">
+                                                <input type="hidden" name="items[{{ $i }}][label]" value="">
                                             @else
-                                                {{-- Custom: allow editing name --}}
+                                                {{-- ✅ Custom: label is the real stored field now --}}
                                                 <input type="hidden" name="items[{{ $i }}][product_id]" value="">
                                                 <input type="hidden" name="items[{{ $i }}][inventory_item_id]" value="">
 
                                                 <input type="text"
+                                                       name="items[{{ $i }}][label]"
                                                        class="am-input custom-name"
-                                                       value="{{ old("items.$i.custom_name", trim($cName)) }}"
+                                                       value="{{ $cName }}"
                                                        placeholder="Ex: Consultation, Atelier, Prestation…"
                                                        oninput="recomputeAllTotals()">
                                             @endif
@@ -240,21 +249,16 @@
                                         <td class="am-td am-td--desc">
                                             @if($item->type === 'custom')
                                                 <input type="text"
+                                                       name="items[{{ $i }}][description]"
                                                        class="am-input custom-details"
-                                                       value="{{ old("items.$i.custom_details", trim($cDetails)) }}"
+                                                       value="{{ $cDetails }}"
                                                        placeholder="{{ __('Détails (optionnel)') }}"
                                                        oninput="recomputeAllTotals()">
-
-                                                {{-- Real saved field --}}
-                                                <input type="hidden"
-                                                       name="items[{{ $i }}][description]"
-                                                       class="custom-description-hidden"
-                                                       value="{{ $rawDesc }}">
                                             @else
                                                 <input type="text"
                                                        name="items[{{ $i }}][description]"
                                                        class="am-input description-input"
-                                                       value="{{ $rawDesc }}"
+                                                       value="{{ old("items.$i.description", $item->description ?? '') }}"
                                                        oninput="recomputeAllTotals()">
                                             @endif
                                         </td>
@@ -500,31 +504,8 @@
             return _money(_clamp(d, 0, subtotalHt));
         }
 
-        // ✅ Custom lines: store "name — details" into items[][description]
-        function syncCustomDescriptions() {
-            const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
-            rows.forEach(row => {
-                const type = row.querySelector('input[name*="[type]"]')?.value;
-                if (type !== 'custom') return;
-
-                const nameEl = row.querySelector('.custom-name');
-                const detailsEl = row.querySelector('.custom-details');
-                const hiddenDescEl = row.querySelector('.custom-description-hidden');
-                if (!hiddenDescEl) return;
-
-                const name = (nameEl?.value || '').trim();
-                const details = (detailsEl?.value || '').trim();
-
-                if (name && details) hiddenDescEl.value = `${name} — ${details}`;
-                else if (name) hiddenDescEl.value = name;
-                else hiddenDescEl.value = details;
-            });
-        }
-
         // ---------- totals ----------
         function recomputeAllTotals() {
-            syncCustomDescriptions();
-
             const rows = Array.from(document.querySelectorAll('#invoice-items-table tbody tr'));
             const lines = [];
 
@@ -634,6 +615,7 @@
                         @endforeach
                     </select>
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                    <input type="hidden" name="items[${idx}][label]" value="">
                 </td>
 
                 <td class="am-td am-td--desc">
@@ -699,12 +681,13 @@
                 <td class="am-td am-td--product">
                     <input type="hidden" name="items[${idx}][product_id]" value="">
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
-                    <input type="text" class="am-input custom-name" placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
+                    <input type="text" name="items[${idx}][label]" class="am-input custom-name"
+                           placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
                 </td>
 
                 <td class="am-td am-td--desc">
-                    <input type="text" class="am-input custom-details" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
-                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
+                    <input type="text" name="items[${idx}][description]" class="am-input custom-details"
+                           placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -752,7 +735,7 @@
             recomputeAllTotals();
         }
 
-        // inventory row is created from modal (so we can keep edit UX consistent)
+        // inventory modal
         function openInventoryModal() {
             const m = document.getElementById('inventoryModal');
             m.classList.remove('hidden');
@@ -791,6 +774,7 @@
                 <td class="am-td am-td--product">
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="${opt.value}">
                     <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][label]" value="">
                     <div class="am-input am-readonly">${escapeHtml(opt.text)}</div>
                 </td>
 
@@ -876,12 +860,13 @@
                 <td class="am-td am-td--product">
                     <input type="hidden" name="items[${idx}][product_id]" value="">
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
-                    <input type="text" class="am-input custom-name" value="Pack : ${escapeHtml(name)}" oninput="recomputeAllTotals()">
+                    <input type="text" name="items[${idx}][label]" class="am-input custom-name"
+                           value="Pack : ${escapeHtml(name)}" oninput="recomputeAllTotals()">
                 </td>
 
                 <td class="am-td am-td--desc">
-                    <input type="text" class="am-input custom-details" value="" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
-                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
+                    <input type="text" name="items[${idx}][description]" class="am-input custom-details"
+                           value="" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -977,11 +962,10 @@
             document.querySelectorAll('.product-select[data-preload="true"]').forEach(sel => updateItem(sel));
             document.querySelectorAll('.inventory-select[data-preload="true"]').forEach(sel => updateInventoryItem(sel));
             recomputeAllTotals();
-
-            const form = document.getElementById('invoiceEditForm');
-            if (form) form.addEventListener('submit', () => syncCustomDescriptions());
         };
     </script>
+
+
 
     <style>
         /* Same UI system as create invoice (shared styles, inline) */

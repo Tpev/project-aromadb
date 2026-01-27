@@ -161,6 +161,10 @@ public function store(Request $request)
         'items'                     => ['required', 'array', 'min:1'],
         'items.*.product_id'         => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
         'items.*.inventory_item_id'  => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+
+        // ✅ NEW: custom label
+        'items.*.label'              => ['nullable', 'string', 'max:255'],
+
         'items.*.description'        => ['nullable', 'string', 'max:255'],
         'items.*.quantity'           => ['required', 'numeric', 'min:1'],
         'items.*.unit_price'         => ['required', 'numeric', 'min:0'],
@@ -168,7 +172,7 @@ public function store(Request $request)
         'items.*.unit_type'          => ['nullable', Rule::in(['unit', 'ml'])],
         'items.*.unit_price_ht'      => ['nullable', 'numeric', 'min:0'],
 
-        // Packs
+        // Packs (legacy)
         'items.*.pack_product_id'    => ['nullable', Rule::exists('pack_products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
 
         // Discounts (per line)
@@ -186,6 +190,26 @@ public function store(Request $request)
 
         if ($hasClient && $hasCorp) {
             $validator->errors()->add('client_profile_id', "Veuillez sélectionner soit un client, soit une entreprise (pas les deux).");
+        }
+
+        // ✅ Recommended: for custom lines, label should not be empty
+        $items = $request->input('items', []);
+        foreach ($items as $idx => $item) {
+            $hasProduct = !empty($item['product_id']);
+            $hasInv     = !empty($item['inventory_item_id']);
+
+            if (!$hasProduct && !$hasInv) {
+                // This is a custom line
+                $label = trim((string)($item['label'] ?? ''));
+                if ($label === '') {
+                    $validator->errors()->add("items.$idx.label", "Le nom de la ligne libre est obligatoire.");
+                }
+            }
+
+            // Optional sanity: prevent product + inventory on same line
+            if ($hasProduct && $hasInv) {
+                $validator->errors()->add("items.$idx.product_id", "Une ligne ne peut pas être à la fois un produit et un article d'inventaire.");
+            }
         }
     });
 
@@ -215,8 +239,8 @@ public function store(Request $request)
             'total_amount_with_tax'  => 0,
 
             // Global discount fields (computed later)
-            'global_discount_type'   => $validatedData['global_discount_type'] ?? null,
-            'global_discount_value'  => $validatedData['global_discount_value'] ?? null,
+            'global_discount_type'      => $validatedData['global_discount_type'] ?? null,
+            'global_discount_value'     => $validatedData['global_discount_value'] ?? null,
             'global_discount_amount_ht' => 0,
         ]);
 
@@ -225,7 +249,6 @@ public function store(Request $request)
             $invoice->corporate_client_id = $validatedData['corporate_client_id'];
             $invoice->save();
         }
-
 
         $this->recomputeInvoiceTotalsWithDiscounts(
             $invoice,
@@ -239,6 +262,7 @@ public function store(Request $request)
 
     return redirect()->route('invoices.show', $invoice)->with('success', 'Facture créée avec succès.');
 }
+
 
 
 
@@ -286,7 +310,7 @@ public function update(Request $request, Invoice $invoice)
     $this->authorize('update', $invoice);
 
     $validator = Validator::make($request->all(), [
-        // Billing target (exactly one)
+        // Billing target (exactly one) - checked in ->after()
         'client_profile_id'    => ['nullable', Rule::exists('client_profiles', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
         'corporate_client_id'  => ['nullable', Rule::exists('corporate_clients', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
 
@@ -294,25 +318,34 @@ public function update(Request $request, Invoice $invoice)
         'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
         'notes'             => ['nullable', 'string'],
 
-        // Discounts (global)
+        // Global discount
         'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
         'global_discount_value' => ['nullable', 'numeric', 'min:0'],
 
         // Items
         'items'                     => ['required', 'array', 'min:1'],
+        'items.*.type'              => ['required', Rule::in(['product', 'inventory', 'custom'])],
+
         'items.*.product_id'         => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
         'items.*.inventory_item_id'  => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
-        'items.*.description'        => ['nullable', 'string', 'max:255'],
-        'items.*.quantity'           => ['required', 'numeric', 'min:1'],
+
+        // ✅ New split fields
+        'items.*.label'             => ['nullable', 'string', 'max:255'],
+        'items.*.description'       => ['nullable', 'string', 'max:255'],
+
+        // Keep consistent with UI (0.01 step)
+        'items.*.quantity'           => ['required', 'numeric', 'min:0.01'],
         'items.*.unit_price'         => ['required', 'numeric', 'min:0'],
         'items.*.tax_rate'           => ['required', 'numeric', 'min:0'],
+
+        // (optional / legacy) keep if you still send them from somewhere
         'items.*.unit_type'          => ['nullable', Rule::in(['unit', 'ml'])],
         'items.*.unit_price_ht'      => ['nullable', 'numeric', 'min:0'],
 
-        // Packs
+        // Packs (if you still use it server-side)
         'items.*.pack_product_id'    => ['nullable', Rule::exists('pack_products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
 
-        // Discounts (per line)
+        // Line discounts
         'items.*.line_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
         'items.*.line_discount_value' => ['nullable', 'numeric', 'min:0'],
     ]);
@@ -328,34 +361,54 @@ public function update(Request $request, Invoice $invoice)
         if ($hasClient && $hasCorp) {
             $validator->errors()->add('client_profile_id', "Veuillez sélectionner soit un client, soit une entreprise (pas les deux).");
         }
+
+        // ✅ Type-aware item validation
+        $items = $request->input('items', []);
+        foreach ($items as $idx => $item) {
+            $type = $item['type'] ?? null;
+
+            if ($type === 'product') {
+                if (empty($item['product_id'])) {
+                    $validator->errors()->add("items.$idx.product_id", "Veuillez sélectionner une prestation.");
+                }
+            } elseif ($type === 'inventory') {
+                if (empty($item['inventory_item_id'])) {
+                    $validator->errors()->add("items.$idx.inventory_item_id", "Veuillez sélectionner un article d’inventaire.");
+                }
+            } elseif ($type === 'custom') {
+                // ✅ custom must have a label (the new “Produit / Article” column)
+                if (empty(trim((string)($item['label'] ?? '')))) {
+                    $validator->errors()->add("items.$idx.label", "Veuillez renseigner le nom de la ligne.");
+                }
+            } else {
+                $validator->errors()->add("items.$idx.type", "Type de ligne invalide.");
+            }
+        }
     });
 
     $validatedData = $validator->validate();
 
     DB::transaction(function () use ($validatedData, $invoice) {
-        // Update basic invoice fields
         $invoice->update([
-            'client_profile_id'        => $validatedData['client_profile_id'] ?? null,
-            'invoice_date'             => $validatedData['invoice_date'],
-            'due_date'                 => $validatedData['due_date'] ?? null,
-            'notes'                    => $validatedData['notes'] ?? null,
+            'client_profile_id'         => $validatedData['client_profile_id'] ?? null,
+            'invoice_date'              => $validatedData['invoice_date'],
+            'due_date'                  => $validatedData['due_date'] ?? null,
+            'notes'                     => $validatedData['notes'] ?? null,
 
-            'global_discount_type'     => $validatedData['global_discount_type'] ?? null,
-            'global_discount_value'    => $validatedData['global_discount_value'] ?? null,
-            'global_discount_amount_ht'=> 0,
+            'global_discount_type'      => $validatedData['global_discount_type'] ?? null,
+            'global_discount_value'     => $validatedData['global_discount_value'] ?? null,
+            'global_discount_amount_ht' => 0,
 
-            // Totals will be recomputed
-            'total_amount'             => 0,
-            'total_tax_amount'         => 0,
-            'total_amount_with_tax'    => 0,
+            'total_amount'              => 0,
+            'total_tax_amount'          => 0,
+            'total_amount_with_tax'     => 0,
         ]);
 
-        // Set / clear corporate billing target
+        // Corporate billing target
         $invoice->corporate_client_id = $validatedData['corporate_client_id'] ?? null;
         $invoice->save();
 
-
-        // Remove existing items then rebuild
+        // Rebuild items
         $invoice->items()->delete();
 
         $this->recomputeInvoiceTotalsWithDiscounts(
@@ -368,6 +421,7 @@ public function update(Request $request, Invoice $invoice)
 
     return redirect()->route('invoices.show', $invoice)->with('success', 'Facture mise à jour avec succès.');
 }
+
 
     /**
      * Supprime une facture.
@@ -1201,7 +1255,12 @@ public function createFromPackPurchase(PackPurchase $packPurchase)
  * @param  float|int|string|null  $globalDiscountValue
  * @return void
  */
-private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $items, ?string $globalDiscountType, $globalDiscountValue): void
+private function recomputeInvoiceTotalsWithDiscounts(
+    Invoice $invoice,
+    array $items,
+    ?string $globalDiscountType,
+    $globalDiscountValue
+): void
 {
     // 1) Create items with LINE discounts applied (but not global yet)
     $lines = [];
@@ -1212,10 +1271,10 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
             continue;
         }
 
-        $desc = $item['description'] ?? '';
+        $label = trim((string) ($item['label'] ?? ''));
+        $desc  = trim((string) ($item['description'] ?? ''));
 
         // Determine line type (stay compatible with your existing payloads)
-        $type = null;
         if (!empty($item['type'])) {
             $type = $item['type'];
         } elseif (!empty($item['product_id'])) {
@@ -1238,7 +1297,13 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
                 ->firstOrFail();
 
             $productId = $prod->id;
-            $desc = $desc ?: $prod->name;
+
+            // ✅ Label becomes the canonical "Produit / Article" name
+            $label = trim((string) $prod->name);
+
+            // ✅ Keep description optional and separate (avoid duplication)
+            $desc = $desc ?: trim((string) ($prod->description ?? ''));
+
             $taxRate = (float) ($prod->tax_rate ?? 0);
             $unitPriceHt = (float) ($prod->price ?? 0);
         } elseif ($type === 'inventory') {
@@ -1247,11 +1312,16 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
                 ->firstOrFail();
 
             $inventoryItemId = $inv->id;
-            $desc = $desc ?: $inv->name;
+
+            // ✅ Label becomes canonical inventory name
+            $label = trim((string) $inv->name);
+
+            // ✅ Keep description optional (if you have a field; else remains empty)
+            $desc = $desc ?: trim((string) ($inv->description ?? ''));
 
             $taxRate = (float) ($inv->vat_rate_sale ?? 0);
 
-            // In your UI, inventory selling prices are TTC; we convert to HT for storage & computations.
+            // Inventory selling prices are TTC; convert to HT for storage & computations.
             $unitPriceTtc = 0.0;
             if (($inv->unit_type ?? null) === 'ml') {
                 $unitPriceTtc = (float) ($inv->selling_price_per_ml ?? 0);
@@ -1262,8 +1332,20 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
             $unitPriceHt = $taxRate > 0 ? ($unitPriceTtc / (1 + $taxRate / 100)) : $unitPriceTtc;
         } else {
             // custom line: unit_price is assumed HT
+
+            // ✅ Backward compatibility: old UI sends "Nom — Description" inside description
+            if ($label === '' && str_contains($desc, ' — ')) {
+                [$left, $right] = array_map('trim', explode(' — ', $desc, 2));
+                if ($left !== '' && $right !== '') {
+                    $label = $left;
+                    $desc  = $right;
+                }
+            }
+
             $unitPriceHt = (float) ($item['unit_price'] ?? 0);
-            $taxRate = (float) ($item['tax_rate'] ?? 0); // if you allow custom VAT later; otherwise keep 0
+
+            // Allow custom VAT (or keep 0)
+            $taxRate = isset($item['tax_rate']) ? (float) $item['tax_rate'] : 0.0;
             if (!$taxRate) {
                 $taxRate = 0.0;
             }
@@ -1293,7 +1375,13 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
             'type' => $type,
             'product_id' => $productId,
             'inventory_item_id' => $inventoryItemId,
-            'description' => $desc,
+
+            // ✅ Persist label for ALL types (normalized display)
+            'label' => ($label !== '' ? $label : null),
+
+            // ✅ Keep description clean and optional
+            'description' => ($desc !== '' ? $desc : null),
+
             'quantity' => $quantity,
             'unit_price' => round($unitPriceHt, 6),
             'tax_rate' => round($taxRate, 2),
@@ -1356,6 +1444,10 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
                 ? round($globalDiscountHt - $running, 2)
                 : round($globalDiscountHt * ($l['net_ht_after_line'] / $subtotalHt), 2);
         }
+
+        // ✅ Safety clamp (rounding edge cases)
+        $alloc = max(0, min($alloc, round($l['net_ht_after_line'], 2)));
+
         $running += $alloc;
         $allocations[$l['id']] = $alloc;
     }
@@ -1397,5 +1489,6 @@ private function recomputeInvoiceTotalsWithDiscounts(Invoice $invoice, array $it
         'total_amount_with_tax' => round($totalHt + $totalTax, 2),
     ]);
 }
+
 
 }

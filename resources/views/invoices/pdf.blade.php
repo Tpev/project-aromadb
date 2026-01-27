@@ -25,6 +25,48 @@
 
         // Remise globale
         $globalDiscountHt = (float) ($invoice->global_discount_amount_ht ?? 0);
+
+        // Client / Corporate
+        $cp = $invoice->clientProfile;
+
+        $corp = $invoice->corporateClient ?? null;
+        if (!$corp && !empty($invoice->corporate_client_id)) {
+            $corp = \App\Models\CorporateClient::where('id', $invoice->corporate_client_id)->first();
+        }
+        $isCorporate = (bool) $corp;
+
+        // Company display (for corporate: corp itself; else client company relation if exists)
+        $company = $isCorporate ? $corp : ($cp?->company ?? null);
+
+        $billingFirst = $isCorporate
+            ? ($corp->main_contact_first_name ?? '')
+            : ($cp?->first_name_billing ?: ($cp?->first_name ?? ''));
+
+        $billingLast  = $isCorporate
+            ? ($corp->main_contact_last_name ?? '')
+            : ($cp?->last_name_billing ?: ($cp?->last_name ?? ''));
+
+        $billingAddress = $isCorporate
+            ? ($corp->billing_address ?? null)
+            : ($cp?->billing_address ?? ($cp?->address ?? null));
+
+        $billingZip = $isCorporate
+            ? ($corp->billing_zip ?? null)
+            : ($cp?->billing_zip ?? ($cp?->zip ?? null));
+
+        $billingCity = $isCorporate
+            ? ($corp->billing_city ?? null)
+            : ($cp?->billing_city ?? ($cp?->city ?? null));
+
+        $billingEmail = $isCorporate
+            ? ($corp->billing_email ?: ($corp->main_contact_email ?? null))
+            : ($cp?->email ?? null);
+
+        $billingPhone = $isCorporate
+            ? (($corp->billing_phone ?? null) ?: ($corp->main_contact_phone ?? null))
+            : ($cp?->phone ?? null);
+
+        $billingContactName = trim(($billingFirst . ' ' . $billingLast));
     @endphp
 
     <style>
@@ -44,18 +86,8 @@
         .header-logo-cell { width: 48%; }
         .header-meta-cell { width: 52%; text-align: right; }
 
-		.logo-box {
-			width: 360px;
-			height: 300px;
-		}
-
-		.logo-box img {
-			max-width: 100%;
-			max-height: 100%;
-			width: auto;
-			height: auto;
-		}
-
+        .logo-box { width: 360px; height: 300px; }
+        .logo-box img { max-width: 100%; max-height: 100%; width: auto; height: auto; }
 
         /* Badge meta (top-right) */
         .meta-badge {
@@ -203,46 +235,6 @@
     <div class="header-sep"></div>
 
     {{-- EMETTEUR + CLIENT (CARDS) --}}
-    @php
-        $cp = $invoice->clientProfile;
-
-        $corp = $invoice->corporateClient ?? null;
-        if (!$corp && !empty($invoice->corporate_client_id)) {
-            $corp = \App\Models\CorporateClient::where('id', $invoice->corporate_client_id)->first();
-        }
-        $isCorporate = (bool) $corp;
-
-        $company = $isCorporate ? $corp : ($cp?->company ?? null);
-
-        $billingFirst = $isCorporate
-            ? ($corp->main_contact_first_name ?? '')
-            : ($cp?->first_name_billing ?: ($cp?->first_name ?? ''));
-
-        $billingLast  = $isCorporate
-            ? ($corp->main_contact_last_name ?? '')
-            : ($cp?->last_name_billing ?: ($cp?->last_name ?? ''));
-
-        $billingAddress = $isCorporate
-            ? ($corp->billing_address ?? null)
-            : ($cp?->billing_address ?? ($cp?->address ?? null));
-
-        $billingZip = $isCorporate
-            ? ($corp->billing_zip ?? null)
-            : ($cp?->billing_zip ?? ($cp?->zip ?? null));
-
-        $billingCity = $isCorporate
-            ? ($corp->billing_city ?? null)
-            : ($cp?->billing_city ?? ($cp?->city ?? null));
-
-        $billingEmail = $isCorporate
-            ? ($corp->billing_email ?: ($corp->main_contact_email ?? null))
-            : ($cp?->email ?? null);
-
-        $billingPhone = $isCorporate
-            ? (($corp->billing_phone ?? null) ?: ($corp->main_contact_phone ?? null))
-            : ($cp?->phone ?? null);
-    @endphp
-
     <table class="row-table">
         <tr>
             <td style="padding-right:8px;">
@@ -258,11 +250,18 @@
                 <div class="card">
                     <div class="card-title">CLIENT</div>
 
-                    @if($company)
+                    @if($isCorporate)
+                        <p><strong>{{ $corp->trade_name ?: ($corp->name ?? 'Entreprise') }}</strong></p>
+                        @if($billingContactName !== '')
+                            <p>À l’attention de {{ $billingContactName }}</p>
+                        @endif
+                    @elseif($company)
                         <p><strong>{{ $company->name }}</strong></p>
-                        <p>À l’attention de {{ trim($billingFirst . ' ' . $billingLast) }}</p>
+                        @if($billingContactName !== '')
+                            <p>À l’attention de {{ $billingContactName }}</p>
+                        @endif
                     @else
-                        <p><strong>{{ trim($billingFirst . ' ' . $billingLast) }}</strong></p>
+                        <p><strong>{{ $billingContactName !== '' ? $billingContactName : '—' }}</strong></p>
                     @endif
 
                     @if($billingAddress)<p>{{ $billingAddress }}</p>@endif
@@ -290,42 +289,67 @@
         </tr>
         </thead>
         <tbody>
-@foreach($invoice->items as $item)
-    @php
-        $name = $item->description;
+        @foreach($invoice->items as $item)
+            @php
+                // --- Determine display name + description ---
+                $displayName = '—';
+                $description = trim((string) ($item->description ?? ''));
 
-        if ($item->type === 'product' && $item->product) {
-            $name = $item->product->name;
-        } elseif ($item->type === 'inventory' && $item->inventoryItem) {
-            $name = $item->inventoryItem->name;
-        }
+                if ($item->type === 'product' && $item->product) {
+                    $displayName = $item->product->name;
+                    // description is optional and should never duplicate the product name
+                } elseif ($item->type === 'inventory' && $item->inventoryItem) {
+                    $displayName = $item->inventoryItem->name;
+                } else {
+                    // ✅ CUSTOM: use label as primary
+                    $displayName = trim((string) ($item->label ?? ''));
 
-        $description = trim((string) $item->description);
+                    // Backward compatibility: old rows may have "Nom — Description" inside description
+                    if ($displayName === '' && $description !== '') {
+                        if (str_contains($description, ' — ')) {
+                            [$left, $right] = array_map('trim', explode(' — ', $description, 2));
+                            if ($left !== '' && $right !== '') {
+                                $displayName = $left;
+                                $description = $right;
+                            }
+                        } elseif (str_contains($description, ' - ')) {
+                            [$left, $right] = array_map('trim', explode(' - ', $description, 2));
+                            if ($left !== '' && $right !== '') {
+                                $displayName = $left;
+                                $description = $right;
+                            }
+                        }
+                    }
 
-        $lineDiscount = (float) ($item->line_discount_amount_ht ?? 0);
-        $globalDiscountOnLine = (float) ($item->global_discount_amount_ht ?? 0);
-        $discountHt = $lineDiscount + $globalDiscountOnLine;
-    @endphp
+                    if ($displayName === '') {
+                        // last fallback: if only description exists, show it as name and blank description
+                        if ($description !== '') {
+                            $displayName = $description;
+                            $description = '';
+                        } else {
+                            $displayName = '—';
+                        }
+                    }
+                }
 
-    <tr>
-        {{-- Nom --}}
-        <td>{{ $name }}</td>
+                $lineDiscount = (float) ($item->line_discount_amount_ht ?? 0);
+                $globalDiscountOnLine = (float) ($item->global_discount_amount_ht ?? 0);
+                $discountHt = $lineDiscount + $globalDiscountOnLine;
+            @endphp
 
-        {{-- Description (avoid duplication) --}}
-        <td>
-            {{ ($description !== '' && $description !== $name) ? $description : '—' }}
-        </td>
+            <tr>
+                <td>{{ $displayName }}</td>
+                <td>{{ $description !== '' ? $description : '—' }}</td>
 
-        <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
-        <td class="num">{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
-        <td class="num">{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>
-        <td class="num">{{ $discountHt > 0 ? number_format($discountHt, 2, ',', ' ') . ' €' : '—' }}</td>
-        <td class="num">{{ number_format((float)$item->total_price, 2, ',', ' ') }} €</td>
-        <td class="num">{{ number_format((float)$item->tax_amount, 2, ',', ' ') }} €</td>
-        <td class="num">{{ number_format((float)$item->total_price_with_tax, 2, ',', ' ') }} €</td>
-    </tr>
-@endforeach
-
+                <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
+                <td class="num">{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
+                <td class="num">{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>
+                <td class="num">{{ $discountHt > 0 ? number_format($discountHt, 2, ',', ' ') . ' €' : '—' }}</td>
+                <td class="num">{{ number_format((float)$item->total_price, 2, ',', ' ') }} €</td>
+                <td class="num">{{ number_format((float)$item->tax_amount, 2, ',', ' ') }} €</td>
+                <td class="num">{{ number_format((float)$item->total_price_with_tax, 2, ',', ' ') }} €</td>
+            </tr>
+        @endforeach
         </tbody>
     </table>
 

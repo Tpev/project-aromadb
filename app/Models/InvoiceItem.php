@@ -23,6 +23,7 @@ class InvoiceItem extends Model
         'line_discount_amount_ht',
         'global_discount_amount_ht',
         'total_price_before_discount',
+		'label',
     ];
 
     public function product()
@@ -35,14 +36,14 @@ class InvoiceItem extends Model
         return $this->belongsTo(InventoryItem::class);
     }
 
-    public function getNameAttribute()
-    {
-        return match ($this->type) {
-            'product' => $this->product?->name ?? '(Produit inconnu)',
-            'inventory' => $this->inventoryItem?->name ?? '(Item inventaire inconnu)',
-            default => $this->description ?? '(Sans nom)',
-        };
-    }
+public function getNameAttribute()
+{
+    return match ($this->type) {
+        'product' => $this->product?->name ?? '(Produit inconnu)',
+        'inventory' => $this->inventoryItem?->name ?? '(Item inventaire inconnu)',
+        default => $this->label ?: ($this->description ?? '(Sans nom)'),
+    };
+}
 
     public function getVatRateAttribute()
     {

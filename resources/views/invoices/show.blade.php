@@ -264,47 +264,67 @@
                                         <th style="width:10%">{{ __('Total TTC (€)') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-									@foreach($invoice->items as $item)
-										@php
-											$name = null;
+<tbody>
+@foreach($invoice->items as $item)
+    @php
+        // --- Determine "Produit" (left column) and "Description" (right column)
+        $produit = '';
+        $description = trim((string) ($item->description ?? ''));
 
-											if ($item->type === 'product' && $item->product) {
-												$name = $item->product->name;
-											} elseif ($item->type === 'inventory' && $item->inventoryItem) {
-												$name = $item->inventoryItem->name;
-											} else {
-												$name = $item->description;
-											}
+        if ($item->type === 'product' && $item->product) {
+            $produit = $item->product->name;
+        } elseif ($item->type === 'inventory' && $item->inventoryItem) {
+            $produit = $item->inventoryItem->name;
+        } else {
+            // ✅ CUSTOM
+            $produit = trim((string) ($item->label ?? ''));
 
-											$description = trim((string) $item->description);
-										@endphp
+            // Backward compatibility: old rows may have "Nom — Description" inside description
+            if ($produit === '' && $description !== '') {
+                if (str_contains($description, ' — ')) {
+                    [$left, $right] = array_map('trim', explode(' — ', $description, 2));
+                    if ($left !== '' && $right !== '') {
+                        $produit = $left;
+                        $description = $right;
+                    }
+                } elseif (str_contains($description, ' - ')) {
+                    [$left, $right] = array_map('trim', explode(' - ', $description, 2));
+                    if ($left !== '' && $right !== '') {
+                        $produit = $left;
+                        $description = $right;
+                    }
+                }
+            }
 
-										<tr>
-											{{-- Nom --}}
-											<td>{{ $name }}</td>
+            // Final fallback (if everything is empty)
+            if ($produit === '') {
+                $produit = '—';
+            }
+        }
 
-											{{-- Description --}}
-											<td>
-												{{ ($description !== '' && $description !== $name) ? $description : '—' }}
-											</td>
+        $remise_ht = (float)($item->line_discount_amount_ht ?? 0) + (float)($item->global_discount_amount_ht ?? 0);
+    @endphp
 
-											<td>{{ $item->quantity }}</td>
-											<td>{{ number_format($item->unit_price * (1 + $item->tax_rate / 100), 2, ',', ' ') }} €</td>
-											<td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+    <tr>
+        {{-- Produit --}}
+        <td>{{ $produit }}</td>
 
-											@php
-												$remise_ht = (float)($item->line_discount_amount_ht ?? 0)
-														   + (float)($item->global_discount_amount_ht ?? 0);
-											@endphp
+        {{-- Description --}}
+        <td>{{ $description !== '' ? $description : '—' }}</td>
 
-											<td>{{ $remise_ht > 0 ? number_format($remise_ht, 2, ',', ' ') . ' €' : '—' }}</td>
-											<td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
-											<td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
-											<td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
-										</tr>
-									@endforeach
-                                </tbody>
+        <td>{{ $item->quantity }}</td>
+        <td>{{ number_format($item->unit_price * (1 + $item->tax_rate / 100), 2, ',', ' ') }} €</td>
+        <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+
+        <td>{{ $remise_ht > 0 ? number_format($remise_ht, 2, ',', ' ') . ' €' : '—' }}</td>
+        <td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
+        <td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
+        <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
+    </tr>
+@endforeach
+</tbody>
+
+
                             </table>
                         </div>
 

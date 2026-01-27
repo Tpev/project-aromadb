@@ -539,63 +539,71 @@
             const idx = itemIndex++;
             const row = document.createElement('tr');
 
-            row.innerHTML = `
-                <td class="am-td am-td--type">
-                    <span class="am-pill am-pill--alt">Libre</span>
-                    <input type="hidden" name="items[${idx}][type]" value="custom">
-                </td>
+row.innerHTML = `
+    <td class="am-td am-td--type">
+        <span class="am-pill am-pill--alt">Libre</span>
+        <input type="hidden" name="items[${idx}][type]" value="custom">
+    </td>
 
-                <td class="am-td am-td--product">
-                    <input type="hidden" name="items[${idx}][product_id]" value="">
-                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
-                    <input type="text" class="am-input custom-name" placeholder="Ex: Consultation, Atelier, Prestation…" oninput="recomputeAllTotals()">
-                </td>
+    <td class="am-td am-td--product">
+        <input type="hidden" name="items[${idx}][product_id]" value="">
+        <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+        <input type="text"
+               name="items[${idx}][label]"
+               class="am-input custom-name"
+               placeholder="Ex: Consultation, Atelier, Prestation…"
+               oninput="recomputeAllTotals()">
+    </td>
 
-                <td class="am-td am-td--desc">
-                    <input type="text" class="am-input custom-details" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
-                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
-                </td>
+    <td class="am-td am-td--desc">
+        <input type="text"
+               name="items[${idx}][description]"
+               class="am-input custom-details"
+               placeholder="{{ __('Détails (optionnel)') }}"
+               oninput="recomputeAllTotals()">
+    </td>
 
-                <td class="am-td am-td--qty">
-                    <input type="number" step="0.01" min="0.01" name="items[${idx}][quantity]" class="am-input am-num"
-                           value="1" inputmode="decimal" oninput="recomputeAllTotals()">
-                </td>
+    <td class="am-td am-td--qty">
+        <input type="number" step="0.01" min="0.01" name="items[${idx}][quantity]" class="am-input am-num"
+               value="1" inputmode="decimal" oninput="recomputeAllTotals()">
+    </td>
 
-                <td class="am-td am-td--unit">
-                    <input type="number" step="0.01" min="0" name="items[${idx}][unit_price]" class="am-input unit-price am-num"
-                           value="0.00" inputmode="decimal" oninput="recomputeAllTotals()">
-                </td>
+    <td class="am-td am-td--unit">
+        <input type="number" step="0.01" min="0" name="items[${idx}][unit_price]" class="am-input unit-price am-num"
+               value="0.00" inputmode="decimal" oninput="recomputeAllTotals()">
+    </td>
 
-                <td class="am-td am-td--tax">
-                    <input type="number" step="0.01" min="0" name="items[${idx}][tax_rate]" class="am-input tax-rate am-num"
-                           value="0.00" inputmode="decimal" oninput="recomputeAllTotals()">
-                </td>
+    <td class="am-td am-td--tax">
+        <input type="number" step="0.01" min="0" name="items[${idx}][tax_rate]" class="am-input tax-rate am-num"
+               value="0.00" inputmode="decimal" oninput="recomputeAllTotals()">
+    </td>
 
-                <td class="am-td am-td--discType">
-                    <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
-                        <option value="">—</option>
-                        <option value="percent">%</option>
-                        <option value="amount">€</option>
-                    </select>
-                </td>
+    <td class="am-td am-td--discType">
+        <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
+            <option value="">—</option>
+            <option value="percent">%</option>
+            <option value="amount">€</option>
+        </select>
+    </td>
 
-                <td class="am-td am-td--discVal">
-                    <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="am-input line-discount-value am-num"
-                           value="" inputmode="decimal" oninput="recomputeAllTotals()">
-                </td>
+    <td class="am-td am-td--discVal">
+        <input type="number" step="0.01" min="0" name="items[${idx}][line_discount_value]" class="am-input line-discount-value am-num"
+               value="" inputmode="decimal" oninput="recomputeAllTotals()">
+    </td>
 
-                <td class="am-td am-td--taxAmt">
-                    <input type="number" class="am-input tax-amt am-num am-readonly" readonly value="0.00">
-                </td>
+    <td class="am-td am-td--taxAmt">
+        <input type="number" class="am-input tax-amt am-num am-readonly" readonly value="0.00">
+    </td>
 
-                <td class="am-td am-td--totalTtc">
-                    <input type="number" class="am-input total-ttc am-num am-readonly" readonly value="0.00">
-                </td>
+    <td class="am-td am-td--totalTtc">
+        <input type="number" class="am-input total-ttc am-num am-readonly" readonly value="0.00">
+    </td>
 
-                <td class="am-td am-td--act">
-                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
-                </td>
-            `;
+    <td class="am-td am-td--act">
+        <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeItem(this)" aria-label="{{ __('Supprimer') }}">×</button>
+    </td>
+`;
+
 
             table.appendChild(row);
             recomputeAllTotals();
