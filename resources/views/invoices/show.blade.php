@@ -265,28 +265,45 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                @foreach($invoice->items as $item)
-                                    <tr>
-                                        <td>
-                                            @if($item->type === 'product' && $item->product)
-                                                {{ $item->product->name }}
-                                            @elseif($item->type === 'inventory' && $item->inventoryItem)
-                                                {{ $item->inventoryItem->name }}
-                                            @else
-                                                {{ $item->description }}
-                                            @endif
-                                        </td>
-                                        <td>{{ $item->description }}</td>
-                                        <td>{{ $item->quantity }}</td>
-                                        <td>{{ number_format($item->unit_price * (1 + $item->tax_rate / 100), 2, ',', ' ') }} €</td>
-                                        <td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
-                                        @php $remise_ht = (float)($item->line_discount_amount_ht ?? 0) + (float)($item->global_discount_amount_ht ?? 0); @endphp
-                                        <td>{{ $remise_ht > 0 ? number_format($remise_ht, 2, ',', ' ') . ' €' : '—' }}</td>
-                                        <td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
-                                        <td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
-                                        <td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
-                                    </tr>
-                                @endforeach
+									@foreach($invoice->items as $item)
+										@php
+											$name = null;
+
+											if ($item->type === 'product' && $item->product) {
+												$name = $item->product->name;
+											} elseif ($item->type === 'inventory' && $item->inventoryItem) {
+												$name = $item->inventoryItem->name;
+											} else {
+												$name = $item->description;
+											}
+
+											$description = trim((string) $item->description);
+										@endphp
+
+										<tr>
+											{{-- Nom --}}
+											<td>{{ $name }}</td>
+
+											{{-- Description --}}
+											<td>
+												{{ ($description !== '' && $description !== $name) ? $description : '—' }}
+											</td>
+
+											<td>{{ $item->quantity }}</td>
+											<td>{{ number_format($item->unit_price * (1 + $item->tax_rate / 100), 2, ',', ' ') }} €</td>
+											<td>{{ number_format($item->tax_rate, 2, ',', ' ') }}%</td>
+
+											@php
+												$remise_ht = (float)($item->line_discount_amount_ht ?? 0)
+														   + (float)($item->global_discount_amount_ht ?? 0);
+											@endphp
+
+											<td>{{ $remise_ht > 0 ? number_format($remise_ht, 2, ',', ' ') . ' €' : '—' }}</td>
+											<td>{{ number_format($item->total_price, 2, ',', ' ') }} €</td>
+											<td>{{ number_format($item->tax_amount, 2, ',', ' ') }} €</td>
+											<td>{{ number_format($item->total_price_with_tax, 2, ',', ' ') }} €</td>
+										</tr>
+									@endforeach
                                 </tbody>
                             </table>
                         </div>

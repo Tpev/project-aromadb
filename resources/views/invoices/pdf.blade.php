@@ -290,28 +290,42 @@
         </tr>
         </thead>
         <tbody>
-        @foreach($invoice->items as $item)
-            @php
-                $name = $item->description;
-                if($item->type === 'product' && $item->product) $name = $item->product->name;
-                if($item->type === 'inventory' && $item->inventoryItem) $name = $item->inventoryItem->name;
+@foreach($invoice->items as $item)
+    @php
+        $name = $item->description;
 
-                $lineDiscount = (float) ($item->line_discount_amount_ht ?? 0);
-                $globalDiscountOnLine = (float) ($item->global_discount_amount_ht ?? 0);
-                $discountHt = $lineDiscount + $globalDiscountOnLine;
-            @endphp
-            <tr>
-                <td>{{ $name }}</td>
-                <td>{{ $item->description }}</td>
-                <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
-                <td class="num">{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
-                <td class="num">{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>
-                <td class="num">{{ number_format($discountHt, 2, ',', ' ') }} €</td>
-                <td class="num">{{ number_format((float)$item->total_price, 2, ',', ' ') }} €</td>
-                <td class="num">{{ number_format((float)$item->tax_amount, 2, ',', ' ') }} €</td>
-                <td class="num">{{ number_format((float)$item->total_price_with_tax, 2, ',', ' ') }} €</td>
-            </tr>
-        @endforeach
+        if ($item->type === 'product' && $item->product) {
+            $name = $item->product->name;
+        } elseif ($item->type === 'inventory' && $item->inventoryItem) {
+            $name = $item->inventoryItem->name;
+        }
+
+        $description = trim((string) $item->description);
+
+        $lineDiscount = (float) ($item->line_discount_amount_ht ?? 0);
+        $globalDiscountOnLine = (float) ($item->global_discount_amount_ht ?? 0);
+        $discountHt = $lineDiscount + $globalDiscountOnLine;
+    @endphp
+
+    <tr>
+        {{-- Nom --}}
+        <td>{{ $name }}</td>
+
+        {{-- Description (avoid duplication) --}}
+        <td>
+            {{ ($description !== '' && $description !== $name) ? $description : '—' }}
+        </td>
+
+        <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
+        <td class="num">{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
+        <td class="num">{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>
+        <td class="num">{{ $discountHt > 0 ? number_format($discountHt, 2, ',', ' ') . ' €' : '—' }}</td>
+        <td class="num">{{ number_format((float)$item->total_price, 2, ',', ' ') }} €</td>
+        <td class="num">{{ number_format((float)$item->tax_amount, 2, ',', ' ') }} €</td>
+        <td class="num">{{ number_format((float)$item->total_price_with_tax, 2, ',', ' ') }} €</td>
+    </tr>
+@endforeach
+
         </tbody>
     </table>
 
