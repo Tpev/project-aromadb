@@ -29,21 +29,45 @@
         }
     }
 
-    // Therapist bits (can be null)
-    $therapist = $therapist ?? null;
-    $therapistPublicUrl = $therapistPublicUrl ?? null;
+// Therapist bits (can be null)
+$therapist = $therapist ?? null;
+$therapistPublicUrl = $therapistPublicUrl ?? null;
 
-    if ($therapist) {
-        $therapistName = $therapist->company_name ?: $therapist->name;
-        $therapistInit = mb_strtoupper(mb_substr($therapistName, 0, 1));
-        $therapistCity = $therapist->city_setByAdmin ?? $therapist->city ?? null;
+$therapistName = null;
+$therapistInit = null;
+$therapistCity = null;
+$buyUrl        = null;
 
-        // BUY URL (no named route to avoid RouteNotFoundException)
-        // Make sure to define a route that matches this URL.
-        $buyUrl = url('/pro/' . $therapist->slug . '/trainings/' . $training->id . '/checkout');
-    } else {
-        $buyUrl = null;
+if ($therapist) {
+    $therapistName = $therapist->company_name ?: $therapist->name;
+    $therapistInit = mb_strtoupper(mb_substr($therapistName, 0, 1));
+    $therapistCity = $therapist->city_setByAdmin ?? $therapist->city ?? null;
+
+    // Checkout route is /pro/{slug}/packs/{pack}/checkout
+    // Trainings are selected via ?item=training:{id}
+    $packId = null;
+
+    if (\Illuminate\Support\Facades\Schema::hasTable('pack_products')) {
+        $packId = \Illuminate\Support\Facades\DB::table('pack_products')
+            ->where('user_id', $therapist->id)
+            ->orderBy('id')
+            ->value('id');
+    } elseif (\Illuminate\Support\Facades\Schema::hasTable('packs')) {
+        $packId = \Illuminate\Support\Facades\DB::table('packs')
+            ->where('user_id', $therapist->id)
+            ->orderBy('id')
+            ->value('id');
     }
+
+    if ($packId) {
+        $buyUrl = route('packs.checkout.show', [
+            'slug' => $therapist->slug,
+            'pack' => $packId,
+        ]) . '?item=' . urlencode('training:' . $training->id);
+    }
+}
+
+
 
     // Modules (for “plan de formation”)
     $modules = $training->modules ?? collect();
