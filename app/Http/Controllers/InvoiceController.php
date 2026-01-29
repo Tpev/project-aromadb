@@ -214,6 +214,21 @@ public function store(Request $request)
     });
 
     $validatedData = $validator->validate();
+	// ✅ Force a non-null description for DB constraint
+	$validatedData['items'] = array_map(function ($item) {
+		$desc = trim((string)($item['description'] ?? ''));
+
+		// If empty => push "-"
+		$item['description'] = ($desc !== '') ? $desc : '-';
+
+		// (optional) also normalize label if you want
+		if (array_key_exists('label', $item)) {
+			$label = trim((string)($item['label'] ?? ''));
+			$item['label'] = ($label !== '') ? $label : null;
+		}
+
+		return $item;
+	}, $validatedData['items'] ?? []);
 
     $invoice = DB::transaction(function () use ($validatedData) {
         $lastInvoice = Invoice::where('user_id', Auth::id())
@@ -387,6 +402,21 @@ public function update(Request $request, Invoice $invoice)
     });
 
     $validatedData = $validator->validate();
+	// ✅ Force a non-null description for DB constraint
+	$validatedData['items'] = array_map(function ($item) {
+		$desc = trim((string)($item['description'] ?? ''));
+
+		// If empty => push "-"
+		$item['description'] = ($desc !== '') ? $desc : '-';
+
+		// (optional) also normalize label if you want
+		if (array_key_exists('label', $item)) {
+			$label = trim((string)($item['label'] ?? ''));
+			$item['label'] = ($label !== '') ? $label : null;
+		}
+
+		return $item;
+	}, $validatedData['items'] ?? []);
 
     DB::transaction(function () use ($validatedData, $invoice) {
         $invoice->update([
