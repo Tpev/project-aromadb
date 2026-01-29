@@ -152,6 +152,23 @@
         table.items td.num, table.items th.num { text-align: right; }
         table.items tbody tr:nth-child(even) { background: #fafafa; }
 
+        /* Text wrapping for long labels/descriptions (keep money on one line) */
+        table.items td.text, table.items th.text {
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.35;
+        }
+
+        /* Keep all numeric/money values on ONE line (prevents lonely € on next line) */
+        table.items td.num, table.items th.num {
+            white-space: nowrap;
+        }
+        .money {
+            display: inline-block;
+            white-space: nowrap;
+        }
+
         /* Totals box */
         .totals-wrap { margin-top: 10px; width: 100%; }
         .totals-table {
@@ -165,7 +182,7 @@
             border: 1px solid #e5e5e5;
         }
         .totals-table td.label { background: #f7f7f7; color: #555; }
-        .totals-table td.val { text-align: right; font-weight: 600; background: #fff; }
+        .totals-table td.val { text-align: right; font-weight: 600; background: #fff; white-space: nowrap; }
         .totals-table tr.total-ttc td {
             font-weight: 800;
             border-top: 2px solid {{ $brandColor }};
@@ -277,8 +294,8 @@
     <table class="items">
         <thead>
         <tr>
-            <th>Nom</th>
-            <th>Description</th>
+            <th class="text">Nom</th>
+            <th class="text">Description</th>
             <th class="num">Qté</th>
             <th class="num">P.U. HT</th>
             <th class="num">TVA</th>
@@ -338,16 +355,16 @@
             @endphp
 
             <tr>
-                <td>{{ $displayName }}</td>
-                <td>{{ $description !== '' ? $description : '—' }}</td>
+                <td class="text">{{ $displayName }}</td>
+                <td class="text">{{ $description !== '' ? $description : '—' }}</td>
 
                 <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
-                <td class="num">{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
+                <td class="num"><span class="money">{{ number_format((float)$item->unit_price, 2, ',', ' ') }}&nbsp;€</span></td>
                 <td class="num">{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>
-                <td class="num">{{ $discountHt > 0 ? number_format($discountHt, 2, ',', ' ') . ' €' : '—' }}</td>
-                <td class="num">{{ number_format((float)$item->total_price, 2, ',', ' ') }} €</td>
-                <td class="num">{{ number_format((float)$item->tax_amount, 2, ',', ' ') }} €</td>
-                <td class="num">{{ number_format((float)$item->total_price_with_tax, 2, ',', ' ') }} €</td>
+                <td class="num">{!! $discountHt > 0 ? '<span class="money">'.e(number_format($discountHt, 2, ',', ' ')).'&nbsp;€</span>' : '—' !!}</td>
+                <td class="num"><span class="money">{{ number_format((float)$item->total_price, 2, ',', ' ') }}&nbsp;€</span></td>
+                <td class="num"><span class="money">{{ number_format((float)$item->tax_amount, 2, ',', ' ') }}&nbsp;€</span></td>
+                <td class="num"><span class="money">{{ number_format((float)$item->total_price_with_tax, 2, ',', ' ') }}&nbsp;€</span></td>
             </tr>
         @endforeach
         </tbody>
@@ -359,20 +376,20 @@
             @if($globalDiscountHt > 0)
                 <tr>
                     <td class="label">Remise globale HT</td>
-                    <td class="val">-{{ number_format($globalDiscountHt, 2, ',', ' ') }} €</td>
+                    <td class="val"><span class="money">-{{ number_format($globalDiscountHt, 2, ',', ' ') }}&nbsp;€</span></td>
                 </tr>
             @endif
             <tr>
                 <td class="label">Total HT</td>
-                <td class="val">{{ number_format((float)$invoice->total_amount, 2, ',', ' ') }} €</td>
+                <td class="val"><span class="money">{{ number_format((float)$invoice->total_amount, 2, ',', ' ') }}&nbsp;€</span></td>
             </tr>
             <tr>
                 <td class="label">Total TVA</td>
-                <td class="val">{{ number_format((float)$invoice->total_tax_amount, 2, ',', ' ') }} €</td>
+                <td class="val"><span class="money">{{ number_format((float)$invoice->total_tax_amount, 2, ',', ' ') }}&nbsp;€</span></td>
             </tr>
             <tr class="total-ttc">
                 <td class="label">Total TTC</td>
-                <td class="val">{{ number_format((float)$invoice->total_amount_with_tax, 2, ',', ' ') }} €</td>
+                <td class="val"><span class="money">{{ number_format((float)$invoice->total_amount_with_tax, 2, ',', ' ') }}&nbsp;€</span></td>
             </tr>
         </table>
     </div>
