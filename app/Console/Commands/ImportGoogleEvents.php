@@ -13,7 +13,7 @@ use Spatie\GoogleCalendar\Event;
 class ImportGoogleEvents extends Command
 {
     protected $signature   = 'google:import-events';
-    protected $description = 'Synchronise Google Agenda → appointments (create, delete)';
+    protected $description = 'Synchronise Google Agenda → appointments (create, update, delete)';
 
     public function handle(): int
     {
@@ -53,34 +53,62 @@ class ImportGoogleEvents extends Command
         $stillThere = [];
 
         foreach ($events as $ev) {
-            // a)  écarter nos propres slots poussés ([AromaMade])
+            // Toujours noter l'ID comme "présent côté Google"
+            $stillThere[] = $ev->id;
+
+            // a) écarter nos propres slots poussés ([AromaMade])
             if (str_contains($ev->description ?? '', '[AromaMade]')) {
-                $stillThere[] = $ev->id;          // on l’ignore mais on note l’ID
                 continue;
             }
 
-            // b) déjà importé ?
-            $exists = Appointment::where('google_event_id', $ev->id)->first();
+            $newStart    = $this->parseDate($ev->startDateTime ?? $ev->startDate);
+            $newDuration = $this->durationMinutes($ev);
+            $newNotes    = $ev->summary ?? null;
+
+            // b) déjà importé ? => UPDATE si nécessaire
+            $exists = Appointment::query()
+                ->where('user_id', $user->id)
+                ->where('google_event_id', $ev->id)
+                ->where('external', true)
+                ->first();
+
             if ($exists) {
-                $stillThere[] = $ev->id;          // il existe toujours côté Google
-                continue;                          // => rien à faire
+                // Compare proprement (minute-level, car DB peut tronquer les secondes)
+                $currentStart = $exists->appointment_date
+                    ? Carbon::parse($exists->appointment_date)->setTimezone(config('app.timezone', 'Europe/Paris'))
+                    : null;
+
+                $startChanged = !$currentStart || $currentStart->format('Y-m-d H:i') !== $newStart->format('Y-m-d H:i');
+                $durationChanged = (int) $exists->duration !== (int) $newDuration;
+                $notesChanged = (string) ($exists->notes ?? '') !== (string) ($newNotes ?? '');
+
+                if ($startChanged || $durationChanged || $notesChanged) {
+                    $exists->appointment_date = $newStart;
+                    $exists->duration         = $newDuration;
+                    $exists->notes            = $newNotes;
+                    $exists->status           = 'busy';    // on garde le blocage
+                    $exists->type             = 'external';
+                    $exists->external         = true;
+
+                    $exists->save();
+                }
+
+                continue;
             }
 
-            // c) nouveau créneau « Occupé » --------------------
+            // c) nouveau créneau « Occupé » => CREATE
             Appointment::create([
                 'user_id'           => $user->id,
                 'client_profile_id' => null,
-                'appointment_date'  => $this->parseDate($ev->startDateTime ?? $ev->startDate),
-                'duration'          => $this->durationMinutes($ev),
+                'appointment_date'  => $newStart,
+                'duration'          => $newDuration,
                 'status'            => 'busy',
-                'notes'             => $ev->summary,
+                'notes'             => $newNotes,
                 'google_event_id'   => $ev->id,
                 'external'          => true,
                 'type'              => 'external',
                 'token'             => Str::random(64),
             ]);
-
-            $stillThere[] = $ev->id;              // ajouté à la liste présente
         }
 
         /* ---------- 3. Supprimer les créneaux disparus ---------- */
@@ -98,7 +126,6 @@ class ImportGoogleEvents extends Command
     /* --------------------------------------------------------------------- */
     private function durationMinutes(Event $ev): int
     {
-        // startDate / startDateTime sont déjà des Carbon (Spatie 3.x)
         $start = $this->parseDate($ev->startDateTime ?? $ev->startDate);
         $end   = $this->parseDate($ev->endDateTime   ?? $ev->endDate);
 
@@ -107,8 +134,6 @@ class ImportGoogleEvents extends Command
 
     private function parseDate($googleDate): Carbon
     {
-        // • $googleDate peut être un Carbon, DateTime ou string RFC3339
-        // • On force dans le timezone applicatif (config/app.php - « timezone »)
         return Carbon::parse($googleDate)->setTimezone(config('app.timezone', 'Europe/Paris'));
     }
 }

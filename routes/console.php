@@ -42,5 +42,5 @@ Schedule::command(UpdateLicenseStatus::class)->daily();
 
 //  import Google toutes les 10 min  
 Schedule::command(ImportGoogleEvents::class)
-        ->everyTenMinutes()
-        ->withoutOverlapping();
+		->everyFiveMinutes()
+		->withoutOverlapping(20);

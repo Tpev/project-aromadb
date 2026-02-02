@@ -5,6 +5,10 @@
         </h2>
     </x-slot>
 
+
+    {{-- Select2 (searchable dropdown) --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     @php
         // Support param ?client_profile_id=... or ?corporate_client_id=... or ?company_id=...
         $selectedClientId = old('client_profile_id', request('client_profile_id'));
@@ -52,9 +56,9 @@
                         <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
                         <select id="client_profile_id" name="client_profile_id" class="am-input">
                             <option value="">{{ __('Sélectionnez un client') }}</option>
-                            @foreach($clients as $c)
+                            @foreach(($clients ?? collect())->sortBy(fn($c) => mb_strtolower(trim(($c->last_name ?? '').' '.($c->first_name ?? '')))) as $c)
                                 <option value="{{ $c->id }}" {{ (string)$selectedClientId === (string)$c->id ? 'selected' : '' }}>
-                                    {{ $c->first_name }} {{ $c->last_name }}
+                                    {{ $c->last_name }} {{ $c->first_name }}
                                 </option>
                             @endforeach
                         </select>
@@ -65,7 +69,7 @@
                         <label class="am-label" for="corporate_client_id">{{ __('Entreprise') }}</label>
                         <select id="corporate_client_id" name="corporate_client_id" class="am-input">
                             <option value="">{{ __('Sélectionnez une entreprise') }}</option>
-                            @foreach($corporateClients as $cc)
+                            @foreach(($corporateClients ?? collect())->sortBy(fn($cc) => mb_strtolower(trim((($cc->trade_name ?: $cc->name) ?? '')))) as $cc)
                                 <option value="{{ $cc->id }}" {{ (string)$selectedCorporateId === (string)$cc->id ? 'selected' : '' }}>
                                     {{ $cc->trade_name ?: $cc->name }}
                                 </option>
@@ -1001,7 +1005,50 @@
         /* Make number spinners less intrusive on some browsers */
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button { opacity: .6; }
+    
+        /* Select2 styling to match .am-input */
+        .select2-container{ width:100% !important; }
+        .select2-container--default .select2-selection--single{
+            height: 42px;
+            border:1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 6px 8px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered{
+            line-height: 28px;
+            padding-left: 2px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow{
+            height: 40px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__clear{
+            margin-right: 6px;
+        }
+
+
     </style>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                window.jQuery('#client_profile_id').select2({
+                    width: '100%',
+                    placeholder: 'Rechercher un client…',
+                    allowClear: true
+                });
+
+                window.jQuery('#corporate_client_id').select2({
+                    width: '100%',
+                    placeholder: 'Rechercher une entreprise…',
+                    allowClear: true
+                });
+            }
+        });
+    </script>
 
     <script>
         (function () {
@@ -1021,11 +1068,23 @@
 
                 if (clientSel) {
                     clientSel.required = !isCorp;
-                    if (isCorp) clientSel.value = '';
+                    if (isCorp) {
+                        if (window.jQuery && window.jQuery(clientSel).data('select2')) {
+                            window.jQuery(clientSel).val('').trigger('change');
+                        } else {
+                            clientSel.value = '';
+                        }
+                    }
                 }
                 if (corpSel) {
                     corpSel.required = isCorp;
-                    if (!isCorp) corpSel.value = '';
+                    if (!isCorp) {
+                        if (window.jQuery && window.jQuery(corpSel).data('select2')) {
+                            window.jQuery(corpSel).val('').trigger('change');
+                        } else {
+                            corpSel.value = '';
+                        }
+                    }
                 }
             }
 

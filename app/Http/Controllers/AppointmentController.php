@@ -161,8 +161,9 @@ public function store(Request $request)
         'status'            => 'required|string',
         'notes'             => 'nullable|string',
         'product_id'        => 'required|exists:products,id',
-        // 'mode' facultatif (UI) : 'cabinet' | 'visio' | 'domicile'
-        // 'practice_location_id' validé plus bas si nécessaire
+
+        // ✅ new (optional) - only used for therapist override, ignored otherwise
+        'force_availability_override' => 'nullable|boolean',
     ];
 
     // Si création d'un nouveau client
@@ -188,8 +189,19 @@ public function store(Request $request)
     $product  = Product::findOrFail($request->product_id);
     $duration = (int) $product->duration;
 
+    /**
+     * ✅ Mode
+     * Your form sends "type" (cabinet/visio/domicile/entreprise).
+     * Some older flows might send "mode".
+     * We support both WITHOUT breaking anything.
+     */
+    $uiMode = $request->input('mode');
+    if (empty($uiMode)) {
+        $uiMode = $request->input('type'); // <-- your blade uses name="type"
+    }
+
     // Mode (respecte l'UI si fournie, sinon déduction)
-    $mode = $this->resolveMode($product, $request->input('mode'));
+    $mode = $this->resolveMode($product, $uiMode);
 
     // Validation conditionnelle du lieu si cabinet
     $locationId = null;
@@ -241,7 +253,10 @@ public function store(Request $request)
     }
 
     // Datetime
-    $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date.' '.$request->appointment_time);
+    $appointmentDateTime = Carbon::createFromFormat(
+        'Y-m-d H:i',
+        $request->appointment_date.' '.$request->appointment_time
+    );
 
     // Backfill mode: allow therapists to register past appointments without notifications
     $isBackfillRequested = $request->boolean('backfill_past');
@@ -257,10 +272,21 @@ public function store(Request $request)
     $skipAvailability   = $isPastAppointment || $isBackfillRequested;
     $skipNotifications  = $isPastAppointment || $isBackfillRequested;
 
+    /**
+     * ✅ Therapist override: allow bypass for future conflicts/outside dispo
+     * This does NOT affect existing flows unless the form sends force_availability_override=1
+     */
+    $forceOverride = $request->boolean('force_availability_override');
+    if ($forceOverride && (Auth::user()?->is_therapist ?? true)) {
+        // if you don't have is_therapist column reliably here, keep it permissive since this route is therapist-auth.
+        $skipAvailability = true;
+    }
 
     // Vérification disponibilité (passe mode + location)
-    // If therapist is backfilling a past appointment, skip availability checks.
-    if (!$skipAvailability && !$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, null, $locationId, $mode)) {
+    if (
+        !$skipAvailability &&
+        !$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, null, $locationId, $mode)
+    ) {
         return redirect()->back()
             ->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])
             ->withInput();
@@ -276,16 +302,11 @@ public function store(Request $request)
         'product_id'            => $request->product_id,
         'duration'              => $duration,
         'practice_location_id'  => $mode === 'cabinet' ? $locationId : null,
-        // Si ton modèle Appointment a un champ "type" (comme dans storePatient), on le renseigne sans casser:
         'type'                  => $mode,
     ]);
 
     /* ============================================================
        ✅ PACK AUTO-CONSUMPTION (création par le thérapeute)
-       - Si le client a un pack actif non expiré incluant cette prestation
-         avec des crédits restants => on consomme 1 crédit.
-       - Ici il n'y a pas de Stripe dans ce flow, mais ça garde la cohérence.
-       - IMPORTANT: ne casse pas la création même si erreur pack.
        ============================================================ */
     try {
         $now = Carbon::now();
@@ -309,11 +330,6 @@ public function store(Request $request)
 
         if ($packPurchase) {
             $packPurchase->consumeProduct($product->id, 1);
-
-            // Optionnel: tracer dans notes (sans casser)
-            // $appointment->update([
-            //     'notes' => trim(($appointment->notes ?? '') . "\n[Pack] Crédit utilisé (PackPurchase #{$packPurchase->id})"),
-            // ]);
         }
     } catch (\Exception $e) {
         Log::warning('Pack auto-consumption (therapist store) skipped due to error: ' . $e->getMessage());
@@ -337,8 +353,7 @@ public function store(Request $request)
     // Charger relations pour emails
     $appointment->load('clientProfile','user','product');
 
-    // Envoi emails
-    // If therapist is backfilling a past appointment, do NOT send notifications.
+    // Envoi emails (skip if backfill/past)
     if (!$skipNotifications) {
         $therapistEmail = $appointment->user->email;
         $patientEmail   = $appointment->clientProfile->email;
@@ -2217,6 +2232,7 @@ public function getAvailableSlotsForTherapist(Request $request)
         'product_id' => 'required|exists:products,id',
         'mode'       => 'nullable|string|in:cabinet,visio,domicile,entreprise',
         'location_id'=> 'nullable|integer',
+        'include_conflicts' => 'nullable|boolean',
     ]);
 
     // Security: therapist creating for himself only
@@ -2225,7 +2241,7 @@ public function getAvailableSlotsForTherapist(Request $request)
     $product  = Product::findOrFail((int) $request->product_id);
     $duration = (int) ($product->duration ?? 0);
 
-    $mode = $this->resolvePatientMode($product, $request->input('mode')); // reuse ok
+    $mode = $this->resolvePatientMode($product, $request->input('mode'));
     $locationId = null;
 
     if ($mode === 'cabinet') {
@@ -2246,18 +2262,29 @@ public function getAvailableSlotsForTherapist(Request $request)
 
     $date = Carbon::createFromFormat('Y-m-d', $request->date);
 
-    // IMPORTANT: therapist-side slots => no minimum notice
-    $slots = $this->computeSlotsForTherapist($therapistId, $product, $date, $mode, $locationId);
+    // ✅ New: let therapist UI request conflict-annotated slots
+    $includeConflicts = (bool) $request->input('include_conflicts', false);
+
+    $slots = $this->computeSlotsForTherapist(
+        $therapistId,
+        $product,
+        $date,
+        $mode,
+        $locationId,
+        $includeConflicts
+    );
 
     return response()->json(['slots' => $slots]);
 }
+
 
 private function computeSlotsForTherapist(
     int $therapistId,
     \App\Models\Product $product,
     \Carbon\Carbon $date,
     string $mode,
-    ?int $locationId = null
+    ?int $locationId = null,
+    bool $includeConflicts = false
 ): array {
     $duration = (int) ($product->duration ?? 0);
     if ($duration <= 0) return [];
@@ -2268,7 +2295,6 @@ private function computeSlotsForTherapist(
 
     $dayOfWeek0 = $date->dayOfWeekIso - 1;
 
-    // Weekly + Special (same logic as patient, but therapistId is Auth::id())
     $weeklyQuery = Availability::where('user_id', $therapistId)
         ->where('day_of_week', $dayOfWeek0)
         ->where(function ($q) use ($product) {
@@ -2294,13 +2320,11 @@ private function computeSlotsForTherapist(
     $availabilities = $weeklyQuery->get()->concat($specialQuery->get());
     if ($availabilities->isEmpty()) return [];
 
-$existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
-    ->whereDate('appointment_date', $date->format('Y-m-d'));
+    $existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
+        ->whereDate('appointment_date', $date->format('Y-m-d'));
 
-$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
-
-$existingAppointments = $existingAppointmentsQuery->get();
-
+    $existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+    $existingAppointments = $existingAppointmentsQuery->get();
 
     $unavailabilities = Unavailability::where('user_id', $therapistId)
         ->where(function ($q) use ($date) {
@@ -2326,9 +2350,10 @@ $existingAppointments = $existingAppointmentsQuery->get();
                 continue;
             }
 
-            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
+            // Detect overlapping appointment (internal vs external)
+            $overlapAppointment = $existingAppointments->first(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
                 $appointmentStart = Carbon::parse($appointment->appointment_date);
-                $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+                $appointmentEnd   = $appointmentStart->copy()->addMinutes((int) $appointment->duration);
 
                 if ($bufferMinutes > 0) {
                     $appointmentStart = $appointmentStart->copy()->subMinutes($bufferMinutes);
@@ -2344,16 +2369,48 @@ $existingAppointments = $existingAppointmentsQuery->get();
                 return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
             });
 
-            if (!$isBooked && !$isUnavailable) {
-                $slots[] = ['start' => $slotStart->format('H:i'), 'end' => $slotEnd->format('H:i')];
+            if ($includeConflicts) {
+                $conflicts = [];
+                $explanations = [];
+
+                if ($overlapAppointment) {
+                    $isExternal = (bool) ($overlapAppointment->external ?? false);
+                    $conflicts[] = $isExternal ? 'overlap_external' : 'overlap_internal';
+                    $explanations[] = $isExternal
+                        ? 'Conflit avec un agenda externe'
+                        : 'Conflit avec un autre rendez-vous';
+                }
+
+                if ($isUnavailable) {
+                    $conflicts[] = 'temporary_unavailability';
+                    $explanations[] = 'Indisponibilité temporaire';
+                }
+
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end'   => $slotEnd->format('H:i'),
+                    'has_conflict' => !empty($conflicts),
+                    'conflicts' => $conflicts,
+                    'explanations' => $explanations,
+                ];
+            } else {
+                // Original behavior: only return truly free slots
+                if (!$overlapAppointment && !$isUnavailable) {
+                    $slots[] = ['start' => $slotStart->format('H:i'), 'end' => $slotEnd->format('H:i')];
+                }
             }
 
             $availabilityStart->addMinutes(15);
         }
     }
 
-    return collect($slots)->unique(fn($s) => $s['start'].'-'.$s['end'])->sortBy('start')->values()->all();
+    return collect($slots)
+        ->unique(fn($s) => ($s['start'] ?? '').'-'.($s['end'] ?? ''))
+        ->sortBy('start')
+        ->values()
+        ->all();
 }
+
 public function availableConcreteDatesTherapist(Request $request)
 {
     $request->validate([

@@ -5,6 +5,9 @@
         </h2>
     </x-slot>
 
+    {{-- Select2 (searchable dropdown) --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <div class="am-wrap">
         <div class="am-card">
             <div class="am-head">
@@ -53,12 +56,12 @@
 
                         <div id="billToClientWrap">
                             <label class="am-label" for="client_profile_id">{{ __('Client') }}</label>
-                            <select id="client_profile_id" name="client_profile_id" class="am-input">
+                            <select id="client_profile_id" name="client_profile_id" class="am-input js-client-select" data-placeholder="Rechercher un client…">
                                 <option value="">{{ __('Sélectionnez un client') }}</option>
-                                @foreach($clients as $client)
+                                @foreach(($clients ?? collect())->sortBy(fn($c) => mb_strtolower(trim(($c->last_name ?? '').' '.($c->first_name ?? '')))) as $client)
                                     <option value="{{ $client->id }}"
                                             {{ (string)$selectedClientId === (string)$client->id ? 'selected' : '' }}>
-                                        {{ $client->first_name }} {{ $client->last_name }}
+                                        {{ $client->last_name }} {{ $client->first_name }}
                                         @if($client->company)
                                             — 👔 {{ $client->company->name }}
                                         @endif
@@ -69,9 +72,9 @@
 
                         <div id="billToCorporateWrap" style="display:none; margin-top:12px;">
                             <label class="am-label" for="corporate_client_id">{{ __('Entreprise') }}</label>
-                            <select id="corporate_client_id" name="corporate_client_id" class="am-input">
+                            <select id="corporate_client_id" name="corporate_client_id" class="am-input js-corporate-select" data-placeholder="Rechercher une entreprise…">
                                 <option value="">{{ __('Sélectionnez une entreprise') }}</option>
-                                @foreach($corporateClients ?? [] as $corp)
+                                @foreach(($corporateClients ?? collect())->sortBy(fn($c) => mb_strtolower(trim(($c->name ?? '')))) as $corp)
                                     <option value="{{ $corp->id }}"
                                             {{ (string)$selectedCorporateId === (string)$corp->id ? 'selected' : '' }}>
                                         {{ $corp->name }}
@@ -821,7 +824,57 @@ row.innerHTML = `
         });
     </script>
 
-    <style>
+    
+    {{-- Select2 scripts --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        (function () {
+            function initSelect2() {
+                if (!window.jQuery || !jQuery.fn || !jQuery.fn.select2) return;
+
+                const $client = jQuery('.js-client-select');
+                const $corp   = jQuery('.js-corporate-select');
+
+                if ($client.length) {
+                    $client.select2({
+                        width: '100%',
+                        placeholder: $client.data('placeholder') || 'Rechercher un client…'
+                    });
+                }
+                if ($corp.length) {
+                    $corp.select2({
+                        width: '100%',
+                        placeholder: $corp.data('placeholder') || 'Rechercher une entreprise…'
+                    });
+                }
+
+                // keep Select2 in sync when billing_target toggles
+                const applyDisabled = () => {
+                    const target = (document.querySelector('input[name="billing_target"]:checked') || {}).value || 'client';
+                    const clientDisabled = target !== 'client';
+                    const corpDisabled   = target !== 'corporate';
+
+                    $client.prop('disabled', clientDisabled).trigger('change.select2');
+                    $corp.prop('disabled', corpDisabled).trigger('change.select2');
+                };
+
+                document.querySelectorAll('input[name="billing_target"]').forEach(r => {
+                    r.addEventListener('change', applyDisabled);
+                });
+                applyDisabled();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initSelect2);
+            } else {
+                initSelect2();
+            }
+        })();
+    </script>
+
+<style>
         /* Same UI system as quotes (full width, responsive, clean) */
         .am-wrap{ width:100%; padding:18px 16px 36px; }
         .am-card{
@@ -1089,6 +1142,40 @@ row.innerHTML = `
             padding:12px 14px 14px;
             border-top:1px solid #eef2f7;
         }
+        /* Select2 (am-input look) */
+        .select2-container { width: 100% !important; }
+        .select2-container .select2-selection--single{
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            background: #fff;
+            box-shadow: 0 8px 26px rgba(15, 23, 42, .05);
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered{
+            line-height: 26px;
+            color:#0f172a;
+            padding-left: 0;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow{
+            height: 42px;
+            right: 10px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__placeholder{
+            color: rgba(15, 23, 42, .5);
+        }
+        .select2-dropdown{
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+        }
+        .select2-search--dropdown .select2-search__field{
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 8px 10px;
+            outline: none;
+        }
+
 
         @media (max-width:768px){
             .am-card{ padding:14px; }
