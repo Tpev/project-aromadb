@@ -123,17 +123,31 @@
                     </small>
                 </div>
 
-                <!-- Image -->
-                <div class="details-box">
-                    <label class="details-label" for="image">{{ __('Image') }}</label>
-                    @if($product->image)
-                        <div class="mb-2">
-                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-32 h-32 object-cover">
-                        </div>
-                    @endif
-                    <input type="file" id="image" name="image" class="form-control">
-                    @error('image') <p class="text-red-500">{{ $message }}</p> @enderror
-                </div>
+<!-- Image -->
+<div class="details-box">
+    <label class="details-label" for="image">{{ __('Image') }}</label>
+
+    @if($product->image)
+        <div class="mb-2">
+            <img src="{{ asset('storage/' . $product->image) }}"
+                 alt="{{ $product->name }}"
+                 class="w-32 h-32 object-cover">
+        </div>
+
+        <label class="inline-flex items-center gap-2 mt-2">
+            <input type="checkbox" name="remove_image" value="1">
+            <span>{{ __('Supprimer l’image actuelle') }}</span>
+        </label>
+
+        <small class="text-gray-500 block">
+            {{ __('Si coché, l’image sera supprimée lors de l’enregistrement.') }}
+        </small>
+    @endif
+
+    <input type="file" id="image" name="image" class="form-control mt-2">
+    @error('image') <p class="text-red-500">{{ $message }}</p> @enderror
+</div>
+
 
                 <!-- Brochure -->
                 <div class="details-box">

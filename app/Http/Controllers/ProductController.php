@@ -128,14 +128,24 @@ class ProductController extends Controller
             'requires_emargement'  => 'required|boolean',
             'visible_in_portal'    => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
+			'remove_image'         => 'nullable|boolean',
         ]);
 
-        if ($request->hasFile('image')) {
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $validatedData['image'] = $request->file('image')->store('products/images', 'public');
-        }
+		// ✅ 1) If user uploads a new image: replace old
+		if ($request->hasFile('image')) {
+			if ($product->image) {
+				Storage::disk('public')->delete($product->image);
+			}
+			$validatedData['image'] = $request->file('image')->store('products/images', 'public');
+		}
+		// ✅ 2) Else if user checked remove_image: delete and null
+		elseif ($request->boolean('remove_image')) {
+			if ($product->image) {
+				Storage::disk('public')->delete($product->image);
+			}
+			$validatedData['image'] = null;
+		}
+
 
         if ($request->hasFile('brochure')) {
             if ($product->brochure) {
@@ -164,7 +174,8 @@ class ProductController extends Controller
             'dans_le_cabinet'      => $dansLeCabinet,
 
             'max_per_day'          => $validatedData['max_per_day'] ?? null,
-            'image'                => $validatedData['image'] ?? $product->image,
+            'image' => array_key_exists('image', $validatedData) ? $validatedData['image'] : $product->image,
+
             'brochure'             => $validatedData['brochure'] ?? $product->brochure,
             'display_order'        => $validatedData['display_order'] ?? $product->display_order,
             'requires_emargement'  => $validatedData['requires_emargement'],
