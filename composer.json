@@ -9,6 +9,7 @@
         "anhskohbo/no-captcha": "^3.7",
         "barryvdh/laravel-dompdf": "^3.0",
         "erusev/parsedown": "^1.7",
+        "firebase/php-jwt": "^6.11",
         "guzzlehttp/guzzle": "^7.9",
         "iio/libmergepdf": "^4.0",
         "intervention/image": "*",

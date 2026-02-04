@@ -13,7 +13,12 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
-
+	'jitsi' => [
+		'base_url' => env('JITSI_BASE_URL', 'https://visio.aromamade.com'),
+		'domain' => env('JITSI_DOMAIN'),
+		'app_id' => env('JITSI_APP_ID'),
+        'secret' => env('JITSI_APP_SECRET'),
+	],
     'stripe' => [
         'secret' => env('STRIPE_SECRET'),
 		'webhook' => env('STRIPE_WEBHOOK_SECRET'),

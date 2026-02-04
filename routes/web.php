@@ -72,6 +72,8 @@ use App\Http\Controllers\PackProductController;
 use App\Http\Controllers\PublicPackCheckoutController;
 use App\Http\Controllers\GiftVoucherController;
 use App\Http\Controllers\Pro\ReferralController;
+use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateController;
+use App\Models\DesignTemplate;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -685,11 +687,7 @@ Route::get('/meetings/confirmation', [MeetingController::class, 'confirmation'])
 
 });
 
-// **WebRTC Static Routes**
-Route::post('/webrtc/signaling', [WebRTCController::class, 'signaling']);
-Route::post('/webrtc/clear-signaling', [WebRTCController::class, 'clearSignaling']);
-Route::get('/webrtc/get-offer', [WebRTCController::class, 'getOffer']);
-Route::get('/webrtc/get-answer', [WebRTCController::class, 'getAnswer']);
+
 
 // **WebRTC Dynamic Route (Must Be Last)**
 Route::get('/webrtc/{room}', [WebRTCController::class, 'room'])->name('webrtc.room');
@@ -1206,6 +1204,68 @@ Route::view(
     '/aide/agenda/synchroniser-calendrier',
     'aide.agenda.synchroniser-calendrier'
 )->name('aide.agenda.synchroniser-calendrier');
+
+
+
+
+
+
+
+
+Route::get('/tools/konva', function () {
+    // You can keep your existing logic; just ensure $templates is passed to the view
+    $templates = DesignTemplate::active()
+        ->orderBy('sort_order')
+        ->orderBy('id', 'desc')
+        ->get()
+        ->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'name' => $t->name,
+                'category' => $t->category,
+                'format_id' => $t->format_id,
+                'preview_url' => $t->previewUrl(),
+            ];
+        });
+
+    return view('tools.konva.konva-editor', [
+        'templatesDb' => $templates,
+        // keep your config formats as-is
+        'events' => collect(), // or your events
+    ]);
+})->name('konva.editor');
+
+// -------------------------
+// ADMIN: Design Templates
+// -------------------------
+
+Route::get('/admin/design-templates', [AdminDesignTemplateController::class, 'index'])
+    ->name('admin.design-templates.index');
+
+Route::get('/admin/design-templates/create', [AdminDesignTemplateController::class, 'create'])
+    ->name('admin.design-templates.create');
+
+Route::get('/admin/design-templates/{template}/edit', [AdminDesignTemplateController::class, 'edit'])
+    ->name('admin.design-templates.edit');
+
+Route::post('/admin/design-templates', [AdminDesignTemplateController::class, 'store'])
+    ->name('admin.design-templates.store');
+
+Route::put('/admin/design-templates/{template}', [AdminDesignTemplateController::class, 'update'])
+    ->name('admin.design-templates.update');
+
+Route::post('/admin/design-templates/{template}/toggle', [AdminDesignTemplateController::class, 'toggle'])
+    ->name('admin.design-templates.toggle');
+
+Route::post('/admin/design-templates/reorder', [AdminDesignTemplateController::class, 'reorder'])
+    ->name('admin.design-templates.reorder');
+
+Route::delete('/admin/design-templates/{template}', [AdminDesignTemplateController::class, 'destroy'])
+    ->name('admin.design-templates.destroy');
+
+
+
+
 
 
 require __DIR__.'/auth.php';

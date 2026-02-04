@@ -25,6 +25,7 @@ use Illuminate\Validation\Rule;
 use App\Models\SpecialAvailability;
 use App\Models\PackPurchase;
 use App\Mail\AppointmentCancelledByClient;
+use App\Services\JitsiJwtService;
 
 class AppointmentController extends Controller
 {
@@ -367,9 +368,8 @@ public function store(Request $request)
 
 
 
-public function show(Appointment $appointment)
+public function show(Appointment $appointment, JitsiJwtService $jitsi)
 {
-    // Ensure the appointment belongs to the authenticated user
     $this->authorize('view', $appointment);
 
     // Determine the mode based on the linked product
@@ -384,27 +384,42 @@ public function show(Appointment $appointment)
         }
     }
 
-    // Get the associated meeting if it exists
     $meetingLink = null;
     $meetingLinkPatient = null;
 
     if ($appointment->meeting) {
-        $meetingLink       = route('webrtc.room', ['room' => $appointment->meeting->room_token]) . '#1';
-        $meetingLinkPatient = route('webrtc.room', ['room' => $appointment->meeting->room_token]);
+        $room = $appointment->meeting->room_token;
+
+        // IMPORTANT: Jitsi domain (your hosted meet)
+        $jitsiBase = rtrim(config('services.jitsi.base_url', 'https://visio.aromamade.com'), '/');
+
+        // Therapist JWT (moderator)
+        $therapistJwt = $jitsi->makeJwtForTherapist([
+            'room' => $room,
+            'appointment' => $appointment,
+        ]);
+
+        // Client JWT (non-moderator)
+        $clientJwt = $jitsi->makeJwtForClient([
+            'room' => $room,
+            'appointment' => $appointment,
+        ]);
+
+        // Build final URLs
+        $meetingLink = "{$jitsiBase}/{$room}?jwt={$therapistJwt}";
+        $meetingLinkPatient = "{$jitsiBase}/{$room}?jwt={$clientJwt}";
     }
 
     // If request comes from /mobile/... → use mobile view
-	if (request()->routeIs('mobile.appointments.*') || request()->is('mobile/*')) {
-		return view('mobile.appointments.show1', compact(
-			'appointment',
-			'mode',
-			'meetingLink',
-			'meetingLinkPatient'
-		));
-	}
+    if (request()->routeIs('mobile.appointments.*') || request()->is('mobile/*')) {
+        return view('mobile.appointments.show1', compact(
+            'appointment',
+            'mode',
+            'meetingLink',
+            'meetingLinkPatient'
+        ));
+    }
 
-
-    // Default: desktop/web view
     return view('appointments.show', compact(
         'appointment',
         'mode',

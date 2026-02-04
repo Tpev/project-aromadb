@@ -61,24 +61,36 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
             $isVisio = true;
         }
 
-        $visioUrl = null;
+		// --- Visio link resolution (Jitsi + JWT) ---
+		$isVisio = false;
 
-        if ($isVisio) {
-            // Backward compat if you ever stored it directly
-            $visioUrl = $this->appointment->visio_url
-                ?? $this->appointment->meeting_url
-                ?? null;
+		if ($this->appointment->product) {
+			$isVisio = (bool) ($this->appointment->product->visio ?? false);
+		}
 
-            // ✅ Your real setup: /webrtc/{room_token}
-            if (!$visioUrl && $this->appointment->meeting && !empty($this->appointment->meeting->room_token)) {
-                $visioUrl = url('/webrtc/' . $this->appointment->meeting->room_token);
-            }
+		if (!$isVisio && in_array(($this->appointment->type ?? null), ['visio', 'video', 'teleconsultation'], true)) {
+			$isVisio = true;
+		}
 
-            // Optional fallback if you have appointment-level token somewhere
-            if (!$visioUrl && !empty($this->appointment->meeting_token)) {
-                $visioUrl = url('/webrtc/' . $this->appointment->meeting_token);
-            }
-        }
+		$visioUrl = null;
+
+		if ($isVisio && $this->appointment->meeting && !empty($this->appointment->meeting->room_token)) {
+			$room = $this->appointment->meeting->room_token;
+
+			/** @var \App\Services\JitsiJwtService $jitsi */
+			$jitsi = app(\App\Services\JitsiJwtService::class);
+
+			// patient = non-moderator
+			$jwt = $jitsi->makeJwtForClient([
+				'room' => $room,
+				'appointment' => $this->appointment,
+			]);
+
+			$base = rtrim(config('services.jitsi.base_url', 'https://visio.aromamade.com'), '/');
+
+			$visioUrl = "{$base}/{$room}?jwt={$jwt}";
+		}
+
 
         // ✅ Magic link confirmation page URL
         // You said you want to keep the GET route name "appointments.showPatient"
