@@ -115,6 +115,8 @@ class ProfileController extends Controller
             'invoice_logo' => 'nullable|image|mimes:png,jpg,jpeg,webp,svg|max:4096',
             'remove_invoice_logo' => 'nullable|boolean',
             'invoice_primary_color' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6})$/'],
+			'google_event_color_id' => 'nullable|in:1,2,3,4,5,6,7,8,9,10,11',
+
         ]);
 
         $user = auth()->user();
@@ -137,6 +139,13 @@ class ProfileController extends Controller
             'profile_description' => $validatedData['profile_description'] ?? null,
             'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
         ]);
+		// Google Calendar event color (store only palette ID)
+		if ($request->filled('google_event_color_id')) {
+			$user->google_event_color_id = (string) $request->input('google_event_color_id');
+		} else {
+			// If not provided, keep existing value (your sync code already defaults to 9)
+			// $user->google_event_color_id = $user->google_event_color_id;
+		}
 
         // Process services
         $user->services = json_decode($validatedData['services'] ?? '[]', true) ?? [];

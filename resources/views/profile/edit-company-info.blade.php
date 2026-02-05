@@ -584,6 +584,67 @@
                             {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
                         </small>
                     </div>
+					@if($canUseIntegration && $user->google_access_token)
+    @php
+        // Default Google "blue" = 9
+        $currentGoogleColorId = old('google_event_color_id', auth()->user()->google_event_color_id ?: '9');
+
+        // Google-ish palette (visual only). Stored value is the colorId (1..11).
+        $googleColors = [
+            '1'  => '#a4bdfc', // lavender
+            '2'  => '#7ae7bf', // green
+            '3'  => '#dbadff', // purple
+            '4'  => '#ff887c', // red
+            '5'  => '#fbd75b', // yellow
+            '6'  => '#ffb878', // orange
+            '7'  => '#46d6db', // teal
+            '8'  => '#e1e1e1', // gray
+            '9'  => '#5484ed', // blue (default)
+            '10' => '#51b749', // dark green
+            '11' => '#dc2127', // dark red
+        ];
+    @endphp
+
+    <div class="details-box mt-5"
+         x-data="{ selected: '{{ $currentGoogleColorId }}' }">
+        <label class="details-label mb-2">
+            {{ __('Couleur des rendez-vous AromaMade dans Google Agenda') }}
+        </label>
+
+        <p class="text-gray-500 text-sm mb-3">
+            {{ __('Choisissez la couleur des RDV synchronisés. Par défaut : bleu.') }}
+        </p>
+
+        {{-- Hidden field actually submitted --}}
+        <input type="hidden" name="google_event_color_id" :value="selected">
+
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach($googleColors as $id => $hex)
+                <button type="button"
+                        class="rounded-full border transition"
+                        :class="selected === '{{ $id }}'
+                            ? 'ring-2 ring-offset-2 ring-[#647a0b] border-transparent'
+                            : 'border-gray-300 hover:border-gray-400'"
+                        style="width: 34px; height: 34px; background: {{ $hex }};"
+                        @click="selected = '{{ $id }}'"
+                        title="{{ __('Couleur') }} #{{ $id }}"
+                        aria-label="{{ __('Choisir la couleur') }} #{{ $id }}">
+                </button>
+            @endforeach
+
+            <span class="ml-2 text-xs text-gray-500">
+                {{ __('Sélection :') }} <strong x-text="selected"></strong>
+                <span class="ml-2">•</span>
+                <span class="ml-2">{{ __('Défaut : 9 (bleu)') }}</span>
+            </span>
+        </div>
+
+        @error('google_event_color_id')
+            <p class="text-red-500 mt-2">{{ $message }}</p>
+        @enderror
+    </div>
+@endif
+
                 </div>
             </div> {{-- /x-data --}}
         </div>

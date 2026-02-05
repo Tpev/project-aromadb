@@ -56,6 +56,7 @@ class User extends Authenticatable
         'view_count',
         'verified',
         'visible_annuarire_admin_set',
+		    'google_event_color_id',
 
         // Address Fields (Admin)
         'street_address_setByAdmin',

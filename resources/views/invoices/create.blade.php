@@ -33,6 +33,9 @@
 
                 $gType = old('global_discount_type');
                 $gVal  = old('global_discount_value');
+
+                // ✅ Preselect prestation from appointment (when coming from "Facturer" button)
+                $preselectedProductId = old('preselected_product_id', isset($selectedProduct) ? $selectedProduct->id : null);
             @endphp
 
             <form id="invoiceForm" action="{{ route('invoices.store') }}" method="POST" class="am-form">
@@ -819,12 +822,27 @@ row.innerHTML = `
         document.addEventListener('DOMContentLoaded', () => {
             recomputeAllTotals();
 
+            // ✅ If coming from appointment "Facturer", auto-add a prestation line and preselect it
+            const preselectedProductId = @json($preselectedProductId);
+            const tbody = document.querySelector('#invoice-items-table tbody');
+            const hasRows = tbody && tbody.querySelectorAll('tr').length > 0;
+
+            if (preselectedProductId && !hasRows) {
+                addProductItem();
+
+                const lastRowSelect = tbody?.querySelector('tr:last-child select.product-select');
+                if (lastRowSelect) {
+                    lastRowSelect.value = String(preselectedProductId);
+                    updateProductRow(lastRowSelect);
+                }
+            }
+
             const form = document.getElementById('invoiceForm');
             if (form) form.addEventListener('submit', () => syncCustomDescriptions());
         });
     </script>
 
-    
+
     {{-- Select2 scripts --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

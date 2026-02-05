@@ -169,19 +169,22 @@ public function syncToGoogle(): void
     $tokenPath = \App\Support\GoogleTokenFile::put($therapist->id, $tokenArr);
 
     config([
-        'google-calendar.oauth_token'                     => $tokenArr,
-        'google-calendar.auth_profiles.oauth.token_json'  => $tokenPath,
+        'google-calendar.oauth_token'                    => $tokenArr,
+        'google-calendar.auth_profiles.oauth.token_json' => $tokenPath,
     ]);
 
     try {
+        // Default Google "blue" if user didn't pick a color
+        $colorId = $therapist->google_event_color_id ?: '9';
+
         $productName = optional($this->product)->name ?? 'Prestation';
         $clientName  = trim(
             optional($this->clientProfile)->first_name . ' ' .
             optional($this->clientProfile)->last_name
         );
 
-        $mode      = $this->getResolvedMode();
-        $location  = $this->getResolvedLocationString();
+        $mode        = $this->getResolvedMode();
+        $location    = $this->getResolvedLocationString();
         $description = rtrim(($this->notes ?? '') . "\n\n[AromaMade]");
 
         $eventData = [
@@ -193,9 +196,21 @@ public function syncToGoogle(): void
         ];
 
         if ($this->google_event_id) {
-            \Spatie\GoogleCalendar\Event::find($this->google_event_id)?->update($eventData);
+            $event = \Spatie\GoogleCalendar\Event::find($this->google_event_id);
+
+            if ($event) {
+                $event->update($eventData);
+
+                // Force color (blue by default)
+                $event->googleEvent->setColorId((string) $colorId);
+                $event->save();
+            }
         } else {
             $event = \Spatie\GoogleCalendar\Event::create($eventData);
+
+            // Force color (blue by default)
+            $event->googleEvent->setColorId((string) $colorId);
+            $event->save();
 
             if ($mode === 'visio') {
                 try {
@@ -207,6 +222,10 @@ public function syncToGoogle(): void
                     }
 
                     // Persist either way; avoids calling save() on null.
+                    $event->save();
+
+                    // Re-apply color after Meet mutation (blue by default)
+                    $event->googleEvent->setColorId((string) $colorId);
                     $event->save();
                 } catch (\Throwable $e) {
                     \Log::warning('Meet link creation failed', [
@@ -224,6 +243,7 @@ public function syncToGoogle(): void
         \App\Support\GoogleTokenFile::forget($therapist->id);
     }
 }
+
 
 
     public function removeFromGoogle(): void

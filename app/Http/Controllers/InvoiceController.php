@@ -123,7 +123,13 @@ public function create(Request $request)
         $selectedCorporateClient = CorporateClient::where('user_id', auth()->id())->find($selectedCorporateId);
     }
 
-    $selectedProduct = $request->input('product_id') ? Product::find($request->input('product_id')) : null;
+    $selectedProduct = null;
+
+		if ($request->filled('product_id')) {
+			$selectedProduct = Product::where('user_id', auth()->id())
+				->find($request->input('product_id'));
+		}
+
 
     return view('invoices.create', compact(
         'clients',
