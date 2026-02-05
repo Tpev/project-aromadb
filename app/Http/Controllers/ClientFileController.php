@@ -10,27 +10,32 @@ use Illuminate\Support\Facades\Storage;
 
 class ClientFileController extends Controller
 {
-	public function clientUpload(Request $request)
-{
-    $clientProfile = auth('client')->user(); // ClientProfile is the user model
+    public function clientUpload(Request $request)
+    {
+        $clientProfile = auth('client')->user(); // ClientProfile is the user model
 
-    $data = $request->validate([
-        'document' => 'required|file|max:20480', // 20MB
-    ]);
+        $data = $request->validate([
+            'document' => 'required|file|max:20480', // 20MB
+        ]);
 
-    $uploadedFile = $data['document'];
+        $uploadedFile = $data['document'];
 
-    $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
+        // Store on PUBLIC disk
+        $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
 
-    $clientProfile->clientFiles()->create([
-        'file_path'     => $path,
-        'original_name' => $uploadedFile->getClientOriginalName(),
-        'mime_type'     => $uploadedFile->getMimeType(),
-        'size'          => $uploadedFile->getSize(),
-    ]);
+        $clientProfile->clientFiles()->create([
+            'file_path'     => $path,
+            'original_name' => $uploadedFile->getClientOriginalName(),
+            'mime_type'     => $uploadedFile->getMimeType(),
+            'size'          => $uploadedFile->getSize(),
+        ]);
 
-    return response()->json(['success' => true, 'message' => 'Fichier enregistré', 'path' => $path]);
-}
+        return response()->json([
+            'success' => true,
+            'message' => 'Fichier enregistré',
+            'path'    => $path,
+        ]);
+    }
 
     /**
      * Store the uploaded file in storage and record it in DB.
@@ -50,63 +55,63 @@ class ClientFileController extends Controller
 
         $uploadedFile = $data['file'];
 
-        // Store the file in 'client_files' directory on the 'public' disk
-        $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'local');
-
+        // Store on PUBLIC disk (consistent with the rest)
+        $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
 
         // Save in DB
-        $clientFile = $clientProfile->clientFiles()->create([
+        $clientProfile->clientFiles()->create([
             'file_path'     => $path,
             'original_name' => $uploadedFile->getClientOriginalName(),
             'mime_type'     => $uploadedFile->getMimeType(),
             'size'          => $uploadedFile->getSize(),
         ]);
 
-        // Redirect back to the client profile show page
         return redirect()
             ->route('client_profiles.show', $clientProfile)
             ->with('success', 'Fichier téléchargé avec succès !');
     }
 
     /**
-     * Download the file from storage.
-     * (Optional, if you want a direct download route)
+     * Download the file from storage (therapist/owner route).
      */
     public function download(ClientProfile $clientProfile, ClientFile $file)
     {
         // Ownership check
-        if ($clientProfile->user_id !== Auth::id() ||
-            $file->client_profile_id !== $clientProfile->id) {
+        if (
+            $clientProfile->user_id !== Auth::id() ||
+            $file->client_profile_id !== $clientProfile->id
+        ) {
             abort(403, 'Accès refusé.');
         }
 
-        return Storage::disk('local')->download($file->file_path, $file->original_name);
-
-    }
-public function downloadClient(ClientFile $file)
-{
-    $client = auth('client')->user();
-
-    if ($file->client_profile_id !== $client->id) {
-        abort(403, 'Accès refusé.');
+        return Storage::disk('public')->download($file->file_path, $file->original_name);
     }
 
-    return Storage::download('public/' . $file->file_path, $file->original_name);
-}
-public function downloadForTherapist(ClientProfile $clientProfile, ClientFile $file)
-{
-    // Ownership check
-    if ($file->client_profile_id !== $clientProfile->id) {
-        abort(403, 'Fichier invalide.');
+    public function downloadClient(ClientFile $file)
+    {
+        $client = auth('client')->user();
+
+        if ($file->client_profile_id !== $client->id) {
+            abort(403, 'Accès refusé.');
+        }
+
+        return Storage::disk('public')->download($file->file_path, $file->original_name);
     }
 
-    // Optional: only allow the assigned therapist
-    if ($clientProfile->user_id !== auth()->id()) {
-        abort(403, 'Accès refusé.');
-    }
+    public function downloadForTherapist(ClientProfile $clientProfile, ClientFile $file)
+    {
+        // Check file belongs to this profile
+        if ($file->client_profile_id !== $clientProfile->id) {
+            abort(403, 'Fichier invalide.');
+        }
 
-    return Storage::download('public/' . $file->file_path, $file->original_name);
-}
+        // Only allow the assigned therapist
+        if ($clientProfile->user_id !== auth()->id()) {
+            abort(403, 'Accès refusé.');
+        }
+
+        return Storage::disk('public')->download($file->file_path, $file->original_name);
+    }
 
     /**
      * Delete a file from the database & storage,
@@ -115,8 +120,10 @@ public function downloadForTherapist(ClientProfile $clientProfile, ClientFile $f
     public function destroy(ClientProfile $clientProfile, ClientFile $file)
     {
         // Ownership check
-        if ($clientProfile->user_id !== Auth::id() ||
-            $file->client_profile_id !== $clientProfile->id) {
+        if (
+            $clientProfile->user_id !== Auth::id() ||
+            $file->client_profile_id !== $clientProfile->id
+        ) {
             abort(403, 'Accès refusé.');
         }
 
