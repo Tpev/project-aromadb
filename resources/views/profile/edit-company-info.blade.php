@@ -6,6 +6,34 @@
         </h2>
     </x-slot>
 
+    @php
+        $user = auth()->user();
+        $canUseIntegration = $user->canUseFeature('integration');
+
+        // Determine required license family
+        $plansConfig = config('license_features.plans', []);
+        $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial
+
+        $requiredFamily = null;
+        foreach ($familyOrder as $family) {
+            if (in_array('integration', $plansConfig[$family] ?? [], true)) {
+                $requiredFamily = $family;
+                break;
+            }
+        }
+
+        $familyLabels = [
+            'free'    => __('Gratuit'),
+            'starter' => __('Starter'),
+            'pro'     => __('PRO'),
+            'premium' => __('Premium'),
+        ];
+
+        $requiredLabel = $requiredFamily
+            ? ($familyLabels[$requiredFamily] ?? ucfirst($requiredFamily))
+            : __('une formule supérieure');
+    @endphp
+
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Mettre à Jour les Informations de l\'Entreprise') }}</h1>
@@ -59,7 +87,7 @@
                     </button>
                 </div>
 
-                {{-- Main form (all company/profile/booking/legal fields) --}}
+                {{-- Main form (all company/profile/booking/legal/google fields) --}}
                 <form action="{{ route('profile.updateCompanyInfo') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
@@ -70,7 +98,7 @@
                         <div class="details-box">
                             <label class="details-label" for="company_name">{{ __('Nom de l\'Entreprise') }}</label>
                             <input type="text" id="company_name" name="company_name" class="form-control"
-                                   value="{{ old('company_name', auth()->user()->company_name) }}">
+                                   value="{{ old('company_name', $user->company_name) }}">
                             @error('company_name')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
@@ -80,7 +108,7 @@
                         <div class="details-box">
                             <label class="details-label" for="company_address">{{ __('Adresse de l\'Entreprise') }}</label>
                             <textarea id="company_address" name="company_address"
-                                      class="form-control">{{ old('company_address', auth()->user()->company_address) }}</textarea>
+                                      class="form-control">{{ old('company_address', $user->company_address) }}</textarea>
                             @error('company_address')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
@@ -90,7 +118,7 @@
                         <div class="details-box">
                             <label class="details-label" for="company_email">{{ __('Email de l\'Entreprise') }}</label>
                             <input type="email" id="company_email" name="company_email" class="form-control"
-                                   value="{{ old('company_email', auth()->user()->company_email) }}">
+                                   value="{{ old('company_email', $user->company_email) }}">
                             @error('company_email')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
@@ -100,7 +128,7 @@
                         <div class="details-box">
                             <label class="details-label" for="company_phone">{{ __('Téléphone de l\'Entreprise') }}</label>
                             <input type="text" id="company_phone" name="company_phone" class="form-control"
-                                   value="{{ old('company_phone', auth()->user()->company_phone) }}">
+                                   value="{{ old('company_phone', $user->company_phone) }}">
                             @error('company_phone')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
@@ -136,7 +164,7 @@
                                 <div id="services-list" class="flex flex-wrap gap-2">
                                     @php
                                         // Decode the services JSON string into an array
-                                        $services = json_decode(old('services', auth()->user()->services), true);
+                                        $services = json_decode(old('services', $user->services), true);
 
                                         // Handle cases where services might be a JSON-encoded string
                                         if (!is_array($services)) {
@@ -170,7 +198,7 @@
                         <div class="details-box">
                             <label class="details-label" for="profile_description">{{ __('Titre et spécialités') }}</label>
                             <textarea id="profile_description" name="profile_description"
-                                      class="form-control">{{ old('profile_description', auth()->user()->profile_description) }}</textarea>
+                                      class="form-control">{{ old('profile_description', $user->profile_description) }}</textarea>
                             <!-- Helper text -->
                             <small class="text-gray-500">{{ __('Aromathérapeute, Ostéopathe etc.') }}</small>
 
@@ -184,8 +212,8 @@
                             <label class="details-label" for="profile_picture">{{ __('Photo de Profil') }}</label>
                             <div class="flex items-center gap-4">
                                 <!-- Display Current Profile Picture or Default -->
-                                @if(auth()->user()->profile_picture)
-                                    <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}"
+                                @if($user->profile_picture)
+                                    <img src="{{ asset('storage/' . $user->profile_picture) }}"
                                          alt="{{ __('Photo de Profil') }}"
                                          class="w-20 h-20 rounded-full object-cover">
                                 @endif
@@ -202,7 +230,7 @@
                             <label class="flex items-center">
                                 <input type="checkbox" name="share_address_publicly"
                                        class="form-checkbox h-5 w-5 text-green-500"
-                                    {{ old('share_address_publicly', auth()->user()->share_address_publicly) ? 'checked' : '' }}>
+                                    {{ old('share_address_publicly', $user->share_address_publicly) ? 'checked' : '' }}>
                                 <span class="ml-2 text-gray-700">{{ __('Partager l\'adresse publiquement') }}</span>
                             </label>
                         </div>
@@ -211,7 +239,7 @@
                             <label class="flex items-center">
                                 <input type="checkbox" name="share_phone_publicly"
                                        class="form-checkbox h-5 w-5 text-green-500"
-                                    {{ old('share_phone_publicly', auth()->user()->share_phone_publicly) ? 'checked' : '' }}>
+                                    {{ old('share_phone_publicly', $user->share_phone_publicly) ? 'checked' : '' }}>
                                 <span class="ml-2 text-gray-700">{{ __('Partager le téléphone publiquement') }}</span>
                             </label>
                         </div>
@@ -220,7 +248,7 @@
                             <label class="flex items-center">
                                 <input type="checkbox" name="share_email_publicly"
                                        class="form-checkbox h-5 w-5 text-green-500"
-                                    {{ old('share_email_publicly', auth()->user()->share_email_publicly) ? 'checked' : '' }}>
+                                    {{ old('share_email_publicly', $user->share_email_publicly) ? 'checked' : '' }}>
                                 <span class="ml-2 text-gray-700">{{ __('Partager l\'email publiquement') }}</span>
                             </label>
                         </div>
@@ -238,7 +266,7 @@
                             <label class="flex items-center">
                                 <input type="checkbox" name="accept_online_appointments"
                                        class="form-checkbox h-5 w-5 text-green-500"
-                                    {{ old('accept_online_appointments', auth()->user()->accept_online_appointments) ? 'checked' : '' }}>
+                                    {{ old('accept_online_appointments', $user->accept_online_appointments) ? 'checked' : '' }}>
                                 <span class="ml-2 text-gray-700">{{ __('Accepter les rendez-vous en ligne') }}</span>
                             </label>
 
@@ -259,7 +287,7 @@
                             </label>
                             <input type="number" id="minimum_notice_hours" name="minimum_notice_hours"
                                    class="form-control" min="0"
-                                   value="{{ old('minimum_notice_hours', auth()->user()->minimum_notice_hours) }}">
+                                   value="{{ old('minimum_notice_hours', $user->minimum_notice_hours) }}">
                             @error('minimum_notice_hours')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
@@ -277,7 +305,7 @@
                                 class="form-control"
                                 min="0"
                                 step="5"
-                                value="{{ old('buffer_time_between_appointments', auth()->user()->buffer_time_between_appointments) }}"
+                                value="{{ old('buffer_time_between_appointments', $user->buffer_time_between_appointments) }}"
                             >
                             <small class="text-gray-500">
                                 {{ __('Durée ajoutée automatiquement entre deux rendez-vous pour vous laisser du temps (préparation, notes, pause, etc.).') }}
@@ -286,29 +314,29 @@
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
-						<div class="details-box">
-    <label class="details-label" for="cancellation_notice_hours">
-        {{ __('Délai minimum d\'annulation client (heures avant le rendez-vous)') }}
-    </label>
 
-    <input type="number"
-           id="cancellation_notice_hours"
-           name="cancellation_notice_hours"
-           class="form-control"
-           min="0"
-           step="1"
-           value="{{ old('cancellation_notice_hours', auth()->user()->cancellation_notice_hours ?? 0) }}">
+                        <div class="details-box">
+                            <label class="details-label" for="cancellation_notice_hours">
+                                {{ __('Délai minimum d\'annulation client (heures avant le rendez-vous)') }}
+                            </label>
 
-    <small class="text-gray-500">
-        {{ __('Ex : 24 = annulation possible jusqu\'à 24h avant. 0 = annulation possible à tout moment.') }}
-    </small>
+                            <input type="number"
+                                   id="cancellation_notice_hours"
+                                   name="cancellation_notice_hours"
+                                   class="form-control"
+                                   min="0"
+                                   step="1"
+                                   value="{{ old('cancellation_notice_hours', $user->cancellation_notice_hours ?? 0) }}">
 
-    @error('cancellation_notice_hours')
-        <p class="text-red-500">{{ $message }}</p>
-    @enderror
-</div>
+                            <small class="text-gray-500">
+                                {{ __('Ex : 24 = annulation possible jusqu\'à 24h avant. 0 = annulation possible à tout moment.') }}
+                            </small>
+
+                            @error('cancellation_notice_hours')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
-
 
                     {{-- TAB 4: Mentions légales & CGV --}}
                     <div x-show="activeTab === 'legal'" x-cloak>
@@ -316,7 +344,7 @@
                         <div class="details-box">
                             <label class="details-label" for="legal_mentions">{{ __('Mentions Légales') }}</label>
                             <textarea id="legal_mentions" name="legal_mentions"
-                                      class="form-control">{{ old('legal_mentions', auth()->user()->legal_mentions) }}</textarea>
+                                      class="form-control">{{ old('legal_mentions', $user->legal_mentions) }}</textarea>
 
                             <!-- Helper text -->
                             <small class="text-gray-500">
@@ -334,10 +362,10 @@
                                 {{ __('Conditions Générales de Vente (CGV) – PDF') }}
                             </label>
 
-                            @if(auth()->user()->cgv_pdf_path)
+                            @if($user->cgv_pdf_path)
                                 <p class="mb-2">
                                     {{ __('CGV actuelles :') }}
-                                    <a href="{{ asset('storage/' . auth()->user()->cgv_pdf_path) }}"
+                                    <a href="{{ asset('storage/' . $user->cgv_pdf_path) }}"
                                        target="_blank"
                                        rel="noopener"
                                        class="text-blue-600 underline">
@@ -357,88 +385,254 @@
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
-						{{-- =========================
-     BRANDING FACTURES / DEVIS
-     ========================= --}}
-<div class="details-box mt-6">
-    <div class="flex items-center justify-between mb-2">
-        <h3 class="font-semibold text-lg" style="color:#647a0b;">
-            {{ __('Branding des factures') }}
-        </h3>
-    </div>
 
-    {{-- Aperçu logo actuel --}}
-    @php
-        $logoPath = auth()->user()->invoice_logo_path
-            ? asset('storage/' . auth()->user()->invoice_logo_path)
-            : null;
-    @endphp
+                        {{-- =========================
+                             BRANDING FACTURES / DEVIS
+                             ========================= --}}
+                        <div class="details-box mt-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-lg" style="color:#647a0b;">
+                                    {{ __('Branding des factures') }}
+                                </h3>
+                            </div>
 
-    @if($logoPath)
-        <div class="mb-3">
-            <div class="text-sm text-gray-600 mb-2">{{ __('Logo actuel :') }}</div>
-            <img src="{{ $logoPath }}" alt="Logo" style="max-height:70px; max-width:220px;">
-        </div>
+                            {{-- Aperçu logo actuel --}}
+                            @php
+                                $logoPath = $user->invoice_logo_path
+                                    ? asset('storage/' . $user->invoice_logo_path)
+                                    : null;
+                            @endphp
 
-        <div class="mb-4">
-            <label class="inline-flex items-center gap-2">
-                <input type="checkbox" name="remove_invoice_logo" value="1">
-                <span class="text-sm text-gray-700">{{ __('Supprimer le logo') }}</span>
-            </label>
-            @error('remove_invoice_logo')
-                <p class="text-red-500">{{ $message }}</p>
-            @enderror
-        </div>
-    @endif
+                            @if($logoPath)
+                                <div class="mb-3">
+                                    <div class="text-sm text-gray-600 mb-2">{{ __('Logo actuel :') }}</div>
+                                    <img src="{{ $logoPath }}" alt="Logo" style="max-height:70px; max-width:220px;">
+                                </div>
 
-    {{-- Upload nouveau logo --}}
-    <div class="mb-4">
-        <label class="details-label" for="invoice_logo">{{ __('Logo pour factures (PNG/JPG/WebP/SVG)') }}</label>
-        <input type="file" id="invoice_logo" name="invoice_logo" class="form-control"
-               accept=".png,.jpg,.jpeg,.webp,.svg">
-        <p class="text-xs text-gray-500 mt-1">
-            {{ __('Recommandé : PNG transparent, largeur ~300–600px. Max 4 Mo.') }}
-        </p>
-        @error('invoice_logo')
-            <p class="text-red-500">{{ $message }}</p>
-        @enderror
-    </div>
+                                <div class="mb-4">
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="checkbox" name="remove_invoice_logo" value="1">
+                                        <span class="text-sm text-gray-700">{{ __('Supprimer le logo') }}</span>
+                                    </label>
+                                    @error('remove_invoice_logo')
+                                        <p class="text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
 
-    {{-- Couleur primaire --}}
-    @php
-        $currentColor = old('invoice_primary_color', auth()->user()->invoice_primary_color ?: '#647a0b');
-    @endphp
+                            {{-- Upload nouveau logo --}}
+                            <div class="mb-4">
+                                <label class="details-label" for="invoice_logo">{{ __('Logo pour factures (PNG/JPG/WebP/SVG)') }}</label>
+                                <input type="file" id="invoice_logo" name="invoice_logo" class="form-control"
+                                       accept=".png,.jpg,.jpeg,.webp,.svg">
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {{ __('Recommandé : PNG transparent, largeur ~300–600px. Max 4 Mo.') }}
+                                </p>
+                                @error('invoice_logo')
+                                    <p class="text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-    <div class="mb-2">
-        <label class="details-label" for="invoice_primary_color">{{ __('Couleur principale (factures & devis)') }}</label>
+                            {{-- Couleur primaire --}}
+                            @php
+                                $currentColor = old('invoice_primary_color', $user->invoice_primary_color ?: '#647a0b');
+                            @endphp
 
-        <div class="flex items-center gap-3">
-            <input type="color"
-                   id="invoice_primary_color_picker"
-                   value="{{ $currentColor }}"
-                   class="h-10 w-14 p-1 border border-gray-300 rounded"
-                   oninput="document.getElementById('invoice_primary_color').value = this.value">
+                            <div class="mb-2">
+                                <label class="details-label" for="invoice_primary_color">{{ __('Couleur principale (factures & devis)') }}</label>
 
-            <input type="text"
-                   id="invoice_primary_color"
-                   name="invoice_primary_color"
-                   class="form-control"
-                   style="max-width:160px;"
-                   value="{{ $currentColor }}"
-                   placeholder="#647a0b"
-                   oninput="document.getElementById('invoice_primary_color_picker').value = this.value">
-        </div>
+                                <div class="flex items-center gap-3">
+                                    <input type="color"
+                                           id="invoice_primary_color_picker"
+                                           value="{{ $currentColor }}"
+                                           class="h-10 w-14 p-1 border border-gray-300 rounded"
+                                           oninput="document.getElementById('invoice_primary_color').value = this.value">
 
-        <p class="text-xs text-gray-500 mt-1">
-            {{ __('Format attendu : #RRGGBB') }}
-        </p>
+                                    <input type="text"
+                                           id="invoice_primary_color"
+                                           name="invoice_primary_color"
+                                           class="form-control"
+                                           style="max-width:160px;"
+                                           value="{{ $currentColor }}"
+                                           placeholder="#647a0b"
+                                           oninput="document.getElementById('invoice_primary_color_picker').value = this.value">
+                                </div>
 
-        @error('invoice_primary_color')
-            <p class="text-red-500">{{ $message }}</p>
-        @enderror
-    </div>
-</div>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {{ __('Format attendu : #RRGGBB') }}
+                                </p>
 
+                                @error('invoice_primary_color')
+                                    <p class="text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- TAB 5: Connexions & Google (NOW INSIDE FORM so google_event_color_id is submitted) --}}
+                    <div x-show="activeTab === 'google'" x-cloak class="mt-2">
+                        <!-- Google Connections Section -->
+                        <div class="details-box google-section relative">
+                            {{-- Lock pill (if feature unavailable) --}}
+                            @unless($canUseIntegration)
+                                <div style="
+                                    position: absolute;
+                                    top: -10px;
+                                    right: -10px;
+                                    background-color: #fff1d6;
+                                    border: 1px solid rgba(250,204,21,0.4);
+                                    padding: 2px 8px;
+                                    font-size: 10px;
+                                    border-radius: 9999px;
+                                    font-weight: 600;
+                                    color: #854f38;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 4px;
+                                    box-shadow: 0 1px 2px rgba(0,0,0,.08);
+                                ">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="currentColor"
+                                         viewBox="0 0 20 20"
+                                         style="width: 12px; height: 12px;">
+                                        <path fill-rule="evenodd"
+                                              d="M10 2a4 4 0 00-4 4v2H5a2
+                                                 2 0 00-2 2v6a2 2 0
+                                                 002 2h10a2 2 0
+                                                 002-2v-6a2 2 0
+                                                 00-2-2h-1V6a4 4
+                                                 0 00-4-4zm0 6a2 2
+                                                 0 00-2 2v2a2 2
+                                                 0 104 0v-2a2 2
+                                                 0 00-2-2z"
+                                              clip-rule="evenodd" />
+                                    </svg>
+
+                                    {{ __('À partir de :') }} <strong>{{ $requiredLabel }}</strong>
+                                </div>
+                            @endunless
+
+                            <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
+                            <p class="text-gray-500 text-sm mb-3">
+                                {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
+                            </p>
+
+                            <div class="flex flex-wrap items-center gap-3">
+                                @if($canUseIntegration)
+                                    {{-- Google Agenda connect / disconnect --}}
+                                    @if ($user->google_access_token)
+                                        {{-- IMPORTANT: no nested form inside main form --}}
+                                        <button type="submit" form="disconnectGoogleForm" class="btn btn-danger">
+                                            {{ __('Déconnecter Google Agenda') }}
+                                        </button>
+                                    @else
+                                        <a href="{{ route('google.connect') }}" class="btn btn-primary inline-block">
+                                            {{ __('Connecter Google Agenda') }}
+                                        </a>
+                                    @endif
+
+                                    {{-- Google Reviews --}}
+                                    <a href="{{ route('pro.google-reviews.index') }}" class="btn btn-secondary inline-block">
+                                        {{ __('Connecter Google Review') }}
+                                    </a>
+                                @else
+                                    {{-- Grey-out all integration buttons --}}
+                                    <a href="/license-tiers/pricing"
+                                       class="btn"
+                                       style="
+                                           background:#e5e7eb;
+                                           border:1px solid #d1d5db;
+                                           color:#6b7280;
+                                           padding: 0.45rem 1rem;
+                                           border-radius:6px;
+                                           white-space: nowrap;
+                                           font-weight:600;
+                                       ">
+                                        {{ __('Connecter Google Agenda') }}
+                                    </a>
+
+                                    <a href="/license-tiers/pricing"
+                                       class="btn"
+                                       style="
+                                           background:#f2f2f2;
+                                           border:1px solid #d1d5db;
+                                           color:#6b7280;
+                                           padding: 0.45rem 1rem;
+                                           border-radius:6px;
+                                           white-space: nowrap;
+                                           font-weight:600;
+                                       ">
+                                        {{ __('Connecter Google Review') }}
+                                    </a>
+                                @endif
+                            </div>
+
+                            <small class="text-gray-500 block mt-3">
+                                {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
+                            </small>
+                        </div>
+
+                        {{-- Google event color selector (only if integration is available + google connected) --}}
+                        @if($canUseIntegration && $user->google_access_token)
+                            @php
+                                // Default Google "blue" = 9
+                                $currentGoogleColorId = old('google_event_color_id', $user->google_event_color_id ?: '9');
+
+                                // Google-ish palette (visual only). Stored value is the colorId (1..11).
+                                $googleColors = [
+                                    '1'  => '#a4bdfc', // lavender
+                                    '2'  => '#7ae7bf', // green
+                                    '3'  => '#dbadff', // purple
+                                    '4'  => '#ff887c', // red
+                                    '5'  => '#fbd75b', // yellow
+                                    '6'  => '#ffb878', // orange
+                                    '7'  => '#46d6db', // teal
+                                    '8'  => '#e1e1e1', // gray
+                                    '9'  => '#5484ed', // blue (default)
+                                    '10' => '#51b749', // dark green
+                                    '11' => '#dc2127', // dark red
+                                ];
+                            @endphp
+
+                            <div class="details-box mt-5"
+                                 x-data="{ selected: '{{ $currentGoogleColorId }}' }">
+                                <label class="details-label mb-2">
+                                    {{ __('Couleur des rendez-vous AromaMade dans Google Agenda') }}
+                                </label>
+
+                                <p class="text-gray-500 text-sm mb-3">
+                                    {{ __('Choisissez la couleur des RDV synchronisés. Par défaut : bleu.') }}
+                                </p>
+
+                                {{-- Hidden field actually submitted --}}
+                                <input type="hidden" name="google_event_color_id" :value="selected">
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    @foreach($googleColors as $id => $hex)
+                                        <button type="button"
+                                                class="rounded-full border transition"
+                                                :class="selected === '{{ $id }}'
+                                                    ? 'ring-2 ring-offset-2 ring-[#647a0b] border-transparent'
+                                                    : 'border-gray-300 hover:border-gray-400'"
+                                                style="width: 34px; height: 34px; background: {{ $hex }};"
+                                                @click="selected = '{{ $id }}'"
+                                                title="{{ __('Couleur') }} #{{ $id }}"
+                                                aria-label="{{ __('Choisir la couleur') }} #{{ $id }}">
+                                        </button>
+                                    @endforeach
+
+                                    <span class="ml-2 text-xs text-gray-500">
+                                        {{ __('Sélection :') }} <strong x-text="selected"></strong>
+                                        <span class="ml-2">•</span>
+                                        <span class="ml-2">{{ __('Défaut : 9 (bleu)') }}</span>
+                                    </span>
+                                </div>
+
+                                @error('google_event_color_id')
+                                    <p class="text-red-500 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Form actions (always visible) --}}
@@ -452,200 +646,12 @@
                     </div>
                 </form>
 
-                {{-- TAB 5: Connexions & Google (outside form, own tab) --}}
-                @php
-                    $user = auth()->user();
-                    $canUseIntegration = $user->canUseFeature('integration');
-
-                    // Determine required license family
-                    $plansConfig = config('license_features.plans', []);
-                    $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial
-
-                    $requiredFamily = null;
-                    foreach ($familyOrder as $family) {
-                        if (in_array('integration', $plansConfig[$family] ?? [], true)) {
-                            $requiredFamily = $family;
-                            break;
-                        }
-                    }
-
-                    $familyLabels = [
-                        'free'    => __('Gratuit'),
-                        'starter' => __('Starter'),
-                        'pro'     => __('PRO'),
-                        'premium' => __('Premium'),
-                    ];
-
-                    $requiredLabel = $requiredFamily
-                        ? ($familyLabels[$requiredFamily] ?? ucfirst($requiredFamily))
-                        : __('une formule supérieure');
-                @endphp
-
-                <div x-show="activeTab === 'google'" x-cloak class="mt-8">
-                    <!-- Google Connections Section -->
-                    <div class="details-box google-section relative">
-                        {{-- Lock pill (if feature unavailable) --}}
-                        @unless($canUseIntegration)
-                            <div style="
-                                position: absolute;
-                                top: -10px;
-                                right: -10px;
-                                background-color: #fff1d6;
-                                border: 1px solid rgba(250,204,21,0.4);
-                                padding: 2px 8px;
-                                font-size: 10px;
-                                border-radius: 9999px;
-                                font-weight: 600;
-                                color: #854f38;
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 4px;
-                                box-shadow: 0 1px 2px rgba(0,0,0,.08);
-                            ">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                     fill="currentColor"
-                                     viewBox="0 0 20 20"
-                                     style="width: 12px; height: 12px;">
-                                    <path fill-rule="evenodd"
-                                          d="M10 2a4 4 0 00-4 4v2H5a2 
-                                             2 0 00-2 2v6a2 2 0 
-                                             002 2h10a2 2 0 
-                                             002-2v-6a2 2 0 
-                                             00-2-2h-1V6a4 4 
-                                             0 00-4-4zm0 6a2 2 
-                                             0 00-2 2v2a2 2 
-                                             0 104 0v-2a2 2 
-                                             0 00-2-2z"
-                                          clip-rule="evenodd" />
-                                </svg>
-
-                                {{ __('À partir de :') }} <strong>{{ $requiredLabel }}</strong>
-                            </div>
-                        @endunless
-
-                        <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
-                        <p class="text-gray-500 text-sm mb-3">
-                            {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
-                        </p>
-
-                        <div class="flex flex-wrap items-center gap-3">
-                            @if($canUseIntegration)
-                                {{-- Google Agenda connect / disconnect --}}
-                                @if ($user->google_access_token)
-                                    <form method="POST" action="{{ route('google.disconnect') }}" class="inline-block">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger">
-                                            {{ __('Déconnecter Google Agenda') }}
-                                        </button>
-                                    </form>
-                                @else
-                                    <a href="{{ route('google.connect') }}" class="btn btn-primary inline-block">
-                                        {{ __('Connecter Google Agenda') }}
-                                    </a>
-                                @endif
-
-                                {{-- Google Reviews --}}
-                                <a href="{{ route('pro.google-reviews.index') }}" class="btn btn-secondary inline-block">
-                                    {{ __('Connecter Google Review') }}
-                                </a>
-                            @else
-                                {{-- Grey-out all integration buttons --}}
-                                <a href="/license-tiers/pricing"
-                                   class="btn"
-                                   style="
-                                       background:#e5e7eb;
-                                       border:1px solid #d1d5db;
-                                       color:#6b7280;
-                                       padding: 0.45rem 1rem;
-                                       border-radius:6px;
-                                       white-space: nowrap;
-                                       font-weight:600;
-                                   ">
-                                    {{ __('Connecter Google Agenda') }}
-                                </a>
-
-                                <a href="/license-tiers/pricing"
-                                   class="btn"
-                                   style="
-                                       background:#f2f2f2;
-                                       border:1px solid #d1d5db;
-                                       color:#6b7280;
-                                       padding: 0.45rem 1rem;
-                                       border-radius:6px;
-                                       white-space: nowrap;
-                                       font-weight:600;
-                                   ">
-                                    {{ __('Connecter Google Review') }}
-                                </a>
-                            @endif
-                        </div>
-
-                        <small class="text-gray-500 block mt-3">
-                            {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
-                        </small>
-                    </div>
-					@if($canUseIntegration && $user->google_access_token)
-    @php
-        // Default Google "blue" = 9
-        $currentGoogleColorId = old('google_event_color_id', auth()->user()->google_event_color_id ?: '9');
-
-        // Google-ish palette (visual only). Stored value is the colorId (1..11).
-        $googleColors = [
-            '1'  => '#a4bdfc', // lavender
-            '2'  => '#7ae7bf', // green
-            '3'  => '#dbadff', // purple
-            '4'  => '#ff887c', // red
-            '5'  => '#fbd75b', // yellow
-            '6'  => '#ffb878', // orange
-            '7'  => '#46d6db', // teal
-            '8'  => '#e1e1e1', // gray
-            '9'  => '#5484ed', // blue (default)
-            '10' => '#51b749', // dark green
-            '11' => '#dc2127', // dark red
-        ];
-    @endphp
-
-    <div class="details-box mt-5"
-         x-data="{ selected: '{{ $currentGoogleColorId }}' }">
-        <label class="details-label mb-2">
-            {{ __('Couleur des rendez-vous AromaMade dans Google Agenda') }}
-        </label>
-
-        <p class="text-gray-500 text-sm mb-3">
-            {{ __('Choisissez la couleur des RDV synchronisés. Par défaut : bleu.') }}
-        </p>
-
-        {{-- Hidden field actually submitted --}}
-        <input type="hidden" name="google_event_color_id" :value="selected">
-
-        <div class="flex flex-wrap items-center gap-2">
-            @foreach($googleColors as $id => $hex)
-                <button type="button"
-                        class="rounded-full border transition"
-                        :class="selected === '{{ $id }}'
-                            ? 'ring-2 ring-offset-2 ring-[#647a0b] border-transparent'
-                            : 'border-gray-300 hover:border-gray-400'"
-                        style="width: 34px; height: 34px; background: {{ $hex }};"
-                        @click="selected = '{{ $id }}'"
-                        title="{{ __('Couleur') }} #{{ $id }}"
-                        aria-label="{{ __('Choisir la couleur') }} #{{ $id }}">
-                </button>
-            @endforeach
-
-            <span class="ml-2 text-xs text-gray-500">
-                {{ __('Sélection :') }} <strong x-text="selected"></strong>
-                <span class="ml-2">•</span>
-                <span class="ml-2">{{ __('Défaut : 9 (bleu)') }}</span>
-            </span>
-        </div>
-
-        @error('google_event_color_id')
-            <p class="text-red-500 mt-2">{{ $message }}</p>
-        @enderror
-    </div>
-@endif
-
-                </div>
+                {{-- Separate form to disconnect Google (no nested form inside main form) --}}
+                @if($canUseIntegration && $user->google_access_token)
+                    <form id="disconnectGoogleForm" method="POST" action="{{ route('google.disconnect') }}" class="hidden">
+                        @csrf
+                    </form>
+                @endif
             </div> {{-- /x-data --}}
         </div>
     </div>
@@ -661,7 +667,7 @@
             let services = [];
 
             // Initialize services from hidden input
-            if (servicesInputHidden.value) {
+            if (servicesInputHidden && servicesInputHidden.value) {
                 try {
                     const parsed = JSON.parse(servicesInputHidden.value);
                     services = Array.isArray(parsed) ? parsed : [];
@@ -673,6 +679,8 @@
 
             // Function to render services
             function renderServices() {
+                if (!servicesList || !servicesInputHidden) return;
+
                 servicesList.innerHTML = '';
                 services.forEach((service, index) => {
                     const tag = document.createElement('span');
@@ -694,7 +702,7 @@
 
             // Function to add a service
             function addService() {
-                const service = serviceInput.value.trim();
+                const service = (serviceInput?.value || '').trim();
                 if (service && !services.includes(service)) {
                     services.push(service);
                     serviceInput.value = '';
@@ -709,15 +717,17 @@
             }
 
             // Event listener for add button
-            addServiceBtn.addEventListener('click', addService);
+            if (addServiceBtn) addServiceBtn.addEventListener('click', addService);
 
             // Event listener for Enter key in input
-            serviceInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addService();
-                }
-            });
+            if (serviceInput) {
+                serviceInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addService();
+                    }
+                });
+            }
 
             // Initial render
             renderServices();
@@ -823,7 +833,7 @@
 
         .service-tag:hover {
             transform: translateY(-2px);
-            background-color: #2f855a; /* Tailwind's green-600 */
+            background-color: #2f855a;
         }
 
         .service-tag button {
@@ -835,7 +845,6 @@
             line-height: 1;
         }
 
-        /* Additional Styles for Profile Picture */
         img.rounded-full {
             object-fit: cover;
         }
@@ -873,12 +882,13 @@
             });
 
             // Load existing data
-            @if(old('about', auth()->user()->about))
-                quill.root.innerHTML = `{!! addslashes(old('about', auth()->user()->about)) !!}`;
+            @if(old('about', $user->about))
+                quill.root.innerHTML = `{!! addslashes(old('about', $user->about)) !!}`;
             @endif
 
             function updateHiddenInput() {
-                document.getElementById('about-input').value = quill.root.innerHTML;
+                var el = document.getElementById('about-input');
+                if (el) el.value = quill.root.innerHTML;
             }
 
             quill.on('text-change', function() {
