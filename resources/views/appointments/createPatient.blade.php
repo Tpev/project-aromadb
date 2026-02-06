@@ -1,5 +1,47 @@
 {{-- resources/views/appointments/create_patient.blade.php --}}
 <x-app-layout>
+
+
+{{-- ───────── SEO: META DESCRIPTION (Booking page) ───────── --}}
+@php
+    // 1) Location fragment
+    $city  = trim($therapist->city_setByAdmin  ?? '');
+    $state = trim($therapist->state_setByAdmin ?? '');
+    $location = $city
+        ? ($state ? "$city, $state" : $city)
+        : ($state ?: __('votre région'));
+
+    // 2) Services (up to 3)
+    $servicesRaw = json_decode($therapist->services, true) ?? [];
+    $servicesArr = is_array($servicesRaw) ? array_filter($servicesRaw) : [];
+    $services    = collect($servicesArr)->unique()->take(3)->implode(', ');
+
+    // 3) Label fallback
+    $label = $services ?: __('Thérapeute');
+
+    // 4) Short “about/profile” snippet (prefer profile_description if you have it)
+    $rawAbout = $therapist->profile_description ?: ($therapist->about ?? '');
+    $aboutSnippet = \Illuminate\Support\Str::limit(trim(strip_tags((string) $rawAbout)), 110);
+
+    // 5) Final meta (aim ~155 chars)
+    $meta = \Illuminate\Support\Str::limit(
+        trim(sprintf(
+            'Prendre rendez-vous avec %s – %s à %s. %s',
+            $therapist->company_name ?? $therapist->name,
+            $label,
+            $location,
+            $aboutSnippet
+        )),
+        155,
+        '…'
+    );
+@endphp
+
+@section('meta_description', $meta)
+
+
+
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Demander un Rendez-vous') }}
