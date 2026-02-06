@@ -12,7 +12,7 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $appointment;
+    public Appointment $appointment;
 
     public function __construct(Appointment $appointment)
     {
@@ -22,6 +22,7 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
             'user',
             'clientProfile',
             'practiceLocation',
+            'meeting', // 👈 needed for visio link
         ]);
 
         $this->appointment = $appointment;
@@ -29,32 +30,45 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        // Pretty modes string (e.g., "En Visio", "Dans le Cabinet")
+        // Pretty modes string
         $modes = $this->appointment->product
             ? $this->appointment->product->getConsultationModes()
             : '—';
 
-        // Resolve the address of the actual selected cabinet (if any)
+        // Resolve cabinet address
         $cabinetAddress = null;
         if ($this->appointment->practiceLocation) {
             $pl = $this->appointment->practiceLocation;
             $cabinetAddress = $pl->full_address
-                ?? trim(collect([$pl->address_line1, $pl->postal_code.' '.$pl->city])
-                    ->filter()->implode("\n"));
+                ?? trim(collect([
+                    $pl->address_line1,
+                    trim(($pl->postal_code ?? '') . ' ' . ($pl->city ?? '')),
+                ])->filter()->implode("\n"));
         } elseif (($this->appointment->type ?? null) === 'cabinet') {
-            // Fallback if no practice_location_id stored but type indicates cabinet
             $cabinetAddress = $this->appointment->user?->company_address;
         }
 
-        // ✅ Reply-To: therapist (fallback to platform address)
+        // --- Visio link resolution (SAFE & non-breaking) ---
+        $visioUrl = null;
+
+        // Prefer product flag
+        if ($this->appointment->product?->visio) {
+            $visioUrl = $this->appointment->meeting?->join_url
+                ?? $this->appointment->meeting?->url
+                ?? null;
+        }
+
+        // Reply-To therapist
         $replyToEmail = $this->appointment->user?->email ?? config('mail.from.address');
         $replyToName  = $this->appointment->user?->name  ?? config('mail.from.name');
 
         return $this->subject('Rappel de rendez-vous')
             ->replyTo($replyToEmail, $replyToName)
             ->markdown('emails.appointment_reminder', [
-                'modes'          => $modes,
-                'cabinetAddress' => $cabinetAddress,
+                'appointment'     => $this->appointment,
+                'modes'           => $modes,
+                'cabinetAddress'  => $cabinetAddress,
+                'visioUrl'        => $visioUrl, // 👈 NEW
             ]);
     }
 }
