@@ -1,5 +1,26 @@
 {{-- resources/views/appointments/create_patient.blade.php --}}
 <x-app-layout>
+{{-- ───────── SEO: META TITLE (Booking page) ───────── --}}
+@php
+    $therapistName = $therapist->company_name
+        ?? $therapist->name
+        ?? __('Thérapeute');
+
+    $brand = config('app.name', 'AromaMade');
+
+    // Keep it under ~60 chars for SEO
+    $pageTitle = \Illuminate\Support\Str::limit(
+        trim(sprintf(
+            '%s – Prendre rendez-vous | %s',
+            $therapistName,
+            $brand
+        )),
+        60,
+        '…'
+    );
+@endphp
+
+@section('title', $pageTitle)
 
 
 {{-- ───────── SEO: META DESCRIPTION (Booking page) ───────── --}}
