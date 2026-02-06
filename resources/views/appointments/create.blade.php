@@ -193,21 +193,8 @@
                     <select id="product_name" name="product_name" class="form-control" required>
                         <option value="" disabled selected>Sélectionner une prestation</option>
                         @foreach($productModes as $productName => $modes)
-    @php
-        // If multiple variants exist under the same prestation name, show "à partir de" with the lowest TTC price.
-        $uniqueProducts = collect($modes)->pluck('product')->unique('id')->values();
-
-        $minTotal = $uniqueProducts->map(function ($p) {
-            return $p->price + ($p->price * $p->tax_rate / 100);
-        })->min();
-
-        $minPrice = rtrim(rtrim(number_format($minTotal, 2, '.', ''), '0'), '.');
-        $hasMultipleVariants = $uniqueProducts->count() > 1;
-    @endphp
-    <option value="{{ $productName }}">
-        {{ $productName }} - {{ $hasMultipleVariants ? 'à partir de ' : '' }}{{ $minPrice }}€
-    </option>
-@endforeach
+                            <option value="{{ $productName }}">{{ $productName }}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -672,40 +659,14 @@
                 const modes = PRODUCT_MODES[name] || [];
 
                 const $mode = $('#consultation_mode').empty();
-$mode.append('<option value="" disabled selected>Sélectionner le mode</option>');
+                $mode.append('<option value="" disabled selected>Sélectionner le mode</option>');
+                modes.forEach(m => {
+                    $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${escapeHtml(m.mode)}</option>`);
+                });
 
-function formatEuro(v) {
-    const n = parseFloat(v);
-    if (isNaN(n)) return '';
-    const fixed = (Math.round(n * 100) / 100).toFixed(2);
-    return fixed.replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
-}
+                $('#consultation-mode-section').show();
 
-modes.forEach(m => {
-    const prod = m.product || {};
-    const duration = parseInt((prod.duration ?? prod.duration_minutes ?? prod.duration_in_minutes ?? 0), 10);
-
-    const base = parseFloat((prod.price ?? 0));
-    const tax  = parseFloat((prod.tax_rate ?? 0));
-    const total = base + (base * tax / 100);
-
-    const parts = [];
-    parts.push(escapeHtml(m.mode));
-    if (duration && !isNaN(duration)) parts.push(`${duration} min`);
-    parts.push(`${formatEuro(total)}€`);
-
-    $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${parts.join(' - ')}</option>`);
-});
-
-// UX rule: hide dropdown if only one option, auto-select it.
-if (modes.length <= 1) {
-    $('#consultation-mode-section').hide();
-    if (modes.length === 1) {
-        $mode.val(modes[0].product.id).trigger('change');
-    }
-} else {
-    $('#consultation-mode-section').show();
-}// reset downstream
+                // reset downstream
                 $('#product_id').val('');
                 $('#selected_mode_slug').val('');
 
