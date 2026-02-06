@@ -1,66 +1,80 @@
 {{-- resources/views/appointments/create_patient.blade.php --}}
 <x-app-layout>
-{{-- ───────── SEO: META TITLE (Booking page) ───────── --}}
+{{-- =========================
+   SEO + LINK PREVIEW (TITLE / META / OG)
+   Place this near the top of the file, right after <x-app-layout>
+   ========================= --}}
 @php
+    // Therapist name (safe)
     $therapistName = $therapist->company_name
+        ?? $therapist->business_name
         ?? $therapist->name
         ?? __('Thérapeute');
 
-    $brand = config('app.name', 'AromaMade');
-
-    // Keep it under ~60 chars for SEO
-    $pageTitle = \Illuminate\Support\Str::limit(
-        trim(sprintf(
-            '%s – Prendre rendez-vous | %s',
-            $therapistName,
-            $brand
-        )),
-        60,
-        '…'
-    );
-@endphp
-
-@section('title', $pageTitle)
-
-
-{{-- ───────── SEO: META DESCRIPTION (Booking page) ───────── --}}
-@php
-    // 1) Location fragment
+    // Location (safe)
     $city  = trim($therapist->city_setByAdmin  ?? '');
     $state = trim($therapist->state_setByAdmin ?? '');
     $location = $city
         ? ($state ? "$city, $state" : $city)
         : ($state ?: __('votre région'));
 
-    // 2) Services (up to 3)
+    // Services (safe JSON -> up to 3)
     $servicesRaw = json_decode($therapist->services, true) ?? [];
     $servicesArr = is_array($servicesRaw) ? array_filter($servicesRaw) : [];
     $services    = collect($servicesArr)->unique()->take(3)->implode(', ');
+    $label       = $services ?: __('Thérapeute');
 
-    // 3) Label fallback
-    $label = $services ?: __('Thérapeute');
-
-    // 4) Short “about/profile” snippet (prefer profile_description if you have it)
+    // Snippet (prefer profile_description, fallback about)
     $rawAbout = $therapist->profile_description ?: ($therapist->about ?? '');
-    $aboutSnippet = \Illuminate\Support\Str::limit(trim(strip_tags((string) $rawAbout)), 110);
+    $aboutSnippet = \Illuminate\Support\Str::limit(
+        trim(strip_tags((string) $rawAbout)),
+        110,
+        '…'
+    );
 
-    // 5) Final meta (aim ~155 chars)
+    // Brand
+    $brand = config('app.name', 'AromaMade');
+
+    // Title (~60 chars)
+    $pageTitle = \Illuminate\Support\Str::limit(
+        trim("Prendre rendez-vous • {$therapistName} | {$brand}"),
+        60,
+        '…'
+    );
+
+    // Meta description (~155 chars)
     $meta = \Illuminate\Support\Str::limit(
-        trim(sprintf(
-            'Prendre rendez-vous avec %s – %s à %s. %s',
-            $therapist->company_name ?? $therapist->name,
-            $label,
-            $location,
-            $aboutSnippet
-        )),
+        trim("Prendre rendez-vous avec {$therapistName} – {$label} à {$location}. {$aboutSnippet}"),
         155,
         '…'
     );
+
+    // OG image (use bigger for previews). If none, omit og:image (safer than broken fallback).
+    $ogImage = $therapist->profile_picture
+        ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
+        : null;
 @endphp
 
+@section('title', $pageTitle)
 @section('meta_description', $meta)
 
+@section('meta_og')
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ $pageTitle }}" />
+    <meta property="og:description" content="{{ $meta }}" />
+    <meta property="og:url" content="{{ url()->current() }}" />
+    @if($ogImage)
+        <meta property="og:image" content="{{ $ogImage }}" />
+    @endif
 
+    {{-- Twitter cards --}}
+    <meta name="twitter:card" content="{{ $ogImage ? 'summary_large_image' : 'summary' }}" />
+    <meta name="twitter:title" content="{{ $pageTitle }}" />
+    <meta name="twitter:description" content="{{ $meta }}" />
+    @if($ogImage)
+        <meta name="twitter:image" content="{{ $ogImage }}" />
+    @endif
+@endsection
 
 
     <x-slot name="header">
