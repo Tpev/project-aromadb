@@ -46,7 +46,12 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
             $cabinetAddress = $this->appointment->user?->company_address;
         }
 
+        // ✅ Reply-To: therapist (fallback to platform address)
+        $replyToEmail = $this->appointment->user?->email ?? config('mail.from.address');
+        $replyToName  = $this->appointment->user?->name  ?? config('mail.from.name');
+
         return $this->subject('Rappel de rendez-vous')
+            ->replyTo($replyToEmail, $replyToName)
             ->markdown('emails.appointment_reminder', [
                 'modes'          => $modes,
                 'cabinetAddress' => $cabinetAddress,

@@ -105,6 +105,10 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
         }
 
         return $this->subject('Confirmation de votre rendez-vous')
+		->replyTo(
+        $this->appointment->user?->email,
+        $this->appointment->user?->name
+    )
             ->markdown('emails.appointment_created_patient', [
                 'modes'           => $modes,
                 'cabinetAddress'  => $cabinetAddress,
