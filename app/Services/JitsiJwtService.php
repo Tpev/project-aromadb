@@ -10,7 +10,7 @@ class JitsiJwtService
     /**
      * Low-level generator (you can still use it directly if you want).
      */
-    public function generate(array $claims = [], int $ttlSeconds = 60 * 30): string
+    public function generate(array $claims = [], int $ttlSeconds = 60 * 60 * 4): string
     {
         $appId  = config('services.jitsi.app_id');
         $secret = config('services.jitsi.secret');
