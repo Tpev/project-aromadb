@@ -13,6 +13,12 @@
                 @csrf
                 @method('PUT')
 
+                @php
+                    $oldType = old('event_type', $event->event_type ?? 'in_person');
+                    $oldProvider = old('visio_provider', $event->visio_provider ?? 'external');
+                    $currentVisioLink = $event->visio_link ?? null; // accessor in Model
+                @endphp
+
                 <!-- Name -->
                 <div class="details-box">
                     <label class="details-label" for="name">{{ __('Nom de l\'Événement') }}</label>
@@ -47,6 +53,70 @@
                     @error('duration')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <!-- NEW: Event Type -->
+                <div class="details-box">
+                    <label class="details-label">{{ __('Format') }}</label>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="event_type" value="in_person" {{ $oldType === 'in_person' ? 'checked' : '' }}>
+                            <span>{{ __('Présentiel') }}</span>
+                        </label>
+
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="event_type" value="visio" {{ $oldType === 'visio' ? 'checked' : '' }}>
+                            <span>{{ __('Visio') }}</span>
+                        </label>
+                    </div>
+
+                    @error('event_type')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- NEW: Visio options -->
+                <div id="visioOptions" class="details-box" style="display:none;">
+                    <label class="details-label">{{ __('Options Visio') }}</label>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="visio_provider" value="external" {{ $oldProvider === 'external' ? 'checked' : '' }}>
+                            <span>{{ __('Lien externe (Zoom, Meet, Teams, etc.)') }}</span>
+                        </label>
+
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
+                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                        </label>
+                    </div>
+
+                    <div id="visioUrlWrap" style="margin-top: 12px;">
+                        <label class="details-label" for="visio_url">{{ __('Lien de visio') }}</label>
+                        <input
+                            type="url"
+                            id="visio_url"
+                            name="visio_url"
+                            class="form-control"
+                            value="{{ old('visio_url', $event->visio_url) }}"
+                            placeholder="https://..."
+                        >
+                        @error('visio_url')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+
+                        @if(!empty($currentVisioLink))
+                            <p class="text-xs text-slate-500 mt-2">
+                                {{ __('Lien actuel:') }}
+                                <a href="{{ $currentVisioLink }}" target="_blank" rel="noopener noreferrer">{{ $currentVisioLink }}</a>
+                            </p>
+                        @endif
+
+                        <p class="text-xs text-slate-500 mt-2">
+                            {{ __('Si vous choisissez "Créer un lien AromaMade", le lien (token) est géré automatiquement.') }}
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Booking Required -->
@@ -135,12 +205,15 @@
                 </div>
 
                 <!-- Location -->
-                <div class="details-box">
+                <div class="details-box" id="locationBox">
                     <label class="details-label" for="location">{{ __('Lieu') }}</label>
-                    <input type="text" id="location" name="location" class="form-control" value="{{ old('location', $event->location) }}" required>
+                    <input type="text" id="location" name="location" class="form-control" value="{{ old('location', $event->location) }}">
                     @error('location')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
+                    <p class="text-xs text-slate-500 mt-2" id="locationHint" style="display:none;">
+                        {{ __('Pour un événement en visio, vous pouvez laisser vide : on affichera automatiquement "En ligne (Visio)".') }}
+                    </p>
                 </div>
 
                 <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour l\'Événement') }}</button>
@@ -244,8 +317,13 @@
     <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            // ---- Existing logic: limited spots -> show number_of_spot ----
             function toggleNumberOfSpots() {
-                var limitedSpot = document.querySelector('input[name="limited_spot"]:checked').value;
+                var checked = document.querySelector('input[name="limited_spot"]:checked');
+                if (!checked) return;
+
+                var limitedSpot = checked.value;
                 var numberOfSpotContainer = document.getElementById('number_of_spot_container');
                 if (limitedSpot == '1') {
                     numberOfSpotContainer.style.display = 'block';
@@ -254,14 +332,56 @@
                 }
             }
 
-            // Initial call to set the visibility based on the current selection
-            toggleNumberOfSpots();
+            // ---- NEW logic: visio / in-person UI ----
+            const typeRadios = document.querySelectorAll('input[name="event_type"]');
+            const providerRadios = document.querySelectorAll('input[name="visio_provider"]');
+            const visioOptions = document.getElementById('visioOptions');
+            const locationHint = document.getElementById('locationHint');
+            const locationInput = document.getElementById('location');
+            const visioUrlInput = document.getElementById('visio_url');
 
-            // Add event listeners to the radio buttons
+            function currentType() {
+                const checked = document.querySelector('input[name="event_type"]:checked');
+                return checked ? checked.value : 'in_person';
+            }
+
+            function currentProvider() {
+                const checked = document.querySelector('input[name="visio_provider"]:checked');
+                return checked ? checked.value : 'external';
+            }
+
+            function refreshVisioUI() {
+                const t = currentType();
+                const p = currentProvider();
+                const isVisio = (t === 'visio');
+
+                if (visioOptions) visioOptions.style.display = isVisio ? '' : 'none';
+                if (locationHint) locationHint.style.display = isVisio ? '' : 'none';
+
+                // Location required only for in-person
+                if (locationInput) {
+                    locationInput.required = !isVisio;
+                }
+
+                // External url required only if visio + external
+                if (visioUrlInput) {
+                    visioUrlInput.required = (isVisio && p === 'external');
+                    if (!isVisio) visioUrlInput.required = false;
+                }
+            }
+
+            // init
+            toggleNumberOfSpots();
+            refreshVisioUI();
+
+            // listeners
             var limitedSpotRadios = document.querySelectorAll('input[name="limited_spot"]');
             limitedSpotRadios.forEach(function(radio) {
                 radio.addEventListener('change', toggleNumberOfSpots);
             });
+
+            typeRadios.forEach(r => r.addEventListener('change', refreshVisioUI));
+            providerRadios.forEach(r => r.addEventListener('change', refreshVisioUI));
         });
     </script>
 </x-app-layout>

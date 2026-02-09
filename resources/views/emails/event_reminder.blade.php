@@ -6,7 +6,12 @@ Ceci est un rappel concernant votre réservation pour l’événement **{{ $even
 **Détails de l’événement :**
 - **Date et heure :** {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
 - **Durée :** {{ $event->duration ?? '—' }} minutes
+- **Format :** {{ ($isVisio ?? false) ? 'Visio' : 'Présentiel' }}
+@if(($isVisio ?? false))
+- **Accès :** En ligne (Visio)
+@else
 - **Lieu :** {{ $event->location ?? '—' }}
+@endif
 - **Organisateur :** {{ $event->user->company_name ?? $event->user->name ?? '—' }}
 
 @isset($timingLabel)
@@ -16,6 +21,26 @@ Ceci est un rappel concernant votre réservation pour l’événement **{{ $even
 📅 *L’événement a lieu dans environ 24 heures.*
 @endif
 @endisset
+
+@if(($isVisio ?? false))
+---
+
+## 🔗 Lien de connexion (Visio)
+
+@if(!empty($visioJoinLink))
+@component('mail::button', ['url' => $visioJoinLink])
+Rejoindre la visio
+@endcomponent
+
+> Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :  
+{{ $visioJoinLink }}
+@else
+> Le lien de visio n’est pas disponible pour le moment.  
+Merci de répondre à cet email et nous vous aiderons rapidement.
+@endif
+@endif
+
+---
 
 Si vous avez des questions, répondez simplement à cet email.
 

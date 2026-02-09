@@ -35,7 +35,25 @@ class EventReminderClientMail extends Mailable implements ShouldQueue
             default => 'Rappel : votre événement approche',
         };
 
+        // Determine format + link
+        $isVisio = ($this->event->event_type ?? 'in_person') === 'visio';
+
+        // Participant link (external or AromaMade public link)
+        // Note: for AromaMade (Jitsi+JWT), this should be generated dynamically via accessor.
+        $visioJoinLink = null;
+
+        if ($isVisio) {
+            if (!empty($this->event->visio_url)) {
+                $visioJoinLink = $this->event->visio_url;
+            } elseif (!empty($this->event->visio_public_link)) {
+                $visioJoinLink = $this->event->visio_public_link;
+            }
+        }
+
         return $this->subject($subject)
-            ->markdown('emails.event_reminder');
+            ->markdown('emails.event_reminder', [
+                'visioJoinLink' => $visioJoinLink,
+                'isVisio' => $isVisio,
+            ]);
     }
 }

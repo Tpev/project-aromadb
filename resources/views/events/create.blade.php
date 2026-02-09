@@ -48,15 +48,69 @@
                     @enderror
                 </div>
 
+                <!-- NEW: Event Type -->
+                <div class="details-box">
+                    <label class="details-label">{{ __('Format') }}</label>
+
+                    @php
+                        $oldType = old('event_type', 'in_person');
+                        $oldProvider = old('visio_provider', 'external');
+                    @endphp
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="event_type" value="in_person" {{ $oldType === 'in_person' ? 'checked' : '' }}>
+                            <span>{{ __('Présentiel') }}</span>
+                        </label>
+
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="event_type" value="visio" {{ $oldType === 'visio' ? 'checked' : '' }}>
+                            <span>{{ __('Visio') }}</span>
+                        </label>
+                    </div>
+
+                    @error('event_type')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- NEW: Visio options -->
+                <div id="visioOptions" class="details-box" style="display:none;">
+                    <label class="details-label">{{ __('Options Visio') }}</label>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="visio_provider" value="external" {{ $oldProvider === 'external' ? 'checked' : '' }}>
+                            <span>{{ __('Lien externe (Zoom, Meet, Teams, etc.)') }}</span>
+                        </label>
+
+                        <label class="d-flex align-items-center gap-2">
+                            <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
+                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                        </label>
+                    </div>
+
+                    <div id="visioUrlWrap" style="margin-top: 12px;">
+                        <label class="details-label" for="visio_url">{{ __('Lien de visio') }}</label>
+                        <input type="url" id="visio_url" name="visio_url" class="form-control" value="{{ old('visio_url') }}" placeholder="https://...">
+                        @error('visio_url')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                        <p class="text-xs text-slate-500 mt-2">
+                            {{ __('Si vous choisissez "Créer un lien AromaMade", le lien sera généré automatiquement après création.') }}
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Booking Required -->
                 <div class="details-box">
-                    <label class="details-label">{{ __('Réservation Requise') }}</label>
-                    <div class="form-check">
+                    <label class="details-label">{{ __('Réservation Obligatoire') }}</label>
+                    <div>
                         <input type="radio" id="booking_required_yes" name="booking_required" value="1" {{ old('booking_required') == '1' ? 'checked' : '' }} required>
                         <label for="booking_required_yes">{{ __('Oui') }}</label>
                     </div>
-                    <div class="form-check">
-                        <input type="radio" id="booking_required_no" name="booking_required" value="0" {{ old('booking_required') == '0' ? 'checked' : '' }}>
+                    <div>
+                        <input type="radio" id="booking_required_no" name="booking_required" value="0" {{ old('booking_required') == '0' ? 'checked' : '' }} required>
                         <label for="booking_required_no">{{ __('Non') }}</label>
                     </div>
                     @error('booking_required')
@@ -64,15 +118,15 @@
                     @enderror
                 </div>
 
-                <!-- Limited Spots -->
+                <!-- Limited Spot -->
                 <div class="details-box">
                     <label class="details-label">{{ __('Places Limitées') }}</label>
-                    <div class="form-check">
+                    <div>
                         <input type="radio" id="limited_spot_yes" name="limited_spot" value="1" {{ old('limited_spot') == '1' ? 'checked' : '' }} required>
                         <label for="limited_spot_yes">{{ __('Oui') }}</label>
                     </div>
-                    <div class="form-check">
-                        <input type="radio" id="limited_spot_no" name="limited_spot" value="0" {{ old('limited_spot', '0') == '0' ? 'checked' : '' }}>
+                    <div>
+                        <input type="radio" id="limited_spot_no" name="limited_spot" value="0" {{ old('limited_spot') == '0' ? 'checked' : '' }} required>
                         <label for="limited_spot_no">{{ __('Non') }}</label>
                     </div>
                     @error('limited_spot')
@@ -80,8 +134,8 @@
                     @enderror
                 </div>
 
-                <!-- Number of Spots -->
-                <div class="details-box" id="number_of_spot_container">
+                <!-- Number of Spot -->
+                <div class="details-box">
                     <label class="details-label" for="number_of_spot">{{ __('Nombre de Places') }}</label>
                     <input type="number" id="number_of_spot" name="number_of_spot" class="form-control" value="{{ old('number_of_spot') }}">
                     @error('number_of_spot')
@@ -96,7 +150,7 @@
                         <option value="">{{ __('Aucun') }}</option>
                         @foreach($products as $product)
                             <option value="{{ $product->id }}" {{ old('associated_product') == $product->id ? 'selected' : '' }}>
-                                {{ $product->name }}
+                                {{ $product->name ?? ('Produit #' . $product->id) }}
                             </option>
                         @endforeach
                     </select>
@@ -114,15 +168,15 @@
                     @enderror
                 </div>
 
-                <!-- Show on Portal -->
+                <!-- Show On Portail -->
                 <div class="details-box">
-                    <label class="details-label">{{ __('Afficher sur le Portail') }}</label>
-                    <div class="form-check">
+                    <label class="details-label">{{ __('Afficher sur le portail') }}</label>
+                    <div>
                         <input type="radio" id="showOnPortail_yes" name="showOnPortail" value="1" {{ old('showOnPortail') == '1' ? 'checked' : '' }} required>
                         <label for="showOnPortail_yes">{{ __('Oui') }}</label>
                     </div>
-                    <div class="form-check">
-                        <input type="radio" id="showOnPortail_no" name="showOnPortail" value="0" {{ old('showOnPortail') == '0' ? 'checked' : '' }}>
+                    <div>
+                        <input type="radio" id="showOnPortail_no" name="showOnPortail" value="0" {{ old('showOnPortail') == '0' ? 'checked' : '' }} required>
                         <label for="showOnPortail_no">{{ __('Non') }}</label>
                     </div>
                     @error('showOnPortail')
@@ -130,21 +184,23 @@
                     @enderror
                 </div>
 
-                <!-- Location -->
-                <div class="details-box">
+                <!-- Location (only meaningful for in-person, but we keep it for compatibility) -->
+                <div class="details-box" id="locationBox">
                     <label class="details-label" for="location">{{ __('Lieu') }}</label>
-                    <input type="text" id="location" name="location" class="form-control" value="{{ old('location') }}" required>
+                    <input type="text" id="location" name="location" class="form-control" value="{{ old('location') }}">
                     @error('location')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
+                    <p class="text-xs text-slate-500 mt-2" id="locationHint" style="display:none;">
+                        {{ __('Pour un événement en visio, laissez vide : on affichera automatiquement "En ligne (Visio)".') }}
+                    </p>
                 </div>
 
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer l\'Événement') }}</button>
-                <a href="{{ route('events.index') }}" class="btn-secondary mt-4">{{ __('Retour à la liste') }}</a>
+
             </form>
         </div>
     </div>
-
     <!-- Custom Styles -->
     <style>
         .container {
@@ -236,28 +292,43 @@
             display: none;
         }
     </style>
-
-    <!-- JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            function toggleNumberOfSpots() {
-                var limitedSpot = document.querySelector('input[name="limited_spot"]:checked').value;
-                var numberOfSpotContainer = document.getElementById('number_of_spot_container');
-                if (limitedSpot == '1') {
-                    numberOfSpotContainer.style.display = 'block';
-                } else {
-                    numberOfSpotContainer.style.display = 'none';
+        (function() {
+            const typeRadios = document.querySelectorAll('input[name="event_type"]');
+            const providerRadios = document.querySelectorAll('input[name="visio_provider"]');
+            const visioOptions = document.getElementById('visioOptions');
+            const visioUrlWrap = document.getElementById('visioUrlWrap');
+            const locationHint = document.getElementById('locationHint');
+
+            function currentType() {
+                const checked = document.querySelector('input[name="event_type"]:checked');
+                return checked ? checked.value : 'in_person';
+            }
+            function currentProvider() {
+                const checked = document.querySelector('input[name="visio_provider"]:checked');
+                return checked ? checked.value : 'external';
+            }
+
+            function refresh() {
+                const t = currentType();
+                const p = currentProvider();
+
+                const isVisio = (t === 'visio');
+                visioOptions.style.display = isVisio ? '' : 'none';
+                locationHint.style.display = isVisio ? '' : 'none';
+
+                // If aromamade, URL is optional and visually less important
+                visioUrlWrap.style.display = (isVisio && p === 'external') ? '' : '';
+                const urlInput = document.getElementById('visio_url');
+                if (urlInput) {
+                    urlInput.required = (isVisio && p === 'external');
+                    if (!isVisio) urlInput.required = false;
                 }
             }
 
-            // Initial call to set the visibility based on the current selection
-            toggleNumberOfSpots();
-
-            // Add event listeners to the radio buttons
-            var limitedSpotRadios = document.querySelectorAll('input[name="limited_spot"]');
-            limitedSpotRadios.forEach(function(radio) {
-                radio.addEventListener('change', toggleNumberOfSpots);
-            });
-        });
+            typeRadios.forEach(r => r.addEventListener('change', refresh));
+            providerRadios.forEach(r => r.addEventListener('change', refresh));
+            refresh();
+        })();
     </script>
 </x-app-layout>
