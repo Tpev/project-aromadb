@@ -334,32 +334,99 @@
     @php
         $practiceLocations = $therapist->practiceLocations ?? collect();
 
+        // Only products bookable online
         $onlineProducts = $products->filter(fn($p) => $p->can_be_booked_online);
+
+        // Group by display name (same prestation name may have multiple variants: duration/price/mode)
         $productsByName = $onlineProducts->groupBy('name');
 
-        $productModes = [];
+        /**
+         * Build a catalog usable by the front-end:
+         * PRODUCT_CATALOG[productName] = {
+         *   min_price: float,
+         *   has_multiple_prices: bool,
+         *   modes: {
+         *     domicile:   { label: 'À Domicile',  products: [{id,duration,price,price_raw}, ...] },
+         *     entreprise: { label: 'En entreprise', products: [...] },
+         *     cabinet:    { label: 'Dans le Cabinet', products: [...] },
+         *     visio:      { label: 'En Visio', products: [...] },
+         *   }
+         * }
+         */
+        $productCatalog = [];
+
         foreach ($productsByName as $productName => $group) {
-            $modes = [];
+            $allTotals = [];
+
+            $modes = [
+                'domicile'   => ['label' => 'À Domicile',     'products' => []],
+                'entreprise' => ['label' => 'En entreprise', 'products' => []],
+                'cabinet'    => ['label' => 'Dans le Cabinet','products' => []],
+                'visio'      => ['label' => 'En Visio',      'products' => []],
+            ];
+
             foreach ($group as $p) {
+                $total = (float) $p->price + ((float) $p->price * (float) $p->tax_rate / 100);
+                $allTotals[] = $total;
+
+                // Helper payload for the UI
+                $payload = [
+                    'id'       => $p->id,
+                    'duration' => (int) ($p->duration ?? 0),
+                    'price'    => rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.'),
+                    'price_raw'=> $total,
+                ];
+
                 if ($p->adomicile) {
-                    $modes[] = ['mode' => 'À Domicile', 'slug' => 'domicile', 'product' => $p];
+                    $modes['domicile']['products'][] = $payload;
                 }
 
                 if (!empty($p->en_entreprise)) {
-                    $modes[] = ['mode' => 'En entreprise', 'slug' => 'entreprise', 'product' => $p];
+                    $modes['entreprise']['products'][] = $payload;
                 }
+
                 if ($p->dans_le_cabinet) {
-                    $modes[] = ['mode' => 'Dans le Cabinet', 'slug' => 'cabinet', 'product' => $p];
+                    $modes['cabinet']['products'][] = $payload;
                 }
+
                 if ($p->visio || $p->en_visio) {
-                    $modes[] = ['mode' => 'En Visio', 'slug' => 'visio', 'product' => $p];
+                    $modes['visio']['products'][] = $payload;
                 }
             }
+
+            // Remove empty modes and sort variants (duration asc, then price asc)
+            foreach ($modes as $slug => $data) {
+                if (empty($data['products'])) {
+                    unset($modes[$slug]);
+                    continue;
+                }
+                usort($modes[$slug]['products'], function($a, $b) {
+                    if ($a['duration'] === $b['duration']) {
+                        return $a['price_raw'] <=> $b['price_raw'];
+                    }
+                    return $a['duration'] <=> $b['duration'];
+                });
+            }
+
             if (!empty($modes)) {
-                $productModes[$productName] = $modes;
+                sort($allTotals);
+                $minTotal = $allTotals[0] ?? 0;
+
+                // Determine if multiple prices exist across all variants
+                $uniqueTotals = array_unique(array_map(function($v) {
+                    // compare with 2 decimals to avoid float noise
+                    return number_format((float)$v, 2, '.', '');
+                }, $allTotals));
+
+                $productCatalog[$productName] = [
+                    'min_price'            => rtrim(rtrim(number_format($minTotal, 2, '.', ''), '0'), '.'),
+                    'has_multiple_prices'  => count($uniqueTotals) > 1,
+                    'modes'                => $modes,
+                ];
             }
         }
     @endphp
+
 
     <div class="container mt-5">
         <div class="details-container mx-auto">
@@ -418,19 +485,18 @@
                         <div class="divider"></div>
 
                         {{-- Prestation --}}
-                        @if(count($productModes) > 0)
+                        @if(count($productCatalog) > 0)
                             <div class="details-box">
                                 <label class="details-label" for="product_name">{{ __('Prestation') }}</label>
                                 <select id="product_name" name="product_name" class="form-control" required>
                                     <option value="" disabled selected>{{ __('Sélectionner une prestation') }}</option>
-                                    @foreach($productModes as $productName => $modes)
+                                    @foreach($productCatalog as $productName => $data)
                                         @php
-                                            $p = $modes[0]['product'];
-                                            $total = $p->price + ($p->price * $p->tax_rate / 100);
-                                            $price = rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.');
+                                            $minPrice = $data['min_price'] ?? '0';
+                                            $hasMulti = !empty($data['has_multiple_prices']);
                                         @endphp
                                         <option value="{{ $productName }}" {{ old('product_name') == $productName ? 'selected' : '' }}>
-                                            {{ $productName }} - {{ $price }}€
+                                            {{ $productName }} - {{ $hasMulti ? __('à partir de') . ' ' . $minPrice . '€' : $minPrice . '€' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -448,6 +514,16 @@
                             </select>
                             <p class="text-red-500 mt-1 d-none" id="mode-error"></p>
                         </div>
+                        {{-- Format (durée / tarif) : affiché seulement si plusieurs variantes existent pour le mode choisi --}}
+                        <div class="details-box" id="format-section" style="display:none;">
+                            <label class="details-label" for="product_variant">{{ __('Format') }}</label>
+                            <select id="product_variant" class="form-control">
+                                <option value="" disabled selected>{{ __('Sélectionner un format') }}</option>
+                            </select>
+                            <p class="text-red-500 mt-1 d-none" id="format-error"></p>
+                        </div>
+
+
 
                         {{-- Cabinet: choose a practice location --}}
                         <div class="details-box" id="cabinet-location-section" style="display:none;">
@@ -606,7 +682,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const PRODUCT_MODES = @json($productModes);
+        const PRODUCT_CATALOG = @json($productCatalog);
         const OLD_TIME      = @json(old('appointment_time'));
 
         let allowedDates = [];
@@ -874,20 +950,26 @@
 
             // Product change
             $('#product_name').on('change', function () {
-                const name  = $(this).val();
-                const modes = PRODUCT_MODES[name] || [];
+                const name = $(this).val();
+                const data = PRODUCT_CATALOG[name] || null;
+                const modes = (data && data.modes) ? data.modes : {};
                 const $mode = $('#consultation_mode');
 
                 $mode.empty().append('<option value="" disabled selected>{{ __("Sélectionner un mode de consultation") }}</option>');
-                $('#consultation-mode-section').toggle(modes.length > 0);
+                $('#consultation-mode-section').toggle(Object.keys(modes).length > 0);
 
-                modes.forEach(function (m) {
-                    $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${m.mode}</option>`);
+                Object.keys(modes).forEach(function (slug) {
+                    const label = modes[slug].label || slug;
+                    $mode.append(`<option value="${slug}" data-label="${label}">${label}</option>`);
                 });
 
                 // reset hidden state & UI
                 $('#product_id').val('');
                 $('#selected_mode_slug').val('');
+                $('#product_variant').empty().append('<option value="" disabled selected>{{ __("Sélectionner un format") }}</option>');
+                $('#format-section').hide();
+                $('#format-error').addClass('d-none').text('');
+
                 $('#cabinet-location-section').hide();
                 $('#therapist-address-section').hide();
                 $('#therapist-address').text('');
@@ -906,11 +988,46 @@
 
             // Mode change
             $('#consultation_mode').on('change', function () {
-                const productId = $(this).val();
-                const modeSlug  = $(this).find(':selected').data('slug');
+                const name = $('#product_name').val();
+                const modeSlug = $(this).val();
 
-                $('#product_id').val(productId);
+                const modeData = (PRODUCT_CATALOG[name] && PRODUCT_CATALOG[name].modes && PRODUCT_CATALOG[name].modes[modeSlug])
+                    ? PRODUCT_CATALOG[name].modes[modeSlug]
+                    : null;
+
                 $('#selected_mode_slug').val(modeSlug);
+
+                // Reset everything dependent on the concrete product variant
+                $('#product_id').val('');
+                $('#product_variant').empty().append('<option value="" disabled selected>{{ __("Sélectionner un format") }}</option>');
+                $('#format-error').addClass('d-none').text('');
+
+                const variants = (modeData && Array.isArray(modeData.products)) ? modeData.products : [];
+
+                if (variants.length <= 1) {
+                    $('#format-section').hide();
+
+                    if (variants.length === 1) {
+                        $('#product_id').val(variants[0].id);
+                    }
+                } else {
+                    $('#format-section').show();
+
+                    variants.forEach(function (v) {
+                        const dur = v.duration ? `${v.duration} min` : '';
+                        const price = (v.price !== undefined && v.price !== null) ? `${v.price}€` : '';
+                        const label = `${name} - ${(modeData.label || modeSlug)} - ${dur} - ${price}`.replace(/\s+-\s+-/g, ' - ').replace(/\s+-\s+$/g, '');
+                        $('#product_variant').append(`<option value="${v.id}">${label}</option>`);
+                    });
+
+                    // Preselect: keep old product_id if it matches; otherwise pick the first
+                    const current = $('#product_id').val();
+                    const firstId = variants[0].id;
+                    let chosen = current && variants.some(v => String(v.id) === String(current)) ? current : firstId;
+
+                    $('#product_variant').val(String(chosen));
+                    $('#product_id').val(String(chosen));
+                }
 
                 resetTimeSelect();
                 fp.set('enable', []);
@@ -924,6 +1041,21 @@
                     $('#practice_location_id').val('');
                     $('#practice_location_id_hidden').val('');
                 }
+
+                refreshDates();
+                updateSummary();
+            });
+
+            // Format change (when multiple variants exist)
+            $('#product_variant').on('change', function () {
+                const productId = $(this).val();
+                if (productId) {
+                    $('#product_id').val(productId);
+                }
+
+                resetTimeSelect();
+                fp.set('enable', []);
+                fp.clear();
 
                 refreshDates();
                 updateSummary();
@@ -1004,13 +1136,32 @@
                 @if(old('product_id'))
                     setTimeout(function () {
                         const productId = @json(old('product_id'));
+                        const productName = @json(old('product_name'));
+                        let modeSlug = @json(old('type')) || null;
 
-                        $('#consultation_mode option').each(function(){
-                            if ($(this).val() == productId) $(this).prop('selected', true);
-                        });
-                        $('#consultation_mode').trigger('change');
+                        // If mode wasn't posted, infer it from the catalog (by matching the variant id)
+                        if (!modeSlug && PRODUCT_CATALOG[productName] && PRODUCT_CATALOG[productName].modes) {
+                            Object.keys(PRODUCT_CATALOG[productName].modes).forEach(function (slug) {
+                                const variants = PRODUCT_CATALOG[productName].modes[slug].products || [];
+                                if (variants.some(v => String(v.id) === String(productId))) {
+                                    modeSlug = slug;
+                                }
+                            });
+                        }
 
-                        @if(old('practice_location_id'))
+                        if (modeSlug) {
+                            $('#consultation_mode').val(modeSlug).trigger('change');
+
+                            // If a format dropdown is shown, restore the exact variant
+                            setTimeout(function () {
+                                if ($('#format-section').is(':visible')) {
+                                    $('#product_variant').val(String(productId)).trigger('change');
+                                } else {
+                                    $('#product_id').val(String(productId));
+                                }
+                            }, 30);
+                        }
+@if(old('practice_location_id'))
                             $('#practice_location_id').val(@json(old('practice_location_id'))).trigger('change');
                         @endif
 

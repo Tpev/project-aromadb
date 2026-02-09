@@ -1264,6 +1264,11 @@ Route::delete('/admin/design-templates/{template}', [AdminDesignTemplateControll
     ->name('admin.design-templates.destroy');
 
 
+Route::get('/b/{token}', [AppointmentController::class, 'createByToken'])
+    ->name('bookingLinks.create');
+
+Route::post('/b/{token}', [AppointmentController::class, 'storeByToken'])
+    ->name('bookingLinks.store');
 
 
 

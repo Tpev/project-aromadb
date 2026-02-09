@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Invoice;
+use App\Models\BookingLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,10 @@ class ProductController extends Controller
             return redirect('/license-tiers/pricing');
         }
 
-        $products = Product::where('user_id', Auth::id())->get();
+        $products = Product::where('user_id', Auth::id())
+            ->orderBy('display_order', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('products.index', compact('products'));
     }
@@ -43,18 +47,13 @@ class ProductController extends Controller
             'max_per_day'          => 'nullable|integer|min:1',
             'can_be_booked_online' => 'required|boolean',
             'collect_payment'      => 'required|boolean',
-            'image'                => 'nullable|image|max:8048',
+            'image'                => 'nullable|image|max:5048',
             'brochure'             => 'nullable|mimes:pdf|max:10120',
             'display_order'        => 'nullable|integer|min:0',
             'requires_emargement'  => 'required|boolean',
             'visible_in_portal'    => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
         ]);
-
-        if (!isset($validatedData['display_order'])) {
-            $maxOrder = Product::where('user_id', Auth::id())->max('display_order');
-            $validatedData['display_order'] = ($maxOrder ?? 0) + 1;
-        }
 
         if ($request->hasFile('image')) {
             $validatedData['image'] = $request->file('image')->store('products/images', 'public');
@@ -70,26 +69,24 @@ class ProductController extends Controller
         $dansLeCabinet   = $validatedData['mode'] === 'dans_le_cabinet';
 
         $product = Product::create([
-            'user_id'              => Auth::id(),
-            'name'                 => $validatedData['name'],
-            'description'          => $validatedData['description'] ?? null,
-            'price'                => $validatedData['price'],
-            'tax_rate'             => $validatedData['tax_rate'],
-            'duration'             => $validatedData['duration'] ?? null,
-            'can_be_booked_online' => $validatedData['can_be_booked_online'],
-            'collect_payment'      => $validatedData['collect_payment'],
-
-            'visio'                => $visio,
-            'adomicile'            => $adomicile,
-            'en_entreprise'        => $enEntreprise,
-            'dans_le_cabinet'      => $dansLeCabinet,
-
-            'max_per_day'          => $validatedData['max_per_day'] ?? null,
-            'image'                => $validatedData['image'] ?? null,
-            'brochure'             => $validatedData['brochure'] ?? null,
-            'display_order'        => $validatedData['display_order'],
-            'requires_emargement'  => $validatedData['requires_emargement'],
-            'visible_in_portal'    => $validatedData['visible_in_portal'],
+            'user_id'               => Auth::id(),
+            'name'                  => $validatedData['name'],
+            'description'           => $validatedData['description'] ?? null,
+            'price'                 => $validatedData['price'],
+            'tax_rate'              => $validatedData['tax_rate'],
+            'duration'              => $validatedData['duration'] ?? null,
+            'can_be_booked_online'  => $validatedData['can_be_booked_online'],
+            'collect_payment'       => $validatedData['collect_payment'],
+            'visio'                 => $visio,
+            'adomicile'             => $adomicile,
+            'en_entreprise'         => $enEntreprise,
+            'dans_le_cabinet'       => $dansLeCabinet,
+            'max_per_day'           => $validatedData['max_per_day'] ?? null,
+            'image'                 => $validatedData['image'] ?? null,
+            'brochure'              => $validatedData['brochure'] ?? null,
+            'display_order'         => $validatedData['display_order'] ?? 0,
+            'requires_emargement'   => $validatedData['requires_emargement'],
+            'visible_in_portal'     => $validatedData['visible_in_portal'],
             'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
         ]);
 
@@ -102,12 +99,36 @@ class ProductController extends Controller
             $query->where('product_id', $product->id);
         })->with('clientProfile')->get();
 
-        return view('products.show', compact('product', 'invoices'));
+        // Direct booking link (active) for this product (owner-only display in the view)
+        $directBookingLink = BookingLink::query()
+            ->where('user_id', $product->user_id)
+            ->where('is_enabled', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->whereJsonContains('allowed_product_ids', $product->id)
+            ->orderByDesc('id')
+            ->first();
+
+        return view('products.show', compact('product', 'invoices', 'directBookingLink'));
     }
 
     public function edit(Product $product)
     {
-        return view('products.edit', compact('product'));
+        // Direct booking link (active) for this product (for the checkbox + copy link)
+        $directBookingLink = BookingLink::query()
+            ->where('user_id', $product->user_id)
+            ->where('is_enabled', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->whereJsonContains('allowed_product_ids', $product->id)
+            ->orderByDesc('id')
+            ->first();
+
+        return view('products.edit', compact('product', 'directBookingLink'));
     }
 
     public function update(Request $request, Product $product)
@@ -122,30 +143,31 @@ class ProductController extends Controller
             'max_per_day'          => 'nullable|integer|min:1',
             'can_be_booked_online' => 'required|boolean',
             'collect_payment'      => 'required|boolean',
+
             'image'                => 'nullable|image|max:5048',
             'brochure'             => 'nullable|mimes:pdf|max:10120',
             'display_order'        => 'nullable|integer|min:0',
             'requires_emargement'  => 'required|boolean',
+            'direct_booking_enabled' => 'nullable|boolean',
             'visible_in_portal'    => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
-			'remove_image'         => 'nullable|boolean',
+            'remove_image'         => 'nullable|boolean',
         ]);
 
-		// ✅ 1) If user uploads a new image: replace old
-		if ($request->hasFile('image')) {
-			if ($product->image) {
-				Storage::disk('public')->delete($product->image);
-			}
-			$validatedData['image'] = $request->file('image')->store('products/images', 'public');
-		}
-		// ✅ 2) Else if user checked remove_image: delete and null
-		elseif ($request->boolean('remove_image')) {
-			if ($product->image) {
-				Storage::disk('public')->delete($product->image);
-			}
-			$validatedData['image'] = null;
-		}
-
+        // ✅ 1) If user uploads a new image: replace old
+        if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validatedData['image'] = $request->file('image')->store('products/images', 'public');
+        }
+        // ✅ 2) Else if user checked remove_image: delete and null
+        elseif ($request->boolean('remove_image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $validatedData['image'] = null;
+        }
 
         if ($request->hasFile('brochure')) {
             if ($product->brochure) {
@@ -174,14 +196,46 @@ class ProductController extends Controller
             'dans_le_cabinet'      => $dansLeCabinet,
 
             'max_per_day'          => $validatedData['max_per_day'] ?? null,
-            'image' => array_key_exists('image', $validatedData) ? $validatedData['image'] : $product->image,
-
+            'image'                => array_key_exists('image', $validatedData) ? $validatedData['image'] : $product->image,
             'brochure'             => $validatedData['brochure'] ?? $product->brochure,
             'display_order'        => $validatedData['display_order'] ?? $product->display_order,
             'requires_emargement'  => $validatedData['requires_emargement'],
             'visible_in_portal'    => $validatedData['visible_in_portal'],
             'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
         ]);
+
+        /* ---------------------- Lien réservation directe (partenaire) ---------------------- */
+        $directEnabled = $request->boolean('direct_booking_enabled');
+
+        if ($directEnabled) {
+            // Find existing link (even disabled) for this product, or create a new one
+            $link = BookingLink::query()
+                ->where('user_id', $product->user_id)
+                ->whereJsonContains('allowed_product_ids', $product->id)
+                ->orderByDesc('id')
+                ->first();
+
+            if (!$link) {
+                BookingLink::create([
+                    'user_id' => $product->user_id,
+                    'token' => BookingLink::generateToken(32),
+                    'name' => 'Lien direct – ' . $product->name,
+                    'allowed_product_ids' => [$product->id],
+                    'is_enabled' => true,
+                ]);
+            } else {
+                $link->update([
+                    'is_enabled' => true,
+                    'allowed_product_ids' => [$product->id],
+                ]);
+            }
+        } else {
+            // Disable any existing links for this product
+            BookingLink::query()
+                ->where('user_id', $product->user_id)
+                ->whereJsonContains('allowed_product_ids', $product->id)
+                ->update(['is_enabled' => false]);
+        }
 
         return redirect()->route('products.show', $product)->with('success', 'Prestation mise à jour avec succès.');
     }
@@ -216,26 +270,22 @@ class ProductController extends Controller
             'duration'             => 'nullable|integer|min:1',
             'mode'                 => 'required|string|in:visio,adomicile,en_entreprise,dans_le_cabinet',
             'max_per_day'          => 'nullable|integer|min:1',
-            'can_be_booked_online' => 'nullable|boolean',
-            'collect_payment'      => 'nullable|boolean',
-            'image'                => 'nullable|image|max:4048',
-            'brochure'             => 'nullable|mimes:pdf|max:5120',
+            'can_be_booked_online' => 'required|boolean',
+            'collect_payment'      => 'required|boolean',
+            'image'                => 'nullable|image|max:5048',
+            'brochure'             => 'nullable|mimes:pdf|max:10120',
             'display_order'        => 'nullable|integer|min:0',
-            'requires_emargement'  => 'nullable|boolean',
-            'visible_in_portal'    => 'nullable|boolean',
-            'price_visible_in_portal' => 'nullable|boolean',
+            'requires_emargement'  => 'required|boolean',
+            'visible_in_portal'    => 'required|boolean',
+            'price_visible_in_portal' => 'required|boolean',
         ]);
 
         if ($request->hasFile('image')) {
             $validatedData['image'] = $request->file('image')->store('products/images', 'public');
-        } else {
-            $validatedData['image'] = $product->image;
         }
 
         if ($request->hasFile('brochure')) {
             $validatedData['brochure'] = $request->file('brochure')->store('products/brochures', 'public');
-        } else {
-            $validatedData['brochure'] = $product->brochure;
         }
 
         $visio           = $validatedData['mode'] === 'visio';
@@ -243,49 +293,29 @@ class ProductController extends Controller
         $enEntreprise    = $validatedData['mode'] === 'en_entreprise';
         $dansLeCabinet   = $validatedData['mode'] === 'dans_le_cabinet';
 
-        $canBeBookedOnline = array_key_exists('can_be_booked_online', $validatedData)
-            ? (bool) $validatedData['can_be_booked_online']
-            : (bool) $product->can_be_booked_online;
-
-        $collectPayment = array_key_exists('collect_payment', $validatedData)
-            ? (bool) $validatedData['collect_payment']
-            : (bool) $product->collect_payment;
-
-        $requiresEmargement = array_key_exists('requires_emargement', $validatedData)
-            ? (bool) $validatedData['requires_emargement']
-            : (bool) $product->requires_emargement;
-
-        $visibleInPortal = array_key_exists('visible_in_portal', $validatedData)
-            ? (bool) $validatedData['visible_in_portal']
-            : (bool) $product->visible_in_portal;
-
-        $priceVisibleInPortal = array_key_exists('price_visible_in_portal', $validatedData)
-            ? (bool) $validatedData['price_visible_in_portal']
-            : (bool) ($product->price_visible_in_portal ?? true);
-
-        $newProduct = Product::create([
-            'user_id'              => Auth::id(),
+        $newProduct = $product->replicate();
+        $newProduct->fill([
             'name'                 => $validatedData['name'],
             'description'          => $validatedData['description'] ?? null,
             'price'                => $validatedData['price'],
             'tax_rate'             => $validatedData['tax_rate'],
             'duration'             => $validatedData['duration'] ?? null,
-            'can_be_booked_online' => $canBeBookedOnline,
-            'collect_payment'      => $collectPayment,
-
+            'can_be_booked_online' => $validatedData['can_be_booked_online'],
+            'collect_payment'      => $validatedData['collect_payment'],
             'visio'                => $visio,
             'adomicile'            => $adomicile,
             'en_entreprise'        => $enEntreprise,
             'dans_le_cabinet'      => $dansLeCabinet,
-
             'max_per_day'          => $validatedData['max_per_day'] ?? null,
-            'image'                => $validatedData['image'],
-            'brochure'             => $validatedData['brochure'],
-            'requires_emargement'  => $requiresEmargement,
-            'visible_in_portal'    => $visibleInPortal,
-            'price_visible_in_portal' => $priceVisibleInPortal,
-            'display_order'        => $validatedData['display_order'] ?? (($product->display_order ?? 0) + 1),
+            'image'                => $validatedData['image'] ?? $product->image,
+            'brochure'             => $validatedData['brochure'] ?? $product->brochure,
+            'display_order'        => $validatedData['display_order'] ?? $product->display_order,
+            'requires_emargement'  => $validatedData['requires_emargement'],
+            'visible_in_portal'    => $validatedData['visible_in_portal'],
+            'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
         ]);
+
+        $newProduct->save();
 
         return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
     }

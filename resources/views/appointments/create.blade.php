@@ -115,27 +115,87 @@
     @php
         $therapist = auth()->user();
         $practiceLocations = $therapist->practiceLocations ?? collect();
-        $productsByName = $products->groupBy('name');
 
-        $productModes = [];
+        // Group all products by prestation name
+        $productsByName = ($products ?? collect())->groupBy('name');
+
+        /**
+         * Build a structure:
+         * PRODUCT_VARIANTS[name][slug] = [
+         *   'mode_label' => 'À Domicile',
+         *   'products' => [ ['id'=>..., 'duration'=>..., 'price'=>...], ... ]
+         * ]
+         *
+         * Also build display data for the prestation dropdown:
+         * - show "à partir de" when different prices exist across variants
+         */
+        $productVariants = [];
+        $productDisplay = []; // name => ['min_price'=>, 'has_multi_price'=>bool]
+
         foreach ($productsByName as $productName => $group) {
+            $allPrices = $group->map(function($p){
+                // adapt to your field name if needed
+                return $p->price ?? $p->price_ttc ?? $p->price_new ?? null;
+            })->filter(fn($v) => $v !== null)->map(fn($v) => (float)$v)->values();
+
+            $hasMultiPrice = $allPrices->unique()->count() > 1;
+            $minPrice = $allPrices->count() ? $allPrices->min() : null;
+
+            $productDisplay[$productName] = [
+                'min_price' => $minPrice,
+                'has_multi_price' => $hasMultiPrice,
+            ];
+
             $modes = [];
+
             foreach ($group as $p) {
-                if ($p->adomicile) {
-                    $modes[] = ['mode' => 'À Domicile', 'slug' => 'domicile', 'product' => $p];
+                $price = $p->price ?? $p->price_ttc ?? $p->price_new ?? null;
+                $duration = $p->duration ?? $p->duration_minutes ?? null;
+
+                $add = function(string $slug, string $label) use (&$modes, $p, $duration, $price) {
+                    if (!isset($modes[$slug])) {
+                        $modes[$slug] = [
+                            'slug' => $slug,
+                            'mode_label' => $label,
+                            'products' => [],
+                        ];
+                    }
+                    $modes[$slug]['products'][] = [
+                        'id' => $p->id,
+                        'duration' => $duration,
+                        'price' => $price,
+                    ];
+                };
+
+                if (!empty($p->adomicile)) {
+                    $add('domicile', 'À Domicile');
                 }
                 if (!empty($p->en_entreprise)) {
-                    $modes[] = ['mode' => 'En entreprise', 'slug' => 'entreprise', 'product' => $p];
+                    $add('entreprise', 'En entreprise');
                 }
-                if ($p->dans_le_cabinet) {
-                    $modes[] = ['mode' => 'Dans le Cabinet', 'slug' => 'cabinet', 'product' => $p];
+                if (!empty($p->dans_le_cabinet)) {
+                    $add('cabinet', 'Dans le Cabinet');
                 }
-                if ($p->visio || $p->en_visio) {
-                    $modes[] = ['mode' => 'En Visio', 'slug' => 'visio', 'product' => $p];
+                if (!empty($p->visio) || !empty($p->en_visio)) {
+                    $add('visio', 'En Visio');
                 }
             }
+
+            // sort products inside each mode by duration then price for nicer dropdown
+            foreach ($modes as $slug => $modeData) {
+                $productsList = collect($modeData['products'])
+                    ->sortBy([
+                        fn($a) => (int)($a['duration'] ?? 0),
+                        fn($a) => (float)($a['price'] ?? 0),
+                    ])
+                    ->values()
+                    ->all();
+
+                $modes[$slug]['products'] = $productsList;
+            }
+
             if (!empty($modes)) {
-                $productModes[$productName] = $modes;
+                $productVariants[$productName] = array_values($modes); // keep deterministic array for JS
             }
         }
     @endphp
@@ -192,8 +252,20 @@
                     <label class="details-label">Prestation</label>
                     <select id="product_name" name="product_name" class="form-control" required>
                         <option value="" disabled selected>Sélectionner une prestation</option>
-                        @foreach($productModes as $productName => $modes)
-                            <option value="{{ $productName }}">{{ $productName }}</option>
+                        @foreach($productVariants as $productName => $modes)
+                            @php
+                                $disp = $productDisplay[$productName] ?? null;
+                                $minPrice = $disp['min_price'] ?? null;
+                                $hasMulti = $disp['has_multi_price'] ?? false;
+
+                                $priceLabel = '';
+                                if ($minPrice !== null) {
+                                    $priceLabel = $hasMulti
+                                        ? ' — à partir de ' . rtrim(rtrim(number_format($minPrice, 2, '.', ''), '0'), '.') . '€'
+                                        : ' — ' . rtrim(rtrim(number_format($minPrice, 2, '.', ''), '0'), '.') . '€';
+                                }
+                            @endphp
+                            <option value="{{ $productName }}">{{ $productName }}{!! $priceLabel ? e($priceLabel) : '' !!}</option>
                         @endforeach
                     </select>
                 </div>
@@ -203,6 +275,14 @@
                     <label class="details-label">Mode de Consultation</label>
                     <select id="consultation_mode" class="form-control" required>
                         <option value="" disabled selected>Sélectionner le mode</option>
+                    </select>
+                </div>
+
+                {{-- Format (variant) --}}
+                <div class="details-box" id="format-section" style="display:none;">
+                    <label class="details-label">Format</label>
+                    <select id="format_variant" class="form-control">
+                        <option value="" disabled selected>Sélectionner un format</option>
                     </select>
                 </div>
 
@@ -297,7 +377,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const PRODUCT_MODES = @json($productModes);
+        const PRODUCT_VARIANTS = @json($productVariants);
 
         let allowedDates = [];
         let currentSlotsRequestId = 0;
@@ -333,6 +413,13 @@
                     .replaceAll('>', '&gt;')
                     .replaceAll('"', '&quot;')
                     .replaceAll("'", '&#039;');
+            }
+
+            function formatPrice(v) {
+                if (v === null || v === undefined || v === '') return '';
+                const n = Number(v);
+                if (Number.isNaN(n)) return String(v);
+                return (Math.round(n * 100) / 100).toString().replace('.', ',') + '€';
             }
 
             function conflictLabel(code) {
@@ -373,6 +460,25 @@
                 $('#slot-warning-details').empty();
             }
 
+            function disposeSlotTooltips() {
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                    const t = bootstrap.Tooltip.getInstance(el);
+                    if (t) t.dispose();
+                });
+            }
+
+            function initSlotTooltips() {
+                disposeSlotTooltips();
+
+                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+                    new bootstrap.Tooltip(el, {
+                        trigger: 'hover focus',
+                        container: 'body',
+                        html: true
+                    });
+                });
+            }
+
             function resetSlotsUI() {
                 $('#appointment_time').val('');
                 $('#force_availability_override').val('0');
@@ -401,25 +507,6 @@
                 refreshDates();
             }
 
-            function disposeSlotTooltips() {
-                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-                    const t = bootstrap.Tooltip.getInstance(el);
-                    if (t) t.dispose();
-                });
-            }
-
-            function initSlotTooltips() {
-                disposeSlotTooltips();
-
-                document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-                    new bootstrap.Tooltip(el, {
-                        trigger: 'hover focus',
-                        container: 'body',
-                        html: true
-                    });
-                });
-            }
-
             function buildTooltipHtml(conflicts, explanations) {
                 const list = (explanations && explanations.length)
                     ? explanations
@@ -428,36 +515,29 @@
                 const uniq = [...new Set(list)].filter(Boolean);
                 if (!uniq.length) return '';
 
-                // HTML tooltip with line breaks (escaped)
                 return uniq.map(t => escapeHtml(t)).join('<br>');
             }
 
             function normalizeSlots(slots) {
                 return (slots || []).map(s => {
-                    // allow simple strings
                     if (typeof s === 'string') {
                         return { start: s, conflicts: [], explanations: [], status: null };
                     }
 
-                    // normalize start
                     let start = s.start || s.time || '';
                     if (start && start.includes('T')) start = start.substring(11, 16);
 
-                    // accept either `conflicts` or `reasons` or `reason`
                     let conflicts = Array.isArray(s.conflicts) ? s.conflicts : [];
                     let explanations = Array.isArray(s.explanations) ? s.explanations : [];
 
                     if (!explanations.length && Array.isArray(s.reasons)) explanations = s.reasons;
                     if (!explanations.length && typeof s.reason === 'string' && s.reason.trim().length) explanations = [s.reason.trim()];
 
-                    // accept `status` directly from backend if provided
                     const status = (typeof s.status === 'string' && s.status) ? s.status : null;
 
-                    // accept boolean flags
                     const has_conflict =
                         !!(s.has_conflict || s.is_conflict || s.conflict || s.blocked || conflicts.length || explanations.length);
 
-                    // if backend says conflict but didn't provide codes, mark generic overlap_internal so it's red
                     if (has_conflict && !conflicts.length && !status) {
                         conflicts = ['overlap_internal'];
                         if (!explanations.length) explanations = [conflictLabel('overlap_internal')];
@@ -609,7 +689,6 @@
                             .text('Aucun créneau recommandé pour ce jour. Vous pouvez sélectionner un horaire manuellement.')
                             .show();
 
-                        // allow any time, mark as outside_dispo
                         renderManualSlotsEvery15Min(true);
                         $('#force_availability_override').val('1');
                         showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
@@ -653,47 +732,19 @@
                 }
             });
 
-            // PRODUCT change
-            $('#product_name').on('change', function () {
-                const name  = $(this).val();
-                const modes = PRODUCT_MODES[name] || [];
+            function resetModeAndFormat() {
+                $('#consultation_mode').empty().append('<option value="" disabled selected>Sélectionner le mode</option>');
+                $('#consultation-mode-section').hide();
 
-                const $mode = $('#consultation_mode').empty();
-                $mode.append('<option value="" disabled selected>Sélectionner le mode</option>');
-                modes.forEach(m => {
-                    $mode.append(`<option value="${m.product.id}" data-slug="${m.slug}">${escapeHtml(m.mode)}</option>`);
-                });
+                $('#format_variant').empty().append('<option value="" disabled selected>Sélectionner un format</option>');
+                $('#format-section').hide();
+                $('#format_variant').prop('required', false);
 
-                $('#consultation-mode-section').show();
-
-                // reset downstream
                 $('#product_id').val('');
                 $('#selected_mode_slug').val('');
+            }
 
-                $('#cabinet-location-section').hide();
-                $('#practice_location_id').val('');
-                $('#therapist-address-section').hide();
-                $('#therapist-address').text('');
-                $('#client-address-section').hide();
-
-                allowedDates = [];
-                fp.clear();
-                resetSlotsUI();
-
-                refreshDates();
-            });
-
-            // MODE change
-            $('#consultation_mode').on('change', function () {
-                const productId = $(this).val();
-                const slug = $(this).find(':selected').data('slug');
-
-                $('#product_id').val(productId);
-                $('#selected_mode_slug').val(slug);
-
-                resetSlotsUI();
-                fp.clear();
-
+            function applyModeUI(slug) {
                 if (slug === 'cabinet') {
                     $('#cabinet-location-section').show();
                     $('#client-address-section').hide();
@@ -704,6 +755,113 @@
                     $('#cabinet-location-section').hide();
                     $('#client-address-section').hide();
                 }
+
+                if (slug !== 'cabinet') {
+                    $('#practice_location_id').val('');
+                    $('#therapist-address-section').hide();
+                    $('#therapist-address').text('');
+                }
+            }
+
+            function buildFormatOptionText(prestationName, modeLabel, duration, price) {
+                const d = duration ? `${duration}min` : '';
+                const p = price !== null && price !== undefined && price !== '' ? formatPrice(price) : '';
+                // "Nom – Mode – Durée – Prix"
+                return [prestationName, modeLabel, d, p].filter(Boolean).join(' – ');
+            }
+
+            // PRODUCT change
+            $('#product_name').on('change', function () {
+                const name = $(this).val();
+                const modes = PRODUCT_VARIANTS[name] || [];
+
+                resetSlotsUI();
+                fp.clear();
+                hideSlotWarning();
+
+                // reset downstream UI
+                $('#cabinet-location-section').hide();
+                $('#practice_location_id').val('');
+                $('#therapist-address-section').hide();
+                $('#therapist-address').text('');
+                $('#client-address-section').hide();
+
+                // rebuild modes (unique by slug)
+                const $mode = $('#consultation_mode').empty();
+                $mode.append('<option value="" disabled selected>Sélectionner le mode</option>');
+
+                modes.forEach(m => {
+                    $mode.append(`<option value="${escapeHtml(m.slug)}">${escapeHtml(m.mode_label)}</option>`);
+                });
+
+                $('#consultation-mode-section').show();
+
+                // reset hidden
+                $('#product_id').val('');
+                $('#selected_mode_slug').val('');
+
+                // reset format
+                $('#format_variant').empty().append('<option value="" disabled selected>Sélectionner un format</option>');
+                $('#format-section').hide();
+                $('#format_variant').prop('required', false);
+
+                refreshDates();
+            });
+
+            // MODE change
+            $('#consultation_mode').on('change', function () {
+                const slug = $(this).val();
+                const name = $('#product_name').val();
+                const modes = PRODUCT_VARIANTS[name] || [];
+                const modeData = modes.find(m => m.slug === slug) || null;
+
+                $('#selected_mode_slug').val(slug);
+                applyModeUI(slug);
+
+                resetSlotsUI();
+                fp.clear();
+                hideSlotWarning();
+
+                // reset product id until decided
+                $('#product_id').val('');
+
+                // build format options if multiple variants for this mode
+                const $format = $('#format_variant').empty();
+                $format.append('<option value="" disabled selected>Sélectionner un format</option>');
+
+                if (modeData && Array.isArray(modeData.products) && modeData.products.length > 1) {
+                    modeData.products.forEach(p => {
+                        const label = buildFormatOptionText(name, modeData.mode_label, p.duration, p.price);
+                        $format.append(`<option value="${p.id}">${escapeHtml(label)}</option>`);
+                    });
+
+                    $('#format-section').show();
+                    $('#format_variant').prop('required', true);
+
+                    // wait for selection
+                    refreshDates();
+                    return;
+                }
+
+                // single variant => auto-select product_id and hide format
+                $('#format-section').hide();
+                $('#format_variant').prop('required', false);
+
+                if (modeData && Array.isArray(modeData.products) && modeData.products.length === 1) {
+                    $('#product_id').val(modeData.products[0].id);
+                }
+
+                refreshDates();
+            });
+
+            // FORMAT change
+            $('#format_variant').on('change', function () {
+                const pid = $(this).val();
+                $('#product_id').val(pid || '');
+
+                resetSlotsUI();
+                fp.clear();
+                hideSlotWarning();
 
                 refreshDates();
             });
@@ -736,13 +894,11 @@
                     return;
                 }
 
-                // warn if date not recommended
                 if (Array.isArray(allowedDates) && allowedDates.length && !allowedDates.includes(date)) {
                     showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
-                    // override set on slot click / show all hours
                 }
 
-                if (date && productId && slug) {
+                if (date && productId && slug && (slug !== 'cabinet' || loc)) {
                     fetchSlots(date, productId, slug, loc);
                 } else {
                     resetSlotsUI();
@@ -772,8 +928,6 @@
                 $('#no-slots-message').hide();
 
                 const hasConflict = String($(this).attr('data-has-conflict') || '0') === '1';
-
-                // ✅ controller override flag
                 $('#force_availability_override').val(hasConflict ? '1' : '0');
 
                 if (!hasConflict) {

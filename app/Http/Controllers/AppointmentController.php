@@ -26,6 +26,7 @@ use App\Models\SpecialAvailability;
 use App\Models\PackPurchase;
 use App\Mail\AppointmentCancelledByClient;
 use App\Services\JitsiJwtService;
+use App\Models\BookingLink;
 
 class AppointmentController extends Controller
 {
@@ -2549,4 +2550,400 @@ public function cancelFromMagicLink(Request $request, string $token)
 
 return redirect()->route('appointments.showPatient', ['token' => $token]);
 }
+
+public function storeByToken(Request $request, string $token)
+{
+    // 0) Resolve booking link by token
+    $bookingLink = \App\Models\BookingLink::where('token', $token)->first();
+    if (!$bookingLink || !$bookingLink->canBeUsed()) {
+        abort(404); // safer: don't leak whether token exists/expired
+    }
+
+    // Force therapist_id from the booking link (prevents spoofing)
+    $request->merge([
+        'therapist_id' => $bookingLink->user_id,
+    ]);
+
+    // Messages d'erreur personnalisés
+    $messages = [
+        'therapist_id.required'   => 'Le thérapeute est requis.',
+        'therapist_id.exists'     => 'Le thérapeute sélectionné est invalide.',
+        'first_name.required'     => 'Le prénom est requis.',
+        'last_name.required'      => 'Le nom est requis.',
+        'email.email'             => 'Veuillez fournir une adresse e-mail valide.',
+        'phone.max'               => 'Le numéro de téléphone ne doit pas dépasser 20 caractères.',
+        'appointment_date.required' => 'La date du rendez-vous est requise.',
+        'appointment_time.required' => 'L’heure du rendez-vous est requise.',
+        'product_id.exists'       => 'Le produit sélectionné est invalide.',
+    ];
+
+    // Validation de base
+    $request->validate([
+        'therapist_id'     => 'required|exists:users,id',
+        'first_name'       => 'required|string|max:255',
+        'last_name'        => 'required|string|max:255',
+        'email'            => 'nullable|email|max:255',
+        'phone'            => 'nullable|string|max:20',
+        'address'          => 'nullable|string',
+        'birthdate'        => 'nullable|date',
+        'appointment_date' => 'required|date',
+        'appointment_time' => 'required|date_format:H:i',
+        'product_id'       => 'required|exists:products,id',
+        'notes'            => 'nullable|string',
+        // 'type' may come from the form; if not we will infer it from product flags
+        'type'             => 'nullable|string',
+        // practice_location_id is validated conditionally (see below)
+        'practice_location_id' => 'nullable|integer',
+    ], $messages);
+
+    // Produit & thérapeute
+    $product   = Product::findOrFail($request->product_id);
+    $therapist = User::findOrFail($request->therapist_id);
+
+    // ✅ SECURITY: ensure this product is allowed by the booking link
+    if (!$bookingLink->allowsProduct((int) $product->id)) {
+        return back()->withErrors([
+            'product_id' => 'Cette prestation n’est pas disponible via ce lien partenaire.',
+        ])->withInput();
+    }
+
+    // Inférer le "type" (mode) à partir du produit si non fourni
+    // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
+    $mode = $request->input('type');
+    if (!$mode) {
+        if (!empty($product->dans_le_cabinet)) {
+            $mode = 'cabinet';
+        } elseif (!empty($product->visio) || !empty($product->en_visio)) {
+            $mode = 'visio';
+        } elseif (!empty($product->adomicile)) {
+            $mode = 'domicile';
+        } elseif (!empty($product->en_entreprise)) {
+            $mode = 'entreprise';
+        } else {
+            $mode = 'autre';
+        }
+    }
+
+    // Si le produit nécessite une adresse (domicile), exiger l'adresse
+    if ($mode === 'domicile' || $mode === 'entreprise' || !empty($product->adomicile) || !empty($product->en_entreprise)) {
+        $request->validate([
+            'address' => 'required|string|max:255',
+        ], $messages);
+    }
+
+    // Si le mode est au cabinet, EXIGER un practice_location_id appartenant à ce thérapeute
+    $practiceLocationId = $request->input('practice_location_id');
+    if ($mode === 'cabinet') {
+        $request->validate([
+            'practice_location_id' => [
+                'required',
+                Rule::exists('practice_locations', 'id')->where(fn ($q) =>
+                    $q->where('user_id', $therapist->id)
+                ),
+            ],
+        ], [
+            'practice_location_id.required' => 'Veuillez sélectionner un cabinet.',
+            'practice_location_id.exists'   => 'Le cabinet sélectionné est invalide.',
+        ]);
+    } else {
+        // pour visio/domicile, on ignore le cabinet éventuel envoyé
+        $practiceLocationId = null;
+    }
+
+    // Combiner la date et l'heure
+    $appointmentDateTime = Carbon::createFromFormat(
+        'Y-m-d H:i',
+        $request->appointment_date . ' ' . $request->appointment_time
+    );
+
+    // Valider la disponibilité du thérapeute (on passe le practice_location_id pour le cabinet)
+    if (!$this->isAvailable($appointmentDateTime, $product->duration, $therapist->id, $product->id, null, $practiceLocationId, $mode)) {
+        return back()->withErrors([
+            'appointment_date' => 'Le créneau horaire est indisponible ou entre en conflit avec un autre rendez-vous.',
+        ])->withInput();
+    }
+
+    // Créer / retrouver le ClientProfile (lié au thérapeute)
+    $clientProfile = ClientProfile::firstOrCreate(
+        [
+            'email'   => $request->email,
+            'user_id' => $therapist->id,
+        ],
+        [
+            'first_name' => $request->first_name,
+            'last_name'  => $request->last_name,
+            'phone'      => $request->phone,
+            'address'    => $request->address,
+            'birthdate'  => $request->birthdate,
+            'notes'      => $request->notes,
+        ]
+    );
+
+    // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
+    $appointment = Appointment::create([
+        'client_profile_id'     => $clientProfile->id,
+        'user_id'               => $therapist->id,
+        'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
+        'appointment_date'      => $appointmentDateTime,
+        'status'                => 'pending',
+        'notes'                 => $request->notes,
+        'type'                  => $mode,                 // ← on stocke le mode
+        'duration'              => $product->duration,
+        'product_id'            => $product->id,
+
+        // ✅ partner tracking
+        'booking_link_id'       => $bookingLink->id,
+    ]);
+
+    // ✅ increment uses after successful appointment creation
+    $bookingLink->incrementUse();
+
+    // Si visio : créer une réunion + lien
+    if ($mode === 'visio' || !empty($product->visio) || !empty($product->en_visio)) {
+        $roomToken = Str::random(32);
+        $meeting = Meeting::create([
+            'name'              => 'Réunion pour ' . $appointment->clientProfile->first_name . ' ' . $appointment->clientProfile->last_name,
+            'start_time'        => $appointmentDateTime,
+            'duration'          => $product->duration,
+            'participant_email' => $appointment->clientProfile->email,
+            'client_profile_id' => $clientProfile->id,
+            'room_token'        => $roomToken,
+            'appointment_id'    => $appointment->id,
+        ]);
+        // $connectionLink = route('webrtc.room', ['room' => $roomToken]) . '#1'; // si vous en avez besoin
+    }
+
+    // Charger pour notif
+    $appointment->load('clientProfile', 'user', 'product', 'practiceLocation');
+
+    // Notification au thérapeute (try/catch pour robustesse)
+    try {
+        $therapist->notify(new AppointmentBooked($appointment));
+    } catch (\Exception $e) {
+        Log::error('Failed to send appointment notification: ' . $e->getMessage());
+    }
+
+    /* ============================================================
+       ✅ PACK AUTO-CONSUMPTION (ne casse pas le flow Stripe existant)
+       - Si le client a un pack actif non expiré incluant cette prestation
+         avec des crédits restants => on consomme 1 crédit et on confirme
+         sans paiement.
+       ============================================================ */
+    try {
+        // On ne tente que si on a un email (sinon on ne peut pas "matcher" un client réel)
+        // (si ton système autorise des clientProfiles sans email, tu peux enlever ce guard)
+        if (!empty($clientProfile->email)) {
+            $now = Carbon::now();
+
+            // Cherche un pack "le plus urgent à consommer" (expire bientôt, FIFO)
+            $packPurchase = \App\Models\PackPurchase::query()
+                ->where('user_id', $therapist->id)
+                ->where('client_profile_id', $clientProfile->id)
+                ->where('status', 'active')
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', $now);
+                })
+                ->whereHas('items', function ($q) use ($product) {
+                    $q->where('product_id', $product->id)
+                      ->where('quantity_remaining', '>', 0);
+                })
+                // Non-null expires_at d'abord (priorité aux packs qui expirent), puis date la plus proche
+                ->orderByRaw('ISNULL(expires_at) ASC')
+                ->orderBy('expires_at', 'asc')
+                ->orderBy('purchased_at', 'asc')
+                ->first();
+
+            if ($packPurchase) {
+                // Consomme 1 crédit (ta méthode fait déjà transaction + locks + expired/exhausted)
+                $packPurchase->consumeProduct($product->id, 1);
+
+                // Confirmer sans paiement
+                $appointment->update([
+                    'status' => 'confirmed',
+                    // Optionnel : garde une trace dans les notes (ne casse rien)
+                    // 'notes' => trim(($appointment->notes ?? '') . "\n[Pack] Crédit utilisé (PackPurchase #{$packPurchase->id})"),
+                ]);
+
+                // Emails (même logique que "pas de paiement requis")
+                try {
+                    if ($appointment->clientProfile->email) {
+                        Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                    }
+                    if ($therapist->email) {
+                        Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Erreur envoi emails (pack auto-consumption) : " . $e->getMessage());
+                }
+
+                return redirect()->route('appointments.showPatient', $appointment->token)
+                    ->with('success', 'Votre rendez-vous a été réservé avec succès. Votre pack a été utilisé automatiquement.');
+            }
+        }
+    } catch (\Exception $e) {
+        // IMPORTANT: ne pas casser la réservation si un souci pack (on log et on continue le flow normal)
+        Log::warning('Pack auto-consumption skipped due to error: ' . $e->getMessage());
+    }
+
+    /* ---------------------- Paiement Stripe si requis ---------------------- */
+    if (!empty($product->collect_payment)) {
+        if ($therapist->stripe_account_id) {
+            $stripeSecretKey = config('services.stripe.secret');
+            $stripe = new StripeClient($stripeSecretKey);
+
+            $totalAmount = $product->price + ($product->price * $product->tax_rate / 100);
+
+            try {
+                $session = $stripe->checkout->sessions->create([
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'price_data' => [
+                            'currency'     => 'eur',
+                            'product_data' => ['name' => $product->name],
+                            'unit_amount'  => intval($totalAmount * 100),
+                        ],
+                        'quantity' => 1,
+                    ]],
+                    'mode' => 'payment',
+                    'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
+                    'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+                    'payment_intent_data' => [
+                        'metadata' => [
+                            'appointment_id' => $appointment->id,
+                            'patient_email'  => $appointment->clientProfile->email,
+                        ],
+                    ],
+                ], [
+                    'stripe_account' => $therapist->stripe_account_id,
+                ]);
+
+                $appointment->stripe_session_id = $session->id;
+                $appointment->save();
+
+                return redirect($session->url);
+
+            } catch (\Exception $e) {
+                Log::error('Stripe Checkout creation failed: ' . $e->getMessage());
+                return back()->withErrors(['payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'])
+                             ->withInput();
+            }
+        } else {
+            // Pas de Stripe connecté : on confirme directement
+            Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
+            $appointment->update(['status' => 'confirmed']);
+
+            try {
+                if ($appointment->clientProfile->email) {
+                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                }
+                if ($therapist->email) {
+                    Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur envoi emails : " . $e->getMessage());
+            }
+
+            return redirect()->route('appointments.showPatient', $appointment->token)
+                             ->with('success', 'Votre rendez-vous a été réservé avec succès.');
+        }
+    }
+
+    /* ---------------------- Pas de paiement requis ---------------------- */
+    $appointment->update(['status' => 'confirmed']);
+
+    try {
+        if ($appointment->clientProfile->email) {
+            Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+        }
+        if ($therapist->email) {
+            Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+        }
+    } catch (\Exception $e) {
+        Log::error("Erreur envoi emails : " . $e->getMessage());
+    }
+
+    return redirect()->route('appointments.showPatient', $appointment->token)
+                     ->with('success', 'Votre rendez-vous a été réservé avec succès.');
+}
+public function createByToken(string $token)
+{
+    // 1) Resolve booking link
+    $bookingLink = \App\Models\BookingLink::where('token', $token)->first();
+
+    if (!$bookingLink || !$bookingLink->canBeUsed()) {
+        abort(404);
+    }
+
+    // 2) Therapist
+    $therapist = \App\Models\User::findOrFail($bookingLink->user_id);
+
+    // 3) Allowed product ids
+    $allowedIds = $bookingLink->allowed_product_ids ?? [];
+    if (!is_array($allowedIds)) {
+        $allowedIds = [];
+    }
+    if (empty($allowedIds)) {
+        abort(404);
+    }
+
+    // 4) Load allowed products only (strict)
+    $products = \App\Models\Product::query()
+        ->where('user_id', $therapist->id)
+        ->whereIn('id', $allowedIds)
+        ->where('can_be_booked_online', true)
+        ->orderBy('display_order', 'asc')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    if ($products->isEmpty()) {
+        abort(404);
+    }
+
+    // 5) Practice locations (safe ordering)
+    $practiceLocations = \App\Models\PracticeLocation::query()
+        ->where('user_id', $therapist->id)
+        ->orderBy('id', 'asc')
+        ->get();
+
+    /**
+     * 6) Build the same "prestation group + variants" data your partner blade expects
+     * - productsByName: ["Massage californien" => [Product, Product...], ...]
+     * - catalog: [{ name: "...", variants: [{id, name, price, duration, visio, adomicile, dans_le_cabinet}, ...] }, ...]
+     */
+    $productsByName = $products->groupBy('name');
+
+    $catalog = $productsByName->map(function ($items, $name) {
+        $variants = $items->values()->map(function ($p) {
+            return [
+                'id' => (int) $p->id,
+                'name' => (string) $p->name,
+                'price' => is_null($p->price) ? null : (float) $p->price,
+                'duration' => is_null($p->duration) ? null : (int) $p->duration,
+
+                // Flags used by the JS to infer mode
+                'visio' => (bool) ($p->visio ?? $p->en_visio ?? false),
+                'adomicile' => (bool) ($p->adomicile ?? false),
+                'dans_le_cabinet' => (bool) ($p->dans_le_cabinet ?? false),
+            ];
+        })->toArray();
+
+        return [
+            'name' => (string) $name,
+            'variants' => $variants,
+        ];
+    })->values()->toArray();
+
+    // 7) Render partner booking blade
+    return view('appointments.create_patient_partner', [
+        'bookingLink'       => $bookingLink,
+        'therapist'         => $therapist,
+        'products'          => $products,
+        'productsByName'    => $productsByName,
+        'catalog'           => $catalog,
+        'practiceLocations' => $practiceLocations,
+    ]);
+}
+
+
 }

@@ -13,7 +13,7 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Nom de la Prestation -->
+                <!-- Nom -->
                 <div class="details-box">
                     <label class="details-label" for="name">{{ __('Nom de la Prestation') }}</label>
                     <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $product->name) }}" required>
@@ -29,141 +29,108 @@
 
                 <!-- Prix -->
                 <div class="details-box">
-                    <label class="details-label" for="price">{{ __('Prix (€)') }}</label>
-                    <input type="number" id="price" name="price" class="form-control" value="{{ old('price', $product->price) }}" step="0.01" min="0" required>
+                    <label class="details-label" for="price">{{ __('Prix') }}</label>
+                    <input type="number" step="0.01" id="price" name="price" class="form-control" value="{{ old('price', $product->price) }}" required>
                     @error('price') <p class="text-red-500">{{ $message }}</p> @enderror
-                </div>
-				<!-- Afficher le prix sur le portail -->
-				<div class="details-box">
-					<label class="details-label" for="price_visible_in_portal">
-						{{ __('Afficher le prix sur votre portail') }}
-					</label>
-					<input type="hidden" name="price_visible_in_portal" value="0">
-					<input
-						type="checkbox"
-						id="price_visible_in_portal"
-						name="price_visible_in_portal"
-						value="1"
-						{{ old('price_visible_in_portal', $product->price_visible_in_portal ?? true) ? 'checked' : '' }}>
-					@error('price_visible_in_portal')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-					<small class="text-gray-500">
-						{{ __('Décochez si vous préférez ne pas afficher le tarif de cette prestation sur votre page publique.') }}
-					</small>
-				</div>
-                <!-- Collecter le paiement -->
-                <div class="details-box">
-                    <label class="details-label" for="collect_payment">{{ __('Collecter le Paiement durant la prise de RDV sur votre portail') }}</label>
-                    <input type="hidden" name="collect_payment" value="0">
-                    <input type="checkbox" id="collect_payment" name="collect_payment" value="1" {{ old('collect_payment', $product->collect_payment) ? 'checked' : '' }}>
-                    @error('collect_payment') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- TVA -->
                 <div class="details-box">
                     <label class="details-label" for="tax_rate">{{ __('TVA (%)') }}</label>
-                    <input type="number" id="tax_rate" name="tax_rate" class="form-control" value="{{ old('tax_rate', $product->tax_rate) }}" step="0.01" min="0" max="100" required>
+                    <input type="number" step="0.01" id="tax_rate" name="tax_rate" class="form-control" value="{{ old('tax_rate', $product->tax_rate) }}" required>
                     @error('tax_rate') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Durée -->
                 <div class="details-box">
-                    <label class="details-label" for="duration">{{ __('Durée (en minutes)') }}</label>
-                    <input type="number" id="duration" name="duration" class="form-control" value="{{ old('duration', $product->duration) }}" min="1">
+                    <label class="details-label" for="duration">{{ __('Durée (minutes)') }}</label>
+                    <input type="number" id="duration" name="duration" class="form-control" value="{{ old('duration', $product->duration) }}">
                     @error('duration') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-				@php
-					$currentMode = old(
-						'mode',
-						$product->visio ? 'visio'
-							: ($product->adomicile ? 'adomicile'
-								: (($product->en_entreprise ?? false) ? 'en_entreprise'
-									: 'dans_le_cabinet'))
-					);
-				@endphp
-
-				<div class="details-box">
-					<label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
-					<select id="mode" name="mode" class="form-control" required>
-						<option value="visio" {{ $currentMode === 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
-						<option value="adomicile" {{ $currentMode === 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
-						<option value="en_entreprise" {{ $currentMode === 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
-						<option value="dans_le_cabinet" {{ $currentMode === 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
-					</select>
-					@error('mode') <p class="text-red-500">{{ $message }}</p> @enderror
-				</div>
-
-                <!-- Peut être réservé en ligne -->
+                <!-- Mode -->
                 <div class="details-box">
-                    <label class="details-label" for="can_be_booked_online">{{ __('Peut être réservé en ligne') }}</label>
-                    <input type="hidden" name="can_be_booked_online" value="0">
-                    <input type="checkbox" id="can_be_booked_online" name="can_be_booked_online" value="1" {{ old('can_be_booked_online', $product->can_be_booked_online) ? 'checked' : '' }}>
+                    <label class="details-label" for="mode">{{ __('Mode') }}</label>
+                    <select id="mode" name="mode" class="form-control" required>
+                        <option value="visio" {{ old('mode', $product->visio ? 'visio' : null) === 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
+                        <option value="adomicile" {{ old('mode', $product->adomicile ? 'adomicile' : null) === 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
+                        <option value="en_entreprise" {{ old('mode', $product->en_entreprise ? 'en_entreprise' : null) === 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
+                        <option value="dans_le_cabinet" {{ old('mode', $product->dans_le_cabinet ? 'dans_le_cabinet' : null) === 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
+                    </select>
+                    @error('mode') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Réservable en ligne -->
+                <div class="details-box">
+                    <label class="details-label" for="can_be_booked_online">{{ __('Réservable en ligne') }}</label>
+                    <select id="can_be_booked_online" name="can_be_booked_online" class="form-control" required>
+                        <option value="1" {{ old('can_be_booked_online', $product->can_be_booked_online) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('can_be_booked_online', $product->can_be_booked_online) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
                     @error('can_be_booked_online') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Visible sur le Portail Pro/Public -->
+                <!-- Paiement requis -->
                 <div class="details-box">
-                    <label class="details-label" for="visible_in_portal">
-                        {{ __('Visible sur votre portail') }}
-                    </label>
-                    <input type="hidden" name="visible_in_portal" value="0">
-                    <input
-                        type="checkbox"
-                        id="visible_in_portal"
-                        name="visible_in_portal"
-                        value="1"
-                        {{ old('visible_in_portal', (int)($product->visible_in_portal ?? 1)) ? 'checked' : '' }}>
-                    @error('visible_in_portal')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                    <small class="text-gray-500">
-                        {{ __('Si coché, cette prestation apparaît sur votre portail (page publique).') }}
-                    </small>
+                    <label class="details-label" for="collect_payment">{{ __('Paiement requis') }}</label>
+                    <select id="collect_payment" name="collect_payment" class="form-control" required>
+                        <option value="1" {{ old('collect_payment', $product->collect_payment) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('collect_payment', $product->collect_payment) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('collect_payment') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
-<!-- Image -->
-<div class="details-box">
-    <label class="details-label" for="image">{{ __('Image') }}</label>
+                <!-- Visible sur le portail -->
+                <div class="details-box">
+                    <label class="details-label" for="visible_in_portal">{{ __('Visible sur le portail') }}</label>
+                    <select id="visible_in_portal" name="visible_in_portal" class="form-control" required>
+                        <option value="1" {{ old('visible_in_portal', $product->visible_in_portal) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('visible_in_portal', $product->visible_in_portal) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('visible_in_portal') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
 
-    @if($product->image)
-        <div class="mb-2">
-            <img src="{{ asset('storage/' . $product->image) }}"
-                 alt="{{ $product->name }}"
-                 class="w-32 h-32 object-cover">
-        </div>
+                <!-- Prix visible sur le portail -->
+                <div class="details-box">
+                    <label class="details-label" for="price_visible_in_portal">{{ __('Prix visible sur le portail') }}</label>
+                    <select id="price_visible_in_portal" name="price_visible_in_portal" class="form-control" required>
+                        <option value="1" {{ old('price_visible_in_portal', $product->price_visible_in_portal) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('price_visible_in_portal', $product->price_visible_in_portal) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('price_visible_in_portal') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
 
-        <label class="inline-flex items-center gap-2 mt-2">
-            <input type="checkbox" name="remove_image" value="1">
-            <span>{{ __('Supprimer l’image actuelle') }}</span>
-        </label>
+                <!-- Image -->
+                <div class="details-box">
+                    <label class="details-label" for="image">{{ __('Image') }}</label>
+                    <input type="file" id="image" name="image" class="form-control">
+                    @error('image') <p class="text-red-500">{{ $message }}</p> @enderror
 
-        <small class="text-gray-500 block">
-            {{ __('Si coché, l’image sera supprimée lors de l’enregistrement.') }}
-        </small>
-    @endif
+                    @if($product->image)
+                        <div style="margin-top:10px;">
+                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="max-width:200px;border-radius:10px;">
+                        </div>
 
-    <input type="file" id="image" name="image" class="form-control mt-2">
-    @error('image') <p class="text-red-500">{{ $message }}</p> @enderror
-</div>
-
+                        <div style="margin-top:10px;">
+                            <input type="hidden" name="remove_image" value="0">
+                            <label style="display:flex;align-items:center;gap:10px;margin:0;">
+                                <input type="checkbox" name="remove_image" value="1">
+                                <span>{{ __('Supprimer l’image actuelle') }}</span>
+                            </label>
+                        </div>
+                    @endif
+                </div>
 
                 <!-- Brochure -->
                 <div class="details-box">
                     <label class="details-label" for="brochure">{{ __('Brochure (PDF)') }}</label>
-                    @if($product->brochure)
-                        <div class="mb-2">
-                            <a href="{{ asset('storage/' . $product->brochure) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800">{{ __('Voir la brochure existante') }}</a>
-                        </div>
-                    @endif
                     <input type="file" id="brochure" name="brochure" class="form-control">
                     @error('brochure') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Ordre d’affichage -->
                 <div class="details-box">
-                    <label class="details-label" for="display_order">{{ __('Ordre d\'affichage') }}</label>
+                    <label class="details-label" for="display_order">{{ __('Ordre d’affichage') }}</label>
                     <input type="number" id="display_order" name="display_order" class="form-control" value="{{ old('display_order', $product->display_order) }}" min="0">
                     @error('display_order') <p class="text-red-500">{{ $message }}</p> @enderror
                     <small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
@@ -200,6 +167,49 @@
                                     {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
                                 </small>
                             </div>
+
+
+                            <!-- Liens réservation directe -->
+                            <div class="details-box">
+                                <label class="details-label" for="direct_booking_enabled">{{ __('Liens réservation directe') }}</label>
+
+                                <input type="hidden" name="direct_booking_enabled" value="0">
+                                <label style="display:flex;align-items:center;gap:10px;margin:0;">
+                                    <input type="checkbox"
+                                           id="direct_booking_enabled"
+                                           name="direct_booking_enabled"
+                                           value="1"
+                                           {{ old('direct_booking_enabled', !empty($directBookingLink) ? 1 : 0) ? 'checked' : '' }}>
+                                    <span>{{ __('Activer un lien privé de réservation directe pour cette prestation') }}</span>
+                                </label>
+
+                                <small class="text-gray-500">
+                                    {{ __('Si coché, vous obtiendrez un lien privé (partenaire) permettant de réserver uniquement cette prestation.') }}
+                                </small>
+
+                                @if(!empty($directBookingLink))
+                                    <div style="margin-top:10px;">
+                                        <div class="text-gray-700" style="font-weight:600;margin-bottom:6px;">
+                                            {{ __('Lien actuel') }}
+                                        </div>
+                                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                            <input type="text"
+                                                   class="form-control"
+                                                   id="directBookingLinkInput"
+                                                   value="{{ url('/b/' . $directBookingLink->token) }}"
+                                                   readonly
+                                                   style="max-width:520px;">
+                                            <button type="button" class="btn-secondary" onclick="copyDirectBookingLink()">
+                                                {{ __('Copier') }}
+                                            </button>
+                                        </div>
+                                        <small class="text-gray-500">
+                                            {{ __('Ce lien est privé. Vous pouvez le partager à un partenaire pour réserver directement.') }}
+                                        </small>
+                                    </div>
+                                @endif
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -229,27 +239,39 @@
         .details-label { font-weight: bold; color: #647a0b; display: block; margin-bottom: 5px; }
 
         .form-control {
-            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
         .btn-primary {
-            background-color: #647a0b; color: #fff; padding: 10px 20px; border: none; border-radius: 5px;
-            text-decoration: none; display: inline-block; cursor: pointer;
+            background-color: #647a0b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
         }
-        .btn-primary:hover { background-color: #854f38; }
 
         .btn-secondary {
-            background-color: transparent; color: #854f38; padding: 10px 20px; border: 1px solid #854f38;
-            border-radius: 5px; text-decoration: none; display: inline-block;
+            background-color: #ccc;
+            color: #333;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
         }
-        .btn-secondary:hover { background-color: #854f38; color: #fff; }
 
-        .text-red-500 { color: #e3342f; font-size: 0.875rem; }
-        .text-gray-500 { color: #6b7280; font-size: 0.85rem; }
-
-        .advanced-wrapper { margin-top: 24px; border-top: 1px dashed #d1d5db; padding-top: 16px; }
+        .advanced-wrapper { margin-top: 18px; }
         .adv-toggle {
-            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 12px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
             color: #374151; font-weight: 600; cursor: pointer;
         }
@@ -262,4 +284,22 @@
             padding: 16px; margin-top: 12px;
         }
     </style>
+
+    <script>
+        function copyDirectBookingLink() {
+            const el = document.getElementById('directBookingLinkInput');
+            if (!el) return;
+
+            el.select();
+            el.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+            } catch (e) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(el.value);
+                }
+            }
+        }
+    </script>
 </x-app-layout>
