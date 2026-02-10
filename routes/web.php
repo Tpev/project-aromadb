@@ -74,6 +74,7 @@ use App\Http\Controllers\GiftVoucherController;
 use App\Http\Controllers\Pro\ReferralController;
 use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateController;
 use App\Models\DesignTemplate;
+use App\Http\Controllers\TherapistArticleController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -1284,6 +1285,36 @@ Route::get('/b/{token}', [AppointmentController::class, 'createByToken'])
 
 Route::post('/b/{token}', [AppointmentController::class, 'storeByToken'])
     ->name('bookingLinks.store');
+
+
+/*
+|--------------------------------------------------------------------------
+| Public therapist blog
+|--------------------------------------------------------------------------
+*/
+Route::prefix('pro/{therapist:slug}')->group(function () {
+    Route::get('/articles', [TherapistArticleController::class, 'publicIndex'])->name('pro.articles.index');
+    Route::get('/article/{articleSlug}', [TherapistArticleController::class, 'publicShow'])->name('pro.articles.show');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard PRO (auth therapist) blog CRUD
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth'])->prefix('dashboard-pro')->group(function () {
+    Route::get('/articles', [TherapistArticleController::class, 'index'])->name('dashboardpro.articles.index');
+    Route::get('/articles/create', [TherapistArticleController::class, 'create'])->name('dashboardpro.articles.create');
+    Route::post('/articles', [TherapistArticleController::class, 'store'])->name('dashboardpro.articles.store');
+
+    Route::get('/articles/{article}', [TherapistArticleController::class, 'show'])->name('dashboardpro.articles.show');
+    Route::get('/articles/{article}/edit', [TherapistArticleController::class, 'edit'])->name('dashboardpro.articles.edit');
+    Route::put('/articles/{article}', [TherapistArticleController::class, 'update'])->name('dashboardpro.articles.update');
+    Route::delete('/articles/{article}', [TherapistArticleController::class, 'destroy'])->name('dashboardpro.articles.destroy');
+
+    Route::post('/articles/upload-image', [TherapistArticleController::class, 'uploadImage'])
+        ->name('dashboardpro.articles.upload_image');
+});
 
 
 

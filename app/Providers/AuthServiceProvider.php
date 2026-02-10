@@ -19,6 +19,7 @@ class AuthServiceProvider extends ServiceProvider
         Document::class      => DocumentPolicy::class,
         ClientProfile::class => ClientProfilePolicy::class,
 		SpecialAvailability::class => SpecialAvailabilityPolicy::class,
+		\App\Models\TherapistArticle::class => \App\Policies\TherapistArticlePolicy::class,
     ];
 
     /**
