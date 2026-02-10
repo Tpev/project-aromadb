@@ -260,63 +260,92 @@ class ProductController extends Controller
         return view('products.duplicate', compact('product'));
     }
 
-    public function storeDuplicate(Request $request, Product $product)
-    {
-        $validatedData = $request->validate([
-            'name'                 => 'required|string|max:255',
-            'description'          => 'nullable|string',
-            'price'                => 'required|numeric|min:0',
-            'tax_rate'             => 'required|numeric|min:0|max:100',
-            'duration'             => 'nullable|integer|min:1',
-            'mode'                 => 'required|string|in:visio,adomicile,en_entreprise,dans_le_cabinet',
-            'max_per_day'          => 'nullable|integer|min:1',
-            'can_be_booked_online' => 'required|boolean',
-            'collect_payment'      => 'required|boolean',
-            'image'                => 'nullable|image|max:5048',
-            'brochure'             => 'nullable|mimes:pdf|max:10120',
-            'display_order'        => 'nullable|integer|min:0',
-            'requires_emargement'  => 'required|boolean',
-            'visible_in_portal'    => 'required|boolean',
-            'price_visible_in_portal' => 'required|boolean',
-        ]);
+   public function storeDuplicate(Request $request, Product $product)
+{
+    $validatedData = $request->validate([
+        'name'                    => 'required|string|max:255',
+        'description'             => 'nullable|string',
+        'price'                   => 'required|numeric|min:0',
+        'tax_rate'                => 'required|numeric|min:0|max:100',
+        'duration'                => 'nullable|integer|min:1',
+        'mode'                    => 'required|string|in:visio,adomicile,en_entreprise,dans_le_cabinet',
+        'max_per_day'             => 'nullable|integer|min:1',
+        'can_be_booked_online'    => 'required|boolean',
+        'collect_payment'         => 'required|boolean',
 
-        if ($request->hasFile('image')) {
-            $validatedData['image'] = $request->file('image')->store('products/images', 'public');
-        }
+        'image'                   => 'nullable|image|max:5048',
+        'remove_image'            => 'nullable|boolean',
 
-        if ($request->hasFile('brochure')) {
-            $validatedData['brochure'] = $request->file('brochure')->store('products/brochures', 'public');
-        }
+        'brochure'                => 'nullable|mimes:pdf|max:10120',
 
-        $visio           = $validatedData['mode'] === 'visio';
-        $adomicile       = $validatedData['mode'] === 'adomicile';
-        $enEntreprise    = $validatedData['mode'] === 'en_entreprise';
-        $dansLeCabinet   = $validatedData['mode'] === 'dans_le_cabinet';
+        'display_order'           => 'nullable|integer|min:0',
+        'requires_emargement'     => 'required|boolean',
 
-        $newProduct = $product->replicate();
-        $newProduct->fill([
-            'name'                 => $validatedData['name'],
-            'description'          => $validatedData['description'] ?? null,
-            'price'                => $validatedData['price'],
-            'tax_rate'             => $validatedData['tax_rate'],
-            'duration'             => $validatedData['duration'] ?? null,
-            'can_be_booked_online' => $validatedData['can_be_booked_online'],
-            'collect_payment'      => $validatedData['collect_payment'],
-            'visio'                => $visio,
-            'adomicile'            => $adomicile,
-            'en_entreprise'        => $enEntreprise,
-            'dans_le_cabinet'      => $dansLeCabinet,
-            'max_per_day'          => $validatedData['max_per_day'] ?? null,
-            'image'                => $validatedData['image'] ?? $product->image,
-            'brochure'             => $validatedData['brochure'] ?? $product->brochure,
-            'display_order'        => $validatedData['display_order'] ?? $product->display_order,
-            'requires_emargement'  => $validatedData['requires_emargement'],
-            'visible_in_portal'    => $validatedData['visible_in_portal'],
-            'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
-        ]);
+        'visible_in_portal'       => 'required|boolean',
+        'price_visible_in_portal' => 'required|boolean',
 
-        $newProduct->save();
+        'direct_booking_enabled'  => 'nullable|boolean',
+    ]);
 
-        return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
+    // Image: upload wins, else optionally remove, else keep original path
+    if ($request->hasFile('image')) {
+        $validatedData['image'] = $request->file('image')->store('products/images', 'public');
+    } elseif ($request->boolean('remove_image')) {
+        $validatedData['image'] = null;
+    } else {
+        $validatedData['image'] = $product->image;
     }
+
+    // Brochure: upload wins, else keep original brochure path
+    if ($request->hasFile('brochure')) {
+        $validatedData['brochure'] = $request->file('brochure')->store('products/brochures', 'public');
+    } else {
+        $validatedData['brochure'] = $product->brochure;
+    }
+
+    $visio         = $validatedData['mode'] === 'visio';
+    $adomicile     = $validatedData['mode'] === 'adomicile';
+    $enEntreprise  = $validatedData['mode'] === 'en_entreprise';
+    $dansLeCabinet = $validatedData['mode'] === 'dans_le_cabinet';
+
+    $newProduct = $product->replicate();
+    $newProduct->fill([
+        'name'                    => $validatedData['name'],
+        'description'             => $validatedData['description'] ?? null,
+        'price'                   => $validatedData['price'],
+        'tax_rate'                => $validatedData['tax_rate'],
+        'duration'                => $validatedData['duration'] ?? null,
+        'can_be_booked_online'    => $validatedData['can_be_booked_online'],
+        'collect_payment'         => $validatedData['collect_payment'],
+
+        'visio'                   => $visio,
+        'adomicile'               => $adomicile,
+        'en_entreprise'           => $enEntreprise,
+        'dans_le_cabinet'         => $dansLeCabinet,
+
+        'max_per_day'             => $validatedData['max_per_day'] ?? null,
+        'image'                   => $validatedData['image'],
+        'brochure'                => $validatedData['brochure'],
+        'display_order'           => $validatedData['display_order'] ?? $product->display_order,
+        'requires_emargement'     => $validatedData['requires_emargement'],
+        'visible_in_portal'       => $validatedData['visible_in_portal'],
+        'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
+    ]);
+
+    $newProduct->save();
+
+    // Direct booking link for the duplicated product (optional)
+    if ($request->boolean('direct_booking_enabled')) {
+        BookingLink::create([
+            'user_id'             => $newProduct->user_id,
+            'token'               => BookingLink::generateToken(32),
+            'name'                => 'Lien direct – ' . $newProduct->name,
+            'allowed_product_ids' => [$newProduct->id],
+            'is_enabled'          => true,
+        ]);
+    }
+
+    return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
+}
+
 }

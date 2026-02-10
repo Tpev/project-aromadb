@@ -1,3 +1,4 @@
+{{-- resources/views/products/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -191,6 +192,13 @@
                 <a href="{{ route('products.edit', $product->id) }}" class="btn-primary">
                     <i class="fas fa-edit"></i> {{ __('Modifier') }}
                 </a>
+
+                {{-- ✅ Dupliquer (owner-only) --}}
+                @if(auth()->check() && auth()->id() === $product->user_id)
+                    <a href="{{ route('products.duplicate', $product->id) }}" class="btn-secondary">
+                        <i class="fas fa-clone"></i> {{ __('Dupliquer') }}
+                    </a>
+                @endif
 
                 <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display: inline-block;">
                     @csrf
