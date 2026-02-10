@@ -373,10 +373,10 @@
                                                 @endphp
                                                 <tr class="hover:bg-[#fbfff6]/60 transition">
                                                     <td class="px-4 py-3 font-medium text-slate-900">
-                                                        {{ $reservation->name }}
+                                                        {{ $reservation->full_name ?: '—'}}
                                                     </td>
                                                     <td class="px-4 py-3 text-slate-700">
-                                                        {{ $reservation->email }}
+                                                        {{ $reservation->email ?: '—' }}
                                                     </td>
                                                     <td class="px-4 py-3 text-slate-700">
                                                         {{ $reservation->phone ?? '—' }}
@@ -404,12 +404,15 @@
                                                                 </a>
                                                             </div>
                                                         @else
-                                                            <button type="button"
-                                                                    class="js-create-client-from-reservation inline-flex items-center justify-center rounded-lg border border-[#e2ecc3] bg-white px-3 py-2 text-xs font-semibold text-[#647a0b] hover:bg-[#f3f9dd] transition"
-                                                                    data-route="{{ route('reservations.createClient', [$event->id, $reservation->id]) }}"
+														<button type="button"
+																class="js-create-client-from-reservation inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#556a0a] focus:outline-none focus:ring-2 focus:ring-[#647a0b]/30"
+																data-route="{{ route('reservations.createClient', [$event->id, $reservation->id]) }}">
+															<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+																<path d="M10 2a5 5 0 100 10 5 5 0 000-10zM3 16a7 7 0 0114 0v1H3v-1z"/>
+															</svg>
+															{{ __('Créer un profil') }}
+														</button>
 
-                                                                {{ __('Créer un profil') }}
-                                                            </button>
                                                         @endif
                                                     </td>
                                                 </tr>
