@@ -1,4 +1,3 @@
-{{-- resources/views/products/duplicate.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
@@ -23,23 +22,19 @@
                     }
                 @endphp
 
-                <!-- Nom de la Prestation -->
+                <!-- Nom -->
                 <div class="details-box">
                     <label class="details-label" for="name">{{ __('Nom de la Prestation') }}</label>
                     <input type="text" id="name" name="name" class="form-control"
-                           value="{{ old('name', $product->name) }}" required>
-                    @error('name')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                           value="{{ old('name', $product->name . ' (copie)') }}" required>
+                    @error('name') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Description -->
                 <div class="details-box">
                     <label class="details-label" for="description">{{ __('Description') }}</label>
-                    <textarea id="description" name="description" class="form-control" rows="4">{{ old('description', $product->description) }}</textarea>
-                    @error('description')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    <textarea id="description" name="description" class="form-control">{{ old('description', $product->description) }}</textarea>
+                    @error('description') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Prix -->
@@ -47,9 +42,7 @@
                     <label class="details-label" for="price">{{ __('Prix') }}</label>
                     <input type="number" step="0.01" id="price" name="price" class="form-control"
                            value="{{ old('price', $product->price) }}" required>
-                    @error('price')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    @error('price') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- TVA -->
@@ -57,9 +50,7 @@
                     <label class="details-label" for="tax_rate">{{ __('TVA (%)') }}</label>
                     <input type="number" step="0.01" id="tax_rate" name="tax_rate" class="form-control"
                            value="{{ old('tax_rate', $product->tax_rate) }}" required>
-                    @error('tax_rate')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    @error('tax_rate') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Durée -->
@@ -67,9 +58,7 @@
                     <label class="details-label" for="duration">{{ __('Durée (minutes)') }}</label>
                     <input type="number" id="duration" name="duration" class="form-control"
                            value="{{ old('duration', $product->duration) }}">
-                    @error('duration')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    @error('duration') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Mode -->
@@ -81,19 +70,94 @@
                         <option value="en_entreprise" {{ $currentMode === 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
                         <option value="dans_le_cabinet" {{ $currentMode === 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
                     </select>
-                    @error('mode')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    @error('mode') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Réservable en ligne -->
+                <div class="details-box">
+                    <label class="details-label" for="can_be_booked_online">{{ __('Réservable en ligne') }}</label>
+                    <select id="can_be_booked_online" name="can_be_booked_online" class="form-control" required>
+                        <option value="1" {{ old('can_be_booked_online', $product->can_be_booked_online) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('can_be_booked_online', $product->can_be_booked_online) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('can_be_booked_online') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Paiement requis -->
+                <div class="details-box">
+                    <label class="details-label" for="collect_payment">{{ __('Paiement requis') }}</label>
+                    <select id="collect_payment" name="collect_payment" class="form-control" required>
+                        <option value="1" {{ old('collect_payment', $product->collect_payment) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('collect_payment', $product->collect_payment) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('collect_payment') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Visible sur le portail -->
+                <div class="details-box">
+                    <label class="details-label" for="visible_in_portal">{{ __('Visible sur le portail') }}</label>
+                    <select id="visible_in_portal" name="visible_in_portal" class="form-control" required>
+                        <option value="1" {{ old('visible_in_portal', $product->visible_in_portal) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('visible_in_portal', $product->visible_in_portal) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('visible_in_portal') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Prix visible sur le portail -->
+                <div class="details-box">
+                    <label class="details-label" for="price_visible_in_portal">{{ __('Prix visible sur le portail') }}</label>
+                    <select id="price_visible_in_portal" name="price_visible_in_portal" class="form-control" required>
+                        <option value="1" {{ old('price_visible_in_portal', $product->price_visible_in_portal) ? 'selected' : '' }}>{{ __('Oui') }}</option>
+                        <option value="0" {{ !old('price_visible_in_portal', $product->price_visible_in_portal) ? 'selected' : '' }}>{{ __('Non') }}</option>
+                    </select>
+                    @error('price_visible_in_portal') <p class="text-red-500">{{ $message }}</p> @enderror
+                </div>
+
+                <!-- Image -->
+                <div class="details-box">
+                    <label class="details-label" for="image">{{ __('Image') }}</label>
+                    <input type="file" id="image" name="image" class="form-control">
+                    @error('image') <p class="text-red-500">{{ $message }}</p> @enderror
+
+                    @if($product->image)
+                        <div style="margin-top:10px;">
+                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}"
+                                 style="max-width:200px;border-radius:10px;">
+                        </div>
+
+                        <div style="margin-top:10px;">
+                            <input type="hidden" name="remove_image" value="0">
+                            <label style="display:flex;align-items:center;gap:10px;margin:0;">
+                                <input type="checkbox" name="remove_image" value="1" {{ old('remove_image') ? 'checked' : '' }}>
+                                <span>{{ __('Ne pas dupliquer l’image (dupliquer sans image)') }}</span>
+                            </label>
+                        </div>
+
+                        <small class="text-gray-500" style="display:block;margin-top:8px;">
+                            {{ __('Astuce : vous pouvez aussi uploader une nouvelle image ci-dessus pour la copie.') }}
+                        </small>
+                    @endif
+                </div>
+
+                <!-- Brochure -->
+                <div class="details-box">
+                    <label class="details-label" for="brochure">{{ __('Brochure (PDF)') }}</label>
+                    <input type="file" id="brochure" name="brochure" class="form-control">
+                    @error('brochure') <p class="text-red-500">{{ $message }}</p> @enderror
+
+                    @if($product->brochure)
+                        <small class="text-gray-500">
+                            {{ __('Si vous n’uploadez rien, la brochure actuelle sera réutilisée (même fichier).') }}
+                        </small>
+                    @endif
                 </div>
 
                 <!-- Ordre d’affichage -->
                 <div class="details-box">
                     <label class="details-label" for="display_order">{{ __('Ordre d’affichage') }}</label>
                     <input type="number" id="display_order" name="display_order" class="form-control"
-                           value="{{ old('display_order', $product->display_order) }}">
-                    @error('display_order')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                           value="{{ old('display_order', $product->display_order) }}" min="0">
+                    @error('display_order') <p class="text-red-500">{{ $message }}</p> @enderror
                     <small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
                 </div>
 
@@ -111,72 +175,27 @@
 
                     <div x-show="adv" x-transition.origin.top.left style="display:none">
                         <div class="adv-box">
-
-                            <!-- Nombre maximum de séances par jour -->
+                            <!-- Max per day -->
                             <div class="details-box">
                                 <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
                                 <input type="number" id="max_per_day" name="max_per_day" class="form-control"
-                                       value="{{ old('max_per_day', $product->max_per_day) }}">
-                                @error('max_per_day')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
+                                       value="{{ old('max_per_day', $product->max_per_day) }}" min="1">
+                                @error('max_per_day') <p class="text-red-500">{{ $message }}</p> @enderror
                             </div>
 
-                            <!-- Réservable en ligne -->
+                            <!-- Emargement -->
                             <div class="details-box">
-                                <label class="details-label" for="can_be_booked_online">{{ __('Réservable en ligne') }}</label>
-                                <input type="hidden" name="can_be_booked_online" value="0">
-                                <input type="checkbox"
-                                       id="can_be_booked_online"
-                                       name="can_be_booked_online"
-                                       value="1"
-                                       {{ old('can_be_booked_online', $product->can_be_booked_online ? 1 : 0) ? 'checked' : '' }}>
-                                @error('can_be_booked_online')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Visible sur le Portail -->
-                            <div class="details-box">
-                                <label class="details-label" for="visible_in_portal">
-                                    {{ __('Visible sur votre portail') }}
-                                </label>
-                                <input type="hidden" name="visible_in_portal" value="0">
-                                <input
-                                    type="checkbox"
-                                    id="visible_in_portal"
-                                    name="visible_in_portal"
-                                    value="1"
-                                    {{ old('visible_in_portal', $product->visible_in_portal ? 1 : 0) ? 'checked' : '' }}>
-                                @error('visible_in_portal')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
+                                <label class="details-label" for="requires_emargement">{{ __('Fiche d’émargement requise') }}</label>
+                                <input type="hidden" name="requires_emargement" value="0">
+                                <input type="checkbox" id="requires_emargement" name="requires_emargement" value="1"
+                                       {{ old('requires_emargement', $product->requires_emargement) ? 'checked' : '' }}>
+                                @error('requires_emargement') <p class="text-red-500">{{ $message }}</p> @enderror
                                 <small class="text-gray-500">
-                                    {{ __('Décochez si vous souhaitez cacher cette prestation de votre page publique (mais la garder en interne).') }}
+                                    {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
                                 </small>
                             </div>
 
-                            <!-- Afficher le prix sur le portail -->
-                            <div class="details-box">
-                                <label class="details-label" for="price_visible_in_portal">
-                                    {{ __('Afficher le prix sur votre portail') }}
-                                </label>
-                                <input type="hidden" name="price_visible_in_portal" value="0">
-                                <input
-                                    type="checkbox"
-                                    id="price_visible_in_portal"
-                                    name="price_visible_in_portal"
-                                    value="1"
-                                    {{ old('price_visible_in_portal', $product->price_visible_in_portal ? 1 : 0) ? 'checked' : '' }}>
-                                @error('price_visible_in_portal')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
-                                <small class="text-gray-500">
-                                    {{ __('Décochez si vous préférez ne pas afficher le tarif de cette prestation sur votre page publique.') }}
-                                </small>
-                            </div>
-
-                            <!-- Liens réservation directe -->
+                            <!-- Lien réservation directe (pour la nouvelle prestation) -->
                             <div class="details-box">
                                 <label class="details-label" for="direct_booking_enabled">{{ __('Liens réservation directe') }}</label>
 
@@ -191,115 +210,43 @@
                                 </label>
 
                                 <small class="text-gray-500">
-                                    {{ __('Si coché, un lien privé (partenaire) sera créé pour la nouvelle prestation dupliquée (et non pour l’originale).') }}
+                                    {{ __('Si coché, un lien privé (partenaire) sera créé pour la nouvelle prestation (la copie).') }}
                                 </small>
                             </div>
-
-                            <!-- Collect Payment -->
-                            <div class="details-box">
-                                <label class="details-label" for="collect_payment">{{ __('Collecter le paiement') }}</label>
-                                <input type="hidden" name="collect_payment" value="0">
-                                <input type="checkbox"
-                                       id="collect_payment"
-                                       name="collect_payment"
-                                       value="1"
-                                       {{ old('collect_payment', $product->collect_payment ? 1 : 0) ? 'checked' : '' }}>
-                                @error('collect_payment')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Emargement -->
-                            <div class="details-box">
-                                <label class="details-label" for="requires_emargement">{{ __('Fiche d’émargement requise') }}</label>
-                                <input type="hidden" name="requires_emargement" value="0">
-                                <input type="checkbox"
-                                       id="requires_emargement"
-                                       name="requires_emargement"
-                                       value="1"
-                                       {{ old('requires_emargement', $product->requires_emargement ? 1 : 0) ? 'checked' : '' }}>
-                                @error('requires_emargement')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Image Upload -->
-                            <div class="details-box">
-                                <label class="details-label" for="image">{{ __('Image') }}</label>
-
-                                @if(!empty($product->image))
-                                    <div style="margin-bottom:10px;">
-                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" style="max-width:200px;border-radius:10px;">
-                                    </div>
-
-                                    <div style="margin-bottom:10px;">
-                                        <input type="hidden" name="remove_image" value="0">
-                                        <label style="display:flex;align-items:center;gap:10px;margin:0;">
-                                            <input type="checkbox" name="remove_image" value="1" {{ old('remove_image') ? 'checked' : '' }}>
-                                            <span>{{ __('Ne pas dupliquer l’image (dupliquer sans image)') }}</span>
-                                        </label>
-                                    </div>
-                                @endif
-
-                                <input type="file" id="image" name="image" class="form-control">
-                                @error('image')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Brochure Upload -->
-                            <div class="details-box">
-                                <label class="details-label" for="brochure">{{ __('Brochure (PDF)') }}</label>
-                                <input type="file" id="brochure" name="brochure" class="form-control">
-                                @error('brochure')
-                                    <p class="text-red-500">{{ $message }}</p>
-                                @enderror
-                                <small class="text-gray-500">{{ __('Si vous n’uploadez rien, la brochure actuelle sera réutilisée (même fichier).') }}</small>
-                            </div>
-
                         </div>
                     </div>
                 </div>
 
-                <!-- Buttons -->
-                <div class="action-buttons mt-4">
-                    <button type="submit" class="btn-primary">{{ __('Dupliquer') }}</button>
-                    <a href="{{ route('products.show', $product->id) }}" class="btn-secondary">{{ __('Annuler') }}</a>
-                </div>
+                <!-- Actions -->
+                <button type="submit" class="btn-primary mt-4">{{ __('Dupliquer la Prestation') }}</button>
+                <a href="{{ route('products.show', $product->id) }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>
         </div>
     </div>
 
+    <!-- Styles personnalisés (identiques à edit) -->
     <style>
-        .container { max-width: 900px; }
+        .container { max-width: 800px; }
 
         .details-container {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin: 0 auto;
+            background-color: #f9f9f9; border-radius: 10px; padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin: 0 auto;
         }
 
         .details-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 20px;
-            text-align: center;
+            font-size: 2rem; font-weight: bold; color: #647a0b;
+            margin-bottom: 20px; text-align: center;
         }
 
-        .details-box {
-            background: #fff;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        .details-box { margin-bottom: 15px; }
+        .details-label { font-weight: bold; color: #647a0b; display: block; margin-bottom: 5px; }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-
-        .details-label { font-weight: 700; color: #647a0b; margin-bottom: 6px; display:block; }
-
-        .action-buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top: 20px; }
 
         .btn-primary {
             background-color: #647a0b;
@@ -310,6 +257,7 @@
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
+            margin-right: 10px;
         }
 
         .btn-secondary {
