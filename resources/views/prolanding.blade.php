@@ -248,134 +248,152 @@ Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des théra
         </div>
     </section>
 
-<!-- Pricing Section -->
-<section class="py-12 bg-white">
-    <div class="container mx-auto text-center px-4">
-        <h2 class="text-3xl font-bold mb-8 text-primary">Des tarifs adaptés à vos besoins</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Pricing Plan 1: Référencement gratuit dans l'annuaire -->
-            <div class="pricing-card flex flex-col h-full" data-aos="fade-up">
-                <h3 class="text-2xl font-bold mb-4">Référencement gratuit</h3>
-                <p class="text-4xl font-bold mb-6">0€</p>
-                <ul class="text-left mb-6">
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Listing basic de votre profil
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Visibilité auprès de milliers de clients
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Essai de 14 jours de la version Pro
-                    </li>
-                </ul>
-                <p class="text-gray-700 mb-6">
-                    Profitez d'un référencement gratuit dans notre annuaire de praticiens pour augmenter votre visibilité et attirer de nouveaux clients. Votre profil sera présenté de manière professionnelle et optimisé pour un meilleur positionnement dans notre moteur de recherche interne.
+<section class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+
+        <h2 class="text-4xl font-bold text-center mb-4">
+            Choisissez le plan adapté à votre pratique
+        </h2>
+        <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+            Tous nos plans sont disponibles en abonnement mensuel ou annuel.
+            <br class="hidden sm:block">
+            <strong>En choisissant le paiement annuel, vous bénéficiez d’1 mois offert.</strong>
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            {{-- FREE --}}
+            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+                <h3 class="text-2xl font-bold mb-4 text-center">Gratuit</h3>
+
+                <p class="text-center text-4xl font-bold mb-2">
+                    0 €
+                    <span class="text-lg font-medium">/mois</span>
                 </p>
-                <div class="mt-auto">
-                    <a href="{{ route('register-pro') }}" class="btn-primary">
-                        Inscrivez-vous gratuitement
+
+                <p class="text-center text-sm text-gray-500 mb-6">
+                    Pour découvrir AromaMade PRO sans engagement
+                </p>
+
+                <ul class="text-left mb-8 space-y-2">
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Listing basic de votre profil</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Visibilité auprès de milliers de clients</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Essai de 14 jours de la version Premium</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Découverte des fonctionnalités clés</li>
+                </ul>
+
+                <div class="mt-auto text-center">
+                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
+                        Commencer gratuitement
                     </a>
                 </div>
             </div>
 
-            <!-- Pricing Plan 2: Starter -->
-            <div class="pricing-card flex flex-col h-full" data-aos="fade-up" data-aos-delay="100">
-                <h3 class="text-2xl font-bold mb-4">Starter</h3>
-                <p class="text-4xl font-bold mb-6">
-                    9,90€<span class="text-xl font-medium">/mois</span>
+            {{-- STARTER --}}
+            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold mb-4 text-center">Starter</h3>
+
+                <p class="text-center text-4xl font-bold mb-2">
+                    9,90 €
+                    <span class="text-lg font-medium">/mois</span>
                 </p>
-                <ul class="text-left mb-6">
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>50 dossiers clients
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Prise de rendez-vous
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Gestion des dossiers clients
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Portail Pro
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Facturation simplifiée
-                    </li>                 
-					<li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Devis
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Questionnaires
-                    </li>
+
+                <p class="text-center text-sm text-gray-500 mb-6">
+                    La base pour démarrer et structurer votre activité
+                </p>
+
+                <ul class="text-left mb-8 space-y-2">
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Jusqu’à 50 dossiers patients</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Prise de rendez-vous</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Gestion des dossiers clients</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Portail Pro</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Facturation simplifiée</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Questionnaires</li>
                 </ul>
-                <p class="text-gray-700 mb-6">
-                    Le plan Starter est idéal pour les praticiens en début de carrière qui souhaitent disposer d’un ensemble complet de fonctionnalités essentielles. Gérez efficacement vos rendez-vous et dossiers clients tout en bénéficiant d’un portail professionnel pour attirer de nouveaux clients.
-                </p>
-                <div class="mt-auto">
-                    <a href="{{ route('register-pro') }}" class="btn-primary">
-                        Choisir le plan
+
+                <div class="mt-auto text-center">
+                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
+                        Démarrer l’essai gratuit
                     </a>
                 </div>
             </div>
 
-            <!-- Pricing Plan 3: Pro -->
-            <div class="pricing-card flex flex-col h-full" data-aos="fade-up" data-aos-delay="200">
-                <h3 class="text-2xl font-bold mb-4">Pro</h3>
-                <p class="text-4xl font-bold mb-6">
-                    29,90€<span class="text-xl font-medium">/mois</span>
+            {{-- PRO --}}
+            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-xl p-8 border-2 border-[#647a0b] relative">
+                <span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#647a0b] text-white text-sm px-4 py-1 rounded-full">
+                    Le plus populaire
+                </span>
+
+                <h3 class="text-2xl font-bold mb-4 text-center">Pro</h3>
+
+                <p class="text-center text-4xl font-bold mb-2">
+                    29,90 €
+                    <span class="text-lg font-medium">/mois</span>
                 </p>
-                <ul class="text-left mb-6">
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Dossiers clients illimités
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Toutes les fonctionnalités du plan Starter
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Suivi des objectifs thérapeutiques
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Options de paiement en ligne
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Intégration réseaux sociaux
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Création d'événements
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Bibliothèque de conseils
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Gestion et stockage de documents
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Avis clients
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Synchronisation des calendriers
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Visio-conférence intégrée
-                    </li>                    
-					<li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i>Espace Client sécurisé
-                    </li>					
-					<li class="mb-2">
-                        <i class="fas fa-check text-green-500 mr-2"></i> Gestion d’inventaire intelligente
-                    </li>
+
+                <p class="text-center text-sm text-gray-500 mb-6">
+                    Optimisez votre pratique avec des options avancées et plus de visibilité
+                </p>
+
+                <ul class="text-left mb-8 space-y-2">
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Dossiers patients illimités</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Toutes les fonctionnalités du plan Starter</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Suivi des objectifs thérapeutiques</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Comptabilité (Livre de recettes,suivi CA)</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Options de paiement en ligne</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Intégration réseaux sociaux</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Création d’événements</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Bibliothèque de conseils</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Gestion & stockage de documents</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Avis clients</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Synchronisation des calendriers</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Visio-conférence intégrée</li>
                 </ul>
-                <p class="text-gray-700 mb-6">
-                    Le plan Pro est conçu pour les praticiens expérimentés qui recherchent une solution complète et avancée pour optimiser leur pratique. Bénéficiez d'un nombre illimité de dossiers clients et d'outils performants pour gérer votre activité au quotidien.
-                </p>
-                <div class="mt-auto">
-                    <a href="{{ route('register-pro') }}" class="btn-primary">
-                        Choisir le plan
+
+                <div class="mt-auto text-center">
+                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
+                        Démarrer l’essai gratuit
                     </a>
                 </div>
             </div>
+
+            {{-- PREMIUM --}}
+            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-lg p-8">
+                <h3 class="text-2xl font-bold mb-4 text-center">Premium</h3>
+
+                <p class="text-center text-4xl font-bold mb-2">
+                    39,90 €
+                    <span class="text-lg font-medium">/mois</span>
+                </p>
+
+                <p class="text-center text-sm text-gray-500 mb-6">
+                    Tout pour gérer votre pratique, attirer plus de clients et gagner du temps
+                </p>
+
+                <ul class="text-left mb-8 space-y-2">
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Toutes les fonctionnalités du plan Starter & Pro</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Création, hébergement et vente de formations en ligne</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Hébergement & vente de contenus digitaux (ebooks, guides, ressources)</li>
+                    <li><i class="fas fa-check text-green-500 mr-2"></i>Outil de newsletters & communication clients</li>
+                </ul>
+
+                <div class="mt-auto text-center">
+                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
+                        Démarrer l’essai gratuit
+                    </a>
+                </div>
+            </div>
+
         </div>
+
+        <p class="text-center text-sm text-gray-500 mt-10">
+            💡 Tous les plans sont disponibles en paiement annuel avec <strong>1 mois offert</strong>.
+        </p>
+
     </div>
 </section>
+
+
 
 
 
