@@ -48,7 +48,7 @@
         <div class="flex items-center justify-center mt-6">
             <p class="text-sm text-gray-600 dark:text-gray-400">
                 Vous n'avez pas encore de compte ? 
-                <a href="{{ route('register') }}" class="underline text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-100">
+                <a href="{{ route('register-pro') }}" class="underline text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-100">
                     Créez-en un ici
                 </a>.
             </p>
