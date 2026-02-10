@@ -1,4 +1,4 @@
-<x-client-layout>
+<x-client-app-layout>
     <div class="min-h-screen flex items-center justify-center bg-[#f7f8f3] px-4">
         <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
 
@@ -63,4 +63,4 @@
 
         </div>
     </div>
-</x-client-layout>
+</x-client-app-layout>
