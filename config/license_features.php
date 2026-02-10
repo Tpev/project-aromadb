@@ -25,6 +25,7 @@ return [
 			'facturation',
 			'products',
 			'questionnaires',
+			'client_profiles_pro',
         ],
 
         'pro' => [
