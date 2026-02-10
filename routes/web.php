@@ -384,13 +384,28 @@ Route::middleware(['auth'])->group(function () {
 
 
 Route::prefix('client')->name('client.')->group(function () {
-    Route::get('forgot-password', [ClientPasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('forgot-password', [ClientPasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
 
-    Route::get('reset-password/{token}', [ClientPasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('reset-password', [ClientPasswordResetController::class, 'reset'])->name('password.update');
+    // Forgot password (client)
+    Route::get('forgot-password', [ClientPasswordSetupController::class, 'forgotForm'])
+        ->name('password.request');
+
+    Route::post('forgot-password', [ClientPasswordSetupController::class, 'sendResetLink'])
+        ->name('password.email');
+
+    // Reset password (client)
+    Route::get('reset-password/{token}', [ClientPasswordSetupController::class, 'resetForm'])
+        ->name('password.reset');
+
+    Route::post('reset-password', [ClientPasswordSetupController::class, 'resetStore'])
+        ->name('password.update');
+
+    // Setup password via invite token (already existing logic)
+    Route::get('setup/{token}', [ClientPasswordSetupController::class, 'show'])
+        ->name('setup.show');
+
+    Route::post('setup/{token}', [ClientPasswordSetupController::class, 'store'])
+        ->name('setup.store');
 });
-
 
 
 
