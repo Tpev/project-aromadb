@@ -406,7 +406,8 @@
                                                         @else
                                                             <button type="button"
                                                                     class="js-create-client-from-reservation inline-flex items-center justify-center rounded-lg border border-[#e2ecc3] bg-white px-3 py-2 text-xs font-semibold text-[#647a0b] hover:bg-[#f3f9dd] transition"
-                                                                    data-route="{{ route('events.reservations.createClient', [$event->id, $reservation->id]) }}">
+                                                                    data-route="{{ route('reservations.createClient', [$event->id, $reservation->id]) }}"
+
                                                                 {{ __('Créer un profil') }}
                                                             </button>
                                                         @endif
