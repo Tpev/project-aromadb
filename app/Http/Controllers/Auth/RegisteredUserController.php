@@ -92,6 +92,7 @@ public function storepro(Request $request): RedirectResponse
         // you can keep it or remove it.
         'email'        => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
         'password'     => ['required', 'confirmed', Rules\Password::defaults()],
+		'onboarding_mode' => ['nullable','string'],
     ]);
 
     DB::beginTransaction();
@@ -110,6 +111,7 @@ public function storepro(Request $request): RedirectResponse
             'is_therapist'    => true,
             'license_product' => 'essai',
             'license_status'  => 'actif',
+			'onboarding_mode' => $request->onboarding_mode
         ]);
 
         // Generate a unique slug based on the company name and the user id.
@@ -173,6 +175,7 @@ public function storepro(Request $request): RedirectResponse
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
 			'is_therapist' => ['boolean'],
+		
            
         ]);
 

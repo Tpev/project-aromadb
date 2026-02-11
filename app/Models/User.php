@@ -80,6 +80,7 @@ class User extends Authenticatable
 
         'buffer_time_between_appointments',
         'cgv_pdf_path',
+		'onboarding_mode',
     ];
 
     protected $dates = ['last_login_at'];
