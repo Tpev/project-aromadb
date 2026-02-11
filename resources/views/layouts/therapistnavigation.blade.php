@@ -191,6 +191,9 @@
                             </a>							
 							<a href="{{ route('newsletters.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Newsletter') }}
+                            </a>								
+							<a href="{{ route('dashboardpro.articles.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                {{ __('Article & Blog') }}
                             </a>							
 							<a href="{{ route('pro.referrals.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Parrainage') }}
@@ -387,6 +390,9 @@
             </x-responsive-nav-link>			
 			<x-responsive-nav-link :href="route('newsletters.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Newsletter') }}
+            </x-responsive-nav-link>			
+			<x-responsive-nav-link :href="route('dashboardpro.articles.index')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Article & Blog') }}
             </x-responsive-nav-link>			
 			<x-responsive-nav-link :href="route('pro.referrals.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Parrainage') }}

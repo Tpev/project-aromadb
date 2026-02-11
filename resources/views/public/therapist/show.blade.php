@@ -40,6 +40,15 @@
             );
 @endphp
 @php
+    $publishedArticles = \App\Models\TherapistArticle::query()
+        ->where('user_id', $therapist->id)
+        ->published()
+        ->latest('published_at')
+        ->take(4)
+        ->get();
+@endphp
+
+@php
     $imgVer = $therapist->updated_at?->timestamp ?? time();
 @endphp
 
@@ -814,6 +823,84 @@
                     <p class="mt-6 text-gray-600">{{ __('Aucun événement à venir pour le moment.') }}</p>
                 @endif
             </div>
+@if($publishedArticles->isNotEmpty())
+    <div class="bg-white shadow rounded-lg p-8 mt-8">
+        <div class="flex items-start sm:items-center justify-between gap-6">
+            <div>
+                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
+                    <i class="fas fa-newspaper text-[#854f38] mr-3"></i>
+                    {{ __('Articles & Conseils') }}
+                </h3>
+                <p class="mt-2 text-gray-600 text-base">
+                    {{ __('Les dernières publications de') }}
+                    {{ $therapist->company_name ?? $therapist->business_name ?? $therapist->name }}
+                </p>
+            </div>
+
+            <div class="hidden sm:flex items-center gap-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7] text-xs font-bold">
+                    {{ $publishedArticles->count() }} {{ __('article(s)') }}
+                </span>
+
+                <a href="{{ route('pro.articles.index', $therapist->slug) }}"
+                   class="inline-flex items-center px-4 py-2 rounded-full bg-[#647a0b] text-white text-sm font-semibold hover:bg-[#8ea633] transition">
+                    {{ __('Voir tous') }} <i class="fas fa-arrow-right ml-2 text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            @foreach($publishedArticles as $article)
+                <a href="{{ route('pro.articles.show', ['therapist' => $therapist->slug, 'articleSlug' => $article->slug]) }}"
+                   class="group block border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-[#f9fafb]">
+
+                    @if($article->cover_path)
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($article->cover_path) }}"
+                             alt="{{ $article->title }}"
+                             class="w-full h-48 object-cover">
+                    @endif
+
+                    <div class="p-6">
+                        <h4 class="text-xl font-semibold text-[#647a0b] group-hover:text-[#8ea633] transition line-clamp-2">
+                            {{ $article->title }}
+                        </h4>
+
+                        @if($article->excerpt)
+                            <p class="mt-3 text-sm text-gray-700 leading-relaxed line-clamp-3">
+                                {{ $article->excerpt }}
+                            </p>
+                        @endif
+
+                        <div class="mt-4 flex items-center justify-between text-xs text-gray-500">
+                            <span>
+                                <i class="far fa-calendar-alt mr-1 text-[#854f38]"></i>
+                                {{ optional($article->published_at)->format('d/m/Y') }}
+                            </span>
+
+                            @if($article->reading_time)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b] font-semibold">
+                                    ⏱ {{ $article->reading_time }} {{ __('min') }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <div class="mt-5 inline-flex items-center text-sm font-semibold text-[#854f38] group-hover:text-[#6a3f2c] transition">
+                            {{ __('Lire l’article') }} <i class="fas fa-arrow-right ml-2 text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+        {{-- Mobile CTA --}}
+        <div class="mt-8 text-center sm:hidden">
+            <a href="{{ route('pro.articles.index', $therapist->slug) }}"
+               class="inline-flex items-center px-6 py-3 rounded-full bg-[#647a0b] text-white font-semibold hover:bg-[#8ea633] transition">
+                {{ __('Voir tous les articles') }}
+            </a>
+        </div>
+    </div>
+@endif
 
 {{-- Section Témoignages --}}
 <div class="bg-white shadow rounded-lg p-8">

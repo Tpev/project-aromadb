@@ -62,6 +62,8 @@ return [
 			'integration',
 						'conseil',
 						'inventory',
+						'blog',
+						'newsletter',
         ],
 		        'trial' => [
 
@@ -79,6 +81,8 @@ return [
 			'integration',
 						'conseil',
 						'inventory',
+						'blog',
+						'newsletter',
         ],
     ],
 ];

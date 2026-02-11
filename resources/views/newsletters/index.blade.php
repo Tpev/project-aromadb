@@ -6,6 +6,63 @@
         </h2>
     </x-slot>
 
+    @php
+        $user = auth()->user();
+
+        // Feature gate (Premium only)
+        $canUseNewsletter = $user && method_exists($user, 'canUseFeature') ? $user->canUseFeature('newsletter') : false;
+
+        // Compute required plan badge (like elsewhere)
+        $plansConfig = config('license_features.plans', []);
+        $familyOrder = ['free', 'starter', 'pro', 'premium']; // ignore trial on purpose
+        $requiredFamily = null;
+        foreach ($familyOrder as $family) {
+            if (in_array('newsletter', $plansConfig[$family] ?? [], true)) {
+                $requiredFamily = $family;
+                break;
+            }
+        }
+        $requiredLabel = match ($requiredFamily) {
+            'starter' => 'Starter',
+            'pro' => 'Pro',
+            'premium' => 'Premium',
+            default => 'Premium',
+        };
+
+        $upgradeUrl = url('/license-tiers/pricing');
+    @endphp
+
+    <style>
+        .btn-locked {
+            border: 1px solid #efe7d0;
+            background: #fffaf0;
+            color: #a67c00;
+            cursor: pointer;
+        }
+        .btn-locked:hover { filter: brightness(0.99); }
+
+        .link-locked {
+            color: #a67c00;
+            font-weight: 700;
+        }
+        .link-locked:hover { text-decoration: underline; }
+
+        .locked-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid #efe7d0;
+            background: #fffaf0;
+            color: #a67c00;
+            font-size: 12px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+    </style>
+
     <div class="max-w-6xl mx-auto py-8 px-4">
         @if(session('success'))
             <div class="mb-4 rounded-lg bg-green-100 border border-green-200 text-green-800 px-4 py-3 text-sm">
@@ -37,10 +94,36 @@
         {{-- Header + actions --}}
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Vos newsletters</h1>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h1 class="text-2xl font-bold text-gray-800">Vos newsletters</h1>
+
+                    @unless($canUseNewsletter)
+                        <span class="locked-chip">
+                            <span class="dot bg-[#a67c00]"></span>
+                            Fonction “Newsletter” · {{ $requiredLabel }}
+                        </span>
+                    @endunless
+                </div>
+
                 <p class="text-sm text-gray-500 mt-1">
                     Créez et envoyez des emails professionnels à vos clients.
                 </p>
+
+                @unless($canUseNewsletter)
+                    <div class="mt-3 rounded-xl border border-[#efe7d0] bg-[#fffaf0] p-4 max-w-xl">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div class="text-sm text-[#7a5a00]">
+                                Les actions (créer, modifier, supprimer, envoyer) sont réservées à l’offre
+                                <strong>{{ $requiredLabel }}</strong>.
+                            </div>
+                            <a href="{{ $upgradeUrl }}"
+                               class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
+                               style="background-color:#647a0b;">
+                                Voir les offres
+                            </a>
+                        </div>
+                    </div>
+                @endunless
 
                 {{-- Quota progress --}}
                 <div class="mt-4 p-4 rounded-xl border border-gray-200 bg-white shadow-sm max-w-xl">
@@ -67,30 +150,53 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-                <a href="{{ route('audiences.index') }}"
-                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50">
-                    Gérer les audiences
-                </a>
+                @if($canUseNewsletter)
+                    <a href="{{ route('audiences.index') }}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50">
+                        Gérer les audiences
+                    </a>
 
-                <a href="{{ route('audiences.create') }}"
-                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50">
-                    Créer une audience
-                </a>
+                    <a href="{{ route('audiences.create') }}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 bg-white hover:bg-gray-50">
+                        Créer une audience
+                    </a>
 
-                <a href="{{ route('newsletters.create') }}"
-                   class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                   style="background-color:#647a0b;">
-                    <span class="mr-2">+</span> Nouvelle newsletter
-                </a>
+                    <a href="{{ route('newsletters.create') }}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
+                       style="background-color:#647a0b;">
+                        <span class="mr-2">+</span> Nouvelle newsletter
+                    </a>
+                @else
+                    <a href="{{ $upgradeUrl }}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold btn-locked">
+                        🔒 Gérer les audiences
+                    </a>
+
+                    <a href="{{ $upgradeUrl }}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold btn-locked">
+                        🔒 Créer une audience
+                    </a>
+
+                    <a href="{{ $upgradeUrl }}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold btn-locked">
+                        🔒 Nouvelle newsletter
+                    </a>
+                @endif
             </div>
         </div>
 
         @if($newsletters->isEmpty())
             <div class="border border-dashed border-gray-300 rounded-xl p-8 text-center text-gray-500 text-sm">
                 Vous n’avez pas encore de newsletter. <br>
-                <a href="{{ route('newsletters.create') }}" class="text-[#647a0b] font-semibold">
-                    Créer votre première newsletter
-                </a>
+                @if($canUseNewsletter)
+                    <a href="{{ route('newsletters.create') }}" class="text-[#647a0b] font-semibold">
+                        Créer votre première newsletter
+                    </a>
+                @else
+                    <a href="{{ $upgradeUrl }}" class="link-locked font-semibold">
+                        🔒 Débloquer la Newsletter ({{ $requiredLabel }})
+                    </a>
+                @endif
             </div>
         @else
             <div class="bg-white shadow-sm rounded-xl overflow-hidden border border-gray-100">
@@ -133,27 +239,43 @@
                                 <td class="px-4 py-3 text-gray-500 text-xs">
                                     {{ $newsletter->updated_at?->format('d/m/Y H:i') }}
                                 </td>
+
                                 <td class="px-4 py-3 text-right space-x-2">
-                                    <a href="{{ route('newsletters.show', $newsletter) }}"
-                                       class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">
-                                        Aperçu
-                                    </a>
-                                    <a href="{{ route('newsletters.edit', $newsletter) }}"
-                                       class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90"
-                                       style="background-color:#647a0b;">
-                                        Modifier
-                                    </a>
-                                    <form action="{{ route('newsletters.destroy', $newsletter) }}"
-                                          method="POST"
-                                          class="inline-block"
-                                          onsubmit="return confirm('Supprimer cette newsletter ?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100">
-                                            Supprimer
-                                        </button>
-                                    </form>
+                                    @if($canUseNewsletter)
+                                        <a href="{{ route('newsletters.show', $newsletter) }}"
+                                           class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200">
+                                            Aperçu
+                                        </a>
+                                        <a href="{{ route('newsletters.edit', $newsletter) }}"
+                                           class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90"
+                                           style="background-color:#647a0b;">
+                                            Modifier
+                                        </a>
+                                        <form action="{{ route('newsletters.destroy', $newsletter) }}"
+                                              method="POST"
+                                              class="inline-block"
+                                              onsubmit="return confirm('Supprimer cette newsletter ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100">
+                                                Supprimer
+                                            </button>
+                                        </form>
+                                    @else
+                                        <a href="{{ $upgradeUrl }}"
+                                           class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium btn-locked">
+                                            🔒 Aperçu
+                                        </a>
+                                        <a href="{{ $upgradeUrl }}"
+                                           class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium btn-locked">
+                                            🔒 Modifier
+                                        </a>
+                                        <a href="{{ $upgradeUrl }}"
+                                           class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium btn-locked">
+                                            🔒 Supprimer
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
