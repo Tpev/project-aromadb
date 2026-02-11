@@ -31,9 +31,6 @@ Schedule::command(SendAppointmentReminders::class)->hourly();
 // Schedule the 1-hour appointment reminder command
 Schedule::command(SendOneHourReminder::class)->hourly();
 
-// Fetch FB data
-Schedule::command(FetchFacebookMetrics::class)->hourly();
-
 // Event reminder
 Schedule::command('events:send-reminders')->everyMinute();
 
