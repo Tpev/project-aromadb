@@ -672,14 +672,27 @@ Route::get('events/{event}/reservation-success', [ReservationController::class, 
 
 
 Route::middleware('auth')->group(function () {
-	Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
+    Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
+
     // 👉 Nouveau : créer un profil client depuis une réservation d'événement
     Route::post(
         '/events/{event}/reservations/{reservation}/create-client',
         [ClientProfileController::class, 'storeFromReservation']
     )->name('reservations.createClient');
+
+    // ✅ NOUVEAU : ajouter un participant depuis la liste de clients
+    Route::post(
+        '/events/{event}/reservations/add-from-client',
+        [EventController::class, 'addReservationFromClient']
+    )->name('events.reservations.addFromClient');
+	// Dupliquer un event (form + submit)
+	Route::get('/events/{event}/duplicate', [EventController::class, 'duplicate'])->name('events.duplicate');
+	Route::post('/events/{event}/duplicate', [EventController::class, 'storeDuplicate'])->name('events.duplicate.store');
+
     Route::resource('events', EventController::class);
+	
 });
+
 
 
 Route::middleware(['auth'])->group(function () {
