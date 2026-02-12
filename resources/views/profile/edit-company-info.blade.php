@@ -355,6 +355,26 @@
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
                         </div>
+{{-- Infos affichées sur les factures --}}
+<div class="mt-4">
+    <label class="details-label" for="invoice_extra_info">
+        {{ __('Informations à afficher sur vos factures') }}
+    </label>
+
+    <textarea id="invoice_extra_info"
+              name="invoice_extra_info"
+              class="form-control"
+              rows="4"
+              placeholder="Ex : Moyens de paiement acceptés (CB, espèces, virement), IBAN, conditions de règlement, etc.">{{ old('invoice_extra_info', $user->invoice_extra_info) }}</textarea>
+
+    <p class="text-xs text-gray-500 mt-1">
+        {{ __('Ce texte pourra être affiché en bas de vos factures / devis.') }}
+    </p>
+
+    @error('invoice_extra_info')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
+</div>
 
                         <!-- CGV PDF Upload -->
                         <div class="details-box">

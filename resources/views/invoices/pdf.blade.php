@@ -400,6 +400,18 @@
             <div>{{ $invoice->notes }}</div>
         </div>
     @endif
+{{-- Informations complémentaires / Moyens de paiement --}}
+@if(!empty($invoice->user->invoice_extra_info))
+    <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+        <h4 style="font-size: 13px; font-weight: bold; margin-bottom: 6px;">
+            Informations complémentaires
+        </h4>
+
+        <div style="font-size: 12px; color: #374151; line-height: 1.6;">
+            {!! nl2br(e($invoice->user->invoice_extra_info)) !!}
+        </div>
+    </div>
+@endif
 
     @if($user->legal_mentions)
         <div class="legal-mentions">

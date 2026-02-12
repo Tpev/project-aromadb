@@ -116,6 +116,8 @@ class ProfileController extends Controller
             'remove_invoice_logo' => 'nullable|boolean',
             'invoice_primary_color' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6})$/'],
 			'google_event_color_id' => 'nullable|in:1,2,3,4,5,6,7,8,9,10,11',
+			'invoice_extra_info' => 'nullable|string|max:2000',
+
 
         ]);
 
@@ -168,6 +170,9 @@ class ProfileController extends Controller
             $cgvPath = $request->file('cgv_pdf')->store('cgv', 'public');
             $user->cgv_pdf_path = $cgvPath;
         }
+		if (array_key_exists('invoice_extra_info', $validatedData)) {
+			$user->invoice_extra_info = $validatedData['invoice_extra_info'] ?: null;
+		}
 
         /* ──────────── INVOICE LOGO HANDLING ──────────── */
         if ($request->boolean('remove_invoice_logo')) {
