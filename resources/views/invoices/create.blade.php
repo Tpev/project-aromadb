@@ -758,13 +758,23 @@ row.innerHTML = `
                 <td class="am-td am-td--product">
                     <input type="hidden" name="items[${idx}][product_id]" value="">
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
-                    <input type="text" class="am-input custom-name" value="Pack : ${escapeHtml(name)}" oninput="recomputeAllTotals()">
+                    <input type="text"
+       name="items[${idx}][label]"
+       class="am-input"
+       value="Pack : ${escapeHtml(name)}"
+       oninput="recomputeAllTotals()">
+
                 </td>
 
-                <td class="am-td am-td--desc">
-                    <input type="text" class="am-input custom-details" value="" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
-                    <input type="hidden" name="items[${idx}][description]" class="custom-description-hidden" value="">
-                </td>
+<td class="am-td am-td--desc">
+    <input type="text"
+           name="items[${idx}][description]"
+           class="am-input"
+           value=""
+           placeholder="{{ __('Détails (optionnel)') }}"
+           oninput="recomputeAllTotals()">
+</td>
+
 
                 <td class="am-td am-td--qty">
                     <input type="number" step="0.01" min="0.01" name="items[${idx}][quantity]" class="am-input am-num"
