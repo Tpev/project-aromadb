@@ -208,7 +208,7 @@
                         <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary">
                             <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
                         </a>
-
+							
                         @if($appointment->status !== 'Complété')
                             <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" style="display: inline-block;">
                                 @csrf
@@ -218,6 +218,16 @@
                                 </button>
                             </form>
                         @endif
+						{{-- Facturer (pré-remplit la facture comme sur l'index) --}}
+@if($appointment->client_profile_id && $appointment->product_id)
+    <a href="{{ route('invoices.create', [
+        'client_id'  => $appointment->client_profile_id,
+        'product_id' => $appointment->product_id,
+    ]) }}"
+       class="btn-primary">
+        <i class="fas fa-file-invoice-dollar"></i> {{ __('Facturer') }}
+    </a>
+@endif
 
                         <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST" style="display: inline-block;">
                             @csrf
