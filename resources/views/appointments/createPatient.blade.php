@@ -523,8 +523,6 @@
                             <p class="text-red-500 mt-1 d-none" id="format-error"></p>
                         </div>
 
-
-
                         {{-- Cabinet: choose a practice location --}}
                         <div class="details-box" id="cabinet-location-section" style="display:none;">
                             <label class="details-label" for="practice_location_id">{{ __('Cabinet') }}</label>
@@ -649,7 +647,6 @@
                         </div>
 
                         {{-- status (kept as before if you need it in storePatient) --}}
-                        {{-- if not used, you can remove --}}
                         <input type="hidden" name="status" value="pending">
 
                         <div class="summary-row" id="final-summary">
@@ -683,10 +680,14 @@
 
     <script>
         const PRODUCT_CATALOG = @json($productCatalog);
-        const OLD_TIME      = @json(old('appointment_time'));
+        const OLD_TIME        = @json(old('appointment_time'));
 
         let allowedDates = [];
         let currentSlotsRequestId = 0;
+
+        // For "auto-next-slot" behavior (backend returns response.next)
+        let autoPickDate = null;
+        let autoPickTime = null;
 
         $(function () {
             const therapistId = $('input[name="therapist_id"]').val();
@@ -814,14 +815,29 @@
                         allowedDates = Array.isArray(response.dates) ? response.dates : [];
 
                         if (allowedDates.length === 0) {
+                            autoPickDate = null;
+                            autoPickTime = null;
+
                             fp.set('enable', []);
                             fp.clear();
                             resetTimeSelect();
                             alert('{{ __("Aucune date disponible pour cette prestation.") }}');
                         } else {
                             fp.set('enable', allowedDates);
-                            fp.clear();
                             resetTimeSelect();
+
+                            // Prefer backend next slot; fallback to first allowed date
+                            autoPickDate = (response.next && response.next.date) ? response.next.date : allowedDates[0];
+                            autoPickTime = (response.next && response.next.time) ? response.next.time : null;
+
+                            // Only auto-set if empty OR currently invalid
+                            const current = $('#appointment_date').val();
+                            const currentIsValid = current && allowedDates.includes(current);
+
+                            // If user has old date already valid, keep it (avoid annoying jumps)
+                            if (!currentIsValid) {
+                                fp.setDate(autoPickDate, true); // triggers change => fetchAvailableSlots()
+                            }
                         }
 
                         $('#date-loading-message').hide().text('');
@@ -830,6 +846,9 @@
                     error: function(xhr) {
                         console.error('Error fetching available dates:', xhr.responseText);
                         allowedDates = [];
+                        autoPickDate = null;
+                        autoPickTime = null;
+
                         fp.set('enable', []);
                         fp.clear();
                         resetTimeSelect();
@@ -887,13 +906,39 @@
                             $('#time-slots-container').html(html);
                             $('#no-slots-message').hide().text('');
 
+                            // 1) If we have OLD_TIME (validation return), keep it if it exists
                             if (OLD_TIME) {
-                                $('#appointment_time').val(OLD_TIME);
-                                $('#time-slots-container .time-slot-btn').each(function () {
-                                    if ($(this).data('time') === OLD_TIME) {
-                                        $(this).addClass('active');
-                                    }
+                                const $btn = $('#time-slots-container .time-slot-btn').filter(function () {
+                                    return $(this).data('time') === OLD_TIME;
                                 });
+
+                                if ($btn.length) {
+                                    $btn.trigger('click');
+                                } else {
+                                    // Old time no longer available => clear it so we can auto-pick below
+                                    $('#appointment_time').val('');
+                                }
+                            }
+
+                            // 2) Auto-pick next slot if nothing selected yet
+                            if (!$('#appointment_time').val()) {
+                                let $pick = null;
+
+                                if (autoPickTime) {
+                                    $pick = $('#time-slots-container .time-slot-btn').filter(function () {
+                                        return $(this).data('time') === autoPickTime;
+                                    });
+                                }
+
+                                if (!$pick || $pick.length === 0) {
+                                    $pick = $('#time-slots-container .time-slot-btn').first();
+                                }
+
+                                if ($pick && $pick.length) {
+                                    $pick.trigger('click'); // uses click handler below
+                                }
+
+                                autoPickTime = null; // consume once
                             }
 
                             updateSummary();
@@ -926,6 +971,9 @@
 
                 if (!productId || !modeSlug || (modeSlug === 'cabinet' && !locId)) {
                     allowedDates = [];
+                    autoPickDate = null;
+                    autoPickTime = null;
+
                     fp.set('enable', []);
                     fp.clear();
                     resetTimeSelect();
@@ -978,6 +1026,9 @@
                 $('#practice_location_id').val('');
                 $('#practice_location_id_hidden').val('');
 
+                autoPickDate = null;
+                autoPickTime = null;
+
                 fp.set('enable', []);
                 fp.clear();
                 resetTimeSelect();
@@ -1029,6 +1080,9 @@
                     $('#product_id').val(String(chosen));
                 }
 
+                autoPickDate = null;
+                autoPickTime = null;
+
                 resetTimeSelect();
                 fp.set('enable', []);
                 fp.clear();
@@ -1053,6 +1107,9 @@
                     $('#product_id').val(productId);
                 }
 
+                autoPickDate = null;
+                autoPickTime = null;
+
                 resetTimeSelect();
                 fp.set('enable', []);
                 fp.clear();
@@ -1069,6 +1126,9 @@
                 $('#location-error').addClass('d-none').text('');
 
                 $('#practice_location_id_hidden').val($(this).val() || '');
+
+                autoPickDate = null;
+                autoPickTime = null;
 
                 refreshDates();
                 updateSummary();
@@ -1161,7 +1221,8 @@
                                 }
                             }, 30);
                         }
-@if(old('practice_location_id'))
+
+                        @if(old('practice_location_id'))
                             $('#practice_location_id').val(@json(old('practice_location_id'))).trigger('change');
                         @endif
 

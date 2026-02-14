@@ -1477,7 +1477,6 @@ $existingAppointments = $existingAppointmentsQuery->get();
 
 
 
-
 public function availableConcreteDatesPatient(Request $request)
 {
     $request->validate([
@@ -1491,8 +1490,10 @@ public function availableConcreteDatesPatient(Request $request)
     $therapistId = (int) $request->therapist_id;
     $product     = Product::findOrFail((int) $request->product_id);
 
+    // Resolve mode like slots endpoint does
     $mode = $this->resolvePatientMode($product, $request->input('mode'));
 
+    // Cabinet requires location
     $locationId = null;
     if ($mode === 'cabinet') {
         $request->validate([
@@ -1508,21 +1509,24 @@ public function availableConcreteDatesPatient(Request $request)
         if (!$ownsLocation) {
             return response()->json([
                 'dates' => [],
+                'next'  => null,
                 'message' => 'Invalid location for this therapist.',
             ], 422);
         }
     }
 
     $days  = (int) $request->input('days', 60);
-    $today = \Carbon\Carbon::today();
+    $today = Carbon::today();
+
     $dates = [];
+    $next  = null;
 
     for ($i = 0; $i < $days; $i++) {
         $date      = $today->copy()->addDays($i);
-        $dayOfWeek = $date->dayOfWeekIso - 1;
+        $dayOfWeek = $date->dayOfWeekIso - 1; // 0..6
         $dateStr   = $date->format('Y-m-d');
 
-        // Weekly
+        // Quick pre-check: does the therapist have any availability rule that day?
         $weeklyQuery = Availability::where('user_id', $therapistId)
             ->where('day_of_week', $dayOfWeek)
             ->where(function ($q) use ($product) {
@@ -1535,11 +1539,7 @@ public function availableConcreteDatesPatient(Request $request)
         if ($mode === 'cabinet' && $locationId) {
             $weeklyQuery->where('practice_location_id', $locationId);
         }
-        // visio / domicile → pas de filtre de cabinet
 
-        $hasWeekly = $weeklyQuery->exists();
-
-        // Specials
         $specialQuery = SpecialAvailability::where('user_id', $therapistId)
             ->whereDate('date', $dateStr)
             ->where(function ($q) use ($product) {
@@ -1552,17 +1552,160 @@ public function availableConcreteDatesPatient(Request $request)
         if ($mode === 'cabinet' && $locationId) {
             $specialQuery->where('practice_location_id', $locationId);
         }
-        // visio / domicile → pas de filtre de cabinet
 
-        $hasSpecial = $specialQuery->exists();
+        $hasAnyAvailabilityRule = $weeklyQuery->exists() || $specialQuery->exists();
+        if (!$hasAnyAvailabilityRule) {
+            continue;
+        }
 
-        if ($hasWeekly || $hasSpecial) {
+        // Real “concrete” check: does at least one slot exist for the product duration?
+        $slots = $this->computePatientSlotsForDate(
+            therapistId: $therapistId,
+            product: $product,
+            dateStr: $dateStr,
+            mode: $mode,
+            locationId: $locationId
+        );
+
+        if (!empty($slots)) {
             $dates[] = $dateStr;
+
+            // First concrete slot = next slot
+            if ($next === null) {
+                $next = [
+                    'date' => $dateStr,
+                    'time' => $slots[0]['start'], // slots already sorted
+                ];
+            }
         }
     }
 
-    return response()->json(['dates' => $dates]);
+    return response()->json([
+        'dates' => $dates,
+        'next'  => $next,
+    ]);
 }
+
+/**
+ * Reuse the SAME rules as getAvailableSlotsForPatient(),
+ * but callable for "date scanning" without duplicating request logic.
+ */
+private function computePatientSlotsForDate(int $therapistId, Product $product, string $dateStr, string $mode, ?int $locationId): array
+{
+    $duration = (int) ($product->duration ?? 0);
+    if ($duration <= 0) return [];
+
+    $therapist             = User::findOrFail($therapistId);
+    $minimumNoticeHours    = (int) ($therapist->minimum_notice_hours ?? 0);
+    $bufferMinutes         = (int) ($therapist->buffer_time_between_appointments ?? 0);
+    $now                   = Carbon::now();
+    $minimumNoticeDateTime = $now->copy()->addHours($minimumNoticeHours);
+
+    $date       = Carbon::createFromFormat('Y-m-d', $dateStr);
+    $dayOfWeek0 = $date->dayOfWeekIso - 1;
+
+    // Weekly
+    $weeklyQuery = Availability::where('user_id', $therapistId)
+        ->where('day_of_week', $dayOfWeek0)
+        ->where(function ($query) use ($product) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($product) {
+                      $q->where('products.id', $product->id);
+                  });
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $weeklyQuery->where('practice_location_id', $locationId);
+    }
+
+    $weeklyAvailabilities = $weeklyQuery->get();
+
+    // Specials
+    $specialQuery = SpecialAvailability::where('user_id', $therapistId)
+        ->whereDate('date', $dateStr)
+        ->where(function ($query) use ($product) {
+            $query->where('applies_to_all', true)
+                  ->orWhereHas('products', function ($q) use ($product) {
+                      $q->where('products.id', $product->id);
+                  });
+        });
+
+    if ($mode === 'cabinet' && $locationId) {
+        $specialQuery->where('practice_location_id', $locationId);
+    }
+
+    $specialAvailabilities = $specialQuery->get();
+
+    $availabilities = $weeklyAvailabilities->concat($specialAvailabilities);
+    if ($availabilities->isEmpty()) return [];
+
+    // Existing appointments (apply your blocking filter like slots endpoint)
+    $existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
+        ->whereDate('appointment_date', $dateStr);
+
+    $existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+    $existingAppointments      = $existingAppointmentsQuery->get();
+
+    // Unavailabilities (multi-day spans)
+    $unavailabilities = Unavailability::where('user_id', $therapistId)
+        ->where(function ($query) use ($dateStr) {
+            $query->whereDate('start_date', '<=', $dateStr)
+                  ->whereDate('end_date', '>=', $dateStr);
+        })
+        ->get();
+
+    $slots = [];
+
+    foreach ($availabilities as $availability) {
+        $availabilityStart = Carbon::createFromFormat('H:i:s', $availability->start_time)->setDateFrom($date);
+        $availabilityEnd   = Carbon::createFromFormat('H:i:s', $availability->end_time)->setDateFrom($date);
+
+        while ($availabilityStart->copy()->addMinutes($duration)->lessThanOrEqualTo($availabilityEnd)) {
+            $slotStart = $availabilityStart->copy();
+            $slotEnd   = $availabilityStart->copy()->addMinutes($duration);
+
+            if ($slotStart->lt($minimumNoticeDateTime)) {
+                $availabilityStart->addMinutes(15);
+                continue;
+            }
+
+            $isBooked = $existingAppointments->contains(function ($appointment) use ($slotStart, $slotEnd, $bufferMinutes) {
+                $appointmentStart = Carbon::parse($appointment->appointment_date);
+                $appointmentEnd   = $appointmentStart->copy()->addMinutes($appointment->duration);
+
+                if ($bufferMinutes > 0) {
+                    $appointmentStart = $appointmentStart->copy()->subMinutes($bufferMinutes);
+                    $appointmentEnd   = $appointmentEnd->copy()->addMinutes($bufferMinutes);
+                }
+
+                return $slotStart->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
+            });
+
+            $isUnavailable = $unavailabilities->contains(function ($unavailability) use ($slotStart, $slotEnd) {
+                $unavailabilityStart = Carbon::parse($unavailability->start_date);
+                $unavailabilityEnd   = Carbon::parse($unavailability->end_date);
+                return $slotStart->lt($unavailabilityEnd) && $slotEnd->gt($unavailabilityStart);
+            });
+
+            if (!$isBooked && !$isUnavailable) {
+                $slots[] = [
+                    'start' => $slotStart->format('H:i'),
+                    'end'   => $slotEnd->format('H:i'),
+                ];
+            }
+
+            $availabilityStart->addMinutes(15);
+        }
+    }
+
+    return collect($slots)
+        ->unique(fn($s) => $s['start'].'-'.$s['end'])
+        ->sortBy('start')
+        ->values()
+        ->all();
+}
+
+
 
 
 
