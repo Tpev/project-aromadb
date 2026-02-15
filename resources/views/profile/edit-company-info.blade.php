@@ -94,15 +94,31 @@
 
                     {{-- TAB 1: Entreprise --}}
                     <div x-show="activeTab === 'company'" x-cloak>
-                        <!-- Nom de l'Entreprise -->
-                        <div class="details-box">
-                            <label class="details-label" for="company_name">{{ __('Nom de l\'Entreprise') }}</label>
-                            <input type="text" id="company_name" name="company_name" class="form-control"
-                                   value="{{ old('company_name', $user->company_name) }}">
-                            @error('company_name')
-                                <p class="text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
+
+<!-- Nom de l'Entreprise -->
+<div class="details-box">
+    <label class="details-label" for="company_name">
+        {{ __('Nom de l\'Entreprise') }}
+    </label>
+
+    <input type="text"
+           id="company_name"
+           name="company_name"
+           class="form-control"
+           value="{{ old('company_name', $user->company_name) }}">
+
+    {{-- Warning about public profile link --}}
+    <p class="mt-2 text-sm text-amber-600">
+        ⚠️ {{ __('Attention : modifier le nom de votre entreprise peut changer le lien de votre profil public. 
+        Si vous avez déjà partagé ce lien avec des clients (Google, réseaux sociaux, carte de visite), 
+        il est recommandé d’éviter de le modifier.') }}
+    </p>
+
+    @error('company_name')
+        <p class="text-red-500 mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
 
                         <!-- Adresse de l'Entreprise -->
                         <div class="details-box">
