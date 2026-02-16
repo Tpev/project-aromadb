@@ -7,69 +7,89 @@ use App\Models\ClientFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ClientFileUploadedTherapistMail;
+use App\Mail\TherapistFileUploadedToClientMail;
+use App\Models\ClientProfile;
 
 class ClientFileController extends Controller
 {
-    public function clientUpload(Request $request)
-    {
-        $clientProfile = auth('client')->user(); // ClientProfile is the user model
+public function clientUpload(Request $request)
+{
+    $clientProfile = auth('client')->user(); // ClientProfile is the user model
 
-        $data = $request->validate([
-            'document' => 'required|file|max:20480', // 20MB
-        ]);
+    $data = $request->validate([
+        'document' => 'required|file|max:20480', // 20MB
+    ]);
 
-        $uploadedFile = $data['document'];
+    $uploadedFile = $data['document'];
 
-        // Store on PUBLIC disk
-        $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
+    // Store on PUBLIC disk
+    $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
 
-        $clientProfile->clientFiles()->create([
-            'file_path'     => $path,
-            'original_name' => $uploadedFile->getClientOriginalName(),
-            'mime_type'     => $uploadedFile->getMimeType(),
-            'size'          => $uploadedFile->getSize(),
-        ]);
+    $clientFile = $clientProfile->clientFiles()->create([
+        'file_path'     => $path,
+        'original_name' => $uploadedFile->getClientOriginalName(),
+        'mime_type'     => $uploadedFile->getMimeType(),
+        'size'          => $uploadedFile->getSize(),
+    ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Fichier enregistré',
-            'path'    => $path,
-        ]);
+    // Notify therapist by email
+    $therapist = $clientProfile->user;
+    if ($therapist && $therapist->email) {
+        Mail::to($therapist->email)->queue(
+            new ClientFileUploadedTherapistMail($clientProfile, $clientFile)
+        );
     }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Fichier enregistré',
+        'path'    => $path,
+    ]);
+}
+
 
     /**
      * Store the uploaded file in storage and record it in DB.
      * (Called from the upload form in the client profile show page)
      */
-    public function store(Request $request, ClientProfile $clientProfile)
-    {
-        // Ownership check
-        if ($clientProfile->user_id !== Auth::id()) {
-            abort(403, 'Accès refusé.');
-        }
-
-        // Validate the incoming file
-        $data = $request->validate([
-            'file' => 'required|file|max:20480', // 20MB max
-        ]);
-
-        $uploadedFile = $data['file'];
-
-        // Store on PUBLIC disk (consistent with the rest)
-        $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
-
-        // Save in DB
-        $clientProfile->clientFiles()->create([
-            'file_path'     => $path,
-            'original_name' => $uploadedFile->getClientOriginalName(),
-            'mime_type'     => $uploadedFile->getMimeType(),
-            'size'          => $uploadedFile->getSize(),
-        ]);
-
-        return redirect()
-            ->route('client_profiles.show', $clientProfile)
-            ->with('success', 'Fichier téléchargé avec succès !');
+public function store(Request $request, ClientProfile $clientProfile)
+{
+    // Ownership check (therapist owns this client profile)
+    if ((int) $clientProfile->user_id !== (int) Auth::id()) {
+        abort(403, 'Accès refusé.');
     }
+
+    $data = $request->validate([
+        'file' => 'required|file|max:20480', // 20MB
+    ]);
+
+    $uploadedFile = $data['file'];
+
+    // Store file
+    $path = $uploadedFile->store("client_files/{$clientProfile->id}", 'public');
+
+    // Save DB record
+    $clientFile = $clientProfile->clientFiles()->create([
+        'file_path'     => $path,
+        'original_name' => $uploadedFile->getClientOriginalName(),
+        'mime_type'     => $uploadedFile->getMimeType(),
+        'size'          => $uploadedFile->getSize(),
+    ]);
+
+    // ✅ Email client ONLY if espace client is enabled (password set)
+    if ($clientProfile->hasEspaceClient() && !empty($clientProfile->email)) {
+        Mail::to($clientProfile->email)->queue(
+            new TherapistFileUploadedToClientMail($clientProfile, $clientFile)
+        );
+    }
+
+    return redirect()
+        ->route('client_profiles.show', $clientProfile)
+        ->with('success', 'Fichier téléchargé avec succès !');
+}
+
 
     /**
      * Download the file from storage (therapist/owner route).

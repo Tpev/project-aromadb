@@ -38,6 +38,27 @@
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+				<!-- Bloquer l'agenda -->
+				<div class="details-box">
+					<label class="details-label" for="block_calendar">
+						{{ __("Bloquer mon agenda sur cette plage horaire") }}
+					</label>
+
+					<label class="d-flex align-items-center gap-2">
+						<input
+							type="checkbox"
+							id="block_calendar"
+							name="block_calendar"
+							value="1"
+							{{ old('block_calendar') ? 'checked' : '' }}
+						>
+						<span>{{ __("Créer une indisponibilité temporaire (indispo) au nom de l'événement") }}</span>
+					</label>
+
+					@error('block_calendar')
+						<p class="text-red-500">{{ $message }}</p>
+					@enderror
+				</div>
 
                 <!-- Duration -->
                 <div class="details-box">

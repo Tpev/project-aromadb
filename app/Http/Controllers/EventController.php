@@ -15,6 +15,8 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ReservationConfirmation;
 use App\Mail\NewReservationNotification;
+use App\Models\Unavailability;
+use Carbon\Carbon;
 
 class EventController extends Controller
 {
@@ -48,6 +50,7 @@ class EventController extends Controller
             'description'        => 'nullable|string',
             'start_date_time'    => 'required|date',
             'duration'           => 'required|integer',
+			'block_calendar' => 'nullable|boolean',
 
             'booking_required'   => 'required|boolean',
             'limited_spot'       => 'required|boolean',
@@ -123,7 +126,17 @@ class EventController extends Controller
         }
 
         Event::create($data);
+		if ($request->boolean('block_calendar')) {
+			$start = Carbon::parse($data['start_date_time']);
+			$end   = (clone $start)->addMinutes((int) $data['duration']);
 
+			Unavailability::create([
+				'user_id'    => Auth::id(),
+				'start_date' => $start,
+				'end_date'   => $end,
+				'reason' => "Événement : ".$data['name'], // "nommée comme l'événement"
+			]);
+		}
         return redirect()
             ->route('events.index')
             ->with('success', 'Événement créé avec succès.');

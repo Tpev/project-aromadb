@@ -7,6 +7,9 @@ use App\Models\Message;
 use App\Models\ClientProfile;
 use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ClientMessageReceivedTherapistMail;
+use App\Mail\TherapistMessageSentToClientMail;
 
 class ClientMessageController extends Controller
 {
@@ -69,32 +72,51 @@ public function store(Request $request)
         'content' => 'required|string|max:2000',
     ]);
 
-    Message::create([
+    $message = Message::create([
         'client_profile_id' => $client->id,
-        'user_id' => $client->user_id,
-        'sender_type' => 'client',
-        'content' => $request->content,
+        'user_id'           => $client->user_id, // therapist owner
+        'sender_type'       => 'client',
+        'content'           => $request->content,
     ]);
+
+    // Notify therapist by email
+    $therapist = $client->user; // assumes ClientProfile belongsTo(User::class,'user_id')
+    if ($therapist && $therapist->email) {
+        Mail::to($therapist->email)->queue(
+            new ClientMessageReceivedTherapistMail($client, $message)
+        );
+    }
+
+    return response()->json(['success' => true]);
+}
+
 
     return response()->json(['success' => true]);
 }
 public function storeTherapist(Request $request, ClientProfile $clientProfile)
 {
-   if ($clientProfile->user_id !== auth()->id()) {
-    abort(403, 'Accès non autorisé à ce profil client.');
-}
+    if ($clientProfile->user_id !== auth()->id()) {
+        abort(403, 'Accès non autorisé à ce profil client.');
+    }
 
     $request->validate([
         'content' => 'required|string|max:2000',
     ]);
 
-    Message::create([
+    $message = Message::create([
         'client_profile_id' => $clientProfile->id,
-        'user_id' => Auth::id(),
-        'sender_type' => 'therapist',
-        'content' => $request->content,
+        'user_id'           => Auth::id(),
+        'sender_type'       => 'therapist',
+        'content'           => $request->content,
     ]);
+
+    // Email patient/client
+    $clientEmail = $clientProfile->email ?? $clientProfile->client_email ?? null;
+    if ($clientEmail) {
+        Mail::to($clientEmail)->queue(new TherapistMessageSentToClientMail($clientProfile, $message));
+    }
 
     return response()->json(['success' => true]);
 }
+
 }

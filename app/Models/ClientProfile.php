@@ -144,4 +144,10 @@ class ClientProfile extends Authenticatable implements CanResetPasswordContract
             }
         });
     }
+	public function hasEspaceClient(): bool
+{
+    // In your setup, if password is set, the client has portal access
+    return !empty($this->password);
+}
+
 }
