@@ -1,8 +1,8 @@
-{{-- resources/views/session_notes/index.blade.php --}}
+{{-- resources/views/session_note_templates/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color:#647a0b;">
-            {{ __('Notes de séance') }}
+            {{ __('Templates de notes de séance') }}
         </h2>
     </x-slot>
 
@@ -16,10 +16,8 @@
         <div class="am-card">
             <div class="am-head">
                 <div>
-                    <h1 class="am-title">{{ __('Notes de séance') }}</h1>
-                    <p class="am-sub">
-                        {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
-                    </p>
+                    <h1 class="am-title">{{ __('Templates de notes de séance') }}</h1>
+                    <p class="am-sub">{{ __('Créez vos modèles et réutilisez-les en 1 clic lors de la création d’une note.') }}</p>
                 </div>
 
                 <div class="am-actions">
@@ -27,75 +25,57 @@
                         type="text"
                         id="search"
                         class="am-input"
-                        placeholder="Rechercher (date, contenu...)"
+                        placeholder="Rechercher par titre…"
                         onkeyup="filterTable()"
                     >
 
-                    <a href="{{ route('session_notes.create', $clientProfile->id) }}" class="am-btn am-btn-primary">
-                        + {{ __('Créer') }}
+                    <a href="{{ route('session-note-templates.create') }}" class="am-btn am-btn-primary">
+                        + {{ __('Créer un template') }}
                     </a>
                 </div>
             </div>
 
-            @if(($sessionNotes ?? collect())->isEmpty())
+            @if(($templates ?? collect())->isEmpty())
                 <div class="am-empty">
-                    <div class="am-empty-title">{{ __('Aucune note pour le moment') }}</div>
-                    <div class="am-empty-sub">{{ __('Créez votre première note de séance pour ce client.') }}</div>
+                    <div class="am-empty-title">{{ __('Aucun template pour le moment') }}</div>
+                    <div class="am-empty-sub">{{ __('Créez votre premier modèle pour accélérer vos notes de séance.') }}</div>
 
-                    <a href="{{ route('session_notes.create', $clientProfile->id) }}" class="am-btn am-btn-primary mt-3">
-                        + {{ __('Créer une note') }}
+                    <a href="{{ route('session-note-templates.create') }}" class="am-btn am-btn-primary mt-3">
+                        + {{ __('Créer un template') }}
                     </a>
                 </div>
             @else
                 <div class="am-tablewrap">
-                    <table class="am-table" id="notesTable" data-sort-dir="asc">
+                    <table class="am-table" id="templatesTable" data-sort-dir="asc">
                         <thead>
                             <tr>
                                 <th class="am-sort" onclick="sortTable(0)">
-                                    {{ __('Date') }} <span class="am-sort-icon">⇅</span>
-                                </th>
-                                <th class="am-sort" onclick="sortTable(1)">
-                                    {{ __('Aperçu') }} <span class="am-sort-icon">⇅</span>
+                                    {{ __('Titre') }} <span class="am-sort-icon">⇅</span>
                                 </th>
                                 <th class="am-th-actions">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
-
                         <tbody>
-                            @foreach($sessionNotes as $note)
-                                @php
-                                    $date = optional($note->created_at)->format('d/m/Y');
-                                    $plain = trim(strip_tags($note->note ?? ''));
-                                    $preview = \Illuminate\Support\Str::limit($plain, 120);
-                                    $tplTitle = $note->template?->title;
-                                    $searchHay = strtolower($date.' '.$preview.' '.($tplTitle ?? ''));
-                                @endphp
-
-                                <tr class="am-row" data-search="{{ $searchHay }}">
-                                    <td class="am-td-date">
-                                        <div class="am-date">{{ $date }}</div>
-                                        @if($tplTitle)
-                                            <div class="am-chip">{{ $tplTitle }}</div>
-                                        @else
-                                            <div class="am-chip am-chip-muted">{{ __('Sans template') }}</div>
-                                        @endif
-                                    </td>
-
-                                    <td class="am-td-preview">
-                                        <a href="{{ route('session_notes.show', $note->id) }}" class="am-link">
-                                            {{ $preview ?: __('(vide)') }}
+                            @foreach($templates as $t)
+                                <tr class="am-row" data-title="{{ strtolower($t->title) }}">
+                                    <td class="am-td-title">
+                                        <a class="am-link" href="{{ route('session-note-templates.show', $t->id) }}">
+                                            {{ $t->title }}
                                         </a>
+                                        <div class="am-meta">
+                                            {{ __('Mis à jour le') }} {{ optional($t->updated_at)->format('d/m/Y') }}
+                                        </div>
                                     </td>
 
                                     <td class="am-td-actions">
-                                        <a href="{{ route('session_notes.show', $note->id) }}" class="am-btn am-btn-soft">
+                                        <a class="am-btn am-btn-soft" href="{{ route('session-note-templates.show', $t->id) }}">
                                             {{ __('Voir') }}
                                         </a>
-                                        <a href="{{ route('session_notes.edit', $note->id) }}" class="am-btn am-btn-soft">
+                                        <a class="am-btn am-btn-soft" href="{{ route('session-note-templates.edit', $t->id) }}">
                                             {{ __('Modifier') }}
                                         </a>
-                                        <form action="{{ route('session_notes.destroy', $note->id) }}" method="POST" class="am-inline"
-                                              onsubmit="return confirm('Supprimer cette note ?');">
+                                        <form action="{{ route('session-note-templates.destroy', $t->id) }}" method="POST" class="am-inline"
+                                              onsubmit="return confirm('Supprimer ce template ?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="am-btn am-btn-danger">
@@ -109,7 +89,9 @@
                     </table>
 
                     <div class="am-foot">
-                        <span id="countLabel"></span>
+                        <div class="am-foot-left">
+                            <span id="countLabel"></span>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -117,26 +99,37 @@
     </div>
 
     <style>
-        .am-card{background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);border:1px solid rgba(100,122,11,.15);overflow:hidden;}
-        .am-head{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;padding:18px;border-bottom:1px solid rgba(15,23,42,.08);flex-wrap:wrap;}
+        .am-card{
+            background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);
+            border:1px solid rgba(100,122,11,.15); overflow:hidden;
+        }
+        .am-head{
+            display:flex;gap:16px;align-items:flex-end;justify-content:space-between;
+            padding:18px;border-bottom:1px solid rgba(15,23,42,.08);flex-wrap:wrap;
+        }
         .am-title{font-size:22px;font-weight:900;color:#0f172a;margin:0;}
         .am-sub{margin:6px 0 0;color:#6b7280;font-size:13px;}
         .am-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-        .am-input{width:280px;max-width:70vw;padding:10px 12px;border-radius:10px;border:1px solid rgba(133,79,56,.35);outline:none;background:#fff;}
-        .am-input:focus{border-color:#854f38;box-shadow:0 0 0 3px rgba(133,79,56,.12);}
+        .am-input{
+            width:280px;max-width:70vw;padding:10px 12px;border-radius:10px;border:1px solid rgba(133,79,56,.35);
+            outline:none;background:#fff;
+        }
+        .am-input:focus{border-color:#854f38; box-shadow:0 0 0 3px rgba(133,79,56,.12);}
 
         .am-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;text-decoration:none;border:1px solid transparent;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;}
         .am-btn-primary{background:#647a0b;color:#fff;}
         .am-btn-primary:hover{background:#854f38;}
         .am-btn-soft{background:#f8fafc;color:#0f172a;border-color:rgba(15,23,42,.12);}
-        .am-btn-soft:hover{border-color:rgba(133,79,56,.55);background:#fff;}
+        .am-btn-soft:hover{border-color:rgba(133,79,56,.55); background:#fff;}
         .am-btn-danger{background:#dc2626;color:#fff;}
         .am-btn-danger:hover{background:#b91c1c;}
         .am-inline{display:inline;}
 
-        .am-tablewrap{padding:12px 12px 10px;}
+        .am-tablewrap{padding:12px 12px 16px;}
         .am-table{width:100%;border-collapse:separate;border-spacing:0;}
-        .am-table thead th{text-align:left;padding:12px;border-bottom:1px solid rgba(15,23,42,.10);font-size:12px;color:#64748b;}
+        .am-table thead th{
+            text-align:left;padding:12px;border-bottom:1px solid rgba(15,23,42,.10);font-size:12px;color:#64748b;
+        }
         .am-sort{cursor:pointer;user-select:none;}
         .am-sort-icon{opacity:.6;margin-left:6px;}
         .am-row td{padding:14px 12px;border-bottom:1px solid rgba(15,23,42,.06);vertical-align:top;}
@@ -146,18 +139,16 @@
         .am-th-actions{text-align:right;}
         .am-link{color:#0f172a;text-decoration:none;font-weight:900;}
         .am-link:hover{color:#854f38;text-decoration:underline;}
-        .am-date{font-weight:900;color:#0f172a;}
-
-        .am-chip{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:rgba(100,122,11,.12);color:#0f172a;font-weight:900;font-size:12px;margin-top:6px;}
-        .am-chip-muted{background:rgba(15,23,42,.06);color:#64748b;}
+        .am-meta{margin-top:4px;color:#6b7280;font-size:12px;}
 
         .am-empty{padding:28px;text-align:center;}
         .am-empty-title{font-weight:900;font-size:18px;color:#0f172a;}
         .am-empty-sub{margin-top:6px;color:#6b7280;}
 
-        .am-foot{padding:10px 4px 6px;color:#6b7280;font-size:12px;}
+        .am-foot{padding:10px 4px 0;display:flex;justify-content:space-between;align-items:center;}
+        .am-foot-left{color:#6b7280;font-size:12px;}
 
-        @media (max-width:720px){
+        @media (max-width: 720px){
             .am-td-actions{justify-content:flex-start;}
             .am-th-actions{text-align:left;}
             .am-input{width:100%;}
@@ -166,31 +157,32 @@
 
     <script>
         function updateCount() {
-            const table = document.getElementById('notesTable');
+            const table = document.getElementById('templatesTable');
             const label = document.getElementById('countLabel');
             if (!table || !label) return;
 
             const rows = Array.from(table.querySelectorAll('tbody tr'));
             const visible = rows.filter(r => r.style.display !== 'none').length;
-            label.textContent = visible + ' note(s)';
+            label.textContent = visible + ' template(s)';
         }
 
         function filterTable() {
             const input = document.getElementById('search');
             const filter = (input.value || '').toLowerCase();
-            const table = document.getElementById('notesTable');
+            const table = document.getElementById('templatesTable');
             if (!table) return;
 
             const rows = table.querySelectorAll('tbody tr');
             rows.forEach(row => {
-                const hay = row.getAttribute('data-search') || row.innerText.toLowerCase();
-                row.style.display = hay.includes(filter) ? '' : 'none';
+                const title = row.getAttribute('data-title') || '';
+                row.style.display = title.includes(filter) ? '' : 'none';
             });
+
             updateCount();
         }
 
         function sortTable(colIndex) {
-            const table = document.getElementById('notesTable');
+            const table = document.getElementById('templatesTable');
             if (!table) return;
 
             const tbody = table.querySelector('tbody');

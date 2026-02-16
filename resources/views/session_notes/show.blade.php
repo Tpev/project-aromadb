@@ -1,215 +1,109 @@
-<!-- resources/views/session_notes/show.blade.php -->
-
+{{-- resources/views/session_notes/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
-            {{ __('Détails de la note de séance') }} - {{ $sessionNote->clientProfile->first_name }} {{ $sessionNote->clientProfile->last_name }}
+        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+            {{ __('Note de séance') }}
         </h2>
     </x-slot>
 
-    <div class="container mt-5">
-        <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Note de séance pour ') }}{{ $sessionNote->clientProfile->first_name }} {{ $sessionNote->clientProfile->last_name }}</h1>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
 
-            <div class="row mt-4">
-                <!-- Note Content -->
-                <div class="col-md-12">
-                    <div class="details-box">
-                        <label class="details-label">{{ __('Contenu de la note') }}</label>
-                        <div class="details-value">
-                            {!! $sessionNote->note !!}
-                        </div>
-                        @error('note')
-                            <p class="text-red-500">{{ $message }}</p>
-                        @enderror
-                    </div>
+    <div class="max-w-5xl mx-auto py-8 px-4">
+        @if(session('success'))
+            <div class="mb-4 rounded-lg bg-green-100 border border-green-200 text-green-800 px-4 py-3 text-sm">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <div class="am-card">
+            <div class="am-head">
+                <div>
+                    <h1 class="am-title">
+                        {{ __('Note du') }} {{ optional($sessionNote->created_at)->format('d/m/Y') }}
+                    </h1>
+                    <p class="am-sub">
+                        @if($sessionNote->template?->title)
+                            {{ __('Template :') }} <span class="am-pill">{{ $sessionNote->template->title }}</span>
+                        @else
+                            <span class="am-pill am-pill-muted">{{ __('Sans template') }}</span>
+                        @endif
+                    </p>
+                </div>
+
+                <div class="am-actions">
+                    <a href="{{ route('session_notes.index', $sessionNote->client_profile_id) }}" class="am-btn am-btn-soft">
+                        {{ __('Retour') }}
+                    </a>
+
+                    <a href="{{ route('session_notes.edit', $sessionNote->id) }}" class="am-btn am-btn-primary">
+                        {{ __('Modifier') }}
+                    </a>
+
+                    <form action="{{ route('session_notes.destroy', $sessionNote->id) }}" method="POST" class="am-inline"
+                          onsubmit="return confirm('Supprimer cette note ?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="am-btn am-btn-danger">
+                            {{ __('Supprimer') }}
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-md-12 text-center">
-                    <a href="{{ route('session_notes.index', $sessionNote->client_profile_id) }}" class="btn-primary">{{ __('Retour aux notes de séance') }}</a>
-                    <a href="{{ route('session_notes.edit', $sessionNote->id) }}" class="btn-secondary">{{ __('Modifier la note') }}</a>
-                </div>
+            <div class="am-body">
+                @php
+                    $raw = $sessionNote->note ?? '';
+                    $hasContent = !empty(trim(strip_tags($raw)));
+                    // if stripping tags doesn't change it, it's plain text
+                    $textOnly = trim(strip_tags($raw)) === trim($raw);
+                @endphp
+
+                @if(!$hasContent)
+                    <div class="am-empty">
+                        <div class="am-empty-title">{{ __('Note vide') }}</div>
+                        <div class="am-empty-sub">{{ __('Cette note ne contient pas de contenu.') }}</div>
+                    </div>
+                @else
+                    <div class="ql-snow am-quill-view">
+                        <div class="ql-editor">
+                            @if($textOnly)
+                                {!! nl2br(e($raw)) !!}
+                            @else
+                                {!! $raw !!}
+                            @endif
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Custom Styles -->
     <style>
-        .container {
-            max-width: 800px;
-        }
+        .am-card{background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);border:1px solid rgba(100,122,11,.15);overflow:hidden;}
+        .am-head{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;padding:18px;border-bottom:1px solid rgba(15,23,42,.08);flex-wrap:wrap;}
+        .am-title{font-size:22px;font-weight:900;color:#0f172a;margin:0;}
+        .am-sub{margin:6px 0 0;color:#6b7280;font-size:13px;}
+        .am-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+        .am-body{padding:18px;}
 
-        .details-container {
-            background-color: #f9f9f9;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin: 0 auto;
-        }
+        .am-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:rgba(100,122,11,.12);color:#0f172a;font-weight:900;}
+        .am-pill-muted{background:rgba(15,23,42,.06);color:#64748b;}
 
-        .details-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #647a0b;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+        .am-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;text-decoration:none;border:1px solid transparent;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;}
+        .am-btn-primary{background:#647a0b;color:#fff;}
+        .am-btn-primary:hover{background:#854f38;}
+        .am-btn-soft{background:#fff;color:#0f172a;border-color:rgba(15,23,42,.12);border-width:1px;border-style:solid;}
+        .am-btn-soft:hover{border-color:rgba(133,79,56,.55);}
+        .am-btn-danger{background:#dc2626;color:#fff;}
+        .am-btn-danger:hover{background:#b91c1c;}
+        .am-inline{display:inline;}
 
-        .details-box {
-            margin-bottom: 20px;
-        }
+        .am-quill-view{border:1px solid rgba(15,23,42,.10);border-radius:14px;overflow:hidden;background:#fff;}
+        .am-quill-view .ql-editor{font-size:16px;line-height:1.85;color:#0f172a;padding:16px;min-height:120px;}
+        .am-quill-view .ql-editor img{max-width:100%;height:auto;border-radius:12px;}
 
-        .details-label {
-            font-weight: bold;
-            color: #647a0b;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .details-value {
-            color: #333333;
-            font-size: 1rem;
-            line-height: 1.6; /* Assure une meilleure lisibilité */
-        }
-
-        /* Réduction des marges pour éviter les espaces excessifs */
-        .details-value p,
-        .details-value h1,
-        .details-value h2,
-        .details-value h3,
-        .details-value h4,
-        .details-value h5,
-        .details-value h6,
-        .details-value ul,
-        .details-value ol,
-        .details-value blockquote,
-        .details-value table {
-            margin: 0.5rem 0; /* Ajustez selon vos besoins */
-        }
-
-        /* Styles pour les listes */
-        .details-value ul,
-        .details-value ol {
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Assure que les puces et numéros sont visibles */
-        .details-value ul {
-            list-style-type: disc;
-        }
-
-        .details-value ol {
-            list-style-type: decimal;
-        }
-
-        /* Styles pour les liens */
-        .details-value a {
-            color: #854f38;
-            text-decoration: none;
-        }
-
-        .details-value a:hover {
-            text-decoration: underline;
-        }
-
-        /* Styles pour les blockquotes */
-        .details-value blockquote {
-            border-left: 4px solid #647a0b;
-            padding-left: 1rem;
-            color: #555555;
-            font-style: italic;
-            margin: 0.5rem 0;
-        }
-
-        /* Styles pour les tables */
-        .details-value table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1rem;
-        }
-
-        .details-value table, 
-        .details-value th, 
-        .details-value td {
-            border: 1px solid #ccc;
-        }
-
-        .details-value th, 
-        .details-value td {
-            padding: 0.5rem;
-            text-align: left;
-        }
-
-        /* Styles pour les boutons */
-        .btn-primary {
-            background-color: #647a0b;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            margin-right: 10px;
-            transition: background-color 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: #854f38;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: #854f38;
-            padding: 10px 20px;
-            border: 1px solid #854f38;
-            border-radius: 5px;
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            background-color: #854f38;
-            color: #fff;
-        }
-
-        .text-red-500 {
-            color: #e3342f;
-            font-size: 0.875rem;
-        }
-
-        /* Styles additionnels pour mieux afficher le contenu enrichi */
-        .details-value h1,
-        .details-value h2,
-        .details-value h3,
-        .details-value h4,
-        .details-value h5,
-        .details-value h6 {
-            color: #647a0b;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 600px) {
-            .details-title {
-                font-size: 1.5rem;
-            }
-
-            .btn-primary,
-            .btn-secondary {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-
-            .btn-primary:last-child,
-            .btn-secondary:last-child {
-                margin-bottom: 0;
-            }
-        }
+        .am-empty{padding:22px;text-align:center;}
+        .am-empty-title{font-weight:900;font-size:18px;color:#0f172a;}
+        .am-empty-sub{margin-top:6px;color:#6b7280;}
     </style>
 </x-app-layout>

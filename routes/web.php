@@ -75,6 +75,7 @@ use App\Http\Controllers\Pro\ReferralController;
 use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateController;
 use App\Models\DesignTemplate;
 use App\Http\Controllers\TherapistArticleController;
+use App\Http\Controllers\SessionNoteTemplateController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -938,6 +939,7 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class, 'can:viewA
     Route::get('/session_notes/{sessionNote}/edit', [SessionNoteController::class, 'edit'])->name('session_notes.edit');
     Route::put('/session_notes/{sessionNote}', [SessionNoteController::class, 'update'])->name('session_notes.update');
     Route::delete('/session_notes/{sessionNote}', [SessionNoteController::class, 'destroy'])->name('session_notes.destroy');
+    Route::resource('session-note-templates', SessionNoteTemplateController::class);
 });
 
 
