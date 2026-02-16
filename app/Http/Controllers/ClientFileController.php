@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ClientFileUploadedTherapistMail;
 use App\Mail\TherapistFileUploadedToClientMail;
-use App\Models\ClientProfile;
+
 
 class ClientFileController extends Controller
 {
