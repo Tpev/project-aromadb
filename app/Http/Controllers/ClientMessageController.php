@@ -91,8 +91,7 @@ public function store(Request $request)
 }
 
 
-    return response()->json(['success' => true]);
-}
+
 public function storeTherapist(Request $request, ClientProfile $clientProfile)
 {
     if ($clientProfile->user_id !== auth()->id()) {
