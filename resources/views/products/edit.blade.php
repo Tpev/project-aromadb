@@ -5,7 +5,21 @@
         </h2>
     </x-slot>
 
-    <div class="container mt-5" x-data="{ adv:false }">
+    @php
+        // Ouvre automatiquement les options avancées si :
+        // - l'utilisateur a soumis le form avec des champs avancés (old())
+        // - ou si la prestation a déjà des valeurs avancées
+        // - ou si un lien de réservation directe existe (donc section utile à voir)
+        $openAdvanced =
+            old('max_per_day') !== null
+            || old('requires_emargement') !== null
+            || old('direct_booking_enabled') !== null
+            || (!empty($product->max_per_day))
+            || (!empty($product->requires_emargement))
+            || (!empty($directBookingLink));
+    @endphp
+
+    <div class="container mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Modifier la Prestation') }}</h1>
 
@@ -136,19 +150,16 @@
                     <small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
                 </div>
 
-                <!-- === Options avancées (seulement 2 champs) === -->
-                <div class="advanced-wrapper">
-                    <button type="button"
-                            class="adv-toggle"
-                            @click="adv = !adv"
-                            :aria-expanded="adv ? 'true' : 'false'">
+                <!-- === Options avancées (ROBUSTE: <details> natif) === -->
+                <details class="advanced-wrapper" @if($openAdvanced) open @endif>
+                    <summary class="adv-toggle" aria-controls="advanced-options">
                         <span>Options avancées</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="chev" :class="{ 'rotate-180': adv }" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="chev" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
                         </svg>
-                    </button>
+                    </summary>
 
-                    <div x-show="adv" x-transition.origin.top.left style="display:none">
+                    <div id="advanced-options">
                         <div class="adv-box">
                             <!-- Nombre maximum de séances par jour -->
                             <div class="details-box">
@@ -167,7 +178,6 @@
                                     {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
                                 </small>
                             </div>
-
 
                             <!-- Liens réservation directe -->
                             <div class="details-box">
@@ -212,7 +222,7 @@
 
                         </div>
                     </div>
-                </div>
+                </details>
 
                 <!-- Actions -->
                 <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour la Prestation') }}</button>
@@ -268,7 +278,13 @@
             display: inline-block;
         }
 
+        /* Advanced section */
         .advanced-wrapper { margin-top: 18px; }
+
+        /* Remove native marker */
+        .advanced-wrapper > summary { list-style: none; }
+        .advanced-wrapper > summary::-webkit-details-marker { display: none; }
+
         .adv-toggle {
             width: 100%;
             display: flex; align-items: center; justify-content: space-between;
@@ -276,8 +292,11 @@
             color: #374151; font-weight: 600; cursor: pointer;
         }
         .adv-toggle:hover { background: #f8fafc; }
+
         .chev { transition: transform .2s ease; }
-        .rotate-180 { transform: rotate(180deg); }
+
+        /* Rotate chevron when open */
+        .advanced-wrapper[open] .chev { transform: rotate(180deg); }
 
         .adv-box {
             background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
@@ -290,16 +309,19 @@
             const el = document.getElementById('directBookingLinkInput');
             if (!el) return;
 
+            const val = el.value || '';
+
+            // Modern clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(val);
+                return;
+            }
+
+            // Fallback
+            el.focus();
             el.select();
             el.setSelectionRange(0, 99999);
-
-            try {
-                document.execCommand('copy');
-            } catch (e) {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(el.value);
-                }
-            }
+            try { document.execCommand('copy'); } catch (e) {}
         }
     </script>
 </x-app-layout>

@@ -5,7 +5,16 @@
         </h2>
     </x-slot>
 
-    <div class="container mt-5" x-data="{ adv:false }">
+    @php
+        // Ouvre automatiquement les options avancées si l'utilisateur a déjà saisi un champ avancé
+        // (utile en cas d'erreur validation => on ré-affiche directement la section)
+        $openAdvanced =
+            old('max_per_day') !== null
+            || old('requires_emargement') !== null
+            || old('direct_booking_enabled') !== null;
+    @endphp
+
+    <div class="container mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouvelle Prestation') }}</h1>
 
@@ -39,25 +48,26 @@
                     @enderror
                 </div>
 
-				<!-- Afficher le prix sur le portail -->
-				<div class="details-box">
-					<label class="details-label" for="price_visible_in_portal">
-						{{ __('Afficher le prix sur votre portail') }}
-					</label>
-					<input type="hidden" name="price_visible_in_portal" value="0">
-					<input
-						type="checkbox"
-						id="price_visible_in_portal"
-						name="price_visible_in_portal"
-						value="1"
-						{{ old('price_visible_in_portal', 1) ? 'checked' : '' }}>
-					@error('price_visible_in_portal')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-					<small class="text-gray-500">
-						{{ __('Décochez si vous préférez ne pas afficher le tarif de cette prestation sur votre page publique.') }}
-					</small>
-				</div>
+                <!-- Afficher le prix sur le portail -->
+                <div class="details-box">
+                    <label class="details-label" for="price_visible_in_portal">
+                        {{ __('Afficher le prix sur votre portail') }}
+                    </label>
+                    <input type="hidden" name="price_visible_in_portal" value="0">
+                    <input
+                        type="checkbox"
+                        id="price_visible_in_portal"
+                        name="price_visible_in_portal"
+                        value="1"
+                        {{ old('price_visible_in_portal', 1) ? 'checked' : '' }}>
+                    @error('price_visible_in_portal')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                    <small class="text-gray-500">
+                        {{ __('Décochez si vous préférez ne pas afficher le tarif de cette prestation sur votre page publique.') }}
+                    </small>
+                </div>
+
                 <!-- Collect Payment -->
                 <div class="details-box">
                     <label class="details-label" for="collect_payment">{{ __('Collecter le Paiement durant la prise de RDV sur votre portail') }}</label>
@@ -89,36 +99,37 @@
                 <!-- Mode de prestation -->
                 <div class="details-box">
                     <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>
-					<select id="mode" name="mode" class="form-control" required>
-						<option value="visio" {{ old('mode') == 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
-						<option value="adomicile" {{ old('mode') == 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
-						<option value="en_entreprise" {{ old('mode') == 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
-						<option value="dans_le_cabinet" {{ old('mode') == 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
-					</select>
+                    <select id="mode" name="mode" class="form-control" required>
+                        <option value="visio" {{ old('mode') == 'visio' ? 'selected' : '' }}>{{ __('Visio') }}</option>
+                        <option value="adomicile" {{ old('mode') == 'adomicile' ? 'selected' : '' }}>{{ __('À domicile') }}</option>
+                        <option value="en_entreprise" {{ old('mode') == 'en_entreprise' ? 'selected' : '' }}>{{ __('En entreprise') }}</option>
+                        <option value="dans_le_cabinet" {{ old('mode') == 'dans_le_cabinet' ? 'selected' : '' }}>{{ __('Dans le cabinet') }}</option>
+                    </select>
 
                     @error('mode')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-				<!-- Visible sur le Portail Pro/Public -->
-				<div class="details-box">
-					<label class="details-label" for="visible_in_portal">
-						{{ __('Visible sur votre portail') }}
-					</label>
-					<input type="hidden" name="visible_in_portal" value="0">
-					<input
-						type="checkbox"
-						id="visible_in_portal"
-						name="visible_in_portal"
-						value="1"
-						{{ old('visible_in_portal', 1) ? 'checked' : '' }}>
-					@error('visible_in_portal')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-					<small class="text-gray-500">
-						{{ __('Si coché, cette prestation apparaît sur votre portail (page publique et prise de rendez-vous).') }}
-					</small>
-				</div>
+
+                <!-- Visible sur le Portail Pro/Public -->
+                <div class="details-box">
+                    <label class="details-label" for="visible_in_portal">
+                        {{ __('Visible sur votre portail') }}
+                    </label>
+                    <input type="hidden" name="visible_in_portal" value="0">
+                    <input
+                        type="checkbox"
+                        id="visible_in_portal"
+                        name="visible_in_portal"
+                        value="1"
+                        {{ old('visible_in_portal', 1) ? 'checked' : '' }}>
+                    @error('visible_in_portal')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                    <small class="text-gray-500">
+                        {{ __('Si coché, cette prestation apparaît sur votre portail (page publique et prise de rendez-vous).') }}
+                    </small>
+                </div>
 
                 <!-- Peut être réservé en ligne -->
                 <div class="details-box">
@@ -158,19 +169,16 @@
                     <small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
                 </div>
 
-                <!-- === Options avancées === -->
-                <div class="advanced-wrapper">
-                    <button type="button"
-                            class="adv-toggle"
-                            @click="adv = !adv"
-                            :aria-expanded="adv ? 'true' : 'false'">
+                <!-- === Options avancées (ROBUSTE: <details> natif, sans JS) === -->
+                <details class="advanced-wrapper" @if($openAdvanced) open @endif>
+                    <summary class="adv-toggle" aria-controls="advanced-options">
                         <span>Options avancées</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="chev" :class="{ 'rotate-180': adv }" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="chev" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
                         </svg>
-                    </button>
+                    </summary>
 
-                    <div x-show="adv" x-transition.origin.top.left style="display:none">
+                    <div id="advanced-options">
                         <div class="adv-box">
                             <!-- Nombre maximum de séances par jour -->
                             <div class="details-box">
@@ -189,9 +197,28 @@
                                     {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
                                 </small>
                             </div>
+
+                            <!-- Liens réservation directe -->
+                            <div class="details-box">
+                                <label class="details-label" for="direct_booking_enabled">{{ __('Liens réservation directe') }}</label>
+
+                                <input type="hidden" name="direct_booking_enabled" value="0">
+                                <label style="display:flex;align-items:center;gap:10px;margin:0;">
+                                    <input type="checkbox"
+                                           id="direct_booking_enabled"
+                                           name="direct_booking_enabled"
+                                           value="1"
+                                           {{ old('direct_booking_enabled') ? 'checked' : '' }}>
+                                    <span>{{ __('Activer un lien privé de réservation directe pour cette prestation') }}</span>
+                                </label>
+
+                                <small class="text-gray-500">
+                                    {{ __('Si coché, un lien privé sera généré après la création. Il permettra de réserver uniquement cette prestation.') }}
+                                </small>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </details>
 
                 <!-- Actions -->
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer la Prestation') }}</button>
@@ -267,7 +294,13 @@
         .text-red-500 { color: #e3342f; font-size: 0.875rem; }
         .text-gray-500 { color: #6b7280; font-size: 0.85rem; }
 
+        /* Advanced section */
         .advanced-wrapper { margin-top: 24px; border-top: 1px dashed #d1d5db; padding-top: 16px; }
+
+        /* Remove native marker (triangle) */
+        .advanced-wrapper > summary { list-style: none; }
+        .advanced-wrapper > summary::-webkit-details-marker { display: none; }
+
         .adv-toggle {
             width: 100%;
             display: flex; align-items: center; justify-content: space-between;
@@ -275,8 +308,11 @@
             color: #374151; font-weight: 600; cursor: pointer;
         }
         .adv-toggle:hover { background: #f8fafc; }
+
         .chev { transition: transform .2s ease; }
-        .rotate-180 { transform: rotate(180deg); }
+
+        /* Rotate chevron when details is open */
+        .advanced-wrapper[open] .chev { transform: rotate(180deg); }
 
         .adv-box {
             background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;

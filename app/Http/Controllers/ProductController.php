@@ -53,6 +53,8 @@ class ProductController extends Controller
             'requires_emargement'  => 'required|boolean',
             'visible_in_portal'    => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
+			'direct_booking_enabled' => 'nullable|boolean',
+
         ]);
 
         if ($request->hasFile('image')) {
@@ -89,6 +91,16 @@ class ProductController extends Controller
             'visible_in_portal'     => $validatedData['visible_in_portal'],
             'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
         ]);
+		/* ---------------------- Lien réservation directe (partenaire) ---------------------- */
+		if ($request->boolean('direct_booking_enabled')) {
+			BookingLink::create([
+				'user_id'             => $product->user_id,
+				'token'               => BookingLink::generateToken(32),
+				'name'                => 'Lien direct – ' . $product->name,
+				'allowed_product_ids' => [$product->id],
+				'is_enabled'          => true,
+			]);
+		}
 
         return redirect()->route('products.show', $product)->with('success', 'Prestation créée avec succès.');
     }
@@ -260,8 +272,13 @@ class ProductController extends Controller
         return view('products.duplicate', compact('product'));
     }
 
-   public function storeDuplicate(Request $request, Product $product)
+public function storeDuplicate(Request $request, Product $product)
 {
+    // ✅ Ownership check (important)
+    if ($product->user_id !== Auth::id()) {
+        abort(403, 'Accès refusé.');
+    }
+
     $validatedData = $request->validate([
         'name'                    => 'required|string|max:255',
         'description'             => 'nullable|string',
@@ -334,7 +351,7 @@ class ProductController extends Controller
 
     $newProduct->save();
 
-    // Direct booking link for the duplicated product (optional)
+    // ✅ Direct booking link for the duplicated product (optional)
     if ($request->boolean('direct_booking_enabled')) {
         BookingLink::create([
             'user_id'             => $newProduct->user_id,
@@ -347,5 +364,6 @@ class ProductController extends Controller
 
     return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
 }
+
 
 }
