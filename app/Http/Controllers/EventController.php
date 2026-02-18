@@ -67,6 +67,8 @@ class EventController extends Controller
             'visio_provider' => 'nullable|in:external,aromamade',
             'visio_url'      => 'nullable|url|max:2000',
         ]);
+	$validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
+
 
         $data = $validated;
         $data['user_id'] = Auth::id();
@@ -180,6 +182,8 @@ class EventController extends Controller
             'visio_provider' => 'nullable|in:external,aromamade',
             'visio_url'      => 'nullable|url|max:2000',
         ]);
+	$validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
+
 
         $data = $validated;
 
@@ -360,6 +364,7 @@ public function storeDuplicate(Request $request, Event $event)
         'duplicate_participants' => 'nullable|boolean',
         'send_confirmation_to_copied_participants' => 'nullable|boolean',
     ]);
+$validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
 
     $data = $validated;
     $data['user_id'] = Auth::id();
@@ -458,6 +463,71 @@ public function storeDuplicate(Request $request, Event $event)
             : "Événement dupliqué avec succès.");
 }
 
+/**
+ * Accepts either plain text or Quill HTML and returns a safe string.
+ * - Plain text: returned as-is
+ * - HTML: strips scripts/iframes + unsafe attributes, keeps basic formatting
+ */
+private function sanitizeEventDescription(?string $value): ?string
+{
+    if ($value === null) return null;
+
+    $value = trim($value);
+    if ($value === '') return null;
+
+    // Treat empty Quill content as null
+    $normalized = preg_replace('/\s+/', '', strtolower($value));
+    if ($normalized === '<p><br></p>' || $normalized === '<div><br></div>') {
+        return null;
+    }
+
+    // If no tags detected -> plain text
+    $looksHtml = preg_match('/<\/?[a-z][\s\S]*>/i', $value) === 1;
+    if (!$looksHtml) {
+        return $value;
+    }
+
+    // Remove dangerous blocks
+    $value = preg_replace('#<(script|style|iframe|object|embed|form)[^>]*>.*?</\1>#is', '', $value);
+    $value = preg_replace('#<(script|style|iframe|object|embed|form)[^>]*/?>#is', '', $value);
+
+    // Allow only basic tags used by Quill
+    $allowed = '<p><br><strong><b><em><i><u><s><blockquote><h1><h2><h3><h4><ul><ol><li><a><span>';
+
+    $clean = strip_tags($value, $allowed);
+
+    // Remove dangerous attributes (on* handlers, style)
+    $clean = preg_replace('/\son\w+="[^"]*"/i', '', $clean);
+    $clean = preg_replace("/\son\w+='[^']*'/i", '', $clean);
+    $clean = preg_replace('/\sstyle="[^"]*"/i', '', $clean);
+    $clean = preg_replace("/\sstyle='[^']*'/i", '', $clean);
+
+    // Only allow safe href protocols
+    $clean = preg_replace_callback('/<a\s+[^>]*href=("|\')([^"\']+)\1[^>]*>/i', function ($m) {
+        $quote = $m[1];
+        $href  = trim($m[2]);
+
+        if (!preg_match('#^(https?://|mailto:|tel:)#i', $href)) {
+            // remove href entirely if unsafe
+            return preg_replace('/\shref=("|\')[^"\']+\1/i', '', $m[0]);
+        }
+
+        // enforce rel/target for safety
+        $tag = $m[0];
+        if (!preg_match('/\brel=/i', $tag)) {
+            $tag = rtrim($tag, '>') . ' rel="noopener noreferrer">';
+        }
+        if (!preg_match('/\btarget=/i', $tag)) {
+            $tag = rtrim($tag, '>') . ' target="_blank">';
+        }
+        return $tag;
+    }, $clean);
+
+    // If it becomes empty, null it
+    if (trim(strip_tags($clean)) === '') return null;
+
+    return $clean;
+}
 
 
 }

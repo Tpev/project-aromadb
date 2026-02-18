@@ -260,6 +260,40 @@
       </div>
     </div>
   </section>
+@once
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+  <style>
+    /* Quill display mode (no toolbar / no border / tight spacing) */
+    .am-quill-view .ql-toolbar { display:none !important; }
+    .am-quill-view.ql-snow { border:none !important; }
+    .am-quill-view .ql-editor { padding:0 !important; }
+    .am-quill-view .ql-editor p { margin:.35rem 0; }
+    .am-quill-view .ql-editor ul,
+    .am-quill-view .ql-editor ol { padding-left:1.25rem; margin:.35rem 0; }
+    .am-quill-view .ql-editor h1,
+    .am-quill-view .ql-editor h2,
+    .am-quill-view .ql-editor h3 { margin:.55rem 0 .35rem; }
+
+    /* Nice clamp for description block (works with Quill HTML) */
+    .am-clamp {
+      position: relative;
+      max-height: 4.8rem; /* ~3 lines */
+      overflow: hidden;
+    }
+    .am-clamp::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height: 2.2rem;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+      pointer-events:none;
+    }
+    .am-clamp-open{
+      max-height:none;
+    }
+    .am-clamp-open::after{ display:none; }
+  </style>
+@endonce
 
   {{-- ========================  EVENTS / WORKSHOPS (Members organized)  ======================== --}}
   <section class="py-12 bg-white">
@@ -310,15 +344,40 @@
                   </p>
                 @endif
 
-                <div x-data="{ open:false }" class="mt-2 text-sm text-gray-700">
-                  <p x-show="!open">{{ Str::limit(strip_tags($event->description), 80) }}</p>
-                  <p x-show="open">{{ strip_tags($event->description) }}</p>
-                  @if(strlen(strip_tags($event->description)) > 80)
-                    <button @click="open = !open" class="text-[#854f38] underline mt-1">
-                      <span x-show="!open">Lire plus</span><span x-show="open">Réduire</span>
-                    </button>
-                  @endif
-                </div>
+@php
+  $desc = (string)($event->description ?? '');
+  $descPlain = trim(strip_tags($desc));
+  $looksHtml = $desc !== '' && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
+  $isLong = mb_strlen($descPlain) > 140;
+@endphp
+
+@if($descPlain !== '')
+  <div x-data="{ open:false }" class="mt-3 text-sm text-gray-700">
+    {{-- Content --}}
+    <div :class="open ? 'am-clamp-open' : 'am-clamp'" class="leading-relaxed">
+      @if($looksHtml)
+        <div class="ql-snow am-quill-view">
+          <div class="ql-editor">
+            {!! $desc !!}
+          </div>
+        </div>
+      @else
+        {!! nl2br(e($desc)) !!}
+      @endif
+    </div>
+
+    {{-- Toggle --}}
+    @if($isLong)
+      <button type="button"
+              @click="open = !open"
+              class="mt-2 inline-flex items-center gap-2 text-[#854f38] font-semibold hover:underline">
+        <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
+        <i class="fas fa-chevron-down text-[10px]" :class="open ? 'rotate-180' : ''"></i>
+      </button>
+    @endif
+  </div>
+@endif
+
 
                 <div class="mt-auto pt-3">
                   @if($event->booking_required)

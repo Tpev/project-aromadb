@@ -166,17 +166,40 @@
                 <div class="grid gap-6 lg:grid-cols-3 lg:items-start">
                     <div class="lg:col-span-2 space-y-5">
 
-                        @if($event->description)
-                            <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 sm:px-5 sm:py-4">
-                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
-                                    <i class="fas fa-info-circle text-[#647a0b]"></i>
-                                    {{ __('Description') }}
-                                </h3>
-                                <p class="mt-2 text-sm leading-relaxed text-slate-800">
-                                    {{ $event->description }}
-                                </p>
-                            </div>
-                        @endif
+@php
+    $desc = $event->description;
+    $descLooksHtml = $desc && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
+@endphp
+
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<style>
+    /* Make Quill display look clean (no editor border / toolbar) */
+    .ql-snow { border: none !important; }
+    .ql-editor { padding: 0 !important; }
+    .ql-editor p { margin: 0.35rem 0; }
+</style>
+
+@if($desc)
+    <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 sm:px-5 sm:py-4">
+        <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
+            <i class="fas fa-info-circle text-[#647a0b]"></i>
+            {{ __('Description') }}
+        </h3>
+
+        <div class="mt-2 text-sm leading-relaxed text-slate-800">
+            @if($descLooksHtml)
+                <div class="ql-snow">
+                    <div class="ql-editor">
+                        {!! $desc !!}
+                    </div>
+                </div>
+            @else
+                {!! nl2br(e($desc)) !!}
+            @endif
+        </div>
+    </div>
+@endif
+
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">

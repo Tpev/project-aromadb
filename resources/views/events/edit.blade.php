@@ -28,14 +28,76 @@
                     @enderror
                 </div>
 
-                <!-- Description -->
-                <div class="details-box">
-                    <label class="details-label" for="description">{{ __('Description') }}</label>
-                    <textarea id="description" name="description" class="form-control">{{ old('description', $event->description) }}</textarea>
-                    @error('description')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+{{-- Quill (Description) --}}
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+
+<div class="details-box">
+    <label class="details-label">{{ __('Description') }}</label>
+
+    <input
+        type="hidden"
+        name="description"
+        id="description_input"
+        value="{{ old('description', $event->description) }}"
+    >
+
+    <textarea id="description_initial" class="hidden">{{ old('description', $event->description) }}</textarea>
+
+    <div id="description_editor" class="bg-white" style="border-radius: 10px;"></div>
+
+    @error('description')
+        <p class="text-red-500">{{ $message }}</p>
+    @enderror
+
+    <noscript>
+        <div class="mt-2">
+            <textarea name="description" class="form-control">{{ old('description', $event->description) }}</textarea>
+        </div>
+    </noscript>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const editorEl = document.getElementById('description_editor');
+    const inputEl  = document.getElementById('description_input');
+    const initEl   = document.getElementById('description_initial');
+
+    if (!editorEl || !inputEl) return;
+
+    const quill = new Quill(editorEl, {
+        theme: 'snow',
+        placeholder: "Décrivez votre événement (programme, infos pratiques, etc.)",
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['blockquote'],
+                ['link'],
+                ['clean']
+            ]
+        }
+    });
+
+    const initial = (initEl?.value || '').trim();
+    if (initial) {
+        const looksHtml = /<\/?[a-z][\s\S]*>/i.test(initial);
+        if (looksHtml) quill.clipboard.dangerouslyPasteHTML(initial);
+        else quill.setText(initial);
+    }
+
+    const form = editorEl.closest('form');
+    if (form) {
+        form.addEventListener('submit', () => {
+            const html = quill.root.innerHTML || '';
+            const normalized = html.replace(/\s+/g, '').toLowerCase();
+            inputEl.value = (normalized === '<p><br></p>') ? '' : html;
+        });
+    }
+});
+</script>
+
 
                 <!-- Start Date and Time -->
                 <div class="details-box">

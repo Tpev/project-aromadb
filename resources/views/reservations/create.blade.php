@@ -5,6 +5,20 @@
             <i class="fas fa-calendar-plus mr-2"></i>{{ __('Réserver une Place pour :') }} {{ $event->name }}
         </h2>
     </x-slot>
+@once
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+    <style>
+        .am-quill-view .ql-toolbar { display:none !important; }
+        .am-quill-view.ql-snow { border: none !important; }
+        .am-quill-view .ql-editor { padding: 0 !important; }
+        .am-quill-view .ql-editor p { margin: .35rem 0; }
+        .am-quill-view .ql-editor ul,
+        .am-quill-view .ql-editor ol { padding-left: 1.25rem; margin: .35rem 0; }
+        .am-quill-view .ql-editor h1,
+        .am-quill-view .ql-editor h2,
+        .am-quill-view .ql-editor h3 { margin: .55rem 0 .35rem; }
+    </style>
+@endonce
 
     @php
         // URL canonique de la page de réservation
@@ -129,16 +143,32 @@
                 @endif
             </div>
 
-            <!-- Event Description -->
-            @if($event->description)
-                <div class="event-description mt-6">
-                    <h3 class="info-title">
-                        <i class="fas fa-info-circle mr-2"></i>{{ __('Description') }}
-                    </h3>
-                    <p class="info-text">{{ $event->description }}</p>
+@php
+    $desc = $event->description;
+    $descLooksHtml = $desc && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
+    $descText = $desc ? trim(strip_tags($desc)) : '';
+@endphp
+
+@if($descText !== '')
+    <div class="event-description mt-6">
+        <h3 class="info-title">
+            <i class="fas fa-info-circle mr-2"></i>{{ __('Description') }}
+        </h3>
+
+        <div class="info-text">
+            @if($descLooksHtml)
+                <div class="ql-snow am-quill-view">
+                    <div class="ql-editor">
+                        {!! $desc !!}
+                    </div>
                 </div>
+            @else
+                {!! nl2br(e($desc)) !!}
             @endif
         </div>
+    </div>
+@endif
+
 
         <!-- Reservation Form -->
         <div class="reservation-form mx-auto p-6">
