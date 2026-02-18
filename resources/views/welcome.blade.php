@@ -294,112 +294,179 @@
     .am-clamp-open::after{ display:none; }
   </style>
 @endonce
+{{-- ========================  EVENTS / WORKSHOPS (Members organized)  ======================== --}}
+@once
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<style>
+  .am-quill-view .ql-toolbar { display:none !important; }
+  .am-quill-view.ql-snow { border:none !important; }
+  .am-quill-view .ql-editor { padding:0 !important; }
+  .am-quill-view .ql-editor p { margin:.35rem 0; }
 
-  {{-- ========================  EVENTS / WORKSHOPS (Members organized)  ======================== --}}
-  <section class="py-12 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
-          Événements & Ateliers des membres
-        </h2>
-        <p class="text-gray-600 max-w-2xl">
-          Découvrez les prochains <strong>événements, ateliers et stages</strong> organisés par nos praticiens membres : conférences, initiations, découvertes de pratiques…
-        </p>
-      </div>
+  .am-clamp {
+    position: relative;
+    max-height: 5rem;
+    overflow: hidden;
+  }
+  .am-clamp::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:2rem;
+    background:linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+  }
+  .am-clamp-open{ max-height:none; }
+  .am-clamp-open::after{ display:none; }
 
-      @if(isset($events) && $events->count())
-        <div class="mt-6 flex overflow-x-auto space-x-4 pb-2 -mx-1 px-1">
-          @foreach($events as $event)
-            <div class="flex-shrink-0 w-72 sm:w-80 bg-white rounded-2xl border border-gray-100 shadow hover:shadow-lg transition overflow-hidden">
-              @if($event->image)
-                <img src="{{ asset('storage/'.$event->image) }}" alt="{{ $event->name }}" class="w-full h-40 object-cover" loading="lazy">
+  .am-scrollbar::-webkit-scrollbar {
+    height: 6px;
+  }
+  .am-scrollbar::-webkit-scrollbar-thumb {
+    background:#ddd;
+    border-radius:10px;
+  }
+</style>
+@endonce
+
+<section class="py-12 bg-white">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
+        Événements & Ateliers des membres
+      </h2>
+      <p class="text-gray-600 max-w-2xl">
+        Découvrez les prochains <strong>événements, ateliers et stages</strong> organisés par nos praticiens membres.
+      </p>
+    </div>
+
+    @if(isset($events) && $events->count())
+
+    <div class="relative mt-8">
+
+      {{-- Desktop arrows --}}
+      <button onclick="document.getElementById('events-scroll').scrollBy({left:-400,behavior:'smooth'})"
+              class="hidden lg:flex absolute left-[-20px] top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full w-10 h-10 items-center justify-center hover:shadow-lg transition">
+        ‹
+      </button>
+
+      <button onclick="document.getElementById('events-scroll').scrollBy({left:400,behavior:'smooth'})"
+              class="hidden lg:flex absolute right-[-20px] top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full w-10 h-10 items-center justify-center hover:shadow-lg transition">
+        ›
+      </button>
+
+      {{-- Carousel --}}
+      <div id="events-scroll"
+           class="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory am-scrollbar pb-4">
+
+        @foreach($events as $event)
+
+        @php
+          $spotsLeft = $event->limited_spot ? max($event->number_of_spot - $event->reservations->count(),0) : null;
+
+          $desc = (string)($event->description ?? '');
+          $descPlain = trim(strip_tags($desc));
+          $looksHtml = $desc !== '' && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
+          $isLong = mb_strlen($descPlain) > 140;
+        @endphp
+
+        <div class="snap-start flex-shrink-0 w-[300px] sm:w-[340px] lg:w-[360px] bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden">
+
+          {{-- Image --}}
+          <div class="h-40 bg-gray-100">
+            @if($event->image)
+              <img src="{{ asset('storage/'.$event->image) }}"
+                   alt="{{ $event->name }}"
+                   class="w-full h-full object-cover"
+                   loading="lazy">
+            @endif
+          </div>
+
+          <div class="p-6 flex flex-col min-h-[340px]">
+
+            {{-- Title --}}
+            <h3 class="text-lg font-bold text-[#854f38] line-clamp-2">
+              {{ $event->name }}
+            </h3>
+
+            {{-- Meta --}}
+            <div class="mt-3 text-sm text-gray-600 space-y-1">
+              <div>{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}</div>
+              <div>{{ $event->location }}</div>
+
+              @if($event->user)
+                <div>
+                  Organisé par
+                  <a href="{{ route('therapist.show', $event->user->slug) }}"
+                     class="text-[#647a0b] underline font-semibold">
+                    {{ $event->user->name }}
+                  </a>
+                </div>
               @endif
-              <div class="p-5 flex flex-col h-[260px]">
-                <h3 class="text-lg font-semibold text-[#854f38] line-clamp-2">{{ $event->name }}</h3>
-                <p class="mt-2 text-gray-600 text-sm">
-                  {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
-                </p>
-                <p class="text-gray-600 text-sm">{{ $event->location }}</p>
 
-                @if($event->user)
-                  <p class="text-gray-600 text-sm">
-                    Organisé par
-                    <a href="{{ route('therapist.show', $event->user->slug) }}" class="text-[#647a0b] underline">
-                      {{ $event->user->name }}
-                    </a>
-                  </p>
+              @if($event->limited_spot)
+                <div>Places restantes : <strong>{{ $spotsLeft }}</strong></div>
+              @endif
+
+              @if($event->associatedProduct && $event->associatedProduct->price > 0)
+                <div>Prix : {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €</div>
+              @endif
+            </div>
+
+            {{-- Description --}}
+            @if($descPlain !== '')
+            <div x-data="{ open:false }" class="mt-4 text-sm text-gray-700">
+              <div :class="open ? 'am-clamp-open' : 'am-clamp'">
+                @if($looksHtml)
+                  <div class="ql-snow am-quill-view">
+                    <div class="ql-editor">
+                      {!! $desc !!}
+                    </div>
+                  </div>
+                @else
+                  {!! nl2br(e($desc)) !!}
                 @endif
+              </div>
 
-                @php
-                  $spotsLeft = $event->limited_spot ? $event->number_of_spot - $event->reservations->count() : null;
-                @endphp
-                @if($event->limited_spot)
-                  <p class="text-gray-600 text-sm">
-                    Places restantes : {{ max($spotsLeft,0) }}
-                  </p>
+              @if($isLong)
+              <button @click="open = !open"
+                      class="mt-2 text-[#854f38] font-semibold hover:underline">
+                <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
+              </button>
+              @endif
+            </div>
+            @endif
+
+            {{-- CTA --}}
+            <div class="mt-auto pt-5">
+              @if($event->booking_required)
+                @if(!$event->limited_spot || ($spotsLeft > 0))
+                  <a href="{{ route('events.reserve.create', $event->id) }}"
+                     class="inline-flex items-center justify-center w-full bg-[#854f38] hover:bg-[#6a3f2c] text-white font-semibold text-sm px-5 py-2.5 rounded-full transition">
+                    S’inscrire
+                  </a>
+                @else
+                  <div class="text-center text-red-500 font-semibold text-sm">
+                    Complet
+                  </div>
                 @endif
-                @if($event->associatedProduct && $event->associatedProduct->price > 0)
-                  <p class="text-gray-600 text-sm">
-                    Prix : {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
-                  </p>
-                @endif
+              @endif
+            </div>
 
-@php
-  $desc = (string)($event->description ?? '');
-  $descPlain = trim(strip_tags($desc));
-  $looksHtml = $desc !== '' && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
-  $isLong = mb_strlen($descPlain) > 140;
-@endphp
-
-@if($descPlain !== '')
-  <div x-data="{ open:false }" class="mt-3 text-sm text-gray-700">
-    {{-- Content --}}
-    <div :class="open ? 'am-clamp-open' : 'am-clamp'" class="leading-relaxed">
-      @if($looksHtml)
-        <div class="ql-snow am-quill-view">
-          <div class="ql-editor">
-            {!! $desc !!}
           </div>
         </div>
-      @else
-        {!! nl2br(e($desc)) !!}
-      @endif
+
+        @endforeach
+
+      </div>
     </div>
 
-    {{-- Toggle --}}
-    @if($isLong)
-      <button type="button"
-              @click="open = !open"
-              class="mt-2 inline-flex items-center gap-2 text-[#854f38] font-semibold hover:underline">
-        <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
-        <i class="fas fa-chevron-down text-[10px]" :class="open ? 'rotate-180' : ''"></i>
-      </button>
+    @else
+      <p class="mt-4 text-gray-600">Aucun événement à venir pour le moment.</p>
     @endif
+
   </div>
-@endif
-
-
-                <div class="mt-auto pt-3">
-                  @if($event->booking_required)
-                    @if(!$event->limited_spot || ($spotsLeft > 0))
-                      <a href="{{ route('events.reserve.create', $event->id) }}"
-                         class="inline-block bg-[#854f38] hover:bg-[#6a3f2c] text-white text-sm px-5 py-2 rounded-full transition">
-                        S’inscrire
-                      </a>
-                    @else
-                      <span class="text-red-500 font-semibold text-sm">Complet</span>
-                    @endif
-                  @endif
-                </div>
-              </div>
-            </div>
-          @endforeach
-        </div>
-      @else
-        <p class="mt-4 text-gray-600">Aucun événement à venir pour le moment.</p>
-      @endif
-    </div>
-  </section>
+</section>
 
   {{-- ========================  CONTENT HUB (BLOG)  ======================== --}}
   @if(isset($blogPosts))
