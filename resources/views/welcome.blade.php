@@ -296,170 +296,195 @@
 @endonce
 {{-- ========================  EVENTS / WORKSHOPS (Members organized)  ======================== --}}
 @once
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-<style>
-  .am-quill-view .ql-toolbar { display:none !important; }
-  .am-quill-view.ql-snow { border:none !important; }
-  .am-quill-view .ql-editor { padding:0 !important; }
-  .am-quill-view .ql-editor p { margin:.35rem 0; }
+  {{-- Quill viewer styling (safe even if descriptions are legacy plain text) --}}
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+  <style>
+    /* Quill display mode (no toolbar / no border / tight spacing) */
+    .am-quill-view .ql-toolbar { display:none !important; }
+    .am-quill-view.ql-snow { border:none !important; }
+    .am-quill-view .ql-editor { padding:0 !important; }
+    .am-quill-view .ql-editor p { margin:.35rem 0; }
+    .am-quill-view .ql-editor ul,
+    .am-quill-view .ql-editor ol { padding-left:1.25rem; margin:.35rem 0; }
+    .am-quill-view .ql-editor h1,
+    .am-quill-view .ql-editor h2,
+    .am-quill-view .ql-editor h3 { margin:.55rem 0 .35rem; }
 
-  .am-clamp {
-    position: relative;
-    max-height: 5rem;
-    overflow: hidden;
-  }
-  .am-clamp::after{
-    content:"";
-    position:absolute;
-    left:0; right:0; bottom:0;
-    height:2rem;
-    background:linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
-  }
-  .am-clamp-open{ max-height:none; }
-  .am-clamp-open::after{ display:none; }
+    /* Clamp (works for Quill HTML too) */
+    .am-clamp {
+      position: relative;
+      max-height: 4.8rem; /* ~3 lines */
+      overflow: hidden;
+    }
+    .am-clamp::after{
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height: 2.2rem;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
+      pointer-events:none;
+    }
+    .am-clamp-open{ max-height:none; }
+    .am-clamp-open::after{ display:none; }
 
-  .am-scrollbar::-webkit-scrollbar {
-    height: 6px;
-  }
-  .am-scrollbar::-webkit-scrollbar-thumb {
-    background:#ddd;
-    border-radius:10px;
-  }
-</style>
+    /* Nice horizontal scrollbar */
+    .am-scroll::-webkit-scrollbar { height: 7px; }
+    .am-scroll::-webkit-scrollbar-thumb { background:#d8d8d8; border-radius:999px; }
+    .am-scroll::-webkit-scrollbar-track { background:transparent; }
+  </style>
 @endonce
 
 <section class="py-12 bg-white">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
-        Événements & Ateliers des membres
-      </h2>
-      <p class="text-gray-600 max-w-2xl">
-        Découvrez les prochains <strong>événements, ateliers et stages</strong> organisés par nos praticiens membres.
+    {{-- Header --}}
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
+          Événements & Ateliers des membres
+        </h2>
+      </div>
+      <p class="text-gray-600 sm:max-w-2xl">
+        Découvrez les prochains <strong>événements, ateliers et stages</strong> organisés par nos praticiens membres : conférences, initiations, découvertes de pratiques…
       </p>
     </div>
 
     @if(isset($events) && $events->count())
 
-    <div class="relative mt-8">
+      {{-- Carousel wrapper --}}
+      <div class="relative mt-7">
 
-      {{-- Desktop arrows --}}
-      <button onclick="document.getElementById('events-scroll').scrollBy({left:-400,behavior:'smooth'})"
-              class="hidden lg:flex absolute left-[-20px] top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full w-10 h-10 items-center justify-center hover:shadow-lg transition">
-        ‹
-      </button>
+        {{-- Desktop arrows (real carousel feel) --}}
+        <button type="button"
+                class="hidden lg:flex items-center justify-center absolute -left-4 top-1/2 -translate-y-1/2 z-10
+                       w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition"
+                onclick="document.getElementById('am-events-scroll').scrollBy({ left: -520, behavior: 'smooth' })"
+                aria-label="Précédent">
+          <span class="text-2xl leading-none text-gray-700">‹</span>
+        </button>
 
-      <button onclick="document.getElementById('events-scroll').scrollBy({left:400,behavior:'smooth'})"
-              class="hidden lg:flex absolute right-[-20px] top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full w-10 h-10 items-center justify-center hover:shadow-lg transition">
-        ›
-      </button>
+        <button type="button"
+                class="hidden lg:flex items-center justify-center absolute -right-4 top-1/2 -translate-y-1/2 z-10
+                       w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition"
+                onclick="document.getElementById('am-events-scroll').scrollBy({ left: 520, behavior: 'smooth' })"
+                aria-label="Suivant">
+          <span class="text-2xl leading-none text-gray-700">›</span>
+        </button>
 
-      {{-- Carousel --}}
-      <div id="events-scroll"
-           class="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory am-scrollbar pb-4">
+        {{-- Track --}}
+        <div id="am-events-scroll"
+             class="am-scroll flex gap-5 overflow-x-auto scroll-smooth pb-4
+                    snap-x snap-mandatory">
 
-        @foreach($events as $event)
+          @foreach($events as $event)
+            @php
+              $spotsLeft = $event->limited_spot
+                ? max($event->number_of_spot - $event->reservations->count(), 0)
+                : null;
 
-        @php
-          $spotsLeft = $event->limited_spot ? max($event->number_of_spot - $event->reservations->count(),0) : null;
+              $desc = (string)($event->description ?? '');
+              $descPlain = trim(strip_tags($desc));
+              $looksHtml = $desc !== '' && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
+              $isLong = mb_strlen($descPlain) > 140;
+            @endphp
 
-          $desc = (string)($event->description ?? '');
-          $descPlain = trim(strip_tags($desc));
-          $looksHtml = $desc !== '' && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
-          $isLong = mb_strlen($descPlain) > 140;
-        @endphp
+            {{-- Card (IMPORTANT: only standard Tailwind widths -> works even if your Tailwind build doesn't support arbitrary classes) --}}
+            <article class="snap-start flex-shrink-0 w-80 sm:w-96 bg-white rounded-2xl border border-gray-100
+                            shadow-sm hover:shadow-lg transition overflow-hidden">
 
-        <div class="snap-start flex-shrink-0 w-[300px] sm:w-[340px] lg:w-[360px] bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition overflow-hidden">
-
-          {{-- Image --}}
-          <div class="h-40 bg-gray-100">
-            @if($event->image)
-              <img src="{{ asset('storage/'.$event->image) }}"
-                   alt="{{ $event->name }}"
-                   class="w-full h-full object-cover"
-                   loading="lazy">
-            @endif
-          </div>
-
-          <div class="p-6 flex flex-col min-h-[340px]">
-
-            {{-- Title --}}
-            <h3 class="text-lg font-bold text-[#854f38] line-clamp-2">
-              {{ $event->name }}
-            </h3>
-
-            {{-- Meta --}}
-            <div class="mt-3 text-sm text-gray-600 space-y-1">
-              <div>{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}</div>
-              <div>{{ $event->location }}</div>
-
-              @if($event->user)
-                <div>
-                  Organisé par
-                  <a href="{{ route('therapist.show', $event->user->slug) }}"
-                     class="text-[#647a0b] underline font-semibold">
-                    {{ $event->user->name }}
-                  </a>
-                </div>
-              @endif
-
-              @if($event->limited_spot)
-                <div>Places restantes : <strong>{{ $spotsLeft }}</strong></div>
-              @endif
-
-              @if($event->associatedProduct && $event->associatedProduct->price > 0)
-                <div>Prix : {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €</div>
-              @endif
-            </div>
-
-            {{-- Description --}}
-            @if($descPlain !== '')
-            <div x-data="{ open:false }" class="mt-4 text-sm text-gray-700">
-              <div :class="open ? 'am-clamp-open' : 'am-clamp'">
-                @if($looksHtml)
-                  <div class="ql-snow am-quill-view">
-                    <div class="ql-editor">
-                      {!! $desc !!}
-                    </div>
-                  </div>
-                @else
-                  {!! nl2br(e($desc)) !!}
+              {{-- Image --}}
+              <div class="h-44 bg-gray-100">
+                @if($event->image)
+                  <img src="{{ asset('storage/'.$event->image) }}"
+                       alt="{{ $event->name }}"
+                       class="w-full h-full object-cover"
+                       loading="lazy">
                 @endif
               </div>
 
-              @if($isLong)
-              <button @click="open = !open"
-                      class="mt-2 text-[#854f38] font-semibold hover:underline">
-                <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
-              </button>
-              @endif
-            </div>
-            @endif
+              {{-- Body --}}
+              <div class="p-5 flex flex-col h-80">
+                <h3 class="text-lg font-bold text-[#854f38] line-clamp-2">
+                  {{ $event->name }}
+                </h3>
 
-            {{-- CTA --}}
-            <div class="mt-auto pt-5">
-              @if($event->booking_required)
-                @if(!$event->limited_spot || ($spotsLeft > 0))
-                  <a href="{{ route('events.reserve.create', $event->id) }}"
-                     class="inline-flex items-center justify-center w-full bg-[#854f38] hover:bg-[#6a3f2c] text-white font-semibold text-sm px-5 py-2.5 rounded-full transition">
-                    S’inscrire
-                  </a>
-                @else
-                  <div class="text-center text-red-500 font-semibold text-sm">
-                    Complet
+                <div class="mt-2 text-sm text-gray-600 space-y-1">
+                  <div>
+                    {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
+                  </div>
+                  <div>{{ $event->location }}</div>
+
+                  @if($event->user)
+                    <div>
+                      Organisé par
+                      <a href="{{ route('therapist.show', $event->user->slug) }}"
+                         class="text-[#647a0b] underline font-semibold">
+                        {{ $event->user->name }}
+                      </a>
+                    </div>
+                  @endif
+
+                  @if($event->limited_spot)
+                    <div>Places restantes : <strong>{{ $spotsLeft }}</strong></div>
+                  @endif
+
+                  @if($event->associatedProduct && $event->associatedProduct->price > 0)
+                    <div>Prix : {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €</div>
+                  @endif
+                </div>
+
+                {{-- Description (Quill HTML OR plain text) --}}
+                @if($descPlain !== '')
+                  <div x-data="{ open:false }" class="mt-3 text-sm text-gray-700">
+                    <div :class="open ? 'am-clamp-open' : 'am-clamp'" class="leading-relaxed">
+                      @if($looksHtml)
+                        <div class="ql-snow am-quill-view">
+                          <div class="ql-editor">
+                            {!! $desc !!}
+                          </div>
+                        </div>
+                      @else
+                        {!! nl2br(e($desc)) !!}
+                      @endif
+                    </div>
+
+                    @if($isLong)
+                      <button type="button"
+                              @click="open = !open"
+                              class="mt-2 inline-flex items-center gap-2 text-[#854f38] font-semibold hover:underline">
+                        <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
+                        <span class="text-[10px]" :class="open ? 'rotate-180' : ''">▼</span>
+                      </button>
+                    @endif
                   </div>
                 @endif
-              @endif
-            </div>
 
-          </div>
+                {{-- CTA pinned bottom --}}
+                <div class="mt-auto pt-4">
+                  @if($event->booking_required)
+                    @if(!$event->limited_spot || ($spotsLeft > 0))
+                      <a href="{{ route('events.reserve.create', $event->id) }}"
+                         class="inline-flex items-center justify-center w-full bg-[#854f38] hover:bg-[#6a3f2c]
+                                text-white font-semibold text-sm px-5 py-2.5 rounded-full transition">
+                        S’inscrire
+                      </a>
+                    @else
+                      <div class="text-center text-red-500 font-semibold text-sm">
+                        Complet
+                      </div>
+                    @endif
+                  @else
+                    <div class="text-center text-gray-400 text-sm">
+                      Inscription non requise
+                    </div>
+                  @endif
+                </div>
+              </div>
+            </article>
+          @endforeach
+
         </div>
-
-        @endforeach
-
       </div>
-    </div>
 
     @else
       <p class="mt-4 text-gray-600">Aucun événement à venir pour le moment.</p>
@@ -467,6 +492,7 @@
 
   </div>
 </section>
+
 
   {{-- ========================  CONTENT HUB (BLOG)  ======================== --}}
   @if(isset($blogPosts))
