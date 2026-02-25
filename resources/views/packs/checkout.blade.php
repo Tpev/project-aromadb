@@ -5,21 +5,15 @@
     $trainings = $trainings ?? collect();
 
     $selectedType = $selectedType ?? 'pack';
+    $selectedId   = $selectedId   ?? null;
 
     $therapistName = $therapist->company_name ?? $therapist->name;
 
-    // Current URL for THIS checkout (pack is always in URL)
-    $currentCheckoutUrl = route('packs.checkout.show', ['slug' => $therapist->slug, 'pack' => $pack->id]);
+    // Canonical checkout route (no pack in URL)
+    $currentCheckoutUrl = route('public.checkout.show', ['slug' => $therapist->slug]);
 
-    // Base to build pack urls in JS
-    $packBaseUrl = url("/pro/{$therapist->slug}/packs");
-
-    $isPack = $selectedType === 'pack';
-
-    // Current selector value
-    $currentItemValue = $isPack
-        ? ('pack:' . $pack->id)
-        : ('training:' . ($training?->id ?? ''));
+    $isPack = ($selectedType === 'pack');
+    $currentItemValue = $selectedId ? ($selectedType . ':' . (int) $selectedId) : null;
 @endphp
 
 <x-app-layout>
@@ -74,177 +68,187 @@
             <h1 class="details-title">
                 {{ $isPack ? $pack->name : ($training?->title ?? __('Formation')) }}
             </h1>
-            <div class="subtle">
-                {{ $therapistName }} • {{ __('Paiement sécurisé') }}
-            </div>
 
-            @if ($errors->any())
-                <div class="alert alert-danger text-center">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-                    </ul>
-                </div>
-            @endif
+            <p class="subtle">
+                {{ __('Paiement sécurisé — vous recevrez un email avec les informations et l’accès après confirmation.') }}
+            </p>
 
-            <form class="mt-4" method="POST"
-                  action="{{ route('packs.checkout.store', ['slug'=>$therapist->slug, 'pack'=>$pack->id]) }}">
-                @csrf
+            {{-- Item selector --}}
+            <div class="card-soft">
+                <label class="details-label" for="item">
+                    {{ __('Choisir un achat') }}
+                </label>
 
-                {{-- SELECTOR + DETAILS --}}
-                <div class="card-soft">
-                    <div class="details-label">{{ __('Que souhaitez-vous acheter ?') }}</div>
-
-                    <select class="form-control" name="item" id="item">
-                        @if($packs->count())
-                            <optgroup label="🎁 Packs">
-                                @foreach($packs as $p)
-                                    <option value="pack:{{ $p->id }}" @selected($currentItemValue === 'pack:'.$p->id)>
-                                        {{ $p->name }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
-                        @endif
-
-                        @if($trainings->count())
-                            <optgroup label="🎓 Formations">
-                                @foreach($trainings as $t)
-                                    @php
-                                        $isFree = (bool) ($t->is_free ?? false);
-                                        $labelPrice = $isFree
-                                            ? __('Gratuit')
-                                            : (is_null($t->price_cents) ? __('Prix sur demande') : number_format($t->price_cents/100, 2, ',', ' ') . ' €');
-                                    @endphp
-                                    <option value="training:{{ $t->id }}" @selected($currentItemValue === 'training:'.$t->id)>
-                                        {{ $t->title }} — {{ $labelPrice }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
-                        @endif
-                    </select>
-
-                    @error('item')<p class="text-red-500">{{ $message }}</p>@enderror
-
-                    <div class="summary-row">
-                        @if($isPack)
-                            <div class="item">{{ __('Prix du pack') }} :
-                                <b>{{ number_format((float)$packPriceTtc, 2, ',', ' ') }} €</b>
-                            </div>
-
-                            @if((float)$unitTotalTtc > 0 && (float)$saving > 0.01)
-                                <div class="item">
-                                    {{ __('À l’unité') }} :
-                                    <b style="text-decoration:line-through; opacity:.85;">
-                                        {{ number_format((float)$unitTotalTtc, 2, ',', ' ') }} €
-                                    </b>
-                                </div>
-                                <div class="item">
-                                    {{ __('Économie') }} :
-                                    <b>{{ number_format((float)$saving, 2, ',', ' ') }} €</b>
-                                    @if(!is_null($savingPct)) ({{ $savingPct }}%) @endif
-                                </div>
-                            @endif
-                        @else
-                            <div class="item">{{ __('Formation') }} : <b>{{ $training?->title }}</b></div>
-                            <div class="item">
-                                {{ __('Prix') }} :
-                                <b>
-                                    @if((bool)($training?->is_free ?? false))
-                                        {{ __('Gratuit') }}
-                                    @elseif(!is_null($trainingPriceStr))
-                                        {{ $trainingPriceStr }}
-                                    @else
-                                        {{ __('Prix sur demande') }}
+                <select id="item" name="item" class="form-control">
+                    @if($packs->count())
+                        <optgroup label="{{ __('Packs') }}">
+                            @foreach($packs as $p)
+                                <option value="{{ 'pack:' . $p->id }}" {{ $currentItemValue === ('pack:' . $p->id) ? 'selected' : '' }}>
+                                    {{ $p->name }}
+                                    @if(!is_null($p->price_incl_tax))
+                                        — {{ number_format($p->price_incl_tax, 2, ',', ' ') }} €
+                                    @elseif(!is_null($p->price))
+                                        — {{ number_format($p->price, 2, ',', ' ') }} €
                                     @endif
-                                </b>
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+
+                    @if($trainings->count())
+                        <optgroup label="{{ __('Formations') }}">
+                            @foreach($trainings as $t)
+                                @php
+                                    $tIsFree = (bool) ($t->is_free ?? false);
+                                    $tPriceStr = null;
+                                    if (!$tIsFree && !is_null($t->price_cents)) {
+                                        $tPriceStr = number_format($t->price_cents / 100, 2, ',', ' ') . ' €';
+                                    }
+                                @endphp
+                                <option value="{{ 'training:' . $t->id }}" {{ $currentItemValue === ('training:' . $t->id) ? 'selected' : '' }}>
+                                    {{ $t->title ?? __('Formation') }}
+                                    @if($tIsFree)
+                                        — {{ __('Gratuit') }}
+                                    @elseif($tPriceStr)
+                                        — {{ $tPriceStr }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+                </select>
+
+                <p class="hint mt-2">
+                    {{ __('Vous pouvez acheter un pack ou une formation digitale. Le prix affiché correspond à la sélection en cours.') }}
+                </p>
+
+                {{-- Summary --}}
+                @if($isPack)
+                    <div class="summary-row">
+                        <div class="item">
+                            <b>{{ __('Pack') }}:</b> {{ $pack->name }}
+                        </div>
+                        @if(!is_null($packPriceTtc))
+                            <div class="item">
+                                <b>{{ __('Prix TTC') }}:</b> {{ number_format($packPriceTtc, 2, ',', ' ') }} €
+                            </div>
+                        @endif
+                        @if(!is_null($unitTotalTtc))
+                            <div class="item">
+                                <b>{{ __('Valeur unitaire') }}:</b> {{ number_format($unitTotalTtc, 2, ',', ' ') }} €
+                            </div>
+                        @endif
+                        @if(!is_null($saving) && $saving > 0)
+                            <div class="item">
+                                <b>{{ __('Économie') }}:</b>
+                                {{ number_format($saving, 2, ',', ' ') }} €
+                                @if(!is_null($savingPct))
+                                    ({{ $savingPct }}%)
+                                @endif
                             </div>
                         @endif
                     </div>
 
-                    <div class="mt-3">
-                        @if($isPack)
+                    {{-- Pack contents --}}
+                    @if($pack->items && $pack->items->count())
+                        <div class="mt-4">
                             <div class="details-label">{{ __('Contenu du pack') }}</div>
-                            <ul class="hint" style="margin:0; padding-left:18px;">
+                            <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
                                 @foreach($pack->items as $it)
                                     <li>
-                                        <b>{{ (int)($it->quantity ?? 1) }}×</b>
-                                        {{ $it->product?->name ?? __('Prestation supprimée') }}
+                                        {{ $it->quantity ?? 1 }} × {{ $it->product?->name ?? __('Produit') }}
                                     </li>
                                 @endforeach
                             </ul>
-
-                            @if(!empty($pack->description))
-                                <div class="mt-3 hint">{!! nl2br(e($pack->description)) !!}</div>
-                            @endif
-                        @else
-                            <div class="details-label">{{ __('À propos de la formation') }}</div>
-                            @if(!empty($training?->description))
-                                <div class="hint">{!! nl2br(e($training->description)) !!}</div>
-                            @else
-                                <div class="hint">{{ __('Formation digitale proposée par le thérapeute.') }}</div>
-                            @endif
+                        </div>
+                    @endif
+                @else
+                    <div class="summary-row">
+                        <div class="item">
+                            <b>{{ __('Formation') }}:</b> {{ $training?->title ?? __('Formation') }}
+                        </div>
+                        @if(!empty($trainingPriceStr))
+                            <div class="item">
+                                <b>{{ __('Prix') }}:</b> {{ $trainingPriceStr }}
+                            </div>
                         @endif
                     </div>
-                </div>
+                @endif
+            </div>
 
-                {{-- CUSTOMER INFO --}}
-                <div class="card-soft mt-4">
-                    <div class="details-label">{{ __('Vos informations') }}</div>
+            {{-- Checkout form --}}
+            <div class="mt-6 card-soft">
+                @if($errors->any())
+                    <div class="mb-3 text-red-500">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {{ __('Veuillez corriger les erreurs ci-dessous.') }}
+                    </div>
+                @endif
 
-                    <div class="mt-3">
-                        <label class="details-label" for="first_name">{{ __('Prénom') }}</label>
-                        <input class="form-control" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
-                        @error('first_name')<p class="text-red-500">{{ $message }}</p>@enderror
+                <form class="mt-4" method="POST" action="{{ route('public.checkout.store', ['slug' => $therapist->slug]) }}">
+                    @csrf
+
+                    {{-- IMPORTANT: the selected item is posted --}}
+                    <input type="hidden" name="item" value="{{ $currentItemValue }}">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="details-label" for="first_name">{{ __('Prénom') }}</label>
+                            <input id="first_name" name="first_name" class="form-control" value="{{ old('first_name') }}" required>
+                            @error('first_name') <div class="text-red-500">{{ $message }}</div> @enderror
+                        </div>
+                        <div>
+                            <label class="details-label" for="last_name">{{ __('Nom') }}</label>
+                            <input id="last_name" name="last_name" class="form-control" value="{{ old('last_name') }}" required>
+                            @error('last_name') <div class="text-red-500">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="details-label" for="email">{{ __('Email') }}</label>
+                            <input id="email" type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                            @error('email') <div class="text-red-500">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="details-label" for="phone">{{ __('Téléphone') }} <span class="hint">({{ __('optionnel') }})</span></label>
+                            <input id="phone" name="phone" class="form-control" value="{{ old('phone') }}">
+                            @error('phone') <div class="text-red-500">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="details-label" for="notes">{{ __('Notes') }} <span class="hint">({{ __('optionnel') }})</span></label>
+                            <textarea id="notes" name="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
+                            @error('notes') <div class="text-red-500">{{ $message }}</div> @enderror
+                        </div>
                     </div>
 
-                    <div class="mt-3">
-                        <label class="details-label" for="last_name">{{ __('Nom') }}</label>
-                        <input class="form-control" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
-                        @error('last_name')<p class="text-red-500">{{ $message }}</p>@enderror
-                    </div>
+                    @error('item') <div class="text-red-500 mt-3">{{ $message }}</div> @enderror
+                    @error('payment') <div class="text-red-500 mt-3">{{ $message }}</div> @enderror
 
-                    <div class="mt-3">
-                        <label class="details-label" for="email">{{ __('Email') }}</label>
-                        <input class="form-control" type="email" id="email" name="email" value="{{ old('email') }}" required>
-                        <p class="hint mt-2">{{ __("Nous retrouverons/créerons automatiquement votre fiche client avec cet email.") }}</p>
-                        @error('email')<p class="text-red-500">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="mt-3">
-                        <label class="details-label" for="phone">{{ __('Téléphone') }}</label>
-                        <input class="form-control" id="phone" name="phone" value="{{ old('phone') }}">
-                        @error('phone')<p class="text-red-500">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div class="mt-3">
-                        <label class="details-label" for="notes">{{ __('Notes') }}</label>
-                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ old('notes') }}</textarea>
-                        @error('notes')<p class="text-red-500">{{ $message }}</p>@enderror
-                    </div>
-
-                    @php
-                        $canPayTraining = $isPack
-                            ? true
-                            : (!(bool)($training?->is_free ?? false) && !is_null($training?->price_cents));
-                    @endphp
-
-                    <div class="mt-4 d-flex justify-content-center gap-2" style="flex-wrap:wrap;">
-                        <a href="{{ route('therapist.show', $therapist->slug) }}" class="btn-secondary">
-                            <i class="fas fa-arrow-left"></i> {{ __('Retour') }}
-                        </a>
-
-                        <button type="submit" class="btn-primary"
-                                @if(!$canPayTraining) disabled style="opacity:.6; cursor:not-allowed;" @endif>
-                            <i class="fas fa-lock"></i> {{ __('Procéder au paiement') }}
+                    <div class="mt-5 flex flex-wrap gap-3 justify-center">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-lock"></i>
+                            {{ __('Payer') }}
                         </button>
+
+                        <a href="{{ route('therapist.show', $therapist->slug) }}" class="btn-secondary">
+                            <i class="fas fa-arrow-left"></i>
+                            {{ __('Retour') }}
+                        </a>
                     </div>
 
-                    @if(!$isPack && !$canPayTraining)
-                        <p class="hint mt-3 text-center">
-                            {{ __("Impossible de payer cette formation en ligne (gratuite ou prix non défini).") }}
-                        </p>
-                    @endif
+                    <p class="mt-3 text-center hint">
+                        {{ __('En cliquant sur “Payer”, vous serez redirigé vers notre partenaire de paiement sécurisé.') }}
+                    </p>
+                </form>
+            </div>
+
+            <div class="mt-6 text-center hint">
+                <div class="font-extrabold" style="color:var(--brand);">
+                    {{ $therapistName }}
                 </div>
-            </form>
+                <div>
+                    {{ __('Paiement sécurisé — AromaMade') }}
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -254,7 +258,6 @@
             if (!select) return;
 
             const currentCheckoutUrl = @json($currentCheckoutUrl);
-            const packBaseUrl = @json($packBaseUrl);
 
             select.addEventListener('change', function () {
                 const val = this.value || '';
@@ -264,13 +267,9 @@
                 const type = m[1];
                 const id   = m[2];
 
-                if (type === 'pack') {
-                    window.location = packBaseUrl + '/' + id + '/checkout';
-                } else {
-                    // keep current pack URL, just switch selection via query
-                    window.location = currentCheckoutUrl + '?item=' + encodeURIComponent(val);
-                }
+                window.location = currentCheckoutUrl + '?item=' + encodeURIComponent(type + ':' + id);
             });
         })();
     </script>
+
 </x-app-layout>

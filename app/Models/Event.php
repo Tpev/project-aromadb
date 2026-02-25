@@ -11,26 +11,32 @@ class Event extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'name',
-        'description',
-        'start_date_time',
-        'duration',
-        'booking_required',
-        'limited_spot',
-        'number_of_spot',
-        'associated_product',
-        'image',
-        'showOnPortail',
-        'location',
+// app/Models/Event.php
+protected $fillable = [
+    'user_id',
+    'name',
+    'description',
+    'start_date_time',
+    'duration',
+    'booking_required',
+    'limited_spot',
+    'number_of_spot',
+    'associated_product',
+    'image',
+    'showOnPortail',
+    'location',
 
-        // Visio / Format
-        'event_type',      // in_person | visio
-        'visio_provider',  // external | aromamade
-        'visio_url',       // lien externe si provider=external
-        'visio_token',     // room token Jitsi si provider=aromamade
-    ];
+    // Paid events
+    'collect_payment', // bool
+    'price',           // float TTC base (or HT depending on your convention)
+    'tax_rate',        // float %
+
+    // Visio / Format
+    'event_type',
+    'visio_provider',
+    'visio_url',
+    'visio_token',
+];
 
     public function user()
     {

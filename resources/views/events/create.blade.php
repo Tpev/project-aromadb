@@ -21,74 +21,73 @@
                     @enderror
                 </div>
 
-{{-- Quill (Description) --}}
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+                {{-- Quill (Description) --}}
+                <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
 
-<div class="details-box">
-    <label class="details-label">{{ __('Description') }}</label>
+                <div class="details-box">
+                    <label class="details-label">{{ __('Description') }}</label>
 
-    {{-- Hidden field actually submitted --}}
-    <input type="hidden" name="description" id="description_input" value="{{ old('description') }}">
+                    {{-- Hidden field actually submitted --}}
+                    <input type="hidden" name="description" id="description_input" value="{{ old('description') }}">
 
-    {{-- Initial content holder (safe for HTML) --}}
-    <textarea id="description_initial" class="hidden">{{ old('description') }}</textarea>
+                    {{-- Initial content holder (safe for HTML) --}}
+                    <textarea id="description_initial" class="hidden">{{ old('description') }}</textarea>
 
-    {{-- Quill editor container --}}
-    <div id="description_editor" class="bg-white" style="border-radius: 10px;"></div>
+                    {{-- Quill editor container --}}
+                    <div id="description_editor" class="bg-white" style="border-radius: 10px;"></div>
 
-    @error('description')
-        <p class="text-red-500">{{ $message }}</p>
-    @enderror
+                    @error('description')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
 
-    <noscript>
-        <div class="mt-2">
-            <textarea name="description" class="form-control">{{ old('description') }}</textarea>
-        </div>
-    </noscript>
-</div>
+                    <noscript>
+                        <div class="mt-2">
+                            <textarea name="description" class="form-control">{{ old('description') }}</textarea>
+                        </div>
+                    </noscript>
+                </div>
 
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const editorEl = document.getElementById('description_editor');
-    const inputEl  = document.getElementById('description_input');
-    const initEl   = document.getElementById('description_initial');
+                <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+                <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const editorEl = document.getElementById('description_editor');
+                    const inputEl  = document.getElementById('description_input');
+                    const initEl   = document.getElementById('description_initial');
 
-    if (!editorEl || !inputEl) return;
+                    if (!editorEl || !inputEl) return;
 
-    const quill = new Quill(editorEl, {
-        theme: 'snow',
-        placeholder: "Décrivez votre événement (programme, infos pratiques, etc.)",
-        modules: {
-            toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                ['blockquote'],
-                ['link'],
-                ['clean']
-            ]
-        }
-    });
+                    const quill = new Quill(editorEl, {
+                        theme: 'snow',
+                        placeholder: "Décrivez votre événement (programme, infos pratiques, etc.)",
+                        modules: {
+                            toolbar: [
+                                [{ header: [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ list: 'ordered' }, { list: 'bullet' }],
+                                ['blockquote'],
+                                ['link'],
+                                ['clean']
+                            ]
+                        }
+                    });
 
-    const initial = (initEl?.value || '').trim();
-    if (initial) {
-        const looksHtml = /<\/?[a-z][\s\S]*>/i.test(initial);
-        if (looksHtml) quill.clipboard.dangerouslyPasteHTML(initial);
-        else quill.setText(initial);
-    }
+                    const initial = (initEl?.value || '').trim();
+                    if (initial) {
+                        const looksHtml = /<\/?[a-z][\s\S]*>/i.test(initial);
+                        if (looksHtml) quill.clipboard.dangerouslyPasteHTML(initial);
+                        else quill.setText(initial);
+                    }
 
-    const form = editorEl.closest('form');
-    if (form) {
-        form.addEventListener('submit', () => {
-            const html = quill.root.innerHTML || '';
-            const normalized = html.replace(/\s+/g, '').toLowerCase();
-            inputEl.value = (normalized === '<p><br></p>') ? '' : html;
-        });
-    }
-});
-</script>
-
+                    const form = editorEl.closest('form');
+                    if (form) {
+                        form.addEventListener('submit', () => {
+                            const html = quill.root.innerHTML || '';
+                            const normalized = html.replace(/\s+/g, '').toLowerCase();
+                            inputEl.value = (normalized === '<p><br></p>') ? '' : html;
+                        });
+                    }
+                });
+                </script>
 
                 <!-- Start Date and Time -->
                 <div class="details-box">
@@ -98,27 +97,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-				<!-- Bloquer l'agenda -->
-				<div class="details-box">
-					<label class="details-label" for="block_calendar">
-						{{ __("Bloquer mon agenda sur cette plage horaire") }}
-					</label>
 
-					<label class="d-flex align-items-center gap-2">
-						<input
-							type="checkbox"
-							id="block_calendar"
-							name="block_calendar"
-							value="1"
-							{{ old('block_calendar') ? 'checked' : '' }}
-						>
-						<span>{{ __("Créer une indisponibilité temporaire (indispo) au nom de l'événement") }}</span>
-					</label>
+                <!-- Bloquer l'agenda -->
+                <div class="details-box">
+                    <label class="details-label" for="block_calendar">
+                        {{ __("Bloquer mon agenda sur cette plage horaire") }}
+                    </label>
 
-					@error('block_calendar')
-						<p class="text-red-500">{{ $message }}</p>
-					@enderror
-				</div>
+                    <label class="d-flex align-items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="block_calendar"
+                            name="block_calendar"
+                            value="1"
+                            {{ old('block_calendar') ? 'checked' : '' }}
+                        >
+                        <span>{{ __("Créer une indisponibilité temporaire (indispo) au nom de l'événement") }}</span>
+                    </label>
+
+                    @error('block_calendar')
+                        <p class="text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <!-- Duration -->
                 <div class="details-box">
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <!-- Booking Required -->
-                <div class="details-box">
+                <div class="details-box" id="bookingRequiredBox">
                     <label class="details-label">{{ __('Réservation Obligatoire') }}</label>
                     <div>
                         <input type="radio" id="booking_required_yes" name="booking_required" value="1" {{ old('booking_required') == '1' ? 'checked' : '' }} required>
@@ -198,6 +198,91 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- ✅ NEW: Payment / Stripe -->
+                @php
+                    $stripeConnected = !empty(auth()->user()->stripe_account_id);
+                    $oldCollectPayment = old('collect_payment') == '1';
+                @endphp
+
+                <div class="details-box" id="paymentBox">
+                    <label class="details-label">{{ __('Paiement avant réservation (Stripe)') }}</label>
+
+                    <div class="p-3" style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;">
+                        <label class="d-flex align-items-center gap-2" style="margin-bottom: 6px;">
+                            <input
+                                type="checkbox"
+                                id="collect_payment"
+                                name="collect_payment"
+                                value="1"
+                                {{ $oldCollectPayment ? 'checked' : '' }}
+                                {{ $stripeConnected ? '' : 'disabled' }}
+                            >
+                            <span style="font-weight: 600;">
+                                {{ __("Activer le paiement pour valider la réservation") }}
+                            </span>
+                        </label>
+
+                        @if(!$stripeConnected)
+                            <p class="text-red-500" style="margin: 6px 0 0 0;">
+                                {{ __("Vous devez d’abord connecter votre compte Stripe (Stripe Connect) pour activer le paiement.") }}
+                            </p>
+                        @else
+                            <p class="text-xs text-slate-500" style="margin: 6px 0 0 0;">
+                                {{ __("Le paiement est collecté sur votre compte Stripe connecté. La réservation est confirmée uniquement après paiement.") }}
+                            </p>
+                        @endif
+
+                        <div id="paymentFields" style="display:none; margin-top: 12px;">
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label class="details-label" for="price">{{ __('Prix TTC (€)') }}</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="price"
+                                        name="price"
+                                        class="form-control"
+                                        value="{{ old('price') }}"
+                                        placeholder="Ex: 25.00"
+                                    >
+                                    @error('price')
+                                        <p class="text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label class="details-label" for="tax_rate">{{ __('TVA (%) (optionnel)') }}</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="tax_rate"
+                                        name="tax_rate"
+                                        class="form-control"
+                                        value="{{ old('tax_rate') }}"
+                                        placeholder="Ex: 20"
+                                    >
+                                    @error('tax_rate')
+                                        <p class="text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-slate-500" style="margin-top: 8px;">
+                                {{ __("Si vous ne gérez pas la TVA, laissez à 0. Le prix TTC doit être > 0.") }}
+                            </p>
+
+                            <p class="text-red-500" id="paymentBookingHint" style="display:none; margin-top: 8px;">
+                                {{ __("Pour activer le paiement, vous devez sélectionner “Réservation Obligatoire : Oui”.") }}
+                            </p>
+                        </div>
+
+                        @error('collect_payment')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+                <!-- ✅ END Payment -->
 
                 <!-- Limited Spot -->
                 <div class="details-box">
@@ -282,6 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>
         </div>
     </div>
+
     <!-- Custom Styles -->
     <style>
         .container {
@@ -373,6 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
             display: none;
         }
     </style>
+
     <script>
         (function() {
             const typeRadios = document.querySelectorAll('input[name="event_type"]');
@@ -410,6 +497,91 @@ document.addEventListener('DOMContentLoaded', () => {
             typeRadios.forEach(r => r.addEventListener('change', refresh));
             providerRadios.forEach(r => r.addEventListener('change', refresh));
             refresh();
+        })();
+    </script>
+
+    {{-- ✅ NEW: Payment JS (Stripe connected + booking_required gate) --}}
+    <script>
+        (function() {
+            const stripeConnected = {{ !empty(auth()->user()->stripe_account_id) ? 'true' : 'false' }};
+
+            const cb = document.getElementById('collect_payment');
+            const fields = document.getElementById('paymentFields');
+            const hint = document.getElementById('paymentBookingHint');
+
+            const price = document.getElementById('price');
+            const tax = document.getElementById('tax_rate');
+
+            const bookingYes = document.getElementById('booking_required_yes');
+            const bookingNo  = document.getElementById('booking_required_no');
+
+            if (!cb || !fields || !bookingYes || !bookingNo) return;
+
+            function bookingRequiredIsYes() {
+                return bookingYes.checked === true;
+            }
+
+            function showFields(show) {
+                fields.style.display = show ? '' : 'none';
+            }
+
+            function setPriceRequired(required) {
+                if (price) price.required = !!required;
+            }
+
+            function cleanupIfOff() {
+                if (!cb.checked) {
+                    if (price) price.value = '';
+                    if (tax) tax.value = '';
+                    setPriceRequired(false);
+                    hint.style.display = 'none';
+                }
+            }
+
+            function refreshPaymentUI() {
+                // If not connected, force off
+                if (!stripeConnected) {
+                    cb.checked = false;
+                    showFields(false);
+                    cleanupIfOff();
+                    return;
+                }
+
+                // If booking_required is "No", payment cannot be on
+                if (!bookingRequiredIsYes()) {
+                    if (cb.checked) cb.checked = false;
+                    showFields(false);
+                    cleanupIfOff();
+                    hint.style.display = 'none';
+                    return;
+                }
+
+                // booking_required yes
+                const on = cb.checked;
+                showFields(on);
+                setPriceRequired(on);
+
+                // show hint only if user tries to enable while booking no (handled earlier)
+                hint.style.display = 'none';
+            }
+
+            cb.addEventListener('change', () => {
+                // If booking is not yes -> revert and show hint
+                if (cb.checked && !bookingRequiredIsYes()) {
+                    cb.checked = false;
+                    showFields(false);
+                    cleanupIfOff();
+                    hint.style.display = '';
+                    return;
+                }
+                refreshPaymentUI();
+            });
+
+            bookingYes.addEventListener('change', refreshPaymentUI);
+            bookingNo.addEventListener('change', refreshPaymentUI);
+
+            // initial
+            refreshPaymentUI();
         })();
     </script>
 </x-app-layout>

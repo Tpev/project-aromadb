@@ -5,6 +5,7 @@
             <i class="fas fa-calendar-plus mr-2"></i>{{ __('Réserver une Place pour :') }} {{ $event->name }}
         </h2>
     </x-slot>
+
 @once
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
     <style>
@@ -24,15 +25,42 @@
         // URL canonique de la page de réservation
         $eventUrl = url()->current();
 
-        // Calcul des places restantes (si limité)
+        // -----------------------------
+        // ✅ NEW: Paid event helpers
+        // -----------------------------
+        $isPaidEvent = !empty($event->collect_payment);
+        $stripeConnected = !empty($event->user->stripe_account_id);
+
+        $basePrice = $isPaidEvent ? (float) ($event->price ?? 0) : 0;
+        $taxRate   = $isPaidEvent ? (float) ($event->tax_rate ?? 0) : 0;
+
+        // If you want tax to apply on top of TTC, keep as-is.
+        // If your "price" is already TTC FINAL, set $finalPrice = $basePrice.
+        $finalPrice = $basePrice;
+        if ($isPaidEvent && $taxRate > 0) {
+            $finalPrice = $basePrice + ($basePrice * $taxRate / 100);
+        }
+
+        // -----------------------------
+        // Spots left (safer counting)
+        // -----------------------------
+        $reservationsCollection = $event->reservations ?? collect();
+
+        // If reservations have a status column, count only active ones
+        $hasStatus = $reservationsCollection->first() && isset($reservationsCollection->first()->status);
+
+        $activeCount = $hasStatus
+            ? $reservationsCollection->whereIn('status', ['confirmed', 'paid', 'pending_payment'])->count()
+            : $reservationsCollection->count();
+
         $spotsLeft = $event->limited_spot
-            ? max($event->number_of_spot - $event->reservations->count(), 0)
+            ? max(((int)$event->number_of_spot) - $activeCount, 0)
             : null;
 
         // Image Open Graph : image de l'événement ou fallback générique
         $ogImage = $event->image
             ? asset('storage/' . $event->image)
-            : asset('images/og-default-event.jpg'); // crée ce fichier ou change le chemin
+            : asset('images/og-default-event.jpg');
 
         // Description courte réutilisée pour meta_description + og:description
         $baseText = "Réservez votre place pour « {$event->name} », animé par {$event->user->name} le "
@@ -45,6 +73,10 @@
 
         if ($event->booking_required) {
             $baseText .= " Réservation requise.";
+        }
+
+        if ($isPaidEvent && $finalPrice > 0) {
+            $baseText .= " Tarif : " . number_format($finalPrice, 2, ',', ' ') . " €.";
         }
 
         $ogDescription = \Illuminate\Support\Str::limit(trim($baseText), 160, '…');
@@ -63,7 +95,6 @@
         <meta property="og:site_name" content="{{ config('app.name') }}">
         <meta property="og:locale" content="fr_FR">
 
-        {{-- Bonus Twitter card (si jamais un jour tu partages sur X/Twitter) --}}
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="Réservez votre place pour « {{ e($event->name) }} »">
         <meta name="twitter:description" content="{{ $ogDescription }}">
@@ -112,8 +143,20 @@
                     <p class="info-text">{{ $event->location }}</p>
                 </div>
 
-                <!-- Price -->
-                @if($event->associatedProduct && $event->associatedProduct->price > 0)
+                <!-- ✅ UPDATED: Price (paid event first, fallback to associated product if not paid) -->
+                @if($isPaidEvent && $finalPrice > 0)
+                    <div class="info-box">
+                        <h3 class="info-title">
+                            <i class="fas fa-tag mr-2"></i>{{ __('Prix') }}
+                        </h3>
+                        <p class="info-text">
+                            {{ number_format($finalPrice, 2, ',', ' ') }} €
+                            @if(!empty($taxRate) && $taxRate > 0)
+                                <span class="text-xs text-slate-500">({{ __('incl. TVA') }} {{ rtrim(rtrim(number_format($taxRate, 2, ',', ' '), '0'), ',') }}%)</span>
+                            @endif
+                        </p>
+                    </div>
+                @elseif($event->associatedProduct && ($event->associatedProduct->price ?? 0) > 0)
                     <div class="info-box">
                         <h3 class="info-title">
                             <i class="fas fa-tag mr-2"></i>{{ __('Prix') }}
@@ -169,7 +212,6 @@
     </div>
 @endif
 
-
         <!-- Reservation Form -->
         <div class="reservation-form mx-auto p-6">
             <h1 class="form-title text-2xl font-bold text-center mb-4">
@@ -185,6 +227,14 @@
             @if(session('error'))
                 <div class="alert alert-danger animate__animated animate__shakeX">
                     <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
+                </div>
+            @endif
+
+            {{-- ✅ NEW: Paid event warning if Stripe not connected --}}
+            @if($isPaidEvent && !$stripeConnected)
+                <div class="alert alert-danger animate__animated animate__fadeInDown">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ __("Cet événement est payant, mais le thérapeute n'a pas encore configuré Stripe pour encaisser en ligne. Merci de réessayer plus tard ou de contacter le thérapeute.") }}
                 </div>
             @endif
 
@@ -242,9 +292,22 @@
                     <p class="text-red-500 mt-2">{{ $message }}</p>
                 @enderror
 
-                <button type="submit" class="btn-primary mt-4">
-                    <i class="fas fa-paper-plane mr-2"></i>{{ __('Réserver') }}
+                @php
+                    $submitDisabled = ($isPaidEvent && !$stripeConnected);
+                @endphp
+
+                <button type="submit"
+                        class="btn-primary mt-4"
+                        {{ $submitDisabled ? 'disabled' : '' }}
+                        style="{{ $submitDisabled ? 'opacity:.6;cursor:not-allowed;' : '' }}">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    @if($isPaidEvent)
+                        {{ __('Payer & Réserver') }}
+                    @else
+                        {{ __('Réserver') }}
+                    @endif
                 </button>
+
                 <a href="{{ route('therapist.show', $event->user->slug) }}" class="btn-secondary mt-4">
                     <i class="fas fa-arrow-left mr-2"></i>{{ __('Retour au profil du thérapeute') }}
                 </a>

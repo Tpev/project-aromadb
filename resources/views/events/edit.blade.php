@@ -17,6 +17,10 @@
                     $oldType = old('event_type', $event->event_type ?? 'in_person');
                     $oldProvider = old('visio_provider', $event->visio_provider ?? 'external');
                     $currentVisioLink = $event->visio_link ?? null; // accessor in Model
+
+                    // ✅ Payment state
+                    $stripeConnected = !empty(auth()->user()->stripe_account_id);
+                    $oldCollectPayment = old('collect_payment', $event->collect_payment ?? 0) == '1';
                 @endphp
 
                 <!-- Name -->
@@ -182,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <!-- Booking Required -->
-                <div class="details-box">
+                <div class="details-box" id="bookingRequiredBox">
                     <label class="details-label">{{ __('Réservation Requise') }}</label>
                     <div class="form-check">
                         <input type="radio" id="booking_required_yes" name="booking_required" value="1" {{ old('booking_required', $event->booking_required) == '1' ? 'checked' : '' }} required>
@@ -196,6 +200,86 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- ✅ NEW: Payment / Stripe -->
+                <div class="details-box" id="paymentBox">
+                    <label class="details-label">{{ __('Paiement avant réservation (Stripe)') }}</label>
+
+                    <div class="p-3" style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;">
+                        <label class="d-flex align-items-center gap-2" style="margin-bottom: 6px;">
+                            <input
+                                type="checkbox"
+                                id="collect_payment"
+                                name="collect_payment"
+                                value="1"
+                                {{ $oldCollectPayment ? 'checked' : '' }}
+                                {{ $stripeConnected ? '' : 'disabled' }}
+                            >
+                            <span style="font-weight: 600;">
+                                {{ __("Activer le paiement pour valider la réservation") }}
+                            </span>
+                        </label>
+
+                        @if(!$stripeConnected)
+                            <p class="text-red-500" style="margin: 6px 0 0 0;">
+                                {{ __("Vous devez d’abord connecter votre compte Stripe (Stripe Connect) pour activer le paiement.") }}
+                            </p>
+                        @else
+                            <p class="text-xs text-slate-500" style="margin: 6px 0 0 0;">
+                                {{ __("Le paiement est collecté sur votre compte Stripe connecté. La réservation est confirmée uniquement après paiement.") }}
+                            </p>
+                        @endif
+
+                        <div id="paymentFields" style="display:none; margin-top: 12px;">
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label class="details-label" for="price">{{ __('Prix TTC (€)') }}</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="price"
+                                        name="price"
+                                        class="form-control"
+                                        value="{{ old('price', $event->price) }}"
+                                        placeholder="Ex: 25.00"
+                                    >
+                                    @error('price')
+                                        <p class="text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div style="flex: 1; min-width: 200px;">
+                                    <label class="details-label" for="tax_rate">{{ __('TVA (%) (optionnel)') }}</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        id="tax_rate"
+                                        name="tax_rate"
+                                        class="form-control"
+                                        value="{{ old('tax_rate', $event->tax_rate) }}"
+                                        placeholder="Ex: 20"
+                                    >
+                                    @error('tax_rate')
+                                        <p class="text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-slate-500" style="margin-top: 8px;">
+                                {{ __("Si vous ne gérez pas la TVA, laissez à 0. Le prix TTC doit être > 0.") }}
+                            </p>
+
+                            <p class="text-red-500" id="paymentBookingHint" style="display:none; margin-top: 8px;">
+                                {{ __("Pour activer le paiement, vous devez sélectionner “Réservation Requise : Oui”.") }}
+                            </p>
+                        </div>
+
+                        @error('collect_payment')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+                <!-- ✅ END Payment -->
 
                 <!-- Limited Spots -->
                 <div class="details-box">
@@ -394,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // ---- NEW logic: visio / in-person UI ----
+            // ---- Existing logic: visio / in-person UI ----
             const typeRadios = document.querySelectorAll('input[name="event_type"]');
             const providerRadios = document.querySelectorAll('input[name="visio_provider"]');
             const visioOptions = document.getElementById('visioOptions');
@@ -432,9 +516,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // ✅ NEW: Payment UI (booking_required gate + required price)
+            const stripeConnected = {{ $stripeConnected ? 'true' : 'false' }};
+            const collectPayment = document.getElementById('collect_payment');
+            const paymentFields = document.getElementById('paymentFields');
+            const paymentHint = document.getElementById('paymentBookingHint');
+            const priceInput = document.getElementById('price');
+
+            const bookingYes = document.getElementById('booking_required_yes');
+            const bookingNo = document.getElementById('booking_required_no');
+
+            function bookingIsYes() {
+                return bookingYes && bookingYes.checked;
+            }
+
+            function showPaymentFields(show) {
+                if (!paymentFields) return;
+                paymentFields.style.display = show ? '' : 'none';
+            }
+
+            function setPriceRequired(required) {
+                if (priceInput) priceInput.required = !!required;
+            }
+
+            function refreshPaymentUI() {
+                if (!collectPayment) return;
+
+                // Force off if not connected
+                if (!stripeConnected) {
+                    collectPayment.checked = false;
+                    showPaymentFields(false);
+                    setPriceRequired(false);
+                    if (paymentHint) paymentHint.style.display = 'none';
+                    return;
+                }
+
+                // Payment only if booking_required = yes
+                if (!bookingIsYes()) {
+                    if (collectPayment.checked) collectPayment.checked = false;
+                    showPaymentFields(false);
+                    setPriceRequired(false);
+                    if (paymentHint) paymentHint.style.display = 'none';
+                    return;
+                }
+
+                const on = collectPayment.checked;
+                showPaymentFields(on);
+                setPriceRequired(on);
+                if (paymentHint) paymentHint.style.display = 'none';
+            }
+
+            if (collectPayment) {
+                collectPayment.addEventListener('change', function() {
+                    if (collectPayment.checked && !bookingIsYes()) {
+                        collectPayment.checked = false;
+                        showPaymentFields(false);
+                        setPriceRequired(false);
+                        if (paymentHint) paymentHint.style.display = '';
+                        return;
+                    }
+                    refreshPaymentUI();
+                });
+            }
+
+            if (bookingYes) bookingYes.addEventListener('change', refreshPaymentUI);
+            if (bookingNo) bookingNo.addEventListener('change', refreshPaymentUI);
+
             // init
             toggleNumberOfSpots();
             refreshVisioUI();
+            refreshPaymentUI();
 
             // listeners
             var limitedSpotRadios = document.querySelectorAll('input[name="limited_spot"]');

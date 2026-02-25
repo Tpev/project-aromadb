@@ -43,26 +43,11 @@ if ($therapist) {
     $therapistInit = mb_strtoupper(mb_substr($therapistName, 0, 1));
     $therapistCity = $therapist->city_setByAdmin ?? $therapist->city ?? null;
 
-    // Checkout route is /pro/{slug}/packs/{pack}/checkout
+    // New canonical checkout route: /pro/{slug}/checkout
     // Trainings are selected via ?item=training:{id}
-    $packId = null;
-
-    if (\Illuminate\Support\Facades\Schema::hasTable('pack_products')) {
-        $packId = \Illuminate\Support\Facades\DB::table('pack_products')
-            ->where('user_id', $therapist->id)
-            ->orderBy('id')
-            ->value('id');
-    } elseif (\Illuminate\Support\Facades\Schema::hasTable('packs')) {
-        $packId = \Illuminate\Support\Facades\DB::table('packs')
-            ->where('user_id', $therapist->id)
-            ->orderBy('id')
-            ->value('id');
-    }
-
-    if ($packId) {
-        $buyUrl = route('packs.checkout.show', [
+    if (!empty($therapist->slug)) {
+        $buyUrl = route('public.checkout.show', [
             'slug' => $therapist->slug,
-            'pack' => $packId,
         ]) . '?item=' . urlencode('training:' . $training->id);
     }
 }

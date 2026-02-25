@@ -76,6 +76,7 @@ use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateCo
 use App\Models\DesignTemplate;
 use App\Http\Controllers\TherapistArticleController;
 use App\Http\Controllers\SessionNoteTemplateController;
+use App\Http\Controllers\PublicCheckoutController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -106,9 +107,19 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/invoices/from-pack/{packPurchase}', [InvoiceController::class, 'createFromPackPurchase'])
         ->name('invoices.fromPackPurchase');
 });
+Route::get('/pro/{slug}/checkout', [PublicCheckoutController::class, 'show'])
+    ->name('public.checkout.show');
 
-Route::get('/pro/{slug}/packs/{pack}/checkout', [PublicPackCheckoutController::class, 'show'])
-    ->name('packs.checkout.show');
+Route::post('/pro/{slug}/checkout', [PublicCheckoutController::class, 'store'])
+    ->name('public.checkout.store');
+	
+Route::get('/pro/{slug}/packs/{pack}/checkout', function (Request $request, string $slug, \App\Models\PackProduct $pack) {
+    // Keep old links working, but canonicalize to /pro/{slug}/checkout
+    // If item isn't provided, set it to this pack so selection stays identical.
+    $item = $request->query('item') ?: ('pack:' . $pack->id);
+
+    return redirect()->route('public.checkout.show', ['slug' => $slug, 'item' => $item]);
+})->name('packs.checkout.show');;
 
 Route::post('/pro/{slug}/packs/{pack}/checkout', [PublicPackCheckoutController::class, 'store'])
     ->name('packs.checkout.store');
@@ -670,7 +681,12 @@ Route::get('events/{event}/reserve', [ReservationController::class, 'create'])->
 // Route to handle reservation form submission
 Route::post('events/{event}/reserve', [ReservationController::class, 'store'])->name('events.reserve.store');
 Route::get('events/{event}/reservation-success', [ReservationController::class, 'success'])->name('reservations.success');
+// Payment return URLs (same style as appointments)
+Route::get('/reservations/payment/success', [ReservationController::class, 'paymentSuccess'])
+    ->name('reservations.payment_success');
 
+Route::get('/reservations/payment/cancel', [ReservationController::class, 'paymentCancel'])
+    ->name('reservations.payment_cancel');
 
 Route::middleware('auth')->group(function () {
     Route::delete('reservations/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');

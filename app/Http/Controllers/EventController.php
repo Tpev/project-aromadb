@@ -43,113 +43,149 @@ class EventController extends Controller
         return view('events.create', compact('products'));
     }
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name'               => 'required|string|max:255',
-            'description'        => 'nullable|string',
-            'start_date_time'    => 'required|date',
-            'duration'           => 'required|integer',
-			'block_calendar' => 'nullable|boolean',
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name'               => 'required|string|max:255',
+        'description'        => 'nullable|string',
+        'start_date_time'    => 'required|date',
+        'duration'           => 'required|integer',
+        'block_calendar'     => 'nullable|boolean',
 
-            'booking_required'   => 'required|boolean',
-            'limited_spot'       => 'required|boolean',
-            'number_of_spot'     => 'nullable|integer',
+        'booking_required'   => 'required|boolean',
+        'limited_spot'       => 'required|boolean',
+        'number_of_spot'     => 'nullable|integer',
 
-            'associated_product' => 'nullable|exists:products,id',
-            'image'              => 'nullable|image',
-            'showOnPortail'      => 'required|boolean',
+        'associated_product' => 'nullable|exists:products,id',
+        'image'              => 'nullable|image',
+        'showOnPortail'      => 'required|boolean',
 
-            'location'           => 'nullable|string|max:255',
+        'location'           => 'nullable|string|max:255',
 
-            // Visio
-            'event_type'     => 'required|in:in_person,visio',
-            'visio_provider' => 'nullable|in:external,aromamade',
-            'visio_url'      => 'nullable|url|max:2000',
-        ]);
-	$validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
+        // Visio
+        'event_type'     => 'required|in:in_person,visio',
+        'visio_provider' => 'nullable|in:external,aromamade',
+        'visio_url'      => 'nullable|url|max:2000',
 
+        // ✅ NEW: Payment
+        'collect_payment' => 'nullable|boolean',
+        'price'           => 'nullable|numeric|min:0',
+        'tax_rate'        => 'nullable|numeric|min:0|max:100',
+    ]);
 
-        $data = $validated;
-        $data['user_id'] = Auth::id();
+    $validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Format handling
-        |--------------------------------------------------------------------------
-        */
-        if ($data['event_type'] === 'in_person') {
-            // Présentiel → cleanup visio fields
-            if (empty($data['location'])) {
+    $data = $validated;
+    $data['user_id'] = Auth::id();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment handling (NEW)
+    |--------------------------------------------------------------------------
+    */
+    $data['collect_payment'] = $request->boolean('collect_payment');
+
+    if ($data['collect_payment']) {
+        // must have booking
+        if (!$request->boolean('booking_required')) {
+            return back()
+                ->withErrors(['collect_payment' => 'Le paiement nécessite d’activer les réservations.'])
+                ->withInput();
+        }
+
+        // price must be > 0
+        if (empty($data['price']) || (float) $data['price'] <= 0) {
+            return back()
+                ->withErrors(['price' => 'Veuillez renseigner un prix TTC (> 0) pour un événement payant.'])
+                ->withInput();
+        }
+
+        // must have Stripe Connect
+        $user = Auth::user();
+        if (empty($user->stripe_account_id)) {
+            return back()
+                ->withErrors(['collect_payment' => 'Pour activer le paiement, veuillez d’abord connecter votre compte Stripe (Stripe Connect).'])
+                ->withInput();
+        }
+    } else {
+        // keep DB clean
+        $data['price'] = null;
+        $data['tax_rate'] = 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Format handling
+    |--------------------------------------------------------------------------
+    */
+    if ($data['event_type'] === 'in_person') {
+        // Présentiel → cleanup visio fields
+        if (empty($data['location'])) {
+            return back()
+                ->withErrors(['location' => 'Le lieu est obligatoire pour un événement en présentiel.'])
+                ->withInput();
+        }
+
+        $data['visio_provider'] = null;
+        $data['visio_url']      = null;
+        $data['visio_token']    = null;
+
+    } else {
+        // Visio
+        $provider = $data['visio_provider'] ?? 'external';
+
+        if ($provider === 'external') {
+
+            if (empty($data['visio_url'])) {
                 return back()
-                    ->withErrors(['location' => 'Le lieu est obligatoire pour un événement en présentiel.'])
+                    ->withErrors(['visio_url' => 'Le lien visio est obligatoire si vous utilisez un lien externe.'])
                     ->withInput();
             }
 
-            $data['visio_provider'] = null;
-            $data['visio_url']      = null;
-            $data['visio_token']    = null;
+            $data['visio_token'] = null;
 
         } else {
-            // Visio
-            $provider = $data['visio_provider'] ?? 'external';
+            // AromaMade WebRTC room
+            $data['visio_url'] = null;
 
-            if ($provider === 'external') {
-                if (empty($data['visio_url'])) {
-                    return back()
-                        ->withErrors(['visio_url' => 'Le lien visio est obligatoire si vous utilisez un lien externe.'])
-                        ->withInput();
-                }
+            do {
+                $token = Str::random(32); // SAME AS MeetingController
+            } while (Event::where('visio_token', $token)->exists());
 
-                $data['visio_token'] = null;
-
-            } else {
-                // AromaMade WebRTC room
-                $data['visio_url'] = null;
-
-                do {
-                    $token = Str::random(32); // SAME AS MeetingController
-                } while (Event::where('visio_token', $token)->exists());
-
-                $data['visio_token'] = $token;
-            }
-
-            // Display fallback
-            $data['location'] = $data['location'] ?: 'En ligne (Visio)';
+            $data['visio_token'] = $token;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Image
-        |--------------------------------------------------------------------------
-        */
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('events', 'public');
-        }
-
-        Event::create($data);
-		if ($request->boolean('block_calendar')) {
-			$start = Carbon::parse($data['start_date_time']);
-			$end   = (clone $start)->addMinutes((int) $data['duration']);
-
-			Unavailability::create([
-				'user_id'    => Auth::id(),
-				'start_date' => $start,
-				'end_date'   => $end,
-				'reason' => "Événement : ".$data['name'], // "nommée comme l'événement"
-			]);
-		}
-        return redirect()
-            ->route('events.index')
-            ->with('success', 'Événement créé avec succès.');
+        // Display fallback
+        $data['location'] = $data['location'] ?: 'En ligne (Visio)';
     }
 
-    public function show(Event $event)
-    {
-        $this->authorize('view', $event);
-        $event->load('reservations');
-        return view('events.show', compact('event'));
+    /*
+    |--------------------------------------------------------------------------
+    | Image
+    |--------------------------------------------------------------------------
+    */
+    if ($request->hasFile('image')) {
+        $data['image'] = $request->file('image')->store('events', 'public');
     }
+
+    Event::create($data);
+
+    if ($request->boolean('block_calendar')) {
+        $start = Carbon::parse($data['start_date_time']);
+        $end   = (clone $start)->addMinutes((int) $data['duration']);
+
+        Unavailability::create([
+            'user_id'    => Auth::id(),
+            'start_date' => $start,
+            'end_date'   => $end,
+            'reason'     => "Événement : " . $data['name'],
+        ]);
+    }
+
+    return redirect()
+        ->route('events.index')
+        ->with('success', 'Événement créé avec succès.');
+}
 
     public function edit(Event $event)
     {
@@ -158,100 +194,136 @@ class EventController extends Controller
         return view('events.edit', compact('event', 'products'));
     }
 
-    public function update(Request $request, Event $event)
-    {
-        $this->authorize('update', $event);
+   public function update(Request $request, Event $event)
+{
+    $this->authorize('update', $event);
 
-        $validated = $request->validate([
-            'name'               => 'required|string|max:255',
-            'description'        => 'nullable|string',
-            'start_date_time'    => 'required|date',
-            'duration'           => 'required|integer',
+    $validated = $request->validate([
+        'name'               => 'required|string|max:255',
+        'description'        => 'nullable|string',
+        'start_date_time'    => 'required|date',
+        'duration'           => 'required|integer',
 
-            'booking_required'   => 'required|boolean',
-            'limited_spot'       => 'required|boolean',
-            'number_of_spot'     => 'nullable|integer',
+        'booking_required'   => 'required|boolean',
+        'limited_spot'       => 'required|boolean',
+        'number_of_spot'     => 'nullable|integer',
 
-            'associated_product' => 'nullable|exists:products,id',
-            'image'              => 'nullable|image',
-            'showOnPortail'      => 'required|boolean',
+        'associated_product' => 'nullable|exists:products,id',
+        'image'              => 'nullable|image',
+        'showOnPortail'      => 'required|boolean',
 
-            'location'           => 'nullable|string|max:255',
+        'location'           => 'nullable|string|max:255',
 
-            'event_type'     => 'required|in:in_person,visio',
-            'visio_provider' => 'nullable|in:external,aromamade',
-            'visio_url'      => 'nullable|url|max:2000',
-        ]);
-	$validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
+        'event_type'     => 'required|in:in_person,visio',
+        'visio_provider' => 'nullable|in:external,aromamade',
+        'visio_url'      => 'nullable|url|max:2000',
 
+        // ✅ NEW: Payment
+        'collect_payment' => 'nullable|boolean',
+        'price'           => 'nullable|numeric|min:0',
+        'tax_rate'        => 'nullable|numeric|min:0|max:100',
+    ]);
 
-        $data = $validated;
+    $validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Format handling
-        |--------------------------------------------------------------------------
-        */
-        if ($data['event_type'] === 'in_person') {
-            if (empty($data['location'])) {
+    $data = $validated;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payment handling (NEW)
+    |--------------------------------------------------------------------------
+    */
+    $data['collect_payment'] = $request->boolean('collect_payment');
+
+    if ($data['collect_payment']) {
+        if (!$request->boolean('booking_required')) {
+            return back()
+                ->withErrors(['collect_payment' => 'Le paiement nécessite d’activer les réservations.'])
+                ->withInput();
+        }
+
+        if (empty($data['price']) || (float) $data['price'] <= 0) {
+            return back()
+                ->withErrors(['price' => 'Veuillez renseigner un prix TTC (> 0) pour un événement payant.'])
+                ->withInput();
+        }
+
+        $user = Auth::user();
+        if (empty($user->stripe_account_id)) {
+            return back()
+                ->withErrors(['collect_payment' => 'Pour activer le paiement, veuillez d’abord connecter votre compte Stripe (Stripe Connect).'])
+                ->withInput();
+        }
+    } else {
+        $data['price'] = null;
+        $data['tax_rate'] = 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Format handling
+    |--------------------------------------------------------------------------
+    */
+    if ($data['event_type'] === 'in_person') {
+        if (empty($data['location'])) {
+            return back()
+                ->withErrors(['location' => 'Le lieu est obligatoire pour un événement en présentiel.'])
+                ->withInput();
+        }
+
+        $data['visio_provider'] = null;
+        $data['visio_url']      = null;
+        $data['visio_token']    = null;
+
+    } else {
+        $provider = $data['visio_provider'] ?? 'external';
+
+        if ($provider === 'external') {
+            if (empty($data['visio_url'])) {
                 return back()
-                    ->withErrors(['location' => 'Le lieu est obligatoire pour un événement en présentiel.'])
+                    ->withErrors(['visio_url' => 'Le lien visio est obligatoire si vous utilisez un lien externe.'])
                     ->withInput();
             }
 
-            $data['visio_provider'] = null;
-            $data['visio_url']      = null;
-            $data['visio_token']    = null;
+            $data['visio_token'] = null;
 
         } else {
-            $provider = $data['visio_provider'] ?? 'external';
+            $data['visio_url'] = null;
 
-            if ($provider === 'external') {
-                if (empty($data['visio_url'])) {
-                    return back()
-                        ->withErrors(['visio_url' => 'Le lien visio est obligatoire si vous utilisez un lien externe.'])
-                        ->withInput();
-                }
+            // Preserve existing room if already created
+            if (empty($event->visio_token)) {
+                do {
+                    $token = Str::random(32);
+                } while (Event::where('visio_token', $token)->exists());
 
-                $data['visio_token'] = null;
-
+                $data['visio_token'] = $token;
             } else {
-                $data['visio_url'] = null;
-
-                // Preserve existing room if already created
-                if (empty($event->visio_token)) {
-                    do {
-                        $token = Str::random(32);
-                    } while (Event::where('visio_token', $token)->exists());
-
-                    $data['visio_token'] = $token;
-                } else {
-                    $data['visio_token'] = $event->visio_token;
-                }
+                $data['visio_token'] = $event->visio_token;
             }
-
-            $data['location'] = $data['location'] ?: 'En ligne (Visio)';
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Image update
-        |--------------------------------------------------------------------------
-        */
-        if ($request->hasFile('image')) {
-            if ($event->image) {
-                Storage::disk('public')->delete($event->image);
-            }
-
-            $data['image'] = $request->file('image')->store('events', 'public');
-        }
-
-        $event->update($data);
-
-        return redirect()
-            ->route('events.index')
-            ->with('success', 'Événement mis à jour avec succès.');
+        $data['location'] = $data['location'] ?: 'En ligne (Visio)';
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Image update
+    |--------------------------------------------------------------------------
+    */
+    if ($request->hasFile('image')) {
+        if ($event->image) {
+            Storage::disk('public')->delete($event->image);
+        }
+
+        $data['image'] = $request->file('image')->store('events', 'public');
+    }
+
+    $event->update($data);
+
+    return redirect()
+        ->route('events.index')
+        ->with('success', 'Événement mis à jour avec succès.');
+}
 
     public function destroy(Event $event)
     {
