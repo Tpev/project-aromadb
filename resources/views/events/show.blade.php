@@ -453,17 +453,26 @@
                                                     <td class="px-4 py-3 text-slate-700">
                                                         {{ $reservation->phone ?? '—' }}
                                                     </td>
-                                                    <td class="px-4 py-3">
-                                                        @if(($reservation->status ?? null) === 'cancelled')
-                                                            <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 border border-red-100">
-                                                                {{ __('Annulé') }}
-                                                            </span>
-                                                        @else
-                                                            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-100">
-                                                                {{ __('Confirmé') }}
-                                                            </span>
-                                                        @endif
-                                                    </td>
+													<td class="px-4 py-3">
+														@php
+															$status = $reservation->status ?? null;
+
+															[$label, $classes] = match ($status) {
+																'pending_payment' => ['En attente de paiement', 'bg-amber-50 text-amber-800 border-amber-100'],
+																'paid'            => ['Payé',                'bg-sky-50 text-sky-800 border-sky-100'],
+																'confirmed'       => ['Confirmé',            'bg-emerald-50 text-emerald-700 border-emerald-100'],
+																'canceled'        => ['Annulé',              'bg-red-50 text-red-700 border-red-100'],
+
+																// legacy / unknown values safety
+																'cancelled'       => ['Annulé',              'bg-red-50 text-red-700 border-red-100'],
+																default           => [$status ?: '—',        'bg-slate-50 text-slate-700 border-slate-200'],
+															};
+														@endphp
+
+														<span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border {{ $classes }}">
+															{{ __($label) }}
+														</span>
+													</td>
                                                     <td class="px-4 py-3 client-cell">
                                                         @if($clientId)
                                                             <div class="flex flex-col gap-1">
