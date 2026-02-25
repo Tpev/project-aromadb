@@ -84,7 +84,10 @@ class EventController extends Controller
     |--------------------------------------------------------------------------
     */
     $data['collect_payment'] = $request->boolean('collect_payment');
-
+	// ✅ tax_rate must never be null (DB constraint)
+	$data['tax_rate'] = isset($data['tax_rate']) && $data['tax_rate'] !== ''
+		? (float) $data['tax_rate']
+		: 0;
     if ($data['collect_payment']) {
         // must have booking
         if (!$request->boolean('booking_required')) {
@@ -234,7 +237,10 @@ class EventController extends Controller
     |--------------------------------------------------------------------------
     */
     $data['collect_payment'] = $request->boolean('collect_payment');
-
+	// ✅ tax_rate must never be null (DB constraint)
+	$data['tax_rate'] = isset($data['tax_rate']) && $data['tax_rate'] !== ''
+		? (float) $data['tax_rate']
+		: 0;
     if ($data['collect_payment']) {
         if (!$request->boolean('booking_required')) {
             return back()
