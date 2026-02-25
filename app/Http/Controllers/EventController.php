@@ -600,6 +600,21 @@ private function sanitizeEventDescription(?string $value): ?string
 
     return $clean;
 }
+public function show(Event $event)
+{
+    // Same authorization level as edit/update in your controller
+    $this->authorize('update', $event);
 
+    // The show blade expects reservations + related data
+    $event->load([
+        'user',
+        'associatedProduct',
+        'reservations' => function ($q) {
+            $q->orderBy('created_at', 'desc');
+        },
+    ]);
+
+    return view('events.show', compact('event'));
+}
 
 }
