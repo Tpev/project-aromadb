@@ -1515,7 +1515,7 @@ public function availableConcreteDatesPatient(Request $request)
         }
     }
 
-    $days  = (int) $request->input('days', 60);
+    $days  = (int) $request->input('days', 90);
     $today = Carbon::today();
 
     $dates = [];
@@ -2606,7 +2606,7 @@ public function availableConcreteDatesTherapist(Request $request)
         }
     }
 
-    $days   = (int) $request->input('days', 60);
+    $days   = (int) $request->input('days', 90);
     $today  = Carbon::today();
     $dates  = [];
 
