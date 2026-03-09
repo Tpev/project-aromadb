@@ -305,6 +305,25 @@
     </style>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('details.advanced-wrapper > summary.adv-toggle').forEach(function (summary) {
+                const wrapper = summary.parentElement;
+                const syncExpandedState = function () {
+                    summary.setAttribute('aria-expanded', wrapper.open ? 'true' : 'false');
+                };
+
+                syncExpandedState();
+                wrapper.addEventListener('toggle', syncExpandedState);
+
+                // Keep toggle reliable across browsers/webviews that do not consistently handle <summary> clicks.
+                summary.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    wrapper.open = !wrapper.open;
+                    syncExpandedState();
+                });
+            });
+        });
+
         function copyDirectBookingLink() {
             const el = document.getElementById('directBookingLinkInput');
             if (!el) return;
