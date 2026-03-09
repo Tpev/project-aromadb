@@ -50,7 +50,15 @@
     );
 
     // OG image (use bigger for previews). If none, omit og:image (safer than broken fallback).
-    $ogImage = $therapist->avatarUrl(640);
+    $ogImage = null;
+    if (!empty($therapist->profile_picture)) {
+        $candidate = "avatars/{$therapist->id}/avatar-640.webp";
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($candidate)) {
+            $ogImage = asset("storage/{$candidate}");
+        } else {
+            $ogImage = asset('storage/' . ltrim((string) $therapist->profile_picture, '/'));
+        }
+    }
 @endphp
 
 @section('title', $pageTitle)
