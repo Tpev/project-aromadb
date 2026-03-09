@@ -726,6 +726,48 @@ private function isAvailable(
     return true;
 }
 
+private function countDailyAppointmentsForLimit(int $therapistId, Carbon $date, ?int $productId = null): int
+{
+    $query = Appointment::query()
+        ->where('user_id', $therapistId)
+        ->whereDate('appointment_date', $date->toDateString())
+        ->where(function ($q) {
+            $q->whereNull('external')
+              ->orWhere('external', false);
+        });
+
+    $query = $this->applyBlockingAppointmentsFilter($query);
+
+    if ($productId !== null) {
+        $query->where('product_id', $productId);
+    }
+
+    return $query->count();
+}
+
+private function getDailyBookingLimitError(User $therapist, Product $product, Carbon $appointmentDateTime): ?string
+{
+    $dateLabel = $appointmentDateTime->format('d/m/Y');
+
+    $productLimit = (int) ($product->max_per_day ?? 0);
+    if ($productLimit > 0) {
+        $productCount = $this->countDailyAppointmentsForLimit((int) $therapist->id, $appointmentDateTime, (int) $product->id);
+        if ($productCount >= $productLimit) {
+            return "Le nombre maximum de rendez-vous pour cette prestation est atteint le {$dateLabel}.";
+        }
+    }
+
+    $globalLimit = (int) ($therapist->global_daily_booking_limit ?? 0);
+    if ($globalLimit > 0) {
+        $globalCount = $this->countDailyAppointmentsForLimit((int) $therapist->id, $appointmentDateTime);
+        if ($globalCount >= $globalLimit) {
+            return "Le nombre maximum global de rendez-vous est atteint le {$dateLabel}.";
+        }
+    }
+
+    return null;
+}
+
 
   
 
@@ -1029,6 +1071,13 @@ public function storePatient(Request $request)
         'Y-m-d H:i',
         $request->appointment_date . ' ' . $request->appointment_time
     );
+
+    $dailyLimitError = $this->getDailyBookingLimitError($therapist, $product, $appointmentDateTime);
+    if ($dailyLimitError) {
+        return back()->withErrors([
+            'appointment_date' => $dailyLimitError,
+        ])->withInput();
+    }
 
     // Valider la disponibilité du thérapeute (on passe le practice_location_id pour le cabinet)
     if (!$this->isAvailable($appointmentDateTime, $product->duration, $therapist->id, $product->id, null, $practiceLocationId, $mode)) {
@@ -1361,6 +1410,14 @@ public function getAvailableSlotsForPatient(Request $request)
     $dayOfWeek0 = $date->dayOfWeekIso - 1; // 0..6
     $dateStr    = $date->format('Y-m-d');
 
+    $dailyLimitError = $this->getDailyBookingLimitError($therapist, $product, $date);
+    if ($dailyLimitError) {
+        return response()->json([
+            'slots' => [],
+            'message' => $dailyLimitError,
+        ]);
+    }
+
     // 6a) Weekly
     $weeklyQuery = Availability::where('user_id', $therapistId)
         ->where('day_of_week', $dayOfWeek0)
@@ -1603,6 +1660,10 @@ private function computePatientSlotsForDate(int $therapistId, Product $product, 
 
     $date       = Carbon::createFromFormat('Y-m-d', $dateStr);
     $dayOfWeek0 = $date->dayOfWeekIso - 1;
+
+    if ($this->getDailyBookingLimitError($therapist, $product, $date)) {
+        return [];
+    }
 
     // Weekly
     $weeklyQuery = Availability::where('user_id', $therapistId)
@@ -2798,6 +2859,13 @@ public function storeByToken(Request $request, string $token)
         'Y-m-d H:i',
         $request->appointment_date . ' ' . $request->appointment_time
     );
+
+    $dailyLimitError = $this->getDailyBookingLimitError($therapist, $product, $appointmentDateTime);
+    if ($dailyLimitError) {
+        return back()->withErrors([
+            'appointment_date' => $dailyLimitError,
+        ])->withInput();
+    }
 
     // Valider la disponibilité du thérapeute (on passe le practice_location_id pour le cabinet)
     if (!$this->isAvailable($appointmentDateTime, $product->duration, $therapist->id, $product->id, null, $practiceLocationId, $mode)) {

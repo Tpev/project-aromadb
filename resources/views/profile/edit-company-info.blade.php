@@ -332,6 +332,28 @@
                         </div>
 
                         <div class="details-box">
+                            <label class="details-label" for="global_daily_booking_limit">
+                                {{ __('Limite globale de rendez-vous par jour (toutes prestations)') }}
+                            </label>
+                            <input
+                                type="number"
+                                id="global_daily_booking_limit"
+                                name="global_daily_booking_limit"
+                                class="form-control"
+                                min="1"
+                                step="1"
+                                value="{{ old('global_daily_booking_limit', $user->global_daily_booking_limit) }}"
+                                placeholder="{{ __('Ex: 8') }}"
+                            >
+                            <small class="text-gray-500">
+                                {{ __('Optionnel : laissez vide pour ne pas définir de limite globale.') }}
+                            </small>
+                            @error('global_daily_booking_limit')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="details-box">
                             <label class="details-label" for="cancellation_notice_hours">
                                 {{ __('Délai minimum d\'annulation client (heures avant le rendez-vous)') }}
                             </label>

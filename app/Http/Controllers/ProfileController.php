@@ -108,6 +108,7 @@ class ProfileController extends Controller
             'profile_description' => 'nullable|string|max:1000',
             'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
+            'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
             'cancellation_notice_hours' => 'nullable|integer|min:0|max:720',
 
@@ -140,6 +141,7 @@ class ProfileController extends Controller
             'minimum_notice_hours' => $validatedData['minimum_notice_hours'] ?? null,
             'profile_description' => $validatedData['profile_description'] ?? null,
             'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
+            'global_daily_booking_limit' => $validatedData['global_daily_booking_limit'] ?? null,
         ]);
 		// Google Calendar event color (store only palette ID)
 		if ($request->filled('google_event_color_id')) {
@@ -229,6 +231,7 @@ class ProfileController extends Controller
             'profile_description' => 'nullable|string|max:1000',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
+            'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
 
             // ✅ Invoice branding (optional on onboarding)
@@ -253,6 +256,7 @@ class ProfileController extends Controller
             'minimum_notice_hours' => $validatedData['minimum_notice_hours'] ?? null,
             'profile_description' => $validatedData['profile_description'] ?? null,
             'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
+            'global_daily_booking_limit' => $validatedData['global_daily_booking_limit'] ?? null,
         ]);
 
         $user->services = json_decode($validatedData['services'] ?? '[]', true) ?? [];

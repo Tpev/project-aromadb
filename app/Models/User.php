@@ -79,6 +79,7 @@ class User extends Authenticatable
         'featured_weight',
 
         'buffer_time_between_appointments',
+        'global_daily_booking_limit',
         'cgv_pdf_path',
 		'onboarding_mode',
 		'invoice_extra_info',
@@ -96,6 +97,7 @@ class User extends Authenticatable
         'is_featured' => 'boolean',
         'featured_until' => 'datetime',
         'buffer_time_between_appointments' => 'integer',
+        'global_daily_booking_limit' => 'integer',
     ];
 
     /*
