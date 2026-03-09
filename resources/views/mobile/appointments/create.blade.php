@@ -511,7 +511,7 @@
                         therapist_id: therapistId,
                         mode:        modeSlug || undefined,
                         location_id: (modeSlug === 'cabinet' ? (locationId || undefined) : undefined),
-                        days:        60,
+                        days:        90,
                         _token:      '{{ csrf_token() }}'
                     },
                     success: function(response) {

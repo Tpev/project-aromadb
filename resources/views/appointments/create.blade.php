@@ -653,7 +653,7 @@
                     product_id: productId,
                     mode: modeSlug,
                     location_id: locationId,
-                    days: 60,
+                    days: 90,
                     _token: '{{ csrf_token() }}'
                 })
                 .done(res => {

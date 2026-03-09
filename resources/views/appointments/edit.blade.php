@@ -289,7 +289,7 @@ $(function() {
             product_id: productId,
             mode: modeSlug,
             location_id: locationId,
-            days: 60,
+            days: 90,
 
             // ⭐ crucial for edit
             exclude_appointment_id: EDITING_APPOINTMENT_ID,
