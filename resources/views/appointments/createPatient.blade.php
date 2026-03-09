@@ -50,9 +50,7 @@
     );
 
     // OG image (use bigger for previews). If none, omit og:image (safer than broken fallback).
-    $ogImage = $therapist->profile_picture
-        ? asset("storage/avatars/{$therapist->id}/avatar-640.webp")
-        : null;
+    $ogImage = $therapist->avatarUrl(640);
 @endphp
 
 @section('title', $pageTitle)
@@ -808,7 +806,7 @@
                         therapist_id: therapistId,
                         mode:         modeSlug || undefined,
                         location_id:  (modeSlug === 'cabinet' ? (locationId || undefined) : undefined),
-                        days:         60,
+                        days:         90,
                         _token:       '{{ csrf_token() }}'
                     },
                     success: function(response) {
