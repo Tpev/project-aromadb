@@ -6,6 +6,7 @@ use App\Support\GoogleTokenFile;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\GoogleCalendar\Event as GoogleEvent;
 
@@ -80,9 +81,10 @@ class Appointment extends Model
 
     protected static function booted()
     {
-        static::created(fn ($appt) => $appt->syncToGoogle());
-        static::updated(fn ($appt) => $appt->syncToGoogle());
-        static::deleted(fn ($appt) => $appt->removeFromGoogle());
+        // External calendar sync must never block appointment CRUD.
+        static::created(fn ($appt) => $appt->syncToGoogleSafely('created'));
+        static::updated(fn ($appt) => $appt->syncToGoogleSafely('updated'));
+        static::deleted(fn ($appt) => $appt->removeFromGoogleSafely());
     }
 
     /* ------------------------------------------------------------------ */
@@ -201,9 +203,20 @@ public function syncToGoogle(): void
             if ($event) {
                 $event->update($eventData);
 
-                // Force color (blue by default)
-                $event->googleEvent->setColorId((string) $colorId);
-                $event->save();
+                // Keep color in sync as best effort, but never fail the appointment update.
+                try {
+                    $freshEvent = \Spatie\GoogleCalendar\Event::find($this->google_event_id);
+                    if ($freshEvent) {
+                        $freshEvent->googleEvent->setColorId((string) $colorId);
+                        $freshEvent->save();
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Google event color sync skipped after update.', [
+                        'appointment_id' => $this->id,
+                        'google_event_id' => $this->google_event_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
         } else {
             $event = \Spatie\GoogleCalendar\Event::create($eventData);
@@ -243,6 +256,33 @@ public function syncToGoogle(): void
         \App\Support\GoogleTokenFile::forget($therapist->id);
     }
 }
+
+    private function syncToGoogleSafely(string $context): void
+    {
+        try {
+            $this->syncToGoogle();
+        } catch (\Throwable $e) {
+            Log::error('Google Calendar sync failed without blocking appointment request.', [
+                'appointment_id' => $this->id,
+                'google_event_id' => $this->google_event_id,
+                'context' => $context,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function removeFromGoogleSafely(): void
+    {
+        try {
+            $this->removeFromGoogle();
+        } catch (\Throwable $e) {
+            Log::warning('Google Calendar delete sync failed.', [
+                'appointment_id' => $this->id,
+                'google_event_id' => $this->google_event_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
 
 
