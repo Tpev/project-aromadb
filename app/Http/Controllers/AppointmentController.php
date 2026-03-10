@@ -476,6 +476,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         'status'            => 'required|string',
         'notes'             => 'nullable|string',
         'product_id'        => 'required|exists:products,id',
+        'force_availability_override' => 'nullable|boolean',
         // 'mode' facultatif (UI)
         // 'practice_location_id' validé plus bas si nécessaire
     ]);
@@ -487,8 +488,12 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
     $product  = Product::findOrFail($request->product_id);
     $duration = (int) $product->duration;
 
-    // Mode (UI prioritaire)
-    $mode = $this->resolveMode($product, $request->input('mode'));
+    // Mode (UI prioritaire): support both "mode" and "type" like create flow
+    $uiMode = $request->input('mode');
+    if (empty($uiMode)) {
+        $uiMode = $request->input('type');
+    }
+    $mode = $this->resolveMode($product, $uiMode);
 
     // Validation conditionnelle du lieu si cabinet
     $locationId = null;
@@ -520,8 +525,14 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
     // DateTime
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date.' '.$request->appointment_time);
 
+    // Therapist can intentionally bypass availability checks (same behavior as create flow).
+    $forceOverride = $request->boolean('force_availability_override');
+
     // Vérification disponibilité (exclure le RDV en cours d’édition, passer mode + location)
-    if (!$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, $appointment->id, $locationId, $mode)) {
+    if (
+        !$forceOverride &&
+        !$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, $appointment->id, $locationId, $mode)
+    ) {
         return redirect()->back()
             ->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])
             ->withInput();

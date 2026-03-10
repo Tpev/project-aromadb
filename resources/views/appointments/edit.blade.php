@@ -101,6 +101,11 @@
 
             <h1 class="details-title">Modifier le Rendez-vous</h1>
 
+            <div id="slot-warning-banner" class="alert alert-warning text-center" style="display:none;">
+                ⚠ Ce créneau présente un ou plusieurs conflits. Vous pouvez tout de même mettre le rendez-vous à jour.
+                <div id="slot-warning-details" class="mt-2 text-start" style="max-width: 640px; margin: 0 auto;"></div>
+            </div>
+
             @if(session('success'))
                 <div class="alert alert-success text-center">{{ session('success') }}</div>
             @endif
@@ -159,6 +164,7 @@
                 {{-- Hidden final values --}}
                 <input type="hidden" name="product_id" id="product_id" value="{{ $initialProductId }}">
                 <input type="hidden" name="type" id="selected_mode_slug" value="{{ $initialModeSlug }}">
+                <input type="hidden" name="force_availability_override" id="force_availability_override" value="0">
 
                 {{-- Cabinet --}}
                 <div class="details-box" id="cabinet-location-section" style="display:none;">
@@ -274,14 +280,118 @@ $(function() {
 
     function resetSlotsUI() {
         $('#appointment_time').val('');
+        $('#force_availability_override').val('0');
         $('#time-slots-container').html('<span class="text-muted">Sélectionnez prestation, mode et date.</span>');
         $('#no-slots-message').hide().text('');
+        hideSlotWarning();
     }
 
     /**
      * ✅ Use THERAPIST endpoints (same as create_therapist)
      * + pass exclude_appointment_id so the current appointment doesn't block itself
      */
+    function conflictLabel(type) {
+        switch (type) {
+            case 'overlap_internal': return 'Conflit avec un autre rendez-vous';
+            case 'overlap_external': return 'Conflit avec un événement externe';
+            case 'outside_dispo': return 'En dehors des disponibilités';
+            case 'outside_opening_hours': return 'En dehors des horaires habituels';
+            case 'temporary_unavailability': return 'Période d’indisponibilité';
+            default: return 'Conflit détecté';
+        }
+    }
+
+    function hideSlotWarning() {
+        $('#slot-warning-banner').hide();
+        $('#slot-warning-details').html('');
+    }
+
+    function showSlotWarning(conflicts = [], explanations = []) {
+        const details = (Array.isArray(explanations) && explanations.length)
+            ? explanations
+            : (Array.isArray(conflicts) ? conflicts.map(conflictLabel) : []);
+
+        const uniq = [...new Set(details)].filter(Boolean);
+        const html = uniq.length
+            ? `<ul class="mb-0">${uniq.map(d => `<li>${d}</li>`).join('')}</ul>`
+            : '<div>Ce créneau est en dehors des recommandations habituelles.</div>';
+
+        $('#slot-warning-details').html(html);
+        $('#slot-warning-banner').show();
+    }
+
+    function normalizeSlots(slots) {
+        return (slots || []).map(s => {
+            if (typeof s === 'string') {
+                return { start: s, hasConflict: false, conflicts: [], explanations: [] };
+            }
+
+            let start = s.start || s.time || '';
+            if (start && start.includes('T')) {
+                start = start.substring(11, 16);
+            }
+
+            const conflicts = Array.isArray(s.conflicts) ? s.conflicts : [];
+            const explanations = Array.isArray(s.explanations)
+                ? s.explanations
+                : (Array.isArray(s.reasons) ? s.reasons : []);
+
+            const hasConflict = !!(s.has_conflict || s.is_conflict || s.conflict || s.blocked || conflicts.length || explanations.length);
+
+            return { start, hasConflict, conflicts, explanations };
+        });
+    }
+
+    function renderSlots(slots) {
+        const normalized = normalizeSlots(slots);
+
+        if (!normalized.length) {
+            $('#time-slots-container').html('<span class="text-muted">Aucun crÇ¸neau disponible.</span>');
+            $('#no-slots-message').text('Pas de crÇ¸neaux pour ce jour.').show();
+            renderManualSlotsEvery15Min();
+            $('#force_availability_override').val('1');
+            showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
+            return;
+        }
+
+        let html = '<div class="time-slots-grid">';
+        normalized.forEach(s => {
+            const explanations = s.explanations.length ? s.explanations : s.conflicts.map(conflictLabel);
+            html += `<button type="button" class="time-slot-btn"
+                             data-time="${s.start}"
+                             data-has-conflict="${s.hasConflict ? 1 : 0}"
+                             data-conflicts="${encodeURIComponent(JSON.stringify(s.conflicts || []))}"
+                             data-explanations="${encodeURIComponent(JSON.stringify(explanations || []))}">
+                        ${s.start}
+                    </button>`;
+        });
+        html += '</div>';
+        html += '<div class="mt-2"><button type="button" id="show-all-hours" class="btn-secondary" style="padding:6px 10px;font-size:0.9rem;">Afficher tous les horaires</button></div>';
+        $('#time-slots-container').html(html);
+        $('#no-slots-message').hide().text('');
+    }
+
+    function renderManualSlotsEvery15Min() {
+        let html = '<div class="time-slots-grid">';
+        for (let h = 0; h < 24; h++) {
+            for (let m = 0; m < 60; m += 15) {
+                const hh = String(h).padStart(2, '0');
+                const mm = String(m).padStart(2, '0');
+                const value = `${hh}:${mm}`;
+                html += `<button type="button" class="time-slot-btn"
+                                 data-time="${value}"
+                                 data-has-conflict="1"
+                                 data-manual="1"
+                                 data-conflicts="${encodeURIComponent(JSON.stringify(['outside_dispo']))}"
+                                 data-explanations="${encodeURIComponent(JSON.stringify([conflictLabel('outside_dispo')]))}">
+                            ${value}
+                        </button>`;
+            }
+        }
+        html += '</div>';
+        $('#time-slots-container').html(html);
+    }
+
     function fetchDates(productId, modeSlug, locationId = null) {
         $('#date-loading-message').show().text('Chargement des dates…');
 
@@ -289,6 +399,7 @@ $(function() {
             product_id: productId,
             mode: modeSlug,
             location_id: locationId,
+            include_conflicts: 1,
             days: 90,
 
             // ⭐ crucial for edit
@@ -298,7 +409,8 @@ $(function() {
         })
         .done(res => {
             allowedDates = res.dates || [];
-            fp.set('enable', allowedDates);
+            // Warning-only mode: allow selecting any date, even outside availability.
+            fp.set('enable', [() => true]);
 
             // Don't nuke the edit date if it exists (avoid fp.clear() here)
             resetSlotsUI();
@@ -318,6 +430,8 @@ $(function() {
         const reqId = currentSlotsRequestId;
 
         $('#appointment_time').val('');
+        $('#force_availability_override').val('0');
+        hideSlotWarning();
         $('#time-slots-container').html('<span class="text-muted">Chargement des créneaux…</span>');
         $('#no-slots-message').hide().text('');
 
@@ -326,6 +440,7 @@ $(function() {
             product_id: productId,
             mode: modeSlug,
             location_id: locationId,
+            include_conflicts: 1,
 
             // ⭐ crucial for edit
             exclude_appointment_id: EDITING_APPOINTMENT_ID,
@@ -336,22 +451,36 @@ $(function() {
             if (reqId !== currentSlotsRequestId) return;
 
             if (!res.slots || !res.slots.length) {
-                $('#time-slots-container').html('<span class="text-muted">Aucun créneau disponible.</span>');
-                $('#no-slots-message').text('Pas de créneaux pour ce jour').show();
+                $('#no-slots-message')
+                    .text('Aucun créneau recommandé pour ce jour. Vous pouvez sélectionner un horaire manuellement.')
+                    .show();
+                renderManualSlotsEvery15Min();
+                $('#force_availability_override').val('1');
+                showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
                 return;
             }
 
-            let html = '<div class="time-slots-grid">';
-            res.slots.forEach(s => {
-                html += `<button type="button" class="time-slot-btn" data-time="${s.start}">${s.start}</button>`;
-            });
-            html += '</div>';
-            $('#time-slots-container').html(html);
+            renderSlots(res.slots);
 
             if (OLD_TIME) {
                 $('#appointment_time').val(OLD_TIME);
                 $('#time-slots-container .time-slot-btn').each(function () {
-                    if ($(this).data('time') === OLD_TIME) $(this).addClass('active');
+                    if ($(this).data('time') === OLD_TIME) {
+                        $(this).addClass('active');
+
+                        const hasConflict = String($(this).attr('data-has-conflict') || '0') === '1';
+                        $('#force_availability_override').val(hasConflict ? '1' : '0');
+
+                        if (hasConflict) {
+                            let conflicts = [];
+                            let explanations = [];
+                            try { conflicts = JSON.parse(decodeURIComponent($(this).attr('data-conflicts') || '[]')); } catch (e) {}
+                            try { explanations = JSON.parse(decodeURIComponent($(this).attr('data-explanations') || '[]')); } catch (e) {}
+                            showSlotWarning(conflicts, explanations);
+                        } else {
+                            hideSlotWarning();
+                        }
+                    }
                 });
             }
         })
@@ -375,12 +504,34 @@ $(function() {
         fetchDates(productId, slug, loc);
     }
 
+    // show all hours (manual, outside dispo)
+    $(document).on('click', '#show-all-hours', function() {
+        renderManualSlotsEvery15Min();
+        $('#force_availability_override').val('1');
+        showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
+    });
+
     // slot click
     $(document).on('click', '.time-slot-btn', function() {
         $('.time-slot-btn').removeClass('active');
         $(this).addClass('active');
         $('#appointment_time').val($(this).data('time'));
         $('#no-slots-message').hide();
+
+        const hasConflict = String($(this).attr('data-has-conflict') || '0') === '1';
+        $('#force_availability_override').val(hasConflict ? '1' : '0');
+
+        if (!hasConflict) {
+            hideSlotWarning();
+            return;
+        }
+
+        let conflicts = [];
+        let explanations = [];
+        try { conflicts = JSON.parse(decodeURIComponent($(this).attr('data-conflicts') || '[]')); } catch (e) {}
+        try { explanations = JSON.parse(decodeURIComponent($(this).attr('data-explanations') || '[]')); } catch (e) {}
+
+        showSlotWarning(conflicts, explanations);
     });
 
     // product change -> populate mode
@@ -448,6 +599,7 @@ $(function() {
         const productId = $('#product_id').val();
         const slug      = $('#selected_mode_slug').val();
         const loc       = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
+        hideSlotWarning();
 
         if (date && productId && slug) fetchSlots(date, productId, slug, loc);
         else resetSlotsUI();
