@@ -169,11 +169,14 @@ public function store(Request $request, $eventId)
 public function create($eventId)
 {
     $event = Event::with(['reservations', 'user'])->findOrFail($eventId);
+    $publicEventUrl = ($event->user && $event->user->slug)
+        ? route('therapist.show', ['slug' => $event->user->slug]) . "#event-{$event->id}"
+        : url('/');
 
     // Check if the event requires booking
     if (!$event->booking_required) {
         return redirect()
-            ->route('events.show', $event->id)
+            ->to($publicEventUrl)
             ->with('error', __('Cet événement n\'accepte pas les réservations.'));
     }
 
@@ -187,7 +190,7 @@ public function create($eventId)
 
         if ($currentReservations >= (int) $event->number_of_spot) {
             return redirect()
-                ->route('events.show', $event->id)
+                ->to($publicEventUrl)
                 ->with('error', __('Cet événement est complet.'));
         }
     }

@@ -14,8 +14,12 @@
     $totalReservations = $event->reservations->count();
     $availableSpots    = $event->limited_spot ? $event->number_of_spot : '∞';
 
-    // URL publique de réservation (celle qui a les bons tags OG)
-    $eventPublicUrl = url("/events/{$event->id}/reserve");
+    // URL publique à partager :
+    // - réservation requise => page de réservation
+    // - sans réservation    => portail public du thérapeute, ancré sur l'événement
+    $eventPublicUrl = $event->booking_required
+        ? url("/events/{$event->id}/reserve")
+        : route('therapist.show', ['slug' => $event->user->slug]) . "#event-{$event->id}";
 
     // Texte de base pour le post Facebook
     $shareText = "Je participe à : {$event->name}";

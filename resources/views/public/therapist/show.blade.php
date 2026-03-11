@@ -763,7 +763,7 @@
                 @if($events->count() > 0)
                     <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         @foreach($events as $event)
-                            <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 event-item bg-white">
+                            <div id="event-{{ $event->id }}" class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 event-item bg-white">
                                 @if($event->image)
                                     <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-48 object-cover">
                                 @endif
@@ -813,8 +813,12 @@
         ? $event->number_of_spot - $event->reservations->count()
         : null;
 
-    // Always use public-friendly URL (avoid route() which may redirect)
-    $eventUrl = url("/events/{$event->id}/reserve");
+    // Public-safe URL:
+    // - booking required => reservation page
+    // - no booking      => therapist public page anchored to this event card
+    $eventUrl = $event->booking_required
+        ? url("/events/{$event->id}/reserve")
+        : route('therapist.show', ['slug' => $therapist->slug]) . "#event-{$event->id}";
 
     // Default share text
     $shareText = "Découvrez cet événement : {$event->name}";
