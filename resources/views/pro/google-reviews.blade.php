@@ -55,8 +55,32 @@
                     </div>
 
                     <div class="flex flex-wrap gap-3">
-                        <form method="POST" action="{{ route('pro.google-reviews.sync') }}">
+                        <form method="POST" action="{{ route('pro.google-reviews.sync') }}" class="space-y-3">
                             @csrf
+
+                            @if (!empty($availableLocations) && count($availableLocations) > 1)
+                                <div>
+                                    <label for="google_location_id" class="block text-sm font-semibold text-gray-700 mb-1">
+                                        Établissement à synchroniser
+                                    </label>
+
+                                    <select id="google_location_id"
+                                            name="location_id"
+                                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-[#647a0b] focus:ring focus:ring-[#8ea633]/30">
+                                        @foreach ($availableLocations as $location)
+                                            <option value="{{ $location['id'] }}"
+                                                {{ (string) old('location_id', $account->location_id) === (string) $location['id'] ? 'selected' : '' }}>
+                                                {{ $location['title'] ?: ('Établissement #' . $location['id']) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        Choisissez l’établissement Google à synchroniser.
+                                    </p>
+                                </div>
+                            @endif
+
                             <button type="submit"
                                     class="inline-flex items-center px-4 py-2 rounded-full bg-[#647a0b] text-white font-semibold hover:bg-[#8ea633] transition">
                                 <i class="fas fa-sync-alt mr-2"></i>

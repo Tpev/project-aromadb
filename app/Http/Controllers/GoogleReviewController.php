@@ -64,6 +64,7 @@ protected function cleanGoogleComment(?string $raw): ?string
 
 
 
+
     /**
      * HTTP client helper with CA bundle / dev fallback.
      */
@@ -91,6 +92,82 @@ protected function cleanGoogleComment(?string $raw): ?string
         }
     }
 
+    protected function fetchBusinessLocations(string $accountId, string $accessToken): array
+    {
+        $locationsResp = $this->httpClient()
+            ->withToken($accessToken)
+            ->get("https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{$accountId}/locations", [
+                'readMask' => 'name,title,storefrontAddress,websiteUri',
+            ]);
+
+        if ($locationsResp->failed()) {
+            Log::error('Google Business locations fetch failed', [
+                'account_id' => $accountId,
+                'body' => $locationsResp->body(),
+            ]);
+
+            return [];
+        }
+
+        return $locationsResp->json('locations') ?? [];
+    }
+
+    protected function extractLocationId(array $location): ?string
+    {
+        $name = $location['name'] ?? '';
+        if (! is_string($name) || $name === '') {
+            return null;
+        }
+
+        return str_replace('locations/', '', $name);
+    }
+
+    protected function getValidAccessToken(GoogleBusinessAccount $account): ?string
+    {
+        $accessToken = $account->access_token;
+
+        if ($accessToken && (! $account->access_token_expires_at || $account->access_token_expires_at->isFuture())) {
+            return $accessToken;
+        }
+
+        if (! $account->refresh_token) {
+            return null;
+        }
+
+        $config = config('services.google_business');
+
+        $refreshResponse = $this->httpClient(true)->post('https://oauth2.googleapis.com/token', [
+            'client_id' => $config['client_id'],
+            'client_secret' => $config['client_secret'],
+            'refresh_token' => $account->refresh_token,
+            'grant_type' => 'refresh_token',
+        ]);
+
+        if ($refreshResponse->failed()) {
+            Log::error('Google OAuth refresh_token failed', [
+                'user_id' => $account->user_id,
+                'body' => $refreshResponse->body(),
+            ]);
+
+            return null;
+        }
+
+        $data = $refreshResponse->json();
+        $accessToken = $data['access_token'] ?? null;
+        $expiresIn = $data['expires_in'] ?? 3600;
+
+        if (! $accessToken) {
+            return null;
+        }
+
+        $account->update([
+            'access_token' => $accessToken,
+            'access_token_expires_at' => now()->addSeconds($expiresIn - 60),
+        ]);
+
+        return $accessToken;
+    }
+
     public function index()
     {
         $this->ensureFeatureEnabled();
@@ -98,6 +175,26 @@ protected function cleanGoogleComment(?string $raw): ?string
         $user = Auth::user();
 
         $account = GoogleBusinessAccount::where('user_id', $user->id)->first();
+        $availableLocations = [];
+
+        if ($account && $account->account_id) {
+            $accessToken = $this->getValidAccessToken($account);
+
+            if ($accessToken) {
+                $locations = $this->fetchBusinessLocations($account->account_id, $accessToken);
+
+                $availableLocations = collect($locations)
+                    ->map(function (array $location) {
+                        return [
+                            'id' => $this->extractLocationId($location),
+                            'title' => $location['title'] ?? null,
+                        ];
+                    })
+                    ->filter(fn (array $location) => ! empty($location['id']))
+                    ->values()
+                    ->all();
+            }
+        }
 
         $googleTestimonials = Testimonial::where('therapist_id', $user->id)
             ->where('source', 'google')
@@ -106,6 +203,7 @@ protected function cleanGoogleComment(?string $raw): ?string
 
         return view('pro.google-reviews', [
             'account'            => $account,
+            'availableLocations' => $availableLocations,
             'googleTestimonials' => $googleTestimonials,
         ]);
     }
@@ -235,7 +333,7 @@ protected function cleanGoogleComment(?string $raw): ?string
         $location = $locations[0];
 
         // "locations/15368859932155211034" -> "15368859932155211034"
-        $locationId    = str_replace('locations/', '', $location['name'] ?? '');
+        $locationId    = $this->extractLocationId($location);
         $locationTitle = $location['title'] ?? null;
 
         // 3) Sauvegarder / mettre à jour en BDD
@@ -328,7 +426,7 @@ protected function cleanGoogleComment(?string $raw): ?string
     /**
      * Synchroniser les avis Google -> table testimonials.
      */
-    public function syncReviews()
+    public function syncReviews(Request $request)
     {
         $this->ensureFeatureEnabled();
 
@@ -343,54 +441,72 @@ protected function cleanGoogleComment(?string $raw): ?string
                 ->with('error', 'Aucun compte Google Business connecté.');
         }
 
-        // 1) S’assurer d’avoir un access_token valide
-        $accessToken = $account->access_token;
-
-        if (! $accessToken || ($account->access_token_expires_at && $account->access_token_expires_at->isPast())) {
-            if (! $account->refresh_token) {
-                return redirect()
-                    ->route('pro.google-reviews.index')
-                    ->with('error', 'Le token Google a expiré et aucun refresh token n’est disponible. Merci de reconnecter votre compte.');
-            }
-
-            $config = config('services.google_business');
-
-            $refreshResponse = $this->httpClient(true)->post('https://oauth2.googleapis.com/token', [
-                'client_id'     => $config['client_id'],
-                'client_secret' => $config['client_secret'],
-                'refresh_token' => $account->refresh_token,
-                'grant_type'    => 'refresh_token',
-            ]);
-
-            if ($refreshResponse->failed()) {
-                Log::error('Google OAuth refresh_token failed', [
-                    'body' => $refreshResponse->body(),
-                ]);
-
-                return redirect()
-                    ->route('pro.google-reviews.index')
-                    ->with('error', 'Impossible de rafraîchir le token Google. Merci de reconnecter votre compte.');
-            }
-
-            $data        = $refreshResponse->json();
-            $accessToken = $data['access_token'] ?? null;
-            $expiresIn   = $data['expires_in'] ?? 3600;
-
-            $account->update([
-                'access_token'            => $accessToken,
-                'access_token_expires_at' => now()->addSeconds($expiresIn - 60),
-            ]);
-        }
-
-        // 2) Vérif des infos de compte
-        $accountId  = $account->account_id;
-        $locationId = $account->location_id;
-
-        if (! $accountId || ! $locationId) {
+        // 1) Ensure we have a valid Google access token.
+        $accessToken = $this->getValidAccessToken($account);
+        if (! $accessToken) {
             return redirect()
                 ->route('pro.google-reviews.index')
-                ->with('error', 'Les informations de compte ou d’établissement Google sont incomplètes.');
+                ->with('error', 'Le token Google est invalide ou expiré. Merci de reconnecter votre compte.');
         }
+
+        // 2) Resolve which location to sync.
+        $accountId = $account->account_id;
+        if (! $accountId) {
+            return redirect()
+                ->route('pro.google-reviews.index')
+                ->with('error', 'Les informations de compte Google sont incomplètes.');
+        }
+
+        $locations = $this->fetchBusinessLocations($accountId, $accessToken);
+        $selectedLocationId = null;
+        $selectedLocationTitle = $account->location_title;
+
+        if (count($locations) > 0) {
+            $locationsById = collect($locations)
+                ->mapWithKeys(function (array $location) {
+                    $id = $this->extractLocationId($location);
+                    return $id ? [$id => $location] : [];
+                })
+                ->all();
+
+            $selectedLocationId = $request->input('location_id') ?: $account->location_id;
+            if (! $selectedLocationId && count($locationsById) === 1) {
+                $selectedLocationId = array_key_first($locationsById);
+            }
+
+            if (! $selectedLocationId || ! isset($locationsById[$selectedLocationId])) {
+                return redirect()
+                    ->route('pro.google-reviews.index')
+                    ->with('error', 'Veuillez sélectionner un établissement Google valide avant la synchronisation.');
+            }
+
+            $selectedLocationTitle = $locationsById[$selectedLocationId]['title'] ?? $selectedLocationTitle;
+        } else {
+            // Backward-safe fallback: existing connected users can still sync with stored location.
+            if ($request->filled('location_id')) {
+                return redirect()
+                    ->route('pro.google-reviews.index')
+                    ->with('error', 'Impossible de vérifier la liste des établissements Google. Réessayez dans quelques instants.');
+            }
+
+            $selectedLocationId = $account->location_id;
+
+            if (! $selectedLocationId) {
+                return redirect()
+                    ->route('pro.google-reviews.index')
+                    ->with('error', 'Les informations d’établissement Google sont incomplètes.');
+            }
+        }
+
+        if ($account->location_id !== $selectedLocationId || $account->location_title !== $selectedLocationTitle) {
+            $account->update([
+                'location_id' => $selectedLocationId,
+                'location_title' => $selectedLocationTitle,
+            ]);
+        }
+
+        // Keep model values in sync for the review API call below.
+        $account->location_id = $selectedLocationId;
 
         // 3) Appel API Reviews via stream (contourne Guzzle)
         $reviews = $this->fetchGoogleReviewsViaStream($account, $accessToken);
