@@ -32,7 +32,7 @@ function makeEvent(User $therapist, array $overrides = []): Event
     ], $overrides));
 }
 
-test('public therapist share link points to public event anchor when booking is not required', function () {
+test('public therapist share link points to reservation page when booking is not required', function () {
     $therapist = makeTherapist();
     $event = makeEvent($therapist, [
         'booking_required' => false,
@@ -42,10 +42,9 @@ test('public therapist share link points to public event anchor when booking is 
     $response->assertOk();
 
     $content = $response->getContent();
-    $publicAnchorUrl = route('therapist.show', ['slug' => $therapist->slug]) . "#event-{$event->id}";
+    $reserveUrl = url("/events/{$event->id}/reserve");
 
-    expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($publicAnchorUrl));
-    expect($content)->not->toContain(url("/events/{$event->id}/reserve"));
+    expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($reserveUrl));
 });
 
 test('public therapist share link points to reservation page when booking is required', function () {
@@ -63,7 +62,7 @@ test('public therapist share link points to reservation page when booking is req
     expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($reserveUrl));
 });
 
-test('event backoffice share link points to public event anchor when booking is not required', function () {
+test('event backoffice share link points to reservation page when booking is not required', function () {
     $therapist = makeTherapist();
     $event = makeEvent($therapist, [
         'booking_required' => false,
@@ -73,13 +72,13 @@ test('event backoffice share link points to public event anchor when booking is 
     $response->assertOk();
 
     $content = $response->getContent();
-    $publicAnchorUrl = route('therapist.show', ['slug' => $therapist->slug]) . "#event-{$event->id}";
+    $reserveUrl = url("/events/{$event->id}/reserve");
 
-    expect($content)->toContain($publicAnchorUrl);
-    expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($publicAnchorUrl));
+    expect($content)->toContain($reserveUrl);
+    expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($reserveUrl));
 });
 
-test('reservation page redirects to public event anchor when booking is not required', function () {
+test('reservation page renders informational mode when booking is not required', function () {
     $therapist = makeTherapist();
     $event = makeEvent($therapist, [
         'booking_required' => false,
@@ -87,10 +86,13 @@ test('reservation page redirects to public event anchor when booking is not requ
 
     $response = $this->get(route('events.reserve.create', $event->id));
 
-    $response->assertRedirect(route('therapist.show', ['slug' => $therapist->slug]) . "#event-{$event->id}");
+    $response->assertOk();
+    $response->assertSee('Informations de participation');
+    $response->assertSee('Cet événement est accessible sans réservation en ligne');
+    $response->assertDontSee('action="' . route('events.reserve.store', $event->id) . '"', false);
 });
 
-test('reservation page redirects to public event anchor when event is full', function () {
+test('reservation page renders full-event informational mode when event is full', function () {
     $therapist = makeTherapist();
     $event = makeEvent($therapist, [
         'booking_required' => true,
@@ -108,5 +110,8 @@ test('reservation page redirects to public event anchor when event is full', fun
 
     $response = $this->get(route('events.reserve.create', $event->id));
 
-    $response->assertRedirect(route('therapist.show', ['slug' => $therapist->slug]) . "#event-{$event->id}");
+    $response->assertOk();
+    $response->assertSee('Informations de participation');
+    $response->assertSee('Cet événement est complet.');
+    $response->assertDontSee('action="' . route('events.reserve.store', $event->id) . '"', false);
 });

@@ -65,12 +65,17 @@
                                     </label>
 
                                     <select id="google_location_id"
-                                            name="location_id"
+                                            name="location_selection"
                                             class="w-full border-gray-300 rounded-md shadow-sm focus:border-[#647a0b] focus:ring focus:ring-[#8ea633]/30">
                                         @foreach ($availableLocations as $location)
-                                            <option value="{{ $location['id'] }}"
-                                                {{ (string) old('location_id', $account->location_id) === (string) $location['id'] ? 'selected' : '' }}>
-                                                {{ $location['title'] ?: ('Établissement #' . $location['id']) }}
+                                            @php
+                                                $currentSelection = old('location_selection', ($account->account_id && $account->location_id)
+                                                    ? ($account->account_id . '|' . $account->location_id)
+                                                    : null);
+                                            @endphp
+                                            <option value="{{ $location['selection_value'] }}"
+                                                {{ (string) $currentSelection === (string) $location['selection_value'] ? 'selected' : '' }}>
+                                                {{ $location['label'] }}
                                             </option>
                                         @endforeach
                                     </select>

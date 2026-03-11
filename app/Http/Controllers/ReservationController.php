@@ -169,19 +169,17 @@ public function store(Request $request, $eventId)
 public function create($eventId)
 {
     $event = Event::with(['reservations', 'user'])->findOrFail($eventId);
-    $publicEventUrl = ($event->user && $event->user->slug)
-        ? route('therapist.show', ['slug' => $event->user->slug]) . "#event-{$event->id}"
-        : url('/');
+    $canReserve = true;
+    $reservationStatusMessage = null;
 
     // Check if the event requires booking
     if (!$event->booking_required) {
-        return redirect()
-            ->to($publicEventUrl)
-            ->with('error', __('Cet événement n\'accepte pas les réservations.'));
+        $canReserve = false;
+        $reservationStatusMessage = __('Cet événement est accessible sans réservation en ligne. Contactez directement le thérapeute si besoin.');
     }
 
     // Check if the event has spots available
-    if ($event->limited_spot) {
+    if ($canReserve && $event->limited_spot) {
 
         // ✅ Must match store(): count only active-ish reservations
         $currentReservations = $event->reservations()
@@ -189,13 +187,12 @@ public function create($eventId)
             ->count();
 
         if ($currentReservations >= (int) $event->number_of_spot) {
-            return redirect()
-                ->to($publicEventUrl)
-                ->with('error', __('Cet événement est complet.'));
+            $canReserve = false;
+            $reservationStatusMessage = __('Cet événement est complet.');
         }
     }
 
-    return view('reservations.create', compact('event'));
+    return view('reservations.create', compact('event', 'canReserve', 'reservationStatusMessage'));
 }
 
     /**

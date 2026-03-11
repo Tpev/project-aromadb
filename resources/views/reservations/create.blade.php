@@ -22,6 +22,9 @@
 @endonce
 
     @php
+        $canReserve = $canReserve ?? true;
+        $reservationStatusMessage = $reservationStatusMessage ?? null;
+
         // URL canonique de la page de réservation
         $eventUrl = url()->current();
 
@@ -215,7 +218,11 @@
         <!-- Reservation Form -->
         <div class="reservation-form mx-auto p-6">
             <h1 class="form-title text-2xl font-bold text-center mb-4">
-                <i class="fas fa-ticket-alt mr-2"></i>{{ __('Réserver une Place') }}
+                @if($canReserve)
+                    <i class="fas fa-ticket-alt mr-2"></i>{{ __('Réserver une Place') }}
+                @else
+                    <i class="fas fa-info-circle mr-2"></i>{{ __('Informations de participation') }}
+                @endif
             </h1>
 
             @if(session('success'))
@@ -238,80 +245,91 @@
                 </div>
             @endif
 
-            <form action="{{ route('events.reserve.store', $event->id) }}" method="POST">
-                @csrf
-
-                <!-- Honeypot (anti-bot) -->
-                <input type="text" name="website" tabindex="-1" autocomplete="off"
-                       style="position:absolute;left:-9999px;height:1px;width:1px;opacity:0;"
-                       aria-hidden="true">
-
-                <!-- Full Name -->
-                <div class="form-group">
-                    <label for="full_name" class="form-label">
-                        <i class="fas fa-user mr-2"></i>{{ __('Nom Complet') }}
-                    </label>
-                    <input type="text" id="full_name" name="full_name"
-                           class="form-control"
-                           value="{{ old('full_name') }}" required>
-                    @error('full_name')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+            @if(!$canReserve)
+                <div class="alert alert-success animate__animated animate__fadeInDown">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    {{ $reservationStatusMessage ?? __('Les inscriptions en ligne ne sont pas ouvertes pour cet événement.') }}
                 </div>
-
-                <!-- Email -->
-                <div class="form-group">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope mr-2"></i>{{ __('Email') }}
-                    </label>
-                    <input type="email" id="email" name="email"
-                           class="form-control"
-                           value="{{ old('email') }}" required>
-                    @error('email')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Phone -->
-                <div class="form-group">
-                    <label for="phone" class="form-label">
-                        <i class="fas fa-phone mr-2"></i>{{ __('Téléphone (Optionnel)') }}
-                    </label>
-                    <input type="text" id="phone" name="phone"
-                           class="form-control"
-                           value="{{ old('phone') }}">
-                    @error('phone')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- reCAPTCHA (same as register) --}}
-                {!! NoCaptcha::renderJs(app()->getLocale() ?? 'fr') !!}
-                {!! NoCaptcha::display() !!}
-                @error('g-recaptcha-response')
-                    <p class="text-red-500 mt-2">{{ $message }}</p>
-                @enderror
-
-                @php
-                    $submitDisabled = ($isPaidEvent && !$stripeConnected);
-                @endphp
-
-                <button type="submit"
-                        class="btn-primary mt-4"
-                        {{ $submitDisabled ? 'disabled' : '' }}
-                        style="{{ $submitDisabled ? 'opacity:.6;cursor:not-allowed;' : '' }}">
-                    <i class="fas fa-paper-plane mr-2"></i>
-                    @if($isPaidEvent)
-                        {{ __('Payer & Réserver') }}
-                    @else
-                        {{ __('Réserver') }}
-                    @endif
-                </button>
 
                 <a href="{{ route('therapist.show', $event->user->slug) }}" class="btn-secondary mt-4">
                     <i class="fas fa-arrow-left mr-2"></i>{{ __('Retour au profil du thérapeute') }}
                 </a>
-            </form>
+            @else
+                <form action="{{ route('events.reserve.store', $event->id) }}" method="POST">
+                    @csrf
+
+                    <!-- Honeypot (anti-bot) -->
+                    <input type="text" name="website" tabindex="-1" autocomplete="off"
+                           style="position:absolute;left:-9999px;height:1px;width:1px;opacity:0;"
+                           aria-hidden="true">
+
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label for="full_name" class="form-label">
+                            <i class="fas fa-user mr-2"></i>{{ __('Nom Complet') }}
+                        </label>
+                        <input type="text" id="full_name" name="full_name"
+                               class="form-control"
+                               value="{{ old('full_name') }}" required>
+                        @error('full_name')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope mr-2"></i>{{ __('Email') }}
+                        </label>
+                        <input type="email" id="email" name="email"
+                               class="form-control"
+                               value="{{ old('email') }}" required>
+                        @error('email')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label for="phone" class="form-label">
+                            <i class="fas fa-phone mr-2"></i>{{ __('Téléphone (Optionnel)') }}
+                        </label>
+                        <input type="text" id="phone" name="phone"
+                               class="form-control"
+                               value="{{ old('phone') }}">
+                        @error('phone')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- reCAPTCHA (same as register) --}}
+                    {!! NoCaptcha::renderJs(app()->getLocale() ?? 'fr') !!}
+                    {!! NoCaptcha::display() !!}
+                    @error('g-recaptcha-response')
+                        <p class="text-red-500 mt-2">{{ $message }}</p>
+                    @enderror
+
+                    @php
+                        $submitDisabled = ($isPaidEvent && !$stripeConnected);
+                    @endphp
+
+                    <button type="submit"
+                            class="btn-primary mt-4"
+                            {{ $submitDisabled ? 'disabled' : '' }}
+                            style="{{ $submitDisabled ? 'opacity:.6;cursor:not-allowed;' : '' }}">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        @if($isPaidEvent)
+                            {{ __('Payer & Réserver') }}
+                        @else
+                            {{ __('Réserver') }}
+                        @endif
+                    </button>
+
+                    <a href="{{ route('therapist.show', $event->user->slug) }}" class="btn-secondary mt-4">
+                        <i class="fas fa-arrow-left mr-2"></i>{{ __('Retour au profil du thérapeute') }}
+                    </a>
+                </form>
+            @endif
         </div>
     </div>
 

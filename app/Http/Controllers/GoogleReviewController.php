@@ -112,6 +112,23 @@ protected function cleanGoogleComment(?string $raw): ?string
         return $locationsResp->json('locations') ?? [];
     }
 
+    protected function fetchBusinessAccounts(string $accessToken): array
+    {
+        $accountsResp = $this->httpClient()
+            ->withToken($accessToken)
+            ->get('https://mybusinessaccountmanagement.googleapis.com/v1/accounts');
+
+        if ($accountsResp->failed()) {
+            Log::error('Google Business accounts fetch failed', [
+                'body' => $accountsResp->body(),
+            ]);
+
+            return [];
+        }
+
+        return $accountsResp->json('accounts') ?? [];
+    }
+
     protected function extractLocationId(array $location): ?string
     {
         $name = $location['name'] ?? '';
@@ -120,6 +137,64 @@ protected function cleanGoogleComment(?string $raw): ?string
         }
 
         return str_replace('locations/', '', $name);
+    }
+
+    protected function buildLocationSelectionValue(string $accountId, string $locationId): string
+    {
+        return $accountId . '|' . $locationId;
+    }
+
+    protected function fetchAllBusinessLocations(string $accessToken): array
+    {
+        $accounts = $this->fetchBusinessAccounts($accessToken);
+        if (count($accounts) === 0) {
+            return [];
+        }
+
+        $locations = [];
+
+        foreach ($accounts as $accountData) {
+            $accountName = $accountData['name'] ?? null;
+            if (! is_string($accountName) || $accountName === '') {
+                continue;
+            }
+
+            $accountId = str_replace('accounts/', '', $accountName);
+            if (! $accountId) {
+                continue;
+            }
+
+            $accountDisplayName = $accountData['accountName'] ?? null;
+
+            foreach ($this->fetchBusinessLocations($accountId, $accessToken) as $locationData) {
+                $locationId = $this->extractLocationId($locationData);
+                if (! $locationId) {
+                    continue;
+                }
+
+                $locationTitle = $locationData['title'] ?? null;
+                $selectionValue = $this->buildLocationSelectionValue($accountId, $locationId);
+                $readableLocationTitle = $locationTitle ?: ('Établissement #' . $locationId);
+                $readableAccountName = $accountDisplayName ?: ('Compte #' . $accountId);
+
+                $locations[] = [
+                    'selection_value' => $selectionValue,
+                    'account_id' => $accountId,
+                    'account_display_name' => $accountDisplayName,
+                    'location_id' => $locationId,
+                    'location_title' => $locationTitle,
+                    'label' => "{$readableLocationTitle} ({$readableAccountName})",
+                ];
+            }
+        }
+
+        usort($locations, function (array $a, array $b) {
+            $left = mb_strtolower(($a['account_display_name'] ?? '') . '|' . ($a['location_title'] ?? $a['location_id']));
+            $right = mb_strtolower(($b['account_display_name'] ?? '') . '|' . ($b['location_title'] ?? $b['location_id']));
+            return $left <=> $right;
+        });
+
+        return array_values($locations);
     }
 
     protected function getValidAccessToken(GoogleBusinessAccount $account): ?string
@@ -177,22 +252,39 @@ protected function cleanGoogleComment(?string $raw): ?string
         $account = GoogleBusinessAccount::where('user_id', $user->id)->first();
         $availableLocations = [];
 
-        if ($account && $account->account_id) {
+        if ($account) {
             $accessToken = $this->getValidAccessToken($account);
 
             if ($accessToken) {
-                $locations = $this->fetchBusinessLocations($account->account_id, $accessToken);
+                $availableLocations = $this->fetchAllBusinessLocations($accessToken);
 
-                $availableLocations = collect($locations)
-                    ->map(function (array $location) {
-                        return [
-                            'id' => $this->extractLocationId($location),
-                            'title' => $location['title'] ?? null,
-                        ];
-                    })
-                    ->filter(fn (array $location) => ! empty($location['id']))
-                    ->values()
-                    ->all();
+                // Backward-safe fallback for already-connected users if account listing fails.
+                if (count($availableLocations) === 0 && $account->account_id) {
+                    $locations = $this->fetchBusinessLocations($account->account_id, $accessToken);
+                    $availableLocations = collect($locations)
+                        ->map(function (array $location) use ($account) {
+                            $locationId = $this->extractLocationId($location);
+                            if (! $locationId) {
+                                return null;
+                            }
+
+                            $locationTitle = $location['title'] ?? null;
+                            $readableLocationTitle = $locationTitle ?: ('Établissement #' . $locationId);
+                            $readableAccountName = $account->account_display_name ?: ('Compte #' . $account->account_id);
+
+                            return [
+                                'selection_value' => $this->buildLocationSelectionValue($account->account_id, $locationId),
+                                'account_id' => $account->account_id,
+                                'account_display_name' => $account->account_display_name,
+                                'location_id' => $locationId,
+                                'location_title' => $locationTitle,
+                                'label' => "{$readableLocationTitle} ({$readableAccountName})",
+                            ];
+                        })
+                        ->filter()
+                        ->values()
+                        ->all();
+                }
             }
         }
 
@@ -278,63 +370,18 @@ protected function cleanGoogleComment(?string $raw): ?string
 
         $user = Auth::user();
 
-        // 1) Récupérer le compte Business Profile
-        $accountsResp = $this->httpClient()
-            ->withToken($accessToken)
-            ->get('https://mybusinessaccountmanagement.googleapis.com/v1/accounts');
-
-        if ($accountsResp->failed()) {
-            Log::error('Google Business accounts fetch failed', [
-                'body' => $accountsResp->body(),
-            ]);
-
+        $availableLocations = $this->fetchAllBusinessLocations($accessToken);
+        if (count($availableLocations) === 0) {
             return redirect()
                 ->route('pro.google-reviews.index')
-                ->with('error', 'Impossible de récupérer votre compte Business Profile.');
+                ->with('error', 'Aucun établissement Business Profile trouvé pour ce compte Google.');
         }
 
-        $accounts = $accountsResp->json('accounts') ?? [];
-        if (count($accounts) === 0) {
-            return redirect()
-                ->route('pro.google-reviews.index')
-                ->with('error', 'Aucun compte Business Profile trouvé pour ce compte Google.');
-        }
-
-        $accountData = $accounts[0];
-
-        // "accounts/116226129630634321894" -> "116226129630634321894"
-        $accountId          = str_replace('accounts/', '', $accountData['name'] ?? '');
-        $accountDisplayName = $accountData['accountName'] ?? null;
-
-        // 2) Récupérer la première location
-        $locationsResp = $this->httpClient()
-            ->withToken($accessToken)
-            ->get("https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{$accountId}/locations", [
-                'readMask' => 'name,title,storefrontAddress,websiteUri',
-            ]);
-
-        if ($locationsResp->failed()) {
-            Log::error('Google Business locations fetch failed', [
-                'body' => $locationsResp->body(),
-            ]);
-
-            return redirect()
-                ->route('pro.google-reviews.index')
-                ->with('error', 'Impossible de récupérer vos établissements Business Profile.');
-        }
-
-        $locations = $locationsResp->json('locations') ?? [];
-        if (count($locations) === 0) {
-            return redirect()
-                ->route('pro.google-reviews.index')
-                ->with('error', 'Aucun établissement Business Profile trouvé pour ce compte.');
-        }
-
-        $location = $locations[0];
-
-        // "locations/15368859932155211034" -> "15368859932155211034"
-        $locationId    = $this->extractLocationId($location);
-        $locationTitle = $location['title'] ?? null;
+        $defaultLocation = $availableLocations[0];
+        $accountId = $defaultLocation['account_id'];
+        $accountDisplayName = $defaultLocation['account_display_name'];
+        $locationId = $defaultLocation['location_id'];
+        $locationTitle = $defaultLocation['location_title'];
 
         // 3) Sauvegarder / mettre à jour en BDD
         $googleAccount = GoogleBusinessAccount::updateOrCreate(
@@ -449,63 +496,89 @@ protected function cleanGoogleComment(?string $raw): ?string
                 ->with('error', 'Le token Google est invalide ou expiré. Merci de reconnecter votre compte.');
         }
 
-        // 2) Resolve which location to sync.
-        $accountId = $account->account_id;
-        if (! $accountId) {
-            return redirect()
-                ->route('pro.google-reviews.index')
-                ->with('error', 'Les informations de compte Google sont incomplètes.');
-        }
-
-        $locations = $this->fetchBusinessLocations($accountId, $accessToken);
-        $selectedLocationId = null;
+        // 2) Resolve which account/location pair to sync.
+        $selectedAccountId = $account->account_id;
+        $selectedAccountDisplayName = $account->account_display_name;
+        $selectedLocationId = $account->location_id;
         $selectedLocationTitle = $account->location_title;
 
-        if (count($locations) > 0) {
-            $locationsById = collect($locations)
-                ->mapWithKeys(function (array $location) {
-                    $id = $this->extractLocationId($location);
-                    return $id ? [$id => $location] : [];
-                })
+        $requestedSelectionValue = $request->input('location_selection');
+        $requestedLocationId = $request->input('location_id'); // backward compatibility
+        $availableLocations = $this->fetchAllBusinessLocations($accessToken);
+
+        if (count($availableLocations) > 0) {
+            $locationsBySelection = collect($availableLocations)
+                ->mapWithKeys(fn (array $location) => [$location['selection_value'] => $location])
                 ->all();
 
-            $selectedLocationId = $request->input('location_id') ?: $account->location_id;
-            if (! $selectedLocationId && count($locationsById) === 1) {
-                $selectedLocationId = array_key_first($locationsById);
+            $resolvedSelectionValue = null;
+
+            if ($requestedSelectionValue) {
+                $resolvedSelectionValue = $requestedSelectionValue;
+            } elseif ($requestedLocationId) {
+                // Backward compatibility with old forms that only submitted location_id.
+                $candidate = collect($availableLocations)->first(function (array $location) use ($requestedLocationId, $account) {
+                    return (string) ($location['location_id'] ?? '') === (string) $requestedLocationId
+                        && (string) ($location['account_id'] ?? '') === (string) ($account->account_id ?? '');
+                });
+
+                if (! $candidate) {
+                    $candidate = collect($availableLocations)->first(function (array $location) use ($requestedLocationId) {
+                        return (string) ($location['location_id'] ?? '') === (string) $requestedLocationId;
+                    });
+                }
+
+                if ($candidate) {
+                    $resolvedSelectionValue = $candidate['selection_value'];
+                }
+            } elseif ($selectedAccountId && $selectedLocationId) {
+                $resolvedSelectionValue = $this->buildLocationSelectionValue($selectedAccountId, $selectedLocationId);
+            } elseif (count($availableLocations) === 1) {
+                $resolvedSelectionValue = $availableLocations[0]['selection_value'];
             }
 
-            if (! $selectedLocationId || ! isset($locationsById[$selectedLocationId])) {
+            if (! $resolvedSelectionValue || ! isset($locationsBySelection[$resolvedSelectionValue])) {
                 return redirect()
                     ->route('pro.google-reviews.index')
                     ->with('error', 'Veuillez sélectionner un établissement Google valide avant la synchronisation.');
             }
 
-            $selectedLocationTitle = $locationsById[$selectedLocationId]['title'] ?? $selectedLocationTitle;
+            $selectedLocation = $locationsBySelection[$resolvedSelectionValue];
+            $selectedAccountId = $selectedLocation['account_id'];
+            $selectedAccountDisplayName = $selectedLocation['account_display_name'];
+            $selectedLocationId = $selectedLocation['location_id'];
+            $selectedLocationTitle = $selectedLocation['location_title'];
         } else {
-            // Backward-safe fallback: existing connected users can still sync with stored location.
-            if ($request->filled('location_id')) {
+            // Backward-safe fallback: existing connected users can still sync with stored account/location.
+            if ($request->filled('location_selection') || $request->filled('location_id')) {
                 return redirect()
                     ->route('pro.google-reviews.index')
                     ->with('error', 'Impossible de vérifier la liste des établissements Google. Réessayez dans quelques instants.');
             }
 
-            $selectedLocationId = $account->location_id;
-
-            if (! $selectedLocationId) {
+            if (! $selectedAccountId || ! $selectedLocationId) {
                 return redirect()
                     ->route('pro.google-reviews.index')
                     ->with('error', 'Les informations d’établissement Google sont incomplètes.');
             }
         }
 
-        if ($account->location_id !== $selectedLocationId || $account->location_title !== $selectedLocationTitle) {
+        if (
+            $account->account_id !== $selectedAccountId
+            || $account->account_display_name !== $selectedAccountDisplayName
+            || $account->location_id !== $selectedLocationId
+            || $account->location_title !== $selectedLocationTitle
+        ) {
             $account->update([
+                'account_id' => $selectedAccountId,
+                'account_display_name' => $selectedAccountDisplayName,
                 'location_id' => $selectedLocationId,
                 'location_title' => $selectedLocationTitle,
             ]);
         }
 
         // Keep model values in sync for the review API call below.
+        $account->account_id = $selectedAccountId;
         $account->location_id = $selectedLocationId;
 
         // 3) Appel API Reviews via stream (contourne Guzzle)

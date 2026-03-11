@@ -20,10 +20,20 @@ test('google reviews page shows a location selector when multiple establishments
     ]);
 
     Http::fake([
-        'https://mybusinessbusinessinformation.googleapis.com/*' => Http::response([
+        'https://mybusinessaccountmanagement.googleapis.com/*' => Http::response([
+            'accounts' => [
+                ['name' => 'accounts/acc_123', 'accountName' => 'Cabinet Paris'],
+                ['name' => 'accounts/acc_456', 'accountName' => 'Cabinet Lyon'],
+            ],
+        ], 200),
+        'https://mybusinessbusinessinformation.googleapis.com/v1/accounts/acc_123/locations*' => Http::response([
             'locations' => [
                 ['name' => 'locations/loc_1', 'title' => 'Cabinet Principal'],
-                ['name' => 'locations/loc_2', 'title' => 'Cabinet Secondaire'],
+            ],
+        ], 200),
+        'https://mybusinessbusinessinformation.googleapis.com/v1/accounts/acc_456/locations*' => Http::response([
+            'locations' => [
+                ['name' => 'locations/loc_9', 'title' => 'Cabinet Bellecour'],
             ],
         ], 200),
     ]);
@@ -32,9 +42,9 @@ test('google reviews page shows a location selector when multiple establishments
 
     $response->assertOk();
     $response->assertSee('google_location_id', false);
-    $response->assertSee('name="location_id"', false);
-    $response->assertSee('Cabinet Principal');
-    $response->assertSee('Cabinet Secondaire');
+    $response->assertSee('name="location_selection"', false);
+    $response->assertSee('Cabinet Principal (Cabinet Paris)');
+    $response->assertSee('Cabinet Bellecour (Cabinet Lyon)');
 });
 
 test('sync rejects a location id that is not in the fetched Google establishments list', function () {
@@ -53,6 +63,11 @@ test('sync rejects a location id that is not in the fetched Google establishment
     ]);
 
     Http::fake([
+        'https://mybusinessaccountmanagement.googleapis.com/*' => Http::response([
+            'accounts' => [
+                ['name' => 'accounts/acc_123', 'accountName' => 'Compte Test'],
+            ],
+        ], 200),
         'https://mybusinessbusinessinformation.googleapis.com/*' => Http::response([
             'locations' => [
                 ['name' => 'locations/loc_1', 'title' => 'Cabinet Principal'],
@@ -62,7 +77,7 @@ test('sync rejects a location id that is not in the fetched Google establishment
     ]);
 
     $response = $this->actingAs($therapist)->post(route('pro.google-reviews.sync'), [
-        'location_id' => 'loc_unknown',
+        'location_selection' => 'acc_123|loc_unknown',
     ]);
 
     $response->assertRedirect(route('pro.google-reviews.index'));
@@ -89,11 +104,11 @@ test('sync rejects explicit location selection when establishments list cannot b
     ]);
 
     Http::fake([
-        'https://mybusinessbusinessinformation.googleapis.com/*' => Http::response([], 500),
+        'https://mybusinessaccountmanagement.googleapis.com/*' => Http::response([], 500),
     ]);
 
     $response = $this->actingAs($therapist)->post(route('pro.google-reviews.sync'), [
-        'location_id' => 'loc_2',
+        'location_selection' => 'acc_123|loc_2',
     ]);
 
     $response->assertRedirect(route('pro.google-reviews.index'));

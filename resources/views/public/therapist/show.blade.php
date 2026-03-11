@@ -813,12 +813,8 @@
         ? $event->number_of_spot - $event->reservations->count()
         : null;
 
-    // Public-safe URL:
-    // - booking required => reservation page
-    // - no booking      => therapist public page anchored to this event card
-    $eventUrl = $event->booking_required
-        ? url("/events/{$event->id}/reserve")
-        : route('therapist.show', ['slug' => $therapist->slug]) . "#event-{$event->id}";
+    // Always share the public event page so social previews use event OG metadata.
+    $eventUrl = url("/events/{$event->id}/reserve");
 
     // Default share text
     $shareText = "Découvrez cet événement : {$event->name}";
