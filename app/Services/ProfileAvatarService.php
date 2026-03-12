@@ -5,98 +5,127 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Encoders\WebpEncoder;
-use Illuminate\Support\Facades\Log;
+use Intervention\Image\Interfaces\ImageInterface;
 
 class ProfileAvatarService
 {
     /**
-     * Store original + responsive WebP variants, return 320-px path.
+     * Store responsive square WebP avatar variants and return the 320px path.
      */
-public static function store(UploadedFile $file, int $userId): string
-{
-    Log::info('Avatar STORE start', [
-        'userId' => $userId,
-        'origName' => $file->getClientOriginalName(),
-        'size' => $file->getSize(),
-        'mime' => $file->getMimeType(),
-    ]);
+    public static function store(UploadedFile $file, int $userId, ?string $cropPayload = null): string
+    {
+        $disk = Storage::disk('public');
+        $folder = "avatars/{$userId}";
+        $sizes = [320, 640, 1024];
 
-    $disk   = Storage::disk('public');
-    $folder = "avatars/{$userId}";
-    $sizes  = [320, 640, 1024];
+        $disk->deleteDirectory($folder);
+        $disk->makeDirectory($folder);
 
-    // 1) base dir
-    Log::info('Check base dir', [
-        'avatars_exists' => $disk->exists('avatars'),
-        'path_base'      => $disk->path('avatars'),
-        'is_writable'    => is_writable($disk->path('avatars'))
-    ]);
+        $driver = extension_loaded('imagick') ? new ImagickDriver() : new GdDriver();
+        $manager = new ImageManager($driver);
 
-    if (! $disk->exists('avatars')) {
-        $mk = $disk->makeDirectory('avatars');
-        Log::info('makeDirectory(avatars)', ['result' => $mk]);
-    }
+        $image = $manager->read($file->getRealPath())->orient();
+        $image = self::prepareSquareImage($image, self::decodeCropPayload($cropPayload));
 
-    // 2) delete old
-    try {
-        $del = $disk->deleteDirectory($folder);
-        Log::info('deleteDirectory', ['folder' => $folder, 'result' => $del]);
-    } catch (\Throwable $e) {
-        Log::warning('deleteDirectory exception', ['msg' => $e->getMessage()]);
-    }
+        foreach ($sizes as $size) {
+            $variant = clone $image;
+            $encoded = $variant
+                ->cover($size, $size)
+                ->encode(new WebpEncoder(quality: self::qualityFor($size)));
 
-    // 3) create folder (with fallback)
-    try {
-        $mk = $disk->makeDirectory($folder);
-        Log::info('makeDirectory(folder)', ['folder' => $folder, 'result' => $mk]);
-    } catch (\Throwable $e) {
-        Log::warning('makeDirectory exception', ['msg' => $e->getMessage()]);
-        \Illuminate\Support\Facades\File::ensureDirectoryExists(
-            storage_path("app/public/{$folder}"),
-            0775, true
-        );
-        Log::info('Fallback ensureDirectoryExists done');
-    }
-
-    Log::info('Folder exists after create?', [
-        'exists' => $disk->exists($folder),
-        'abs'    => $disk->path($folder),
-        'is_writable' => is_writable($disk->path($folder))
-    ]);
-
-    // 4) save original
-    $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-    $origPath = "{$folder}/{$baseName}.{$file->getClientOriginalExtension()}";
-    $putOrig  = $disk->putFileAs($folder, $file, basename($origPath));
-    Log::info('putFileAs original', ['path' => $origPath, 'result' => $putOrig]);
-
-    // 5) make variants
-    $driver  = extension_loaded('imagick') ? new \Intervention\Image\Drivers\Imagick\Driver()
-                                           : new \Intervention\Image\Drivers\Gd\Driver();
-    $manager = new \Intervention\Image\ImageManager($driver);
-    $webpEnc = new \Intervention\Image\Encoders\WebpEncoder(quality: 80);
-
-    foreach ($sizes as $w) {
-        try {
-            $encoded = $manager->read($file->getRealPath())
-                ->scaleDown(width: $w, height: $w)
-                ->resizeCanvas($w, $w, background: 'ffffff')
-                ->encode($webpEnc);
-
-            $p = "{$folder}/avatar-{$w}.webp";
-            $ok = $disk->put($p, (string) $encoded);
-            Log::info('put variant', ['path' => $p, 'ok' => $ok]);
-        } catch (\Throwable $e) {
-            Log::error('Variant encode/put failed', ['width' => $w, 'error' => $e->getMessage()]);
-            throw $e; // rethrow so you see it
+            $disk->put("{$folder}/avatar-{$size}.webp", (string) $encoded);
         }
+
+        return "{$folder}/avatar-320.webp";
     }
 
-    Log::info('Avatar STORE done', ['return' => "{$folder}/avatar-320.webp"]);
+    private static function qualityFor(int $size): int
+    {
+        return $size >= 1024 ? 84 : 82;
+    }
 
-    return "{$folder}/avatar-320.webp";
-}
+    private static function decodeCropPayload(?string $cropPayload): ?array
+    {
+        if (! $cropPayload) {
+            return null;
+        }
+
+        $decoded = json_decode($cropPayload, true);
+        if (! is_array($decoded)) {
+            return null;
+        }
+
+        $required = ['x', 'y', 'width', 'height'];
+        foreach ($required as $field) {
+            if (! isset($decoded[$field]) || ! is_numeric($decoded[$field])) {
+                return null;
+            }
+        }
+
+        if ((float) $decoded['width'] <= 0 || (float) $decoded['height'] <= 0) {
+            return null;
+        }
+
+        return [
+            'x' => (float) $decoded['x'],
+            'y' => (float) $decoded['y'],
+            'width' => (float) $decoded['width'],
+            'height' => (float) $decoded['height'],
+            'image_width' => (isset($decoded['image_width']) && is_numeric($decoded['image_width'])) ? (float) $decoded['image_width'] : null,
+            'image_height' => (isset($decoded['image_height']) && is_numeric($decoded['image_height'])) ? (float) $decoded['image_height'] : null,
+        ];
+    }
+
+    private static function prepareSquareImage(ImageInterface $image, ?array $crop): ImageInterface
+    {
+        $imageWidth = max(1, (int) $image->width());
+        $imageHeight = max(1, (int) $image->height());
+
+        if ($crop) {
+            $x = $crop['x'];
+            $y = $crop['y'];
+            $cropWidth = $crop['width'];
+            $cropHeight = $crop['height'];
+
+            $cropImageWidth = $crop['image_width'] ?? null;
+            $cropImageHeight = $crop['image_height'] ?? null;
+
+            if ($cropImageWidth && $cropImageHeight && $cropImageWidth > 0 && $cropImageHeight > 0) {
+                $scaleX = $imageWidth / $cropImageWidth;
+                $scaleY = $imageHeight / $cropImageHeight;
+                $x *= $scaleX;
+                $y *= $scaleY;
+                $cropWidth *= $scaleX;
+                $cropHeight *= $scaleY;
+            }
+
+            $x = max(0, (int) floor($x));
+            $y = max(0, (int) floor($y));
+            $cropWidth = max(1, (int) floor($cropWidth));
+            $cropHeight = max(1, (int) floor($cropHeight));
+
+            if ($x >= $imageWidth) {
+                $x = $imageWidth - 1;
+            }
+            if ($y >= $imageHeight) {
+                $y = $imageHeight - 1;
+            }
+
+            $cropWidth = min($cropWidth, $imageWidth - $x);
+            $cropHeight = min($cropHeight, $imageHeight - $y);
+
+            if ($cropWidth > 0 && $cropHeight > 0) {
+                return $image->crop($cropWidth, $cropHeight, $x, $y);
+            }
+        }
+
+        $size = min($imageWidth, $imageHeight);
+        $offsetX = (int) floor(($imageWidth - $size) / 2);
+        $offsetY = (int) floor(($imageHeight - $size) / 2);
+
+        return $image->crop($size, $size, $offsetX, $offsetY);
+    }
 }

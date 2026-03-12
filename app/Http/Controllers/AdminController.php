@@ -499,7 +499,8 @@ public function updateTherapistPicture(Request $request, User $therapist)
     abort_unless(auth()->user()?->isAdmin(), 403);
 
     $request->validate([
-        'profile_picture' => 'required|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
+        'profile_picture' => 'required|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
+        'profile_picture_crop' => 'nullable|json',
     ]);
     \Log::info('updateTherapistPicture hit', [
         'therapist_id' => $therapist->id,
@@ -507,7 +508,8 @@ public function updateTherapistPicture(Request $request, User $therapist)
     ]);
     $path320 = \App\Services\ProfileAvatarService::store(
         $request->file('profile_picture'),
-        $therapist->getKey() // int guaranteed
+        $therapist->getKey(), // int guaranteed
+        $request->input('profile_picture_crop')
     );
 
     $therapist->profile_picture = $path320;

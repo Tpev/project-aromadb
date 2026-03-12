@@ -106,7 +106,8 @@ class ProfileController extends Controller
             'minimum_notice_hours' => 'nullable|integer|min:0',
             'services' => 'nullable|string',
             'profile_description' => 'nullable|string|max:1000',
-            'profile_picture' => 'nullable|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
+            'profile_picture' => 'nullable|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
+            'profile_picture_crop' => 'nullable|json',
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
             'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
@@ -158,7 +159,8 @@ class ProfileController extends Controller
         if ($request->hasFile('profile_picture')) {
             $path320 = ProfileAvatarService::store(
                 $request->file('profile_picture'),
-                $user->id
+                $user->id,
+                $request->input('profile_picture_crop')
             );
             $user->profile_picture = $path320;
         }
@@ -229,7 +231,8 @@ class ProfileController extends Controller
             'minimum_notice_hours' => 'nullable|integer|min:0',
             'services' => 'nullable|string',
             'profile_description' => 'nullable|string|max:1000',
-            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,heic|max:3048',
+            'profile_picture' => 'nullable|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
+            'profile_picture_crop' => 'nullable|json',
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
             'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
@@ -263,12 +266,12 @@ class ProfileController extends Controller
 
         // Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
-            if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
-                Storage::disk('public')->delete($user->profile_picture);
-            }
-
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-            $user->profile_picture = $path;
+            $path320 = ProfileAvatarService::store(
+                $request->file('profile_picture'),
+                $user->id,
+                $request->input('profile_picture_crop')
+            );
+            $user->profile_picture = $path320;
         }
 
         /* ──────────── CGV PDF HANDLING ──────────── */

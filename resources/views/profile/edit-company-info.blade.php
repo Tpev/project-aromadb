@@ -226,19 +226,85 @@
                         <!-- Profile Picture Upload -->
                         <div class="details-box">
                             <label class="details-label" for="profile_picture">{{ __('Photo de Profil') }}</label>
-                            <div class="flex items-center gap-4">
-                                <!-- Display Current Profile Picture or Default -->
-                                @if($user->profile_picture)
-                                    <img src="{{ asset('storage/' . $user->profile_picture) }}"
-                                         alt="{{ __('Photo de Profil') }}"
-                                         class="w-20 h-20 rounded-full object-cover">
-                                @endif
-                                <!-- File Input -->
-                                <input type="file" id="profile_picture" name="profile_picture" class="form-control">
+                            @php
+                                $avatarPlaceholder = "data:image/svg+xml;utf8," . rawurlencode(
+                                    '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320">'
+                                    . '<rect width="320" height="320" fill="#E5E7EB"/>'
+                                    . '<circle cx="160" cy="130" r="56" fill="#9CA3AF"/>'
+                                    . '<path d="M54 285c20-52 64-79 106-79s86 27 106 79" fill="#9CA3AF"/>'
+                                    . '</svg>'
+                                );
+                                $currentAvatarUrl = $user->profile_picture
+                                    ? asset('storage/' . $user->profile_picture)
+                                    : $avatarPlaceholder;
+                            @endphp
+
+                            <div class="flex items-start gap-4 flex-wrap">
+                                <img id="profile-picture-preview"
+                                     src="{{ $currentAvatarUrl }}"
+                                     alt="{{ __('Photo de Profil') }}"
+                                     class="w-24 h-24 rounded-full object-cover border border-[#d8e1b9] shadow-sm">
+
+                                <div class="flex-1 min-w-[260px]">
+                                    <input type="file"
+                                           id="profile_picture"
+                                           name="profile_picture"
+                                           class="form-control"
+                                           accept="image/jpeg,image/jpg,image/png,image/webp,.heic,.heif">
+                                    <input type="hidden"
+                                           id="profile_picture_crop"
+                                           name="profile_picture_crop"
+                                           value="{{ old('profile_picture_crop') }}">
+
+                                    <small class="text-gray-500 block mt-1">
+                                        {{ __('Déposez une photo, recadrez-la (comme sur Facebook), puis enregistrez. Formats : JPG/PNG/WebP/HEIC. Max 10 Mo.') }}
+                                    </small>
+                                    <p id="profile-picture-client-error" class="text-red-500 mt-2 hidden"></p>
+                                </div>
                             </div>
                             @error('profile_picture')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
+                            @error('profile_picture_crop')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="profile-picture-cropper-modal" class="avatar-cropper-modal hidden" aria-hidden="true">
+                            <div class="avatar-cropper-backdrop"></div>
+                            <div class="avatar-cropper-dialog" role="dialog" aria-modal="true" aria-label="{{ __('Recadrer la photo de profil') }}">
+                                <div class="avatar-cropper-header">
+                                    <h4 class="font-semibold text-[#647a0b]">{{ __('Recadrer la photo') }}</h4>
+                                    <button type="button" id="profile-picture-cropper-cancel-top" class="avatar-cropper-close" aria-label="{{ __('Fermer') }}">×</button>
+                                </div>
+
+                                <div class="avatar-cropper-body">
+                                    <div class="avatar-cropper-image-wrap">
+                                        <img id="profile-picture-cropper-image" alt="{{ __('Aperçu recadrage') }}">
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <label for="profile-picture-cropper-zoom" class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ __('Zoom') }}
+                                        </label>
+                                        <input type="range"
+                                               id="profile-picture-cropper-zoom"
+                                               min="0"
+                                               max="100"
+                                               value="0"
+                                               class="w-full">
+                                    </div>
+                                </div>
+
+                                <div class="avatar-cropper-footer">
+                                    <button type="button" id="profile-picture-cropper-cancel" class="btn-secondary">
+                                        {{ __('Annuler') }}
+                                    </button>
+                                    <button type="button" id="profile-picture-cropper-apply" class="btn-primary">
+                                        {{ __('Utiliser cette photo') }}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Public sharing checkboxes -->
@@ -907,6 +973,79 @@
             object-fit: cover;
         }
 
+        .avatar-cropper-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .avatar-cropper-modal.hidden {
+            display: none;
+        }
+
+        .avatar-cropper-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.72);
+        }
+
+        .avatar-cropper-dialog {
+            position: relative;
+            width: min(760px, 100%);
+            max-height: 94vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+            border: 1px solid #d9e2ba;
+        }
+
+        .avatar-cropper-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .avatar-cropper-close {
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .avatar-cropper-body {
+            padding: 1rem;
+        }
+
+        .avatar-cropper-image-wrap {
+            width: 100%;
+            height: min(58vh, 420px);
+            background: #f3f4f6;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .avatar-cropper-image-wrap img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .avatar-cropper-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.6rem;
+            padding: 0.9rem 1rem 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
         @media (max-width: 640px) {
             .details-container {
                 padding: 20px;
@@ -917,6 +1056,176 @@
             }
         }
     </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" referrerpolicy="no-referrer"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fileInput = document.getElementById('profile_picture');
+            const cropField = document.getElementById('profile_picture_crop');
+            const preview = document.getElementById('profile-picture-preview');
+            const clientError = document.getElementById('profile-picture-client-error');
+
+            const modal = document.getElementById('profile-picture-cropper-modal');
+            const modalImage = document.getElementById('profile-picture-cropper-image');
+            const zoomInput = document.getElementById('profile-picture-cropper-zoom');
+            const cancelBtn = document.getElementById('profile-picture-cropper-cancel');
+            const cancelTopBtn = document.getElementById('profile-picture-cropper-cancel-top');
+            const applyBtn = document.getElementById('profile-picture-cropper-apply');
+
+            if (!fileInput || !cropField || !preview || !modal || !modalImage || !zoomInput || !applyBtn) {
+                return;
+            }
+
+            let cropper = null;
+            let objectUrl = null;
+            const maxBytes = 10 * 1024 * 1024;
+            const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+            function setClientError(message) {
+                if (!clientError) return;
+                if (!message) {
+                    clientError.classList.add('hidden');
+                    clientError.textContent = '';
+                    return;
+                }
+
+                clientError.textContent = message;
+                clientError.classList.remove('hidden');
+            }
+
+            function cleanupCropper() {
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                if (objectUrl) {
+                    URL.revokeObjectURL(objectUrl);
+                    objectUrl = null;
+                }
+                zoomInput.value = '0';
+            }
+
+            function closeModal(resetInput) {
+                modal.classList.add('hidden');
+                modal.setAttribute('aria-hidden', 'true');
+                cleanupCropper();
+                if (resetInput) {
+                    fileInput.value = '';
+                    cropField.value = '';
+                }
+            }
+
+            function openModal() {
+                modal.classList.remove('hidden');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files && event.target.files[0];
+                setClientError('');
+
+                if (!file) {
+                    cropField.value = '';
+                    return;
+                }
+
+                if (file.size > maxBytes) {
+                    setClientError("{{ __('Le fichier est trop lourd (max 10 Mo).') }}");
+                    fileInput.value = '';
+                    cropField.value = '';
+                    return;
+                }
+
+                if (file.type && !allowedMimeTypes.includes(file.type)) {
+                    setClientError("{{ __('Format non pris en charge. Utilisez JPG, PNG, WebP ou HEIC.') }}");
+                    fileInput.value = '';
+                    cropField.value = '';
+                    return;
+                }
+
+                if (typeof Cropper === 'undefined') {
+                    setClientError("{{ __('L’outil de recadrage n’a pas pu se charger. L’image sera importée et recadrée automatiquement.') }}");
+                    cropField.value = '';
+                    return;
+                }
+
+                cleanupCropper();
+
+                modalImage.onload = function () {
+                    cropper = new Cropper(modalImage, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 1,
+                        responsive: true,
+                        background: false,
+                        guides: false,
+                        center: true,
+                    });
+                };
+                modalImage.onerror = function () {
+                    setClientError("{{ __('Votre navigateur ne peut pas recadrer ce format. L’image sera quand même importée et recadrée automatiquement.') }}");
+                    closeModal(false);
+                };
+
+                objectUrl = URL.createObjectURL(file);
+                modalImage.src = objectUrl;
+                openModal();
+            });
+
+            zoomInput.addEventListener('input', function () {
+                if (!cropper) return;
+
+                const value = Number(zoomInput.value) / 100;
+                const imageData = cropper.getImageData();
+                const ratio = imageData.naturalWidth ? (imageData.width / imageData.naturalWidth) : 1;
+                cropper.zoomTo(Math.max(0.05, ratio + value));
+            });
+
+            function cancelCropper() {
+                closeModal(true);
+            }
+
+            cancelBtn?.addEventListener('click', cancelCropper);
+            cancelTopBtn?.addEventListener('click', cancelCropper);
+
+            modal.querySelector('.avatar-cropper-backdrop')?.addEventListener('click', cancelCropper);
+
+            applyBtn.addEventListener('click', function () {
+                if (!cropper) {
+                    closeModal(true);
+                    return;
+                }
+
+                const data = cropper.getData(true);
+                const imageData = cropper.getImageData();
+                cropField.value = JSON.stringify({
+                    x: data.x,
+                    y: data.y,
+                    width: data.width,
+                    height: data.height,
+                    image_width: imageData.naturalWidth,
+                    image_height: imageData.naturalHeight,
+                });
+
+                const canvas = cropper.getCroppedCanvas({
+                    width: 320,
+                    height: 320,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+
+                if (canvas) {
+                    preview.src = canvas.toDataURL('image/webp', 0.9);
+                }
+
+                setClientError('');
+                closeModal(false);
+            });
+        });
+    </script>
 
     <!-- Quill.js CDN -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
