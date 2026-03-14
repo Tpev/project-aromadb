@@ -41,3 +41,8 @@ Schedule::command(UpdateLicenseStatus::class)->daily();
 Schedule::command(ImportGoogleEvents::class)
 		->everyFiveMinutes()
 		->withoutOverlapping(20);
+
+// Rebuild public sitemap every night
+Schedule::command('sitemap:generate')
+    ->dailyAt('02:00')
+    ->withoutOverlapping();
