@@ -392,6 +392,8 @@
             const applyBtn = document.getElementById('profile-picture-cropper-apply');
             let cropper = null;
             let objectUrl = null;
+            let baseZoomRatio = 1;
+            let maxZoomRatio = 3;
 
             if (fileInput && cropField && preview && modal && modalImage && zoomInput && applyBtn) {
                 const maxBytes = 10 * 1024 * 1024;
@@ -418,6 +420,8 @@
                         URL.revokeObjectURL(objectUrl);
                         objectUrl = null;
                     }
+                    baseZoomRatio = 1;
+                    maxZoomRatio = 3;
                     zoomInput.value = '0';
                 }
 
@@ -477,6 +481,16 @@
                             background: false,
                             guides: false,
                             center: true,
+                            ready() {
+                                const imageData = cropper?.getImageData();
+                                const naturalWidth = imageData?.naturalWidth || 0;
+                                const currentWidth = imageData?.width || 0;
+                                baseZoomRatio = naturalWidth > 0
+                                    ? Math.max(0.05, currentWidth / naturalWidth)
+                                    : 1;
+                                maxZoomRatio = Math.max(baseZoomRatio * 3, baseZoomRatio + 1);
+                                zoomInput.value = '0';
+                            },
                         });
                     };
                     modalImage.onerror = function () {
@@ -491,10 +505,9 @@
 
                 zoomInput.addEventListener('input', function () {
                     if (!cropper) return;
-                    const value = Number(zoomInput.value) / 100;
-                    const imageData = cropper.getImageData();
-                    const ratio = imageData.naturalWidth ? (imageData.width / imageData.naturalWidth) : 1;
-                    cropper.zoomTo(Math.max(0.05, ratio + value));
+                    const sliderRatio = Number(zoomInput.value) / 100;
+                    const targetRatio = baseZoomRatio + (maxZoomRatio - baseZoomRatio) * sliderRatio;
+                    cropper.zoomTo(Math.max(0.05, targetRatio));
                 });
 
                 function cancelCropper() {
