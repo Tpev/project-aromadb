@@ -22,6 +22,7 @@ use Stripe\StripeClient;
 use App\Notifications\AppointmentBooked;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use App\Models\SpecialAvailability;
 use App\Models\PackPurchase;
 use App\Mail\AppointmentCancelledByClient;
@@ -1877,61 +1878,113 @@ public function availableDatesPatient(Request $request)
     }
 
     // Store a newly created unavailability
-public function storeUnavailability(Request $request)
-{
-    $request->validate([
-        'start_date' => 'required|date',
-        'start_time' => 'required|date_format:H:i',
-        'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-        'end_time' => 'required|date_format:H:i',
-        'reason' => 'nullable|string|max:255',
-    ]);
+    public function storeUnavailability(Request $request)
+    {
+        [$validated, $startDateTime, $endDateTime] = $this->validatedUnavailabilityPayload($request);
 
-    // Merge date and time into a single DateTime object
-    $startDateTime = Carbon::parse($request->start_date . ' ' . $request->start_time);
-    $endDateTime = Carbon::parse($request->end_date . ' ' . $request->end_time);
+        Unavailability::create([
+            'user_id' => Auth::id(),
+            'start_date' => $startDateTime,
+            'end_date' => $endDateTime,
+            'reason' => $validated['reason'] ?? null,
+        ]);
 
-    // Create and store unavailability
-    $unavailability = new Unavailability();
-    $unavailability->user_id = Auth::id();
-    $unavailability->start_date = $startDateTime; // Save as datetime
-    $unavailability->end_date = $endDateTime; // Save as datetime
-    $unavailability->reason = $request->reason;
-    $unavailability->save();
-
-    return redirect()->route('unavailabilities.index')->with('success', 'Indisponibilité ajoutée avec succès.');
-}
-
+        return redirect()
+            ->route('unavailabilities.index')
+            ->with('success', 'Indisponibilité ajoutée avec succès.');
+    }
 
     // Display all unavailability periods
     public function indexUnavailability()
     {
-        $unavailabilities = Unavailability::where('user_id', Auth::id())->get(); // Fetch user's unavailability
+        $unavailabilities = Unavailability::where('user_id', Auth::id())
+            ->orderBy('start_date', 'asc')
+            ->get();
 
         return view('unavailabilities.index', compact('unavailabilities'));
     }
 
-public function destroyUnavailability($id)
-{
-    // Find the unavailability record or fail if it doesn't exist
-    $unavailability = Unavailability::findOrFail($id);
+    // Show edit form for one unavailability
+    public function editUnavailability($id)
+    {
+        $unavailability = Unavailability::findOrFail($id);
 
-    // Log the attempt for debugging purposes
-    \Log::info('Attempting to authorize delete for unavailability', [
-        'user_id' => Auth::id(),
-        'unavailability_user_id' => $unavailability->user_id,
-    ]);
+        if ((int) Auth::id() !== (int) $unavailability->user_id) {
+            return redirect()
+                ->route('unavailabilities.index')
+                ->with('error', 'Vous n\'êtes pas autorisé à modifier cette indisponibilité.');
+        }
 
-    // Check if the authenticated user is the owner of the unavailability
-    if (Auth::id() === $unavailability->user_id) {
-        $unavailability->delete(); // Delete the unavailability
-
-        return redirect()->route('unavailabilities.index')->with('success', 'Indisponibilité supprimée avec succès.');
-    } else {
-        // If the user is not authorized to delete this unavailability
-        return redirect()->route('unavailabilities.index')->with('error', 'Vous n\'êtes pas autorisé à supprimer cette indisponibilité.');
+        return view('unavailabilities.edit', compact('unavailability'));
     }
-}
+
+    // Update one unavailability
+    public function updateUnavailability(Request $request, $id)
+    {
+        $unavailability = Unavailability::findOrFail($id);
+
+        if ((int) Auth::id() !== (int) $unavailability->user_id) {
+            return redirect()
+                ->route('unavailabilities.index')
+                ->with('error', 'Vous n\'êtes pas autorisé à modifier cette indisponibilité.');
+        }
+
+        [$validated, $startDateTime, $endDateTime] = $this->validatedUnavailabilityPayload($request);
+
+        $unavailability->update([
+            'start_date' => $startDateTime,
+            'end_date' => $endDateTime,
+            'reason' => $validated['reason'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('unavailabilities.index')
+            ->with('success', 'Indisponibilité mise à jour avec succès.');
+    }
+
+    public function destroyUnavailability($id)
+    {
+        $unavailability = Unavailability::findOrFail($id);
+
+        \Log::info('Attempting to authorize delete for unavailability', [
+            'user_id' => Auth::id(),
+            'unavailability_user_id' => $unavailability->user_id,
+        ]);
+
+        if ((int) Auth::id() !== (int) $unavailability->user_id) {
+            return redirect()
+                ->route('unavailabilities.index')
+                ->with('error', 'Vous n\'êtes pas autorisé à supprimer cette indisponibilité.');
+        }
+
+        $unavailability->delete();
+
+        return redirect()
+            ->route('unavailabilities.index')
+            ->with('success', 'Indisponibilité supprimée avec succès.');
+    }
+
+    private function validatedUnavailabilityPayload(Request $request): array
+    {
+        $validated = $request->validate([
+            'start_date' => 'required|date_format:Y-m-d',
+            'start_time' => 'required|date_format:H:i',
+            'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'end_time' => 'required|date_format:H:i',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $startDateTime = Carbon::createFromFormat('Y-m-d H:i', $validated['start_date'].' '.$validated['start_time']);
+        $endDateTime = Carbon::createFromFormat('Y-m-d H:i', $validated['end_date'].' '.$validated['end_time']);
+
+        if ($endDateTime->lessThanOrEqualTo($startDateTime)) {
+            throw ValidationException::withMessages([
+                'end_time' => 'La date et l\'heure de fin doivent être après la date et l\'heure de début.',
+            ]);
+        }
+
+        return [$validated, $startDateTime, $endDateTime];
+    }
 
 public function markAsCompleted(Appointment $appointment)
 {

@@ -763,6 +763,12 @@ Route::middleware(['auth'])->group(function () {
     // List unavailability
     Route::get('/unavailability', [AppointmentController::class, 'indexUnavailability'])->name('unavailabilities.index');
 
+    // Show edit form
+    Route::get('/unavailability/{id}/edit', [AppointmentController::class, 'editUnavailability'])->name('unavailabilities.edit');
+
+    // Update unavailability
+    Route::put('/unavailability/{id}', [AppointmentController::class, 'updateUnavailability'])->name('unavailabilities.update');
+
     // Delete unavailability
     Route::delete('/unavailability/{id}', [AppointmentController::class, 'destroyUnavailability'])->name('unavailabilities.destroy');
 });

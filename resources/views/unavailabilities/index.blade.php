@@ -135,6 +135,10 @@
                             <td>{{ \Carbon\Carbon::parse($unavailability->end_date)->format('H:i') }}</td>
                             <td>{{ $unavailability->reason ?? __('Aucune raison spécifiée') }}</td>
                             <td class="action-buttons">
+                                <a href="{{ route('unavailabilities.edit', $unavailability->id) }}"
+                                   class="btn btn-primary btn-sm me-2">
+                                    {{ __('Modifier') }}
+                                </a>
                                 <form action="{{ route('unavailabilities.destroy', $unavailability->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
