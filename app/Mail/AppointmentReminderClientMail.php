@@ -30,22 +30,31 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        // Pretty modes string
-        $modes = $this->appointment->product
-            ? $this->appointment->product->getConsultationModes()
-            : '—';
+        $resolvedMode = method_exists($this->appointment, 'getResolvedMode')
+            ? $this->appointment->getResolvedMode()
+            : ($this->appointment->type ?? null);
+
+        $modeLabel = method_exists($this->appointment, 'getResolvedModeLabel')
+            ? $this->appointment->getResolvedModeLabel()
+            : ($this->appointment->product?->getConsultationModes() ?? '—');
 
         // Resolve cabinet address
         $cabinetAddress = null;
-        if ($this->appointment->practiceLocation) {
+        if ($resolvedMode === 'cabinet' && $this->appointment->practiceLocation) {
             $pl = $this->appointment->practiceLocation;
             $cabinetAddress = $pl->full_address
                 ?? trim(collect([
                     $pl->address_line1,
                     trim(($pl->postal_code ?? '') . ' ' . ($pl->city ?? '')),
                 ])->filter()->implode("\n"));
-        } elseif (($this->appointment->type ?? null) === 'cabinet') {
+        } elseif ($resolvedMode === 'cabinet') {
             $cabinetAddress = $this->appointment->user?->company_address;
+        }
+
+        $clientAddress = null;
+        if (in_array($resolvedMode, ['domicile', 'entreprise'], true)) {
+            $clientAddress = trim((string) ($this->appointment->address ?: $this->appointment->clientProfile?->address ?: ''));
+            $clientAddress = $clientAddress !== '' ? $clientAddress : null;
         }
 
         // --- Visio link resolution (SAFE & non-breaking) ---
@@ -66,8 +75,10 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
             ->replyTo($replyToEmail, $replyToName)
             ->markdown('emails.appointment_reminder', [
                 'appointment'     => $this->appointment,
-                'modes'           => $modes,
+                'resolvedMode'    => $resolvedMode,
+                'modeLabel'       => $modeLabel,
                 'cabinetAddress'  => $cabinetAddress,
+                'clientAddress'   => $clientAddress,
                 'visioUrl'        => $visioUrl, // 👈 NEW
             ]);
     }

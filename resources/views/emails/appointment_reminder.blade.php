@@ -8,12 +8,15 @@ Ceci est un rappel pour votre rendez-vous prévu le {{ $appointment->appointment
 - **Date et heure :** {{ $appointment->appointment_date->format('d/m/Y \à H:i') }}
 - **Durée :** {{ $appointment->duration }} minutes
 - **Prestation :** {{ $appointment->product->name ?? '—' }}
-- **Mode de consultation :** {{ $modes }}
+- **Mode de consultation :** {{ $modeLabel ?? ($modes ?? '—') }}
 
-@isset($cabinetAddress)
+@if(($resolvedMode ?? null) === 'cabinet' && !empty($cabinetAddress))
 **Adresse du cabinet :**  
 {!! nl2br(e($cabinetAddress)) !!}
-@endisset
+@elseif(in_array(($resolvedMode ?? ''), ['domicile', 'entreprise'], true))
+**{{ ($resolvedMode ?? '') === 'entreprise' ? "Adresse de l’entreprise" : 'Adresse du domicile' }} :**  
+{!! nl2br(e($clientAddress ?? 'Adresse non renseignée')) !!}
+@endif
 
 @if(!empty($visioUrl))
 **Lien de visioconférence :**  

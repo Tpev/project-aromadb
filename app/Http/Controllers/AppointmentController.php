@@ -1114,6 +1114,13 @@ public function storePatient(Request $request)
         ]
     );
 
+    if (in_array($mode, ['domicile', 'entreprise'], true) && $request->filled('address')) {
+        if ((string) $clientProfile->address !== (string) $request->address) {
+            $clientProfile->address = $request->address;
+            $clientProfile->save();
+        }
+    }
+
     // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
     $appointment = Appointment::create([
         'client_profile_id'     => $clientProfile->id,
@@ -2953,6 +2960,13 @@ public function storeByToken(Request $request, string $token)
             'notes'      => $request->notes,
         ]
     );
+
+    if (in_array($mode, ['domicile', 'entreprise'], true) && $request->filled('address')) {
+        if ((string) $clientProfile->address !== (string) $request->address) {
+            $clientProfile->address = $request->address;
+            $clientProfile->save();
+        }
+    }
 
     // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
     $appointment = Appointment::create([

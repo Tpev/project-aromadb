@@ -29,23 +29,32 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
 
     public function build()
     {
-        // Pretty consultation mode string from Product helper
-        $modes = $this->appointment->product
-            ? $this->appointment->product->getConsultationModes()
-            : '—';
+        $resolvedMode = method_exists($this->appointment, 'getResolvedMode')
+            ? $this->appointment->getResolvedMode()
+            : ($this->appointment->type ?? null);
+
+        $modeLabel = method_exists($this->appointment, 'getResolvedModeLabel')
+            ? $this->appointment->getResolvedModeLabel()
+            : ($this->appointment->product?->getConsultationModes() ?? '—');
 
         // Prefer the exact practice location if set
         $cabinetAddress = null;
-        if ($this->appointment->practiceLocation) {
+        if ($resolvedMode === 'cabinet' && $this->appointment->practiceLocation) {
             $pl = $this->appointment->practiceLocation;
             $cabinetAddress = $pl->full_address
                 ?? trim(collect([
                     $pl->address_line1,
                     trim(($pl->postal_code ?? '') . ' ' . ($pl->city ?? '')),
                 ])->filter()->implode("\n"));
-        } elseif (($this->appointment->type ?? null) === 'cabinet') {
+        } elseif ($resolvedMode === 'cabinet') {
             // Fallback (old behavior) if type says cabinet but no location stored
             $cabinetAddress = $this->appointment->user?->company_address;
+        }
+
+        $clientAddress = null;
+        if (in_array($resolvedMode, ['domicile', 'entreprise'], true)) {
+            $clientAddress = trim((string) ($this->appointment->address ?: $this->appointment->clientProfile?->address ?: ''));
+            $clientAddress = $clientAddress !== '' ? $clientAddress : null;
         }
 
         // --- Visio link resolution (does not affect other modes) ---
@@ -110,8 +119,10 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
         $this->appointment->user?->name
     )
             ->markdown('emails.appointment_created_patient', [
-                'modes'           => $modes,
+                'resolvedMode'    => $resolvedMode,
+                'modeLabel'       => $modeLabel,
                 'cabinetAddress'  => $cabinetAddress,
+                'clientAddress'   => $clientAddress,
                 'visioUrl'        => $visioUrl,
                 'confirmationUrl' => $confirmationUrl,
                 'cutoffHours'     => $cutoffHours,
