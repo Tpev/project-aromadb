@@ -1,842 +1,855 @@
 <x-app-layout>
-    <!-- Importing necessary CSS and JS via Vite -->
+    @section('title', 'AromaMade PRO | Le logiciel pour praticiens du bien-être')
+    @section('meta_description', 'AromaMade PRO centralise rendez-vous, suivi client, facturation, paiements, visio, visibilité en ligne et communication pour les praticiens du bien-être.')
 
-    @push('styles')
-        <!-- AOS Animation Library -->
-        <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-        <!-- Font Awesome for icons -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-        <!-- Custom Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
-    @endpush
-@section('title', 'AromaMade PRO  L’application de gestion pour les thérapeutes')
-    @section('meta_description')
-Découvrez AromaMade PRO, l'application ultime pour simplifier la vie des thérapeutes du bien-être. Gérez vos rendez-vous, vos clients, et développez votre pratique avec des outils puissants et faciles à utiliser.
+    @section('meta_og')
+        <meta property="og:type" content="website">
+        <meta property="og:locale" content="fr_FR">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="AromaMade PRO | Le logiciel pour praticiens du bien-être">
+        <meta property="og:description" content="Un seul outil pour piloter votre activité: agenda, clients, facturation, paiements, visio et visibilité en ligne.">
+        <meta property="og:image" content="{{ asset('images/hero.webp') }}">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="AromaMade PRO | Le logiciel pour praticiens du bien-être">
+        <meta name="twitter:description" content="Pilotez votre activité avec un flux simple: réservation, suivi, facturation et croissance.">
+        <meta name="twitter:image" content="{{ asset('images/hero.webp') }}">
     @endsection
 
-<!-- Hero Section with Background Video -->
-<section class="hero relative">
-    <div class="hero-bg absolute w-full h-full bg-center bg-cover" style="background-image: url('{{ asset('images/hero.webp') }}');">
-        <div class="overlay absolute inset-0 bg-gradient-to-b from-black via-transparent to-black opacity-60"></div>
-    </div>
-
-    <div class="container mx-auto text-center relative z-10 py-24">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6 text-white animate-fade-in">
-            Transformez votre pratique avec AromaMade PRO
-        </h1>
-        <p class="text-xl md:text-2xl mb-10 text-white">
-            L'outil tout-en-un pour les thérapeutes du bien-être
-        </p>
-
-        <div class="flex flex-col sm:flex-row justify-center gap-4">
-            <!-- Main CTA -->
-            <a href="{{ route('register-pro') }}"
-               class="px-8 py-3 rounded-lg text-white font-semibold text-lg shadow-lg bg-[#647a0b] hover:bg-[#7a930d] transition duration-300 animate-pulse">
-               Activer mon essai PRO de 14 jours
-            </a>
-
-            <!-- Secondary CTA -->
-            <a href="{{ route('register-pro') }}"
-               class="px-8 py-3 rounded-lg bg-white text-[#647a0b] font-semibold text-lg shadow-lg hover:bg-transparent hover:text-white hover:border-white border border-transparent transition duration-300">
-               Référencement gratuit
-            </a>
-        </div>
-    </div>
-
-    <div class="overlay absolute inset-0 bg-black opacity-50"></div>
-</section>
-
-
-
-
-    <!-- Introduction Section -->
-    <section class="py-12 bg-white">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-4xl font-bold mb-6 text-primary">Pourquoi choisir AromaMade PRO ?</h2>
-            <p class="text-lg text-gray-700 max-w-3xl mx-auto">
-                Notre application a été spécialement conçue pour simplifier la vie de tous les thérapeutes du bien-être, quels que soient vos domaines d’expertise. Offrez-vous un outil puissant pour gérer facilement vos rendez-vous, vos clients et bien plus encore.
-            </p>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="py-12 bg-gray-100">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl font-bold mb-10 text-primary">Des fonctionnalités qui révolutionnent votre pratique</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- First 6 Feature Cards -->
-                <!-- Feature Card 1 -->
-                <div class="feature-card group" data-aos="fade-up">
-                    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                        <i class="fas fa-calendar-alt text-5xl mb-4 text-primary"></i>
-                        <h3 class="text-2xl font-bold mb-2">Prise de rendez-vous</h3>
-                        <p class="text-gray-700">Gagnez du temps en créant vos rendez-vous depuis votre espace, ou laissez vos clients réserver directement via votre Portail Pro. Vous restez maître de votre planning tout en offrant une flexibilité maximale à vos clients.</p>
-                    </div>
-                </div>
-                <!-- Feature Card 2 -->
-                <div class="feature-card group" data-aos="fade-up" data-aos-delay="100">
-                    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                        <i class="fas fa-folder-open text-5xl mb-4 text-secondary"></i>
-                        <h3 class="text-2xl font-bold mb-2">Gestion des dossiers clients</h3>
-                        <p class="text-gray-700">Centralisez toutes les informations essentielles dans un dossier sécurisé. Plus besoin de jongler entre différents outils, toutes les données de vos clients sont accessibles en un clic.</p>
-                    </div>
-                </div>
-                <!-- Feature Card 3 -->
-                <div class="feature-card group" data-aos="fade-up" data-aos-delay="200">
-                    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                        <i class="fas fa-globe text-5xl mb-4 text-primary"></i>
-                        <h3 class="text-2xl font-bold mb-2">Portail Pro</h3>
-                        <p class="text-gray-700">Une véritable vitrine en ligne pour attirer de nouveaux clients ! Partagez facilement votre lien sur vos réseaux sociaux et permettez à vos clients de consulter vos services et de prendre rendez-vous sans effort.</p>
-                    </div>
-                </div>
-<a href="/pro/facturation-therapeute" class="group block" data-aos="fade-up" data-aos-delay="300">
-    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-        <i class="fas fa-file-invoice-dollar text-5xl mb-4 text-secondary"></i>
-        <h3 class="text-2xl font-bold mb-2">Facturation simplifiée</h3>
-        <p class="text-gray-700">Automatisez la génération et l’envoi de vos factures, et suivez facilement les paiements. Vous allez adorer ne plus vous soucier de l’administratif !</p>
-    </div>
-</a>
-
-                <!-- Feature Card 5 -->
-                <div class="feature-card group" data-aos="fade-up" data-aos-delay="400">
-                    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                        <i class="fas fa-question-circle text-5xl mb-4 text-primary"></i>
-                        <h3 class="text-2xl font-bold mb-2">Questionnaires</h3>
-                        <p class="text-gray-700">Créez des questionnaires personnalisés à envoyer avant ou pendant les séances, pour mieux comprendre vos clients et personnaliser vos soins.</p>
-                    </div>
-                </div>
-                <!-- Feature Card 6 -->
-                <div class="feature-card group" data-aos="fade-up" data-aos-delay="500">
-                    <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                        <i class="fas fa-bullseye text-5xl mb-4 text-secondary"></i>
-                        <h3 class="text-2xl font-bold mb-2">Suivi des objectifs thérapeutiques</h3>
-                        <p class="text-gray-700">Suivez les progrès de vos clients en définissant des objectifs personnalisés pour chaque séance.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hidden Additional Features -->
-            <div id="additional-features" class="feature-hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-                    <!-- Feature Cards 7 to 14 -->
-                    <!-- Feature Card 7 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="600">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-credit-card text-5xl mb-4 text-primary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Options de paiement en ligne</h3>
-                            <p class="text-gray-700">Permettez à vos clients de régler leurs séances directement en ligne pour une gestion simplifiée des paiements.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 8 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="700">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-share-alt text-5xl mb-4 text-secondary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Intégration réseaux sociaux</h3>
-                            <p class="text-gray-700">Publiez automatiquement vos actualités et événements sur tous vos réseaux sociaux, directement depuis AromaMade.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 9 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="800">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-calendar-plus text-5xl mb-4 text-primary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Création d'événements</h3>
-                            <p class="text-gray-700">Organisez des ateliers, séminaires ou événements avec des limites de participants, et proposez la réservation en ligne.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 10 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="900">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-book text-5xl mb-4 text-secondary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Bibliothèque de conseils</h3>
-                            <p class="text-gray-700">Créez et envoyez à vos clients des recommandations régulières et personnalisées pour les accompagner dans leur suivi.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 11 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="1000">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-file-upload text-5xl mb-4 text-primary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Gestion et stockage de documents</h3>
-                            <p class="text-gray-700">Stockez et gérez facilement tous vos documents professionnels dans un espace sécurisé.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 12 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="1100">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-star text-5xl mb-4 text-secondary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Avis clients</h3>
-                            <p class="text-gray-700">Affichez les retours et avis de vos clients directement sur votre profil pour renforcer votre crédibilité et attirer de nouveaux clients.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 13 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="1200">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-sync-alt text-5xl mb-4 text-primary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Synchronisation des calendriers</h3>
-                            <p class="text-gray-700">Synchronisez vos rendez-vous avec les calendriers Google, Apple, Microsoft pour une compatibilité totale avec Android, iPhone, etc.</p>
-                        </div>
-                    </div>
-                    <!-- Feature Card 14 -->
-                    <div class="feature-card group" data-aos="fade-up" data-aos-delay="1300">
-                        <div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-                            <i class="fas fa-video text-5xl mb-4 text-secondary"></i>
-                            <h3 class="text-2xl font-bold mb-2">Visio-conférence intégrée</h3>
-                            <p class="text-gray-700">Offrez des séances à distance grâce à la visio-conférence intégrée directement dans AromaMade, sans besoin d’outils tiers.</p>
-                        </div>
-                    </div>
-					<a href="/pro/gestion-inventaire-therapeute" class="feature-card group block" data-aos="fade-up" data-aos-delay="1300">
-					<div class="p-6 bg-white rounded-lg shadow-lg transform transition duration-300 group-hover:shadow-xl group-hover:-translate-y-2">
-						<i class="fas fa-boxes text-5xl mb-4 text-secondary"></i>
-						<h3 class="text-2xl font-bold mb-2">Gestion d’inventaire intelligente</h3>
-						<p class="text-gray-700">Suivez vos huiles essentielles, plantes, produits et consommables. AromaMade vous permet de gérer les niveaux de stock au goutte-à-goutte ou à l’unité.</p>
-					</div>
-				</a>
-
-                </div>
-            </div>
-
-            <!-- Call to Action within the section -->
-            <div class="mt-12">
-                <button id="show-more-features" class="btn-secondary">Voir toutes les fonctionnalités</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Wave Separator -->
-    <div class="wave-container">
-        <svg viewBox="0 0 1440 320">
-            <path fill="#ffffff" fill-opacity="1" d="M0,224L1440,96L1440,320L0,320Z"></path>
-        </svg>
-    </div>
-    <!-- Statistics Section -->
-    <section class="py-12 bg-white">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl font-bold mb-8 text-primary">Notre impact en chiffres</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-5xl font-bold text-green-500 counter" data-count="500">1000+</h3>
-                    <p class="text-xl mt-2">Utilisateurs satisfaits</p>
-                </div>
-                <div>
-                    <h3 class="text-5xl font-bold text-green-500 counter" data-count="10000">100%</h3>
-                    <p class="text-xl mt-2">Rendez-vous gérés</p>
-                </div>
-                <div>
-                    <h3 class="text-5xl font-bold text-green-500 counter" data-count="99">99%</h3>
-                    <p class="text-xl mt-2">Taux de satisfaction</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="py-12 bg-gray-100">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl font-bold mb-8 text-primary">Ils nous font confiance</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Testimonial 1 -->
-                <div class="testimonial-card" data-aos="fade-up">
-                    <p class="text-lg italic">"En tant que naturopathe praticienne, je trouve la plate-forme Aromamade hyper pratique ! Très intuitive ! Et tout ce dont on a besoin, Aromamade y a pensé ou y pensera pour nous combler.! Je suis ravie d'avoir la chance de gérer plus facilement mes rendez-vous et mon répertoire clients ainsi que d'autres fonctionnalités pratiques. Un grand merci à l'équipe qui gère 100% !!"</p>
-                    <h4 class="mt-4 font-bold">— Ludivine, Naturopathe</h4>
-                </div>
-                <!-- Testimonial 2 -->
-                <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
-                    <p class="text-lg italic">"Étant thérapeute certifiée, je conseille fortement cette plate-forme pour les thérapeutes qui sont à la recherche d'une plate-forme entièrement dédiée à eux avec toutes les fonctionnalités à un prix très attractif. Prise de rendez-vous présentiel et visio, paiement en ligne, mise en avant des événements, facturation, visio intégrée... une équipe à l'écoute et super professionnelle"</p>
-                    <h4 class="mt-4 font-bold">— Marie-louise, Naturopathe</h4>
-                </div>
-                <!-- Add more testimonials if needed -->
-            </div>
-        </div>
-    </section>
-
-<section class="py-20 bg-gray-50">
-    <div class="container mx-auto px-4">
-
-        <h2 class="text-4xl font-bold text-center mb-4">
-            Choisissez le plan adapté à votre pratique
-        </h2>
-        <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
-            Tous nos plans sont disponibles en abonnement mensuel ou annuel.
-            <br class="hidden sm:block">
-            <strong>En choisissant le paiement annuel, vous bénéficiez d’1 mois offert.</strong>
-        </p>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-
-            {{-- FREE --}}
-            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h3 class="text-2xl font-bold mb-4 text-center">Gratuit</h3>
-
-                <p class="text-center text-4xl font-bold mb-2">
-                    0 €
-                    <span class="text-lg font-medium">/mois</span>
-                </p>
-
-                <p class="text-center text-sm text-gray-500 mb-6">
-                    Pour découvrir AromaMade PRO sans engagement
-                </p>
-
-                <ul class="text-left mb-8 space-y-2">
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Listing basic de votre profil</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Visibilité auprès de milliers de clients</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Essai de 14 jours de la version Premium</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Découverte des fonctionnalités clés</li>
-                </ul>
-
-                <div class="mt-auto text-center">
-                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
-                        Commencer gratuitement
-                    </a>
-                </div>
-            </div>
-
-            {{-- STARTER --}}
-            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-lg p-8">
-                <h3 class="text-2xl font-bold mb-4 text-center">Starter</h3>
-
-                <p class="text-center text-4xl font-bold mb-2">
-                    9,90 €
-                    <span class="text-lg font-medium">/mois</span>
-                </p>
-
-                <p class="text-center text-sm text-gray-500 mb-6">
-                    La base pour démarrer et structurer votre activité
-                </p>
-
-                <ul class="text-left mb-8 space-y-2">
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Jusqu’à 50 dossiers patients</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Prise de rendez-vous</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Gestion des dossiers clients</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Portail Pro</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Facturation simplifiée</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Questionnaires</li>
-                </ul>
-
-                <div class="mt-auto text-center">
-                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
-                        Démarrer l’essai gratuit
-                    </a>
-                </div>
-            </div>
-
-            {{-- PRO --}}
-            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-xl p-8 border-2 border-[#647a0b] relative">
-                <span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#647a0b] text-white text-sm px-4 py-1 rounded-full">
-                    Le plus populaire
-                </span>
-
-                <h3 class="text-2xl font-bold mb-4 text-center">Pro</h3>
-
-                <p class="text-center text-4xl font-bold mb-2">
-                    29,90 €
-                    <span class="text-lg font-medium">/mois</span>
-                </p>
-
-                <p class="text-center text-sm text-gray-500 mb-6">
-                    Optimisez votre pratique avec des options avancées et plus de visibilité
-                </p>
-
-                <ul class="text-left mb-8 space-y-2">
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Dossiers patients illimités</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Toutes les fonctionnalités du plan Starter</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Suivi des objectifs thérapeutiques</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Comptabilité (Livre de recettes,suivi CA)</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Options de paiement en ligne</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Intégration réseaux sociaux</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Création d’événements</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Bibliothèque de conseils</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Gestion & stockage de documents</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Avis clients</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Synchronisation des calendriers</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Visio-conférence intégrée</li>
-                </ul>
-
-                <div class="mt-auto text-center">
-                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
-                        Démarrer l’essai gratuit
-                    </a>
-                </div>
-            </div>
-
-            {{-- PREMIUM --}}
-            <div class="pricing-card flex flex-col h-full bg-white rounded-xl shadow-lg p-8">
-                <h3 class="text-2xl font-bold mb-4 text-center">Premium</h3>
-
-                <p class="text-center text-4xl font-bold mb-2">
-                    39,90 €
-                    <span class="text-lg font-medium">/mois</span>
-                </p>
-
-                <p class="text-center text-sm text-gray-500 mb-6">
-                    Tout pour gérer votre pratique, attirer plus de clients et gagner du temps
-                </p>
-
-                <ul class="text-left mb-8 space-y-2">
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Toutes les fonctionnalités du plan Starter & Pro</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Création, hébergement et vente de formations en ligne</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Hébergement & vente de contenus digitaux (ebooks, guides, ressources)</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Outil de newsletters & communication clients</li>
-                </ul>
-
-                <div class="mt-auto text-center">
-                    <a href="{{ route('register-pro') }}" class="btn-primary w-full">
-                        Démarrer l’essai gratuit
-                    </a>
-                </div>
-            </div>
-
-        </div>
-
-        <p class="text-center text-sm text-gray-500 mt-10">
-            💡 Tous les plans sont disponibles en paiement annuel avec <strong>1 mois offert</strong>.
-        </p>
-
-    </div>
-</section>
-
-
-
-
-
-    <!-- Wave Separator -->
-    <div class="wave-container">
-        <svg viewBox="0 0 1440 320">
-            <path fill="#f7fafc" fill-opacity="1" d="M0,224L1440,96L1440,320L0,320Z"></path>
-        </svg>
-    </div>
-<!-- Security and Trust Section -->
-<section class="py-12 bg-white">
-    <div class="container mx-auto text-center px-4">
-        <h2 class="text-3xl font-bold mb-8 text-primary">Sécurité et Confiance</h2>
-        <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-8">
-            Chez AromaMade PRO, la sécurité de vos données est notre priorité absolue. Nous sommes fiers d'héberger nos services en France, en conformité avec les normes HDS (Hébergement de Données de Santé), pour vous offrir le plus haut niveau de protection et de confidentialité.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Security Feature 1 -->
-            <div class="security-feature" data-aos="fade-up">
-                <i class="fas fa-shield-alt text-5xl mb-4 text-primary"></i>
-                <h3 class="text-2xl font-bold mb-2">Conformité HDS</h3>
-                <p class="text-gray-700">Nos infrastructures respectent les exigences strictes de l'Hébergement de Données de Santé, assurant une protection optimale des informations sensibles de vos clients.</p>
-            </div>
-            <!-- Security Feature 2 -->
-            <div class="security-feature" data-aos="fade-up" data-aos-delay="100">
-                <i class="fas fa-lock text-5xl mb-4 text-secondary"></i>
-                <h3 class="text-2xl font-bold mb-2">Hébergement en France</h3>
-                <p class="text-gray-700">Vos données sont stockées sur des serveurs situés en France, garantissant une conformité totale avec les réglementations locales et européennes.</p>
-            </div>
-            <!-- Security Feature 3 -->
-            <div class="security-feature" data-aos="fade-up" data-aos-delay="200">
-                <i class="fas fa-user-shield text-5xl mb-4 text-primary"></i>
-                <h3 class="text-2xl font-bold mb-2">Protection des Données</h3>
-                <p class="text-gray-700">Nous utilisons des protocoles de sécurité avancés pour assurer la confidentialité et l'intégrité de vos informations professionnelles et celles de vos clients.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Social Responsibility Section -->
-<section class="py-12 bg-green-50">
-    <div class="container mx-auto text-center px-4">
-        <h2 class="text-3xl font-bold mb-8 text-primary">Notre Engagement Écologique</h2>
-        <p class="text-lg text-gray-700 max-w-3xl mx-auto mb-8">
-            Chez AromaMade PRO, nous croyons en la responsabilité sociale et environnementale. Nous nous engageons à réduire notre impact écologique et à promouvoir des pratiques durables dans tout ce que nous faisons.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Ecology Feature 1 -->
-            <div class="ecology-feature" data-aos="fade-up">
-                <i class="fas fa-leaf text-5xl mb-4 text-primary"></i>
-                <h3 class="text-2xl font-bold mb-2">Zéro Déchet de Papier</h3>
-                <p class="text-gray-700">Nous adoptons une politique "zéro papier" en numérisant tous nos processus, ce qui réduit considérablement notre consommation de papier et préserve les ressources forestières.</p>
-            </div>
-			<!-- Ecology Feature 2 -->
-			<div class="ecology-feature" data-aos="fade-up" data-aos-delay="100">
-				<i class="fas fa-laptop-code text-5xl mb-4 text-secondary"></i>
-				<h3 class="text-2xl font-bold mb-2">Empreinte Numérique Réduite</h3>
-				<p class="text-gray-700">Nous optimisons nos infrastructures et nos codes pour minimiser la consommation d'énergie et réduire l'impact environnemental de nos services numériques.</p>
-			</div>
-
-			<!-- Ecology Feature 3 -->
-			<div class="ecology-feature" data-aos="fade-up" data-aos-delay="200">
-				<i class="fas fa-paw text-5xl mb-4 text-primary"></i>
-				<h3 class="text-2xl font-bold mb-2">Protection de la Faune</h3>
-				<p class="text-gray-700">Nous soutenons des initiatives visant à protéger les animaux et leurs habitats, contribuant ainsi à la préservation de la biodiversité.</p>
-			</div>
-
-        </div>
-    </div>
-</section>
-
-    <!-- FAQ Section -->
-    <section class="py-12 bg-gray-100">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-center mb-8 text-primary">Questions Fréquentes</h2>
-            <div class="accordion">
-<!-- FAQ Item 4 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Quelles sont les fonctionnalités incluses dans chaque plan ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Chaque plan offre un ensemble de fonctionnalités adaptées à vos besoins. Le plan Starter inclut les fonctionnalités de base pour débuter, tandis que le plan Pro offre l'accès à toutes les fonctionnalités avancées de l'application.</p>
-    </div>
-</div>
-<!-- FAQ Item 5 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Comment assurez-vous la sécurité de mes données et celles de mes clients ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Nous hébergeons vos données en France, en conformité avec les normes HDS, pour garantir la sécurité et la confidentialité de toutes les informations.</p>
-    </div>
-</div>
-<!-- FAQ Item 6 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Puis-je utiliser AromaMade PRO sur plusieurs appareils ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Oui, vous pouvez accéder à votre compte depuis n'importe quel appareil connecté à Internet, que ce soit un ordinateur, une tablette ou un smartphone.</p>
-    </div>
-</div>
-<!-- FAQ Item 7 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Proposez-vous une assistance en cas de besoin ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Oui, notre équipe de support est disponible pour vous aider par email ou via le chat en direct pendant les heures ouvrables.</p>
-    </div>
-</div>
-<!-- FAQ Item 8 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Puis-je personnaliser mon Portail Pro ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Absolument, vous pouvez personnaliser votre Portail Pro avec vos informations, vos services, et vos disponibilités pour offrir la meilleure expérience à vos clients.</p>
-    </div>
-</div>
-<!-- FAQ Item 9 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Comment fonctionne la visio-conférence intégrée ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>La visio-conférence intégrée vous permet de réaliser des séances à distance directement depuis l'application, sans avoir besoin d'installer de logiciels supplémentaires.</p>
-    </div>
-</div>
-<!-- FAQ Item 10 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Puis-je exporter mes données si je décide de quitter la plateforme ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Oui, vous pouvez exporter vos données à tout moment pour les conserver ou les utiliser avec d'autres outils.</p>
-    </div>
-</div>
-<!-- FAQ Item 11 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Offrez-vous des remises pour les abonnements annuels ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Oui, nous proposons des tarifs préférentiels pour les abonnements annuels, vous permettant d'économiser sur le long terme.</p>
-    </div>
-</div>
-<!-- FAQ Item 12 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Comment puis-je passer du plan Starter au plan Pro ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Vous pouvez mettre à niveau votre abonnement à tout moment depuis votre espace client en sélectionnant le plan Pro.</p>
-    </div>
-</div>
-<!-- FAQ Item 13 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Y a-t-il une formation disponible pour apprendre à utiliser AromaMade PRO ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Oui, nous proposons des tutoriels et un support dédié pour vous aider à maîtriser toutes les fonctionnalités de l'application.</p>
-    </div>
-</div>
-<!-- FAQ Item 14 -->
-<div class="accordion-item">
-    <div class="accordion-header">
-        <h3>Comment mes clients peuvent-ils prendre rendez-vous en ligne ?</h3>
-        <i class="fas fa-chevron-down"></i>
-    </div>
-    <div class="accordion-content">
-        <p>Vos clients peuvent réserver des séances directement via votre Portail Pro, où ils pourront choisir le service et l'horaire qui leur conviennent.</p>
-    </div>
-</div>
-
-                <!-- Add more FAQ items if needed -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Final Call to Action Section -->
-    <section class="py-12 bg-green-100">
-        <div class="container mx-auto text-center px-4">
-            <h2 class="text-3xl font-bold mb-6 text-primary">Rejoignez la communauté des thérapeutes innovants</h2>
-            <p class="text-lg max-w-3xl mx-auto mb-8 text-gray-700">
-                Essayez AromaMade PRO gratuitement pendant 14 jours et découvrez comment notre application peut transformer votre pratique.
-            </p>
-            <a href="{{ route('register-pro') }}" class="btn-primary animate-pulse">Commencer votre essai gratuit</a>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-6">
-        <div class="container mx-auto text-center px-4">
-            <p>&copy; {{ date('Y') }} AromaMade PRO. Tous droits réservés.</p>
-            <!-- Social Icons (optional) -->
-            <div class="social-icons flex justify-center space-x-4 mt-4">
-                <a href="#" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">
-                    <i class="fab fa-facebook-f"></i>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-300">
-                    <i class="fab fa-twitter"></i>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-pink-500 transition-colors duration-300">
-                    <i class="fab fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Custom Styles -->
-    <style>
-        /* Custom Colors */
-        :root {
-            --primary-color: #647a0b;
-            --secondary-color: #854f38;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .text-primary {
-            color: var(--primary-color);
-        }
-
-        .bg-primary {
-            background-color: var(--primary-color);
-        }
-
-        .text-secondary {
-            color: var(--secondary-color);
-        }
-
-        .bg-secondary {
-            background-color: var(--secondary-color);
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1.125rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: inline-block;
-        }
-
-        .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--primary-color);
-            padding: 12px 24px;
-            border: 2px solid var(--primary-color);
-            border-radius: 5px;
-            text-decoration: none;
-            font-size: 1.125rem;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        /* Hero Section */
-        .hero {
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            height: 80vh;
-        }
-
-        .hero .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        /* Feature Cards */
-        .feature-card {
-            transition: box-shadow 0.3s, transform 0.3s;
-        }
-
-        .feature-card:hover {
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            transform: translateY(-10px);
-        }
-
-        /* Testimonial Cards */
-        .testimonial-card {
-            padding: 20px;
-            border-radius: 8px;
-            background-color: #f7fafc;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Pricing Cards */
-        .pricing-card {
-            background-color: #ffffff;
-            padding: 24px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            transition: transform 0.3s;
-        }
-
-        .pricing-card:hover {
-            transform: scale(1.05);
-        }
-
-        /* FAQ Accordion */
-        .accordion .accordion-item {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 0;
-        }
-
-        .accordion .accordion-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            font-size: 1.25rem;
-            color: var(--primary-color);
-        }
-
-        .accordion .accordion-content {
-            display: none;
-            padding-top: 12px;
-            color: #4a5568;
-        }
-
-        .accordion .accordion-item.active .accordion-content {
-            display: block;
-        }
-
-        /* Wave Separator */
-        .wave-container {
-            position: relative;
-            overflow: hidden;
-            line-height: 0;
-        }
-
-        .wave-container svg {
-            position: relative;
-            display: block;
-            width: calc(100% + 1.3px);
-            height: 100px;
-        }
-
-        /* Animations */
-        .animate-fade-in {
-            animation: fadeIn 1.5s ease-in-out;
-        }
-
-        .animate-pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .hero .container {
-                padding-top: 6rem;
-                padding-bottom: 6rem;
+    @section('structured_data')
+        <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "AromaMade PRO",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "url": "{{ url('/pro') }}",
+              "description": "Logiciel de gestion pour praticiens du bien-être: agenda, suivi client, facturation, paiements, visio, portail public et communication.",
+              "offers": {
+                "@type": "Offer",
+                "priceCurrency": "EUR",
+                "price": "0",
+                "description": "Plan gratuit + essai PRO de 14 jours"
+              }
             }
-        }
-   /* Define the .feature-hidden class */
-        .feature-hidden {
-            display: none;
-        }
-    </style>
+        </script>
+    @endsection
 
-     @push('scripts')
-    <!-- AOS Animation Library -->
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <section class="pro-hero">
+        <div class="pro-hero-overlay"></div>
+        <div class="pro-wrap pro-hero-grid">
+            <div class="pro-hero-copy">
+                <p class="pro-kicker">Logiciel métier pour praticiens du bien-être</p>
+                <h1>Structurez votre activité et gagnez du temps chaque semaine</h1>
+                <p class="pro-subtitle">
+                    Agenda, suivi client, paiements, facturation, visio, portail public, avis et communication:
+                    AromaMade PRO vous permet de tout piloter sans empiler plusieurs outils.
+                    Multiplier des logiciels séparés est vite laborieux et coûteux.
+                </p>
+                <div class="pro-cta-row">
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Démarrer mon essai PRO 14 jours</a>
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-ghost">Créer mon profil gratuit</a>
+                </div>
+                <ul class="pro-hero-points">
+                    <li>Mise en place rapide</li>
+                    <li>Accessible mobile + ordinateur</li>
+                    <li>Évolutif selon votre étape</li>
+                </ul>
+            </div>
 
-    <!-- Show More Features Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Initialize AOS for animations
-            AOS.init({
-                once: true
-            });
+            <aside class="pro-hero-panel">
+                <h2>Vue rapide de votre journée</h2>
+                <ul>
+                    <li><strong>09:00</strong> Rendez-vous découverte</li>
+                    <li><strong>11:30</strong> Séance visio</li>
+                    <li><strong>15:00</strong> Suivi client</li>
+                </ul>
+                <p>Le même espace vous sert à planifier, suivre, facturer et fidéliser.</p>
+            </aside>
+        </div>
+    </section>
 
-            // FAQ Accordion functionality
-            const accordionItems = document.querySelectorAll('.accordion-item');
+    <section class="pro-value-strip">
+        <div class="pro-wrap pro-value-grid">
+            <article>
+                <h2>Moins d'administratif</h2>
+                <p>Vous réduisez les tâches dispersées et gardez un flux de travail plus fluide.</p>
+            </article>
+            <article>
+                <h2>Plus de clarté</h2>
+                <p>Vous suivez votre activité avec une vision propre des rendez-vous et revenus.</p>
+            </article>
+            <article>
+                <h2>Meilleure conversion</h2>
+                <p>Votre visibilité et votre réservation en ligne travaillent ensemble.</p>
+            </article>
+        </div>
+    </section>
 
-            accordionItems.forEach(item => {
-                const header = item.querySelector('.accordion-header');
-                header.addEventListener('click', () => {
-                    item.classList.toggle('active');
-                });
-            });
+    <section class="pro-section">
+        <div class="pro-wrap">
+            <header class="pro-head">
+                <p class="pro-overline">Différence AromaMade</p>
+                <h2>Pourquoi notre approche est plus simple et plus rentable</h2>
+            </header>
+            <div class="pro-diff-grid">
+                <article class="pro-card">
+                    <h3>Un seul outil connecté</h3>
+                    <p>Site public, réservation, visio, suivi client, facturation et communication: tout fonctionne ensemble, sans friction.</p>
+                </article>
+                <article class="pro-card">
+                    <h3>Moins de coûts cachés</h3>
+                    <p>Assembler plusieurs logiciels coûte plus cher et fait perdre du temps. Ici, vous centralisez l'essentiel dans une seule plateforme.</p>
+                </article>
+                <article class="pro-card">
+                    <h3>Conditions plus justes</h3>
+                    <p>Pas d'engagement long imposé. Et pas de surcoût automatique si vous exercez sur plusieurs lieux.</p>
+                </article>
+            </div>
+        </div>
+    </section>
 
-            // Show More Features functionality
-            const showMoreButton = document.getElementById('show-more-features');
-            const additionalFeatures = document.getElementById('additional-features');
+    <section class="pro-section pro-section-soft">
+        <div class="pro-wrap">
+            <header class="pro-head">
+                <p class="pro-overline">Accompagnement humain</p>
+                <h2>Vous n'êtes pas seul au démarrage, ni après</h2>
+            </header>
+            <div class="pro-support-box">
+                <h3>On vous accompagne pour configurer votre compte</h3>
+                <ul>
+                    <li>Dès votre arrivée, vous obtenez un appel avec notre équipe pour mettre en place votre espace.</li>
+                    <li>Nous vous guidons sur les réglages clés et répondons à vos questions concrètes.</li>
+                    <li>Quand vous avez besoin d'aide, vous échangez avec une vraie personne, pas uniquement via un ticket impersonnel.</li>
+                </ul>
+                <div class="pro-cta-row">
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Démarrer avec accompagnement</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-            showMoreButton.addEventListener('click', () => {
-                additionalFeatures.classList.toggle('feature-hidden');
-                if (additionalFeatures.classList.contains('feature-hidden')) {
-                    showMoreButton.textContent = 'Voir toutes les fonctionnalités';
-                } else {
-                    showMoreButton.textContent = 'Voir moins de fonctionnalités';
-                    // Re-initialize AOS animations for newly displayed content
-                    AOS.refresh();
+    <section class="pro-section">
+        <div class="pro-wrap">
+            <header class="pro-head">
+                <p class="pro-overline">Valeur concrète</p>
+                <h2>Pourquoi des praticiens choisissent AromaMade PRO</h2>
+            </header>
+            <div class="pro-outcome-grid">
+                <article class="pro-card">
+                    <h3>Un flux quotidien simple</h3>
+                    <p>Réservation, suivi client, facturation et communication dans un même back-office.</p>
+                </article>
+                <article class="pro-card">
+                    <h3>Une expérience plus claire pour vos clients</h3>
+                    <p>Prise de rendez-vous fluide, rappels, visio, paiement et informations utiles bien présentées.</p>
+                </article>
+                <article class="pro-card">
+                    <h3>Des leviers de croissance activables</h3>
+                    <p>Portail public, avis, newsletters, offres et contenus digitaux pour développer votre activité.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="pro-section pro-section-soft">
+        <div class="pro-wrap">
+            <header class="pro-head">
+                <p class="pro-overline">Fonctionnalités</p>
+                <h2>Les blocs clés du produit</h2>
+            </header>
+
+            <div class="pro-feature-grid">
+                <article class="pro-card">
+                    <h3>Agenda et réservation</h3>
+                    <p>Disponibilités, limites, règles et synchronisation.</p>
+                    <a href="{{ route('features.agenda') }}">Découvrir</a>
+                </article>
+                <article class="pro-card">
+                    <h3>Suivi client</h3>
+                    <p>Dossiers, questionnaires, documents et historique.</p>
+                    <a href="{{ route('features.dossiers') }}">Découvrir</a>
+                </article>
+                <article class="pro-card">
+                    <h3>Facturation et paiements</h3>
+                    <p>Édition des factures et règlement en ligne.</p>
+                    <a href="{{ route('features.facturation') }}">Découvrir</a>
+                </article>
+                <article class="pro-card">
+                    <h3>Portail public</h3>
+                    <p>Vitrine personnalisée pour visibilité + réservation.</p>
+                    <a href="{{ route('features.portailpro') }}">Découvrir</a>
+                </article>
+                <article class="pro-card">
+                    <h3>Visio</h3>
+                    <p>Gestion simple des rendez-vous à distance.</p>
+                    <a href="{{ route('features.index') }}">Découvrir</a>
+                </article>
+                <article class="pro-card">
+                    <h3>Communication et fidélisation</h3>
+                    <p>Avis, newsletters et suivi relationnel.</p>
+                    <a href="{{ route('features.index') }}">Découvrir</a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="pro-section pro-pricing" id="tarifs">
+        <div class="pro-wrap">
+            <header class="pro-head">
+                <p class="pro-overline">Tarifs et inclusions</p>
+                <h2>Ce que vous obtenez, plan par plan</h2>
+                <p class="pro-head-text">Objectif: vous aider à choisir sans ambiguïté.</p>
+            </header>
+
+            <div class="pro-pricing-grid">
+                <article class="pro-plan">
+                    <h3>Gratuit</h3>
+                    <p class="pro-price">0 <span>€ / mois</span></p>
+                    <p class="pro-plan-target">Idéal pour: démarrer votre présence en ligne</p>
+                    <ul>
+                        <li>Listing de base de votre profil</li>
+                        <li>Visibilité auprès de milliers de clients</li>
+                        <li>Essai 14 jours de la version Premium</li>
+                        <li>Découverte des fonctionnalités clés</li>
+                    </ul>
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Commencer</a>
+                </article>
+
+                <article class="pro-plan">
+                    <h3>Starter</h3>
+                    <p class="pro-price">9,90 <span>€ / mois</span></p>
+                    <p class="pro-plan-target">Idéal pour: structurer votre activité</p>
+                    <ul>
+                        <li>Jusqu'à 50 dossiers clients</li>
+                        <li>Agenda + réservation en ligne</li>
+                        <li>Gestion des dossiers clients</li>
+                        <li>Portail Pro</li>
+                        <li>Questionnaires</li>
+                        <li>Facturation de base</li>
+                    </ul>
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Essai gratuit</a>
+                </article>
+
+                <article class="pro-plan pro-plan-highlight">
+                    <p class="pro-badge">Le plus choisi</p>
+                    <h3>Pro</h3>
+                    <p class="pro-price">29,90 <span>€ / mois</span></p>
+                    <p class="pro-plan-target">Idéal pour: gagner du temps et scaler</p>
+                    <ul>
+                        <li>Dossiers clients illimités</li>
+                        <li>Toutes les fonctionnalités du plan Starter</li>
+                        <li>Suivi des objectifs</li>
+                        <li>Comptabilité (livre de recettes, suivi CA)</li>
+                        <li>Options de paiement en ligne</li>
+                        <li>Intégration réseaux sociaux</li>
+                        <li>Création d'événements</li>
+                        <li>Bibliothèque de conseils</li>
+                        <li>Gestion et stockage de documents</li>
+                        <li>Avis clients</li>
+                        <li>Synchronisation des calendriers</li>
+                        <li>Visio-conférence intégrée</li>
+                    </ul>
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Essai gratuit</a>
+                </article>
+
+                <article class="pro-plan">
+                    <h3>Premium</h3>
+                    <p class="pro-price">39,90 <span>€ / mois</span></p>
+                    <p class="pro-plan-target">Idéal pour: monétiser plus de formats</p>
+                    <ul>
+                        <li>Toutes les fonctionnalités Starter + Pro</li>
+                        <li>Formations et contenus digitaux</li>
+                        <li>Communication client avancée</li>
+                        <li>Création, hébergement et vente de formations en ligne</li>
+                        <li>Hébergement et vente de contenus digitaux (ebooks, guides, ressources)</li>
+                        <li>Outil de newsletters et communication clients</li>
+                    </ul>
+                    <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Essai gratuit</a>
+                </article>
+            </div>
+
+            <div class="pro-compare-wrap">
+                <h3>Comparatif rapide</h3>
+                <div class="pro-compare-table-wrap">
+                    <table class="pro-compare-table">
+                        <thead>
+                            <tr>
+                                <th>Fonction</th>
+                                <th>Gratuit</th>
+                                <th>Starter</th>
+                                <th>Pro</th>
+                                <th>Premium</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Portail public</td><td>Oui</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Réservation en ligne</td><td>-</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Dossiers clients illimités</td><td>-</td><td>-</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Questionnaires</td><td>-</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Facturation</td><td>-</td><td>Oui</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Paiement en ligne</td><td>-</td><td>-</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Avis clients</td><td>-</td><td>-</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Visio</td><td>-</td><td>-</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Événements</td><td>-</td><td>-</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Réseaux sociaux</td><td>-</td><td>-</td><td>Oui</td><td>Oui</td></tr>
+                            <tr><td>Contenus digitaux / formations</td><td>-</td><td>-</td><td>-</td><td>Oui</td></tr>
+                            <tr><td>Newsletters</td><td>-</td><td>-</td><td>-</td><td>Oui</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="pro-note">Paiement annuel disponible avec 1 mois offert.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="pro-section" id="faq">
+        <div class="pro-wrap">
+            <header class="pro-head">
+                <p class="pro-overline">FAQ</p>
+                <h2>Questions fréquentes</h2>
+            </header>
+            <div class="pro-faq-grid">
+                <details><summary>Puis-je commencer sans engagement ?</summary><p>Oui, avec un plan gratuit et un essai PRO de 14 jours.</p></details>
+                <details><summary>Mes clients peuvent-ils réserver en ligne ?</summary><p>Oui, selon votre plan et vos règles de disponibilité.</p></details>
+                <details><summary>Puis-je gérer présentiel et visio ?</summary><p>Oui, le même flux couvre les deux modes de rendez-vous.</p></details>
+                <details><summary>Le paiement en ligne est-il inclus ?</summary><p>Il est inclus à partir du plan Pro.</p></details>
+                <details><summary>Comment choisir entre Starter et Pro ?</summary><p>Starter structure les bases; Pro ajoute les leviers avancés de productivité et conversion.</p></details>
+                <details><summary>Puis-je évoluer de plan facilement ?</summary><p>Oui, vous pouvez passer au plan supérieur quand vous le souhaitez.</p></details>
+                <details><summary>Pourquoi éviter d'assembler plusieurs logiciels séparés ?</summary><p>Parce que cela augmente les coûts, la complexité et les risques d'erreurs. Avec AromaMade PRO, tout reste synchronisé dans un seul environnement.</p></details>
+                <details><summary>Est-ce que vous m'aidez à configurer mon espace ?</summary><p>Oui. Un appel de démarrage est prévu pour vous guider étape par étape et répondre à vos questions.</p></details>
+                <details><summary>En cas de besoin, ai-je un vrai contact humain ?</summary><p>Oui. Vous avez un accompagnement humain, pas seulement une file de tickets automatique.</p></details>
+            </div>
+        </div>
+    </section>
+
+    <section class="pro-final-cta">
+        <div class="pro-wrap pro-center">
+            <h2>Passez d'une gestion dispersée à une activité mieux pilotée</h2>
+            <p>Essayez AromaMade PRO et voyez rapidement l'impact sur votre organisation et votre croissance.</p>
+            <div class="pro-cta-row pro-center-row">
+                <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Lancer mon essai gratuit</a>
+                <a href="{{ route('features.index') }}" class="pro-btn pro-btn-outline">Explorer les fonctionnalités</a>
+            </div>
+        </div>
+    </section>
+
+    @push('styles')
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --pro-primary: #6f860f;
+                --pro-secondary: #8b5336;
+                --pro-ink: #1d2430;
+                --pro-ink-soft: #4f6073;
+                --pro-border: #d7e3c4;
+                --pro-soft: #f4f8ed;
+                --pro-bg: #f8faf6;
+                --pro-radius: 16px;
+                --pro-shadow: 0 16px 35px rgba(36, 56, 21, 0.09);
+                --pro-shadow-soft: 0 8px 18px rgba(36, 56, 21, 0.06);
+            }
+
+            .pro-wrap { max-width: 1240px; margin: 0 auto; padding: 0 1.25rem; }
+            .pro-section, .pro-value-strip, .pro-pricing, .pro-final-cta {
+                animation: revealUp .75s ease both;
+            }
+            .pro-section:nth-of-type(2) { animation-delay: .06s; }
+            .pro-section:nth-of-type(3) { animation-delay: .12s; }
+            .pro-section:nth-of-type(4) { animation-delay: .18s; }
+            .pro-section:nth-of-type(5) { animation-delay: .24s; }
+            .pro-section:nth-of-type(6) { animation-delay: .3s; }
+
+            .pro-hero {
+                position: relative;
+                min-height: 88vh;
+                display: flex;
+                align-items: center;
+                overflow: hidden;
+                background: #111827;
+                isolation: isolate;
+            }
+            .pro-hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: url('{{ asset('images/hero.webp') }}') center/cover no-repeat;
+                opacity: .95;
+                transform: scale(1.03);
+            }
+            .pro-hero::after {
+                content: "";
+                position: absolute;
+                inset: auto -12% -120px -12%;
+                height: 260px;
+                background: radial-gradient(ellipse at center, rgba(248,250,246,.95) 0%, rgba(248,250,246,.2) 65%, rgba(248,250,246,0) 100%);
+                pointer-events: none;
+            }
+            .pro-hero-overlay {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(circle at 80% 28%, rgba(111,134,15,.25) 0%, rgba(111,134,15,0) 40%),
+                    radial-gradient(circle at 20% 40%, rgba(139,83,54,.18) 0%, rgba(139,83,54,0) 40%),
+                    linear-gradient(101deg, rgba(9,14,23,.9) 18%, rgba(9,14,23,.45) 63%, rgba(9,14,23,.72) 100%);
+            }
+            .pro-hero-grid {
+                position: relative;
+                z-index: 2;
+                display: grid;
+                grid-template-columns: 1.2fr .88fr;
+                gap: 1.2rem;
+                width: 100%;
+                padding-top: 6.2rem;
+                padding-bottom: 5.3rem;
+            }
+            .pro-kicker {
+                display: inline-block;
+                margin: 0 0 1rem;
+                padding: .36rem .82rem;
+                border: 1px solid rgba(255,255,255,.46);
+                border-radius: 999px;
+                color: #fff;
+                font: 600 .78rem/1 'Space Grotesk', sans-serif;
+                text-transform: uppercase;
+                letter-spacing: .06em;
+                background: rgba(255,255,255,.08);
+                backdrop-filter: blur(4px);
+            }
+            .pro-hero-copy h1,
+            .pro-head h2,
+            .pro-center h2 {
+                font-family: 'Space Grotesk', sans-serif;
+                letter-spacing: -.015em;
+            }
+            .pro-hero-copy h1 {
+                margin: 0;
+                color: #fff;
+                line-height: 1.04;
+                text-wrap: balance;
+                font-size: clamp(2.2rem, 3.9vw, 4.2rem);
+                text-shadow: 0 8px 24px rgba(0,0,0,.25);
+            }
+            .pro-subtitle {
+                margin: 1rem 0 0;
+                max-width: 720px;
+                color: rgba(255,255,255,.96);
+                line-height: 1.63;
+                font: 500 clamp(1.03rem, 1.3vw, 1.23rem)/1.63 'Source Sans 3', sans-serif;
+            }
+            .pro-cta-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: .78rem;
+                margin-top: 1.45rem;
+            }
+            .pro-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                border-radius: 12px;
+                padding: .88rem 1.25rem;
+                border: 1px solid transparent;
+                font: 700 .95rem/1 'Space Grotesk', sans-serif;
+                letter-spacing: .01em;
+                transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background-color .22s ease;
+            }
+            .pro-btn:hover { transform: translateY(-2px); }
+            .pro-btn-primary {
+                color: #fff;
+                background: linear-gradient(92deg, var(--pro-primary) 0%, var(--pro-secondary) 100%);
+                box-shadow: 0 12px 24px rgba(20,28,18,.35);
+            }
+            .pro-btn-ghost {
+                color: #fff;
+                border-color: rgba(255,255,255,.66);
+                background: rgba(255,255,255,.08);
+            }
+            .pro-btn-outline {
+                color: var(--pro-ink);
+                border-color: #c5d4af;
+                background: rgba(255,255,255,.9);
+            }
+            .pro-hero-points {
+                margin: 1rem 0 0;
+                padding: 0;
+                list-style: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: .85rem;
+                color: rgba(255,255,255,.94);
+                font: 600 .91rem/1.3 'Source Sans 3', sans-serif;
+            }
+            .pro-hero-points li::before { content: "✓ "; font-weight: 700; }
+            .pro-hero-panel {
+                align-self: end;
+                border: 1px solid rgba(255,255,255,.35);
+                border-radius: var(--pro-radius);
+                background: linear-gradient(180deg, rgba(12,18,28,.68) 0%, rgba(12,18,28,.78) 100%);
+                backdrop-filter: blur(8px);
+                color: #fff;
+                padding: 1.15rem;
+                box-shadow: 0 20px 40px rgba(8,13,22,.38);
+            }
+            .pro-hero-panel h2 {
+                margin: 0;
+                color: #fff;
+                font: 700 1.08rem/1.2 'Space Grotesk', sans-serif;
+            }
+            .pro-hero-panel ul {
+                margin: .82rem 0 .88rem;
+                padding-left: 1.1rem;
+                font: 500 .95rem/1.45 'Source Sans 3', sans-serif;
+            }
+            .pro-hero-panel li { margin: .34rem 0; }
+            .pro-hero-panel p { margin: 0; color: rgba(255,255,255,.96); font: 500 .95rem/1.48 'Source Sans 3', sans-serif; }
+
+            .pro-value-strip {
+                position: relative;
+                background: linear-gradient(180deg, #fbfdf8 0%, #f6f9f2 100%);
+                border-top: 1px solid #e8efdc;
+                border-bottom: 1px solid #e8efdc;
+            }
+            .pro-value-grid {
+                display: grid;
+                grid-template-columns: repeat(3,minmax(0,1fr));
+                gap: .95rem;
+                padding-top: 1.3rem;
+                padding-bottom: 1.3rem;
+            }
+            .pro-value-grid article {
+                padding: .8rem .9rem;
+                border-radius: 14px;
+                background: #fff;
+                border: 1px solid #e3ead6;
+                box-shadow: var(--pro-shadow-soft);
+            }
+            .pro-value-grid h2 {
+                margin: 0;
+                color: var(--pro-ink);
+                font: 700 1.1rem/1.25 'Space Grotesk', sans-serif;
+            }
+            .pro-value-grid p {
+                margin: .4rem 0 0;
+                color: #5f7083;
+                font: 500 .96rem/1.45 'Source Sans 3', sans-serif;
+            }
+
+            .pro-section {
+                position: relative;
+                padding: 4.4rem 0;
+                background: #fff;
+            }
+            .pro-section-soft {
+                background:
+                    radial-gradient(circle at 10% 10%, rgba(111,134,15,.06) 0%, rgba(111,134,15,0) 28%),
+                    radial-gradient(circle at 92% 82%, rgba(139,83,54,.06) 0%, rgba(139,83,54,0) 28%),
+                    var(--pro-soft);
+            }
+            .pro-head {
+                max-width: 900px;
+                margin: 0 auto 1.9rem;
+                text-align: center;
+            }
+            .pro-overline {
+                margin: 0;
+                display: inline-block;
+                padding: .3rem .64rem;
+                border-radius: 999px;
+                font: 700 .76rem/1 'Space Grotesk', sans-serif;
+                text-transform: uppercase;
+                letter-spacing: .06em;
+                color: #385021;
+                background: #ebf3db;
+                border: 1px solid #cfe0b2;
+            }
+            .pro-head h2 {
+                margin: .78rem 0 0;
+                color: var(--pro-ink);
+                font-size: clamp(1.75rem,2.85vw,2.7rem);
+                line-height: 1.12;
+                text-wrap: balance;
+            }
+            .pro-head-text, .pro-head p {
+                margin: .78rem 0 0;
+                color: var(--pro-ink-soft);
+                font: 500 1.04rem/1.62 'Source Sans 3', sans-serif;
+            }
+
+            .pro-outcome-grid,
+            .pro-diff-grid,
+            .pro-feature-grid {
+                display: grid;
+                grid-template-columns: repeat(3,minmax(0,1fr));
+                gap: .95rem;
+            }
+            .pro-card {
+                border: 1px solid var(--pro-border);
+                border-radius: var(--pro-radius);
+                background: #fff;
+                padding: 1.12rem 1.05rem;
+                box-shadow: var(--pro-shadow-soft);
+                transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+            }
+            .pro-card:hover {
+                transform: translateY(-3px);
+                box-shadow: var(--pro-shadow);
+                border-color: #c9d8b1;
+            }
+            .pro-card h3 {
+                margin: 0;
+                color: var(--pro-ink);
+                font: 700 1.1rem/1.3 'Space Grotesk', sans-serif;
+            }
+            .pro-card p {
+                margin: .56rem 0 0;
+                color: #506273;
+                font: 500 .97rem/1.56 'Source Sans 3', sans-serif;
+            }
+            .pro-card a {
+                display: inline-block;
+                margin-top: .8rem;
+                color: var(--pro-primary);
+                font: 700 .95rem/1 'Space Grotesk', sans-serif;
+                text-decoration: none;
+            }
+            .pro-card a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+            .pro-support-box {
+                border: 1px solid #d5e2c1;
+                border-radius: 18px;
+                background: linear-gradient(180deg, #ffffff 0%, #f9fbf5 100%);
+                padding: 1.2rem;
+                box-shadow: var(--pro-shadow);
+                max-width: 940px;
+                margin: 0 auto;
+            }
+            .pro-support-box h3 {
+                margin: 0;
+                color: var(--pro-ink);
+                font: 700 1.2rem/1.3 'Space Grotesk', sans-serif;
+            }
+            .pro-support-box ul {
+                margin: .86rem 0 0;
+                padding-left: 1.15rem;
+                color: #4f6173;
+                font: 500 1rem/1.64 'Source Sans 3', sans-serif;
+            }
+            .pro-support-box li { margin: .45rem 0; }
+
+            .pro-pricing {
+                background:
+                    radial-gradient(circle at 18% 18%, rgba(111,134,15,.08) 0%, rgba(111,134,15,0) 30%),
+                    radial-gradient(circle at 88% 22%, rgba(139,83,54,.07) 0%, rgba(139,83,54,0) 30%),
+                    linear-gradient(180deg, #f2f7e9 0%, #ebf1e0 100%);
+                border-top: 1px solid #dce8c9;
+                border-bottom: 1px solid #dce8c9;
+            }
+            .pro-pricing-grid {
+                display: grid;
+                grid-template-columns: repeat(4,minmax(0,1fr));
+                gap: .95rem;
+            }
+            .pro-plan {
+                border: 1px solid #d7e2c6;
+                border-radius: 18px;
+                background: #fff;
+                padding: 1.1rem;
+                box-shadow: 0 12px 22px rgba(44,66,28,.09);
+                display: flex;
+                flex-direction: column;
+                transition: transform .2s ease, box-shadow .2s ease;
+            }
+            .pro-plan:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 18px 30px rgba(44,66,28,.12);
+            }
+            .pro-plan-highlight {
+                border: 2px solid var(--pro-primary);
+                box-shadow: 0 20px 34px rgba(100,122,11,.2);
+                position: relative;
+            }
+            .pro-badge {
+                margin: 0 0 .4rem;
+                width: fit-content;
+                border-radius: 999px;
+                padding: .24rem .6rem;
+                color: #fff;
+                font: 700 .76rem/1 'Space Grotesk', sans-serif;
+                background: linear-gradient(90deg,#6b8510 0%,#8f562f 100%);
+            }
+            .pro-plan h3 {
+                margin: 0;
+                color: var(--pro-ink);
+                font: 700 1.24rem/1.2 'Space Grotesk', sans-serif;
+            }
+            .pro-price {
+                margin: .54rem 0 .68rem;
+                color: #111827;
+                font: 800 2.1rem/1 'Space Grotesk', sans-serif;
+            }
+            .pro-price span {
+                color: #64748b;
+                font: 600 .86rem/1 'Source Sans 3', sans-serif;
+            }
+            .pro-plan-target {
+                margin: 0 0 .72rem;
+                color: #566a7e;
+                font: 600 .92rem/1.45 'Source Sans 3', sans-serif;
+            }
+            .pro-plan ul {
+                margin: 0 0 .95rem;
+                padding-left: 1.08rem;
+                color: #425366;
+                font: 500 .93rem/1.56 'Source Sans 3', sans-serif;
+            }
+            .pro-plan .pro-btn { margin-top: auto; }
+
+            .pro-compare-wrap { margin-top: 1.6rem; }
+            .pro-compare-wrap h3 {
+                margin: 0 0 .68rem;
+                color: var(--pro-ink);
+                font: 700 1.2rem/1.2 'Space Grotesk', sans-serif;
+            }
+            .pro-compare-table-wrap {
+                width: 100%;
+                overflow-x: auto;
+                border: 1px solid #d6e2c3;
+                border-radius: 12px;
+                background: #fff;
+                box-shadow: var(--pro-shadow-soft);
+            }
+            .pro-compare-table {
+                width: 100%;
+                min-width: 820px;
+                border-collapse: collapse;
+            }
+            .pro-compare-table th,
+            .pro-compare-table td {
+                padding: .74rem .78rem;
+                border-bottom: 1px solid #e8efdd;
+                text-align: left;
+                font: 600 .9rem/1.35 'Source Sans 3', sans-serif;
+                color: #304153;
+            }
+            .pro-compare-table thead th {
+                background: #f2f7ea;
+                color: #243244;
+                font-weight: 700;
+                position: sticky;
+                top: 0;
+                z-index: 1;
+            }
+            .pro-compare-table tbody tr:nth-child(even) td { background: #fcfef9; }
+            .pro-compare-table tbody tr:last-child td { border-bottom: none; }
+            .pro-note {
+                margin: .82rem 0 0;
+                color: #5f7184;
+                font: 600 .9rem/1.4 'Source Sans 3', sans-serif;
+            }
+
+            .pro-faq-grid {
+                display: grid;
+                grid-template-columns: repeat(2,minmax(0,1fr));
+                gap: .75rem;
+            }
+            .pro-faq-grid details {
+                border: 1px solid #d5e1c3;
+                border-radius: 12px;
+                padding: .95rem 1.04rem;
+                background: #fff;
+                box-shadow: var(--pro-shadow-soft);
+                transition: border-color .2s ease, box-shadow .2s ease;
+            }
+            .pro-faq-grid details[open] {
+                border-color: #bfd1a3;
+                box-shadow: var(--pro-shadow);
+            }
+            .pro-faq-grid summary {
+                cursor: pointer;
+                color: var(--pro-ink);
+                font: 700 1rem/1.35 'Space Grotesk', sans-serif;
+                list-style: none;
+                position: relative;
+                padding-right: 1.6rem;
+            }
+            .pro-faq-grid summary::-webkit-details-marker { display: none; }
+            .pro-faq-grid summary::after {
+                content: "+";
+                position: absolute;
+                right: 0;
+                top: -.02rem;
+                color: var(--pro-primary);
+                font: 700 1.2rem/1 'Space Grotesk', sans-serif;
+            }
+            .pro-faq-grid details[open] summary::after { content: "−"; }
+            .pro-faq-grid p {
+                margin: .62rem 0 0;
+                color: #516173;
+                font: 500 .98rem/1.55 'Source Sans 3', sans-serif;
+            }
+
+            .pro-final-cta {
+                padding: 3.5rem 0;
+                background:
+                    radial-gradient(circle at 50% -30%, rgba(111,134,15,.2) 0%, rgba(111,134,15,0) 52%),
+                    linear-gradient(180deg, #e9f2d8 0%, #dfebc8 100%);
+                border-top: 1px solid #d0dfb4;
+            }
+            .pro-center { text-align: center; }
+            .pro-center h2 {
+                margin: 0;
+                color: var(--pro-ink);
+                font-size: clamp(1.55rem,2.25vw,2.35rem);
+                line-height: 1.15;
+            }
+            .pro-center p {
+                margin: .75rem auto 0;
+                max-width: 760px;
+                color: #4b5d6e;
+                font: 500 1.02rem/1.6 'Source Sans 3', sans-serif;
+            }
+            .pro-center-row { justify-content: center; }
+
+            @keyframes revealUp {
+                from { opacity: 0; transform: translateY(16px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            @media (max-width: 1180px) {
+                .pro-hero-copy h1 { font-size: clamp(2rem, 4.2vw, 3.5rem); }
+                .pro-feature-grid,
+                .pro-pricing-grid,
+                .pro-outcome-grid,
+                .pro-diff-grid {
+                    grid-template-columns: repeat(2,minmax(0,1fr));
                 }
-            });
-        });
-    </script>
+            }
+            @media (max-width: 960px) {
+                .pro-hero-grid {
+                    grid-template-columns: 1fr;
+                    padding-top: 4.9rem;
+                    padding-bottom: 3.95rem;
+                }
+                .pro-value-grid { grid-template-columns: 1fr; }
+            }
+            @media (max-width: 760px) {
+                .pro-wrap { padding: 0 1rem; }
+                .pro-hero { min-height: auto; }
+                .pro-hero-copy h1 { font-size: clamp(2rem, 8vw, 2.75rem); }
+                .pro-subtitle { font-size: 1rem; }
+                .pro-section { padding-top: 3.2rem; padding-bottom: 3.2rem; }
+                .pro-feature-grid,
+                .pro-pricing-grid,
+                .pro-faq-grid,
+                .pro-outcome-grid,
+                .pro-diff-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
     @endpush
 </x-app-layout>

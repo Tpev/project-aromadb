@@ -49,10 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const snapThresholdValue = document.getElementById('snapThresholdValue');
 
     const btnUndo        = document.getElementById('btnUndo');
+    const btnRedo        = document.getElementById('btnRedo');
 
     const btnToggleShapesDrawer = document.getElementById('btnToggleShapesDrawer');
     const shapesDrawer = document.getElementById('shapesDrawer');
     const shapesDrawerChevron = document.getElementById('shapesDrawerChevron');
+    const btnAlignCanvasLeft = document.getElementById('btnAlignCanvasLeft');
+    const btnAlignCanvasCenterX = document.getElementById('btnAlignCanvasCenterX');
+    const btnAlignCanvasRight = document.getElementById('btnAlignCanvasRight');
+    const btnAlignCanvasTop = document.getElementById('btnAlignCanvasTop');
+    const btnAlignCanvasCenterY = document.getElementById('btnAlignCanvasCenterY');
+    const btnAlignCanvasBottom = document.getElementById('btnAlignCanvasBottom');
 
     // Right sidebar
     const layersList         = document.getElementById('layersList');
@@ -83,12 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageControls      = document.getElementById('imageControls');
     const imgBrightness      = document.getElementById('imgBrightness');
     const imgContrast        = document.getElementById('imgContrast');
+    const imgFitMode         = document.getElementById('imgFitMode');
+    const btnReplaceImage    = document.getElementById('btnReplaceImage');
+    const imageReplaceUpload = document.getElementById('imageReplaceUpload');
 
     const btnZTop            = document.getElementById('btnZTop');
     const btnZUp             = document.getElementById('btnZUp');
     const btnZDown           = document.getElementById('btnZDown');
     const btnZBottom         = document.getElementById('btnZBottom');
     const btnDuplicate       = document.getElementById('btnDuplicate');
+    const btnToggleLock      = document.getElementById('btnToggleLock');
+    const btnToggleVisibility = document.getElementById('btnToggleVisibility');
+    const quickTemplateSearch = document.getElementById('quickTemplateSearch');
+    const dbTemplateSearch    = document.getElementById('dbTemplateSearch');
 
     // --- State
     let stage = null, backgroundLayer = null, gridLayer = null, mainLayer = null, transformer = null, bgRect = null;
@@ -103,11 +117,45 @@ document.addEventListener('DOMContentLoaded', () => {
     let snapThreshold = 6;  // px tolerance
 
     let history = [];
+    let redoStack = [];
     let elementCounter = 0;
+    let clipboardNode = null;
+    let pasteOffset = 0;
 
     // --- helpers
     const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
     const escapeHtml = (str) => String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    const FONT_MAP = { system: 'Arial', serif: 'Georgia', sans: 'Verdana' };
+
+    function sanitizeLayerName(name) {
+        return (name || 'Element').trim() || 'Element';
+    }
+
+    function getEditableNodes() {
+        if (!mainLayer) return [];
+        return mainLayer.getChildren().filter(n => n !== transformer);
+    }
+
+    function isNodeLocked(node) {
+        return !!node?.getAttr?.('amLocked');
+    }
+
+    function isNodeVisible(node) {
+        if (!node) return false;
+        return typeof node.visible === 'function' ? node.visible() : true;
+    }
+
+    function normalizeNodeState(node) {
+        if (!node || node === transformer) return;
+        node.draggable(!isNodeLocked(node));
+        if (typeof node.listening === 'function') {
+            node.listening(isNodeVisible(node));
+        }
+    }
+
+    function normalizeAllNodeStates() {
+        getEditableNodes().forEach(normalizeNodeState);
+    }
 
     function openFormatModal(){ formatModal?.classList.remove('hidden'); }
     function closeFormatModal(){ formatModal?.classList.add('hidden'); }
@@ -123,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function enableTextEditing(stage, layer) {
         function editTextNode(textNode) {
             if (!textNode || textNode.getAttr('amType') !== 'text') return;
+            if (isNodeLocked(textNode)) return;
 
             const absPos = textNode.getAbsolutePosition();
             const stageBox = stage.container().getBoundingClientRect();
@@ -308,6 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!snapGridEnabled || !stage || !node) return;
         if (node === bgRect) return;
         if (node.getClassName && node.getClassName() === 'Transformer') return;
+        if (isNodeLocked(node)) return;
 
         const step = Number(gridStep) || 40;
         const tol  = Number(snapThreshold) || 0;
@@ -343,14 +393,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         stage.on('dragmove.stickyGrid', (e) => {
             const n = e.target;
-            if (!n || n === bgRect) return;
+            if (!n || n === bgRect || isNodeLocked(n)) return;
             snapNodeToGrid(n);
             mainLayer?.batchDraw();
         });
 
         stage.on('dragend.stickyGrid', (e) => {
             const n = e.target;
-            if (!n || n === bgRect) return;
+            if (!n || n === bgRect || isNodeLocked(n)) return;
             snapNodeToGrid(n);
             mainLayer?.draw();
             saveHistory();
@@ -360,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         stage.on('transformend.stickyGrid', (e) => {
             const n = e.target;
-            if (!n || n === bgRect) return;
+            if (!n || n === bgRect || isNodeLocked(n)) return;
             snapNodeToGrid(n);
             mainLayer?.draw();
             saveHistory();
@@ -372,30 +422,73 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------
     // History
     // ----------------------------
-    function saveHistory() {
+    function updateHistoryButtons() {
+        if (btnUndo) btnUndo.disabled = history.length < 2;
+        if (btnRedo) btnRedo.disabled = redoStack.length < 1;
+    }
+
+    function saveHistory(clearRedo = true) {
         if (!stage) return;
-        history.push(stage.toJSON());
-        if (history.length > 25) history.shift();
+        const snapshot = stage.toJSON();
+        if (history.length && history[history.length - 1] === snapshot) {
+            updateHistoryButtons();
+            return;
+        }
+        history.push(snapshot);
+        if (history.length > 60) history.shift();
+        if (clearRedo) redoStack = [];
+        updateHistoryButtons();
     }
 
     function restoreFromJson(json) {
-        if (!selectedFormat) return;
+        if (!json) return;
+        const restoredStage = Konva.Node.create(json, container);
+        if (!(restoredStage instanceof Konva.Stage)) return;
 
-        const fmt = selectedFormat;
-        destroyStage(false);
-        initStageForFormat(fmt, false);
+        if (resizeObserver) {
+            resizeObserver.disconnect();
+            resizeObserver = null;
+        }
+        if (stage) stage.destroy();
 
-        stage.destroyChildren();
-        Konva.Node.create(json, container);
+        stage = restoredStage;
+        backgroundLayer = stage.findOne('.backgroundLayer') || stage.find('Layer')[0] || null;
+        gridLayer = stage.findOne('.gridLayer') || stage.find('Layer')[1] || null;
+        mainLayer = stage.findOne('.mainLayer') || stage.find('Layer')[2] || null;
+        bgRect = stage.findOne('.bgRect');
+        transformer = stage.findOne('.mainTransformer');
 
-        // re-find references
-        backgroundLayer = stage.findOne('.backgroundLayer') || stage.children[0];
-        gridLayer       = stage.findOne('.gridLayer') || stage.children[1];
-        mainLayer       = stage.findOne('.mainLayer') || stage.children[2];
-        bgRect          = stage.findOne('.bgRect');
-        transformer     = stage.findOne('.mainTransformer');
+        if (!mainLayer) {
+            mainLayer = new Konva.Layer({ name: 'mainLayer' });
+            stage.add(mainLayer);
+        }
+        if (!transformer || transformer.isDestroyed?.()) {
+            transformer = new Konva.Transformer({
+                name: 'mainTransformer',
+                rotateEnabled: true,
+                enabledAnchors: [
+                    'top-left', 'top-center', 'top-right',
+                    'middle-left',           'middle-right',
+                    'bottom-left','bottom-center','bottom-right'
+                ],
+                centeredScaling: true,
+                boundBoxFunc: (oldBox, newBox) => {
+                    if (newBox.width < 30 || newBox.height < 30) return oldBox;
+                    return newBox;
+                }
+            });
+            mainLayer.add(transformer);
+        }
 
-        // rebind selection, text editing, sticky grid
+        if (selectedFormat) {
+            selectedFormat = {
+                ...selectedFormat,
+                w: stage.width(),
+                h: stage.height(),
+            };
+            if (formatBadge) formatBadge.textContent = `${selectedFormat.w} x ${selectedFormat.h}`;
+        }
+
         stage.off('click tap');
         stage.on('click tap', (e) => {
             if (e.target === stage || e.target === bgRect) clearSelection();
@@ -404,20 +497,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         enableTextEditing(stage, mainLayer);
         bindStickyGridHandlers();
+        hydrateImageNodes();
+        normalizeAllNodeStates();
 
         if (toggleGrid?.checked) drawGrid(); else clearGrid();
 
         applyDisplayScale();
+        resizeObserver = new ResizeObserver(() => applyDisplayScale());
+        resizeObserver.observe(wrapper);
+
         clearSelection();
         refreshLayersList();
         updateInspector();
+        updateHistoryButtons();
     }
 
     function undo() {
         if (!stage || history.length < 2) return;
-        history.pop();
-        const prev = history[history.length - 1];
-        restoreFromJson(prev);
+        const current = history.pop();
+        redoStack.push(current);
+        restoreFromJson(history[history.length - 1]);
+        updateHistoryButtons();
+    }
+
+    function redo() {
+        if (!stage || redoStack.length < 1) return;
+        const next = redoStack.pop();
+        history.push(next);
+        restoreFromJson(next);
+        updateHistoryButtons();
     }
 
     // ----------------------------
@@ -425,6 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------
     function clearSelection() {
         selectedNode = null;
+        if (transformer) transformer.visible(true);
         transformer?.nodes([]);
         mainLayer?.draw();
         updateInspector();
@@ -432,10 +541,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setSelection(node) {
-        if (!node || node === bgRect) { clearSelection(); return; }
+        if (!node || node === bgRect || !isNodeVisible(node)) { clearSelection(); return; }
         selectedNode = node;
-        transformer?.nodes([node]);
-        transformer?.moveToTop();
+        if (isNodeLocked(node)) {
+            transformer?.nodes([]);
+        } else {
+            transformer?.nodes([node]);
+            transformer?.moveToTop();
+        }
         mainLayer?.draw();
         updateInspector();
         refreshLayersList();
@@ -448,30 +561,79 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!layersList || !mainLayer) return;
         layersList.innerHTML = '';
 
-        const nodes = mainLayer.getChildren().filter(n => n !== transformer);
-        const list = nodes.slice().reverse();
+        const list = getEditableNodes().slice().reverse();
 
         list.forEach(node => {
-            const name = node.getAttr('amName') || node.getClassName();
+            const name = sanitizeLayerName(node.getAttr('amName') || node.getClassName());
             const type = node.getAttr('amType') || node.getClassName();
+            const visible = isNodeVisible(node);
+            const locked = isNodeLocked(node);
+
+            const row = document.createElement('div');
+            row.className = 'layer-row';
 
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'layer-item-btn' + (selectedNode === node ? ' is-active' : '');
             btn.innerHTML = `
                 <span class="truncate">${escapeHtml(name)}</span>
-                <span class="layer-chip"><span>⬚</span>${escapeHtml(type)}</span>
+                <span class="layer-chip">${escapeHtml(type)}</span>
             `;
             btn.addEventListener('click', () => setSelection(node));
-            layersList.appendChild(btn);
+
+            const actions = document.createElement('div');
+            actions.className = 'layer-actions';
+
+            const visBtn = document.createElement('button');
+            visBtn.type = 'button';
+            visBtn.className = 'layer-icon-btn' + (visible ? ' is-active' : '');
+            visBtn.title = visible ? 'Masquer' : 'Afficher';
+            visBtn.textContent = visible ? 'Vis' : 'Hide';
+            visBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                node.visible(!visible);
+                normalizeNodeState(node);
+                if (!node.visible() && selectedNode === node) clearSelection();
+                mainLayer?.draw();
+                saveHistory();
+                refreshLayersList();
+                updateInspector();
+            });
+
+            const lockBtn = document.createElement('button');
+            lockBtn.type = 'button';
+            lockBtn.className = 'layer-icon-btn' + (locked ? ' is-active' : '');
+            lockBtn.title = locked ? 'Deverrouiller' : 'Verrouiller';
+            lockBtn.textContent = locked ? 'Lock' : 'Free';
+            lockBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                node.setAttr('amLocked', !locked);
+                normalizeNodeState(node);
+                if (selectedNode === node) setSelection(node);
+                mainLayer?.draw();
+                saveHistory();
+                refreshLayersList();
+                updateInspector();
+            });
+
+            actions.appendChild(visBtn);
+            actions.appendChild(lockBtn);
+            row.appendChild(btn);
+            row.appendChild(actions);
+            layersList.appendChild(row);
         });
     }
-
     function newElementId(){ elementCounter++; return 'elem-' + elementCounter; }
     function registerElement(node, type, name) {
         node.setAttr('amId', newElementId());
         node.setAttr('amType', type);
-        node.setAttr('amName', name || type);
+        node.setAttr('amName', sanitizeLayerName(name || type));
+        if (typeof node.getAttr('amLocked') === 'undefined') {
+            node.setAttr('amLocked', false);
+        }
+        normalizeNodeState(node);
         saveHistory();
         refreshLayersList();
         updateInspector();
@@ -496,7 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const t = selectedNode.getAttr('amType') || selectedNode.getClassName();
         selectionTypeBadge.textContent = t;
 
-        shapeControls?.classList.toggle('hidden', !(t === 'rect' || t === 'circle'));
+        shapeControls?.classList.toggle('hidden', !['rect', 'circle', 'shape', 'ellipse'].includes(t));
         textControls?.classList.toggle('hidden', t !== 'text');
         imageControls?.classList.toggle('hidden', t !== 'image');
 
@@ -507,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
             opacityValue.textContent = op + '%';
         }
 
-        if ((t === 'rect' || t === 'circle') && shapeFill && shapeStroke && shapeStrokeWidth && strokeWidthValue) {
+        if (['rect', 'circle', 'shape', 'ellipse'].includes(t) && shapeFill && shapeStroke && shapeStrokeWidth && strokeWidthValue) {
             shapeFill.value = (selectedNode.fill && selectedNode.fill()) ? selectedNode.fill() : '#e2e8f0';
             shapeStroke.value = (selectedNode.stroke && selectedNode.stroke()) ? selectedNode.stroke() : '#94a3b8';
             const sw = (selectedNode.strokeWidth && selectedNode.strokeWidth()) ?? 0;
@@ -518,46 +680,89 @@ document.addEventListener('DOMContentLoaded', () => {
         if (t === 'text' && textFontSize && textColor) {
             textFontSize.value = selectedNode.fontSize?.() ?? 26;
             textColor.value = selectedNode.fill?.() ?? '#111827';
+            if (textFontFamily) {
+                const family = String(selectedNode.fontFamily?.() || '').toLowerCase();
+                if (family.includes('georgia') || family.includes('times')) textFontFamily.value = 'serif';
+                else if (family.includes('verdana') || family.includes('arial') || family.includes('sans')) textFontFamily.value = 'sans';
+                else textFontFamily.value = 'system';
+            }
         }
+
+        if (t === 'image') {
+            if (imgBrightness) imgBrightness.value = String(clamp(Number(selectedNode.getAttr('amBrightness') ?? 0), -1, 1));
+            if (imgContrast) imgContrast.value = String(clamp(Number(selectedNode.getAttr('amContrast') ?? 0), -1, 1));
+            if (imgFitMode) imgFitMode.value = selectedNode.getAttr('amFitMode') || 'cover';
+        }
+
+        if (btnToggleLock) btnToggleLock.textContent = isNodeLocked(selectedNode) ? 'Deverrouiller' : 'Verrouiller';
+        if (btnToggleVisibility) btnToggleVisibility.textContent = isNodeVisible(selectedNode) ? 'Masquer' : 'Afficher';
     }
 
     // ----------------------------
     // Stage lifecycle
     // ----------------------------
-    function destroyStage(clearSelectedFormat = true) {
+    function destroyStage(clearSelectedFormat = true, clearHistory = true) {
         if (resizeObserver) { resizeObserver.disconnect(); resizeObserver = null; }
         if (stage) { stage.destroy(); stage = null; }
         container.innerHTML = '';
-        history = [];
-        elementCounter = 0;
+        if (clearHistory) {
+            history = [];
+            redoStack = [];
+            elementCounter = 0;
+        }
         selectedNode = null;
         wrapper.style.height = '';
         if (clearSelectedFormat) selectedFormat = null;
+        updateHistoryButtons();
+    }
+
+    function matchesTemplateSearch(button, term) {
+        if (!term) return true;
+        const title = String(button.getAttribute('title') || '').toLowerCase();
+        const body = String(button.textContent || '').toLowerCase();
+        return title.includes(term) || body.includes(term);
     }
 
     function refreshTemplateButtons() {
+        const searchTerm = String(quickTemplateSearch?.value || '').trim().toLowerCase();
+
         document.querySelectorAll('.js-template-btn').forEach(btn => {
             const fmt = btn.getAttribute('data-format');
-            const ok = selectedFormat && fmt === selectedFormat.id;
-            btn.classList.toggle('opacity-40', !ok);
-            btn.classList.toggle('pointer-events-none', !ok);
+            const formatOk = selectedFormat && fmt === selectedFormat.id;
+            const searchOk = matchesTemplateSearch(btn, searchTerm);
+            const enabled = formatOk && searchOk;
+
+            btn.classList.toggle('hidden', !searchOk);
+            btn.classList.toggle('opacity-40', !enabled);
+            btn.classList.toggle('pointer-events-none', !enabled);
         });
     }
 
     function refreshTemplateButtonsDb() {
+        const searchTerm = String(dbTemplateSearch?.value || '').trim().toLowerCase();
+
         document.querySelectorAll('.js-template-db-btn').forEach(btn => {
             const fmt = btn.getAttribute('data-format');
-            const ok = selectedFormat && fmt === selectedFormat.id;
-            btn.classList.toggle('opacity-40', !ok);
-            btn.classList.toggle('pointer-events-none', !ok);
+            const formatOk = selectedFormat && fmt === selectedFormat.id;
+            const searchOk = matchesTemplateSearch(btn, searchTerm);
+            const enabled = formatOk && searchOk;
+
+            btn.classList.toggle('hidden', !searchOk);
+            btn.classList.toggle('opacity-40', !enabled);
+            btn.classList.toggle('pointer-events-none', !enabled);
         });
     }
 
+    function bindTemplateSearch() {
+        quickTemplateSearch?.addEventListener('input', refreshTemplateButtons);
+        dbTemplateSearch?.addEventListener('input', refreshTemplateButtonsDb);
+    }
+
     function initStageForFormat(fmt, resetHistory = true) {
-        destroyStage(false);
+        destroyStage(false, resetHistory);
         selectedFormat = fmt;
 
-        if (formatBadge) formatBadge.textContent = `${fmt.w} × ${fmt.h}`;
+        if (formatBadge) formatBadge.textContent = `${fmt.w} x ${fmt.h}`;
 
         stage = new Konva.Stage({ container: container, width: fmt.w, height: fmt.h });
 
@@ -608,11 +813,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (toggleGrid?.checked) drawGrid(); else clearGrid();
 
-        if (resetHistory) { history = []; saveHistory(); }
+        if (resetHistory) {
+            history = [];
+            redoStack = [];
+            saveHistory();
+        }
         refreshTemplateButtons();
         refreshTemplateButtonsDb();
         refreshLayersList();
         updateInspector();
+        updateHistoryButtons();
     }
 
     // ----------------------------
@@ -623,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const node = new Konva.Text({
             x: 100, y: 120, text,
             fontSize: 64,
-            fontFamily: 'Arial',
+            fontFamily: FONT_MAP.sans,
             fill: '#111827',
             draggable: true
         });
@@ -802,6 +1012,149 @@ document.addEventListener('DOMContentLoaded', () => {
         saveHistory();
     }
 
+    function ensureImageFilters(node) {
+        if (!node || node.getAttr('amType') !== 'image' || !node.image?.()) return;
+        node.filters([Konva.Filters.Brighten, Konva.Filters.Contrast]);
+        try {
+            node.clearCache();
+            node.cache();
+        } catch (e) {}
+    }
+
+    function applyImageAdjustments(node, shouldSave = false) {
+        if (!node || node.getAttr('amType') !== 'image') return;
+        const brightness = clamp(Number(node.getAttr('amBrightness') ?? 0), -1, 1);
+        const contrast = clamp(Number(node.getAttr('amContrast') ?? 0), -1, 1);
+        node.setAttr('amBrightness', brightness);
+        node.setAttr('amContrast', contrast);
+        ensureImageFilters(node);
+        node.brightness(brightness);
+        node.contrast(contrast * 100);
+        mainLayer?.draw();
+        if (shouldSave) saveHistory();
+    }
+
+    function fitImageNode(node, mode = 'cover', shouldSave = true) {
+        if (!selectedFormat || !node || node.getAttr('amType') !== 'image') return;
+
+        const image = node.image?.();
+        const naturalW = Number(node.getAttr('amImageOriginalW')) || image?.naturalWidth || image?.width || node.width();
+        const naturalH = Number(node.getAttr('amImageOriginalH')) || image?.naturalHeight || image?.height || node.height();
+        if (!naturalW || !naturalH) return;
+
+        const canvasW = selectedFormat.w;
+        const canvasH = selectedFormat.h;
+        let width = canvasW;
+        let height = canvasH;
+        let x = 0;
+        let y = 0;
+
+        if (mode === 'contain') {
+            const scale = Math.min(canvasW / naturalW, canvasH / naturalH);
+            width = naturalW * scale;
+            height = naturalH * scale;
+            x = (canvasW - width) / 2;
+            y = (canvasH - height) / 2;
+        } else if (mode === 'cover') {
+            const scale = Math.max(canvasW / naturalW, canvasH / naturalH);
+            width = naturalW * scale;
+            height = naturalH * scale;
+            x = (canvasW - width) / 2;
+            y = (canvasH - height) / 2;
+        }
+
+        node.setAttr('amFitMode', mode);
+        node.x(x);
+        node.y(y);
+        node.width(width);
+        node.height(height);
+        applyImageAdjustments(node, false);
+        mainLayer?.draw();
+        if (shouldSave) saveHistory();
+    }
+
+    function loadImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+            if (!file || !file.type?.startsWith('image/')) {
+                reject(new Error('Invalid image file'));
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = String(reader.result);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function handleImageFile(file, options = {}) {
+        if (!ensureFormatChosen() || !file) return;
+
+        const replaceSelected = !!options.replaceSelected
+            && selectedNode
+            && selectedNode.getAttr('amType') === 'image';
+
+        try {
+            const imgObj = await loadImageFromFile(file);
+            const src = imgObj.currentSrc || imgObj.src || '';
+            if (replaceSelected) {
+                selectedNode.image(imgObj);
+                selectedNode.setAttr('amImageSrc', src);
+                selectedNode.setAttr('amImageOriginalW', imgObj.naturalWidth || imgObj.width || selectedNode.width());
+                selectedNode.setAttr('amImageOriginalH', imgObj.naturalHeight || imgObj.height || selectedNode.height());
+                fitImageNode(selectedNode, selectedNode.getAttr('amFitMode') || 'cover', false);
+                applyImageAdjustments(selectedNode, false);
+                mainLayer?.draw();
+                saveHistory();
+                updateInspector();
+                return;
+            }
+
+            const kImg = new Konva.Image({
+                image: imgObj,
+                x: 0,
+                y: 0,
+                width: selectedFormat.w,
+                height: selectedFormat.h,
+                draggable: true
+            });
+            kImg.setAttr('amImageSrc', src);
+            kImg.setAttr('amImageOriginalW', imgObj.naturalWidth || imgObj.width || selectedFormat.w);
+            kImg.setAttr('amImageOriginalH', imgObj.naturalHeight || imgObj.height || selectedFormat.h);
+            kImg.setAttr('amBrightness', 0);
+            kImg.setAttr('amContrast', 0);
+            kImg.setAttr('amFitMode', 'cover');
+            mainLayer.add(kImg);
+            registerElement(kImg, 'image', 'Image');
+            fitImageNode(kImg, 'cover', false);
+            setSelection(kImg);
+            mainLayer.draw();
+            saveHistory();
+        } catch (err) {
+            console.error(err);
+            alert("Impossible de charger l'image.");
+        }
+    }
+
+    function hydrateImageNodes() {
+        getEditableNodes().forEach((node) => {
+            if (node.getAttr('amType') !== 'image') return;
+            const src = node.getAttr('amImageSrc');
+            if (!src) return;
+            const img = new Image();
+            img.onload = () => {
+                node.image(img);
+                applyImageAdjustments(node, false);
+                mainLayer?.draw();
+            };
+            img.src = src;
+        });
+    }
+
     function clearCanvas() {
         if (!mainLayer) return;
 
@@ -847,6 +1200,91 @@ document.addEventListener('DOMContentLoaded', () => {
         updateInspector();
     }
 
+    function alignSelection(position) {
+        if (!selectedNode || !stage || isNodeLocked(selectedNode)) return;
+        const rect = selectedNode.getClientRect({ relativeTo: stage });
+        let dx = 0;
+        let dy = 0;
+
+        if (position === 'left') dx = -rect.x;
+        if (position === 'centerX') dx = (stage.width() / 2) - (rect.x + rect.width / 2);
+        if (position === 'right') dx = stage.width() - (rect.x + rect.width);
+        if (position === 'top') dy = -rect.y;
+        if (position === 'centerY') dy = (stage.height() / 2) - (rect.y + rect.height / 2);
+        if (position === 'bottom') dy = stage.height() - (rect.y + rect.height);
+
+        selectedNode.x(selectedNode.x() + dx);
+        selectedNode.y(selectedNode.y() + dy);
+        mainLayer.draw();
+        saveHistory();
+        updateInspector();
+    }
+
+    function deleteSelection() {
+        if (!selectedNode) return;
+        selectedNode.destroy();
+        clearSelection();
+        mainLayer?.draw();
+        saveHistory();
+    }
+
+    function duplicateSelection() {
+        if (!selectedNode || !mainLayer) return;
+        const clone = selectedNode.clone({
+            x: selectedNode.x() + 30,
+            y: selectedNode.y() + 30,
+            draggable: true
+        });
+        clone.setAttr('amLocked', false);
+        clone.visible(true);
+        mainLayer.add(clone);
+        registerElement(
+            clone,
+            clone.getAttr('amType') || clone.getClassName(),
+            `${sanitizeLayerName(clone.getAttr('amName') || 'Element')} (copie)`
+        );
+        setSelection(clone);
+        mainLayer.draw();
+        saveHistory();
+    }
+
+    function copySelection() {
+        if (!selectedNode) return;
+        clipboardNode = selectedNode.clone({ draggable: true });
+        clipboardNode.setAttr('amLocked', false);
+        pasteOffset = 0;
+    }
+
+    function pasteSelection() {
+        if (!clipboardNode || !mainLayer) return;
+        pasteOffset += 24;
+        const clone = clipboardNode.clone({
+            x: (clipboardNode.x() || 60) + pasteOffset,
+            y: (clipboardNode.y() || 60) + pasteOffset,
+            draggable: true
+        });
+        clone.setAttr('amLocked', false);
+        clone.visible(true);
+        mainLayer.add(clone);
+        registerElement(
+            clone,
+            clone.getAttr('amType') || clone.getClassName(),
+            `${sanitizeLayerName(clone.getAttr('amName') || 'Element')} (copie)`
+        );
+        setSelection(clone);
+        mainLayer.draw();
+        saveHistory();
+    }
+
+    function nudgeSelection(dx, dy) {
+        if (!selectedNode || isNodeLocked(selectedNode)) return;
+        selectedNode.x(selectedNode.x() + dx);
+        selectedNode.y(selectedNode.y() + dy);
+        mainLayer.draw();
+        saveHistory();
+        updateInspector();
+    }
+
     // ----------------------------
     // DB Templates (load from API)
     // ----------------------------
@@ -863,6 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const json = (typeof data.konva_json === 'string') ? data.konva_json : JSON.stringify(data.konva_json);
             restoreFromJson(json);
+            saveHistory();
 
         } catch (err) {
             console.error(err);
@@ -953,261 +1392,363 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyTemplate(templateId) {
         if (!ensureFormatChosen()) return;
 
-        const tpl = TEMPLATES.find(t => t.id === templateId);
+        const aliases = {
+            quote: 'quote_minimal_square',
+            promo: 'promo_flash_square',
+            event: 'event_masterclass_square',
+            testimonial: 'testimonial_proof_square',
+            before_after: 'before_after_square',
+            tip_story: 'story_tip_vertical',
+            event_story: 'story_announcement_vertical',
+            checklist_landscape: 'checklist_landscape_pro',
+        };
+
+        const resolvedId = aliases[templateId] || templateId;
+        const tpl = TEMPLATES.find(t => t.id === resolvedId);
         if (!tpl || tpl.format_id !== selectedFormat.id) return;
 
         clearCanvas();
 
-        const title = (txt) => {
-            addText(txt);
-            selectedNode.fontSize(72);
-            selectedNode.fill('#0f172a');
-            selectedNode.x(90); selectedNode.y(110);
-        };
+        const W = selectedFormat.w;
+        const H = selectedFormat.h;
 
-        const subtitle = (txt) => {
-            addText(txt);
-            selectedNode.fontSize(40);
-            selectedNode.fill('#334155');
-            selectedNode.x(90); selectedNode.y(220);
-        };
-
-        const badge = (txt) => {
-            const pill = new Konva.Rect({
-                x: 90, y: 60, width: 420, height: 70,
-                fill: '#ecfccb', cornerRadius: 999, draggable: true
+        const addR = (o) => {
+            const node = new Konva.Rect({
+                x: o.x ?? 0,
+                y: o.y ?? 0,
+                width: o.w ?? 200,
+                height: o.h ?? 120,
+                fill: o.fill ?? '#e2e8f0',
+                stroke: o.stroke,
+                strokeWidth: o.strokeWidth ?? 0,
+                cornerRadius: o.r ?? 0,
+                shadowColor: o.shadowColor,
+                shadowBlur: o.shadowBlur ?? 0,
+                shadowOffset: o.shadowOffset ?? { x: 0, y: 0 },
+                shadowOpacity: o.shadowOpacity ?? 0,
+                draggable: true
             });
-            mainLayer.add(pill);
-            registerElement(pill, 'rect', 'Badge');
-
-            addText(txt);
-            selectedNode.fontSize(34);
-            selectedNode.fill('#365314');
-            selectedNode.x(120); selectedNode.y(78);
+            mainLayer.add(node);
+            registerElement(node, 'rect', o.name || 'Bloc');
+            return node;
         };
 
-        switch (templateId) {
-            case 'quote': {
-                setBgColor('#fefce8');
-                badge('CITATION');
-                addText('“Une petite routine, tous les jours, change tout.”');
-                selectedNode.fontSize(64);
-                selectedNode.fill('#0f172a');
-                selectedNode.x(90); selectedNode.y(240);
-                selectedNode.width(selectedFormat.w - 180);
-                selectedNode.align('center');
-                break;
-            }
+        const addC = (o) => {
+            const node = new Konva.Circle({
+                x: o.x ?? 200,
+                y: o.y ?? 200,
+                radius: o.radius ?? 80,
+                fill: o.fill ?? '#e2e8f0',
+                stroke: o.stroke,
+                strokeWidth: o.strokeWidth ?? 0,
+                opacity: o.opacity ?? 1,
+                draggable: true
+            });
+            mainLayer.add(node);
+            registerElement(node, 'circle', o.name || 'Cercle');
+            return node;
+        };
 
-            case 'promo': {
-                setBgColor('#f1f5f9');
-                badge('OFFRE');
-                title('Promo du mois');
-                subtitle('–20% sur votre pack découverte');
-                addRect();
-                selectedNode.x(90); selectedNode.y(360);
-                selectedNode.width(selectedFormat.w - 180);
-                selectedNode.height(520);
-                selectedNode.fill('#e2e8f0');
-                selectedNode.strokeWidth(0);
+        const addT = (o) => {
+            const node = new Konva.Text({
+                x: o.x ?? 0,
+                y: o.y ?? 0,
+                width: o.w ?? (W - 80),
+                text: o.text ?? 'Texte',
+                fontSize: o.size ?? 48,
+                fontFamily: o.font ?? 'Verdana',
+                fontStyle: o.style ?? 'normal',
+                fill: o.fill ?? '#111827',
+                align: o.align ?? 'left',
+                lineHeight: o.lh ?? 1.15,
+                draggable: true
+            });
+            mainLayer.add(node);
+            registerElement(node, 'text', o.name || 'Texte');
+            return node;
+        };
 
-                addText('Code: NOEL2025');
-                selectedNode.fontSize(56);
-                selectedNode.fill('#647a0b');
-                selectedNode.x(90); selectedNode.y(selectedFormat.h - 180);
-                selectedNode.width(selectedFormat.w - 180);
-                selectedNode.align('center');
-                break;
-            }
+        const addTag = (text, options = {}) => {
+            const x = options.x ?? 70;
+            const y = options.y ?? 60;
+            const w = options.w ?? 360;
+            const h = options.h ?? 58;
+            const bg = options.bg ?? '#dcfce7';
+            const color = options.color ?? '#14532d';
 
-            case 'event': {
-                const W = selectedFormat.w;
-                const H = selectedFormat.h;
+            addR({ x, y, w, h, fill: bg, r: 999, name: 'Tag' });
+            addT({
+                x: x + 20,
+                y: y + 15,
+                w: w - 40,
+                text,
+                size: 24,
+                style: 'bold',
+                fill: color,
+                align: 'center',
+                name: 'Tag texte'
+            });
+        };
 
-                const BROWN = '#7b5646';
-                const SAGE  = '#5e7415';
-                const CREAM = '#f3eadf';
+        const addFooter = (text) => {
+            addT({
+                x: 60,
+                y: H - 74,
+                w: W - 120,
+                text,
+                size: 24,
+                fill: '#64748b',
+                align: 'center',
+                name: 'Footer'
+            });
+        };
 
-                setBgColor('#ffffff');
-
-                const addR = (o) => {
-                    const r = new Konva.Rect({
-                        x:o.x, y:o.y, width:o.w, height:o.h,
-                        fill:o.fill ?? '#e2e8f0',
-                        cornerRadius:o.r ?? 0,
-                        shadowColor:o.shadowColor,
-                        shadowBlur:o.shadowBlur ?? 0,
-                        shadowOffset:o.shadowOffset ?? {x:0,y:0},
-                        shadowOpacity:o.shadowOpacity ?? 0,
-                        draggable: true
-                    });
-                    mainLayer.add(r);
-                    registerElement(r, 'rect', o.name || 'Bloc');
-                    return r;
-                };
-
-                const addT = (o) => {
-                    const t = new Konva.Text({
-                        x:o.x, y:o.y, width:o.w,
-                        text:o.text,
-                        fontSize:o.size ?? 32,
-                        fontFamily:o.font ?? 'Arial',
-                        fontStyle:o.style ?? 'normal',
-                        fill:o.fill ?? '#111827',
-                        align:o.align ?? 'left',
-                        lineHeight:o.lh ?? 1.05,
-                        draggable: true
-                    });
-                    mainLayer.add(t);
-                    registerElement(t, 'text', o.name || 'Texte');
-                    return t;
-                };
-
-                const topBarH = 140;
-                const paperX = 40;
-                const paperY = topBarH + 30;
-                const paperW = W - 80;
-                const paperH = H - paperY - 40;
-
-                const pad = 60;
-                const datePillH   = 92;
-                const titleBandH  = 340;
-                const ctaBoxH     = 170;
-
-                const gap1 = 36;
-
-                const dateY  = paperY + 140;
-                const titleY = dateY + datePillH + gap1;
-                const ctaY   = paperY + paperH - pad - ctaBoxH;
-
-                addR({ x:0, y:0, w:W, h:topBarH, fill:BROWN, r:0, name:'Header' });
-
-                addR({ x: 50, y: 34, w: 84, h: 84, fill: 'rgba(255,255,255,0.10)', r: 999, name: 'Logo' });
-
-                addT({ x: 50, y: 54, w: 84, text: "AromaMa\nde\nPRO", size: 16, font: 'Arial', style: 'bold', fill: CREAM, align: 'center', lh: 1.0, name: 'Logo texte' });
-
-                addT({ x: 160, y: 36, w: W - 190, text: "AromaMade PRO - La plateforme\ndes praticiens du bien-être", size: 40, font: 'Arial', style: 'bold', fill: CREAM, lh: 1.1, name: 'Header titre' });
-
+        switch (resolvedId) {
+            case 'quote_minimal_square': {
+                setBgColor('#f8f5ef');
+                addC({ x: W - 120, y: 130, radius: 230, fill: '#d9efe2', opacity: 0.8, name: 'Accent cercle' });
                 addR({
-                    x: paperX, y: paperY, w: paperW, h: paperH,
-                    fill: '#f2ede4',
-                    r: 44,
-                    shadowColor: 'rgba(15,23,42,0.18)',
-                    shadowBlur: 24,
-                    shadowOffset: { x: 0, y: 10 },
-                    shadowOpacity: 0.25,
-                    name: 'Fond papier'
+                    x: 62, y: 120, w: W - 124, h: H - 220,
+                    fill: '#ffffff', r: 34,
+                    shadowColor: 'rgba(15,23,42,0.12)', shadowBlur: 24, shadowOffset: { x: 0, y: 10 }, shadowOpacity: 0.35,
+                    name: 'Carte'
                 });
-
-                const paperOverlay = new Konva.Rect({
-                    x: paperX, y: paperY, width: paperW, height: paperH,
-                    cornerRadius: 44,
-                    listening: false,
-                    fillLinearGradientStartPoint: { x: 0, y: 0 },
-                    fillLinearGradientEndPoint:   { x: 0, y: paperH },
-                    fillLinearGradientColorStops: [
-                        0.0, 'rgba(255,255,255,0.55)',
-                        0.6, 'rgba(255,255,255,0.18)',
-                        1.0, 'rgba(0,0,0,0.06)'
-                    ]
+                addTag('CITATION DU JOUR');
+                addT({
+                    x: 130, y: 280, w: W - 260,
+                    text: '"La constance est la cle d une progression durable."',
+                    size: 72, font: 'Georgia', fill: '#0f172a', align: 'center', lh: 1.2, name: 'Citation'
                 });
-                mainLayer.add(paperOverlay);
-
-                const dateX = paperX + pad;
-                const dateW = paperW - (pad * 2);
-
-                addR({ x: dateX, y: dateY, w: dateW, h: datePillH, fill: SAGE, r: 26, name: 'Bandeau date' });
-
-                addT({ x: dateX + 30, y: dateY + 24, w: dateW - 60, text: "Webinaire - Lundi 12 Janvier 2026 à 18h30", size: 42, font: 'Arial', style: 'bold', fill: CREAM, lh: 1.0, name: 'Texte date' });
-
-                addR({ x: paperX, y: titleY, w: paperW, h: titleBandH, fill: SAGE, r: 0, name: 'Bandeau titre' });
-
-                addT({ x: paperX + pad, y: titleY + 56, w: paperW - (pad * 2), text: "Comprendre comment\nêtre visible sur Internet", size: 90, font: 'Georgia', style: 'normal', fill: CREAM, lh: 0.98, name: 'Titre principal' });
-
-                const ctaW = 420;
-                const ctaX = paperX + paperW - pad - ctaW;
-
-                addR({ x: ctaX, y: ctaY, w: ctaW, h: ctaBoxH, fill: SAGE, r: 22, name: 'CTA' });
-
-                addT({ x: ctaX + 22, y: ctaY + 26, w: ctaW - 44, text: "Inscrivez vous\ngratuitement", size: 50, font: 'Arial', style: 'bold', fill: CREAM, align: 'center', lh: 1.0, name: 'CTA texte' });
-
-                addT({ x: ctaX + 22, y: ctaY + 132, w: ctaW - 44, text: "(Lien en description)", size: 26, font: 'Arial', style: 'bold', fill: 'rgba(243,234,223,0.90)', align: 'center', name: 'CTA sous-texte' });
-
-                mainLayer.draw();
-                saveHistory();
-                refreshLayersList();
-                updateInspector();
+                addT({
+                    x: 140, y: 785, w: W - 280,
+                    text: '- Votre nom / marque',
+                    size: 34, style: 'bold', fill: '#334155', align: 'center', name: 'Auteur'
+                });
+                addFooter('Personnalisez le texte puis exportez');
                 break;
             }
 
-            case 'testimonial': {
+            case 'promo_flash_square': {
+                setBgColor('#111827');
+                addR({ x: 0, y: 0, w: W, h: 260, fill: '#0f172a', r: 0, name: 'Header' });
+                addR({ x: 50, y: 86, w: 350, h: 64, fill: '#facc15', r: 999, name: 'Badge promo' });
+                addT({ x: 82, y: 106, w: 286, text: 'OFFRE LIMITEE', size: 28, style: 'bold', fill: '#111827', align: 'center', name: 'Badge texte' });
+                addT({
+                    x: 70, y: 220, w: W - 140,
+                    text: 'Pack Bien-etre\nSession decouverte',
+                    size: 88, style: 'bold', fill: '#f8fafc', align: 'left', lh: 0.95, name: 'Titre'
+                });
+                addR({ x: 70, y: 540, w: 340, h: 220, fill: '#22c55e', r: 24, name: 'Bloc remise' });
+                addT({ x: 80, y: 585, w: 320, text: '-30%', size: 116, style: 'bold', fill: '#052e16', align: 'center', name: 'Remise' });
+                addT({
+                    x: 440, y: 575, w: W - 520,
+                    text: 'Code: BIENVENUE30\nValable jusqu au 30/09',
+                    size: 42, style: 'bold', fill: '#e2e8f0', lh: 1.2, name: 'Details'
+                });
+                addR({ x: 430, y: 790, w: 580, h: 130, fill: '#f8fafc', r: 22, name: 'CTA' });
+                addT({ x: 460, y: 835, w: 520, text: 'Reserver maintenant', size: 46, style: 'bold', fill: '#0f172a', align: 'center', name: 'CTA texte' });
+                addFooter('Sans engagement - modifiez le prix selon votre offre');
+                break;
+            }
+
+            case 'event_masterclass_square': {
+                setBgColor('#f4efe7');
+                addR({ x: 0, y: 0, w: W, h: 220, fill: '#1e293b', r: 0, name: 'Header' });
+                addT({ x: 70, y: 56, w: W - 140, text: 'MASTERCLASS EN LIGNE', size: 46, style: 'bold', fill: '#e2e8f0', align: 'center', name: 'Sur titre' });
+                addR({ x: 90, y: 270, w: W - 180, h: 670, fill: '#ffffff', r: 36, shadowColor: 'rgba(15,23,42,0.15)', shadowBlur: 24, shadowOffset: { x: 0, y: 12 }, shadowOpacity: 0.35, name: 'Carte' });
+                addTag('MARDI 12 NOVEMBRE - 19H00', { x: 200, y: 330, w: W - 400, h: 68, bg: '#dcfce7', color: '#166534' });
+                addT({
+                    x: 150, y: 455, w: W - 300,
+                    text: 'Comment structurer\nvotre activite en 2026',
+                    size: 84, font: 'Georgia', fill: '#0f172a', align: 'center', lh: 1.04, name: 'Titre'
+                });
+                addT({
+                    x: 170, y: 700, w: W - 340,
+                    text: 'Avec Prenom Nom - Session interactive',
+                    size: 34, fill: '#475569', align: 'center', name: 'Intervenant'
+                });
+                addR({ x: 220, y: 790, w: W - 440, h: 108, fill: '#1e293b', r: 24, name: 'CTA' });
+                addT({ x: 245, y: 826, w: W - 490, text: 'Inscription gratuite', size: 42, style: 'bold', fill: '#f8fafc', align: 'center', name: 'CTA texte' });
+                break;
+            }
+
+            case 'testimonial_proof_square': {
                 setBgColor('#f8fafc');
-                badge('AVIS CLIENT');
-                addText('“J’ai enfin retrouvé une routine simple et efficace.”');
-                selectedNode.fontSize(62);
-                selectedNode.fill('#0f172a');
-                selectedNode.x(90); selectedNode.y(240);
-                selectedNode.width(selectedFormat.w - 180);
-                selectedNode.align('center');
-
-                addText('— Prénom, Ville');
-                selectedNode.fontSize(36);
-                selectedNode.fill('#334155');
-                selectedNode.x(90); selectedNode.y(selectedFormat.h - 200);
-                selectedNode.width(selectedFormat.w - 180);
-                selectedNode.align('center');
+                addTag('AVIS CLIENT', { x: 70, y: 60, w: 250, h: 58, bg: '#dbeafe', color: '#1d4ed8' });
+                addC({ x: 215, y: 300, radius: 120, fill: '#cbd5e1', name: 'Photo profil' });
+                addT({ x: 145, y: 430, w: 140, text: 'Photo', size: 30, style: 'bold', fill: '#334155', align: 'center', name: 'Placeholder photo' });
+                addR({ x: 360, y: 180, w: 650, h: 640, fill: '#ffffff', r: 28, shadowColor: 'rgba(15,23,42,0.12)', shadowBlur: 18, shadowOffset: { x: 0, y: 8 }, shadowOpacity: 0.3, name: 'Carte avis' });
+                addT({
+                    x: 420, y: 260, w: 530,
+                    text: '★★★★★',
+                    size: 54, style: 'bold', fill: '#f59e0b', align: 'left', name: 'Etoiles'
+                });
+                addT({
+                    x: 420, y: 350, w: 530,
+                    text: '"Resultat visible en 4 semaines,\norganisation simplifiee et clients ravis."',
+                    size: 48, fill: '#0f172a', lh: 1.2, name: 'Avis'
+                });
+                addT({ x: 420, y: 660, w: 530, text: 'Camille - Lyon', size: 34, style: 'bold', fill: '#334155', name: 'Nom client' });
+                addFooter('Ajoutez votre vrai avis et votre preuve sociale');
                 break;
             }
 
-            case 'tip': {
-                setBgColor('#ecfccb');
-                badge('ASTUCE');
-                title('Astuce du jour');
-                addText('Respirez 4 secondes • Bloquez 4 • Expirez 6\nRépétez 5 fois');
-                selectedNode.fontSize(56);
-                selectedNode.fill('#0f172a');
-                selectedNode.x(90); selectedNode.y(320);
-                selectedNode.width(selectedFormat.w - 180);
-                selectedNode.align('center');
+            case 'before_after_square': {
+                setBgColor('#eef2ff');
+                addTag('AVANT / APRES', { x: 70, y: 60, w: 320, h: 58, bg: '#c7d2fe', color: '#3730a3' });
+                addR({ x: 70, y: 170, w: (W - 170) / 2, h: 680, fill: '#e2e8f0', r: 24, name: 'Avant image' });
+                addR({ x: 100 + (W - 170) / 2, y: 170, w: (W - 170) / 2, h: 680, fill: '#e2e8f0', r: 24, name: 'Apres image' });
+                addT({ x: 90, y: 880, w: (W - 170) / 2 - 40, text: 'AVANT', size: 36, style: 'bold', fill: '#334155', align: 'center', name: 'Label avant' });
+                addT({ x: 120 + (W - 170) / 2, y: 880, w: (W - 170) / 2 - 40, text: 'APRES', size: 36, style: 'bold', fill: '#334155', align: 'center', name: 'Label apres' });
+                addFooter('Ajoutez vos visuels et votre resultat en 1 phrase');
                 break;
             }
 
-            case 'before_after': {
-                setBgColor('#f1f5f9');
-                badge('AVANT / APRÈS');
-                addRect();
-                const left = selectedNode;
-                left.x(90); left.y(220);
-                left.width((selectedFormat.w - 200)/2);
-                left.height(selectedFormat.h - 340);
-                left.fill('#e2e8f0'); left.strokeWidth(0);
-
-                const right = left.clone({ x: left.x() + left.width() + 20 });
-                mainLayer.add(right);
-                registerElement(right, 'rect', 'Après');
-
-                addText('AVANT');
-                selectedNode.fontSize(44); selectedNode.fill('#334155');
-                selectedNode.x(left.x()); selectedNode.y(selectedFormat.h - 120);
-                selectedNode.width(left.width()); selectedNode.align('center');
-
-                addText('APRÈS');
-                selectedNode.fontSize(44); selectedNode.fill('#334155');
-                selectedNode.x(right.x()); selectedNode.y(selectedFormat.h - 120);
-                selectedNode.width(right.width()); selectedNode.align('center');
+            case 'carousel_cover_square': {
+                setBgColor('#0f172a');
+                addC({ x: 930, y: 170, radius: 220, fill: '#14532d', opacity: 0.55, name: 'Accent cercle 1' });
+                addC({ x: 170, y: 980, radius: 300, fill: '#1d4ed8', opacity: 0.25, name: 'Accent cercle 2' });
+                addR({ x: 70, y: 80, w: 200, h: 54, fill: '#facc15', r: 999, name: 'Badge slide' });
+                addT({ x: 92, y: 97, w: 156, text: 'SLIDE 1/5', size: 22, style: 'bold', fill: '#111827', align: 'center', name: 'Badge texte' });
+                addT({
+                    x: 90, y: 220, w: W - 180,
+                    text: '5 actions concretes\npour gagner 5h\nchaque semaine',
+                    size: 96, style: 'bold', fill: '#f8fafc', lh: 0.97, name: 'Titre cover'
+                });
+                addT({
+                    x: 95, y: 705, w: W - 190,
+                    text: 'Simple, sans outils supplementaires, applicable aujourd hui.',
+                    size: 34, fill: '#cbd5e1', lh: 1.25, name: 'Sous titre'
+                });
+                addR({ x: 90, y: 860, w: W - 180, h: 120, fill: '#f8fafc', r: 22, name: 'CTA cover' });
+                addT({ x: 120, y: 900, w: W - 240, text: 'Glissez pour voir les 4 etapes suivantes', size: 36, style: 'bold', fill: '#0f172a', align: 'center', name: 'CTA texte' });
                 break;
             }
 
-            case 'checklist': {
-                setBgColor('#ffffff');
-                badge('CHECKLIST');
-                title('Routine du matin');
-                addText('✅ Eau\n✅ 5 minutes de respiration\n✅ Étirement\n✅ Intention du jour');
-                selectedNode.fontSize(52);
-                selectedNode.fill('#0f172a');
-                selectedNode.x(120); selectedNode.y(320);
+            case 'story_announcement_vertical': {
+                setBgColor('#0f172a');
+                addC({ x: 940, y: 170, radius: 220, fill: '#22c55e', opacity: 0.35, name: 'Accent haut' });
+                addC({ x: 120, y: 1730, radius: 260, fill: '#38bdf8', opacity: 0.28, name: 'Accent bas' });
+                addTag('NOUVELLE SESSION', { x: 90, y: 120, w: 420, h: 70, bg: '#22c55e', color: '#052e16' });
+                addT({
+                    x: 100, y: 360, w: W - 200,
+                    text: 'Ouverture\ndes reservations',
+                    size: 118, style: 'bold', fill: '#f8fafc', align: 'center', lh: 0.95, name: 'Titre story'
+                });
+                addT({ x: 140, y: 860, w: W - 280, text: 'Mardi 18h30 - Places limitees', size: 44, fill: '#cbd5e1', align: 'center', name: 'Date story' });
+                addR({ x: 110, y: 1530, w: W - 220, h: 130, fill: '#f8fafc', r: 26, name: 'CTA story' });
+                addT({ x: 140, y: 1575, w: W - 280, text: 'Repondre: JE RESERVE', size: 44, style: 'bold', fill: '#0f172a', align: 'center', name: 'CTA texte' });
+                addFooter('Modifiez date, titre et appel action');
                 break;
             }
+
+            case 'story_tip_vertical': {
+                setBgColor('#f0fdf4');
+                addTag('ASTUCE RAPIDE', { x: 90, y: 110, w: 360, h: 66, bg: '#dcfce7', color: '#14532d' });
+                addT({ x: 90, y: 250, w: W - 180, text: 'Routine anti-stress\nen 3 etapes', size: 88, style: 'bold', fill: '#14532d', lh: 1.03, name: 'Titre astuce story' });
+                addR({ x: 90, y: 620, w: W - 180, h: 240, fill: '#ffffff', r: 26, name: 'Etape 1 bloc' });
+                addR({ x: 90, y: 900, w: W - 180, h: 240, fill: '#ffffff', r: 26, name: 'Etape 2 bloc' });
+                addR({ x: 90, y: 1180, w: W - 180, h: 240, fill: '#ffffff', r: 26, name: 'Etape 3 bloc' });
+                addT({ x: 130, y: 680, w: W - 260, text: '1. Respirez 4-4-6 pendant 2 minutes', size: 44, fill: '#0f172a', lh: 1.2, name: 'Etape 1 texte' });
+                addT({ x: 130, y: 960, w: W - 260, text: '2. Etirez nuque et epaules 60 secondes', size: 44, fill: '#0f172a', lh: 1.2, name: 'Etape 2 texte' });
+                addT({ x: 130, y: 1240, w: W - 260, text: '3. Notez 1 action prioritaire du jour', size: 44, fill: '#0f172a', lh: 1.2, name: 'Etape 3 texte' });
+                addFooter('Contenu editable ligne par ligne');
+                break;
+            }
+
+            case 'story_countdown_vertical': {
+                setBgColor('#111827');
+                addTag('JOURNEE SPECIALE', { x: 90, y: 120, w: 390, h: 64, bg: '#facc15', color: '#111827' });
+                addT({ x: 90, y: 280, w: W - 180, text: 'Demarrage dans', size: 64, fill: '#cbd5e1', align: 'center', name: 'Intro countdown' });
+                addR({ x: 120, y: 430, w: W - 240, h: 360, fill: '#f8fafc', r: 28, name: 'Bloc countdown' });
+                addT({ x: 150, y: 520, w: W - 300, text: 'J-05', size: 180, style: 'bold', fill: '#0f172a', align: 'center', name: 'Countdown' });
+                addT({ x: 120, y: 860, w: W - 240, text: 'Lundi 14 Octobre - 20h00', size: 52, style: 'bold', fill: '#f8fafc', align: 'center', name: 'Date countdown' });
+                addR({ x: 160, y: 1510, w: W - 320, h: 130, fill: '#22c55e', r: 24, name: 'CTA countdown' });
+                addT({ x: 190, y: 1554, w: W - 380, text: 'Activer le rappel', size: 44, style: 'bold', fill: '#052e16', align: 'center', name: 'CTA texte' });
+                break;
+            }
+
+            case 'story_client_review_vertical': {
+                setBgColor('#fff7ed');
+                addTag('AVIS 5 ETOILES', { x: 90, y: 110, w: 360, h: 64, bg: '#fed7aa', color: '#9a3412' });
+                addT({ x: 95, y: 260, w: W - 190, text: '★★★★★', size: 88, style: 'bold', fill: '#f59e0b', align: 'center', name: 'Etoiles story' });
+                addR({ x: 80, y: 430, w: W - 160, h: 780, fill: '#ffffff', r: 30, shadowColor: 'rgba(15,23,42,0.10)', shadowBlur: 16, shadowOffset: { x: 0, y: 8 }, shadowOpacity: 0.28, name: 'Carte avis story' });
+                addT({
+                    x: 130, y: 560, w: W - 260,
+                    text: '"Experience claire, accompagnement humain,\net resultat concret en quelques semaines."',
+                    size: 56, font: 'Georgia', fill: '#0f172a', align: 'center', lh: 1.25, name: 'Texte avis story'
+                });
+                addT({ x: 130, y: 980, w: W - 260, text: 'Emma - Marseille', size: 42, style: 'bold', fill: '#334155', align: 'center', name: 'Auteur story' });
+                addR({ x: 130, y: 1460, w: W - 260, h: 120, fill: '#0f172a', r: 24, name: 'CTA avis story' });
+                addT({ x: 160, y: 1500, w: W - 320, text: 'Voir tous les avis', size: 40, style: 'bold', fill: '#f8fafc', align: 'center', name: 'CTA texte' });
+                break;
+            }
+
+            case 'webinar_banner_landscape': {
+                setBgColor('#0f172a');
+                addC({ x: 1710, y: 160, radius: 210, fill: '#22c55e', opacity: 0.4, name: 'Accent 1' });
+                addC({ x: 1620, y: 920, radius: 240, fill: '#2563eb', opacity: 0.28, name: 'Accent 2' });
+                addTag('WEBINAR EN DIRECT', { x: 90, y: 70, w: 400, h: 60, bg: '#facc15', color: '#111827' });
+                addT({
+                    x: 100, y: 185, w: 1100,
+                    text: '3 leviers pour remplir\nvotre agenda sans pub',
+                    size: 104, style: 'bold', fill: '#f8fafc', lh: 0.98, name: 'Titre webinar'
+                });
+                addT({ x: 105, y: 505, w: 930, text: 'Mardi 21 octobre - 19h00 - Places limitees', size: 46, fill: '#cbd5e1', name: 'Sous titre webinar' });
+                addR({ x: 100, y: 640, w: 560, h: 140, fill: '#f8fafc', r: 24, name: 'CTA webinar' });
+                addT({ x: 135, y: 690, w: 490, text: 'Je reserve ma place', size: 48, style: 'bold', fill: '#0f172a', align: 'center', name: 'CTA texte webinar' });
+                addR({ x: 1280, y: 170, w: 560, h: 760, fill: '#e2e8f0', r: 34, name: 'Zone visuel' });
+                addT({ x: 1380, y: 510, w: 360, text: 'Visuel\nintervenant', size: 54, style: 'bold', fill: '#475569', align: 'center', lh: 1.05, name: 'Placeholder visuel' });
+                break;
+            }
+
+            case 'youtube_thumbnail_landscape': {
+                setBgColor('#0b1120');
+                addR({ x: 0, y: 0, w: W, h: H, fill: '#0b1120', r: 0, name: 'Fond dark' });
+                addR({ x: 0, y: H - 210, w: W, h: 210, fill: '#22c55e', r: 0, name: 'Bande basse' });
+                addR({ x: 70, y: 70, w: 260, h: 64, fill: '#ef4444', r: 10, name: 'Badge live' });
+                addT({ x: 90, y: 90, w: 220, text: 'NOUVEAU', size: 34, style: 'bold', fill: '#ffffff', align: 'center', name: 'Badge texte' });
+                addT({
+                    x: 80, y: 180, w: 1120,
+                    text: 'GAGNEZ 5H\nPAR SEMAINE',
+                    size: 150, style: 'bold', fill: '#f8fafc', lh: 0.9, name: 'Titre thumbnail'
+                });
+                addT({
+                    x: 90, y: 640, w: 1060,
+                    text: 'Sans outils supplementaires - methode concrete',
+                    size: 52, style: 'bold', fill: '#d1fae5', name: 'Sous titre thumbnail'
+                });
+                addR({ x: 1240, y: 120, w: 620, h: 840, fill: '#334155', r: 28, name: 'Zone portrait' });
+                addT({ x: 1380, y: 500, w: 340, text: 'Photo', size: 84, style: 'bold', fill: '#cbd5e1', align: 'center', name: 'Placeholder portrait' });
+                break;
+            }
+
+            case 'checklist_landscape_pro': {
+                setBgColor('#f8fafc');
+                addTag('CHECKLIST ACTION', { x: 80, y: 60, w: 320, h: 56, bg: '#dbeafe', color: '#1e3a8a' });
+                addT({
+                    x: 90, y: 160, w: W - 180,
+                    text: 'Plan de la semaine',
+                    size: 86, style: 'bold', fill: '#0f172a', name: 'Titre checklist'
+                });
+                addR({ x: 80, y: 300, w: W - 160, h: 640, fill: '#ffffff', r: 24, shadowColor: 'rgba(15,23,42,0.10)', shadowBlur: 14, shadowOffset: { x: 0, y: 8 }, shadowOpacity: 0.25, name: 'Carte checklist' });
+                addT({
+                    x: 130, y: 370, w: (W / 2) - 180,
+                    text: '1. Mettre a jour vos disponibilites\n2. Envoyer 1 relance douce\n3. Publier 1 contenu preuve',
+                    size: 46, fill: '#0f172a', lh: 1.5, name: 'Checklist gauche'
+                });
+                addT({
+                    x: (W / 2) + 20, y: 370, w: (W / 2) - 150,
+                    text: '4. Demander 1 avis client\n5. Analyser vos resultats\n6. Planifier la semaine suivante',
+                    size: 46, fill: '#0f172a', lh: 1.5, name: 'Checklist droite'
+                });
+                addR({ x: 130, y: 810, w: W - 260, h: 92, fill: '#0f172a', r: 18, name: 'Footer checklist' });
+                addT({ x: 170, y: 840, w: W - 340, text: 'Cochez, adaptez, publiez', size: 40, style: 'bold', fill: '#f8fafc', align: 'center', name: 'Footer texte checklist' });
+                break;
+            }
+
+            default:
+                return;
         }
 
         mainLayer.draw();
@@ -1215,13 +1756,12 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshLayersList();
         updateInspector();
     }
-
     // ----------------------------
     // Export
     // ----------------------------
     function exportPng() {
         if (!ensureFormatChosen() || !stage) return;
-        const dataURL = stage.toDataURL({ pixelRatio: 1 });
+        const dataURL = stage.toDataURL({ pixelRatio: 2 });
         const a = document.createElement('a');
         a.href = dataURL;
         a.download = `aromamade-${selectedFormat.id}.png`;
@@ -1243,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.className = 'toolbar-card text-left hover:shadow-md transition';
             btn.innerHTML = `
                 <div class="text-sm font-semibold text-slate-900">${escapeHtml(fmt.label)}</div>
-                <div class="mt-1 text-[12px] text-slate-600">${fmt.w} × ${fmt.h}</div>
+                <div class="mt-1 text-[12px] text-slate-600">${fmt.w} x ${fmt.h}</div>
                 <div class="mt-1 text-[11px] text-slate-500">${escapeHtml(fmt.hint || '')}</div>
             `;
             btn.addEventListener('click', () => {
@@ -1251,6 +1791,86 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeFormatModal();
             });
             formatsGrid.appendChild(btn);
+        });
+    }
+
+    function bindCanvasDragDrop() {
+        const prevent = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+
+        wrapper.addEventListener('dragenter', (e) => {
+            prevent(e);
+            wrapper.classList.add('is-drop-target');
+        });
+        wrapper.addEventListener('dragover', (e) => {
+            prevent(e);
+            wrapper.classList.add('is-drop-target');
+        });
+        wrapper.addEventListener('dragleave', (e) => {
+            prevent(e);
+            if (e.target === wrapper) wrapper.classList.remove('is-drop-target');
+        });
+        wrapper.addEventListener('drop', async (e) => {
+            prevent(e);
+            wrapper.classList.remove('is-drop-target');
+            const file = e.dataTransfer?.files?.[0];
+            if (!file || !file.type?.startsWith('image/')) return;
+            await handleImageFile(file, { replaceSelected: selectedNode?.getAttr?.('amType') === 'image' });
+        });
+    }
+
+    function bindKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            const tag = (e.target?.tagName || '').toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target?.isContentEditable) return;
+
+            const mod = e.ctrlKey || e.metaKey;
+            const key = e.key.toLowerCase();
+
+            if (mod && key === 'z') {
+                e.preventDefault();
+                if (e.shiftKey) redo();
+                else undo();
+                return;
+            }
+            if (mod && key === 'y') {
+                e.preventDefault();
+                redo();
+                return;
+            }
+            if (mod && key === 'd') {
+                e.preventDefault();
+                duplicateSelection();
+                return;
+            }
+            if (mod && key === 'c') {
+                if (!selectedNode) return;
+                e.preventDefault();
+                copySelection();
+                return;
+            }
+            if (mod && key === 'v') {
+                if (!clipboardNode) return;
+                e.preventDefault();
+                pasteSelection();
+                return;
+            }
+
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (!selectedNode) return;
+                e.preventDefault();
+                deleteSelection();
+                return;
+            }
+
+            if (!selectedNode) return;
+            const step = e.shiftKey ? 10 : 1;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); nudgeSelection(-step, 0); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); nudgeSelection(step, 0); }
+            if (e.key === 'ArrowUp') { e.preventDefault(); nudgeSelection(0, -step); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); nudgeSelection(0, step); }
         });
     }
 
@@ -1268,12 +1888,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAddCircle?.addEventListener('click', addCircle);
 
     btnUndo?.addEventListener('click', undo);
+    btnRedo?.addEventListener('click', redo);
 
     btnToggleShapesDrawer?.addEventListener('click', () => {
         if (!shapesDrawer) return;
         const isOpen = !shapesDrawer.classList.contains('hidden');
         shapesDrawer.classList.toggle('hidden', isOpen);
-        if (shapesDrawerChevron) shapesDrawerChevron.textContent = isOpen ? '▾' : '▴';
+        if (shapesDrawerChevron) shapesDrawerChevron.textContent = isOpen ? 'v' : '^';
     });
 
     document.querySelectorAll('.shape-btn').forEach(btn => {
@@ -1333,31 +1954,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // center / delete
     btnCenterSelection?.addEventListener('click', () => {
-        if (!selectedNode || !stage) return;
-        const centerX = stage.width() / 2;
-        const centerY = stage.height() / 2;
-
-        const rect = selectedNode.getClientRect({ relativeTo: stage });
-        const dx = centerX - (rect.x + rect.width / 2);
-        const dy = centerY - (rect.y + rect.height / 2);
-
-        selectedNode.x(selectedNode.x() + dx);
-        selectedNode.y(selectedNode.y() + dy);
-
-        mainLayer.draw();
-        saveHistory();
-        refreshLayersList();
+        alignSelection('centerX');
+        alignSelection('centerY');
     });
 
-    btnDeleteSelection?.addEventListener('click', () => {
-        if (!selectedNode) return;
-        selectedNode.destroy();
-        clearSelection();
-        mainLayer.draw();
-        saveHistory();
-        refreshLayersList();
-    });
-
+    btnDeleteSelection?.addEventListener('click', deleteSelection);
+    btnAlignCanvasLeft?.addEventListener('click', () => alignSelection('left'));
+    btnAlignCanvasCenterX?.addEventListener('click', () => alignSelection('centerX'));
+    btnAlignCanvasRight?.addEventListener('click', () => alignSelection('right'));
+    btnAlignCanvasTop?.addEventListener('click', () => alignSelection('top'));
+    btnAlignCanvasCenterY?.addEventListener('click', () => alignSelection('centerY'));
+    btnAlignCanvasBottom?.addEventListener('click', () => alignSelection('bottom'));
     // Templates (DB)
     document.querySelectorAll('.js-template-db-btn').forEach(btn => {
         btn.addEventListener('click', () => applyDbTemplate(btn.getAttribute('data-template-id')));
@@ -1369,39 +1976,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // image upload
-    imageUpload?.addEventListener('change', (e) => {
-        if (!ensureFormatChosen()) return;
+    imageUpload?.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            const imgObj = new Image();
-            imgObj.onload = () => {
-                const kImg = new Konva.Image({
-                    image: imgObj,
-                    x: 0, y: 0,
-                    width: selectedFormat.w,
-                    height: selectedFormat.h,
-                    draggable: true
-                });
-                mainLayer.add(kImg);
-                registerElement(kImg, 'image', 'Image');
-                setSelection(kImg);
-                mainLayer.draw();
-                saveHistory();
-            };
-            imgObj.src = reader.result;
-        };
-        reader.readAsDataURL(file);
+        await handleImageFile(file);
+        e.target.value = '';
     });
 
     // inspector events
     inputLayerName?.addEventListener('input', (e) => {
         if (!selectedNode) return;
-        selectedNode.setAttr('amName', e.target.value);
+        selectedNode.setAttr('amName', sanitizeLayerName(e.target.value));
         refreshLayersList();
     });
+    inputLayerName?.addEventListener('change', () => saveHistory());
 
     inputOpacity?.addEventListener('input', (e) => {
         if (!selectedNode) return;
@@ -1429,6 +2016,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const v = clamp(Number(e.target.value || 0), 0, 10);
         selectedNode.strokeWidth(v);
         if (strokeWidthValue) strokeWidthValue.textContent = v + ' px';
+        mainLayer.draw(); saveHistory();
+    });
+
+    textFontFamily?.addEventListener('change', (e) => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'text') return;
+        selectedNode.fontFamily(FONT_MAP[e.target.value] || FONT_MAP.system);
         mainLayer.draw(); saveHistory();
     });
 
@@ -1464,22 +2057,71 @@ document.addEventListener('DOMContentLoaded', () => {
         mainLayer.draw(); saveHistory();
     });
 
-    // z-order + duplicate
-    btnZTop?.addEventListener('click', () => { if (!selectedNode) return; selectedNode.moveToTop(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
-    btnZUp?.addEventListener('click', () => { if (!selectedNode) return; selectedNode.moveUp(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
-    btnZDown?.addEventListener('click', () => { if (!selectedNode) return; selectedNode.moveDown(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
-    btnZBottom?.addEventListener('click', () => { if (!selectedNode) return; selectedNode.moveToBottom(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
-
-    btnDuplicate?.addEventListener('click', () => {
-        if (!selectedNode) return;
-        const clone = selectedNode.clone({ x: selectedNode.x() + 30, y: selectedNode.y() + 30, draggable: true });
-        mainLayer.add(clone);
-        registerElement(clone, clone.getAttr('amType') || clone.getClassName(), (clone.getAttr('amName') || 'Élément') + ' (copie)');
-        setSelection(clone);
-        mainLayer.draw();
+    imgBrightness?.addEventListener('input', (e) => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'image') return;
+        selectedNode.setAttr('amBrightness', Number(e.target.value || 0));
+        applyImageAdjustments(selectedNode, false);
+    });
+    imgBrightness?.addEventListener('change', () => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'image') return;
         saveHistory();
     });
 
+    imgContrast?.addEventListener('input', (e) => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'image') return;
+        selectedNode.setAttr('amContrast', Number(e.target.value || 0));
+        applyImageAdjustments(selectedNode, false);
+    });
+    imgContrast?.addEventListener('change', () => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'image') return;
+        saveHistory();
+    });
+
+    imgFitMode?.addEventListener('change', (e) => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'image') return;
+        fitImageNode(selectedNode, e.target.value, true);
+        updateInspector();
+    });
+
+    btnReplaceImage?.addEventListener('click', () => {
+        if (!selectedNode || selectedNode.getAttr('amType') !== 'image') return;
+        imageReplaceUpload?.click();
+    });
+
+    imageReplaceUpload?.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        await handleImageFile(file, { replaceSelected: true });
+        e.target.value = '';
+    });
+
+    // z-order + duplicate
+    btnZTop?.addEventListener('click', () => { if (!selectedNode || isNodeLocked(selectedNode)) return; selectedNode.moveToTop(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
+    btnZUp?.addEventListener('click', () => { if (!selectedNode || isNodeLocked(selectedNode)) return; selectedNode.moveUp(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
+    btnZDown?.addEventListener('click', () => { if (!selectedNode || isNodeLocked(selectedNode)) return; selectedNode.moveDown(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
+    btnZBottom?.addEventListener('click', () => { if (!selectedNode || isNodeLocked(selectedNode)) return; selectedNode.moveToBottom(); transformer.moveToTop(); mainLayer.draw(); saveHistory(); refreshLayersList(); });
+
+    btnDuplicate?.addEventListener('click', duplicateSelection);
+
+    btnToggleLock?.addEventListener('click', () => {
+        if (!selectedNode) return;
+        selectedNode.setAttr('amLocked', !isNodeLocked(selectedNode));
+        normalizeNodeState(selectedNode);
+        setSelection(selectedNode);
+        mainLayer.draw();
+        saveHistory();
+        updateInspector();
+    });
+
+    btnToggleVisibility?.addEventListener('click', () => {
+        if (!selectedNode) return;
+        selectedNode.visible(!isNodeVisible(selectedNode));
+        normalizeNodeState(selectedNode);
+        mainLayer.draw();
+        saveHistory();
+        if (!isNodeVisible(selectedNode)) clearSelection();
+        else refreshLayersList();
+        updateInspector();
+    });
     // ----------------------------
     // Initial
     // ----------------------------
@@ -1488,6 +2130,10 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshTemplateButtons();
     refreshTemplateButtonsDb();
     mountAdminSaveButton();
+    bindCanvasDragDrop();
+    bindKeyboardShortcuts();
+    bindTemplateSearch();
+    updateHistoryButtons();
 
     // If admin is editing an existing DB template, preload it
     if (ADMIN_MODE && ADMIN_EDITING_TEMPLATE?.konva_json) {
@@ -1499,7 +2145,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? ADMIN_EDITING_TEMPLATE.konva_json
                 : JSON.stringify(ADMIN_EDITING_TEMPLATE.konva_json);
             restoreFromJson(json);
+            history = [stage.toJSON()];
+            redoStack = [];
+            updateHistoryButtons();
         }
     }
 });
 </script>
+
+
+
+

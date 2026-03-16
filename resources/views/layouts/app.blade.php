@@ -159,7 +159,11 @@
                 });
             }
 
-            // Polling for new notifications every 30 seconds
+            // Polling for new notifications every 30 seconds (only when notification UI exists)
+            if (!notificationButton || !notificationsDropdown) {
+                return;
+            }
+
             setInterval(function () {
                 fetch('{{ route("notifications.fetch") }}', {
                     method: 'GET',
