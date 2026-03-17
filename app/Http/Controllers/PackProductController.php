@@ -243,6 +243,53 @@ class PackProductController extends Controller
         return redirect()->route('pack-products.show', $packProduct)->with('success', 'Pack attribué au client avec succès.');
     }
 
+    /**
+     * Legacy-compatible assign endpoint used from client profile page.
+     * Form posts {pack_product_id, purchased_at, expires_at, notes} for a fixed client profile.
+     */
+    public function assignFromClientProfile(Request $request, ClientProfile $clientProfile)
+    {
+        if ((int) $clientProfile->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'pack_product_id' => 'required|integer|exists:pack_products,id',
+            'purchased_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after_or_equal:purchased_at',
+            'notes' => 'nullable|string',
+        ]);
+
+        $packProduct = PackProduct::where('id', (int) $validated['pack_product_id'])
+            ->where('user_id', Auth::id())
+            ->with('items')
+            ->firstOrFail();
+
+        DB::transaction(function () use ($packProduct, $clientProfile, $validated) {
+            $purchase = PackPurchase::create([
+                'user_id' => Auth::id(),
+                'pack_product_id' => $packProduct->id,
+                'client_profile_id' => $clientProfile->id,
+                'purchased_at' => $validated['purchased_at'] ?? now(),
+                'expires_at' => $validated['expires_at'] ?? null,
+                'status' => 'active',
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
+            foreach ($packProduct->items as $item) {
+                PackPurchaseItem::create([
+                    'pack_purchase_id' => $purchase->id,
+                    'product_id' => $item->product_id,
+                    'quantity_total' => (int) $item->quantity,
+                    'quantity_remaining' => (int) $item->quantity,
+                ]);
+            }
+        });
+
+        return redirect()->route('client_profiles.show', $clientProfile)
+            ->with('success', 'Forfait attribué au client avec succès.');
+    }
+
     private function ensureOwner(PackProduct $pack): void
     {
         if ($pack->user_id !== Auth::id()) {

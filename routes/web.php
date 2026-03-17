@@ -976,6 +976,8 @@ Route::resource('client_profiles.metrics.entries', MetricEntryController::class)
      ->parameters([
          'entries' => 'metricEntry', // rename the {entry} param to {metricEntry}
      ]);
+Route::post('/client_profiles/{clientProfile}/packs/assign', [PackProductController::class, 'assignFromClientProfile'])
+    ->name('client_profiles.packs.assign');
 Route::get('/client_profiles/{client_profile}/files/{file}/download', 
     [ClientFileController::class, 'download']
 )->name('client_profiles.files.download');

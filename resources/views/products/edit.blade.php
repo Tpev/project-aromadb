@@ -150,16 +150,20 @@
                     <small class="text-gray-500">{{ __('Les prestations seront affichées en ordre croissant basé sur ce nombre.') }}</small>
                 </div>
 
-                <!-- === Options avancées (ROBUSTE: <details> natif) === -->
-                <details class="advanced-wrapper" @if($openAdvanced) open @endif>
-                    <summary class="adv-toggle" aria-controls="advanced-options">
+                <!-- === Options avancées === -->
+                <div class="advanced-wrapper {{ $openAdvanced ? 'is-open' : '' }}" data-advanced-wrapper>
+                    <button type="button"
+                            class="adv-toggle"
+                            data-advanced-toggle
+                            aria-controls="advanced-options"
+                            aria-expanded="{{ $openAdvanced ? 'true' : 'false' }}">
                         <span>Options avancées</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="chev" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
                         </svg>
-                    </summary>
+                    </button>
 
-                    <div id="advanced-options">
+                    <div id="advanced-options" class="advanced-content" @if(!$openAdvanced) hidden @endif>
                         <div class="adv-box">
                             <!-- Nombre maximum de séances par jour -->
                             <div class="details-box">
@@ -222,7 +226,7 @@
 
                         </div>
                     </div>
-                </details>
+                </div>
 
                 <!-- Actions -->
                 <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour la Prestation') }}</button>
@@ -281,22 +285,19 @@
         /* Advanced section */
         .advanced-wrapper { margin-top: 18px; }
 
-        /* Remove native marker */
-        .advanced-wrapper > summary { list-style: none; }
-        .advanced-wrapper > summary::-webkit-details-marker { display: none; }
-
         .adv-toggle {
             width: 100%;
             display: flex; align-items: center; justify-content: space-between;
             padding: 12px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
             color: #374151; font-weight: 600; cursor: pointer;
         }
+        .adv-toggle[type="button"] { appearance: none; }
         .adv-toggle:hover { background: #f8fafc; }
 
         .chev { transition: transform .2s ease; }
 
         /* Rotate chevron when open */
-        .advanced-wrapper[open] .chev { transform: rotate(180deg); }
+        .advanced-wrapper.is-open .chev { transform: rotate(180deg); }
 
         .adv-box {
             background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
@@ -306,39 +307,25 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const supportsDetails = 'open' in document.createElement('details');
+            document.querySelectorAll('[data-advanced-wrapper]').forEach(function (wrapper) {
+                const toggle = wrapper.querySelector('[data-advanced-toggle]');
+                if (!toggle) return;
 
-            document.querySelectorAll('details.advanced-wrapper > summary.adv-toggle').forEach(function (summary) {
-                const wrapper = summary.parentElement;
-                const syncExpandedState = function () {
-                    summary.setAttribute('aria-expanded', wrapper.open ? 'true' : 'false');
+                const contentId = toggle.getAttribute('aria-controls');
+                const content = contentId ? wrapper.querySelector('#' + contentId) : null;
+
+                const applyState = function (isOpen) {
+                    wrapper.classList.toggle('is-open', isOpen);
+                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    if (content) content.hidden = !isOpen;
                 };
 
-                syncExpandedState();
-                wrapper.addEventListener('toggle', syncExpandedState);
+                applyState(toggle.getAttribute('aria-expanded') === 'true');
 
-                // Fallback uniquement pour les navigateurs sans support natif <details>.
-                if (!supportsDetails) {
-                    const manualToggle = function () {
-                        wrapper.open = !wrapper.open;
-                        syncExpandedState();
-                    };
-
-                    summary.setAttribute('role', 'button');
-                    summary.setAttribute('tabindex', '0');
-
-                    summary.addEventListener('click', function (event) {
-                        event.preventDefault();
-                        manualToggle();
-                    });
-
-                    summary.addEventListener('keydown', function (event) {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            manualToggle();
-                        }
-                    });
-                }
+                toggle.addEventListener('click', function () {
+                    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+                    applyState(!isOpen);
+                });
             });
         });
 
