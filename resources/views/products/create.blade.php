@@ -5,11 +5,6 @@
         </h2>
     </x-slot>
 
-    @php
-        // Options avancées ouvertes par défaut.
-        $openAdvanced = true;
-    @endphp
-
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouvelle Prestation') }}</h1>
@@ -166,56 +161,44 @@
                 </div>
 
                 <!-- === Options avancées === -->
-                <div class="advanced-wrapper {{ $openAdvanced ? 'is-open' : '' }}" data-advanced-wrapper>
-                    <button type="button"
-                            class="adv-toggle"
-                            data-advanced-toggle
-                            aria-controls="advanced-options"
-                            aria-expanded="{{ $openAdvanced ? 'true' : 'false' }}">
-                        <span>Options avancées</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="chev" viewBox="0 0 20 20" fill="currentColor" width="18" height="18" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
+                <div class="advanced-wrapper">
+                    <h3 class="adv-title">Options avancées</h3>
+                    <div class="adv-box">
+                        <!-- Nombre maximum de séances par jour -->
+                        <div class="details-box">
+                            <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
+                            <input type="number" id="max_per_day" name="max_per_day" class="form-control" value="{{ old('max_per_day') }}" min="1">
+                            @error('max_per_day') <p class="text-red-500">{{ $message }}</p> @enderror
+                        </div>
 
-                    <div id="advanced-options" class="advanced-content" @if(!$openAdvanced) hidden @endif>
-                        <div class="adv-box">
-                            <!-- Nombre maximum de séances par jour -->
-                            <div class="details-box">
-                                <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
-                                <input type="number" id="max_per_day" name="max_per_day" class="form-control" value="{{ old('max_per_day') }}" min="1">
-                                @error('max_per_day') <p class="text-red-500">{{ $message }}</p> @enderror
-                            </div>
+                        <!-- Fiche d’émargement requise -->
+                        <div class="details-box">
+                            <label class="details-label" for="requires_emargement">{{ __('Fiche d’émargement requise') }}</label>
+                            <input type="hidden" name="requires_emargement" value="0">
+                            <input type="checkbox" id="requires_emargement" name="requires_emargement" value="1" {{ old('requires_emargement') ? 'checked' : '' }}>
+                            @error('requires_emargement') <p class="text-red-500">{{ $message }}</p> @enderror
+                            <small class="text-gray-500">
+                                {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
+                            </small>
+                        </div>
 
-                            <!-- Fiche d’émargement requise -->
-                            <div class="details-box">
-                                <label class="details-label" for="requires_emargement">{{ __('Fiche d’émargement requise') }}</label>
-                                <input type="hidden" name="requires_emargement" value="0">
-                                <input type="checkbox" id="requires_emargement" name="requires_emargement" value="1" {{ old('requires_emargement') ? 'checked' : '' }}>
-                                @error('requires_emargement') <p class="text-red-500">{{ $message }}</p> @enderror
-                                <small class="text-gray-500">
-                                    {{ __('Si coché, chaque rendez-vous créé avec cette prestation nécessitera un envoi de feuille d’émargement à signer.') }}
-                                </small>
-                            </div>
+                        <!-- Liens réservation directe -->
+                        <div class="details-box">
+                            <label class="details-label" for="direct_booking_enabled">{{ __('Liens réservation directe') }}</label>
 
-                            <!-- Liens réservation directe -->
-                            <div class="details-box">
-                                <label class="details-label" for="direct_booking_enabled">{{ __('Liens réservation directe') }}</label>
+                            <input type="hidden" name="direct_booking_enabled" value="0">
+                            <label style="display:flex;align-items:center;gap:10px;margin:0;">
+                                <input type="checkbox"
+                                       id="direct_booking_enabled"
+                                       name="direct_booking_enabled"
+                                       value="1"
+                                       {{ old('direct_booking_enabled') ? 'checked' : '' }}>
+                                <span>{{ __('Activer un lien privé de réservation directe pour cette prestation') }}</span>
+                            </label>
 
-                                <input type="hidden" name="direct_booking_enabled" value="0">
-                                <label style="display:flex;align-items:center;gap:10px;margin:0;">
-                                    <input type="checkbox"
-                                           id="direct_booking_enabled"
-                                           name="direct_booking_enabled"
-                                           value="1"
-                                           {{ old('direct_booking_enabled') ? 'checked' : '' }}>
-                                    <span>{{ __('Activer un lien privé de réservation directe pour cette prestation') }}</span>
-                                </label>
-
-                                <small class="text-gray-500">
-                                    {{ __('Si coché, un lien privé sera généré après la création. Il permettra de réserver uniquement cette prestation.') }}
-                                </small>
-                            </div>
+                            <small class="text-gray-500">
+                                {{ __('Si coché, un lien privé sera généré après la création. Il permettra de réserver uniquement cette prestation.') }}
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -296,55 +279,16 @@
 
         /* Advanced section */
         .advanced-wrapper { margin-top: 24px; border-top: 1px dashed #d1d5db; padding-top: 16px; }
-
-        .adv-toggle {
-            width: 100%;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
-            color: #374151; font-weight: 600; cursor: pointer;
+        .adv-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 12px;
         }
-        .adv-toggle[type="button"] { appearance: none; }
-        .adv-toggle:hover { background: #f8fafc; }
-
-        .chev { transition: transform .2s ease; }
-
-        /* Rotate chevron when section is open */
-        .advanced-wrapper.is-open .chev { transform: rotate(180deg); }
 
         .adv-box {
             background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
             padding: 16px; margin-top: 12px;
         }
     </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('[data-advanced-wrapper]').forEach(function (wrapper) {
-                const toggle = wrapper.querySelector('[data-advanced-toggle]');
-                if (!toggle) return;
-
-                const contentId = toggle.getAttribute('aria-controls');
-                const content = contentId ? wrapper.querySelector('#' + contentId) : null;
-
-                const applyState = function (isOpen) {
-                    wrapper.classList.toggle('is-open', isOpen);
-                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                    if (content) content.hidden = !isOpen;
-                };
-
-                // Always default-open on load to avoid stale browser cache state.
-                applyState(true);
-
-                toggle.addEventListener('click', function () {
-                    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-                    applyState(!isOpen);
-                });
-
-                // If the page is restored from browser history cache, keep it open by default.
-                window.addEventListener('pageshow', function () {
-                    applyState(true);
-                });
-            });
-        });
-    </script>
 </x-app-layout>
