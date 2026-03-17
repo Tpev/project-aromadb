@@ -32,7 +32,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('products.create');
+        return $this->noCacheView('products.create');
     }
 
     public function store(Request $request)
@@ -140,7 +140,16 @@ class ProductController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        return view('products.edit', compact('product', 'directBookingLink'));
+        return $this->noCacheView('products.edit', compact('product', 'directBookingLink'));
+    }
+
+    private function noCacheView(string $view, array $data = [])
+    {
+        return response()
+            ->view($view, $data)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
     public function update(Request $request, Product $product)
