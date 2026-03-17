@@ -76,7 +76,7 @@
 
         @if($canCreateProduct)
             {{-- Normal usable button --}}
-            <a href="{{ route('products.create') }}" class="btn-primary">
+            <a href="{{ route('products.create', ['_v' => 'adv-open-20260317']) }}" class="btn-primary">
                 <i class="fas fa-plus mr-2"></i> Créer une prestation
             </a>
         @else

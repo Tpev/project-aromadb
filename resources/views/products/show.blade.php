@@ -189,7 +189,7 @@
 
             <!-- Actions -->
             <div class="action-buttons mt-4">
-                <a href="{{ route('products.edit', $product->id) }}" class="btn-primary">
+                <a href="{{ route('products.edit', ['product' => $product->id, '_v' => 'adv-open-20260317']) }}" class="btn-primary">
                     <i class="fas fa-edit"></i> {{ __('Modifier') }}
                 </a>
 

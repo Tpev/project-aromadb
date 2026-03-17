@@ -311,11 +311,17 @@
                     if (content) content.hidden = !isOpen;
                 };
 
-                applyState(toggle.getAttribute('aria-expanded') === 'true');
+                // Always default-open on load to avoid stale browser cache state.
+                applyState(true);
 
                 toggle.addEventListener('click', function () {
                     const isOpen = toggle.getAttribute('aria-expanded') === 'true';
                     applyState(!isOpen);
+                });
+
+                // If the page is restored from browser history cache, keep it open by default.
+                window.addEventListener('pageshow', function () {
+                    applyState(true);
                 });
             });
         });
