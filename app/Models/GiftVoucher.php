@@ -19,10 +19,16 @@ class GiftVoucher extends Model
         'expires_at',
         'buyer_name',
         'buyer_email',
+        'buyer_phone',
         'recipient_name',
         'recipient_email',
         'message',
         'source',
+        'sale_channel',
+        'sale_status',
+        'sale_invoice_id',
+        'background_mode_snapshot',
+        'background_path_snapshot',
     ];
 
     protected $casts = [
@@ -38,6 +44,11 @@ class GiftVoucher extends Model
     public function redemptions(): HasMany
     {
         return $this->hasMany(GiftVoucherRedemption::class);
+    }
+
+    public function saleInvoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, 'sale_invoice_id');
     }
 
     public function isExpired(): bool

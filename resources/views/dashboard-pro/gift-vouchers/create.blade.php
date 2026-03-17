@@ -123,6 +123,11 @@
                                         <input class="am-input" name="buyer_email" type="email" value="{{ old('buyer_email') }}" placeholder="ex: marie@email.com">
                                         @error('buyer_email') <div class="am-error">{{ $message }}</div> @enderror
                                     </div>
+                                    <div>
+                                        <div class="am-label">Téléphone (optionnel)</div>
+                                        <input class="am-input" name="buyer_phone" type="text" value="{{ old('buyer_phone') }}" placeholder="ex: 0612345678">
+                                        @error('buyer_phone') <div class="am-error">{{ $message }}</div> @enderror
+                                    </div>
                                 </div>
                             </div>
 
@@ -157,6 +162,24 @@
                             <textarea class="am-input" name="message" rows="4" placeholder="Ex: Joyeux anniversaire 🎁">{{ old('message') }}</textarea>
                             @error('message') <div class="am-error">{{ $message }}</div> @enderror
                             <div class="am-help mt-1">Le message apparaîtra sur le PDF.</div>
+                        </div>
+
+                        <div class="mt-6 rounded-2xl border border-slate-200/70 bg-white p-4">
+                            <label class="inline-flex items-center gap-2 text-sm font-extrabold text-slate-900">
+                                <input type="checkbox" name="create_sale_invoice" value="1" {{ old('create_sale_invoice') ? 'checked' : '' }}>
+                                Créer une facture de vente du bon cadeau
+                            </label>
+
+                            <div class="mt-3">
+                                <div class="am-label">Mode de paiement</div>
+                                <select class="am-input" name="payment_method">
+                                    <option value="other" {{ old('payment_method') === 'other' ? 'selected' : '' }}>Autre</option>
+                                    <option value="card" {{ old('payment_method') === 'card' ? 'selected' : '' }}>Carte</option>
+                                    <option value="transfer" {{ old('payment_method') === 'transfer' ? 'selected' : '' }}>Virement</option>
+                                    <option value="check" {{ old('payment_method') === 'check' ? 'selected' : '' }}>Chèque</option>
+                                    <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Espèces</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mt-6 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">

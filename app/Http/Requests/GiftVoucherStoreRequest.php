@@ -20,11 +20,14 @@ class GiftVoucherStoreRequest extends FormRequest
 
             'buyer_name' => ['nullable', 'string', 'max:120'],
             'buyer_email' => ['required', 'email', 'max:190'],
+            'buyer_phone' => ['nullable', 'string', 'max:40'],
 
             'recipient_name' => ['nullable', 'string', 'max:120'],
             'recipient_email' => ['nullable', 'email', 'max:190'],
 
             'message' => ['nullable', 'string', 'max:1000'],
+            'create_sale_invoice' => ['nullable', 'boolean'],
+            'payment_method' => ['nullable', 'in:transfer,card,check,cash,other'],
         ];
     }
 

@@ -82,7 +82,11 @@ class User extends Authenticatable
         'global_daily_booking_limit',
         'cgv_pdf_path',
 		'onboarding_mode',
-		'invoice_extra_info',
+        'invoice_extra_info',
+        'gift_voucher_online_enabled',
+        'gift_voucher_background_mode',
+        'gift_voucher_background_path',
+        'gift_voucher_background_updated_at',
 
     ];
 
@@ -98,6 +102,8 @@ class User extends Authenticatable
         'featured_until' => 'datetime',
         'buffer_time_between_appointments' => 'integer',
         'global_daily_booking_limit' => 'integer',
+        'gift_voucher_online_enabled' => 'boolean',
+        'gift_voucher_background_updated_at' => 'datetime',
     ];
 
     /*
@@ -205,6 +211,16 @@ class User extends Authenticatable
     public function informationRequests()
     {
         return $this->hasMany(\App\Models\InformationRequest::class, 'therapist_id');
+    }
+
+    public function giftVouchers()
+    {
+        return $this->hasMany(\App\Models\GiftVoucher::class, 'user_id');
+    }
+
+    public function giftVoucherOrders()
+    {
+        return $this->hasMany(\App\Models\GiftVoucherOrder::class, 'user_id');
     }
 
     public function practiceLocations()

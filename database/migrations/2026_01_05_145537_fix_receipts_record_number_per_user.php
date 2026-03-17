@@ -9,6 +9,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        $isSqlite = Schema::getConnection()->getDriverName() === 'sqlite';
+
         /**
          * 0) Assurer l'existence de record_number (si déjà présent : no-op)
          */
@@ -20,7 +22,9 @@ return new class extends Migration
             // Si la colonne existe mais est NOT NULL, on la rend temporairement nullable pour renumérotation propre
             // (au cas où certaines lignes ont NULL)
             try {
-                DB::statement("ALTER TABLE receipts MODIFY record_number INT UNSIGNED NULL");
+                if (! $isSqlite) {
+                    DB::statement("ALTER TABLE receipts MODIFY record_number INT UNSIGNED NULL");
+                }
             } catch (\Throwable $e) {
                 // ignore (selon driver/config, peut échouer si déjà OK)
             }
@@ -56,7 +60,9 @@ return new class extends Migration
         /**
          * 2) Enforce NOT NULL sur record_number
          */
-        DB::statement("ALTER TABLE receipts MODIFY record_number INT UNSIGNED NOT NULL");
+        if (! $isSqlite) {
+            DB::statement("ALTER TABLE receipts MODIFY record_number INT UNSIGNED NOT NULL");
+        }
 
         /**
          * 3) Ajouter UNIQUE(user_id, record_number)
@@ -65,11 +71,13 @@ return new class extends Migration
         $indexName = 'receipts_user_id_record_number_unique';
 
         // Drop unique s'il existe déjà sous ce nom
-        $existing = DB::select("SHOW INDEX FROM receipts WHERE Key_name = ?", [$indexName]);
-        if (!empty($existing)) {
-            Schema::table('receipts', function (Blueprint $table) use ($indexName) {
-                $table->dropUnique($indexName);
-            });
+        if (! $isSqlite) {
+            $existing = DB::select("SHOW INDEX FROM receipts WHERE Key_name = ?", [$indexName]);
+            if (!empty($existing)) {
+                Schema::table('receipts', function (Blueprint $table) use ($indexName) {
+                    $table->dropUnique($indexName);
+                });
+            }
         }
 
         // Créer l'unique (user_id, record_number)
@@ -81,8 +89,14 @@ return new class extends Migration
          * 4) (Optionnel mais utile) Index de lookup rapide
          * Si tu veux filtrer souvent par user + date
          */
-        $idx = DB::select("SHOW INDEX FROM receipts WHERE Key_name = 'receipts_user_id_encaissement_date_idx'");
-        if (empty($idx)) {
+        if (! $isSqlite) {
+            $idx = DB::select("SHOW INDEX FROM receipts WHERE Key_name = 'receipts_user_id_encaissement_date_idx'");
+            if (empty($idx)) {
+                Schema::table('receipts', function (Blueprint $table) {
+                    $table->index(['user_id', 'encaissement_date'], 'receipts_user_id_encaissement_date_idx');
+                });
+            }
+        } else {
             Schema::table('receipts', function (Blueprint $table) {
                 $table->index(['user_id', 'encaissement_date'], 'receipts_user_id_encaissement_date_idx');
             });

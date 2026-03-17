@@ -27,7 +27,9 @@ return new class extends Migration {
          *
          * If you want to keep Laravel schema changes only, you'd need doctrine/dbal.
          */
-        DB::statement("ALTER TABLE pack_purchases MODIFY pack_product_id BIGINT UNSIGNED NULL");
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE pack_purchases MODIFY pack_product_id BIGINT UNSIGNED NULL");
+        }
     }
 
     public function down(): void

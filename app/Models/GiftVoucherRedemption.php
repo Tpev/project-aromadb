@@ -14,6 +14,13 @@ class GiftVoucherRedemption extends Model
         'appointment_id',
         'invoice_id',
         'note',
+        'status',
+        'source',
+        'released_at',
+    ];
+
+    protected $casts = [
+        'released_at' => 'datetime',
     ];
 
     public function voucher(): BelongsTo
@@ -24,5 +31,15 @@ class GiftVoucherRedemption extends Model
     public function therapist(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function appointment(): BelongsTo
+    {
+        return $this->belongsTo(Appointment::class, 'appointment_id');
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 }

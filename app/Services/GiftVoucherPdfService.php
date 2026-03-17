@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\GiftVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class GiftVoucherPdfService
@@ -24,11 +25,19 @@ class GiftVoucherPdfService
 
         $qrBase64 = 'data:image/png;base64,' . base64_encode($qrPng);
 
+        $backgroundBase64 = null;
+        $backgroundPath = $voucher->background_path_snapshot;
+        if ($backgroundPath && Storage::disk('public')->exists($backgroundPath)) {
+            $binary = Storage::disk('public')->get($backgroundPath);
+            $backgroundBase64 = 'data:image/webp;base64,' . base64_encode($binary);
+        }
+
         $pdf = Pdf::loadView('pdf.gift-voucher', [
             'voucher' => $voucher,
             'therapist' => $therapist,
             'portalUrl' => $portalUrl,
             'qrBase64' => $qrBase64,
+            'backgroundBase64' => $backgroundBase64,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->output();

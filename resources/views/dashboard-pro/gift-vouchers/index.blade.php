@@ -123,6 +123,48 @@
                 </div>
             @endif
 
+            <div class="am-card p-4 mb-4">
+                <div class="text-sm font-extrabold text-slate-900">Paramètres globaux bon cadeau</div>
+                <div class="text-xs text-slate-600 mt-0.5">
+                    Le visuel défini ici s’appliquera aux futurs bons cadeaux (les anciens restent inchangés).
+                </div>
+
+                <form method="POST" action="{{ route('pro.gift-vouchers.settings.update') }}" enctype="multipart/form-data" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    @csrf
+
+                    <div class="md:col-span-3">
+                        <label class="inline-flex items-center gap-2 text-sm font-bold text-slate-900">
+                            <input type="checkbox" name="gift_voucher_online_enabled" value="1" {{ ($user->gift_voucher_online_enabled ?? false) ? 'checked' : '' }}>
+                            Activer l’achat de bons cadeaux en ligne sur mon portail
+                        </label>
+                    </div>
+
+                    <div>
+                        <div class="text-xs font-bold text-slate-600 uppercase">Mode visuel</div>
+                        <select name="gift_voucher_background_mode" class="mt-1 w-full rounded-xl border-slate-300">
+                            <option value="default" {{ ($user->gift_voucher_background_mode ?? 'default') === 'default' ? 'selected' : '' }}>Par défaut</option>
+                            <option value="custom_upload" {{ ($user->gift_voucher_background_mode ?? 'default') === 'custom_upload' ? 'selected' : '' }}>Image personnalisée</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="text-xs font-bold text-slate-600 uppercase">Image de fond (global)</div>
+                        <input type="file" name="gift_voucher_background" class="mt-1 block w-full text-sm">
+                    </div>
+
+                    <div>
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700 mt-6">
+                            <input type="checkbox" name="remove_gift_voucher_background" value="1">
+                            Supprimer l’image personnalisée
+                        </label>
+                    </div>
+
+                    <div class="md:col-span-3 flex justify-end">
+                        <button class="am-btn am-btn-brand" type="submit">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+
             @php
                 // Small stats (no controller changes required)
                 $total = $vouchers->total();

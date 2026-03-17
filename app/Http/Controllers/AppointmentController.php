@@ -28,6 +28,9 @@ use App\Models\PackPurchase;
 use App\Mail\AppointmentCancelledByClient;
 use App\Services\JitsiJwtService;
 use App\Models\BookingLink;
+use App\Models\GiftVoucher;
+use App\Models\Receipt;
+use App\Services\GiftVoucherRedeemService;
 
 class AppointmentController extends Controller
 {
@@ -1025,6 +1028,7 @@ public function storePatient(Request $request)
         'appointment_time' => 'required|date_format:H:i',
         'product_id'       => 'required|exists:products,id',
         'notes'            => 'nullable|string',
+        'gift_voucher_code' => 'nullable|string|max:64',
         // 'type' may come from the form; if not we will infer it from product flags
         'type'             => 'nullable|string',
         // practice_location_id is validated conditionally (see below)
@@ -1034,6 +1038,23 @@ public function storePatient(Request $request)
     // Produit & thérapeute
     $product   = Product::findOrFail($request->product_id);
     $therapist = User::findOrFail($request->therapist_id);
+    $voucherForBooking = $this->resolveGiftVoucherForBooking($therapist, $request->input('gift_voucher_code'));
+    $totalAmountCents = $this->computeBookableAmountCents($product);
+    $voucherPlannedCents = $voucherForBooking
+        ? min((int) $voucherForBooking->remaining_amount_cents, $totalAmountCents)
+        : 0;
+
+    // Production safety: for Stripe online collection we only allow full-coverage vouchers.
+    // Partial voucher + online payment creates race conditions on remaining balance.
+    if (!empty($product->collect_payment)
+        && !empty($therapist->stripe_account_id)
+        && $voucherForBooking
+        && $voucherPlannedCents > 0
+        && $voucherPlannedCents < $totalAmountCents) {
+        return back()->withErrors([
+            'gift_voucher_code' => 'Pour les paiements en ligne, le bon cadeau doit couvrir la totalité du montant.',
+        ])->withInput();
+    }
 
     // Inférer le "type" (mode) à partir du produit si non fourni
     // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
@@ -1132,6 +1153,8 @@ public function storePatient(Request $request)
         'type'                  => $mode,                 // ← on stocke le mode
         'duration'              => $product->duration,
         'product_id'            => $product->id,
+        'gift_voucher_id'       => $voucherForBooking?->id,
+        'gift_voucher_amount_cents' => $voucherPlannedCents > 0 ? $voucherPlannedCents : null,
     ]);
 
     // Si visio : créer une réunion + lien
@@ -1224,11 +1247,54 @@ public function storePatient(Request $request)
 
     /* ---------------------- Paiement Stripe si requis ---------------------- */
     if (!empty($product->collect_payment)) {
+        $payableAmountCents = max(0, $totalAmountCents - $voucherPlannedCents);
+
+        if ($payableAmountCents === 0) {
+            $appointment->update(['status' => 'confirmed']);
+
+            if ($voucherForBooking && $voucherPlannedCents > 0) {
+                try {
+                    app(GiftVoucherRedeemService::class)->redeem(
+                        $voucherForBooking,
+                        $voucherPlannedCents,
+                        'Utilisation bon cadeau lors de la réservation',
+                        $therapist->id,
+                        $appointment->id,
+                        null,
+                        'booking_online',
+                        'applied'
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Gift voucher redemption failed on full-cover booking', [
+                        'appointment_id' => $appointment->id,
+                        'voucher_id' => $voucherForBooking->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
+                    return back()->withErrors([
+                        'gift_voucher_code' => 'Le bon cadeau n’a pas pu être appliqué. Veuillez réessayer.',
+                    ])->withInput();
+                }
+            }
+
+            try {
+                if ($appointment->clientProfile->email) {
+                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                }
+                if ($therapist->email) {
+                    Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur envoi emails : " . $e->getMessage());
+            }
+
+            return redirect()->route('appointments.showPatient', $appointment->token)
+                ->with('success', 'Votre rendez-vous a été réservé avec succès. Le bon cadeau a été appliqué.');
+        }
+
         if ($therapist->stripe_account_id) {
             $stripeSecretKey = config('services.stripe.secret');
             $stripe = new StripeClient($stripeSecretKey);
-
-            $totalAmount = $product->price + ($product->price * $product->tax_rate / 100);
 
             try {
                 $session = $stripe->checkout->sessions->create([
@@ -1237,7 +1303,7 @@ public function storePatient(Request $request)
                         'price_data' => [
                             'currency'     => 'eur',
                             'product_data' => ['name' => $product->name],
-                            'unit_amount'  => intval($totalAmount * 100),
+                            'unit_amount'  => (int) $payableAmountCents,
                         ],
                         'quantity' => 1,
                     ]],
@@ -1248,6 +1314,8 @@ public function storePatient(Request $request)
                         'metadata' => [
                             'appointment_id' => $appointment->id,
                             'patient_email'  => $appointment->clientProfile->email,
+                            'gift_voucher_id' => $voucherForBooking?->id,
+                            'gift_voucher_amount_cents' => $voucherPlannedCents,
                         ],
                     ],
                 ], [
@@ -1269,6 +1337,31 @@ public function storePatient(Request $request)
             Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
             $appointment->update(['status' => 'confirmed']);
 
+            if ($voucherForBooking && $voucherPlannedCents > 0) {
+                try {
+                    app(GiftVoucherRedeemService::class)->redeem(
+                        $voucherForBooking,
+                        $voucherPlannedCents,
+                        'Utilisation bon cadeau (reste à régler hors ligne)',
+                        $therapist->id,
+                        $appointment->id,
+                        null,
+                        'booking_offline',
+                        'applied'
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Gift voucher redemption failed when therapist has no Stripe account', [
+                        'appointment_id' => $appointment->id,
+                        'voucher_id' => $voucherForBooking->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
+                    return back()->withErrors([
+                        'gift_voucher_code' => 'Le bon cadeau n’a pas pu être appliqué. Veuillez réessayer.',
+                    ])->withInput();
+                }
+            }
+
             try {
                 if ($appointment->clientProfile->email) {
                     Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
@@ -1287,6 +1380,31 @@ public function storePatient(Request $request)
 
     /* ---------------------- Pas de paiement requis ---------------------- */
     $appointment->update(['status' => 'confirmed']);
+
+    if ($voucherForBooking && $voucherPlannedCents > 0) {
+        try {
+            app(GiftVoucherRedeemService::class)->redeem(
+                $voucherForBooking,
+                $voucherPlannedCents,
+                'Utilisation bon cadeau (réservation sans paiement en ligne)',
+                $therapist->id,
+                $appointment->id,
+                null,
+                'booking_offline',
+                'applied'
+            );
+        } catch (\Throwable $e) {
+            Log::error('Gift voucher redemption failed on no-payment booking', [
+                'appointment_id' => $appointment->id,
+                'voucher_id' => $voucherForBooking->id,
+                'error' => $e->getMessage(),
+            ]);
+            $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
+            return back()->withErrors([
+                'gift_voucher_code' => 'Le bon cadeau n’a pas pu être appliqué. Veuillez réessayer.',
+            ])->withInput();
+        }
+    }
 
     try {
         if ($appointment->clientProfile->email) {
@@ -2082,6 +2200,8 @@ public function success(Request $request)
         if ($appointment_id) {
             $appointment = Appointment::find($appointment_id);
             if ($appointment) {
+                $voucherAppliedCents = $this->applyGiftVoucherFromStripeMetadata($appointment, $paymentIntent->metadata->toArray());
+
                 $appointment->status = 'Payée';
                 $appointment->save();
 
@@ -2091,6 +2211,10 @@ public function success(Request $request)
 
                 // Créer la facture
                 $invoice = $this->createInvoiceFromAppointment($appointment);
+
+                if ($voucherAppliedCents > 0) {
+                    $this->recordGiftVoucherPaymentOnInvoice($invoice, $appointment, $voucherAppliedCents);
+                }
 
                 Log::info('Invoice created successfully', [
                     'invoice_id' => $invoice->id,
@@ -2326,6 +2450,130 @@ protected function createInvoiceFromAppointment(Appointment $appointment)
     ]);
 
     return $invoice;
+}
+
+private function resolveGiftVoucherForBooking(User $therapist, ?string $voucherCode): ?GiftVoucher
+{
+    $code = strtoupper(trim((string) $voucherCode));
+    if ($code === '') {
+        return null;
+    }
+
+    $voucher = GiftVoucher::where('user_id', $therapist->id)
+        ->where('code', $code)
+        ->first();
+
+    if (! $voucher) {
+        throw ValidationException::withMessages([
+            'gift_voucher_code' => 'Ce bon cadeau est introuvable.',
+        ]);
+    }
+
+    if (! $voucher->isUsable()) {
+        throw ValidationException::withMessages([
+            'gift_voucher_code' => 'Ce bon cadeau n’est pas utilisable (expiré, désactivé ou épuisé).',
+        ]);
+    }
+
+    return $voucher;
+}
+
+private function computeBookableAmountCents(Product $product): int
+{
+    $price = (float) ($product->price ?? 0);
+    $taxRate = (float) ($product->tax_rate ?? 0);
+    $amount = $price + ($price * $taxRate / 100);
+
+    return (int) round($amount * 100);
+}
+
+private function applyGiftVoucherFromStripeMetadata(Appointment $appointment, array $metadata): int
+{
+    $voucherId = isset($metadata['gift_voucher_id']) ? (int) $metadata['gift_voucher_id'] : 0;
+    $plannedCents = isset($metadata['gift_voucher_amount_cents']) ? (int) $metadata['gift_voucher_amount_cents'] : 0;
+
+    if ($voucherId <= 0 || $plannedCents <= 0) {
+        return 0;
+    }
+
+    $alreadyApplied = \App\Models\GiftVoucherRedemption::where('appointment_id', $appointment->id)
+        ->where('source', 'booking_online')
+        ->where('status', 'applied')
+        ->sum('amount_cents');
+
+    if ($alreadyApplied > 0) {
+        $appointment->gift_voucher_id = $voucherId;
+        $appointment->gift_voucher_amount_cents = $alreadyApplied;
+        $appointment->save();
+        return (int) $alreadyApplied;
+    }
+
+    $voucher = GiftVoucher::where('id', $voucherId)
+        ->where('user_id', $appointment->user_id)
+        ->first();
+
+    if (! $voucher || ! $voucher->isUsable()) {
+        return 0;
+    }
+
+    $appliedCents = min($plannedCents, (int) $voucher->remaining_amount_cents);
+    if ($appliedCents <= 0) {
+        return 0;
+    }
+
+    app(GiftVoucherRedeemService::class)->redeem(
+        $voucher,
+        $appliedCents,
+        'Utilisation bon cadeau après paiement Stripe',
+        (int) $appointment->user_id,
+        (int) $appointment->id,
+        null,
+        'booking_online',
+        'applied'
+    );
+
+    $appointment->gift_voucher_id = $voucher->id;
+    $appointment->gift_voucher_amount_cents = $appliedCents;
+    $appointment->save();
+
+    return $appliedCents;
+}
+
+private function recordGiftVoucherPaymentOnInvoice(Invoice $invoice, Appointment $appointment, int $appliedCents): void
+{
+    if ($appliedCents <= 0) {
+        return;
+    }
+
+    $already = Receipt::where('invoice_id', $invoice->id)
+        ->where('source', 'manual')
+        ->where('note', 'like', 'Paiement bon cadeau%')
+        ->exists();
+
+    if ($already) {
+        return;
+    }
+
+    $amount = round($appliedCents / 100, 2);
+    $clientName = trim(
+        (string) optional($appointment->clientProfile)->first_name . ' ' .
+        (string) optional($appointment->clientProfile)->last_name
+    );
+
+    Receipt::create([
+        'user_id' => $appointment->user_id,
+        'invoice_id' => $invoice->id,
+        'invoice_number' => (string) $invoice->invoice_number,
+        'encaissement_date' => now()->toDateString(),
+        'client_name' => $clientName ?: 'Client',
+        'nature' => 'service',
+        'amount_ht' => $amount,
+        'amount_ttc' => $amount,
+        'payment_method' => 'other',
+        'direction' => 'credit',
+        'source' => 'manual',
+        'note' => 'Paiement bon cadeau ' . ($appointment->giftVoucher?->code ?? ''),
+    ]);
 }
 
 
@@ -2865,6 +3113,7 @@ public function storeByToken(Request $request, string $token)
         'appointment_time' => 'required|date_format:H:i',
         'product_id'       => 'required|exists:products,id',
         'notes'            => 'nullable|string',
+        'gift_voucher_code' => 'nullable|string|max:64',
         // 'type' may come from the form; if not we will infer it from product flags
         'type'             => 'nullable|string',
         // practice_location_id is validated conditionally (see below)
@@ -2879,6 +3128,24 @@ public function storeByToken(Request $request, string $token)
     if (!$bookingLink->allowsProduct((int) $product->id)) {
         return back()->withErrors([
             'product_id' => 'Cette prestation n’est pas disponible via ce lien partenaire.',
+        ])->withInput();
+    }
+
+    $voucherForBooking = $this->resolveGiftVoucherForBooking($therapist, $request->input('gift_voucher_code'));
+    $totalAmountCents = $this->computeBookableAmountCents($product);
+    $voucherPlannedCents = $voucherForBooking
+        ? min((int) $voucherForBooking->remaining_amount_cents, $totalAmountCents)
+        : 0;
+
+    // Production safety: for Stripe online collection we only allow full-coverage vouchers.
+    // Partial voucher + online payment creates race conditions on remaining balance.
+    if (!empty($product->collect_payment)
+        && !empty($therapist->stripe_account_id)
+        && $voucherForBooking
+        && $voucherPlannedCents > 0
+        && $voucherPlannedCents < $totalAmountCents) {
+        return back()->withErrors([
+            'gift_voucher_code' => 'Pour les paiements en ligne, le bon cadeau doit couvrir la totalité du montant.',
         ])->withInput();
     }
 
@@ -2979,6 +3246,8 @@ public function storeByToken(Request $request, string $token)
         'type'                  => $mode,                 // ← on stocke le mode
         'duration'              => $product->duration,
         'product_id'            => $product->id,
+        'gift_voucher_id'       => $voucherForBooking?->id,
+        'gift_voucher_amount_cents' => $voucherPlannedCents > 0 ? $voucherPlannedCents : null,
 
         // ✅ partner tracking
         'booking_link_id'       => $bookingLink->id,
@@ -3077,11 +3346,54 @@ public function storeByToken(Request $request, string $token)
 
     /* ---------------------- Paiement Stripe si requis ---------------------- */
     if (!empty($product->collect_payment)) {
+        $payableAmountCents = max(0, $totalAmountCents - $voucherPlannedCents);
+
+        if ($payableAmountCents === 0) {
+            $appointment->update(['status' => 'confirmed']);
+
+            if ($voucherForBooking && $voucherPlannedCents > 0) {
+                try {
+                    app(GiftVoucherRedeemService::class)->redeem(
+                        $voucherForBooking,
+                        $voucherPlannedCents,
+                        'Utilisation bon cadeau lors de la réservation',
+                        $therapist->id,
+                        $appointment->id,
+                        null,
+                        'booking_online',
+                        'applied'
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Gift voucher redemption failed on full-cover booking', [
+                        'appointment_id' => $appointment->id,
+                        'voucher_id' => $voucherForBooking->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
+                    return back()->withErrors([
+                        'gift_voucher_code' => 'Le bon cadeau n’a pas pu être appliqué. Veuillez réessayer.',
+                    ])->withInput();
+                }
+            }
+
+            try {
+                if ($appointment->clientProfile->email) {
+                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                }
+                if ($therapist->email) {
+                    Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
+                }
+            } catch (\Exception $e) {
+                Log::error("Erreur envoi emails : " . $e->getMessage());
+            }
+
+            return redirect()->route('appointments.showPatient', $appointment->token)
+                ->with('success', 'Votre rendez-vous a été réservé avec succès. Le bon cadeau a été appliqué.');
+        }
+
         if ($therapist->stripe_account_id) {
             $stripeSecretKey = config('services.stripe.secret');
             $stripe = new StripeClient($stripeSecretKey);
-
-            $totalAmount = $product->price + ($product->price * $product->tax_rate / 100);
 
             try {
                 $session = $stripe->checkout->sessions->create([
@@ -3090,7 +3402,7 @@ public function storeByToken(Request $request, string $token)
                         'price_data' => [
                             'currency'     => 'eur',
                             'product_data' => ['name' => $product->name],
-                            'unit_amount'  => intval($totalAmount * 100),
+                            'unit_amount'  => (int) $payableAmountCents,
                         ],
                         'quantity' => 1,
                     ]],
@@ -3101,6 +3413,8 @@ public function storeByToken(Request $request, string $token)
                         'metadata' => [
                             'appointment_id' => $appointment->id,
                             'patient_email'  => $appointment->clientProfile->email,
+                            'gift_voucher_id' => $voucherForBooking?->id,
+                            'gift_voucher_amount_cents' => $voucherPlannedCents,
                         ],
                     ],
                 ], [
@@ -3122,6 +3436,31 @@ public function storeByToken(Request $request, string $token)
             Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
             $appointment->update(['status' => 'confirmed']);
 
+            if ($voucherForBooking && $voucherPlannedCents > 0) {
+                try {
+                    app(GiftVoucherRedeemService::class)->redeem(
+                        $voucherForBooking,
+                        $voucherPlannedCents,
+                        'Utilisation bon cadeau (reste à régler hors ligne)',
+                        $therapist->id,
+                        $appointment->id,
+                        null,
+                        'booking_offline',
+                        'applied'
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Gift voucher redemption failed when therapist has no Stripe account', [
+                        'appointment_id' => $appointment->id,
+                        'voucher_id' => $voucherForBooking->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
+                    return back()->withErrors([
+                        'gift_voucher_code' => 'Le bon cadeau n’a pas pu être appliqué. Veuillez réessayer.',
+                    ])->withInput();
+                }
+            }
+
             try {
                 if ($appointment->clientProfile->email) {
                     Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
@@ -3140,6 +3479,31 @@ public function storeByToken(Request $request, string $token)
 
     /* ---------------------- Pas de paiement requis ---------------------- */
     $appointment->update(['status' => 'confirmed']);
+
+    if ($voucherForBooking && $voucherPlannedCents > 0) {
+        try {
+            app(GiftVoucherRedeemService::class)->redeem(
+                $voucherForBooking,
+                $voucherPlannedCents,
+                'Utilisation bon cadeau (réservation sans paiement en ligne)',
+                $therapist->id,
+                $appointment->id,
+                null,
+                'booking_offline',
+                'applied'
+            );
+        } catch (\Throwable $e) {
+            Log::error('Gift voucher redemption failed on no-payment booking', [
+                'appointment_id' => $appointment->id,
+                'voucher_id' => $voucherForBooking->id,
+                'error' => $e->getMessage(),
+            ]);
+            $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
+            return back()->withErrors([
+                'gift_voucher_code' => 'Le bon cadeau n’a pas pu être appliqué. Veuillez réessayer.',
+            ])->withInput();
+        }
+    }
 
     try {
         if ($appointment->clientProfile->email) {
@@ -3232,6 +3596,30 @@ public function createByToken(string $token)
         'catalog'           => $catalog,
         'practiceLocations' => $practiceLocations,
     ]);
+}
+
+private function rollbackFailedBooking(Appointment $appointment, $bookingLink = null): void
+{
+    try {
+        \App\Models\Meeting::query()
+            ->where('appointment_id', $appointment->id)
+            ->delete();
+
+        $appointment->delete();
+
+        if ($bookingLink && isset($bookingLink->id)) {
+            \App\Models\BookingLink::query()
+                ->whereKey($bookingLink->id)
+                ->where('uses_count', '>', 0)
+                ->decrement('uses_count');
+        }
+    } catch (\Throwable $rollbackError) {
+        Log::critical('Failed to rollback appointment after voucher redemption error', [
+            'appointment_id' => $appointment->id,
+            'booking_link_id' => $bookingLink->id ?? null,
+            'error' => $rollbackError->getMessage(),
+        ]);
+    }
 }
 
 

@@ -202,6 +202,15 @@
                                    transition-colors duration-200">
                             {{ __('Accès Client') }}
                         </a>
+
+                        @if(($therapist->gift_voucher_online_enabled ?? false) && !empty($therapist->stripe_account_id))
+                            <a  href="{{ route('gift-vouchers.checkout.show', ['slug' => $therapist->slug]) }}"
+                                class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
+                                       text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
+                                       transition-colors duration-200">
+                                {{ __('Offrir un bon cadeau') }}
+                            </a>
+                        @endif
                     </nav>
                 @endif
             </div>

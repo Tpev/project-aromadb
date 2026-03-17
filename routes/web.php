@@ -33,8 +33,6 @@ use App\Http\Controllers\StripeController;
 use App\Http\Controllers\LicenseTierController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\HelpController;
-use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ConseilController;
 use App\Http\Controllers\ClientConseilController;
 use App\Http\Controllers\MarketingController;
@@ -77,6 +75,7 @@ use App\Models\DesignTemplate;
 use App\Http\Controllers\TherapistArticleController;
 use App\Http\Controllers\SessionNoteTemplateController;
 use App\Http\Controllers\PublicCheckoutController;
+use App\Http\Controllers\PublicGiftVoucherCheckoutController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -93,6 +92,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/bons-cadeaux', [GiftVoucherController::class, 'index'])->name('pro.gift-vouchers.index');
         Route::get('/bons-cadeaux/create', [GiftVoucherController::class, 'create'])->name('pro.gift-vouchers.create');
         Route::post('/bons-cadeaux', [GiftVoucherController::class, 'store'])->name('pro.gift-vouchers.store');
+        Route::post('/bons-cadeaux/settings', [GiftVoucherController::class, 'updateSettings'])->name('pro.gift-vouchers.settings.update');
 
         Route::get('/bons-cadeaux/{voucher}', [GiftVoucherController::class, 'show'])->name('pro.gift-vouchers.show');
         Route::get('/bons-cadeaux/{voucher}/pdf', [GiftVoucherController::class, 'downloadPdf'])->name('pro.gift-vouchers.pdf');
@@ -101,6 +101,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/bons-cadeaux/{voucher}/disable', [GiftVoucherController::class, 'disable'])->name('pro.gift-vouchers.disable');
     });
 });
+
+Route::get('/pro/{slug}/bons-cadeaux/checkout', [PublicGiftVoucherCheckoutController::class, 'show'])
+    ->name('gift-vouchers.checkout.show');
+
+Route::post('/pro/{slug}/bons-cadeaux/checkout', [PublicGiftVoucherCheckoutController::class, 'store'])
+    ->name('gift-vouchers.checkout.store');
+
+Route::get('/bons-cadeaux/checkout/success', [PublicGiftVoucherCheckoutController::class, 'success'])
+    ->name('gift-vouchers.checkout.success');
+
+Route::get('/bons-cadeaux/checkout/cancel', [PublicGiftVoucherCheckoutController::class, 'cancel'])
+    ->name('gift-vouchers.checkout.cancel');
 
 
 Route::middleware(['auth'])->group(function () {
@@ -138,8 +150,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('pack-products/{packProduct}/assign', [PackProductController::class, 'assignToClient'])
         ->name('pack-products.assign');
-	Route::post('/client-profiles/{clientProfile}/packs/assign', [ClientProfilePackController::class, 'assign'])
-    ->name('client_profiles.packs.assign');
 
 });
 
@@ -450,10 +460,6 @@ Route::middleware('auth:client')->prefix('client')->group(function () {
     Route::get('/messages', [ClientMessageController::class, 'index'])->name('client.messages.index');
     Route::post('/messages', [ClientMessageController::class, 'store'])->name('client.messages.store');
 });
-Route::post('/client_profiles/{clientProfile}/messages', [\App\Http\Controllers\MessageController::class, 'store'])
-    ->name('messages.store');
-
-
 Route::get ('client/setup/{token}', [ClientPasswordSetupController::class, 'show'])
      ->name('client.setup.show');
 Route::post('/client/documents/upload', [ClientProfileController::class, 'uploadDocument'])->name('client.documents.upload');
@@ -625,13 +631,6 @@ Route::get('client_profiles/{clientProfile}/conseils/send', [ClientConseilContro
 Route::post('client_profiles/{clientProfile}/conseils/send', [ClientConseilController::class, 'send'])->name('client_profiles.conseils.send');
 
 });
-Route::prefix('help')->group(function () {
-    Route::get('/', [HelpController::class, 'index'])->name('help.index');
-    Route::get('/search', [HelpController::class, 'search'])->name('help.search');
-    Route::get('/{category}', [HelpController::class, 'category'])->name('help.category');
-    Route::get('/{category}/{slug}', [HelpController::class, 'show'])->name('help.show');
-});
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/mark-as-read/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
@@ -880,13 +879,6 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(fu
 	Route::get('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
 	Route::post('products/{product}/duplicate', [ProductController::class, 'storeDuplicate'])->name('products.storeDuplicate');
 
-});
-
-Route::prefix('onboarding')->middleware('auth')->group(function () {
-    Route::get('/step/{step}', [OnboardingController::class, 'showStep'])->name('onboarding.step');
-    Route::post('/step/{step}', [OnboardingController::class, 'submitStep'])->name('onboarding.submit');
-    Route::get('/skip/{step}', [OnboardingController::class, 'skipStep'])->name('onboarding.skip');
-    Route::get('/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 });
 
 

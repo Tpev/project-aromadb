@@ -19,8 +19,9 @@ class GiftVoucherRecipientMail extends Mailable
     public function build()
     {
         $therapist = $this->voucher->therapist;
+        $from = $this->voucher->buyer_name ?: 'un proche';
 
-        return $this->subject('Vous avez reçu un bon cadeau – ' . ($therapist->company_name ?? $therapist->name ?? 'AromaMade'))
+        return $this->subject('Vous avez reçu un bon cadeau de ' . $from . ' – ' . ($therapist->company_name ?? $therapist->name ?? 'AromaMade'))
             ->markdown('emails.gift-voucher.recipient')
             ->with([
                 'voucher' => $this->voucher,

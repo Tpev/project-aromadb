@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Log;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
+use Stripe\StripeClient;
 use App\Models\User;
+use App\Models\Invoice;
+use App\Notifications\InvoicePaid;
 
 class StripeWebhookController extends Controller
 {
@@ -19,6 +22,7 @@ class StripeWebhookController extends Controller
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
         $endpointSecret = config('services.stripe.webhook');
+        $connectedAccountId = (string) $request->header('Stripe-Account', '');
 
         try {
             // Verify the webhook signature
@@ -37,7 +41,7 @@ class StripeWebhookController extends Controller
 
         // Handle the event
         switch ($event->type) {
-			  case 'checkout.session.completed':
+            case 'checkout.session.completed':
                 $this->handleCheckoutSessionCompleted($event->data->object, $connectedAccountId);
                 break;
             case 'customer.subscription.created':
@@ -189,7 +193,7 @@ class StripeWebhookController extends Controller
         }
     }
 	
-	    protected function handleCheckoutSessionCompleted($session, $connectedAccountId)
+    protected function handleCheckoutSessionCompleted($session, ?string $connectedAccountId = null)
     {
         // Ensure that the session has the necessary metadata
         if (!isset($session->metadata->invoice_id)) {
@@ -210,10 +214,16 @@ class StripeWebhookController extends Controller
         // Update the invoice status to 'Payée'
         $invoice->status = 'Payée';
         $invoice->save();
- try {
-		$therapist->notify(new InvoicePaid($invoice));
 
- }
+        $therapist = $invoice->user;
+        if ($therapist) {
+            try {
+                $therapist->notify(new InvoicePaid($invoice));
+            } catch (\Throwable $e) {
+                Log::warning("Unable to notify therapist for paid invoice {$invoice->id}: " . $e->getMessage());
+            }
+        }
+
         Log::info("Invoice ID {$invoice->id} marked as 'Payée' due to Checkout Session {$session->id}.");
 
         // Deactivate the Payment Link by deleting it
@@ -223,10 +233,12 @@ class StripeWebhookController extends Controller
         if ($paymentLinkId) {
             try {
                 $stripe = new StripeClient(config('services.stripe.secret'));
+                $options = [];
+                if (!empty($connectedAccountId)) {
+                    $options['stripe_account'] = $connectedAccountId;
+                }
 
-                $stripe->paymentLinks->delete($paymentLinkId, [], [
-                    'stripe_account' => $connectedAccountId, // Use the connected account context
-                ]);
+                $stripe->paymentLinks->delete($paymentLinkId, [], $options);
 
                 Log::info("Payment Link {$paymentLinkId} has been deleted to prevent reuse.");
             } catch (\Stripe\Exception\ApiErrorException $e) {

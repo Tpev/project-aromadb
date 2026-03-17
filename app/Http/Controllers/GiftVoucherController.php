@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GiftVoucherSettingsUpdateRequest;
 use App\Http\Requests\GiftVoucherRedeemRequest;
 use App\Http\Requests\GiftVoucherStoreRequest;
 use App\Jobs\SendGiftVoucherEmailsJob;
 use App\Models\GiftVoucher;
+use App\Services\GiftVoucherBackgroundService;
 use App\Services\GiftVoucherCodeGenerator;
+use App\Services\GiftVoucherInvoiceService;
 use App\Services\GiftVoucherPdfService;
 use App\Services\GiftVoucherRedeemService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class GiftVoucherController extends Controller
 {
-	    use AuthorizesRequests;
+    use AuthorizesRequests;
+
     public function index(Request $request)
     {
         $user = auth()->user();
@@ -38,20 +43,25 @@ class GiftVoucherController extends Controller
 
         $vouchers = $query->paginate(20)->withQueryString();
 
-        return view('dashboard-pro/gift-vouchers/index', compact('vouchers', 'status'));
+        return view('dashboard-pro/gift-vouchers/index', compact('vouchers', 'status', 'user'));
     }
 
     public function create()
     {
-        return view('dashboard-pro/gift-vouchers/create');
+        $user = auth()->user();
+        return view('dashboard-pro/gift-vouchers/create', compact('user'));
     }
 
-    public function store(GiftVoucherStoreRequest $request, GiftVoucherCodeGenerator $gen)
-    {
+    public function store(
+        GiftVoucherStoreRequest $request,
+        GiftVoucherCodeGenerator $gen,
+        GiftVoucherInvoiceService $invoiceService
+    ) {
         $user = auth()->user();
 
         $amountEur = (float) $request->input('amount_eur');
         $amountCents = (int) round($amountEur * 100);
+        $snapshot = GiftVoucherBackgroundService::snapshotForVoucher($user);
 
         $voucher = GiftVoucher::create([
             'user_id' => $user->id,
@@ -64,13 +74,31 @@ class GiftVoucherController extends Controller
 
             'buyer_name' => $request->input('buyer_name'),
             'buyer_email' => $request->input('buyer_email'),
+            'buyer_phone' => $request->input('buyer_phone'),
 
             'recipient_name' => $request->input('recipient_name'),
             'recipient_email' => $request->input('recipient_email'),
 
             'message' => $request->input('message'),
             'source' => 'manual',
+            'sale_channel' => 'offline_manual',
+            'sale_status' => 'paid',
+            'background_mode_snapshot' => $snapshot['mode'],
+            'background_path_snapshot' => $snapshot['path'],
         ]);
+
+        if ($request->boolean('create_sale_invoice')) {
+            $invoice = $invoiceService->createSaleInvoice(
+                $voucher,
+                (string) $request->input('payment_method', 'other'),
+                'Vente bon cadeau (création manuelle)'
+            );
+
+            if ($invoice) {
+                $voucher->sale_invoice_id = $invoice->id;
+                $voucher->save();
+            }
+        }
 
         // Send emails async (recommended)
         SendGiftVoucherEmailsJob::dispatch($voucher->id);
@@ -78,6 +106,37 @@ class GiftVoucherController extends Controller
         return redirect()
             ->route('pro.gift-vouchers.show', $voucher->id)
             ->with('success', 'Bon cadeau créé. Les emails vont être envoyés.');
+    }
+
+    public function updateSettings(
+        GiftVoucherSettingsUpdateRequest $request
+    ) {
+        $user = auth()->user();
+
+        $user->gift_voucher_online_enabled = $request->boolean('gift_voucher_online_enabled');
+
+        $mode = $request->input('gift_voucher_background_mode', 'default');
+        $removeBackground = $request->boolean('remove_gift_voucher_background');
+
+        if ($removeBackground || $mode === 'default') {
+            GiftVoucherBackgroundService::removeGlobalBackground($user);
+            $user->gift_voucher_background_mode = 'default';
+            $user->gift_voucher_background_path = null;
+            $user->gift_voucher_background_updated_at = now();
+            $user->save();
+
+            return back()->with('success', 'Paramètres bon cadeau mis à jour.');
+        }
+
+        if ($mode === 'custom_upload' && $request->hasFile('gift_voucher_background')) {
+            $path = GiftVoucherBackgroundService::storeGlobalBackground($user, $request->file('gift_voucher_background'));
+            $user->gift_voucher_background_mode = 'custom_upload';
+            $user->gift_voucher_background_path = $path;
+            $user->gift_voucher_background_updated_at = now();
+            $user->save();
+        }
+
+        return back()->with('success', 'Paramètres bon cadeau mis à jour.');
     }
 
     public function show(GiftVoucher $voucher)
@@ -121,7 +180,16 @@ class GiftVoucherController extends Controller
         $amountEur = (float) $request->input('amount_eur');
         $amountCents = (int) round($amountEur * 100);
 
-        $service->redeem($voucher, $amountCents, $request->input('note'));
+        $service->redeem(
+            $voucher,
+            $amountCents,
+            $request->input('note'),
+            auth()->id(),
+            $request->integer('appointment_id') ?: null,
+            $request->integer('invoice_id') ?: null,
+            'manual',
+            'applied'
+        );
 
         return back()->with('success', 'Montant déduit du bon cadeau.');
     }

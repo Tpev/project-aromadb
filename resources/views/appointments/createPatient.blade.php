@@ -652,6 +652,13 @@
                             @error('notes')<p class="text-red-500">{{ $message }}</p>@enderror
                         </div>
 
+                        <div class="details-box">
+                            <label class="details-label" for="gift_voucher_code">{{ __('Code bon cadeau (optionnel)') }}</label>
+                            <input type="text" id="gift_voucher_code" name="gift_voucher_code" class="form-control"
+                                   value="{{ old('gift_voucher_code') }}" placeholder="{{ __('Ex: AM-ABCD-EFGH-IJKL') }}">
+                            @error('gift_voucher_code')<p class="text-red-500">{{ $message }}</p>@enderror
+                        </div>
+
                         {{-- status (kept as before if you need it in storePatient) --}}
                         <input type="hidden" name="status" value="pending">
 

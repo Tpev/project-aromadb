@@ -3,7 +3,9 @@
 
 Bonjour,
 
-Vous avez reçu un **bon cadeau** de la part de **{{ $therapist->company_name ?? $therapist->name ?? 'votre thérapeute' }}**.
+Vous avez reçu un **bon cadeau** offert par
+**{{ $voucher->buyer_name ?: 'un proche' }}**
+pour des prestations de **{{ $therapist->company_name ?? $therapist->name ?? 'votre thérapeute' }}**.
 
 **Code secret :** {{ $voucher->code }}  
 **Montant :** {{ $voucher->originalAmountStr() }}  

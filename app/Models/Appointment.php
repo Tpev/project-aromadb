@@ -27,6 +27,8 @@ class Appointment extends Model
         'duration',
         'product_id',
         'stripe_session_id',
+        'gift_voucher_id',
+        'gift_voucher_amount_cents',
         'google_event_id',
         'external',                // imported busy slot from Google
         'practice_location_id',    // ← SELECTED cabinet location (if cabinet)
@@ -42,6 +44,7 @@ class Appointment extends Model
         'appointment_date'     => 'datetime',
         'external'             => 'boolean',
         'duration'             => 'integer',
+        'gift_voucher_amount_cents' => 'integer',
 
         // NEW
         'requires_emargement'  => 'boolean',
@@ -339,5 +342,10 @@ public function syncToGoogle(): void
     public function invoice()
     {
         return $this->hasOne(Invoice::class);
+    }
+
+    public function giftVoucher()
+    {
+        return $this->belongsTo(GiftVoucher::class, 'gift_voucher_id');
     }
 }

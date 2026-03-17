@@ -6,7 +6,25 @@
     <style>
         body { font-family: DejaVu Sans, sans-serif; color: #111; }
         .wrap { padding: 24px; }
-        .card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 22px; }
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 22px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.18;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .card-inner {
+            position: relative;
+            z-index: 2;
+        }
         .muted { color: #6b7280; font-size: 12px; }
         .title { font-size: 26px; font-weight: 700; margin: 0; }
         .big { font-size: 34px; font-weight: 800; margin: 8px 0 0 0; }
@@ -22,6 +40,10 @@
 <body>
 <div class="wrap">
     <div class="card">
+        @if(!empty($backgroundBase64))
+            <div class="card-bg" style="background-image: url('{{ $backgroundBase64 }}');"></div>
+        @endif
+        <div class="card-inner">
         <table class="grid">
             <tr>
                 <td>
@@ -33,6 +55,11 @@
                     <div class="row">
                         <span class="pill">Montant</span>
                         <div class="big">{{ $voucher->originalAmountStr() }}</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="muted">Offert par</div>
+                        <div style="font-weight:700;">{{ $voucher->buyer_name ?: 'Un proche' }}</div>
                     </div>
 
                     <div class="row">
@@ -73,7 +100,12 @@
 
         <div class="footer">
             Bon utilisable en une ou plusieurs fois selon disponibilité. Non remboursable.
-            Le paiement du bon cadeau est réalisé en dehors d’AromaMade (espèces, virement, terminal CB, etc.).
+            @if(($voucher->sale_channel ?? '') === 'online_stripe')
+                Le bon cadeau a été réglé en ligne via AromaMade.
+            @else
+                Le paiement du bon cadeau est réalisé en dehors d’AromaMade (espèces, virement, terminal CB, etc.).
+            @endif
+        </div>
         </div>
     </div>
 </div>

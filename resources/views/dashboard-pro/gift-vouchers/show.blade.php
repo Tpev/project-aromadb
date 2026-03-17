@@ -216,6 +216,7 @@
                                 <div class="text-xs font-bold text-slate-500 uppercase tracking-wide">Acheteur</div>
                                 <div class="mt-1 text-sm font-extrabold text-slate-900">{{ $voucher->buyer_name ?: '—' }}</div>
                                 <div class="text-sm text-slate-700">{{ $voucher->buyer_email }}</div>
+                                <div class="text-sm text-slate-700">{{ $voucher->buyer_phone ?: '—' }}</div>
                             </div>
 
                             <div class="rounded-2xl border border-slate-200/70 bg-white p-4">
@@ -229,6 +230,21 @@
                                 <div class="mt-1 text-sm text-slate-800">
                                     {{ $voucher->message ?: '—' }}
                                 </div>
+                            </div>
+
+                            <div class="md:col-span-2 rounded-2xl border border-slate-200/70 bg-white p-4">
+                                <div class="text-xs font-bold text-slate-500 uppercase tracking-wide">Vente</div>
+                                <div class="mt-1 text-sm text-slate-800">
+                                    Canal : {{ $voucher->sale_channel ?: 'offline_manual' }} • Statut : {{ $voucher->sale_status ?: 'paid' }}
+                                </div>
+                                @if($voucher->sale_invoice_id)
+                                    <div class="mt-1 text-sm">
+                                        Facture :
+                                        <a href="{{ route('invoices.show', $voucher->sale_invoice_id) }}" class="font-bold text-[#647a0b] hover:underline">
+                                            #{{ $voucher->sale_invoice_id }}
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

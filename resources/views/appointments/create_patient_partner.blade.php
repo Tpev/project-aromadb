@@ -165,6 +165,12 @@
                 <input type="text" id="phone" name="phone" class="form-control">
             </div>
 
+            <div class="details-box">
+                <label class="details-label" for="gift_voucher_code">{{ __('Code bon cadeau (optionnel)') }}</label>
+                <input type="text" id="gift_voucher_code" name="gift_voucher_code" class="form-control"
+                       value="{{ old('gift_voucher_code') }}" placeholder="{{ __('Ex: AM-ABCD-EFGH-IJKL') }}">
+            </div>
+
             <button type="submit" class="btn btn-success w-100 mt-3">
                 {{ __('Réserver') }}
             </button>

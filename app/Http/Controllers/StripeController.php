@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Appointment;
+use App\Models\GiftVoucherOrder;
 
 class StripeController extends Controller
 {
@@ -321,8 +322,33 @@ public function success(Request $request)
      */
     protected function handleCheckoutSessionCompleted($session)
     {
+        $metadata = (array) ($session->metadata ?? []);
+
+        // Gift voucher online purchase
+        if (!empty($metadata['gift_voucher_order_id'])) {
+            $order = GiftVoucherOrder::find((int) $metadata['gift_voucher_order_id']);
+            if ($order) {
+                try {
+                    app(\App\Services\GiftVoucherCheckoutService::class)->finalizePaidOrder(
+                        $order,
+                        (string) ($session->id ?? ''),
+                        (string) ($session->payment_intent ?? '')
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Gift voucher checkout webhook finalization failed: ' . $e->getMessage(), [
+                        'order_id' => $order->id,
+                        'session_id' => $session->id ?? null,
+                    ]);
+                }
+            }
+            return;
+        }
+
         // Récupérer les métadonnées
-        $appointment_id = $session->metadata->appointment_id;
+        $appointment_id = $session->metadata->appointment_id ?? null;
+        if (!$appointment_id) {
+            return;
+        }
 
         // Mettre à jour le statut de la réservation
         $appointment = Appointment::find($appointment_id);

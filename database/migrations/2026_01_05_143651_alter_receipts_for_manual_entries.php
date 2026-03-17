@@ -2,10 +2,16 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            // SQLite test runs: skip MySQL-specific ALTER ... MODIFY statements.
+            return;
+        }
+
         // 1) invoice_number nullable (manual entries)
         DB::statement("ALTER TABLE receipts MODIFY invoice_number VARCHAR(255) NULL");
 
@@ -21,6 +27,10 @@ return new class extends Migration {
 
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // ⚠️ Down : on revient au schéma strict d’origine.
         // Si tu as des lignes 'manual' ou 'other', ce rollback pourrait échouer.
         DB::statement("ALTER TABLE receipts MODIFY source ENUM('payment','correction','refund') NOT NULL DEFAULT 'payment'");

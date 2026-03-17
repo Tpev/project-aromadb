@@ -16,6 +16,8 @@ class GiftVoucherRedeemRequest extends FormRequest
         return [
             'amount_eur' => ['required', 'numeric', 'min:0.01', 'max:5000'],
             'note' => ['nullable', 'string', 'max:255'],
+            'appointment_id' => ['nullable', 'integer'],
+            'invoice_id' => ['nullable', 'integer'],
         ];
     }
 }
