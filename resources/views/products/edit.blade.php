@@ -137,9 +137,9 @@
                 </div>
 
                 <!-- === Options avancées === -->
-                <div class="advanced-wrapper">
-                    <h3 class="adv-title">Options avancées</h3>
-                    <div class="adv-box">
+                <div class="extra-settings-wrapper">
+                    <h3 class="extra-settings-title">Options avancées</h3>
+                    <div class="extra-settings-box">
                         <!-- Nombre maximum de séances par jour -->
                         <div class="details-box">
                             <label class="details-label" for="max_per_day">{{ __('Nombre maximum de séances par jour') }}</label>
@@ -256,16 +256,16 @@
             display: inline-block;
         }
 
-        /* Advanced section */
-        .advanced-wrapper { margin-top: 18px; }
-        .adv-title {
+        /* Extra settings section */
+        .extra-settings-wrapper { margin-top: 18px; }
+        .extra-settings-title {
             font-size: 1.05rem;
             font-weight: 700;
             color: #374151;
             margin-bottom: 12px;
         }
 
-        .adv-box {
+        .extra-settings-box {
             background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;
             padding: 16px; margin-top: 12px;
         }
