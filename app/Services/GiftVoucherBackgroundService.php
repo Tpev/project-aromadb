@@ -7,7 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
-use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\ImageManager;
 
 class GiftVoucherBackgroundService
@@ -28,12 +28,13 @@ class GiftVoucherBackgroundService
 
         $image = $manager->read($file->getRealPath())->orient();
 
-        // A4 portrait ratio ~= 1:1.414. Keep quality high for PDF export.
+        // A4 portrait ratio ~= 1:1.414.
+        // Store as JPEG for maximal compatibility with PDF renderers.
         $encoded = $image
             ->cover(1240, 1754)
-            ->encode(new WebpEncoder(quality: 86));
+            ->encode(new JpegEncoder(quality: 88));
 
-        $path = "{$folder}/background.webp";
+        $path = "{$folder}/background.jpg";
         $disk->put($path, (string) $encoded);
 
         return $path;
@@ -64,4 +65,3 @@ class GiftVoucherBackgroundService
         }
     }
 }
-

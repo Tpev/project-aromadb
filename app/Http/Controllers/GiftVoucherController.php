@@ -14,6 +14,7 @@ use App\Services\GiftVoucherPdfService;
 use App\Services\GiftVoucherRedeemService;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Storage;
 
 class GiftVoucherController extends Controller
 {
@@ -42,8 +43,24 @@ class GiftVoucherController extends Controller
         }
 
         $vouchers = $query->paginate(20)->withQueryString();
+        $backgroundPreviewUrl = null;
+        $backgroundPreviewDataUri = null;
+        if (
+            ($user->gift_voucher_background_mode ?? 'default') === 'custom_upload'
+            && !empty($user->gift_voucher_background_path)
+            && Storage::disk('public')->exists($user->gift_voucher_background_path)
+        ) {
+            $backgroundPreviewUrl = asset('storage/' . ltrim((string) $user->gift_voucher_background_path, '/'));
+            if ($user->gift_voucher_background_updated_at) {
+                $backgroundPreviewUrl .= '?v=' . $user->gift_voucher_background_updated_at->timestamp;
+            }
 
-        return view('dashboard-pro/gift-vouchers/index', compact('vouchers', 'status', 'user'));
+            $mime = (string) (Storage::disk('public')->mimeType($user->gift_voucher_background_path) ?: 'image/jpeg');
+            $binary = Storage::disk('public')->get($user->gift_voucher_background_path);
+            $backgroundPreviewDataUri = 'data:' . $mime . ';base64,' . base64_encode($binary);
+        }
+
+        return view('dashboard-pro/gift-vouchers/index', compact('vouchers', 'status', 'user', 'backgroundPreviewUrl', 'backgroundPreviewDataUri'));
     }
 
     public function create()
@@ -134,6 +151,10 @@ class GiftVoucherController extends Controller
             $user->gift_voucher_background_path = $path;
             $user->gift_voucher_background_updated_at = now();
             $user->save();
+        } elseif ($mode === 'custom_upload' && empty($user->gift_voucher_background_path)) {
+            return back()
+                ->withErrors(['gift_voucher_background' => 'Ajoutez une image pour activer le mode personnalisé.'])
+                ->withInput();
         }
 
         return back()->with('success', 'Paramètres bon cadeau mis à jour.');

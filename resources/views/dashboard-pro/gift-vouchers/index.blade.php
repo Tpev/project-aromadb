@@ -123,6 +123,17 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-900">
+                    <div class="text-sm font-extrabold">Erreur de configuration</div>
+                    <ul class="mt-1 text-sm list-disc pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="am-card p-4 mb-4">
                 <div class="text-sm font-extrabold text-slate-900">Paramètres globaux bon cadeau</div>
                 <div class="text-xs text-slate-600 mt-0.5">
@@ -149,7 +160,7 @@
 
                     <div>
                         <div class="text-xs font-bold text-slate-600 uppercase">Image de fond (global)</div>
-                        <input type="file" name="gift_voucher_background" class="mt-1 block w-full text-sm">
+                        <input id="giftVoucherBackgroundInput" type="file" name="gift_voucher_background" accept=".jpg,.jpeg,.png,.webp" class="mt-1 block w-full text-sm">
                     </div>
 
                     <div>
@@ -157,6 +168,33 @@
                             <input type="checkbox" name="remove_gift_voucher_background" value="1">
                             Supprimer l’image personnalisée
                         </label>
+                    </div>
+
+                    @php
+                        $previewInlineStyle = $backgroundPreviewDataUri
+                            ? "background-image:url('{$backgroundPreviewDataUri}');background-size:cover;background-position:center;"
+                            : "background:linear-gradient(145deg, rgba(100,122,11,0.30), rgba(107,79,42,0.25));";
+                    @endphp
+                    <div class="md:col-span-3">
+                        <div class="text-xs font-bold text-slate-600 uppercase mb-2">Aperçu bon cadeau</div>
+                        <div class="rounded-2xl border border-slate-200/70 bg-white p-3">
+                            <div id="giftVoucherBackgroundPreview"
+                                 class="relative rounded-xl overflow-hidden border border-slate-200/70"
+                                 style="height:220px;{{ $previewInlineStyle }}">
+                                <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(15,23,42,0.10), rgba(15,23,42,0.28));"></div>
+                                <div style="position:absolute;left:16px;right:16px;bottom:16px;color:white;">
+                                <div style="font-size:20px;font-weight:800;line-height:1.1;">Bon cadeau</div>
+                                    <div style="font-size:12px;opacity:0.95;">Aperçu visuel du futur PDF</div>
+                                </div>
+                            </div>
+                            <div id="giftVoucherBackgroundPreviewHint" class="mt-2 text-xs text-slate-600">
+                                @if($backgroundPreviewDataUri)
+                                    Fond personnalisé actif.
+                                @else
+                                    Aucun fond personnalisé actif (thème par défaut).
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     <div class="md:col-span-3 flex justify-end">
@@ -444,4 +482,27 @@
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input = document.getElementById('giftVoucherBackgroundInput');
+            const preview = document.getElementById('giftVoucherBackgroundPreview');
+            const hint = document.getElementById('giftVoucherBackgroundPreviewHint');
+            if (!input || !preview || !hint) return;
+
+            input.addEventListener('change', function () {
+                const file = input.files && input.files[0] ? input.files[0] : null;
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    preview.style.backgroundImage = "url('" + event.target.result + "')";
+                    preview.style.backgroundSize = 'cover';
+                    preview.style.backgroundPosition = 'center';
+                    hint.textContent = 'Aperçu local: ce visuel sera utilisé après enregistrement.';
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
 </x-app-layout>

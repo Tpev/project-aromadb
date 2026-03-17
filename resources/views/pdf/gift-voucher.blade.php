@@ -13,13 +13,13 @@
             position: relative;
             overflow: hidden;
         }
-        .card-bg {
+        .card-bg-image {
             position: absolute;
             inset: 0;
             opacity: 0.18;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .card-inner {
             position: relative;
@@ -41,7 +41,7 @@
 <div class="wrap">
     <div class="card">
         @if(!empty($backgroundBase64))
-            <div class="card-bg" style="background-image: url('{{ $backgroundBase64 }}');"></div>
+            <img class="card-bg-image" src="{{ $backgroundBase64 }}" alt="">
         @endif
         <div class="card-inner">
         <table class="grid">

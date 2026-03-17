@@ -5,6 +5,8 @@ use App\Models\GiftVoucher;
 use App\Models\User;
 use App\Services\StripeAccountGuard;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 test('therapist can create a gift voucher with optional sale invoice', function () {
     Queue::fake();
@@ -78,6 +80,33 @@ test('therapist can update gift voucher global settings', function () {
     expect($therapist->gift_voucher_online_enabled)->toBeTrue();
     expect($therapist->gift_voucher_background_mode)->toBe('default');
     expect($therapist->gift_voucher_background_path)->toBeNull();
+});
+
+test('therapist can upload a custom global gift voucher background', function () {
+    $this->withoutMiddleware();
+    Storage::fake('public');
+
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'gift_voucher_online_enabled' => true,
+        'gift_voucher_background_mode' => 'default',
+        'gift_voucher_background_path' => null,
+    ]);
+
+    $response = $this->actingAs($therapist)->post(route('pro.gift-vouchers.settings.update'), [
+        'gift_voucher_online_enabled' => '1',
+        'gift_voucher_background_mode' => 'custom_upload',
+        'gift_voucher_background' => UploadedFile::fake()->image('voucher-background.png', 1800, 2400),
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $therapist->refresh();
+
+    expect($therapist->gift_voucher_background_mode)->toBe('custom_upload');
+    expect($therapist->gift_voucher_background_path)->not->toBeNull();
+    expect(str_ends_with((string) $therapist->gift_voucher_background_path, 'background.jpg'))->toBeTrue();
+    Storage::disk('public')->assertExists((string) $therapist->gift_voucher_background_path);
 });
 
 test('public gift voucher checkout page is reachable when online purchase is enabled and stripe guard is ready', function () {
