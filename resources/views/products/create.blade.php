@@ -6,12 +6,8 @@
     </x-slot>
 
     @php
-        // Ouvre automatiquement les options avancées si l'utilisateur a déjà saisi un champ avancé
-        // (utile en cas d'erreur validation => on ré-affiche directement la section)
-        $openAdvanced =
-            old('max_per_day') !== null
-            || old('requires_emargement') !== null
-            || old('direct_booking_enabled') !== null;
+        // Options avancées ouvertes par défaut.
+        $openAdvanced = true;
     @endphp
 
     <div class="container mt-5">

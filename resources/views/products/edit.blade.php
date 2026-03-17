@@ -6,17 +6,8 @@
     </x-slot>
 
     @php
-        // Ouvre automatiquement les options avancées si :
-        // - l'utilisateur a soumis le form avec des champs avancés (old())
-        // - ou si la prestation a déjà des valeurs avancées
-        // - ou si un lien de réservation directe existe (donc section utile à voir)
-        $openAdvanced =
-            old('max_per_day') !== null
-            || old('requires_emargement') !== null
-            || old('direct_booking_enabled') !== null
-            || (!empty($product->max_per_day))
-            || (!empty($product->requires_emargement))
-            || (!empty($directBookingLink));
+        // Options avancées ouvertes par défaut.
+        $openAdvanced = true;
     @endphp
 
     <div class="container mt-5">
