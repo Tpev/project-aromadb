@@ -306,6 +306,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const supportsDetails = 'open' in document.createElement('details');
+
             document.querySelectorAll('details.advanced-wrapper > summary.adv-toggle').forEach(function (summary) {
                 const wrapper = summary.parentElement;
                 const syncExpandedState = function () {
@@ -315,12 +317,28 @@
                 syncExpandedState();
                 wrapper.addEventListener('toggle', syncExpandedState);
 
-                // Keep toggle reliable across browsers/webviews that do not consistently handle <summary> clicks.
-                summary.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    wrapper.open = !wrapper.open;
-                    syncExpandedState();
-                });
+                // Fallback uniquement pour les navigateurs sans support natif <details>.
+                if (!supportsDetails) {
+                    const manualToggle = function () {
+                        wrapper.open = !wrapper.open;
+                        syncExpandedState();
+                    };
+
+                    summary.setAttribute('role', 'button');
+                    summary.setAttribute('tabindex', '0');
+
+                    summary.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        manualToggle();
+                    });
+
+                    summary.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            manualToggle();
+                        }
+                    });
+                }
             });
         });
 
