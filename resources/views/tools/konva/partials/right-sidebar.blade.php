@@ -68,10 +68,11 @@
                 <div id="textControls" class="space-y-2 border-t border-dashed border-slate-200 pt-2 hidden">
                     <div class="small-label">Police et style</div>
                     <div class="flex items-center gap-2">
+                        @php($konvaBrandingFonts = $konvaBrandingFonts ?? config('konva.branding_fonts', []))
                         <select id="textFontFamily" class="small-select">
-                            <option value="system">Systeme</option>
-                            <option value="serif">Serif</option>
-                            <option value="sans">Sans</option>
+                            @foreach($konvaBrandingFonts as $font)
+                                <option value="{{ $font['key'] }}">{{ $font['label'] }}</option>
+                            @endforeach
                         </select>
                         <div class="flex items-center gap-1">
                             <span class="small-label" style="margin-bottom:0;">Taille</span>

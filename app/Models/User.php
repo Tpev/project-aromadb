@@ -87,6 +87,7 @@ class User extends Authenticatable
         'gift_voucher_background_mode',
         'gift_voucher_background_path',
         'gift_voucher_background_updated_at',
+        'konva_branding_settings',
 
     ];
 
@@ -104,6 +105,7 @@ class User extends Authenticatable
         'global_daily_booking_limit' => 'integer',
         'gift_voucher_online_enabled' => 'boolean',
         'gift_voucher_background_updated_at' => 'datetime',
+        'konva_branding_settings' => 'array',
     ];
 
     /*

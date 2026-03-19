@@ -1,4 +1,10 @@
 {{-- resources/views/tools/konva/partials/left-sidebar.blade.php --}}
+@php
+    $konvaBranding = $konvaBranding ?? [];
+    $konvaBrandingFonts = $konvaBrandingFonts ?? config('konva.branding_fonts', []);
+    $konvaBrandingPresets = $konvaBrandingPresets ?? config('konva.branding_presets', []);
+    $konvaContext = $konvaContext ?? ['events' => collect(), 'testimonials' => collect(), 'offers' => collect()];
+@endphp
 <aside class="editor-column">
     <div class="sidebar-stack space-y-4">
         <div class="toolbar-card glass-card">
@@ -19,6 +25,90 @@
                     <span class="step-index">3</span>
                     <span>Exportez en PNG HD quand le visuel est pret.</span>
                 </div>
+            </div>
+        </div>
+
+        <div class="toolbar-card glass-card">
+            <div class="mb-2 flex items-center justify-between gap-2">
+                <span class="toolbar-title">Branding auto</span>
+                <span class="badge-soft">Enregistre</span>
+            </div>
+
+            <div class="space-y-2">
+                <div>
+                    <div class="small-label">Preset</div>
+                    <select id="brandPresetSelect" class="small-select w-full">
+                        @foreach($konvaBrandingPresets as $preset)
+                            <option value="{{ $preset['id'] }}"
+                                {{ ($konvaBranding['preset'] ?? null) === $preset['id'] ? 'selected' : '' }}>
+                                {{ $preset['label'] }}
+                            </option>
+                        @endforeach
+                        <option value="manual">Manuel</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <div class="small-label">Police titre</div>
+                        <select id="brandHeadingFont" class="small-select w-full">
+                            @foreach($konvaBrandingFonts as $font)
+                                <option value="{{ $font['key'] }}"
+                                    {{ ($konvaBranding['fonts']['heading'] ?? null) === $font['key'] ? 'selected' : '' }}>
+                                    {{ $font['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <div class="small-label">Police texte</div>
+                        <select id="brandBodyFont" class="small-select w-full">
+                            @foreach($konvaBrandingFonts as $font)
+                                <option value="{{ $font['key'] }}"
+                                    {{ ($konvaBranding['fonts']['body'] ?? null) === $font['key'] ? 'selected' : '' }}>
+                                    {{ $font['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-5 gap-1.5">
+                    <label class="small-label text-center">
+                        P
+                        <input id="brandColorPrimary" type="color" class="h-7 w-full rounded-md border border-slate-200"
+                            value="{{ $konvaBranding['colors']['primary'] ?? '#647A0B' }}">
+                    </label>
+                    <label class="small-label text-center">
+                        S
+                        <input id="brandColorSecondary" type="color" class="h-7 w-full rounded-md border border-slate-200"
+                            value="{{ $konvaBranding['colors']['secondary'] ?? '#854F38' }}">
+                    </label>
+                    <label class="small-label text-center">
+                        A
+                        <input id="brandColorAccent" type="color" class="h-7 w-full rounded-md border border-slate-200"
+                            value="{{ $konvaBranding['colors']['accent'] ?? '#D4A373' }}">
+                    </label>
+                    <label class="small-label text-center">
+                        BG
+                        <input id="brandColorBackground" type="color" class="h-7 w-full rounded-md border border-slate-200"
+                            value="{{ $konvaBranding['colors']['background'] ?? '#F8F9F5' }}">
+                    </label>
+                    <label class="small-label text-center">
+                        Txt
+                        <input id="brandColorText" type="color" class="h-7 w-full rounded-md border border-slate-200"
+                            value="{{ $konvaBranding['colors']['text'] ?? '#1F2937' }}">
+                    </label>
+                </div>
+
+                <div class="flex flex-wrap gap-2 pt-1">
+                    <button id="btnApplyBranding" type="button" class="pill-btn pill-btn-ghost">Appliquer</button>
+                    <button id="btnSaveBranding" type="button" class="pill-btn pill-btn-main">Sauvegarder</button>
+                    <button id="btnResetBranding" type="button" class="pill-btn pill-btn-ghost">Reset</button>
+                </div>
+                <p id="brandingStatusHint" class="text-[11px] text-slate-500">
+                    Votre style est applique automatiquement aux templates.
+                </p>
             </div>
         </div>
 
@@ -180,19 +270,52 @@
 
         <div class="toolbar-card glass-card">
             <div class="mb-2 flex items-center justify-between">
-                <span class="toolbar-title">Evenement</span>
-                <span class="badge-soft">Optionnel</span>
+                <span class="toolbar-title">Sources intelligentes</span>
+                <span class="badge-soft">Auto-fill</span>
             </div>
 
-            <select id="eventSelector" class="small-select w-full">
-                <option value="">Aucun</option>
-                @foreach(($events ?? collect()) as $event)
-                    <option value="{{ $event->id }}">{{ $event->title ?? ('Evenement #' . $event->id) }}</option>
-                @endforeach
-            </select>
+            <div class="space-y-2">
+                <div>
+                    <div class="small-label">Evenement</div>
+                    <select id="eventSelector" class="small-select w-full">
+                        <option value="">Aucun</option>
+                        @foreach(($konvaContext['events'] ?? []) as $event)
+                            <option value="{{ $event['id'] }}">{{ $event['name'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <div class="small-label">Avis / temoignage</div>
+                    <select id="testimonialSelector" class="small-select w-full">
+                        <option value="">Aucun</option>
+                        @foreach(($konvaContext['testimonials'] ?? []) as $review)
+                            <option value="{{ $review['id'] }}">
+                                {{ $review['reviewer_name'] }} ({{ max(1, (int) ($review['rating'] ?? 5)) }}/5)
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <div class="small-label">Offre (prestation / formation)</div>
+                    <select id="offerSelector" class="small-select w-full">
+                        <option value="">Aucune</option>
+                        @foreach(($konvaContext['offers'] ?? []) as $offer)
+                            <option value="{{ $offer['id'] }}">
+                                {{ $offer['name'] }}@if(!empty($offer['price_label'])) - {{ $offer['price_label'] }}@endif
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button id="btnAutofillTemplate" type="button" class="pill-btn pill-btn-main w-full justify-center">
+                    Auto-remplir le template
+                </button>
+            </div>
 
             <p class="mt-2 text-[11px] text-slate-500">
-                Permet de pre-remplir des textes a partir de vos evenements.
+                Les templates event / avis / promo peuvent se remplir automatiquement avec vos donnees.
             </p>
         </div>
 

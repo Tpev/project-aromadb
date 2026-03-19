@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const FORMATS   = @json(config('konva.formats', []));
     // Kept for retro-compat (your old config templates). You can delete later.
     const TEMPLATES = @json(config('konva.templates', []));
+    const BRANDING_PRESETS = @json($konvaBrandingPresets ?? config('konva.branding_presets', []));
+    const BRANDING_FONTS = @json($konvaBrandingFonts ?? config('konva.branding_fonts', []));
+    const KONVA_BRANDING = @json($konvaBranding ?? []);
+    const KONVA_CONTEXT = @json($konvaContext ?? ['events' => [], 'testimonials' => [], 'offers' => []]);
+    const BRANDING_SAVE_URL = @json(route('konva.branding.update'));
 
     // Top bar
     const btnChooseFormat  = document.getElementById('btnChooseFormat');
@@ -103,6 +108,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnToggleVisibility = document.getElementById('btnToggleVisibility');
     const quickTemplateSearch = document.getElementById('quickTemplateSearch');
     const dbTemplateSearch    = document.getElementById('dbTemplateSearch');
+    const eventSelector       = document.getElementById('eventSelector');
+    const testimonialSelector = document.getElementById('testimonialSelector');
+    const offerSelector       = document.getElementById('offerSelector');
+    const btnAutofillTemplate = document.getElementById('btnAutofillTemplate');
+    const brandPresetSelect   = document.getElementById('brandPresetSelect');
+    const brandHeadingFont    = document.getElementById('brandHeadingFont');
+    const brandBodyFont       = document.getElementById('brandBodyFont');
+    const brandColorPrimary   = document.getElementById('brandColorPrimary');
+    const brandColorSecondary = document.getElementById('brandColorSecondary');
+    const brandColorAccent    = document.getElementById('brandColorAccent');
+    const brandColorBackground = document.getElementById('brandColorBackground');
+    const brandColorText      = document.getElementById('brandColorText');
+    const btnApplyBranding    = document.getElementById('btnApplyBranding');
+    const btnSaveBranding     = document.getElementById('btnSaveBranding');
+    const btnResetBranding    = document.getElementById('btnResetBranding');
+    const brandingStatusHint  = document.getElementById('brandingStatusHint');
 
     // --- State
     let stage = null, backgroundLayer = null, gridLayer = null, mainLayer = null, transformer = null, bgRect = null;
@@ -125,10 +146,337 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- helpers
     const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
     const escapeHtml = (str) => String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-    const FONT_MAP = { system: 'Arial', serif: 'Georgia', sans: 'Verdana' };
+    const FONT_MAP = BRANDING_FONTS.reduce((acc, font) => {
+        if (font?.key && font?.family) acc[font.key] = font.family;
+        return acc;
+    }, {});
+    const FONT_KEYS = Object.keys(FONT_MAP);
 
     function sanitizeLayerName(name) {
         return (name || 'Element').trim() || 'Element';
+    }
+
+    function fontKeyToFamily(key, fallbackKey = null) {
+        if (key && FONT_MAP[key]) return FONT_MAP[key];
+        if (fallbackKey && FONT_MAP[fallbackKey]) return FONT_MAP[fallbackKey];
+        if (FONT_KEYS.length) return FONT_MAP[FONT_KEYS[0]];
+        return 'Arial, sans-serif';
+    }
+
+    function normalizeHexColor(color, fallback) {
+        const val = String(color || '').trim().toUpperCase();
+        return /^#([A-F0-9]{6})$/.test(val) ? val : fallback;
+    }
+
+    function hexToRgb(hex) {
+        const clean = String(hex || '').replace('#', '');
+        if (!/^[A-Fa-f0-9]{6}$/.test(clean)) return null;
+        return {
+            r: parseInt(clean.slice(0, 2), 16),
+            g: parseInt(clean.slice(2, 4), 16),
+            b: parseInt(clean.slice(4, 6), 16),
+        };
+    }
+
+    function rgbToHex(r, g, b) {
+        const norm = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+        return `#${norm(r)}${norm(g)}${norm(b)}`.toUpperCase();
+    }
+
+    function mixColor(hexA, hexB, ratio = 0.5) {
+        const a = hexToRgb(hexA);
+        const b = hexToRgb(hexB);
+        if (!a || !b) return normalizeHexColor(hexA, '#647A0B');
+        const t = clamp(Number(ratio), 0, 1);
+        return rgbToHex(
+            a.r + (b.r - a.r) * t,
+            a.g + (b.g - a.g) * t,
+            a.b + (b.b - a.b) * t
+        );
+    }
+
+    function getPresetById(id) {
+        return BRANDING_PRESETS.find((preset) => String(preset?.id) === String(id)) || null;
+    }
+
+    function getDefaultBranding() {
+        const firstPreset = BRANDING_PRESETS[0] || {};
+        const firstFontKey = FONT_KEYS[0] || 'poppins';
+        const secondFontKey = FONT_KEYS[1] || firstFontKey;
+
+        return {
+            preset: firstPreset.id || 'manual',
+            fonts: {
+                heading: firstPreset?.fonts?.heading || firstFontKey,
+                body: firstPreset?.fonts?.body || secondFontKey,
+            },
+            colors: {
+                primary: normalizeHexColor(firstPreset?.colors?.primary, '#647A0B'),
+                secondary: normalizeHexColor(firstPreset?.colors?.secondary, '#854F38'),
+                accent: normalizeHexColor(firstPreset?.colors?.accent, '#D4A373'),
+                background: normalizeHexColor(firstPreset?.colors?.background, '#F8F9F5'),
+                text: normalizeHexColor(firstPreset?.colors?.text, '#1F2937'),
+            }
+        };
+    }
+
+    function normalizeBrandingSettings(raw) {
+        const defaults = getDefaultBranding();
+        const src = raw && typeof raw === 'object' ? raw : {};
+        const srcFonts = src.fonts && typeof src.fonts === 'object' ? src.fonts : {};
+        const srcColors = src.colors && typeof src.colors === 'object' ? src.colors : {};
+
+        return {
+            preset: src.preset || defaults.preset,
+            fonts: {
+                heading: FONT_MAP[srcFonts.heading] ? srcFonts.heading : defaults.fonts.heading,
+                body: FONT_MAP[srcFonts.body] ? srcFonts.body : defaults.fonts.body,
+            },
+            colors: {
+                primary: normalizeHexColor(srcColors.primary, defaults.colors.primary),
+                secondary: normalizeHexColor(srcColors.secondary, defaults.colors.secondary),
+                accent: normalizeHexColor(srcColors.accent, defaults.colors.accent),
+                background: normalizeHexColor(srcColors.background, defaults.colors.background),
+                text: normalizeHexColor(srcColors.text, defaults.colors.text),
+            },
+        };
+    }
+
+    let activeBranding = normalizeBrandingSettings(KONVA_BRANDING);
+
+    function setBrandingStatus(message, isError = false) {
+        if (!brandingStatusHint) return;
+        brandingStatusHint.textContent = message;
+        brandingStatusHint.classList.toggle('text-red-500', !!isError);
+        brandingStatusHint.classList.toggle('text-emerald-600', !isError);
+    }
+
+    function hydrateBrandingControls(settings) {
+        const normalized = normalizeBrandingSettings(settings);
+        activeBranding = normalized;
+
+        if (brandPresetSelect) brandPresetSelect.value = normalized.preset || 'manual';
+        if (brandHeadingFont) brandHeadingFont.value = normalized.fonts.heading;
+        if (brandBodyFont) brandBodyFont.value = normalized.fonts.body;
+        if (brandColorPrimary) brandColorPrimary.value = normalized.colors.primary;
+        if (brandColorSecondary) brandColorSecondary.value = normalized.colors.secondary;
+        if (brandColorAccent) brandColorAccent.value = normalized.colors.accent;
+        if (brandColorBackground) brandColorBackground.value = normalized.colors.background;
+        if (brandColorText) brandColorText.value = normalized.colors.text;
+    }
+
+    function getBrandingFromControls() {
+        const defaults = getDefaultBranding();
+        return normalizeBrandingSettings({
+            preset: brandPresetSelect?.value || defaults.preset,
+            fonts: {
+                heading: brandHeadingFont?.value || defaults.fonts.heading,
+                body: brandBodyFont?.value || defaults.fonts.body,
+            },
+            colors: {
+                primary: brandColorPrimary?.value || defaults.colors.primary,
+                secondary: brandColorSecondary?.value || defaults.colors.secondary,
+                accent: brandColorAccent?.value || defaults.colors.accent,
+                background: brandColorBackground?.value || defaults.colors.background,
+                text: brandColorText?.value || defaults.colors.text,
+            }
+        });
+    }
+
+    function applyPresetToControls(presetId) {
+        const preset = getPresetById(presetId);
+        if (!preset) return;
+        hydrateBrandingControls({
+            preset: preset.id,
+            fonts: preset.fonts || {},
+            colors: preset.colors || {},
+        });
+    }
+
+    function safeLower(value) {
+        return String(value || '').toLowerCase();
+    }
+
+    function shouldUseHeadingStyle(name, text) {
+        const source = `${safeLower(name)} ${safeLower(text)}`;
+        return /(titre|title|headline|sur titre|badge texte|tag texte|cover|countdown|masterclass|cta texte)/.test(source);
+    }
+
+    function isCtaElement(name, text) {
+        const source = `${safeLower(name)} ${safeLower(text)}`;
+        return /(cta|reserver|inscription|contact|appel|action)/.test(source);
+    }
+
+    function applyBrandingToCanvas(options = {}) {
+        if (!stage || !mainLayer) return;
+
+        const settings = getBrandingFromControls();
+        activeBranding = settings;
+
+        const colors = settings.colors;
+        const headingFamily = fontKeyToFamily(settings.fonts.heading, getDefaultBranding().fonts.heading);
+        const bodyFamily = fontKeyToFamily(settings.fonts.body, getDefaultBranding().fonts.body);
+        const softSurface = mixColor(colors.background, '#FFFFFF', 0.55);
+        const softStroke = mixColor(colors.primary, colors.text, 0.45);
+
+        if (bgRect && options.skipBackground !== true) {
+            bgRect.fill(colors.background);
+            backgroundLayer?.draw();
+            if (bgColorPicker) bgColorPicker.value = colors.background;
+        }
+
+        getEditableNodes().forEach((node) => {
+            const amType = node.getAttr('amType');
+            const name = String(node.getAttr('amName') || '');
+            const currentText = amType === 'text' ? String(node.text?.() || '') : '';
+
+            if (amType === 'text') {
+                const heading = shouldUseHeadingStyle(name, currentText);
+                node.fontFamily(heading ? headingFamily : bodyFamily);
+
+                if (isCtaElement(name, currentText)) {
+                    node.fill('#FFFFFF');
+                } else if (/(etoiles|star|badge|tag)/.test(safeLower(name))) {
+                    node.fill(colors.accent);
+                } else if (heading) {
+                    node.fill(colors.primary);
+                } else {
+                    node.fill(colors.text);
+                }
+            }
+
+            if (['rect', 'circle', 'shape', 'ellipse'].includes(amType)) {
+                const lowered = safeLower(name);
+                if (/(cta|action)/.test(lowered)) {
+                    node.fill?.(colors.primary);
+                    node.stroke?.(mixColor(colors.primary, '#000000', 0.1));
+                } else if (/(badge|tag)/.test(lowered)) {
+                    node.fill?.(colors.secondary);
+                    node.stroke?.(mixColor(colors.secondary, '#000000', 0.15));
+                } else if (/(fond|header|bande)/.test(lowered)) {
+                    node.fill?.(colors.background);
+                    node.stroke?.(mixColor(colors.background, colors.text, 0.2));
+                } else {
+                    node.fill?.(softSurface);
+                    node.stroke?.(softStroke);
+                }
+            }
+        });
+
+        mainLayer.draw();
+        if (!options.skipHistory) saveHistory();
+        refreshLayersList();
+        updateInspector();
+    }
+
+    function getContextList(key) {
+        const list = KONVA_CONTEXT && Array.isArray(KONVA_CONTEXT[key]) ? KONVA_CONTEXT[key] : [];
+        return list;
+    }
+
+    function findContextItem(key, id) {
+        if (!id) return null;
+        return getContextList(key).find((item) => String(item?.id) === String(id)) || null;
+    }
+
+    function truncateText(text, maxLen = 170) {
+        const normalized = String(text || '').trim().replace(/\s+/g, ' ');
+        if (normalized.length <= maxLen) return normalized;
+        return normalized.slice(0, Math.max(0, maxLen - 1)).trim() + '…';
+    }
+
+    function applyTextToNodeByKeywords(node, keywords, value) {
+        if (!node || node.getAttr('amType') !== 'text' || !value) return false;
+        const name = safeLower(node.getAttr('amName'));
+        const text = safeLower(node.text?.());
+        const hit = keywords.some((keyword) => name.includes(keyword) || text.includes(keyword));
+        if (!hit) return false;
+        node.text(String(value));
+        return true;
+    }
+
+    function autoFillTemplateFromContext(templateHint = '') {
+        if (!mainLayer) return;
+
+        const eventData = findContextItem('events', eventSelector?.value);
+        const reviewData = findContextItem('testimonials', testimonialSelector?.value);
+        const offerData = findContextItem('offers', offerSelector?.value);
+        const hint = safeLower(templateHint);
+        const nodes = getEditableNodes().filter((node) => node.getAttr('amType') === 'text');
+
+        nodes.forEach((node) => {
+            let updated = false;
+
+            if (!updated && eventData && (/(event|story|webinar|masterclass|countdown)/.test(hint) || /(date|event|masterclass|story|countdown|intervenant|sur titre)/.test(safeLower(node.getAttr('amName'))))) {
+                updated = applyTextToNodeByKeywords(node, ['titre', 'title', 'sur titre', 'headline'], eventData.name);
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['date', 'countdown', 'sous titre', 'details', 'intro'], eventData.date_label || eventData.location);
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['intervenant', 'footer', 'description'], truncateText(eventData.description || eventData.location || ''));
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['cta texte', 'cta'], 'Je reserve ma place');
+            }
+
+            if (!updated && reviewData && (/(testimonial|review|avis|proof)/.test(hint) || /(avis|etoiles|nom|auteur|review)/.test(safeLower(node.getAttr('amName'))))) {
+                const stars = '★'.repeat(clamp(Number(reviewData.rating || 5), 1, 5));
+                updated = applyTextToNodeByKeywords(node, ['etoiles', 'star'], stars);
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['avis', 'review', 'citation', 'quote', 'texte'], `"${truncateText(reviewData.testimonial || '', 200)}"`);
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['nom', 'auteur', 'client'], reviewData.reviewer_name || 'Client');
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['cta'], 'Voir tous les avis');
+            }
+
+            if (!updated && offerData && (/(promo|flash|offer|pack|checklist|carousel)/.test(hint) || /(offre|prix|pack|details|titre|cta)/.test(safeLower(node.getAttr('amName'))))) {
+                updated = applyTextToNodeByKeywords(node, ['titre', 'title', 'cover', 'headline'], offerData.name);
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['details', 'description', 'sous titre'], truncateText(offerData.description || '', 130));
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['prix', 'price', 'remise'], offerData.price_label || '');
+                if (!updated) updated = applyTextToNodeByKeywords(node, ['cta'], 'Reserver maintenant');
+            }
+        });
+
+        mainLayer.draw();
+        saveHistory();
+        refreshLayersList();
+        updateInspector();
+    }
+
+    async function saveBrandingSettings() {
+        const settings = getBrandingFromControls();
+        const payload = {
+            preset: settings.preset === 'manual' ? null : settings.preset,
+            font_heading: settings.fonts.heading,
+            font_body: settings.fonts.body,
+            color_primary: settings.colors.primary,
+            color_secondary: settings.colors.secondary,
+            color_accent: settings.colors.accent,
+            color_background: settings.colors.background,
+            color_text: settings.colors.text,
+        };
+
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        if (!csrf) {
+            setBrandingStatus('Impossible de sauvegarder (token CSRF manquant).', true);
+            return;
+        }
+
+        try {
+            setBrandingStatus('Sauvegarde en cours...');
+            const res = await fetch(BRANDING_SAVE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!res.ok) throw new Error('save_failed');
+            const data = await res.json();
+            if (!data?.ok) throw new Error('save_failed');
+
+            hydrateBrandingControls(data.settings || settings);
+            setBrandingStatus('Branding sauvegarde. Vos prochains templates seront pre-marques.');
+        } catch (err) {
+            console.error(err);
+            setBrandingStatus('Echec de sauvegarde. Reessayez.', true);
+        }
     }
 
     function getEditableNodes() {
@@ -682,9 +1030,12 @@ document.addEventListener('DOMContentLoaded', () => {
             textColor.value = selectedNode.fill?.() ?? '#111827';
             if (textFontFamily) {
                 const family = String(selectedNode.fontFamily?.() || '').toLowerCase();
-                if (family.includes('georgia') || family.includes('times')) textFontFamily.value = 'serif';
-                else if (family.includes('verdana') || family.includes('arial') || family.includes('sans')) textFontFamily.value = 'sans';
-                else textFontFamily.value = 'system';
+                const matched = BRANDING_FONTS.find((font) => {
+                    const label = String(font?.label || '').toLowerCase();
+                    const familyValue = String(font?.family || '').replace(/['"]/g, '').toLowerCase();
+                    return (label && family.includes(label)) || (familyValue && family.includes(familyValue.split(',')[0]));
+                });
+                textFontFamily.value = matched?.key || activeBranding?.fonts?.body || FONT_KEYS[0] || '';
             }
         }
 
@@ -818,6 +1169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             redoStack = [];
             saveHistory();
         }
+        applyBrandingToCanvas({ skipHistory: true });
         refreshTemplateButtons();
         refreshTemplateButtonsDb();
         refreshLayersList();
@@ -830,11 +1182,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------
     function addText(text = 'Votre texte') {
         if (!ensureFormatChosen()) return;
+        const settings = getBrandingFromControls();
         const node = new Konva.Text({
             x: 100, y: 120, text,
             fontSize: 64,
-            fontFamily: FONT_MAP.sans,
-            fill: '#111827',
+            fontFamily: fontKeyToFamily(settings.fonts.heading, settings.fonts.body),
+            fill: settings.colors.primary,
             draggable: true
         });
         mainLayer.add(node);
@@ -1301,6 +1654,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const json = (typeof data.konva_json === 'string') ? data.konva_json : JSON.stringify(data.konva_json);
             restoreFromJson(json);
+            autoFillTemplateFromContext(data.category || data.name || data.id || '');
+            applyBrandingToCanvas({ skipHistory: false });
             saveHistory();
 
         } catch (err) {
@@ -1752,6 +2107,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         mainLayer.draw();
+        autoFillTemplateFromContext(resolvedId);
+        applyBrandingToCanvas({ skipHistory: false });
         saveHistory();
         refreshLayersList();
         updateInspector();
@@ -1881,7 +2238,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCloseFormatModal?.addEventListener('click', closeFormatModal);
 
     btnExport?.addEventListener('click', exportPng);
-    btnClearCanvas?.addEventListener('click', () => clearCanvas());
+    btnClearCanvas?.addEventListener('click', () => {
+        clearCanvas();
+        applyBrandingToCanvas({ skipHistory: false });
+    });
 
     btnAddText?.addEventListener('click', () => addText());
     btnAddRect?.addEventListener('click', addRect);
@@ -1912,8 +2272,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // bg
     bgColorPicker?.addEventListener('input', (e) => setBgColor(e.target.value));
     btnResetBg?.addEventListener('click', () => {
-        if (bgColorPicker) bgColorPicker.value = '#f9fafb';
-        setBgColor('#f9fafb');
+        const resetColor = getBrandingFromControls().colors.background;
+        if (bgColorPicker) bgColorPicker.value = resetColor;
+        setBgColor(resetColor);
     });
 
     document.querySelectorAll('[data-bg]').forEach(btn => {
@@ -1975,6 +2336,45 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => applyTemplate(btn.getAttribute('data-template')));
     });
 
+    btnAutofillTemplate?.addEventListener('click', () => {
+        const hint = selectedNode?.getAttr?.('amName') || '';
+        autoFillTemplateFromContext(hint);
+        applyBrandingToCanvas({ skipHistory: false });
+    });
+
+    brandPresetSelect?.addEventListener('change', () => {
+        if (brandPresetSelect.value !== 'manual') {
+            applyPresetToControls(brandPresetSelect.value);
+        }
+        applyBrandingToCanvas({ skipHistory: false });
+    });
+
+    [brandHeadingFont, brandBodyFont, brandColorPrimary, brandColorSecondary, brandColorAccent, brandColorBackground, brandColorText]
+        .forEach((input) => {
+            input?.addEventListener('input', () => {
+                if (brandPresetSelect && brandPresetSelect.value !== 'manual') {
+                    brandPresetSelect.value = 'manual';
+                }
+                applyBrandingToCanvas({ skipHistory: false });
+            });
+        });
+
+    btnApplyBranding?.addEventListener('click', () => {
+        applyBrandingToCanvas({ skipHistory: false });
+        setBrandingStatus('Branding applique au canvas.');
+    });
+
+    btnSaveBranding?.addEventListener('click', () => {
+        saveBrandingSettings();
+    });
+
+    btnResetBranding?.addEventListener('click', () => {
+        const defaults = getDefaultBranding();
+        hydrateBrandingControls(defaults);
+        applyBrandingToCanvas({ skipHistory: false });
+        setBrandingStatus('Retour au preset par defaut.');
+    });
+
     // image upload
     imageUpload?.addEventListener('change', async (e) => {
         const file = e.target.files?.[0];
@@ -2021,7 +2421,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     textFontFamily?.addEventListener('change', (e) => {
         if (!selectedNode || selectedNode.getAttr('amType') !== 'text') return;
-        selectedNode.fontFamily(FONT_MAP[e.target.value] || FONT_MAP.system);
+        selectedNode.fontFamily(fontKeyToFamily(e.target.value, activeBranding?.fonts?.body));
         mainLayer.draw(); saveHistory();
     });
 
@@ -2125,6 +2525,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------
     // Initial
     // ----------------------------
+    hydrateBrandingControls(activeBranding);
+    setBrandingStatus('Style charge. Selectionnez un template pour generation rapide.');
     renderFormatCards();
     openFormatModal();
     refreshTemplateButtons();
@@ -2145,6 +2547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? ADMIN_EDITING_TEMPLATE.konva_json
                 : JSON.stringify(ADMIN_EDITING_TEMPLATE.konva_json);
             restoreFromJson(json);
+            applyBrandingToCanvas({ skipHistory: true });
             history = [stage.toJSON()];
             redoStack = [];
             updateHistoryButtons();

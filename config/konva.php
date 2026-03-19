@@ -105,4 +105,88 @@ return [
             'format_id' => 'landscape_1920_1080',
         ],
     ],
+
+    'branding_fonts' => [
+        [
+            'key' => 'poppins',
+            'label' => 'Poppins',
+            'family' => "'Poppins', sans-serif",
+        ],
+        [
+            'key' => 'inter',
+            'label' => 'Inter',
+            'family' => "'Inter', sans-serif",
+        ],
+        [
+            'key' => 'manrope',
+            'label' => 'Manrope',
+            'family' => "'Manrope', sans-serif",
+        ],
+        [
+            'key' => 'montserrat',
+            'label' => 'Montserrat',
+            'family' => "'Montserrat', sans-serif",
+        ],
+        [
+            'key' => 'playfair',
+            'label' => 'Playfair Display',
+            'family' => "'Playfair Display', serif",
+        ],
+        [
+            'key' => 'lora',
+            'label' => 'Lora',
+            'family' => "'Lora', serif",
+        ],
+    ],
+
+    'branding_presets' => [
+        [
+            'id' => 'zen_olive',
+            'label' => 'Zen Olive',
+            'fonts' => ['heading' => 'poppins', 'body' => 'inter'],
+            'colors' => [
+                'primary' => '#647A0B',
+                'secondary' => '#854F38',
+                'accent' => '#D4A373',
+                'background' => '#F8F9F5',
+                'text' => '#1F2937',
+            ],
+        ],
+        [
+            'id' => 'soft_terracotta',
+            'label' => 'Soft Terracotta',
+            'fonts' => ['heading' => 'playfair', 'body' => 'inter'],
+            'colors' => [
+                'primary' => '#9A3412',
+                'secondary' => '#C2410C',
+                'accent' => '#FDBA74',
+                'background' => '#FFF7ED',
+                'text' => '#312E2B',
+            ],
+        ],
+        [
+            'id' => 'forest_clarity',
+            'label' => 'Forest Clarity',
+            'fonts' => ['heading' => 'montserrat', 'body' => 'manrope'],
+            'colors' => [
+                'primary' => '#166534',
+                'secondary' => '#15803D',
+                'accent' => '#86EFAC',
+                'background' => '#F0FDF4',
+                'text' => '#052E16',
+            ],
+        ],
+        [
+            'id' => 'midnight_gold',
+            'label' => 'Midnight Gold',
+            'fonts' => ['heading' => 'playfair', 'body' => 'lora'],
+            'colors' => [
+                'primary' => '#0F172A',
+                'secondary' => '#1E293B',
+                'accent' => '#F59E0B',
+                'background' => '#F8FAFC',
+                'text' => '#0F172A',
+            ],
+        ],
+    ],
 ];
