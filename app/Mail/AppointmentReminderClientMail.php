@@ -59,10 +59,42 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 
         // --- Visio link resolution (SAFE & non-breaking) ---
         $visioUrl = null;
+        $isVisio = false;
 
-        // Prefer product flag
-        if ($this->appointment->product?->visio) {
-            $visioUrl = $this->appointment->meeting?->join_url
+        if (in_array((string) $resolvedMode, ['visio', 'video', 'teleconsultation'], true)) {
+            $isVisio = true;
+        }
+
+        if (!$isVisio && in_array((string) ($this->appointment->type ?? ''), ['visio', 'video', 'teleconsultation'], true)) {
+            $isVisio = true;
+        }
+
+        if (!$isVisio && (bool) ($this->appointment->product?->visio ?? false)) {
+            $isVisio = true;
+        }
+
+        if ($isVisio && $this->appointment->meeting && !empty($this->appointment->meeting->room_token)) {
+            $room = (string) $this->appointment->meeting->room_token;
+
+            try {
+                /** @var \App\Services\JitsiJwtService $jitsi */
+                $jitsi = app(\App\Services\JitsiJwtService::class);
+                $jwt = $jitsi->makeJwtForClient([
+                    'room' => $room,
+                    'appointment' => $this->appointment,
+                ]);
+
+                $base = rtrim(config('services.jitsi.base_url', 'https://visio.aromamade.com'), '/');
+                $visioUrl = "{$base}/{$room}?jwt={$jwt}";
+            } catch (\Throwable $e) {
+                // Fallback to non-JWT room URL so reminder still includes a usable link.
+                $visioUrl = route('webrtc.room', ['room' => $room]);
+            }
+        }
+
+        if ($isVisio && empty($visioUrl)) {
+            $visioUrl = $this->appointment->meeting_link
+                ?? $this->appointment->meeting?->join_url
                 ?? $this->appointment->meeting?->url
                 ?? null;
         }

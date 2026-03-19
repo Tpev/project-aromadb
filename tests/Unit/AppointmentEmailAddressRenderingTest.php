@@ -5,6 +5,7 @@ use App\Mail\AppointmentCreatedTherapistMail;
 use App\Mail\AppointmentReminderClientMail;
 use App\Models\Appointment;
 use App\Models\ClientProfile;
+use App\Models\Meeting;
 use App\Models\Product;
 use App\Models\User;
 use Carbon\Carbon;
@@ -97,6 +98,36 @@ test('patient reminder email includes domicile address', function () {
 
     expect($html)->toContain('Adresse du domicile');
     expect($html)->toContain('22 Rue de la Paix, 75002 Paris');
+});
+
+test('patient reminder email includes visio link when appointment is visio', function () {
+    config([
+        'services.jitsi.app_id' => 'test-app-id',
+        'services.jitsi.secret' => 'test-secret',
+        'services.jitsi.base_url' => 'https://visio.aromamade.com',
+        'services.jitsi.domain' => 'visio.aromamade.com',
+    ]);
+
+    $appointment = buildAppointmentForEmails([
+        'product' => [
+            'visio' => true,
+            'adomicile' => false,
+        ],
+        'appointment' => [
+            'type' => 'visio',
+        ],
+    ]);
+
+    $meeting = new Meeting([
+        'room_token' => 'room-test-123',
+    ]);
+    $appointment->setRelation('meeting', $meeting);
+
+    $html = (new AppointmentReminderClientMail($appointment))->render();
+
+    expect($html)->toContain('Lien de visioconférence');
+    expect($html)->toContain('Rejoindre la visio');
+    expect($html)->toContain('visio.aromamade.com/room-test-123?jwt=');
 });
 
 test('therapist creation email includes domicile address', function () {
