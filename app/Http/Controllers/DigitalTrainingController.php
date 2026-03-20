@@ -8,6 +8,7 @@ use App\Models\TrainingBlock;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -63,6 +64,9 @@ class DigitalTrainingController extends Controller
             'is_free'                    => 'nullable|boolean',
             'price_eur'                  => 'nullable|string', // parsed manually to allow "12,50"
             'tax_rate'                   => 'nullable|numeric|min:0|max:100',
+            'installments_enabled'       => 'nullable|boolean',
+            'allowed_installments'       => 'nullable|array',
+            'allowed_installments.*'     => 'integer|min:2|max:12',
 
             'access_type'                => 'required|in:public,private,subscription',
             'status'                     => 'required|in:draft,published,archived',
@@ -101,6 +105,20 @@ class DigitalTrainingController extends Controller
         }
 
         $taxRate = $request->filled('tax_rate') ? (float) $request->input('tax_rate') : 0.0;
+        $installmentsEnabled = (bool) $request->boolean('installments_enabled');
+        $allowedInstallments = collect($request->input('allowed_installments', []))
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v >= 2 && $v <= 12)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        if ($installmentsEnabled && (empty($allowedInstallments) || $isFree)) {
+            return back()->withErrors([
+                'allowed_installments' => 'Sélectionnez au moins une échéance (2 à 12) pour une formation payante.',
+            ])->withInput();
+        }
 
         // -------- Slug unique
         $slugBase = Str::slug($data['title']);
@@ -138,6 +156,8 @@ class DigitalTrainingController extends Controller
             'is_free'                    => $isFree,
             'price_cents'                => $priceCents,
             'tax_rate'                   => $taxRate,
+            'installments_enabled'       => $installmentsEnabled,
+            'allowed_installments'       => $installmentsEnabled ? $allowedInstallments : null,
 
             'access_type'                => $data['access_type'],
             'status'                     => $data['status'],
@@ -185,6 +205,9 @@ class DigitalTrainingController extends Controller
             'is_free'                    => 'nullable|boolean',
             'price_eur'                  => 'nullable|string',
             'tax_rate'                   => 'nullable|numeric|min:0|max:100',
+            'installments_enabled'       => 'nullable|boolean',
+            'allowed_installments'       => 'nullable|array',
+            'allowed_installments.*'     => 'integer|min:2|max:12',
 
             'access_type'                => 'required|in:public,private,subscription',
             'status'                     => 'required|in:draft,published,archived',
@@ -242,6 +265,20 @@ class DigitalTrainingController extends Controller
         }
 
         $taxRate = $request->filled('tax_rate') ? (float) $request->input('tax_rate') : 0.0;
+        $installmentsEnabled = (bool) $request->boolean('installments_enabled');
+        $allowedInstallments = collect($request->input('allowed_installments', []))
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v >= 2 && $v <= 12)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        if ($installmentsEnabled && (empty($allowedInstallments) || $isFree)) {
+            return back()->withErrors([
+                'allowed_installments' => 'Sélectionnez au moins une échéance (2 à 12) pour une formation payante.',
+            ])->withInput();
+        }
 
         $digitalTraining->update([
             'title'                      => $data['title'],
@@ -252,6 +289,8 @@ class DigitalTrainingController extends Controller
             'is_free'                    => $isFree,
             'price_cents'                => $priceCents,
             'tax_rate'                   => $taxRate,
+            'installments_enabled'       => $installmentsEnabled,
+            'allowed_installments'       => $installmentsEnabled ? $allowedInstallments : null,
 
             'access_type'                => $data['access_type'],
             'status'                     => $data['status'],
@@ -339,6 +378,51 @@ class DigitalTrainingController extends Controller
         $module->delete();
 
         return back()->with('success', 'Module supprimé.');
+    }
+
+    public function moveModule(Request $request, DigitalTraining $digitalTraining, TrainingModule $module)
+    {
+        $this->authorizeOwner($digitalTraining);
+        $this->authorizeModule($digitalTraining, $module);
+
+        $data = $request->validate([
+            'direction' => 'required|in:up,down',
+        ]);
+
+        $orderedIds = $digitalTraining->modules()
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->values();
+
+        $index = $orderedIds->search($module->id);
+        if ($index === false) {
+            return back()->with('error', 'Module introuvable dans cet ordre.');
+        }
+
+        if ($data['direction'] === 'up' && $index === 0) {
+            return back();
+        }
+
+        if ($data['direction'] === 'down' && $index === ($orderedIds->count() - 1)) {
+            return back();
+        }
+
+        $swapIndex = $data['direction'] === 'up' ? $index - 1 : $index + 1;
+
+        $tmp = $orderedIds[$swapIndex];
+        $orderedIds[$swapIndex] = $orderedIds[$index];
+        $orderedIds[$index] = $tmp;
+
+        DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $position => $moduleId) {
+                TrainingModule::whereKey($moduleId)->update([
+                    'display_order' => $position + 1,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Ordre des modules mis à jour.');
     }
 
     /* =========================================================
@@ -448,6 +532,52 @@ class DigitalTrainingController extends Controller
         $block->delete();
 
         return back()->with('success', 'Contenu supprimé.');
+    }
+
+    public function moveBlock(Request $request, DigitalTraining $digitalTraining, TrainingModule $module, TrainingBlock $block)
+    {
+        $this->authorizeOwner($digitalTraining);
+        $this->authorizeModule($digitalTraining, $module);
+        $this->authorizeBlock($module, $block);
+
+        $data = $request->validate([
+            'direction' => 'required|in:up,down',
+        ]);
+
+        $orderedIds = $module->blocks()
+            ->orderBy('display_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->values();
+
+        $index = $orderedIds->search($block->id);
+        if ($index === false) {
+            return back()->with('error', 'Contenu introuvable dans ce module.');
+        }
+
+        if ($data['direction'] === 'up' && $index === 0) {
+            return back();
+        }
+
+        if ($data['direction'] === 'down' && $index === ($orderedIds->count() - 1)) {
+            return back();
+        }
+
+        $swapIndex = $data['direction'] === 'up' ? $index - 1 : $index + 1;
+
+        $tmp = $orderedIds[$swapIndex];
+        $orderedIds[$swapIndex] = $orderedIds[$index];
+        $orderedIds[$index] = $tmp;
+
+        DB::transaction(function () use ($orderedIds) {
+            foreach ($orderedIds as $position => $blockId) {
+                TrainingBlock::whereKey($blockId)->update([
+                    'display_order' => $position + 1,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Ordre des contenus mis à jour.');
     }
 
     /* =========================================================
