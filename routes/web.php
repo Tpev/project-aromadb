@@ -67,6 +67,7 @@ use App\Http\Controllers\DigitalTrainingController;
 use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 use App\Http\Controllers\PackProductController;
+use App\Http\Controllers\PackPurchaseSubscriptionController;
 use App\Http\Controllers\PublicPackCheckoutController;
 use App\Http\Controllers\GiftVoucherController;
 use App\Http\Controllers\Pro\ReferralController;
@@ -76,6 +77,7 @@ use App\Http\Controllers\TherapistArticleController;
 use App\Http\Controllers\SessionNoteTemplateController;
 use App\Http\Controllers\PublicCheckoutController;
 use App\Http\Controllers\PublicGiftVoucherCheckoutController;
+use App\Http\Controllers\KonvaEditorController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -151,26 +153,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pack-products/{packProduct}/assign', [PackProductController::class, 'assignToClient'])
         ->name('pack-products.assign');
 
+    Route::post('pack-purchases/{packPurchase}/subscription/cancel', [PackPurchaseSubscriptionController::class, 'cancel'])
+        ->name('pack-purchases.subscription.cancel');
+
 });
 
 
 Route::get('/beta/brand', function () {
     return view('tools.brand-assistant');
 })->name('beta.brand');
-Route::get('/beta/editor', function () {
-    $user = auth()->user();
+Route::get('/beta/editor', [KonvaEditorController::class, 'show'])
+    ->name('konva.editor')
+    ->middleware(['auth']);
 
-    $events = Event::where('user_id', $user->id)
-        ->orderBy('start_date_time', 'asc')
-        ->get();
-
-    $konvaTemplates = config('konva.templates', []);
-
-    return view('tools.konva-editor', [
-        'events'         => $events,
-        'konvaTemplates' => $konvaTemplates,
-    ]);
-})->name('konva.editor')->middleware(['auth']);
+Route::post('/beta/editor/branding', [KonvaEditorController::class, 'updateBranding'])
+    ->name('konva.branding.update')
+    ->middleware(['auth']);
 
 
 Route::get('/formations/{digitalTraining:slug}', [DigitalTrainingController::class, 'publicShow'])
@@ -222,11 +220,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/digital-trainings/{digitalTraining}/modules',                           [DigitalTrainingController::class, 'storeModule'])->name('digital-trainings.modules.store');
     Route::put('/digital-trainings/{digitalTraining}/modules/{module}',                   [DigitalTrainingController::class, 'updateModule'])->name('digital-trainings.modules.update');
     Route::delete('/digital-trainings/{digitalTraining}/modules/{module}',                [DigitalTrainingController::class, 'destroyModule'])->name('digital-trainings.modules.destroy');
+    Route::post('/digital-trainings/{digitalTraining}/modules/{module}/move',             [DigitalTrainingController::class, 'moveModule'])->name('digital-trainings.modules.move');
 
     // Blocks
     Route::post('/digital-trainings/{digitalTraining}/modules/{module}/blocks',           [DigitalTrainingController::class, 'storeBlock'])->name('digital-trainings.blocks.store');
     Route::put('/digital-trainings/{digitalTraining}/modules/{module}/blocks/{block}',    [DigitalTrainingController::class, 'updateBlock'])->name('digital-trainings.blocks.update');
     Route::delete('/digital-trainings/{digitalTraining}/modules/{module}/blocks/{block}', [DigitalTrainingController::class, 'destroyBlock'])->name('digital-trainings.blocks.destroy');
+    Route::post('/digital-trainings/{digitalTraining}/modules/{module}/blocks/{block}/move', [DigitalTrainingController::class, 'moveBlock'])->name('digital-trainings.blocks.move');
 });
 
 
@@ -1280,7 +1280,7 @@ Route::get('/tools/konva', function () {
         // keep your config formats as-is
         'events' => collect(), // or your events
     ]);
-})->name('konva.editor');
+})->name('konva.editor.legacy');
 
 // -------------------------
 // ADMIN: Design Templates

@@ -264,6 +264,31 @@
                                             </button>
 
                                             <div class="flex flex-col items-end gap-1">
+                                                <div class="flex items-center gap-1">
+                                                    <form action="{{ route('digital-trainings.modules.move', [$training, $module]) }}"
+                                                          method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="direction" value="up">
+                                                        <button type="submit"
+                                                                @if($loop->first) disabled @endif
+                                                                class="rounded-md border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                title="{{ __('Monter le module') }}">
+                                                            ↑
+                                                        </button>
+                                                    </form>
+                                                    <form action="{{ route('digital-trainings.modules.move', [$training, $module]) }}"
+                                                          method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="direction" value="down">
+                                                        <button type="submit"
+                                                                @if($loop->last) disabled @endif
+                                                                class="rounded-md border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                title="{{ __('Descendre le module') }}">
+                                                            ↓
+                                                        </button>
+                                                    </form>
+                                                </div>
+
                                                 {{-- Edit module inline --}}
                                                 <details class="w-full">
                                                     <summary class="list-none text-[11px] text-slate-600 hover:text-slate-800 cursor-pointer">
@@ -376,6 +401,31 @@
                                                     </div>
 
                                                     <div class="flex flex-col items-end gap-1">
+                                                        <div class="flex items-center gap-1">
+                                                            <form action="{{ route('digital-trainings.blocks.move', [$training, $module, $block]) }}"
+                                                                  method="POST">
+                                                                @csrf
+                                                                <input type="hidden" name="direction" value="up">
+                                                                <button type="submit"
+                                                                        @if($loop->first) disabled @endif
+                                                                        class="rounded-md border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                        title="{{ __('Monter ce contenu') }}">
+                                                                    ↑
+                                                                </button>
+                                                            </form>
+                                                            <form action="{{ route('digital-trainings.blocks.move', [$training, $module, $block]) }}"
+                                                                  method="POST">
+                                                                @csrf
+                                                                <input type="hidden" name="direction" value="down">
+                                                                <button type="submit"
+                                                                        @if($loop->last) disabled @endif
+                                                                        class="rounded-md border border-slate-200 px-2 py-0.5 text-[11px] text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                                                                        title="{{ __('Descendre ce contenu') }}">
+                                                                    ↓
+                                                                </button>
+                                                            </form>
+                                                        </div>
+
                                                         <button type="button"
                                                                 @click="
                                                                     activeAction='edit';
