@@ -5,6 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('konva-container');
     const wrapper   = document.getElementById('konva-wrapper');
+    const editorShell = document.querySelector('.editor-shell');
     if (!container || !wrapper) return;
 
     // Blade-provided flags for Admin mode
@@ -18,12 +19,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const BRANDING_FONTS = @json($konvaBrandingFonts ?? config('konva.branding_fonts', []));
     const KONVA_BRANDING = @json($konvaBranding ?? []);
     const KONVA_CONTEXT = @json($konvaContext ?? ['events' => [], 'testimonials' => [], 'offers' => []]);
-    const BRANDING_SAVE_URL = @json(route('konva.branding.update'));
+    const BRANDING_SAVE_URL = @json(url('/beta/editor/branding'));
 
     // Top bar
     const btnChooseFormat  = document.getElementById('btnChooseFormat');
     const btnExport        = document.getElementById('btnExport');
     const btnClearCanvas   = document.getElementById('btnClearCanvas');
+    const btnChooseFormatInline = document.getElementById('btnChooseFormatInline');
+    const btnExportInline = document.getElementById('btnExportInline');
+    const btnClearCanvasInline = document.getElementById('btnClearCanvasInline');
+
+    const btnModeQuick = document.getElementById('btnModeQuick');
+    const btnModeExpert = document.getElementById('btnModeExpert');
+    const workflowStepButtons = Array.from(document.querySelectorAll('.workflow-step-btn'));
+    const layersPanelDetails = document.getElementById('layersPanelDetails');
 
     // Modal
     const formatModal          = document.getElementById('formatModal');
@@ -151,9 +160,130 @@ document.addEventListener('DOMContentLoaded', () => {
         return acc;
     }, {});
     const FONT_KEYS = Object.keys(FONT_MAP);
+    const DEFAULT_TRANSFORMER_ANCHORS = [
+        'top-left', 'top-center', 'top-right',
+        'middle-left', 'middle-right',
+        'bottom-left', 'bottom-center', 'bottom-right',
+    ];
 
     function sanitizeLayerName(name) {
         return (name || 'Element').trim() || 'Element';
+    }
+
+    function isTextNode(node) {
+        return !!node && node.getAttr?.('amType') === 'text';
+    }
+
+    function normalizeTextNodeTransform(node) {
+        if (!isTextNode(node)) return;
+
+        const sx = Number(node.scaleX?.() ?? 1);
+        const sy = Number(node.scaleY?.() ?? 1);
+        const hasScaleX = Math.abs(sx - 1) > 0.001;
+        const hasScaleY = Math.abs(sy - 1) > 0.001;
+
+        if (!hasScaleX && !hasScaleY) return;
+
+        if (hasScaleX && typeof node.width === 'function') {
+            const nextWidth = Math.max(40, (Number(node.width()) || 40) * sx);
+            node.width(nextWidth);
+            node.scaleX(1);
+        }
+
+        // Convert vertical scale into font-size change, so text does not squash/stretch.
+        if (hasScaleY && typeof node.fontSize === 'function') {
+            const currentFontSize = Number(node.fontSize()) || 26;
+            const nextFontSize = Math.max(10, Math.round(currentFontSize * sy));
+            node.fontSize(nextFontSize);
+            node.scaleY(1);
+        }
+    }
+
+    function applyTransformerConfigForNode(node) {
+        if (!transformer) return;
+
+        const textMode = isTextNode(node);
+        if (textMode) {
+            transformer.enabledAnchors(['middle-left', 'middle-right']);
+            transformer.centeredScaling(false);
+            transformer.keepRatio(false);
+            return;
+        }
+
+        transformer.enabledAnchors(DEFAULT_TRANSFORMER_ANCHORS);
+        transformer.centeredScaling(true);
+        transformer.keepRatio(false);
+    }
+
+    function bindTransformerBehavior() {
+        if (!transformer) return;
+
+        transformer.off('transform.textBehavior');
+        transformer.off('transformend.textBehavior');
+
+        transformer.on('transform.textBehavior', () => {
+            const node = transformer.nodes?.()[0] || selectedNode;
+            if (!node) return;
+            if (isTextNode(node)) {
+                normalizeTextNodeTransform(node);
+                mainLayer?.batchDraw();
+                updateInspector();
+            }
+        });
+
+        transformer.on('transformend.textBehavior', () => {
+            const node = transformer.nodes?.()[0] || selectedNode;
+            if (!node) return;
+            if (isTextNode(node)) {
+                normalizeTextNodeTransform(node);
+                mainLayer?.draw();
+                saveHistory();
+                refreshLayersList();
+                updateInspector();
+            }
+        });
+    }
+
+    function setUiMode(mode, persist = true) {
+        const normalized = mode === 'expert' ? 'expert' : 'quick';
+        if (!editorShell) return;
+
+        editorShell.classList.toggle('is-quick-mode', normalized === 'quick');
+        editorShell.classList.toggle('is-expert-mode', normalized === 'expert');
+
+        if (btnModeQuick) btnModeQuick.classList.toggle('is-active', normalized === 'quick');
+        if (btnModeExpert) btnModeExpert.classList.toggle('is-active', normalized === 'expert');
+
+        if (layersPanelDetails) {
+            layersPanelDetails.open = normalized === 'expert';
+        }
+
+        if (persist) {
+            try {
+                localStorage.setItem('am_konva_ui_mode', normalized);
+            } catch (e) {}
+        }
+    }
+
+    function initUiMode() {
+        let savedMode = 'quick';
+        try {
+            savedMode = localStorage.getItem('am_konva_ui_mode') || 'quick';
+        } catch (e) {}
+        setUiMode(savedMode, false);
+    }
+
+    function focusWorkflowSection(targetId) {
+        if (!targetId) return;
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        const detailsParent = target.closest('details');
+        if (detailsParent && !detailsParent.open) {
+            detailsParent.open = true;
+        }
     }
 
     function fontKeyToFamily(key, fallbackKey = null) {
@@ -437,6 +567,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveBrandingSettings() {
+        if (!BRANDING_SAVE_URL) {
+            setBrandingStatus('Sauvegarde indisponible: route manquante (deploiement incomplet).', true);
+            return;
+        }
+
         const settings = getBrandingFromControls();
         const payload = {
             preset: settings.preset === 'manual' ? null : settings.preset,
@@ -467,15 +602,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(payload),
             });
 
-            if (!res.ok) throw new Error('save_failed');
-            const data = await res.json();
-            if (!data?.ok) throw new Error('save_failed');
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (jsonErr) {
+                data = null;
+            }
+
+            if (!res.ok || !data?.ok) {
+                if (res.status === 401) throw new Error('Session non authentifiee. Rechargez la page.');
+                if (res.status === 419) throw new Error('Session expiree. Rechargez la page.');
+                throw new Error(data?.message || 'save_failed');
+            }
 
             hydrateBrandingControls(data.settings || settings);
             setBrandingStatus('Branding sauvegarde. Vos prochains templates seront pre-marques.');
         } catch (err) {
             console.error(err);
-            setBrandingStatus('Echec de sauvegarde. Reessayez.', true);
+            const message = (err && typeof err.message === 'string' && err.message !== 'save_failed')
+                ? err.message
+                : 'Echec de sauvegarde. Reessayez.';
+            setBrandingStatus(message, true);
         }
     }
 
@@ -814,11 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transformer = new Konva.Transformer({
                 name: 'mainTransformer',
                 rotateEnabled: true,
-                enabledAnchors: [
-                    'top-left', 'top-center', 'top-right',
-                    'middle-left',           'middle-right',
-                    'bottom-left','bottom-center','bottom-right'
-                ],
+                enabledAnchors: DEFAULT_TRANSFORMER_ANCHORS,
                 centeredScaling: true,
                 boundBoxFunc: (oldBox, newBox) => {
                     if (newBox.width < 30 || newBox.height < 30) return oldBox;
@@ -827,6 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             mainLayer.add(transformer);
         }
+        bindTransformerBehavior();
 
         if (selectedFormat) {
             selectedFormat = {
@@ -882,6 +1026,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearSelection() {
         selectedNode = null;
         if (transformer) transformer.visible(true);
+        applyTransformerConfigForNode(null);
         transformer?.nodes([]);
         mainLayer?.draw();
         updateInspector();
@@ -894,6 +1039,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNodeLocked(node)) {
             transformer?.nodes([]);
         } else {
+            applyTransformerConfigForNode(node);
+            if (isTextNode(node)) {
+                normalizeTextNodeTransform(node);
+            }
             transformer?.nodes([node]);
             transformer?.moveToTop();
         }
@@ -1137,11 +1286,7 @@ document.addEventListener('DOMContentLoaded', () => {
         transformer = new Konva.Transformer({
             name: 'mainTransformer',
             rotateEnabled: true,
-            enabledAnchors: [
-                'top-left', 'top-center', 'top-right',
-                'middle-left',           'middle-right',
-                'bottom-left','bottom-center','bottom-right'
-            ],
+            enabledAnchors: DEFAULT_TRANSFORMER_ANCHORS,
             centeredScaling: true,
             boundBoxFunc: (oldBox, newBox) => {
                 if (newBox.width < 30 || newBox.height < 30) return oldBox;
@@ -1149,6 +1294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         mainLayer.add(transformer);
+        bindTransformerBehavior();
 
         stage.on('click tap', (e) => {
             if (e.target === stage || e.target === bgRect) clearSelection();
@@ -1525,11 +1671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transformer = new Konva.Transformer({
                 name: 'mainTransformer',
                 rotateEnabled: true,
-                enabledAnchors: [
-                    'top-left', 'top-center', 'top-right',
-                    'middle-left',           'middle-right',
-                    'bottom-left','bottom-center','bottom-right'
-                ],
+                enabledAnchors: DEFAULT_TRANSFORMER_ANCHORS,
                 centeredScaling: true,
                 boundBoxFunc: (oldBox, newBox) => {
                     if (newBox.width < 30 || newBox.height < 30) return oldBox;
@@ -1542,6 +1684,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mainLayer.add(transformer);
             }
         }
+        bindTransformerBehavior();
 
         transformer.nodes([]);
         transformer.moveToTop();
@@ -2234,11 +2377,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------
     // Wire UI
     // ----------------------------
+    btnModeQuick?.addEventListener('click', () => setUiMode('quick'));
+    btnModeExpert?.addEventListener('click', () => setUiMode('expert'));
+
+    workflowStepButtons.forEach((btn) => {
+        btn.addEventListener('click', () => focusWorkflowSection(btn.getAttribute('data-workflow-target')));
+    });
+
     btnChooseFormat?.addEventListener('click', openFormatModal);
+    btnChooseFormatInline?.addEventListener('click', openFormatModal);
     btnCloseFormatModal?.addEventListener('click', closeFormatModal);
 
     btnExport?.addEventListener('click', exportPng);
+    btnExportInline?.addEventListener('click', exportPng);
     btnClearCanvas?.addEventListener('click', () => {
+        clearCanvas();
+        applyBrandingToCanvas({ skipHistory: false });
+    });
+    btnClearCanvasInline?.addEventListener('click', () => {
         clearCanvas();
         applyBrandingToCanvas({ skipHistory: false });
     });
@@ -2525,6 +2681,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----------------------------
     // Initial
     // ----------------------------
+    initUiMode();
     hydrateBrandingControls(activeBranding);
     setBrandingStatus('Style charge. Selectionnez un template pour generation rapide.');
     renderFormatCards();

@@ -21,6 +21,8 @@ class DigitalTraining extends Model
         'is_free',
         'price_cents',
         'tax_rate',
+        'installments_enabled',
+        'allowed_installments',
 
         // Publishing / access
         'access_type',
@@ -37,6 +39,8 @@ class DigitalTraining extends Model
         'is_free'     => 'boolean',
         'price_cents' => 'integer',
         'tax_rate'    => 'float',
+        'installments_enabled' => 'boolean',
+        'allowed_installments' => 'array',
     ];
 
     public function user()

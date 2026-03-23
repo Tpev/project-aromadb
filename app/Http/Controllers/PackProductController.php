@@ -49,6 +49,9 @@ class PackProductController extends Controller
             'is_active' => 'required|boolean',
             'visible_in_portal' => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
+            'installments_enabled' => 'required|boolean',
+            'allowed_installments' => 'nullable|array',
+            'allowed_installments.*' => 'integer|min:2|max:12',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
@@ -62,9 +65,23 @@ class PackProductController extends Controller
             return back()->withInput()->withErrors(['items' => 'Un ou plusieurs produits ne vous appartiennent pas.']);
         }
 
+        $allowedInstallments = collect($validated['allowed_installments'] ?? [])
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v >= 2 && $v <= 12)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        if ((bool) $validated['installments_enabled'] && empty($allowedInstallments)) {
+            return back()->withInput()->withErrors([
+                'allowed_installments' => 'Sélectionnez au moins une échéance (entre 2 et 12).',
+            ]);
+        }
+
         $pack = null;
 
-        DB::transaction(function () use (&$pack, $validated) {
+        DB::transaction(function () use (&$pack, $validated, $allowedInstallments) {
             $pack = PackProduct::create([
                 'user_id' => Auth::id(),
                 'name' => $validated['name'],
@@ -74,6 +91,8 @@ class PackProductController extends Controller
                 'is_active' => (bool) $validated['is_active'],
                 'visible_in_portal' => (bool) $validated['visible_in_portal'],
                 'price_visible_in_portal' => (bool) $validated['price_visible_in_portal'],
+                'installments_enabled' => (bool) $validated['installments_enabled'],
+                'allowed_installments' => (bool) $validated['installments_enabled'] ? $allowedInstallments : null,
             ]);
 
             foreach (array_values($validated['items']) as $i => $item) {
@@ -145,6 +164,9 @@ class PackProductController extends Controller
             'is_active' => 'required|boolean',
             'visible_in_portal' => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
+            'installments_enabled' => 'required|boolean',
+            'allowed_installments' => 'nullable|array',
+            'allowed_installments.*' => 'integer|min:2|max:12',
 
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
@@ -157,7 +179,21 @@ class PackProductController extends Controller
             return back()->withInput()->withErrors(['items' => 'Un ou plusieurs produits ne vous appartiennent pas.']);
         }
 
-        DB::transaction(function () use ($packProduct, $validated) {
+        $allowedInstallments = collect($validated['allowed_installments'] ?? [])
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v >= 2 && $v <= 12)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        if ((bool) $validated['installments_enabled'] && empty($allowedInstallments)) {
+            return back()->withInput()->withErrors([
+                'allowed_installments' => 'Sélectionnez au moins une échéance (entre 2 et 12).',
+            ]);
+        }
+
+        DB::transaction(function () use ($packProduct, $validated, $allowedInstallments) {
             $packProduct->update([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
@@ -166,6 +202,8 @@ class PackProductController extends Controller
                 'is_active' => (bool) $validated['is_active'],
                 'visible_in_portal' => (bool) $validated['visible_in_portal'],
                 'price_visible_in_portal' => (bool) $validated['price_visible_in_portal'],
+                'installments_enabled' => (bool) $validated['installments_enabled'],
+                'allowed_installments' => (bool) $validated['installments_enabled'] ? $allowedInstallments : null,
             ]);
 
             // Stratégie simple : on remplace tout

@@ -15,6 +15,8 @@ class Invoice extends Model
 
     protected $fillable = [
         'client_profile_id',
+        'pack_purchase_id',
+        'corporate_client_id',
         'user_id',
         'invoice_date',
         'due_date',
@@ -98,6 +100,11 @@ public function getSoldeRestantAttribute(): float
 public function corporateClient()
 {
     return $this->belongsTo(CorporateClient::class, 'corporate_client_id');
+}
+
+public function packPurchase()
+{
+    return $this->belongsTo(PackPurchase::class, 'pack_purchase_id');
 }
 	
 }

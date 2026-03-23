@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Appointment;
 use App\Models\GiftVoucherOrder;
+use App\Services\StripePurchaseWebhookService;
 
 class StripeController extends Controller
 {
@@ -290,6 +291,7 @@ public function success(Request $request)
         $payload = $request->getContent();
         $sig_header = $request->header('Stripe-Signature');
         $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+        $connectedAccountId = (string) $request->header('Stripe-Account', '');
 
         try {
             $event = \Stripe\Webhook::constructEvent(
@@ -301,6 +303,10 @@ public function success(Request $request)
         } catch(\Stripe\Exception\SignatureVerificationException $e) {
             // Invalid signature
             return response('Invalid signature', 400);
+        }
+
+        if (app(StripePurchaseWebhookService::class)->handleEvent($event, $connectedAccountId)) {
+            return response('Webhook handled', 200);
         }
 
         // Handle the event

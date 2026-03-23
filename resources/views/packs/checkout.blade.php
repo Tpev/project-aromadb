@@ -14,6 +14,11 @@
 
     $isPack = ($selectedType === 'pack');
     $currentItemValue = $selectedId ? ($selectedType . ':' . (int) $selectedId) : null;
+    $availableInstallmentPlans = $availableInstallmentPlans ?? [];
+    $selectedInstallmentsEnabled = (bool) ($selectedInstallmentsEnabled ?? false);
+    $defaultInstallmentCount = $defaultInstallmentCount ?? null;
+    $oldPaymentChoice = old('payment_choice', 'one_time');
+    $oldInstallmentCount = old('installment_count', $defaultInstallmentCount);
 @endphp
 
 <x-app-layout>
@@ -191,6 +196,45 @@
                     {{-- IMPORTANT: the selected item is posted --}}
                     <input type="hidden" name="item" value="{{ $currentItemValue }}">
 
+                    @if($selectedInstallmentsEnabled && count($availableInstallmentPlans))
+                        <div class="mb-4 rounded-xl border border-slate-200 p-3">
+                            <label class="details-label">{{ __('Mode de paiement') }}</label>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                                    <input type="radio" name="payment_choice" value="one_time" {{ $oldPaymentChoice !== 'installments' ? 'checked' : '' }}>
+                                    {{ __('Paiement en 1 fois') }}
+                                </label>
+                                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                                    <input type="radio" name="payment_choice" value="installments" {{ $oldPaymentChoice === 'installments' ? 'checked' : '' }}>
+                                    {{ __('Paiement en plusieurs fois') }}
+                                </label>
+                            </div>
+
+                            <div class="mt-3" id="installment-count-wrap">
+                                <label class="details-label" for="installment_count">{{ __('Nombre d’échéances') }}</label>
+                                <select id="installment_count" name="installment_count" class="form-control">
+                                    @foreach($availableInstallmentPlans as $count => $plan)
+                                        <option value="{{ $count }}" {{ (int) $oldInstallmentCount === (int) $count ? 'selected' : '' }}>
+                                            {{ $count }}x —
+                                            {{ number_format($plan['base_cents'] / 100, 2, ',', ' ') }} €/mois
+                                            @if(($plan['first_cents'] ?? $plan['base_cents']) > $plan['base_cents'])
+                                                (1ère échéance: {{ number_format($plan['first_cents'] / 100, 2, ',', ' ') }} €)
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="hint mt-2">
+                                    {{ __('Le total reste identique: vous choisissez simplement la répartition des mensualités.') }}
+                                </p>
+                            </div>
+
+                            @error('installment_count') <div class="text-red-500 mt-2">{{ $message }}</div> @enderror
+                            @error('payment') <div class="text-red-500 mt-2">{{ $message }}</div> @enderror
+                        </div>
+                    @else
+                        <input type="hidden" name="payment_choice" value="one_time">
+                    @endif
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="details-label" for="first_name">{{ __('Prénom') }}</label>
@@ -269,6 +313,23 @@
 
                 window.location = currentCheckoutUrl + '?item=' + encodeURIComponent(type + ':' + id);
             });
+        })();
+
+        (function () {
+            const radios = document.querySelectorAll('input[name="payment_choice"]');
+            const wrap = document.getElementById('installment-count-wrap');
+            const select = document.getElementById('installment_count');
+            if (!radios.length || !wrap || !select) return;
+
+            function refreshInstallmentsUi() {
+                const selected = document.querySelector('input[name="payment_choice"]:checked');
+                const enabled = selected && selected.value === 'installments';
+                wrap.style.display = enabled ? '' : 'none';
+                select.disabled = !enabled;
+            }
+
+            radios.forEach((radio) => radio.addEventListener('change', refreshInstallmentsUi));
+            refreshInstallmentsUi();
         })();
     </script>
 

@@ -90,6 +90,41 @@
                 </label>
             </div>
 
+            {{-- Installments --}}
+            <div class="rounded-xl border border-slate-200 p-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Paiement en plusieurs fois</h3>
+                        <p class="text-xs text-slate-600">Autorisez de 2 à 12 échéances pour ce pack.</p>
+                    </div>
+                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                        <input type="hidden" name="installments_enabled" value="0">
+                        <input type="checkbox" name="installments_enabled" value="1" {{ old('installments_enabled') ? 'checked' : '' }}>
+                        Activer
+                    </label>
+                </div>
+
+                <div class="mt-3">
+                    <label class="text-xs font-semibold text-slate-700">Échéances acceptées</label>
+                    <div class="mt-2 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-11 gap-2">
+                        @for($i = 2; $i <= 12; $i++)
+                            <label class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs">
+                                <input
+                                    type="checkbox"
+                                    name="allowed_installments[]"
+                                    value="{{ $i }}"
+                                    {{ in_array($i, array_map('intval', old('allowed_installments', [])), true) ? 'checked' : '' }}
+                                >
+                                {{ $i }}x
+                            </label>
+                        @endfor
+                    </div>
+                    @error('allowed_installments')
+                        <p class="mt-2 text-xs text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             {{-- Pack content --}}
             <div class="pt-4 border-t border-slate-200">
                 <div class="flex items-center justify-between mb-2">

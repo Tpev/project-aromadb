@@ -285,9 +285,11 @@
                             <tr>
                                 <th class="px-3 py-2 text-left font-extrabold">Client</th>
                                 <th class="px-3 py-2 text-left font-extrabold">Statut</th>
+                                <th class="px-3 py-2 text-left font-extrabold">Paiement</th>
                                 <th class="px-3 py-2 text-left font-extrabold">Crédits</th>
                                 <th class="px-3 py-2 text-left font-extrabold">Acheté le</th>
                                 <th class="px-3 py-2 text-left font-extrabold">Expire le</th>
+                                <th class="px-3 py-2 text-left font-extrabold">Actions</th>
                             </tr>
                         </thead>
 
@@ -320,6 +322,18 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="px-3 py-2 text-xs text-slate-700">
+                                    @if(($p->payment_mode ?? 'one_time') === 'installments')
+                                        <div class="font-semibold">
+                                            {{ ucfirst(str_replace('_', ' ', (string) ($p->payment_state ?? 'pending'))) }}
+                                        </div>
+                                        <div>
+                                            {{ (int) ($p->installments_paid ?? 0) }} / {{ (int) ($p->installments_total ?? 0) }} échéances
+                                        </div>
+                                    @else
+                                        <span class="text-slate-500">Paiement en 1 fois</span>
+                                    @endif
+                                </td>
                                 <td class="px-3 py-2">
                                     <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold"
                                           style="background: rgba(107,79,42,0.10); color: var(--brown); border: 1px solid rgba(107,79,42,0.18);">
@@ -328,10 +342,31 @@
                                 </td>
                                 <td class="px-3 py-2">{{ optional($p->purchased_at)->format('d/m/Y') }}</td>
                                 <td class="px-3 py-2">{{ optional($p->expires_at)->format('d/m/Y') }}</td>
+                                <td class="px-3 py-2">
+                                    @if(($p->payment_mode ?? 'one_time') === 'installments' && !empty($p->stripe_subscription_id) && in_array((string) ($p->payment_state ?? ''), ['active', 'past_due', 'cancel_scheduled'], true))
+                                        <form action="{{ route('pack-purchases.subscription.cancel', $p->id) }}" method="POST" class="mb-1">
+                                            @csrf
+                                            <input type="hidden" name="cancel_mode" value="end_of_period">
+                                            <button class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                                Fin période
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('pack-purchases.subscription.cancel', $p->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="cancel_mode" value="immediate">
+                                            <button class="rounded-lg border border-red-300 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                    onclick="return confirm('Annuler immédiatement cet abonnement ?');">
+                                                Immédiat
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-xs text-slate-500">—</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-3 py-10 text-center text-slate-600">
+                                <td colspan="7" class="px-3 py-10 text-center text-slate-600">
                                     Aucune attribution pour l’instant.
                                 </td>
                             </tr>

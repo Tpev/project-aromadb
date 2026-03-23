@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\PackProduct;
-use App\Models\PackPurchase;
 use App\Models\ClientProfile;
 use App\Models\DigitalTraining;
+use App\Models\PackProduct;
+use App\Models\PackPurchase;
+use App\Models\User;
+use App\Services\StripeAccountGuard;
+use App\Support\InstallmentPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,13 +18,12 @@ use Stripe\StripeClient;
 
 class PublicCheckoutController extends Controller
 {
-    public function show(Request $request, string $slug)
+    public function show(Request $request, string $slug, StripeAccountGuard $stripeGuard)
     {
         $therapist = User::where('slug', $slug)
             ->where('is_therapist', true)
             ->firstOrFail();
 
-        // Packs for dropdown
         $packs = PackProduct::where('user_id', $therapist->id)
             ->where(function ($q) {
                 $q->whereNull('is_active')->orWhere('is_active', true);
@@ -34,7 +35,6 @@ class PublicCheckoutController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Trainings for dropdown (SAFE: only filter if columns exist)
         $trainingsQuery = DigitalTraining::query()->where('user_id', $therapist->id);
 
         if (Schema::hasColumn('digital_trainings', 'visibility')) {
@@ -53,30 +53,26 @@ class PublicCheckoutController extends Controller
 
         $trainings = $trainingsQuery->get();
 
-        // Selected item from ?item=
         $selectedType = null;
-        $selectedId   = null;
-
+        $selectedId = null;
         $itemParam = (string) $request->query('item', '');
         if (preg_match('/^(pack|training):(\d+)$/', $itemParam, $m)) {
             $selectedType = $m[1];
-            $selectedId   = (int) $m[2];
+            $selectedId = (int) $m[2];
         }
 
-        // Default selection if missing/invalid: first pack, else first training
         if (!$selectedType || !$selectedId) {
             if ($packs->count()) {
                 $selectedType = 'pack';
-                $selectedId   = (int) $packs->first()->id;
+                $selectedId = (int) $packs->first()->id;
             } elseif ($trainings->count()) {
                 $selectedType = 'training';
-                $selectedId   = (int) $trainings->first()->id;
+                $selectedId = (int) $trainings->first()->id;
             } else {
-                abort(404); // nothing buyable
+                abort(404);
             }
         }
 
-        // Compute details
         $pack = null;
         $packPriceTtc = null;
         $unitTotalTtc = null;
@@ -85,6 +81,7 @@ class PublicCheckoutController extends Controller
 
         $training = null;
         $trainingPriceStr = null;
+        $totalAmountCents = 0;
 
         if ($selectedType === 'pack') {
             $pack = $packs->firstWhere('id', $selectedId);
@@ -94,10 +91,13 @@ class PublicCheckoutController extends Controller
 
             $taxRate = (float) ($pack->tax_rate ?? 0);
             $packPriceTtc = (float) ($pack->price_incl_tax ?? ($pack->price + ($pack->price * $taxRate / 100)));
+            $totalAmountCents = (int) round($packPriceTtc * 100);
 
             $unitTotalTtc = (float) $pack->items->sum(function ($it) {
                 $p = $it->product;
-                if (!$p) return 0;
+                if (!$p) {
+                    return 0;
+                }
 
                 $pTax = (float) ($p->tax_rate ?? 0);
                 $pTtc = (float) ($p->price_incl_tax ?? ($p->price + ($p->price * $pTax / 100)));
@@ -114,7 +114,32 @@ class PublicCheckoutController extends Controller
             $isFree = (bool) ($training->is_free ?? false);
             if (!$isFree && !is_null($training->price_cents)) {
                 $trainingPriceStr = number_format($training->price_cents / 100, 2, ',', ' ') . ' €';
+                $totalAmountCents = (int) $training->price_cents;
             }
+        }
+
+        $stripeStatus = $stripeGuard->status($therapist);
+        $stripeReady = (bool) ($stripeStatus['ready'] ?? false);
+        $selectedInstallmentsEnabled = false;
+        $availableInstallmentPlans = [];
+        $defaultInstallmentCount = null;
+
+        if ($totalAmountCents > 0) {
+            $allowed = $selectedType === 'pack'
+                ? InstallmentPlan::sanitizeAllowed((array) ($pack?->allowed_installments ?? []))
+                : InstallmentPlan::sanitizeAllowed((array) ($training?->allowed_installments ?? []));
+
+            $installmentsEnabledByProduct = $selectedType === 'pack'
+                ? (bool) ($pack?->installments_enabled ?? false)
+                : (bool) ($training?->installments_enabled ?? false);
+
+            $selectedInstallmentsEnabled = $stripeReady && $installmentsEnabledByProduct && !empty($allowed);
+            $availableInstallmentPlans = $selectedInstallmentsEnabled
+                ? InstallmentPlan::plansForAllowed($totalAmountCents, $allowed)
+                : [];
+            $defaultInstallmentCount = !empty($availableInstallmentPlans)
+                ? (int) array_key_first($availableInstallmentPlans)
+                : null;
         }
 
         return view('packs.checkout', compact(
@@ -130,28 +155,34 @@ class PublicCheckoutController extends Controller
             'savingPct',
             'training',
             'trainingPriceStr',
+            'stripeReady',
+            'selectedInstallmentsEnabled',
+            'availableInstallmentPlans',
+            'defaultInstallmentCount',
         ));
     }
 
-    public function store(Request $request, string $slug)
+    public function store(Request $request, string $slug, StripeAccountGuard $stripeGuard)
     {
         $therapist = User::where('slug', $slug)
             ->where('is_therapist', true)
             ->firstOrFail();
 
         $request->validate([
-            'item'       => 'required|string', // pack:ID or training:ID
+            'item' => 'required|string',
             'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|max:255',
-            'phone'      => 'nullable|string|max:20',
-            'notes'      => 'nullable|string|max:2000',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'notes' => 'nullable|string|max:2000',
+            'payment_choice' => 'nullable|in:one_time,installments',
+            'installment_count' => 'nullable|integer|min:2|max:12',
         ], [
-            'item.required'       => 'Veuillez sélectionner un achat.',
+            'item.required' => 'Veuillez sélectionner un achat.',
             'first_name.required' => 'Le prénom est requis.',
-            'last_name.required'  => 'Le nom est requis.',
-            'email.required'      => 'L’email est requis.',
-            'email.email'         => 'Veuillez fournir une adresse e-mail valide.',
+            'last_name.required' => 'Le nom est requis.',
+            'email.required' => 'L’email est requis.',
+            'email.email' => 'Veuillez fournir une adresse e-mail valide.',
         ]);
 
         if (!preg_match('/^(pack|training):(\d+)$/', (string) $request->item, $m)) {
@@ -159,30 +190,33 @@ class PublicCheckoutController extends Controller
         }
 
         $type = $m[1];
-        $id   = (int) $m[2];
+        $id = (int) $m[2];
+        $paymentChoice = (string) ($request->input('payment_choice') ?: 'one_time');
 
         $clientProfile = ClientProfile::firstOrCreate(
             [
-                'email'   => $request->email,
+                'email' => $request->email,
                 'user_id' => $therapist->id,
             ],
             [
                 'first_name' => $request->first_name,
-                'last_name'  => $request->last_name,
-                'phone'      => $request->phone,
-                'notes'      => $request->notes,
+                'last_name' => $request->last_name,
+                'phone' => $request->phone,
+                'notes' => $request->notes,
             ]
         );
 
         $clientProfile->update([
             'first_name' => $clientProfile->first_name ?: $request->first_name,
-            'last_name'  => $clientProfile->last_name  ?: $request->last_name,
-            'phone'      => $clientProfile->phone      ?: $request->phone,
+            'last_name' => $clientProfile->last_name ?: $request->last_name,
+            'phone' => $clientProfile->phone ?: $request->phone,
         ]);
 
         $amountTtc = 0.0;
+        $amountCents = 0;
         $lineLabel = '';
         $purchase = null;
+        $allowedInstallments = [];
 
         if ($type === 'pack') {
             $pack = PackProduct::where('user_id', $therapist->id)
@@ -191,32 +225,45 @@ class PublicCheckoutController extends Controller
 
             abort_unless(($pack->is_active ?? true) && ($pack->visible_in_portal !== false), 404);
 
-            $taxRate   = (float) ($pack->tax_rate ?? 0);
-            $amountHt  = (float) ($pack->price ?? 0);
+            $taxRate = (float) ($pack->tax_rate ?? 0);
+            $amountHt = (float) ($pack->price ?? 0);
             $amountTtc = (float) ($pack->price_incl_tax ?? ($amountHt + ($amountHt * $taxRate / 100)));
-
+            $amountCents = (int) round($amountTtc * 100);
             $lineLabel = 'Pack : ' . $pack->name;
+            $allowedInstallments = ((bool) ($pack->installments_enabled ?? false))
+                ? InstallmentPlan::sanitizeAllowed((array) ($pack->allowed_installments ?? []))
+                : [];
 
             $pack->load(['items']);
-
-            $purchase = DB::transaction(function () use ($therapist, $pack, $clientProfile, $request) {
-                $purchase = PackPurchase::create([
-                    'user_id'           => $therapist->id,
-                    'pack_product_id'   => $pack->id,
+            $purchase = DB::transaction(function () use ($therapist, $pack, $clientProfile, $request, $paymentChoice) {
+                $payload = [
+                    'user_id' => $therapist->id,
+                    'pack_product_id' => $pack->id,
                     'client_profile_id' => $clientProfile->id,
-                    'status'            => 'pending',
-                    'notes'             => $request->notes,
-                    'purchased_at'      => null,
-                    'expires_at'        => null,
-                ]);
+                    'status' => 'pending',
+                    'notes' => $request->notes,
+                    'purchased_at' => null,
+                    'expires_at' => null,
+                ];
+
+                if (Schema::hasColumn('pack_purchases', 'payment_mode')) {
+                    $payload['payment_mode'] = $paymentChoice === 'installments' ? 'installments' : 'one_time';
+                }
+                if (Schema::hasColumn('pack_purchases', 'payment_state')) {
+                    $payload['payment_state'] = 'pending';
+                }
+
+                $purchase = PackPurchase::create($payload);
 
                 foreach ($pack->items as $line) {
                     $qty = (int) ($line->quantity ?? 0);
-                    if ($qty <= 0) continue;
+                    if ($qty <= 0) {
+                        continue;
+                    }
 
                     $purchase->items()->create([
-                        'product_id'         => (int) $line->product_id,
-                        'quantity_total'     => $qty,
+                        'product_id' => (int) $line->product_id,
+                        'quantity_total' => $qty,
                         'quantity_remaining' => $qty,
                     ]);
                 }
@@ -239,25 +286,74 @@ class PublicCheckoutController extends Controller
             $isFree = (bool) ($training->is_free ?? false);
             abort_unless(!$isFree && !is_null($training->price_cents), 404);
 
+            $amountCents = (int) $training->price_cents;
             $amountTtc = (float) ($training->price_cents / 100);
             $lineLabel = 'Formation : ' . $training->title;
+            $allowedInstallments = ((bool) ($training->installments_enabled ?? false))
+                ? InstallmentPlan::sanitizeAllowed((array) ($training->allowed_installments ?? []))
+                : [];
 
             if (
                 Schema::hasColumn('pack_purchases', 'digital_training_id')
                 && Schema::hasColumn('pack_purchases', 'purchase_type')
                 && Schema::hasColumn('pack_purchases', 'pack_product_id')
             ) {
-                $purchase = PackPurchase::create([
-                    'user_id'             => $therapist->id,
-                    'pack_product_id'     => null,
-                    'client_profile_id'   => $clientProfile->id,
-                    'purchase_type'       => 'training',
+                $payload = [
+                    'user_id' => $therapist->id,
+                    'pack_product_id' => null,
+                    'client_profile_id' => $clientProfile->id,
+                    'purchase_type' => 'training',
                     'digital_training_id' => $training->id,
-                    'status'              => 'pending',
-                    'notes'               => $request->notes,
-                    'purchased_at'        => null,
-                    'expires_at'          => null,
-                ]);
+                    'status' => 'pending',
+                    'notes' => $request->notes,
+                    'purchased_at' => null,
+                    'expires_at' => null,
+                ];
+
+                if (Schema::hasColumn('pack_purchases', 'payment_mode')) {
+                    $payload['payment_mode'] = $paymentChoice === 'installments' ? 'installments' : 'one_time';
+                }
+                if (Schema::hasColumn('pack_purchases', 'payment_state')) {
+                    $payload['payment_state'] = 'pending';
+                }
+
+                $purchase = PackPurchase::create($payload);
+            }
+        }
+
+        if (!$purchase) {
+            return back()->withErrors([
+                'payment' => 'Configuration incomplète pour cet achat. Veuillez contacter le support.',
+            ])->withInput();
+        }
+
+        $stripeReady = (bool) ($stripeGuard->status($therapist)['ready'] ?? false);
+        $selectedInstallmentCount = $request->filled('installment_count') ? (int) $request->input('installment_count') : null;
+        $plans = InstallmentPlan::plansForAllowed($amountCents, $allowedInstallments);
+        $selectedPlan = ($selectedInstallmentCount && isset($plans[$selectedInstallmentCount]))
+            ? $plans[$selectedInstallmentCount]
+            : null;
+
+        if ($paymentChoice === 'installments') {
+            if (!$therapist->stripe_account_id || !$stripeReady) {
+                $this->cleanupAbandonedPurchase($purchase);
+                return back()->withErrors([
+                    'payment' => 'Le paiement en plusieurs fois nécessite un compte Stripe Connect configuré.',
+                ])->withInput();
+            }
+
+            if (!$selectedPlan) {
+                $this->cleanupAbandonedPurchase($purchase);
+                return back()->withErrors([
+                    'installment_count' => 'Cette option de paiement en plusieurs fois n’est pas disponible pour cet achat.',
+                ])->withInput();
+            }
+
+            if ($purchase && Schema::hasColumn('pack_purchases', 'installments_total')) {
+                $purchase->installments_total = (int) $selectedPlan['count'];
+                $purchase->installments_paid = 0;
+                $purchase->installment_amount_cents = (int) $selectedPlan['base_cents'];
+                $purchase->save();
             }
         }
 
@@ -266,40 +362,91 @@ class PublicCheckoutController extends Controller
                 $stripe = new StripeClient(config('services.stripe.secret'));
 
                 $metadata = [
-                    'purchase_kind'     => $type,
-                    'therapist_id'      => $therapist->id,
-                    'client_profile_id' => $clientProfile->id,
-                    'customer_email'    => $request->email,
+                    'purchase_kind' => $type,
+                    'therapist_id' => (string) $therapist->id,
+                    'client_profile_id' => (string) $clientProfile->id,
+                    'customer_email' => (string) $request->email,
+                    'payment_mode' => $paymentChoice === 'installments' ? 'installments' : 'one_time',
                 ];
 
-                if ($type === 'pack') {
-                    $metadata['pack_purchase_id'] = $purchase->id;
-                    $metadata['pack_product_id']  = $pack->id;
-                } else {
-                    $metadata['digital_training_id'] = $id;
-                    if ($purchase) $metadata['pack_purchase_id'] = $purchase->id;
+                if ($type === 'pack' && isset($pack)) {
+                    $metadata['pack_product_id'] = (string) $pack->id;
+                } elseif ($type === 'training') {
+                    $metadata['digital_training_id'] = (string) $id;
                 }
 
-                $session = $stripe->checkout->sessions->create([
-                    'payment_method_types' => ['card'],
-                    'customer_email' => $request->email,
-                    'line_items' => [[
-                        'price_data' => [
-                            'currency'     => 'eur',
-                            'product_data' => ['name' => $lineLabel],
-                            'unit_amount'  => (int) round($amountTtc * 100),
-                        ],
-                        'quantity' => 1,
-                    ]],
-                    'mode' => 'payment',
-                    'success_url' => route('packs.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                    'cancel_url'  => route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
-                    'payment_intent_data' => [
+                if ($purchase) {
+                    $metadata['pack_purchase_id'] = (string) $purchase->id;
+                }
+
+                if ($paymentChoice === 'installments' && $selectedPlan) {
+                    $metadata['installments_total'] = (string) $selectedPlan['count'];
+
+                    $sessionData = [
+                        'payment_method_types' => ['card'],
+                        'customer_email' => $request->email,
+                        'mode' => 'subscription',
+                        'line_items' => [[
+                            'price_data' => [
+                                'currency' => 'eur',
+                                'product_data' => [
+                                    'name' => $lineLabel . ' (paiement en plusieurs fois)',
+                                ],
+                                'unit_amount' => (int) $selectedPlan['base_cents'],
+                                'recurring' => [
+                                    'interval' => 'month',
+                                    'interval_count' => 1,
+                                ],
+                            ],
+                            'quantity' => 1,
+                        ]],
                         'metadata' => $metadata,
-                    ],
-                ], [
-                    'stripe_account' => $therapist->stripe_account_id,
-                ]);
+                        'subscription_data' => [
+                            'metadata' => $metadata,
+                        ],
+                        'success_url' => route('packs.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
+                        'cancel_url' => route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
+                    ];
+
+                    if ((int) $selectedPlan['remainder_cents'] > 0) {
+                        $sessionData['subscription_data']['add_invoice_items'] = [[
+                            'price_data' => [
+                                'currency' => 'eur',
+                                'product_data' => [
+                                    'name' => $lineLabel . ' (ajustement 1ère échéance)',
+                                ],
+                                'unit_amount' => (int) $selectedPlan['remainder_cents'],
+                            ],
+                            'quantity' => 1,
+                        ]];
+                    }
+
+                    $session = $stripe->checkout->sessions->create($sessionData, [
+                        'stripe_account' => $therapist->stripe_account_id,
+                    ]);
+                } else {
+                    $session = $stripe->checkout->sessions->create([
+                        'payment_method_types' => ['card'],
+                        'customer_email' => $request->email,
+                        'line_items' => [[
+                            'price_data' => [
+                                'currency' => 'eur',
+                                'product_data' => ['name' => $lineLabel],
+                                'unit_amount' => (int) round($amountTtc * 100),
+                            ],
+                            'quantity' => 1,
+                        ]],
+                        'mode' => 'payment',
+                        'metadata' => $metadata,
+                        'success_url' => route('packs.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
+                        'cancel_url' => route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
+                        'payment_intent_data' => [
+                            'metadata' => $metadata,
+                        ],
+                    ], [
+                        'stripe_account' => $therapist->stripe_account_id,
+                    ]);
+                }
 
                 if ($purchase && Schema::hasColumn('pack_purchases', 'stripe_session_id')) {
                     $purchase->stripe_session_id = $session->id;
@@ -307,23 +454,52 @@ class PublicCheckoutController extends Controller
                 }
 
                 return redirect($session->url);
-            } catch (\Exception $e) {
-                Log::error('Checkout Stripe creation failed: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                Log::error('Checkout Stripe creation failed: ' . $e->getMessage(), [
+                    'therapist_id' => $therapist->id,
+                    'purchase_type' => $type,
+                    'payment_mode' => $paymentChoice,
+                ]);
+                $this->cleanupAbandonedPurchase($purchase);
 
                 return back()->withErrors([
-                    'payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'
+                    'payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.',
                 ])->withInput();
             }
         }
 
+        if ($paymentChoice === 'installments') {
+            return back()->withErrors([
+                'payment' => 'Le paiement en plusieurs fois nécessite Stripe Connect.',
+            ])->withInput();
+        }
+
         if ($purchase) {
-            $purchase->update([
-                'status'       => 'active',
+            $payload = [
+                'status' => 'active',
                 'purchased_at' => Carbon::now(),
-            ]);
+            ];
+            if (Schema::hasColumn('pack_purchases', 'payment_state')) {
+                $payload['payment_state'] = 'completed';
+            }
+            if (Schema::hasColumn('pack_purchases', 'activated_at')) {
+                $payload['activated_at'] = Carbon::now();
+            }
+            $purchase->update($payload);
         }
 
         return redirect()->route('therapist.show', $therapist->slug)
             ->with('success', $type === 'pack' ? 'Pack acheté avec succès.' : 'Formation achetée avec succès.');
+    }
+
+    private function cleanupAbandonedPurchase(?PackPurchase $purchase): void
+    {
+        if (!$purchase) {
+            return;
+        }
+
+        if ($purchase->status === 'pending' && !$purchase->purchased_at) {
+            $purchase->delete();
+        }
     }
 }

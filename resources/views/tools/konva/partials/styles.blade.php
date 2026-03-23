@@ -130,14 +130,14 @@
 
     .editor-main-grid {
         display: grid;
-        grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 300px);
+        grid-template-columns: minmax(0, 320px) minmax(0, 1fr) minmax(0, 300px);
         gap: 1.1rem;
         align-items: flex-start;
     }
 
     @media (max-width: 1280px) {
         .editor-main-grid {
-            grid-template-columns: minmax(0, 280px) minmax(0, 1fr) minmax(0, 280px);
+            grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 280px);
         }
     }
 
@@ -440,6 +440,76 @@
 
     .template-card.opacity-40 {
         opacity: 0.4;
+    }
+
+    .workflow-card {
+        border: 1px solid #cfe0ee;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    .mode-chip {
+        border: 1px solid #d9e2ec;
+        background: #f8fafc;
+        color: #334155;
+        border-radius: 999px;
+        padding: 0.3rem 0.72rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        transition: all 0.15s ease;
+    }
+
+    .mode-chip:hover {
+        background: #eef2f7;
+    }
+
+    .mode-chip.is-active {
+        background: linear-gradient(120deg, var(--brand), #8ca52a);
+        color: #f8fafc;
+        border-color: transparent;
+        box-shadow: 0 8px 20px rgba(109, 127, 22, 0.28);
+    }
+
+    .workflow-steps {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.38rem;
+    }
+
+    .workflow-step-btn {
+        border: 1px solid #dbe4ed;
+        background: #f8fafc;
+        color: #334155;
+        border-radius: 0.72rem;
+        padding: 0.44rem 0.56rem;
+        text-align: left;
+        font-size: 0.74rem;
+        font-weight: 700;
+        transition: all 0.15s ease;
+    }
+
+    .workflow-step-btn:hover {
+        border-color: rgba(109, 127, 22, 0.5);
+        background: #f2f8e7;
+    }
+
+    .editor-shell.is-quick-mode .expert-only {
+        display: none !important;
+    }
+
+    .editor-shell.is-quick-mode .editor-right {
+        opacity: 0.98;
+    }
+
+    .editor-shell.is-expert-mode .expert-only {
+        display: block;
+    }
+
+    details > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    details > summary {
+        list-style: none;
     }
 
     .pill-btn:disabled,

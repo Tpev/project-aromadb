@@ -160,6 +160,55 @@
                             @error('tax_rate') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
+
+                    @php
+                        $selectedInstallments = array_map(
+                            'intval',
+                            old(
+                                'allowed_installments',
+                                is_array($training->allowed_installments ?? null) ? $training->allowed_installments : []
+                            )
+                        );
+                    @endphp
+
+                    <div class="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <p class="text-sm font-semibold text-slate-800">{{ __('Paiement en plusieurs fois') }}</p>
+                            <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
+                                <input type="hidden" name="installments_enabled" value="0">
+                                <input
+                                    type="checkbox"
+                                    name="installments_enabled"
+                                    value="1"
+                                    {{ old('installments_enabled', $training->installments_enabled) ? 'checked' : '' }}
+                                    :disabled="isFree"
+                                    class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40"
+                                >
+                                {{ __('Autoriser') }}
+                            </label>
+                        </div>
+                        <p class="mt-1 text-[11px] text-slate-500">
+                            {{ __('Choisissez les échéances autorisées (2 à 12).') }}
+                        </p>
+
+                        <div class="mt-3 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-11 gap-2">
+                            @for($i = 2; $i <= 12; $i++)
+                                <label class="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs">
+                                    <input
+                                        type="checkbox"
+                                        name="allowed_installments[]"
+                                        value="{{ $i }}"
+                                        {{ in_array($i, $selectedInstallments, true) ? 'checked' : '' }}
+                                        :disabled="isFree"
+                                    >
+                                    {{ $i }}x
+                                </label>
+                            @endfor
+                        </div>
+                        @error('allowed_installments')
+                            <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 {{-- Accès, statut, durée --}}

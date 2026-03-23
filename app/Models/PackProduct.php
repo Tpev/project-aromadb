@@ -18,12 +18,16 @@ class PackProduct extends Model
         'is_active',
         'visible_in_portal',
         'price_visible_in_portal',
+        'installments_enabled',
+        'allowed_installments',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'visible_in_portal' => 'boolean',
         'price_visible_in_portal' => 'boolean',
+        'installments_enabled' => 'boolean',
+        'allowed_installments' => 'array',
     ];
 
     public function user()

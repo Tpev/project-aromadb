@@ -321,6 +321,7 @@ public function store(Request $request)
             ->where('user_id', $therapistId)
             ->where('client_profile_id', $clientProfileId)
             ->where('status', 'active')
+            ->eligibleForConsumption()
             ->where(function ($q) use ($now) {
                 $q->whereNull('expires_at')
                   ->orWhere('expires_at', '>', $now);
@@ -1199,6 +1200,7 @@ public function storePatient(Request $request)
                 ->where('user_id', $therapist->id)
                 ->where('client_profile_id', $clientProfile->id)
                 ->where('status', 'active')
+                ->eligibleForConsumption()
                 ->where(function ($q) use ($now) {
                     $q->whereNull('expires_at')
                       ->orWhere('expires_at', '>', $now);
@@ -3298,6 +3300,7 @@ public function storeByToken(Request $request, string $token)
                 ->where('user_id', $therapist->id)
                 ->where('client_profile_id', $clientProfile->id)
                 ->where('status', 'active')
+                ->eligibleForConsumption()
                 ->where(function ($q) use ($now) {
                     $q->whereNull('expires_at')
                       ->orWhere('expires_at', '>', $now);

@@ -23,6 +23,7 @@ use Stripe\StripeClient;
 use App\Mail\QuoteMail;
 use App\Models\PackPurchase;
 use App\Models\PackProduct;
+use App\Services\PackPurchaseInvoicingService;
 
 
 class InvoiceController extends Controller
@@ -1166,111 +1167,17 @@ if ($company) {
                          ->with('error', 'Erreur lors de l\'envoi du devis.');
     }
 }
-public function createFromPackPurchase(PackPurchase $packPurchase)
+public function createFromPackPurchase(PackPurchase $packPurchase, PackPurchaseInvoicingService $purchaseInvoicingService)
 {
     // Security: pack belongs to current therapist
     if ((int) $packPurchase->user_id !== (int) Auth::id()) {
         abort(403);
     }
 
-    // Load pack + lines
-    $packPurchase->load(['pack', 'items.product', 'clientProfile']);
-
-    if (!$packPurchase->client_profile_id) {
-        return back()->with('error', 'Aucun client associé à cet achat de pack.');
+    $invoice = $purchaseInvoicingService->ensureInvoiceForPurchase($packPurchase);
+    if (!$invoice) {
+        return back()->with('error', 'Impossible de générer une facture pour cet achat.');
     }
-
-    // Prevent duplicates (recommended)
-    $existing = Invoice::where('user_id', Auth::id())
-        ->where('pack_purchase_id', $packPurchase->id)
-        ->first();
-
-    if ($existing) {
-        return redirect()->route('invoices.show', $existing)
-            ->with('success', 'Une facture existe déjà pour ce pack.');
-    }
-
-    $invoice = DB::transaction(function () use ($packPurchase) {
-
-        // Get next invoice number (same logic you already use)
-        $lastInvoice = Invoice::where('user_id', Auth::id())
-            ->where('type', 'invoice') // keep quotes separate
-            ->lockForUpdate()
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-
-        $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
-
-        // Pack pricing (adapt field names if different in PackProduct)
-        $pack = $packPurchase->pack; // PackProduct
-        if (!$pack) {
-            throw new \RuntimeException('Pack introuvable.');
-        }
-
-        // Assumptions (adjust if your PackProduct uses other fields)
-        $taxRate = (float) ($pack->tax_rate ?? 0);
-        // If you store TTC directly, flip the math accordingly.
-        $unitPriceHt = (float) ($pack->price ?? 0);
-
-        // Create base invoice
-        $invoice = Invoice::create([
-            'client_profile_id' => $packPurchase->client_profile_id,
-            'user_id'           => Auth::id(),
-            'invoice_date'      => now()->toDateString(),
-            'due_date'          => null,
-            'notes'             => 'Facture générée depuis un achat de pack.',
-            'invoice_number'    => $nextInvoiceNumber,
-            'total_amount'      => 0,
-            'total_tax_amount'  => 0,
-            'total_amount_with_tax' => 0,
-            'status'            => 'En attente', // you can set Payée if you want (see below)
-            'type'              => 'invoice',
-            'pack_purchase_id'  => $packPurchase->id,
-        ]);
-
-        // 1) Main line: the pack
-        $qty = 1;
-        $taxAmount = $unitPriceHt * $qty * ($taxRate / 100);
-
-        $invoice->items()->create([
-            'type'                 => 'custom',
-            'description'          => 'Pack : ' . ($pack->name ?? 'Pack'),
-            'quantity'             => $qty,
-            'unit_price'           => $unitPriceHt,
-            'tax_rate'             => $taxRate,
-            'tax_amount'           => $taxAmount,
-            'total_price'          => $unitPriceHt * $qty,
-            'total_price_with_tax' => ($unitPriceHt * $qty) * (1 + $taxRate / 100),
-        ]);
-
-        // 2) Optional: detail lines at 0€ for included prestations (nice on invoices)
-        foreach ($packPurchase->items as $line) {
-            if (!$line->product) continue;
-
-            $invoice->items()->create([
-                'type'                 => 'custom',
-                'description'          => 'Inclus : ' . $line->product->name . ' × ' . (int) $line->quantity_total,
-                'quantity'             => 1,
-                'unit_price'           => 0,
-                'tax_rate'             => 0,
-                'tax_amount'           => 0,
-                'total_price'          => 0,
-                'total_price_with_tax' => 0,
-            ]);
-        }
-
-        // Totals (only the main pack line counts)
-        $totalHT  = $unitPriceHt * $qty;
-        $totalTax = $taxAmount;
-
-        $invoice->update([
-            'total_amount'          => $totalHT,
-            'total_tax_amount'      => $totalTax,
-            'total_amount_with_tax' => $totalHT + $totalTax,
-        ]);
-
-        return $invoice;
-    });
 
     return redirect()->route('invoices.show', $invoice)
         ->with('success', 'Facture du pack créée avec succès.');

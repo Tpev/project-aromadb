@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class KonvaEditorController extends Controller
 {
@@ -192,8 +193,26 @@ class KonvaEditorController extends Controller
         ];
 
         $user = $request->user();
-        $user->konva_branding_settings = $settings;
-        $user->save();
+
+        if (!Schema::hasColumn('users', 'konva_branding_settings')) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Sauvegarde branding indisponible: migration non appliquee.',
+                'settings' => $this->resolveBrandingSettings($user),
+            ], 503);
+        }
+
+        try {
+            $user->konva_branding_settings = $settings;
+            $user->save();
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'ok' => false,
+                'message' => 'Echec de sauvegarde temporaire.',
+            ], 500);
+        }
 
         return response()->json([
             'ok' => true,
