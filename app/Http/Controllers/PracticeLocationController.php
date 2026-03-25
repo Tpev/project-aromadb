@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PracticeLocation;
+use App\Services\FrenchAddressGeocodingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -32,7 +33,7 @@ class PracticeLocationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, FrenchAddressGeocodingService $geocodingService)
     {
         $data = $request->validate([
             'label'         => ['required','string','max:255'],
@@ -51,6 +52,16 @@ class PracticeLocationController extends Controller
         if ($data['is_primary']) {
             PracticeLocation::where('user_id', Auth::id())->update(['is_primary' => false]);
         }
+
+        $coordinates = $geocodingService->geocodeAddressParts([
+            $data['address_line1'] ?? null,
+            $data['address_line2'] ?? null,
+            trim(($data['postal_code'] ?? '') . ' ' . ($data['city'] ?? '')),
+            $data['country'] ?? null,
+        ], false);
+
+        $data['latitude'] = $coordinates['latitude'] ?? null;
+        $data['longitude'] = $coordinates['longitude'] ?? null;
 
         PracticeLocation::create($data);
 
@@ -71,7 +82,7 @@ class PracticeLocationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, PracticeLocation $practice_location)
+    public function update(Request $request, PracticeLocation $practice_location, FrenchAddressGeocodingService $geocodingService)
     {
         $this->authorizeLocation($practice_location);
 
@@ -92,6 +103,16 @@ class PracticeLocationController extends Controller
                 ->where('id', '!=', $practice_location->id)
                 ->update(['is_primary' => false]);
         }
+
+        $coordinates = $geocodingService->geocodeAddressParts([
+            $data['address_line1'] ?? null,
+            $data['address_line2'] ?? null,
+            trim(($data['postal_code'] ?? '') . ' ' . ($data['city'] ?? '')),
+            $data['country'] ?? null,
+        ], false);
+
+        $data['latitude'] = $coordinates['latitude'] ?? null;
+        $data['longitude'] = $coordinates['longitude'] ?? null;
 
         $practice_location->update($data);
 

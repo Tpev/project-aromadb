@@ -9,7 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PracticeLocation extends Model
 {
     protected $fillable = [
-        'user_id','label','address_line1','address_line2','postal_code','city','country','is_primary',
+        'user_id','label','address_line1','address_line2','postal_code','city','country','is_primary','latitude','longitude',
+    ];
+
+    protected $casts = [
+        'is_primary' => 'boolean',
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function user(): BelongsTo
