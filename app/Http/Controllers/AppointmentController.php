@@ -3578,8 +3578,9 @@ public function createByToken(string $token)
                 'duration' => is_null($p->duration) ? null : (int) $p->duration,
 
                 // Flags used by the JS to infer mode
-                'visio' => (bool) ($p->visio ?? $p->en_visio ?? false),
+                'visio' => (bool) (!empty($p->visio) || !empty($p->en_visio)),
                 'adomicile' => (bool) ($p->adomicile ?? false),
+                'en_entreprise' => (bool) ($p->en_entreprise ?? false),
                 'dans_le_cabinet' => (bool) ($p->dans_le_cabinet ?? false),
             ];
         })->toArray();
