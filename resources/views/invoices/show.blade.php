@@ -42,13 +42,19 @@
                             <form action="{{ route('invoices.createPaymentLink', $invoice->id) }}" method="POST" style="display:inline-block;">
                                 @csrf
                                 <button type="submit" class="btn-secondary">
-                                    <i class="fas fa-link mr-2"></i> {{ __('Créer un Lien de Paiement') }}
+                                    <i class="fas fa-link mr-2"></i> {{ __('Créer et envoyer le lien de paiement') }}
                                 </button>
                             </form>
                         @endif
                     @endif
                 </div>
             </div>
+
+            @if($invoice->status !== 'Payée' && !$invoice->payment_link)
+                <p class="small text-muted mt-2 mb-0">
+                    {{ __("Cette action crée le lien Stripe puis l'envoie automatiquement par email à l'adresse de facturation du client ou de l'entreprise.") }}
+                </p>
+            @endif
 
             {{-- Chips de statut + KPI paiements --}}
             <div class="kpi-row">

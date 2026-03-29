@@ -1,7 +1,7 @@
 @component('mail::message')
 # Facture #{{ $invoice->invoice_number }}
 
-Bonjour {{ $invoice->clientProfile->name }},
+Bonjour {{ $recipientName ?: 'Madame, Monsieur' }},
 
 Veuillez trouver ci-dessous le lien pour effectuer le paiement de votre facture :
 
@@ -11,19 +11,22 @@ Payer la Facture
 
 **Détails de la Facture:**
 
-| Description        | Quantité | Prix Unitaire | Total        |
-| ------------------ | -------- | ------------- | ------------ |
+| Description | Quantité | Prix unitaire TTC | Total TTC |
+| ----------- | -------- | ----------------- | --------- |
 @foreach($invoice->items as $item)
-| {{ $item->product->name }} | {{ $item->quantity }}        | {{ number_format($item->product->price, 2, ',', ' ') }} €    | {{ number_format($item->quantity * $item->product->price, 2, ',', ' ') }} € |
+| {{ $item->name }} | {{ rtrim(rtrim(number_format($item->quantity, 2, ',', ' '), '0'), ',') }} | {{ number_format($item->unit_price_ttc, 2, ',', ' ') }} € | {{ number_format($item->total_price_with_tax, 2, ',', ' ') }} € |
 @endforeach
 
+**Date d'émission :** {{ optional($invoice->invoice_date)->format('d/m/Y') }}
 
-**Montant Total:**   **{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €** 
+@if($invoice->due_date)
+**Date d'échéance :** {{ optional($invoice->due_date)->format('d/m/Y') }}
+@endif
 
+**Montant Total :** **{{ number_format($invoice->total_amount_with_tax, 2, ',', ' ') }} €**
 
 Merci pour votre confiance.
 
-
 Cordialement,<br>
-{{ $invoice->user->name }}
+{{ $therapistName }}
 @endcomponent

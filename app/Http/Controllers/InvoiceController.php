@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Mail\InvoiceMail;
 use Stripe\Stripe;
 use Stripe\PaymentLink;
+use Stripe\Exception\ApiErrorException;
 use Illuminate\Support\Facades\Log;
 use App\Mail\InvoicePaymentLinkMail;
 use Stripe\StripeClient;
@@ -24,6 +25,7 @@ use App\Mail\QuoteMail;
 use App\Models\PackPurchase;
 use App\Models\PackProduct;
 use App\Services\PackPurchaseInvoicingService;
+use App\Services\StripePaymentLinkFactory;
 
 
 class InvoiceController extends Controller
@@ -584,45 +586,11 @@ public function sendEmail(Invoice $invoice)
 {
     $this->authorize('view', $invoice);
 
-    // eager-load everything the PDF and email view need
-	$invoice->load([
-		'user',
-		'clientProfile.company',   // ⬅️ important for queued mails
-		'corporateClient',         // ⬅️ NEW: facture directe entreprise
-		'items.product',
-		'items.inventoryItem',
-	]);
+    ['to' => $to, 'cc' => $cc] = $this->resolveInvoiceEmailRecipients($invoice);
 
-   $client = $invoice->clientProfile;
-
-// Entreprise possible via:
-// - facture directe corporate_client_id
-// - ou client rattaché à une entreprise
-$companyFromClient = $client?->company;
-$company = $invoice->corporateClient ?: $companyFromClient;
-
-// Determine recipient(s)
-$to = null;
-$cc = null;
-
-// 1) Si entreprise: priorité billing_email puis main_contact_email
-if ($company) {
-    $to = $company->billing_email ?: $company->main_contact_email;
-
-    // CC au bénéficiaire si on a un client individuel rattaché
-    if ($to && $client?->email && $client->email !== $to) {
-        $cc = $client->email;
+    if (!$to) {
+        return back()->with('error', "Aucune adresse email de facturation n'est définie (client ou entreprise).");
     }
-}
-
-// 2) Sinon client “classique”
-if (!$to && $client) {
-    $to = $client->email_billing ?: $client->email;
-}
-
-if (!$to) {
-    return back()->with('error', "Aucune adresse email de facturation n'est définie (client ou entreprise).");
-}
 
 
     $therapistName = Auth::user()->name;
@@ -649,11 +617,19 @@ if (!$to) {
 
 
 
-public function createPaymentLink(Invoice $invoice)
+public function createPaymentLink(Invoice $invoice, StripePaymentLinkFactory $stripePaymentLinkFactory)
 {
+    $this->authorize('update', $invoice);
+
     // Safety: only invoices (no quotes)
     if (($invoice->type ?? 'invoice') !== 'invoice') {
         return back()->with('error', "Un lien de paiement Stripe ne peut être créé que pour une facture (pas un devis).");
+    }
+
+    ['to' => $to, 'cc' => $cc, 'recipientName' => $recipientName] = $this->resolveInvoiceEmailRecipients($invoice);
+
+    if (!$to) {
+        return back()->with('error', "Aucune adresse email de facturation n'est définie pour envoyer le lien de paiement.");
     }
 
     $user = $invoice->user;
@@ -672,8 +648,6 @@ public function createPaymentLink(Invoice $invoice)
         return back()->with('error', "Montant trop faible pour Stripe (minimum 0,01€). Vérifiez la remise appliquée.");
     }
 
-    $stripe = new StripeClient(config('services.stripe.secret'));
-
     // Label shown in Stripe Checkout
     $number = $invoice->invoice_number ?? $invoice->id;
     $label  = "Facture n°" . $number;
@@ -682,37 +656,34 @@ public function createPaymentLink(Invoice $invoice)
     $redirectUrl = url("/invoices/{$invoice->id}");
 
     try {
-        // One line item = final invoice total TTC
-        $paymentLink = $stripe->paymentLinks->create([
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => 'eur',
-                    'unit_amount' => $amountCents,
-                    'product_data' => [
-                        'name' => $label,
-                        'metadata' => [
-                            'invoice_id' => (string) $invoice->id,
-                            'user_id' => (string) $invoice->user_id,
-                        ],
-                    ],
-                ],
-                'quantity' => 1,
-            ]],
-
-            // Optional: helps UX after payment
-            'after_completion' => [
-                'type' => 'redirect',
-                'redirect' => ['url' => $redirectUrl],
-            ],
-        ], [
-            // IMPORTANT: create on the connected account
-            'stripe_account' => $stripeAccountId,
-        ]);
-
-        $invoice->payment_link = $paymentLink->url;
+        $invoice->payment_link = $stripePaymentLinkFactory->createInvoicePaymentLink(
+            $invoice,
+            $amountCents,
+            $label,
+            $redirectUrl,
+            $stripeAccountId
+        );
         $invoice->save();
 
-        return back()->with('success', "Lien de paiement Stripe créé avec succès.");
+        try {
+            $therapistName = Auth::user()->name;
+
+            Mail::to($to)
+                ->when($cc, fn ($message) => $message->cc($cc))
+                ->queue(new InvoicePaymentLinkMail($invoice, $therapistName, $recipientName));
+
+            return back()->with('success', "Lien de paiement Stripe créé et envoyé par email avec succès.");
+        } catch (\Throwable $mailException) {
+            Log::error("Payment link email dispatch failed: " . $mailException->getMessage(), [
+                'invoice_id' => $invoice->id,
+                'user_id' => $invoice->user_id,
+                'recipient' => $to,
+            ]);
+
+            return back()
+                ->with('success', "Lien de paiement Stripe créé avec succès.")
+                ->with('error', "Le lien a été créé, mais l'email n'a pas pu être envoyé.");
+        }
 
     } catch (ApiErrorException $e) {
         Log::error("Stripe API Error while creating payment link: " . $e->getMessage(), [
@@ -737,8 +708,56 @@ public function createPaymentLink(Invoice $invoice)
     }
 }
 
+private function resolveInvoiceEmailRecipients(Invoice $invoice): array
+{
+    $invoice->loadMissing([
+        'user',
+        'clientProfile.company',
+        'corporateClient',
+        'items.product',
+        'items.inventoryItem',
+    ]);
 
+    $client = $invoice->clientProfile;
+    $company = $invoice->corporateClient ?: $client?->company;
 
+    $to = null;
+    $cc = null;
+    $recipientName = null;
+
+    if ($company) {
+        $to = $company->billing_email ?: $company->main_contact_email;
+
+        $recipientName = trim(($company->main_contact_first_name ?? '') . ' ' . ($company->main_contact_last_name ?? ''));
+        if (!$recipientName) {
+            $recipientName = $company->trade_name ?: $company->name;
+        }
+
+        if ($to && $client?->email && $client->email !== $to) {
+            $cc = $client->email;
+        }
+    }
+
+    if (!$to && $client) {
+        $to = $client->email_billing ?: $client->email;
+    }
+
+    if (!$recipientName && $client) {
+        $billingFirst = $client->first_name_billing ?: $client->first_name;
+        $billingLast = $client->last_name_billing ?: $client->last_name;
+        $recipientName = trim($billingFirst . ' ' . $billingLast);
+    }
+
+    if (!$recipientName) {
+        $recipientName = $to;
+    }
+
+    return [
+        'to' => $to,
+        'cc' => $cc,
+        'recipientName' => $recipientName,
+    ];
+}
 
     /**
      * Synchronize a product with Stripe.
