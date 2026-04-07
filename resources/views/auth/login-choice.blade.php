@@ -45,11 +45,11 @@
                                     </p>
 
                                     <h1 class="mt-6 max-w-lg text-4xl font-extrabold leading-tight text-slate-900 sm:text-5xl">
-                                        Choisissez votre espace de connexion sans vous tromper
+                                        Choisissez votre espace de connexion
                                     </h1>
 
                                     <p class="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-                                        Selon votre profil, nous vous envoyons soit vers l’espace client, soit vers l’espace praticien. Le but est simple : arriver tout de suite sur le bon formulaire.
+                                        Sélectionnez simplement l’espace qui vous correspond pour accéder directement au bon formulaire.
                                     </p>
                                 </div>
 
