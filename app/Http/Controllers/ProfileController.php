@@ -230,9 +230,9 @@ class ProfileController extends Controller
             $user->digital_sales_retractation_label = $validatedData['digital_sales_retractation_label'] ?: null;
         }
 
-        if (Schema::hasColumn('users', 'digital_sales_retractation_url')) {
-            $user->digital_sales_retractation_url = $validatedData['digital_sales_retractation_url'] ?: null;
-        }
+		if (Schema::hasColumn('users', 'digital_sales_retractation_url')) {
+			$user->digital_sales_retractation_url = $validatedData['digital_sales_retractation_url'] ?? null;
+		}
 
         if ($request->hasFile('digital_sales_retractation_document') && Schema::hasColumn('users', 'digital_sales_retractation_document_path')) {
             $document = $request->file('digital_sales_retractation_document');
