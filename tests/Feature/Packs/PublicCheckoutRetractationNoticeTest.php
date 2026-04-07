@@ -17,7 +17,7 @@ function createTherapistWithRetractationConfig(array $userOverrides = []): User
         'slug' => 'retractation-' . uniqid(),
         'digital_sales_retractation_enabled' => true,
         'digital_sales_retractation_label' => 'Je confirme avoir lu les informations sur le droit de rétractation.',
-        'digital_sales_retractation_url' => 'https://example.test/retractation.pdf',
+        'digital_sales_retractation_document_path' => 'retractation-notices/test/retractation.pdf',
     ], $userOverrides));
 }
 
@@ -48,7 +48,7 @@ test('training checkout shows retractation notice when enabled on therapist and 
 
     $response->assertOk();
     $response->assertSee('Je confirme avoir lu les informations sur le droit de rétractation.');
-    $response->assertSee('https://example.test/retractation.pdf');
+    $response->assertSee('/storage/retractation-notices/test/retractation.pdf');
 });
 
 test('training checkout rejects purchase when retractation notice is required but unchecked', function () {
@@ -95,7 +95,8 @@ test('training checkout stores retractation snapshot when acknowledged', functio
     expect($purchase->retractation_notice_required)->toBeTrue();
     expect($purchase->retractation_notice_accepted_at)->not->toBeNull();
     expect($purchase->retractation_notice_label_snapshot)->toBe('Je confirme avoir lu les informations sur le droit de rétractation.');
-    expect($purchase->retractation_notice_url_snapshot)->toBe('https://example.test/retractation.pdf');
+    expect($purchase->retractation_notice_document_path_snapshot)->toBe('retractation-notices/test/retractation.pdf');
+    expect($purchase->retractation_notice_url_snapshot)->toBeNull();
 });
 
 test('pack checkout remains unchanged even if therapist has retractation config', function () {

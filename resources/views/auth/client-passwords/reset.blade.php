@@ -4,6 +4,17 @@
             🔐 Nouveau mot de passe
         </h1>
 
+        @if ($errors->any())
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                <p class="font-semibold">Merci de corriger les points ci-dessous :</p>
+                <ul class="mt-2 list-disc pl-5 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('client.password.update') }}">
             @csrf
 
@@ -26,6 +37,9 @@
                     autocomplete="new-password"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:border-[#647a0b] focus:ring-[#647a0b]"
                 />
+                <p class="mt-2 text-xs text-gray-500">
+                    8 caractères minimum. Pour plus de sécurité, utilisez aussi une majuscule, une minuscule et un chiffre.
+                </p>
                 @error('password')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -40,6 +54,9 @@
                     autocomplete="new-password"
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:border-[#647a0b] focus:ring-[#647a0b]"
                 />
+                <p class="mt-2 text-xs text-gray-500">
+                    Saisissez exactement le même mot de passe pour confirmer.
+                </p>
                 @error('password_confirmation')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror

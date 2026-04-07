@@ -18,7 +18,17 @@ class ClientPasswordResetController extends Controller
 
     public function sendResetLinkEmail(Request $request)
     {
-        $request->validate(['email' => 'required|email|exists:client_profiles,email']);
+        $request->validate(
+            ['email' => 'required|email|exists:client_profiles,email'],
+            [
+                'email.required' => 'Veuillez renseigner votre adresse e-mail.',
+                'email.email' => 'Veuillez renseigner une adresse e-mail valide.',
+                'email.exists' => 'Aucun espace client ne correspond à cette adresse e-mail.',
+            ],
+            [
+                'email' => 'adresse e-mail',
+            ]
+        );
 
 $status = Password::broker('client_profiles')->sendResetLink(
     $request->only('email')
@@ -39,11 +49,26 @@ $status = Password::broker('client_profiles')->sendResetLink(
 
     public function reset(Request $request)
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email|exists:client_profiles,email',
-            'password' => 'required|min:8|confirmed',
-        ]);
+        $request->validate(
+            [
+                'token' => 'required',
+                'email' => 'required|email|exists:client_profiles,email',
+                'password' => 'required|min:8|confirmed',
+            ],
+            [
+                'token.required' => 'Le lien de réinitialisation est invalide ou incomplet.',
+                'email.required' => 'Veuillez renseigner votre adresse e-mail.',
+                'email.email' => 'Veuillez renseigner une adresse e-mail valide.',
+                'email.exists' => 'Aucun espace client ne correspond à cette adresse e-mail.',
+                'password.required' => 'Veuillez choisir un mot de passe.',
+                'password.min' => 'Votre mot de passe doit contenir au moins 8 caractères.',
+                'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            ],
+            [
+                'email' => 'adresse e-mail',
+                'password' => 'mot de passe',
+            ]
+        );
 
 $status = Password::broker('client_profiles')->reset(
     $request->only('email', 'password', 'password_confirmation', 'token'),

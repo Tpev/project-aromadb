@@ -119,17 +119,25 @@ class ProfileController extends Controller
             'remove_invoice_logo' => 'nullable|boolean',
             'invoice_primary_color' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6})$/'],
 			'google_event_color_id' => 'nullable|in:1,2,3,4,5,6,7,8,9,10,11',
-			'invoice_extra_info' => 'nullable|string|max:2000',
+            'invoice_extra_info' => 'nullable|string|max:2000',
             'digital_sales_retractation_label' => 'nullable|string|max:500',
             'digital_sales_retractation_url' => 'nullable|url|max:2048',
+            'digital_sales_retractation_document' => 'nullable|file|mimes:pdf|max:10096',
 
 
         ]);
 
-        if ($request->boolean('digital_sales_retractation_enabled') && empty($validatedData['digital_sales_retractation_url'])) {
+        $hasExistingRetractationDocument = filled(auth()->user()->digital_sales_retractation_document_path)
+            || filled(auth()->user()->digital_sales_retractation_url);
+
+        if (
+            $request->boolean('digital_sales_retractation_enabled')
+            && !$request->hasFile('digital_sales_retractation_document')
+            && !$hasExistingRetractationDocument
+        ) {
             return back()
                 ->withErrors([
-                    'digital_sales_retractation_url' => 'Ajoutez un lien valide vers votre document sur le droit de rétractation.',
+                    'digital_sales_retractation_document' => 'Ajoutez un document PDF sur le droit de rétractation avant d’activer cette option.',
                 ])
                 ->withInput();
         }
@@ -224,6 +232,14 @@ class ProfileController extends Controller
 
         if (Schema::hasColumn('users', 'digital_sales_retractation_url')) {
             $user->digital_sales_retractation_url = $validatedData['digital_sales_retractation_url'] ?: null;
+        }
+
+        if ($request->hasFile('digital_sales_retractation_document') && Schema::hasColumn('users', 'digital_sales_retractation_document_path')) {
+            $document = $request->file('digital_sales_retractation_document');
+            $fileName = 'retractation_' . now()->format('Ymd_His') . '_' . uniqid() . '.pdf';
+            $path = $document->storeAs('retractation_notices/' . $user->id, $fileName, 'public');
+
+            $user->digital_sales_retractation_document_path = $path;
         }
 
         /* ────────────── SLUG (if company name changed) ───────────── */

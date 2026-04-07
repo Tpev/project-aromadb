@@ -32,9 +32,19 @@ class ClientPasswordSetupController extends Controller
     {
         $client = $this->resolveClientFrom($token);
 
-        $request->validate([
-            'password' => ['required', 'confirmed', 'min:8'],
-        ]);
+        $request->validate(
+            [
+                'password' => ['required', 'confirmed', 'min:8'],
+            ],
+            [
+                'password.required' => 'Veuillez choisir un mot de passe.',
+                'password.min' => 'Votre mot de passe doit contenir au moins 8 caractères.',
+                'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            ],
+            [
+                'password' => 'mot de passe',
+            ]
+        );
 
         $client->update([
             'password'                  => bcrypt($request->password),
@@ -61,9 +71,18 @@ class ClientPasswordSetupController extends Controller
     --------------------------------------------------------- */
     public function sendResetLink(Request $request)
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
+        $request->validate(
+            [
+                'email' => ['required', 'email'],
+            ],
+            [
+                'email.required' => 'Veuillez renseigner votre adresse e-mail.',
+                'email.email' => 'Veuillez renseigner une adresse e-mail valide.',
+            ],
+            [
+                'email' => 'adresse e-mail',
+            ]
+        );
 
         // ✅ CRITICAL: use your client broker (not default users)
         $status = Password::broker('client_profiles')->sendResetLink(
@@ -91,11 +110,25 @@ class ClientPasswordSetupController extends Controller
     --------------------------------------------------------- */
     public function resetStore(Request $request)
     {
-        $request->validate([
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', 'min:8'],
-        ]);
+        $request->validate(
+            [
+                'token' => ['required'],
+                'email' => ['required', 'email'],
+                'password' => ['required', 'confirmed', 'min:8'],
+            ],
+            [
+                'token.required' => 'Le lien de réinitialisation est invalide ou incomplet.',
+                'email.required' => 'Veuillez renseigner votre adresse e-mail.',
+                'email.email' => 'Veuillez renseigner une adresse e-mail valide.',
+                'password.required' => 'Veuillez choisir un mot de passe.',
+                'password.min' => 'Votre mot de passe doit contenir au moins 8 caractères.',
+                'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            ],
+            [
+                'email' => 'adresse e-mail',
+                'password' => 'mot de passe',
+            ]
+        );
 
         // ✅ CRITICAL: client_profiles broker
         $status = Password::broker('client_profiles')->reset(

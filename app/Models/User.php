@@ -92,6 +92,7 @@ class User extends Authenticatable
         'digital_sales_retractation_enabled',
         'digital_sales_retractation_label',
         'digital_sales_retractation_url',
+        'digital_sales_retractation_document_path',
 
     ];
 
@@ -340,7 +341,10 @@ class User extends Authenticatable
     public function hasDigitalSalesRetractationNoticeConfigured(): bool
     {
         return (bool) $this->digital_sales_retractation_enabled
-            && filled($this->digital_sales_retractation_url);
+            && (
+                filled($this->digital_sales_retractation_document_path)
+                || filled($this->digital_sales_retractation_url)
+            );
     }
 
     public function digitalSalesRetractationNoticeLabel(): string
@@ -352,5 +356,18 @@ class User extends Authenticatable
         }
 
         return "J'ai pris connaissance des informations relatives au droit de rétractation.";
+    }
+
+    public function digitalSalesRetractationNoticeDocumentUrl(): ?string
+    {
+        if (filled($this->digital_sales_retractation_document_path)) {
+            return asset('storage/' . ltrim((string) $this->digital_sales_retractation_document_path, '/'));
+        }
+
+        if (filled($this->digital_sales_retractation_url)) {
+            return (string) $this->digital_sales_retractation_url;
+        }
+
+        return null;
     }
 }

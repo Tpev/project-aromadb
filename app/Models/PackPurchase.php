@@ -38,6 +38,7 @@ class PackPurchase extends Model
         'retractation_notice_accepted_at',
         'retractation_notice_label_snapshot',
         'retractation_notice_url_snapshot',
+        'retractation_notice_document_path_snapshot',
     ];
 
     protected $casts = [

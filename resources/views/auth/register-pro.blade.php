@@ -171,15 +171,14 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 <div class="mb-4">
     <x-input-label for="password" :value="__('Mot de passe')" />
 
-    <div class="relative">
-        <x-text-input
+    <div>
+        <x-password-toggle-input
             id="password"
             name="password"
-            type="password"
             autocomplete="new-password"
             required
             placeholder="Choisissez un mot de passe"
-            class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2 pr-10"
+            class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2"
         />
 
         <!-- Strength bar -->
@@ -207,10 +206,9 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 <!-- Confirm Password -->
                 <div class="mb-4">
                     <x-input-label for="password_confirmation" :value="__('Confirmez le mot de passe')" />
-                    <x-text-input
+                    <x-password-toggle-input
                         id="password_confirmation"
                         name="password_confirmation"
-                        type="password"
                         autocomplete="new-password"
                         required
                         placeholder="Répétez votre mot de passe"

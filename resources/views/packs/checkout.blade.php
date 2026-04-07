@@ -277,7 +277,7 @@
                                        target="_blank"
                                        rel="noopener noreferrer"
                                        class="font-semibold text-[#647a0b] underline underline-offset-2">
-                                        {{ __('Consulter le document') }}
+                                        {{ __('Consulter le document PDF') }}
                                     </a>
                                 </span>
                             </label>

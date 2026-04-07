@@ -577,19 +577,31 @@
                                 </div>
 
                                 <div class="details-box">
-                                    <label class="details-label" for="digital_sales_retractation_url">
-                                        {{ __('Lien vers le document droit de rétractation') }}
+                                    <label class="details-label" for="digital_sales_retractation_document">
+                                        {{ __('Document droit de rétractation (PDF)') }}
                                     </label>
-                                    <input type="url"
-                                           id="digital_sales_retractation_url"
-                                           name="digital_sales_retractation_url"
+
+                                    @if($user->digitalSalesRetractationNoticeDocumentUrl())
+                                        <p class="mb-2">
+                                            {{ __('Document actuel :') }}
+                                            <a href="{{ $user->digitalSalesRetractationNoticeDocumentUrl() }}"
+                                               target="_blank"
+                                               rel="noopener"
+                                               class="text-blue-600 underline">
+                                                {{ __('Voir / télécharger le document') }}
+                                            </a>
+                                        </p>
+                                    @endif
+
+                                    <input type="file"
+                                           id="digital_sales_retractation_document"
+                                           name="digital_sales_retractation_document"
                                            class="form-control"
-                                           value="{{ old('digital_sales_retractation_url', $user->digital_sales_retractation_url) }}"
-                                           placeholder="https://...">
+                                           accept="application/pdf">
                                     <small class="text-gray-500 block mt-1">
-                                        {{ __('Ajoutez ici l’URL de votre PDF ou de votre page dédiée. Ce lien sera affiché au checkout si vous activez l’option sur une formation.') }}
+                                        {{ __('Ajoutez un PDF qui sera proposé au checkout pour les formations concernées. Si vous remplacez le document, l’ancien reste conservé pour l’historique des achats déjà effectués.') }}
                                     </small>
-                                    @error('digital_sales_retractation_url')
+                                    @error('digital_sales_retractation_document')
                                         <p class="text-red-500 mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>

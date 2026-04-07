@@ -127,7 +127,7 @@ class PublicCheckoutController extends Controller
             ) {
                 $selectedRetractationNoticeRequired = true;
                 $selectedRetractationNoticeLabel = $training->user?->digitalSalesRetractationNoticeLabel();
-                $selectedRetractationNoticeUrl = $training->user?->digital_sales_retractation_url;
+                $selectedRetractationNoticeUrl = $training->user?->digitalSalesRetractationNoticeDocumentUrl();
             }
         }
 
@@ -236,6 +236,7 @@ class PublicCheckoutController extends Controller
         $retractationNoticeRequired = false;
         $retractationNoticeLabel = null;
         $retractationNoticeUrl = null;
+        $retractationNoticeDocumentPath = null;
 
         if ($type === 'pack') {
             $pack = PackProduct::where('user_id', $therapist->id)
@@ -319,7 +320,8 @@ class PublicCheckoutController extends Controller
             ) {
                 $retractationNoticeRequired = true;
                 $retractationNoticeLabel = $training->user?->digitalSalesRetractationNoticeLabel();
-                $retractationNoticeUrl = $training->user?->digital_sales_retractation_url;
+                $retractationNoticeUrl = $training->user?->digitalSalesRetractationNoticeDocumentUrl();
+                $retractationNoticeDocumentPath = $training->user?->digital_sales_retractation_document_path;
             }
 
             if ($retractationNoticeRequired && !$request->boolean('retractation_notice_acknowledged')) {
@@ -360,7 +362,18 @@ class PublicCheckoutController extends Controller
                 if (Schema::hasColumn('pack_purchases', 'retractation_notice_label_snapshot') && $retractationNoticeRequired) {
                     $payload['retractation_notice_label_snapshot'] = $retractationNoticeLabel;
                 }
-                if (Schema::hasColumn('pack_purchases', 'retractation_notice_url_snapshot') && $retractationNoticeRequired) {
+                if (
+                    Schema::hasColumn('pack_purchases', 'retractation_notice_document_path_snapshot')
+                    && $retractationNoticeRequired
+                    && filled($retractationNoticeDocumentPath)
+                ) {
+                    $payload['retractation_notice_document_path_snapshot'] = $retractationNoticeDocumentPath;
+                }
+                if (
+                    Schema::hasColumn('pack_purchases', 'retractation_notice_url_snapshot')
+                    && $retractationNoticeRequired
+                    && empty($retractationNoticeDocumentPath)
+                ) {
                     $payload['retractation_notice_url_snapshot'] = $retractationNoticeUrl;
                 }
 
