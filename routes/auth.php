@@ -27,8 +27,10 @@ Route::middleware('guest',\App\Http\Middleware\TrackPageViews::class)->group(fun
     Route::post('register-pro', [RegisteredUserController::class, 'storepro']);
 
     // Login, Forgot Password, Reset Password
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    Route::get('login', [AuthenticatedSessionController::class, 'choose'])
                 ->name('login');
+    Route::get('login/praticien', [AuthenticatedSessionController::class, 'create'])
+                ->name('login.practitioner');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
     
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])

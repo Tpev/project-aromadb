@@ -20,6 +20,17 @@
         @error('email') <p class="text-red-600 mt-2">{{ $message }}</p> @enderror
     </form>
 	
-	<a href="{{ route('client.password.request') }}">Mot de passe oublié ?</a>
+	<div class="mt-4 space-y-2 text-sm">
+        <div>
+            <a href="{{ route('client.password.request') }}" class="text-[#647a0b] underline">Mot de passe oublié ?</a>
+        </div>
+        <div>
+            <span class="text-gray-600">Vous êtes praticien ?</span>
+            <a href="{{ route('login.practitioner') }}" class="text-[#854f38] underline">Accéder à l’espace praticien</a>
+        </div>
+        <div>
+            <a href="{{ route('login') }}" class="text-gray-500 underline">Retour au choix de connexion</a>
+        </div>
+    </div>
 
 </x-client-app-layout>

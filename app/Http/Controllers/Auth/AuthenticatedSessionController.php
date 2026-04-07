@@ -11,6 +11,11 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function choose(): View
+    {
+        return view('auth.login-choice');
+    }
+
     /**
      * Display the login view.
      */

@@ -50,11 +50,26 @@
         <!-- Registration Link -->
         <div class="flex items-center justify-center mt-6">
             <p class="text-sm text-gray-600 dark:text-gray-400">
+                Vous êtes client ?
+                <a href="{{ route('client.login') }}" class="underline text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-100">
+                    Accéder à l’espace client
+                </a>
+            </p>
+        </div>
+
+        <div class="flex items-center justify-center mt-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
                 Vous n'avez pas encore de compte ? 
                 <a href="{{ route('register-pro') }}" class="underline text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-100">
                     Créez-en un ici
                 </a>.
             </p>
+        </div>
+
+        <div class="flex items-center justify-center mt-4">
+            <a href="{{ route('login') }}" class="underline text-sm text-gray-500 hover:text-gray-700">
+                Retour au choix de connexion
+            </a>
         </div>
     </form>
 </x-guest-layout>
