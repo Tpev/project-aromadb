@@ -82,6 +82,9 @@ class PublicCheckoutController extends Controller
         $training = null;
         $trainingPriceStr = null;
         $totalAmountCents = 0;
+        $selectedRetractationNoticeRequired = false;
+        $selectedRetractationNoticeLabel = null;
+        $selectedRetractationNoticeUrl = null;
 
         if ($selectedType === 'pack') {
             $pack = $packs->firstWhere('id', $selectedId);
@@ -110,11 +113,21 @@ class PublicCheckoutController extends Controller
         } else {
             $training = $trainings->firstWhere('id', $selectedId);
             abort_unless($training, 404);
+            $training->loadMissing('user');
 
             $isFree = (bool) ($training->is_free ?? false);
             if (!$isFree && !is_null($training->price_cents)) {
                 $trainingPriceStr = number_format($training->price_cents / 100, 2, ',', ' ') . ' €';
                 $totalAmountCents = (int) $training->price_cents;
+            }
+
+            if (
+                Schema::hasColumn('digital_trainings', 'use_global_retractation_notice')
+                && $training->requiresRetractationNotice()
+            ) {
+                $selectedRetractationNoticeRequired = true;
+                $selectedRetractationNoticeLabel = $training->user?->digitalSalesRetractationNoticeLabel();
+                $selectedRetractationNoticeUrl = $training->user?->digital_sales_retractation_url;
             }
         }
 
@@ -159,6 +172,9 @@ class PublicCheckoutController extends Controller
             'selectedInstallmentsEnabled',
             'availableInstallmentPlans',
             'defaultInstallmentCount',
+            'selectedRetractationNoticeRequired',
+            'selectedRetractationNoticeLabel',
+            'selectedRetractationNoticeUrl',
         ));
     }
 
@@ -217,6 +233,9 @@ class PublicCheckoutController extends Controller
         $lineLabel = '';
         $purchase = null;
         $allowedInstallments = [];
+        $retractationNoticeRequired = false;
+        $retractationNoticeLabel = null;
+        $retractationNoticeUrl = null;
 
         if ($type === 'pack') {
             $pack = PackProduct::where('user_id', $therapist->id)
@@ -272,6 +291,7 @@ class PublicCheckoutController extends Controller
             });
         } else {
             $training = DigitalTraining::where('user_id', $therapist->id)->findOrFail($id);
+            $training->loadMissing('user');
 
             if (Schema::hasColumn('digital_trainings', 'visibility')) {
                 abort_unless(in_array($training->visibility, ['public'], true), 404);
@@ -292,6 +312,21 @@ class PublicCheckoutController extends Controller
             $allowedInstallments = ((bool) ($training->installments_enabled ?? false))
                 ? InstallmentPlan::sanitizeAllowed((array) ($training->allowed_installments ?? []))
                 : [];
+
+            if (
+                Schema::hasColumn('digital_trainings', 'use_global_retractation_notice')
+                && $training->requiresRetractationNotice()
+            ) {
+                $retractationNoticeRequired = true;
+                $retractationNoticeLabel = $training->user?->digitalSalesRetractationNoticeLabel();
+                $retractationNoticeUrl = $training->user?->digital_sales_retractation_url;
+            }
+
+            if ($retractationNoticeRequired && !$request->boolean('retractation_notice_acknowledged')) {
+                return back()->withErrors([
+                    'retractation_notice_acknowledged' => 'Veuillez confirmer la lecture du document lié au droit de rétractation avant de poursuivre.',
+                ])->withInput();
+            }
 
             if (
                 Schema::hasColumn('pack_purchases', 'digital_training_id')
@@ -315,6 +350,18 @@ class PublicCheckoutController extends Controller
                 }
                 if (Schema::hasColumn('pack_purchases', 'payment_state')) {
                     $payload['payment_state'] = 'pending';
+                }
+                if (Schema::hasColumn('pack_purchases', 'retractation_notice_required')) {
+                    $payload['retractation_notice_required'] = $retractationNoticeRequired;
+                }
+                if (Schema::hasColumn('pack_purchases', 'retractation_notice_accepted_at') && $retractationNoticeRequired) {
+                    $payload['retractation_notice_accepted_at'] = now();
+                }
+                if (Schema::hasColumn('pack_purchases', 'retractation_notice_label_snapshot') && $retractationNoticeRequired) {
+                    $payload['retractation_notice_label_snapshot'] = $retractationNoticeLabel;
+                }
+                if (Schema::hasColumn('pack_purchases', 'retractation_notice_url_snapshot') && $retractationNoticeRequired) {
+                    $payload['retractation_notice_url_snapshot'] = $retractationNoticeUrl;
                 }
 
                 $purchase = PackPurchase::create($payload);

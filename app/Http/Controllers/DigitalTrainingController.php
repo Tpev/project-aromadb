@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -71,6 +72,7 @@ class DigitalTrainingController extends Controller
             'access_type'                => 'required|in:public,private,subscription',
             'status'                     => 'required|in:draft,published,archived',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
+            'use_global_retractation_notice' => 'nullable|boolean',
 
             'product_id'                 => [
                 'nullable',
@@ -163,6 +165,9 @@ class DigitalTrainingController extends Controller
             'status'                     => $data['status'],
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? null,
             'product_id'                 => $data['product_id'] ?? null,
+            'use_global_retractation_notice' => Schema::hasColumn('digital_trainings', 'use_global_retractation_notice')
+                ? $request->boolean('use_global_retractation_notice')
+                : false,
         ]);
 
         return redirect()
@@ -212,6 +217,7 @@ class DigitalTrainingController extends Controller
             'access_type'                => 'required|in:public,private,subscription',
             'status'                     => 'required|in:draft,published,archived',
             'estimated_duration_minutes' => 'nullable|integer|min:1',
+            'use_global_retractation_notice' => 'nullable|boolean',
 
             'product_id'                 => [
                 'nullable',
@@ -296,6 +302,9 @@ class DigitalTrainingController extends Controller
             'status'                     => $data['status'],
             'estimated_duration_minutes' => $data['estimated_duration_minutes'] ?? null,
             'product_id'                 => $data['product_id'] ?? null,
+            'use_global_retractation_notice' => Schema::hasColumn('digital_trainings', 'use_global_retractation_notice')
+                ? $request->boolean('use_global_retractation_notice')
+                : false,
         ]);
 
         return redirect()

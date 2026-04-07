@@ -250,6 +250,48 @@
                     </p>
                 </div>
 
+                <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">{{ __('Droit de rétractation') }}</p>
+                            <p class="text-[11px] text-slate-500">
+                                {{ __('Optionnel : afficher une case à cocher avant paiement avec le document configuré dans Informations de l’entreprise.') }}
+                            </p>
+                        </div>
+
+                        <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
+                            <input type="hidden" name="use_global_retractation_notice" value="0">
+                            <input type="checkbox"
+                                   name="use_global_retractation_notice"
+                                   value="1"
+                                   {{ old('use_global_retractation_notice') ? 'checked' : '' }}
+                                   class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                            {{ __('Activer pour cette formation') }}
+                        </label>
+                    </div>
+
+                    @php
+                        $owner = auth()->user();
+                    @endphp
+
+                    @if($owner?->hasDigitalSalesRetractationNoticeConfigured())
+                        <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                            <p class="font-semibold text-slate-800">{{ __('Document global actuellement configuré') }}</p>
+                            <p class="mt-1">{{ $owner->digitalSalesRetractationNoticeLabel() }}</p>
+                            <a href="{{ $owner->digital_sales_retractation_url }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="mt-2 inline-flex text-sm font-semibold text-[#647a0b] underline underline-offset-2">
+                                {{ __('Ouvrir le document') }}
+                            </a>
+                        </div>
+                    @else
+                        <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                            {{ __('Aucun document global n’est encore configuré. Rendez-vous dans Informations de l’entreprise pour ajouter le lien avant d’activer cette case au checkout.') }}
+                        </div>
+                    @endif
+                </div>
+
                 {{-- Actions --}}
                 <div class="flex justify-between items-center pt-4 border-t border-slate-100">
                     <a href="{{ route('digital-trainings.index') }}"

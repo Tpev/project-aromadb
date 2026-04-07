@@ -7,6 +7,7 @@ use App\Services\ProfileAvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
@@ -119,9 +120,19 @@ class ProfileController extends Controller
             'invoice_primary_color' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6})$/'],
 			'google_event_color_id' => 'nullable|in:1,2,3,4,5,6,7,8,9,10,11',
 			'invoice_extra_info' => 'nullable|string|max:2000',
+            'digital_sales_retractation_label' => 'nullable|string|max:500',
+            'digital_sales_retractation_url' => 'nullable|url|max:2048',
 
 
         ]);
+
+        if ($request->boolean('digital_sales_retractation_enabled') && empty($validatedData['digital_sales_retractation_url'])) {
+            return back()
+                ->withErrors([
+                    'digital_sales_retractation_url' => 'Ajoutez un lien valide vers votre document sur le droit de rétractation.',
+                ])
+                ->withInput();
+        }
 
         $user = auth()->user();
 
@@ -201,6 +212,18 @@ class ProfileController extends Controller
         // Invoice primary color
         if (array_key_exists('invoice_primary_color', $validatedData)) {
             $user->invoice_primary_color = $validatedData['invoice_primary_color'] ?: null;
+        }
+
+        if (Schema::hasColumn('users', 'digital_sales_retractation_enabled')) {
+            $user->digital_sales_retractation_enabled = $request->boolean('digital_sales_retractation_enabled');
+        }
+
+        if (Schema::hasColumn('users', 'digital_sales_retractation_label')) {
+            $user->digital_sales_retractation_label = $validatedData['digital_sales_retractation_label'] ?: null;
+        }
+
+        if (Schema::hasColumn('users', 'digital_sales_retractation_url')) {
+            $user->digital_sales_retractation_url = $validatedData['digital_sales_retractation_url'] ?: null;
         }
 
         /* ────────────── SLUG (if company name changed) ───────────── */

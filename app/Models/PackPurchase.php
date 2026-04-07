@@ -34,6 +34,10 @@ class PackPurchase extends Model
 		'completed_at',
 		'canceled_requested_at',
 		'canceled_effective_at',
+        'retractation_notice_required',
+        'retractation_notice_accepted_at',
+        'retractation_notice_label_snapshot',
+        'retractation_notice_url_snapshot',
     ];
 
     protected $casts = [
@@ -46,6 +50,8 @@ class PackPurchase extends Model
         'installments_total' => 'integer',
         'installments_paid' => 'integer',
         'installment_amount_cents' => 'integer',
+        'retractation_notice_required' => 'boolean',
+        'retractation_notice_accepted_at' => 'datetime',
     ];
 
     public function user()

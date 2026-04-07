@@ -546,6 +546,54 @@
 
                             {{-- Upload nouveau logo --}}
                             <div class="mb-4">
+                                <div class="details-box">
+                                    <label class="flex items-center">
+                                        <input type="checkbox"
+                                               name="digital_sales_retractation_enabled"
+                                               class="form-checkbox h-5 w-5 text-green-500"
+                                            {{ old('digital_sales_retractation_enabled', $user->digital_sales_retractation_enabled) ? 'checked' : '' }}>
+                                        <span class="ml-2 text-gray-700 font-semibold">
+                                            {{ __('Afficher une case droit de rétractation avant l’achat des formations digitales') }}
+                                        </span>
+                                    </label>
+                                    <small class="text-gray-500 block mt-2">
+                                        {{ __('Optionnel : ce document global pourra ensuite être activé sur chaque formation concernée. Rien ne change sur vos ventes actuelles tant que vous ne l’activez pas.') }}
+                                    </small>
+                                </div>
+
+                                <div class="details-box">
+                                    <label class="details-label" for="digital_sales_retractation_label">
+                                        {{ __('Texte affiché à côté de la case') }}
+                                    </label>
+                                    <input type="text"
+                                           id="digital_sales_retractation_label"
+                                           name="digital_sales_retractation_label"
+                                           class="form-control"
+                                           value="{{ old('digital_sales_retractation_label', $user->digital_sales_retractation_label) }}"
+                                           placeholder="{{ __('J’ai pris connaissance des informations relatives au droit de rétractation.') }}">
+                                    @error('digital_sales_retractation_label')
+                                        <p class="text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="details-box">
+                                    <label class="details-label" for="digital_sales_retractation_url">
+                                        {{ __('Lien vers le document droit de rétractation') }}
+                                    </label>
+                                    <input type="url"
+                                           id="digital_sales_retractation_url"
+                                           name="digital_sales_retractation_url"
+                                           class="form-control"
+                                           value="{{ old('digital_sales_retractation_url', $user->digital_sales_retractation_url) }}"
+                                           placeholder="https://...">
+                                    <small class="text-gray-500 block mt-1">
+                                        {{ __('Ajoutez ici l’URL de votre PDF ou de votre page dédiée. Ce lien sera affiché au checkout si vous activez l’option sur une formation.') }}
+                                    </small>
+                                    @error('digital_sales_retractation_url')
+                                        <p class="text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
                                 <label class="details-label" for="invoice_logo">{{ __('Logo pour factures (PNG/JPG/WebP/SVG)') }}</label>
                                 <input type="file" id="invoice_logo" name="invoice_logo" class="form-control"
                                        accept=".png,.jpg,.jpeg,.webp,.svg">

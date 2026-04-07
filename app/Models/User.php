@@ -89,6 +89,9 @@ class User extends Authenticatable
         'gift_voucher_background_path',
         'gift_voucher_background_updated_at',
         'konva_branding_settings',
+        'digital_sales_retractation_enabled',
+        'digital_sales_retractation_label',
+        'digital_sales_retractation_url',
 
     ];
 
@@ -107,6 +110,7 @@ class User extends Authenticatable
         'gift_voucher_online_enabled' => 'boolean',
         'gift_voucher_background_updated_at' => 'datetime',
         'konva_branding_settings' => 'array',
+        'digital_sales_retractation_enabled' => 'boolean',
     ];
 
     /*
@@ -331,5 +335,22 @@ class User extends Authenticatable
         $plans = config('license_features.plans');
 
         return in_array($feature, $plans[$family] ?? [], true);
+    }
+
+    public function hasDigitalSalesRetractationNoticeConfigured(): bool
+    {
+        return (bool) $this->digital_sales_retractation_enabled
+            && filled($this->digital_sales_retractation_url);
+    }
+
+    public function digitalSalesRetractationNoticeLabel(): string
+    {
+        $label = trim((string) ($this->digital_sales_retractation_label ?? ''));
+
+        if ($label !== '') {
+            return $label;
+        }
+
+        return "J'ai pris connaissance des informations relatives au droit de rétractation.";
     }
 }

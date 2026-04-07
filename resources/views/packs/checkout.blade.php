@@ -263,6 +263,30 @@
                         </div>
                     </div>
 
+                    @if(($selectedRetractationNoticeRequired ?? false) && !empty($selectedRetractationNoticeUrl))
+                        <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                            <label class="inline-flex items-start gap-3 text-sm text-slate-800">
+                                <input type="checkbox"
+                                       name="retractation_notice_acknowledged"
+                                       value="1"
+                                       {{ old('retractation_notice_acknowledged') ? 'checked' : '' }}
+                                       class="mt-1 rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                <span>
+                                    {{ $selectedRetractationNoticeLabel }}
+                                    <a href="{{ $selectedRetractationNoticeUrl }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="font-semibold text-[#647a0b] underline underline-offset-2">
+                                        {{ __('Consulter le document') }}
+                                    </a>
+                                </span>
+                            </label>
+                            @error('retractation_notice_acknowledged')
+                                <div class="text-red-500 mt-2">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    @endif
+
                     @error('item') <div class="text-red-500 mt-3">{{ $message }}</div> @enderror
                     @error('payment') <div class="text-red-500 mt-3">{{ $message }}</div> @enderror
 

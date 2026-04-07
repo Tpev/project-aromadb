@@ -32,6 +32,7 @@ class DigitalTraining extends Model
 
         // Optional link to a product
         'product_id',
+        'use_global_retractation_notice',
     ];
 
     protected $casts = [
@@ -41,6 +42,7 @@ class DigitalTraining extends Model
         'tax_rate'    => 'float',
         'installments_enabled' => 'boolean',
         'allowed_installments' => 'array',
+        'use_global_retractation_notice' => 'boolean',
     ];
 
     public function user()
@@ -71,5 +73,16 @@ class DigitalTraining extends Model
         }
 
         return number_format($this->price_cents / 100, 2, ',', ' ') . ' €';
+    }
+
+    public function requiresRetractationNotice(): bool
+    {
+        if (!($this->use_global_retractation_notice ?? false)) {
+            return false;
+        }
+
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        return $owner?->hasDigitalSalesRetractationNoticeConfigured() ?? false;
     }
 }
