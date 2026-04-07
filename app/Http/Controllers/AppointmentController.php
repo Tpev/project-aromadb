@@ -1730,6 +1730,7 @@ public function availableConcreteDatesPatient(Request $request)
 
     $therapistId = (int) $request->therapist_id;
     $product     = Product::findOrFail((int) $request->product_id);
+    $therapist   = User::findOrFail($therapistId);
 
     // Resolve mode like slots endpoint does
     $mode = $this->resolvePatientMode($product, $request->input('mode'));

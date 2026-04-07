@@ -35,12 +35,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Nouveau mot de passe
                     </label>
-                    <input
-                        type="password"
+                    <x-password-toggle-input
+                        id="client_reset_password"
                         name="password"
                         required
+                        autocomplete="new-password"
                         class="w-full rounded-lg border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"
-                    >
+                    />
                     @error('password')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -50,12 +51,13 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Confirmation
                     </label>
-                    <input
-                        type="password"
+                    <x-password-toggle-input
+                        id="client_reset_password_confirmation"
                         name="password_confirmation"
                         required
+                        autocomplete="new-password"
                         class="w-full rounded-lg border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"
-                    >
+                    />
                 </div>
 
                 <button

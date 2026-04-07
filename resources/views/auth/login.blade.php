@@ -16,10 +16,13 @@
         <div class="mt-4">
             <x-input-label for="password" :value="__('Mot de passe')" />
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+            <x-password-toggle-input
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
 
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>

@@ -19,7 +19,13 @@
 
             <div class="mb-4">
                 <label for="password" class="block font-semibold mb-1">Nouveau mot de passe</label>
-                <input id="password" name="password" type="password" required class="w-full border border-gray-300 rounded px-3 py-2" />
+                <x-password-toggle-input
+                    id="password"
+                    name="password"
+                    required
+                    autocomplete="new-password"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:border-[#647a0b] focus:ring-[#647a0b]"
+                />
                 @error('password')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -27,7 +33,13 @@
 
             <div class="mb-4">
                 <label for="password_confirmation" class="block font-semibold mb-1">Confirmer le mot de passe</label>
-                <input id="password_confirmation" name="password_confirmation" type="password" required class="w-full border border-gray-300 rounded px-3 py-2" />
+                <x-password-toggle-input
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    required
+                    autocomplete="new-password"
+                    class="w-full border border-gray-300 rounded px-3 py-2 focus:border-[#647a0b] focus:ring-[#647a0b]"
+                />
                 @error('password_confirmation')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror

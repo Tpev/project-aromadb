@@ -7,7 +7,13 @@
         <input name="email" type="email" required class="w-full rounded border-gray-300 mb-4" />
 
         <label class="block mb-1 font-semibold">Mot de passe</label>
-        <input name="password" type="password" required class="w-full rounded border-gray-300 mb-6" />
+        <x-password-toggle-input
+            id="client_login_password"
+            name="password"
+            required
+            autocomplete="current-password"
+            class="w-full rounded border-gray-300 mb-6 focus:border-[#647a0b] focus:ring-[#647a0b]"
+        />
 
         <button class="bg-lime-700 text-white px-4 py-2 rounded">Se connecter</button>
 
