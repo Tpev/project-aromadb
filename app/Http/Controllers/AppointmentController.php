@@ -31,6 +31,9 @@ use App\Models\BookingLink;
 use App\Models\GiftVoucher;
 use App\Models\Receipt;
 use App\Services\GiftVoucherRedeemService;
+use App\Services\CabinetAccessService;
+use App\Services\SharedCabinetSchedulingService;
+use App\Models\PracticeLocation;
 
 class AppointmentController extends Controller
 {
@@ -153,8 +156,9 @@ class AppointmentController extends Controller
     {
         $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
         $products = Product::where('user_id', Auth::id())->get();
+        $practiceLocations = app(CabinetAccessService::class)->accessibleLocations(Auth::user());
 
-        return view('appointments.create', compact('clientProfiles', 'products'));
+        return view('appointments.create', compact('clientProfiles', 'products', 'practiceLocations'));
     }
 
 public function store(Request $request)
@@ -214,8 +218,9 @@ public function store(Request $request)
     if ($mode === 'cabinet') {
         // Si l'UI n'envoie pas explicitement le lieu et que le thérapeute n'en a qu'un, auto-sélection (optionnel)
         if (!$request->filled('practice_location_id')) {
-            $onlyLoc = $therapist->practiceLocations()->first();
-            if ($onlyLoc && $therapist->practiceLocations()->count() === 1) {
+            $accessibleLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
+            $onlyLoc = $accessibleLocations->count() === 1 ? $accessibleLocations->first() : null;
+            if ($onlyLoc) {
                 $request->merge(['practice_location_id' => $onlyLoc->id]);
             }
         }
@@ -226,13 +231,10 @@ public function store(Request $request)
 
         $locationId = (int) $request->practice_location_id;
 
-        // Sécurité multi-tenant : le lieu doit appartenir au thérapeute
-        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-            ->where('user_id', $therapistId)
-            ->exists();
+        $location = PracticeLocation::query()->find($locationId);
 
-        if (!$ownsLocation) {
-            return back()->withErrors(['practice_location_id' => 'Ce cabinet n’appartient pas à votre compte.'])->withInput();
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
+            return back()->withErrors(['practice_location_id' => 'Ce cabinet n’est pas accessible depuis votre compte.'])->withInput();
         }
     }
 
@@ -449,6 +451,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
 
         // Get available products
         $products = Product::where('user_id', Auth::id())->get();
+        $practiceLocations = app(CabinetAccessService::class)->accessibleLocations(Auth::user());
 
         // Get the duration from the appointment
         $duration = (int) $appointment->duration;
@@ -462,7 +465,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         $productId = $appointment->product_id;
         $availableSlots = $this->getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $appointment->id);
 
-        return view('appointments.edit', compact('appointment', 'clientProfiles', 'products', 'availableSlots'));
+        return view('appointments.edit', compact('appointment', 'clientProfiles', 'products', 'availableSlots', 'practiceLocations'));
     }
 
     /**
@@ -505,8 +508,9 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
     if ($mode === 'cabinet') {
         // Si pas de lieu envoyé et un seul lieu existe, auto-sélection (optionnel)
         if (!$request->filled('practice_location_id')) {
-            $onlyLoc = $therapist->practiceLocations()->first();
-            if ($onlyLoc && $therapist->practiceLocations()->count() === 1) {
+            $accessibleLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
+            $onlyLoc = $accessibleLocations->count() === 1 ? $accessibleLocations->first() : null;
+            if ($onlyLoc) {
                 $request->merge(['practice_location_id' => $onlyLoc->id]);
             }
         }
@@ -517,13 +521,10 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
 
         $locationId = (int) $request->practice_location_id;
 
-        // Le lieu doit appartenir au thérapeute
-        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-            ->where('user_id', $therapistId)
-            ->exists();
+        $location = PracticeLocation::query()->find($locationId);
 
-        if (!$ownsLocation) {
-            return back()->withErrors(['practice_location_id' => 'Ce cabinet n’appartient pas à votre compte.'])->withInput();
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
+            return back()->withErrors(['practice_location_id' => 'Ce cabinet n’est pas accessible depuis votre compte.'])->withInput();
         }
     }
 
@@ -727,6 +728,19 @@ private function isAvailable(
         return false;
     }
 
+    if (
+        $mode === 'cabinet'
+        && $locationId
+        && app(SharedCabinetSchedulingService::class)->hasSharedCabinetConflict(
+            $start,
+            $duration,
+            (int) $locationId,
+            $excludeAppointmentId ? (int) $excludeAppointmentId : null
+        )
+    ) {
+        return false;
+    }
+
     // 6) Conflits avec indisponibilités (multi-day) – pas de buffer ici
     $hasUnavailability = Unavailability::where('user_id', (int) $therapistId)
         ->where(function ($q) use ($start, $end) {
@@ -782,6 +796,31 @@ private function getDailyBookingLimitError(User $therapist, Product $product, Ca
     }
 
     return null;
+}
+
+private function buildBlockingAppointmentsQueryForDate(
+    int $therapistId,
+    string $dateStr,
+    ?string $mode = null,
+    ?int $locationId = null
+) {
+    $query = Appointment::query()->whereDate('appointment_date', $dateStr);
+
+    if ($mode === 'cabinet' && $locationId) {
+        $location = PracticeLocation::query()->find($locationId);
+
+        if ($location && app(SharedCabinetSchedulingService::class)->shouldApplySharedConstraint($mode, $locationId)) {
+            $memberIds = app(CabinetAccessService::class)->activeMemberUserIds($location);
+            $query->whereIn('user_id', $memberIds)
+                ->where('practice_location_id', $locationId);
+        } else {
+            $query->where('user_id', $therapistId);
+        }
+    } else {
+        $query->where('user_id', $therapistId);
+    }
+
+    return $this->applyBlockingAppointmentsFilter($query);
 }
 
 
@@ -901,13 +940,14 @@ private function getAvailableSlotsForEdit($date, $duration, $therapistId, $produ
     }
 
     // 3) RDV existants pour ce jour (hors RDV en cours d'édition)
-$existingAppointmentsQuery = Appointment::where('user_id', (int) $therapistId)
-    ->whereDate('appointment_date', $date)
-    ->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
-        return $query->where('id', '!=', $excludeAppointmentId);
-    });
-
-$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
+$existingAppointmentsQuery = $this->buildBlockingAppointmentsQueryForDate(
+    (int) $therapistId,
+    $date,
+    $mode,
+    $locationId
+)->when($excludeAppointmentId, function ($query) use ($excludeAppointmentId) {
+    return $query->where('id', '!=', $excludeAppointmentId);
+});
 
 $existingAppointments = $existingAppointmentsQuery->get();
 
@@ -995,9 +1035,10 @@ public function createPatient($therapistId)
     $products = Product::where('user_id', $therapistId)
                        ->orderBy('display_order', 'asc') // Change to 'desc' for descending order
                        ->get();
+    $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
 
     // Return the view with the therapist and ordered products
-    return view('appointments.createPatient', compact('therapist', 'products'));
+    return view('appointments.createPatient', compact('therapist', 'products', 'practiceLocations'));
 }
 
 
@@ -1081,20 +1122,26 @@ public function storePatient(Request $request)
         ], $messages);
     }
 
-    // Si le mode est au cabinet, EXIGER un practice_location_id appartenant à ce thérapeute
+    // Si le mode est au cabinet, EXIGER un practice_location_id accessible à ce thérapeute
     $practiceLocationId = $request->input('practice_location_id');
     if ($mode === 'cabinet') {
         $request->validate([
             'practice_location_id' => [
                 'required',
-                Rule::exists('practice_locations', 'id')->where(fn ($q) =>
-                    $q->where('user_id', $therapist->id)
-                ),
+                'integer',
+                'exists:practice_locations,id',
             ],
         ], [
             'practice_location_id.required' => 'Veuillez sélectionner un cabinet.',
             'practice_location_id.exists'   => 'Le cabinet sélectionné est invalide.',
         ]);
+
+        $location = PracticeLocation::query()->find((int) $practiceLocationId);
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
+            return back()->withErrors([
+                'practice_location_id' => 'Le cabinet sélectionné est invalide.',
+            ])->withInput();
+        }
     } else {
         // pour visio/domicile, on ignore le cabinet éventuel envoyé
         $practiceLocationId = null;
@@ -1503,6 +1550,7 @@ public function getAvailableSlotsForPatient(Request $request)
     ]);
 
     $therapistId = (int) $request->therapist_id;
+    $therapist   = User::findOrFail($therapistId);
     $product     = Product::findOrFail((int) $request->product_id);
     $duration    = (int) ($product->duration ?? 0);
 
@@ -1521,7 +1569,7 @@ public function getAvailableSlotsForPatient(Request $request)
             return 'cabinet';
         })();
 
-    // 3) If cabinet mode, validate location_id and ensure it belongs to the therapist
+    // 3) If cabinet mode, validate location_id and ensure it is accessible to the therapist
     $locationId = null;
     if ($mode === 'cabinet') {
         $request->validate([
@@ -1529,16 +1577,13 @@ public function getAvailableSlotsForPatient(Request $request)
         ]);
         $locationId = (int) $request->location_id;
 
-        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-            ->where('user_id', $therapistId)
-            ->exists();
-        if (!$ownsLocation) {
+        $location = PracticeLocation::query()->find($locationId);
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
             return response()->json(['slots' => [], 'message' => 'Invalid location for this therapist.'], 422);
         }
     }
 
     // 4) Minimum notice + buffer
-    $therapist             = User::findOrFail($therapistId);
     $minimumNoticeHours    = (int) ($therapist->minimum_notice_hours ?? 0);
     $bufferMinutes         = (int) ($therapist->buffer_time_between_appointments ?? 0);
     $now                   = Carbon::now();
@@ -1595,12 +1640,12 @@ public function getAvailableSlotsForPatient(Request $request)
         return response()->json(['slots' => []]);
     }
 
-$existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
-    ->whereDate('appointment_date', $request->date);
-
-$existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
-
-$existingAppointments = $existingAppointmentsQuery->get();
+$existingAppointments = $this->buildBlockingAppointmentsQueryForDate(
+    $therapistId,
+    $request->date,
+    $mode,
+    $locationId
+)->get();
 
 
     // 8) Unavailabilities (support multi-day spans)
@@ -1697,12 +1742,9 @@ public function availableConcreteDatesPatient(Request $request)
         ]);
 
         $locationId = (int) $request->location_id;
+        $location = PracticeLocation::query()->find($locationId);
 
-        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-            ->where('user_id', $therapistId)
-            ->exists();
-
-        if (!$ownsLocation) {
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
             return response()->json([
                 'dates' => [],
                 'next'  => null,
@@ -1840,11 +1882,12 @@ private function computePatientSlotsForDate(int $therapistId, Product $product, 
     if ($availabilities->isEmpty()) return [];
 
     // Existing appointments (apply your blocking filter like slots endpoint)
-    $existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
-        ->whereDate('appointment_date', $dateStr);
-
-    $existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
-    $existingAppointments      = $existingAppointmentsQuery->get();
+    $existingAppointments = $this->buildBlockingAppointmentsQueryForDate(
+        $therapistId,
+        $dateStr,
+        $mode,
+        $locationId
+    )->get();
 
     // Unavailabilities (multi-day spans)
     $unavailabilities = Unavailability::where('user_id', $therapistId)
@@ -2791,12 +2834,9 @@ public function getAvailableSlotsForTherapist(Request $request)
         ]);
 
         $locationId = (int) $request->location_id;
+        $location = PracticeLocation::query()->find($locationId);
 
-        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-            ->where('user_id', $therapistId)
-            ->exists();
-
-        if (!$ownsLocation) {
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation(Auth::user(), $location)) {
             return response()->json(['slots' => [], 'message' => 'Invalid location.'], 422);
         }
     }
@@ -2861,11 +2901,12 @@ private function computeSlotsForTherapist(
     $availabilities = $weeklyQuery->get()->concat($specialQuery->get());
     if ($availabilities->isEmpty()) return [];
 
-    $existingAppointmentsQuery = Appointment::where('user_id', $therapistId)
-        ->whereDate('appointment_date', $date->format('Y-m-d'));
-
-    $existingAppointmentsQuery = $this->applyBlockingAppointmentsFilter($existingAppointmentsQuery);
-    $existingAppointments = $existingAppointmentsQuery->get();
+    $existingAppointments = $this->buildBlockingAppointmentsQueryForDate(
+        $therapistId,
+        $date->format('Y-m-d'),
+        $mode,
+        $locationId
+    )->get();
 
     $unavailabilities = Unavailability::where('user_id', $therapistId)
         ->where(function ($q) use ($date) {
@@ -2975,12 +3016,9 @@ public function availableConcreteDatesTherapist(Request $request)
         ]);
 
         $locationId = (int) $request->location_id;
+        $location = PracticeLocation::query()->find($locationId);
 
-        $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-            ->where('user_id', $therapistId)
-            ->exists();
-
-        if (!$ownsLocation) {
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation(Auth::user(), $location)) {
             return response()->json([
                 'dates' => [],
                 'message' => 'Invalid location for this therapist.',
@@ -3024,8 +3062,13 @@ private function applyBlockingAppointmentsFilter($query)
 
     // 2) Exclude external "all-day multi-day" blocks (Google all-day spanning multiple days)
     // Keep everything else blocking.
+    $driver = app('db')->connection()->getDriverName();
+    $portableCondition = $driver === 'sqlite'
+        ? "NOT (external = 1 AND time(appointment_date) = '00:00:00' AND COALESCE(duration,0) >= 2880 AND (COALESCE(duration,0) % 1440) = 0)"
+        : 'NOT (external = 1 AND TIME(appointment_date) = "00:00:00" AND COALESCE(duration,0) >= 2880 AND MOD(COALESCE(duration,0),1440) = 0)';
+
     return $query->whereRaw(
-        'NOT (external = 1 AND TIME(appointment_date) = "00:00:00" AND COALESCE(duration,0) >= 2880 AND MOD(COALESCE(duration,0),1440) = 0)'
+        $portableCondition
     );
 }
 
@@ -3175,20 +3218,26 @@ public function storeByToken(Request $request, string $token)
         ], $messages);
     }
 
-    // Si le mode est au cabinet, EXIGER un practice_location_id appartenant à ce thérapeute
+    // Si le mode est au cabinet, EXIGER un practice_location_id accessible à ce thérapeute
     $practiceLocationId = $request->input('practice_location_id');
     if ($mode === 'cabinet') {
         $request->validate([
             'practice_location_id' => [
                 'required',
-                Rule::exists('practice_locations', 'id')->where(fn ($q) =>
-                    $q->where('user_id', $therapist->id)
-                ),
+                'integer',
+                'exists:practice_locations,id',
             ],
         ], [
             'practice_location_id.required' => 'Veuillez sélectionner un cabinet.',
             'practice_location_id.exists'   => 'Le cabinet sélectionné est invalide.',
         ]);
+
+        $location = PracticeLocation::query()->find((int) $practiceLocationId);
+        if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
+            return back()->withErrors([
+                'practice_location_id' => 'Le cabinet sélectionné est invalide.',
+            ])->withInput();
+        }
     } else {
         // pour visio/domicile, on ignore le cabinet éventuel envoyé
         $practiceLocationId = null;
@@ -3557,10 +3606,7 @@ public function createByToken(string $token)
     }
 
     // 5) Practice locations (safe ordering)
-    $practiceLocations = \App\Models\PracticeLocation::query()
-        ->where('user_id', $therapist->id)
-        ->orderBy('id', 'asc')
-        ->get();
+    $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
 
     /**
      * 6) Build the same "prestation group + variants" data your partner blade expects

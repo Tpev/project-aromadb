@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\Availability;
 use App\Models\Product;
 use App\Models\PracticeLocation;
+use App\Services\CabinetAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AvailabilityController extends Controller
 {
     use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
+    public function __construct(
+        private readonly CabinetAccessService $cabinetAccessService,
+    ) {
+    }
 
     /**
      * Affiche une liste des disponibilités de l'utilisateur authentifié.
@@ -39,10 +45,7 @@ class AvailabilityController extends Controller
 
         // Produits + Lieux de l'utilisateur
         $products  = Product::where('user_id', Auth::id())->get();
-        $locations = PracticeLocation::where('user_id', Auth::id())
-            ->orderByDesc('is_primary')
-            ->orderBy('label')
-            ->get();
+        $locations = $this->cabinetAccessService->accessibleLocations(Auth::user());
 
         return view('availabilities.create', compact('products', 'locations'));
     }
@@ -66,11 +69,9 @@ class AvailabilityController extends Controller
 
         // Vérifier que le lieu sélectionné appartient bien au user (si fourni)
         if ($request->filled('practice_location_id')) {
-            $owns = PracticeLocation::where('id', $request->practice_location_id)
-                ->where('user_id', Auth::id())
-                ->exists();
+            $location = PracticeLocation::query()->find($request->practice_location_id);
 
-            if (!$owns) {
+            if (!$location || !$this->cabinetAccessService->canAccessLocation(Auth::user(), $location)) {
                 return redirect()->back()
                     ->withErrors(['practice_location_id' => 'Lieu invalide.'])
                     ->withInput();
@@ -144,10 +145,7 @@ class AvailabilityController extends Controller
 
         // Produits + Lieux de l'utilisateur
         $products  = Product::where('user_id', Auth::id())->get();
-        $locations = PracticeLocation::where('user_id', Auth::id())
-            ->orderByDesc('is_primary')
-            ->orderBy('label')
-            ->get();
+        $locations = $this->cabinetAccessService->accessibleLocations(Auth::user());
 
         $selectedProducts = $availability->applies_to_all
             ? []
@@ -175,11 +173,9 @@ class AvailabilityController extends Controller
 
         // Vérifier ownership du lieu (si fourni)
         if ($request->filled('practice_location_id')) {
-            $owns = PracticeLocation::where('id', $request->practice_location_id)
-                ->where('user_id', Auth::id())
-                ->exists();
+            $location = PracticeLocation::query()->find($request->practice_location_id);
 
-            if (!$owns) {
+            if (!$location || !$this->cabinetAccessService->canAccessLocation(Auth::user(), $location)) {
                 return redirect()->back()
                     ->withErrors(['practice_location_id' => 'Lieu invalide.'])
                     ->withInput();

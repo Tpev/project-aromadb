@@ -3,21 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\PracticeLocation;
+use App\Services\CabinetAccessService;
 use App\Services\FrenchAddressGeocodingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PracticeLocationController extends Controller
 {
+    public function __construct(
+        private readonly CabinetAccessService $cabinetAccessService,
+    ) {
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $locations = PracticeLocation::where('user_id', Auth::id())
-            ->orderByDesc('is_primary')
-            ->orderBy('label')
-            ->get();
+        $locations = $this->cabinetAccessService->accessibleLocations(Auth::user());
 
         return view('practice_locations.index', compact('locations'));
     }
@@ -43,10 +46,13 @@ class PracticeLocationController extends Controller
             'city'          => ['nullable','string','max:255'],
             'country'       => ['required','string','size:2'],
             'is_primary'    => ['nullable','boolean'],
+            'is_shared'     => ['nullable','boolean'],
         ]);
 
         $data['user_id'] = Auth::id();
         $data['is_primary'] = (bool)($data['is_primary'] ?? false);
+        $data['is_shared'] = $this->cabinetAccessService->enabled() && (bool) ($data['is_shared'] ?? false);
+        $data['shared_enabled_at'] = $data['is_shared'] ? now() : null;
 
         // Si défini comme principal → mettre les autres à false
         if ($data['is_primary']) {
@@ -63,7 +69,11 @@ class PracticeLocationController extends Controller
         $data['latitude'] = $coordinates['latitude'] ?? null;
         $data['longitude'] = $coordinates['longitude'] ?? null;
 
-        PracticeLocation::create($data);
+        $location = PracticeLocation::create($data);
+
+        if ($data['is_shared']) {
+            $this->cabinetAccessService->ensureOwnerMembership($location);
+        }
 
         return redirect()->route('practice-locations.index')
             ->with('success', 'Cabinet créé avec succès.');
@@ -76,7 +86,13 @@ class PracticeLocationController extends Controller
     {
         $this->authorizeLocation($practice_location);
 
-        return view('practice_locations.edit', ['location' => $practice_location]);
+        $location = $practice_location->load([
+            'owner',
+            'memberships.user',
+            'pendingInvites.invitedUser',
+        ]);
+
+        return view('practice_locations.edit', compact('location'));
     }
 
     /**
@@ -94,9 +110,14 @@ class PracticeLocationController extends Controller
             'city'          => ['nullable','string','max:255'],
             'country'       => ['required','string','size:2'],
             'is_primary'    => ['nullable','boolean'],
+            'is_shared'     => ['nullable','boolean'],
         ]);
 
         $data['is_primary'] = (bool)($data['is_primary'] ?? false);
+        $data['is_shared'] = $this->cabinetAccessService->enabled() && (bool) ($data['is_shared'] ?? false);
+        $data['shared_enabled_at'] = $data['is_shared']
+            ? ($practice_location->shared_enabled_at ?? now())
+            : null;
 
         if ($data['is_primary']) {
             PracticeLocation::where('user_id', Auth::id())
@@ -115,6 +136,12 @@ class PracticeLocationController extends Controller
         $data['longitude'] = $coordinates['longitude'] ?? null;
 
         $practice_location->update($data);
+
+        if ($practice_location->is_shared) {
+            $this->cabinetAccessService->ensureOwnerMembership($practice_location);
+        } else {
+            $this->cabinetAccessService->cancelPendingInvites($practice_location);
+        }
 
         return redirect()->route('practice-locations.index')
             ->with('success', 'Cabinet mis à jour avec succès.');
@@ -138,7 +165,7 @@ class PracticeLocationController extends Controller
      */
     private function authorizeLocation(PracticeLocation $location): void
     {
-        if ($location->user_id !== Auth::id()) {
+        if (!$this->cabinetAccessService->canManageLocation(Auth::user(), $location)) {
             abort(403, 'Accès refusé');
         }
     }

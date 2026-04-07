@@ -37,6 +37,22 @@
             <span>{{ __('Définir comme cabinet principal') }}</span>
         </label>
     </div>
+
+    @if(config('features.shared_cabinets_v1'))
+        <div class="md:col-span-2">
+            <div class="rounded-lg border bg-gray-50 p-4">
+                <label class="inline-flex items-start gap-3">
+                    <input type="checkbox" name="is_shared" value="1" @checked(old('is_shared', ($location->is_shared ?? false))) class="mt-1">
+                    <span>
+                        <span class="block font-medium text-gray-900">{{ __('Cabinet partagé') }}</span>
+                        <span class="block text-sm text-gray-600">
+                            {{ __('Permet d’inviter d’autres thérapeutes déjà inscrits sur AromaMade. Lorsqu’un créneau est réservé au cabinet, il devient indisponible pour tous les membres de ce cabinet partagé.') }}
+                        </span>
+                    </span>
+                </label>
+            </div>
+        </div>
+    @endif
 </div>
 
 <div class="mt-6 flex gap-2">

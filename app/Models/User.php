@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use App\Models\InventoryItem;
 use App\Models\Availability;
+use App\Services\CabinetAccessService;
 
 class User extends Authenticatable
 {
@@ -228,6 +229,28 @@ class User extends Authenticatable
     public function practiceLocations()
     {
         return $this->hasMany(\App\Models\PracticeLocation::class);
+    }
+
+    public function ownedPracticeLocations()
+    {
+        return $this->hasMany(\App\Models\PracticeLocation::class, 'user_id');
+    }
+
+    public function practiceLocationMemberships()
+    {
+        return $this->hasMany(\App\Models\PracticeLocationMember::class);
+    }
+
+    public function sharedPracticeLocations()
+    {
+        return $this->belongsToMany(\App\Models\PracticeLocation::class, 'practice_location_members')
+            ->withPivot(['id', 'role', 'accepted_at', 'added_by_user_id'])
+            ->wherePivotNotNull('accepted_at');
+    }
+
+    public function accessiblePracticeLocations()
+    {
+        return app(CabinetAccessService::class)->accessibleLocationsQuery($this);
     }
 
     public function scopeTherapists($q)

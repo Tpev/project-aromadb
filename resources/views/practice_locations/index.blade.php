@@ -31,6 +31,9 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @forelse($locations as $loc)
+                    @php
+                        $isOwner = (int) $loc->user_id === (int) auth()->id();
+                    @endphp
                     <div class="bg-white shadow rounded-lg p-5 hover:shadow-xl transition">
                         <div class="flex items-start justify-between">
                             <div>
@@ -41,30 +44,53 @@
                                             {{ __('Principal') }}
                                         </span>
                                     @endif
+                                    @if($loc->is_shared)
+                                        <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                                            {{ __('Partagé') }}
+                                        </span>
+                                    @endif
+                                    @unless($isOwner)
+                                        <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">
+                                            {{ __('Membre') }}
+                                        </span>
+                                    @endunless
                                 </div>
                                 <div class="text-sm text-gray-600 mt-1">
                                     {{ $loc->full_address }}
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('practice-locations.edit', $loc) }}"
-                                   class="px-3 py-1.5 rounded border hover:bg-gray-50">
-                                    {{ __('Modifier') }}
-                                </a>
-                                <form action="{{ route('practice-locations.destroy', $loc) }}" method="POST"
-                                      onsubmit="return confirm('Supprimer ce cabinet ?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="px-3 py-1.5 rounded border border-red-300 text-red-700 hover:bg-red-50">
-                                        {{ __('Supprimer') }}
-                                    </button>
-                                </form>
+                                @if($isOwner)
+                                    <a href="{{ route('practice-locations.edit', $loc) }}"
+                                       class="px-3 py-1.5 rounded border hover:bg-gray-50">
+                                        {{ __('Modifier') }}
+                                    </a>
+                                    <form action="{{ route('practice-locations.destroy', $loc) }}" method="POST"
+                                          onsubmit="return confirm('Supprimer ce cabinet ?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="px-3 py-1.5 rounded border border-red-300 text-red-700 hover:bg-red-50">
+                                            {{ __('Supprimer') }}
+                                        </button>
+                                    </form>
+                                @elseif(config('features.shared_cabinets_v1'))
+                                    <form action="{{ route('practice-locations.leave', $loc) }}" method="POST"
+                                          onsubmit="return confirm('Quitter ce cabinet partagé ?');">
+                                        @csrf
+                                        <button class="px-3 py-1.5 rounded border border-amber-300 text-amber-700 hover:bg-amber-50">
+                                            {{ __('Quitter') }}
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
 
                         <div class="mt-4 text-xs text-gray-500">
-                            {{-- Astuce UX : rappeler les liens depuis d’autres modules si besoin --}}
-                            {{ __('Astuce : Associez ce lieu dans vos disponibilités pour ouvrir la prise de rendez-vous au cabinet.') }}
+                            @if($isOwner)
+                                {{ __('Astuce : Associez ce lieu dans vos disponibilités pour ouvrir la prise de rendez-vous au cabinet.') }}
+                            @else
+                                {{ __('Ce cabinet partagé est disponible dans vos disponibilités et rendez-vous, mais sa gestion reste réservée au propriétaire.') }}
+                            @endif
                         </div>
                     </div>
                 @empty

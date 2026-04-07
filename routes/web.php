@@ -52,6 +52,8 @@ use App\Http\Controllers\ClientMessageController;
 use App\Http\Controllers\Auth\ClientPasswordResetController;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\PracticeLocationController;
+use App\Http\Controllers\PracticeLocationInviteController;
+use App\Http\Controllers\PracticeLocationMemberController;
 use App\Models\User;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\AssistantController;
@@ -373,6 +375,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('practice-locations', PracticeLocationController::class)
+        ->except(['show'])
         ->parameters(['practice-locations' => 'practice_location'])
         ->names([
             'index'   => 'practice-locations.index',
@@ -382,7 +385,28 @@ Route::middleware(['auth'])->group(function () {
             'update'  => 'practice-locations.update',
             'destroy' => 'practice-locations.destroy',
         ]);
+
+    Route::post('/practice-locations/{practice_location}/invites', [PracticeLocationInviteController::class, 'store'])
+        ->name('practice-locations.invites.store');
+
+    Route::post('/practice-location-invites/{invite}/cancel', [PracticeLocationInviteController::class, 'cancel'])
+        ->name('practice-locations.invites.cancel');
+
+    Route::post('/practice-locations/{practice_location}/members/{member}/remove', [PracticeLocationMemberController::class, 'destroy'])
+        ->name('practice-locations.members.remove');
+
+    Route::post('/practice-locations/{practice_location}/leave', [PracticeLocationMemberController::class, 'leave'])
+        ->name('practice-locations.leave');
 });
+
+Route::get('/practice-location-invites/{token}', [PracticeLocationInviteController::class, 'show'])
+    ->name('practice-locations.invites.show');
+
+Route::post('/practice-location-invites/{token}/accept', [PracticeLocationInviteController::class, 'accept'])
+    ->name('practice-locations.invites.accept');
+
+Route::post('/practice-location-invites/{token}/decline', [PracticeLocationInviteController::class, 'decline'])
+    ->name('practice-locations.invites.decline');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('google/connect', [GoogleCalendarController::class, 'redirect'])

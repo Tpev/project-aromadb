@@ -19,9 +19,12 @@ use App\Models\Unavailability;
 use App\Models\SpecialAvailability;
 use App\Models\Meeting;
 use App\Models\Invoice;
+use App\Models\PracticeLocation;
 use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
 use App\Notifications\AppointmentBooked;
+use App\Services\CabinetAccessService;
+use App\Services\SharedCabinetSchedulingService;
 use Stripe\StripeClient;
 
 class MobileAppointmentController extends Controller
@@ -43,7 +46,7 @@ class MobileAppointmentController extends Controller
             ->get();
 
         // Cabinet locations (for "cabinet" mode)
-        $practiceLocations = $therapist->practiceLocations()->get();
+        $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
 
         return view('mobile.appointments.create', [
             'therapist'         => $therapist,
@@ -105,32 +108,40 @@ class MobileAppointmentController extends Controller
                 $mode = 'visio';
             } elseif (!empty($product->adomicile)) {
                 $mode = 'domicile';
+            } elseif (!empty($product->en_entreprise)) {
+                $mode = 'entreprise';
             } else {
                 $mode = 'autre';
             }
         }
 
         // Si le produit nécessite une adresse (domicile), exiger l'adresse
-        if ($mode === 'domicile' || !empty($product->adomicile)) {
+        if ($mode === 'domicile' || $mode === 'entreprise' || !empty($product->adomicile) || !empty($product->en_entreprise)) {
             $request->validate([
                 'address' => 'required|string|max:255',
             ], $messages);
         }
 
-        // Si le mode est au cabinet, EXIGER un practice_location_id appartenant à ce thérapeute
+        // Si le mode est au cabinet, EXIGER un practice_location_id accessible à ce thérapeute
         $practiceLocationId = $request->input('practice_location_id');
         if ($mode === 'cabinet') {
             $request->validate([
                 'practice_location_id' => [
                     'required',
-                    Rule::exists('practice_locations', 'id')->where(fn ($q) =>
-                        $q->where('user_id', $therapist->id)
-                    ),
+                    'integer',
+                    'exists:practice_locations,id',
                 ],
             ], [
                 'practice_location_id.required' => 'Veuillez sélectionner un cabinet.',
                 'practice_location_id.exists'   => 'Le cabinet sélectionné est invalide.',
             ]);
+
+            $location = PracticeLocation::query()->find((int) $practiceLocationId);
+            if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
+                return back()->withErrors([
+                    'practice_location_id' => 'Le cabinet sélectionné est invalide.',
+                ])->withInput();
+            }
         } else {
             // pour visio/domicile, on ignore le cabinet éventuel envoyé
             $practiceLocationId = null;
@@ -344,23 +355,25 @@ class MobileAppointmentController extends Controller
         ]);
 
         $therapistId = (int) $request->therapist_id;
+        $therapist   = User::findOrFail($therapistId);
         $product     = Product::findOrFail((int) $request->product_id);
         $duration    = (int) ($product->duration ?? 0);
 
         // 2) Resolve mode
         $requestedMode = $request->input('mode');
-        $mode = in_array($requestedMode, ['cabinet','visio','domicile'], true)
+        $mode = in_array($requestedMode, ['cabinet','visio','domicile','entreprise'], true)
             ? $requestedMode
             : (function() use ($product) {
                 $modes = [];
                 if ($product->dans_le_cabinet) $modes[] = 'cabinet';
                 if ($product->visio)           $modes[] = 'visio';
                 if ($product->adomicile)       $modes[] = 'domicile';
+                if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
                 if (count($modes) === 1) return $modes[0];
                 return 'cabinet';
             })();
 
-        // 3) If cabinet mode, validate location_id and ensure it belongs to the therapist
+        // 3) If cabinet mode, validate location_id and ensure it is accessible to the therapist
         $locationId = null;
         if ($mode === 'cabinet') {
             $request->validate([
@@ -368,16 +381,13 @@ class MobileAppointmentController extends Controller
             ]);
             $locationId = (int) $request->location_id;
 
-            $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-                ->where('user_id', $therapistId)
-                ->exists();
-            if (!$ownsLocation) {
+            $location = PracticeLocation::query()->find($locationId);
+            if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
                 return response()->json(['slots' => [], 'message' => 'Invalid location for this therapist.'], 422);
             }
         }
 
         // 4) Minimum notice + buffer
-        $therapist             = User::findOrFail($therapistId);
         $minimumNoticeHours    = (int) ($therapist->minimum_notice_hours ?? 0);
         $bufferMinutes         = (int) ($therapist->buffer_time_between_appointments ?? 0);
         $now                   = Carbon::now();
@@ -426,10 +436,12 @@ class MobileAppointmentController extends Controller
             return response()->json(['slots' => []]);
         }
 
-        // 7) Existing appointments (global — a therapist can't be double-booked)
-        $existingAppointments = Appointment::where('user_id', $therapistId)
-            ->whereDate('appointment_date', $request->date)
-            ->get();
+        $existingAppointments = $this->buildBlockingAppointmentsQueryForDate(
+            $therapistId,
+            $request->date,
+            $mode,
+            $locationId
+        )->get();
 
         // 8) Unavailabilities (support multi-day spans)
         $unavailabilities = Unavailability::where('user_id', $therapistId)
@@ -508,7 +520,7 @@ class MobileAppointmentController extends Controller
         $request->validate([
             'therapist_id' => 'required|exists:users,id',
             'product_id'   => 'required|exists:products,id',
-            'mode'         => 'nullable|string|in:cabinet,visio,domicile',
+            'mode'         => 'nullable|string|in:cabinet,visio,domicile,entreprise',
             'location_id'  => 'nullable|integer',
             'days'         => 'nullable|integer|min:1|max:90',
         ]);
@@ -526,11 +538,9 @@ class MobileAppointmentController extends Controller
 
             $locationId = (int) $request->location_id;
 
-            $ownsLocation = \App\Models\PracticeLocation::where('id', $locationId)
-                ->where('user_id', $therapistId)
-                ->exists();
+            $location = PracticeLocation::query()->find($locationId);
 
-            if (!$ownsLocation) {
+            if (!$location || !app(CabinetAccessService::class)->canAccessLocation(User::findOrFail($therapistId), $location)) {
                 return response()->json([
                     'dates' => [],
                     'message' => 'Invalid location for this therapist.',
@@ -538,7 +548,7 @@ class MobileAppointmentController extends Controller
             }
         }
 
-        $days  = (int) $request->input('days', 60);
+        $days  = (int) $request->input('days', 90);
         $today = Carbon::today();
         $dates = [];
 
@@ -617,6 +627,31 @@ class MobileAppointmentController extends Controller
         return $icsContent;
     }
 
+    private function buildBlockingAppointmentsQueryForDate(
+        int $therapistId,
+        string $dateStr,
+        ?string $mode = null,
+        ?int $locationId = null
+    ) {
+        $query = Appointment::query()->whereDate('appointment_date', $dateStr);
+
+        if ($mode === 'cabinet' && $locationId) {
+            $location = PracticeLocation::query()->find($locationId);
+
+            if ($location && app(SharedCabinetSchedulingService::class)->shouldApplySharedConstraint($mode, $locationId)) {
+                $memberIds = app(CabinetAccessService::class)->activeMemberUserIds($location);
+                $query->whereIn('user_id', $memberIds)
+                    ->where('practice_location_id', $locationId);
+            } else {
+                $query->where('user_id', $therapistId);
+            }
+        } else {
+            $query->where('user_id', $therapistId);
+        }
+
+        return $this->applyBlockingAppointmentsFilter($query);
+    }
+
     /**
      * 8) Core availability check: same logic as in AppointmentController::isAvailable
      */
@@ -643,12 +678,13 @@ class MobileAppointmentController extends Controller
         // 1) Récup produit & mode
         $product = Product::findOrFail((int) $productId);
 
-        if (!in_array($mode, ['cabinet','visio','domicile'], true)) {
+        if (!in_array($mode, ['cabinet','visio','domicile','entreprise'], true)) {
             // Déduction simple si le mode n'est pas fourni
             $modes = [];
             if ($product->dans_le_cabinet) $modes[] = 'cabinet';
             if ($product->visio)           $modes[] = 'visio';
             if ($product->adomicile)       $modes[] = 'domicile';
+            if (!empty($product->en_entreprise)) $modes[] = 'entreprise';
             $mode = count($modes) === 1 ? $modes[0] : 'cabinet';
         }
 
@@ -725,11 +761,26 @@ class MobileAppointmentController extends Controller
                   ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$bufferedStart]);
             });
 
+        $this->applyBlockingAppointmentsFilter($conflictingAppointments);
+
         if ($excludeAppointmentId) {
             $conflictingAppointments->where('id', '!=', $excludeAppointmentId);
         }
 
         if ($conflictingAppointments->exists()) {
+            return false;
+        }
+
+        if (
+            $mode === 'cabinet'
+            && $locationId
+            && app(SharedCabinetSchedulingService::class)->hasSharedCabinetConflict(
+                $start,
+                $duration,
+                (int) $locationId,
+                $excludeAppointmentId ? (int) $excludeAppointmentId : null
+            )
+        ) {
             return false;
         }
 
@@ -753,7 +804,7 @@ class MobileAppointmentController extends Controller
      */
     private function resolvePatientMode(Product $product, ?string $requested): string
     {
-        if (in_array($requested, ['cabinet', 'visio', 'domicile'], true)) {
+        if (in_array($requested, ['cabinet', 'visio', 'domicile', 'entreprise'], true)) {
             return $requested;
         }
 
@@ -767,6 +818,9 @@ class MobileAppointmentController extends Controller
         if ($product->adomicile) {
             $modes[] = 'domicile';
         }
+        if ($product->en_entreprise) {
+            $modes[] = 'entreprise';
+        }
 
         if (count($modes) === 1) {
             return $modes[0];
@@ -774,5 +828,22 @@ class MobileAppointmentController extends Controller
 
         // Ambiguous product: default to cabinet
         return 'cabinet';
+    }
+
+    private function applyBlockingAppointmentsFilter($query)
+    {
+        $query->where(function ($statusQuery) {
+            $statusQuery->whereNull('status')
+                ->orWhereNotIn('status', ['cancelled', 'canceled', 'Annulé', 'Annule', 'Annulée', 'Annulee']);
+        });
+
+        $driver = app('db')->connection()->getDriverName();
+        $portableCondition = $driver === 'sqlite'
+            ? "NOT (external = 1 AND time(appointment_date) = '00:00:00' AND COALESCE(duration,0) >= 2880 AND (COALESCE(duration,0) % 1440) = 0)"
+            : 'NOT (external = 1 AND TIME(appointment_date) = "00:00:00" AND COALESCE(duration,0) >= 2880 AND MOD(COALESCE(duration,0),1440) = 0)';
+
+        return $query->whereRaw(
+            $portableCondition
+        );
     }
 }

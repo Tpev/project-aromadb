@@ -114,7 +114,7 @@
 
     @php
         $therapist = auth()->user();
-        $practiceLocations = $therapist->practiceLocations ?? collect();
+        $practiceLocations = $practiceLocations ?? $therapist->practiceLocations ?? collect();
 
         // Group all products by prestation name
         $productsByName = ($products ?? collect())->groupBy('name');
@@ -297,9 +297,9 @@
                     <select id="practice_location_id" name="practice_location_id" class="form-control">
                         <option value="" disabled selected>Choisir un cabinet</option>
                         @foreach($practiceLocations as $loc)
-                            <option value="{{ $loc->id }}"
+                        <option value="{{ $loc->id }}"
                                     data-address="{{ $loc->full_address ?? ($loc->address_line1 . ', ' . $loc->postal_code . ' ' . $loc->city) }}">
-                                {{ $loc->label }}
+                                {{ $loc->label }}@if($loc->is_shared) — {{ __('Cabinet partagé') }} @endif
                             </option>
                         @endforeach
                     </select>

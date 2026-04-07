@@ -61,7 +61,7 @@
 
     @php
         $therapist = auth()->user();
-        $practiceLocations = $therapist->practiceLocations ?? collect();
+        $practiceLocations = $practiceLocations ?? $therapist->practiceLocations ?? collect();
 
         // Group products by name with modes (same logic as create_therapist)
         $productsByName = $products->groupBy('name');
@@ -175,7 +175,7 @@
                             <option value="{{ $loc->id }}"
                                     data-address="{{ $loc->full_address ?? ($loc->address_line1 . ', ' . $loc->postal_code . ' ' . $loc->city) }}"
                                     {{ (string) $initialLocationId === (string) $loc->id ? 'selected' : '' }}>
-                                {{ $loc->label }}
+                                {{ $loc->label }}@if($loc->is_shared) — {{ __('Cabinet partagé') }} @endif
                             </option>
                         @endforeach
                     </select>

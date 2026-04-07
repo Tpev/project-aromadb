@@ -338,7 +338,7 @@
     </style>
 
     @php
-        $practiceLocations = $therapist->practiceLocations ?? collect();
+        $practiceLocations = $practiceLocations ?? $therapist->practiceLocations ?? collect();
 
         // Only products bookable online
         $onlineProducts = $products->filter(fn($p) => $p->can_be_booked_online);
