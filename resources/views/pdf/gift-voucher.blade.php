@@ -109,14 +109,6 @@
             </tr>
         </table>
 
-        <div class="footer">
-            Bon utilisable en une ou plusieurs fois selon disponibilité. Non remboursable.
-            @if(($voucher->sale_channel ?? '') === 'online_stripe')
-                Le bon cadeau a été réglé en ligne via AromaMade.
-            @else
-                Le paiement du bon cadeau est réalisé en dehors d’AromaMade (espèces, virement, terminal CB, etc.).
-            @endif
-        </div>
         </div>
     </div>
 </div>
