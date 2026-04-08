@@ -31,9 +31,12 @@ test('gift voucher pdf service falls back to the public booking page when therap
     $portalUrl = app(GiftVoucherPdfService::class)->resolvePortalUrl($voucher->fresh('therapist'));
 
     expect($portalUrl)->toBe(route('appointments.createPatient', ['therapist' => $therapist->id]));
-    expect(app(GiftVoucherPdfService::class)->buildQrImageSrc($portalUrl))
+    $qrBuild = app(GiftVoucherPdfService::class)->buildQrImageSrc($portalUrl);
+
+    expect($qrBuild['src'])
         ->not->toBeNull()
         ->toStartWith('data:image/');
+    expect($qrBuild['mode'])->toBeIn(['png', 'svg']);
 });
 
 test('gift voucher pdf download works with a custom background image', function () {
