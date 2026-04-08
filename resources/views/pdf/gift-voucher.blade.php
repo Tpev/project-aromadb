@@ -40,6 +40,10 @@
         .pill { display: inline-block; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; font-size: 12px; }
         .footer { margin-top: 18px; font-size: 11px; color: #6b7280; }
         .qr { width: 140px; height: 140px; }
+        .portal-url {
+            white-space: nowrap;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -102,7 +106,7 @@
                             QR indisponible
                         </div>
                     @endif
-                    <div class="muted" style="margin-top:8px;">
+                    <div class="muted portal-url" style="margin-top:8px;">
                         Portail : {{ $portalUrl }}
                     </div>
                 </td>
