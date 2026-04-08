@@ -9,26 +9,29 @@ use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
-use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\ImageManager;
 
 class GiftVoucherPdfService
 {
+    private const PDF_BACKGROUND_WIDTH = 794;
+    private const PDF_BACKGROUND_HEIGHT = 1123;
+
     public function renderPdf(GiftVoucher $voucher): string
     {
         $therapist = $voucher->therapist;
 
         $portalUrl = $this->resolvePortalUrl($voucher);
-        $qrSvg = $this->buildQrSvgMarkup($portalUrl);
+        $qrImageSrc = $this->buildQrImageSrc($portalUrl);
 
-        $backgroundBase64 = $this->buildPdfSafeBackgroundDataUri($voucher->background_path_snapshot);
+        $backgroundImageSrc = $this->buildPdfSafeBackgroundSource($voucher->background_path_snapshot);
 
         $pdf = Pdf::loadView('pdf.gift-voucher', [
             'voucher' => $voucher,
             'therapist' => $therapist,
             'portalUrl' => $portalUrl,
-            'qrSvg' => $qrSvg,
-            'backgroundBase64' => $backgroundBase64,
+            'qrImageSrc' => $qrImageSrc,
+            'backgroundImageSrc' => $backgroundImageSrc,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->output();
@@ -45,13 +48,29 @@ class GiftVoucherPdfService
         return route('appointments.createPatient', ['therapist' => $therapist?->id]);
     }
 
-    public function buildQrSvgMarkup(string $portalUrl): ?string
+    public function buildQrImageSrc(string $portalUrl): ?string
     {
         try {
-            return QrCode::format('svg')
+            $qrPng = QrCode::format('png')
                 ->size(240)
                 ->margin(1)
                 ->generate($portalUrl);
+
+            return 'data:image/png;base64,' . base64_encode($qrPng);
+        } catch (\Throwable $e) {
+            Log::info('Gift voucher PNG QR generation failed, trying SVG fallback.', [
+                'portal_url' => $portalUrl,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        try {
+            $qrSvg = QrCode::format('svg')
+                ->size(240)
+                ->margin(1)
+                ->generate($portalUrl);
+
+            return 'data:image/svg+xml;base64,' . base64_encode($qrSvg);
         } catch (\Throwable $e) {
             Log::warning('Gift voucher QR code could not be generated.', [
                 'portal_url' => $portalUrl,
@@ -62,7 +81,7 @@ class GiftVoucherPdfService
         }
     }
 
-    private function buildPdfSafeBackgroundDataUri(?string $backgroundPath): ?string
+    private function buildPdfSafeBackgroundSource(?string $backgroundPath): ?string
     {
         if (! $backgroundPath || ! Storage::disk('public')->exists($backgroundPath)) {
             return null;
@@ -70,23 +89,15 @@ class GiftVoucherPdfService
 
         try {
             $binary = Storage::disk('public')->get($backgroundPath);
-            $mime = (string) (Storage::disk('public')->mimeType($backgroundPath) ?: '');
-
-            // Keep native format when already PDF-safe.
-            if (in_array($mime, ['image/jpeg', 'image/jpg', 'image/png'], true)) {
-                return 'data:' . $mime . ';base64,' . base64_encode($binary);
-            }
-
-            // Convert (ex: WEBP) to PNG for DomPDF compatibility.
             $driver = extension_loaded('imagick') ? new ImagickDriver() : new GdDriver();
             $manager = new ImageManager($driver);
-            $png = $manager
+            $jpeg = $manager
                 ->read($binary)
                 ->orient()
-                ->cover(1240, 1754)
-                ->encode(new PngEncoder());
+                ->cover(self::PDF_BACKGROUND_WIDTH, self::PDF_BACKGROUND_HEIGHT)
+                ->encode(new JpegEncoder(quality: 82));
 
-            return 'data:image/png;base64,' . base64_encode((string) $png);
+            return 'data:image/jpeg;base64,' . base64_encode((string) $jpeg);
         } catch (\Throwable $e) {
             Log::warning('Gift voucher background could not be rendered for PDF.', [
                 'background_path' => $backgroundPath,

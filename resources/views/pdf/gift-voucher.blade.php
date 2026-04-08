@@ -19,14 +19,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            opacity: 0.18;
+            opacity: 0.42;
             width: 100%;
             height: 100%;
         }
         .card-inner {
             position: relative;
             z-index: 2;
-            background: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.42);
             border-radius: 10px;
             padding: 14px;
         }
@@ -40,14 +40,13 @@
         .pill { display: inline-block; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; font-size: 12px; }
         .footer { margin-top: 18px; font-size: 11px; color: #6b7280; }
         .qr { width: 140px; height: 140px; }
-        .qr svg { width: 140px; height: 140px; display: block; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="card">
-        @if(!empty($backgroundBase64))
-            <img class="card-bg-image" src="{{ $backgroundBase64 }}" alt="">
+        @if(!empty($backgroundImageSrc))
+            <img class="card-bg-image" src="{{ $backgroundImageSrc }}" alt="">
         @endif
         <div class="card-inner">
         <table class="grid">
@@ -96,8 +95,8 @@
                 </td>
 
                 <td style="width:180px; text-align:right;">
-                    @if(!empty($qrSvg))
-                        <div class="qr">{!! $qrSvg !!}</div>
+                    @if(!empty($qrImageSrc))
+                        <img class="qr" src="{{ $qrImageSrc }}" alt="QR code">
                     @else
                         <div style="width:140px;height:140px;border:1px solid #e5e7eb;border-radius:12px;text-align:center;padding-top:50px;font-size:12px;color:#6b7280;">
                             QR indisponible

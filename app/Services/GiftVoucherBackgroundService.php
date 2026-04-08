@@ -12,6 +12,9 @@ use Intervention\Image\ImageManager;
 
 class GiftVoucherBackgroundService
 {
+    private const BACKGROUND_WIDTH = 794;
+    private const BACKGROUND_HEIGHT = 1123;
+
     /**
      * Store a global brand background (A4 portrait ratio) for future vouchers.
      */
@@ -31,7 +34,7 @@ class GiftVoucherBackgroundService
         // A4 portrait ratio ~= 1:1.414.
         // Store as JPEG for maximal compatibility with PDF renderers.
         $encoded = $image
-            ->cover(1240, 1754)
+            ->cover(self::BACKGROUND_WIDTH, self::BACKGROUND_HEIGHT)
             ->encode(new JpegEncoder(quality: 88));
 
         $path = "{$folder}/background.jpg";
