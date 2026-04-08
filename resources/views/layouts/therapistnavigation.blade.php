@@ -133,6 +133,7 @@
                                               || request()->routeIs('unavailabilities.*')
                                               || request()->routeIs('products.*')
                                               || request()->routeIs('events.*')
+                                              || request()->routeIs('pro.gift-vouchers.*')
                                               || request()->routeIs('questionnaires.*')
                                               || request()->routeIs('profile.editCompanyInfo')
                                               || request()->routeIs('therapist.stripe')
@@ -170,6 +171,9 @@
                             </a>
                             <a href="{{ route('events.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Evénements') }}
+                            </a>
+                            <a href="{{ route('pro.gift-vouchers.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                {{ __('Bon cadeau') }}
                             </a>
                             <a href="{{ route('questionnaires.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Questionnaires') }}
@@ -360,6 +364,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Evénements') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('pro.gift-vouchers.index')" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Bon cadeau') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Disponibilités') }}
