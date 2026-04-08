@@ -3079,16 +3079,16 @@ public function cancelFromMagicLink(Request $request, string $token)
     $appointment = Appointment::where('token', $token)->firstOrFail();
 
     // already cancelled?
-    if (in_array($appointment->status, ['cancelled'], true)) {
+    if ($appointment->isCancelled()) {
         return redirect()
-            ->route('appointment.confirmation', $token)
+            ->route('appointments.showPatient', $token)
             ->with('success', __('Ce rendez-vous est déjà annulé.'));
     }
 
     // don’t allow cancellation for past appointments
     if ($appointment->appointment_date && $appointment->appointment_date->isPast()) {
         return redirect()
-            ->route('appointment.confirmation', $token)
+            ->route('appointments.showPatient', $token)
             ->with('error', __('Ce rendez-vous est déjà passé et ne peut plus être annulé.'));
     }
 
@@ -3100,7 +3100,7 @@ public function cancelFromMagicLink(Request $request, string $token)
 
         if (now()->greaterThan($latestCancelAt)) {
             return redirect()
-                ->route('appointment.confirmation', $token)
+                ->route('appointments.showPatient', $token)
                 ->with('error', __('L’annulation en ligne n’est plus possible à moins de :hours heure(s) du rendez-vous. Merci de contacter votre thérapeute.', [
                     'hours' => $cutoffHours
                 ]));

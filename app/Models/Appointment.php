@@ -14,6 +14,13 @@ class Appointment extends Model
 {
     use HasFactory;
 
+    public const CANCELLED_STATUSES = [
+        'cancelled',
+        'canceled',
+        'Annulée',
+        'Annulee',
+    ];
+
     /* ------------------------------------------------------------------ */
     /*  Fields                                                            */
     /* ------------------------------------------------------------------ */
@@ -50,6 +57,19 @@ class Appointment extends Model
         'requires_emargement'  => 'boolean',
         'emargement_sent'      => 'boolean',
     ];
+
+    public function scopeNotCancelled($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('status')
+                ->orWhereNotIn('status', self::CANCELLED_STATUSES);
+        });
+    }
+
+    public function isCancelled(): bool
+    {
+        return in_array($this->status, self::CANCELLED_STATUSES, true);
+    }
 
     /* ------------------------------------------------------------------ */
     /*  Boot: public token + Google observers + Emargement init           */

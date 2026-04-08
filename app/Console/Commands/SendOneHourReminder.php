@@ -30,6 +30,7 @@ class SendOneHourReminder extends Command
         $hasSentColumn = Schema::hasColumn('appointments', 'reminder_1h_sent_at');
 
         $query = Appointment::whereBetween('appointment_date', [$startReminderWindow, $endReminderWindow])
+            ->notCancelled()
             ->with('clientProfile', 'user', 'product')
             ->orderBy('id');
 
@@ -49,12 +50,18 @@ class SendOneHourReminder extends Command
                 // If column exists, claim atomically to prevent duplicates across runs/overlaps
                 if ($hasSentColumn) {
                     $claimed = Appointment::whereKey($appointment->id)
+                        ->notCancelled()
                         ->whereNull('reminder_1h_sent_at')
                         ->update(['reminder_1h_sent_at' => now()]);
 
                     if ($claimed !== 1) {
                         continue; // already handled by another run
                     }
+                }
+
+                $appointment->refresh();
+                if ($appointment->isCancelled()) {
+                    continue;
                 }
 
                 $mailable = new AppointmentReminderClientMail($appointment);
