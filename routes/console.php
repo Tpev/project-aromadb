@@ -10,6 +10,7 @@ use App\Console\Commands\SendAppointmentReminders;
 use App\Console\Commands\SendOneHourReminder;
 use App\Console\Commands\FetchFacebookMetrics;
 use App\Console\Commands\UpdateLicenseStatus;
+use App\Console\Commands\ReleaseStaleGiftVoucherBookingReservations;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Console\Commands\ImportGoogleEvents; 
@@ -41,6 +42,10 @@ Schedule::command(UpdateLicenseStatus::class)->daily();
 Schedule::command(ImportGoogleEvents::class)
 		->everyFiveMinutes()
 		->withoutOverlapping(20);
+
+Schedule::command(ReleaseStaleGiftVoucherBookingReservations::class)
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
 
 // Rebuild public sitemap every night
 Schedule::command('sitemap:generate')

@@ -1086,18 +1086,6 @@ public function storePatient(Request $request)
         ? min((int) $voucherForBooking->remaining_amount_cents, $totalAmountCents)
         : 0;
 
-    // Production safety: for Stripe online collection we only allow full-coverage vouchers.
-    // Partial voucher + online payment creates race conditions on remaining balance.
-    if (!empty($product->collect_payment)
-        && !empty($therapist->stripe_account_id)
-        && $voucherForBooking
-        && $voucherPlannedCents > 0
-        && $voucherPlannedCents < $totalAmountCents) {
-        return back()->withErrors([
-            'gift_voucher_code' => 'Pour les paiements en ligne, le bon cadeau doit couvrir la totalité du montant.',
-        ])->withInput();
-    }
-
     // Inférer le "type" (mode) à partir du produit si non fourni
     // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
     $mode = $request->input('type');
@@ -1346,6 +1334,16 @@ public function storePatient(Request $request)
             $stripe = new StripeClient($stripeSecretKey);
 
             try {
+                if ($voucherForBooking && $voucherPlannedCents > 0) {
+                    app(GiftVoucherRedeemService::class)->reserveForAppointment(
+                        $voucherForBooking,
+                        $voucherPlannedCents,
+                        $appointment->id,
+                        $therapist->id,
+                        'Reservation bon cadeau en attente du paiement Stripe'
+                    );
+                }
+
                 $session = $stripe->checkout->sessions->create([
                     'payment_method_types' => ['card'],
                     'line_items' => [[
@@ -1357,6 +1355,7 @@ public function storePatient(Request $request)
                         'quantity' => 1,
                     ]],
                     'mode' => 'payment',
+                    'expires_at' => now()->addMinutes(GiftVoucherRedeemService::BOOKING_ONLINE_HOLD_MINUTES)->timestamp,
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
                     'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
                     'payment_intent_data' => [
@@ -1378,6 +1377,7 @@ public function storePatient(Request $request)
 
             } catch (\Exception $e) {
                 Log::error('Stripe Checkout creation failed: ' . $e->getMessage());
+                $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
                 return back()->withErrors(['payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'])
                              ->withInput();
             }
@@ -2334,6 +2334,11 @@ public function cancel(Request $request)
             $therapist = $appointment->user;
 
             if ($therapist) {
+                app(GiftVoucherRedeemService::class)->releaseReservedForAppointment(
+                    $appointment,
+                    'Paiement Stripe annule par le client.'
+                );
+
                 // Supprimer le rendez-vous
                 $appointment->delete();
 
@@ -2500,6 +2505,8 @@ protected function createInvoiceFromAppointment(Appointment $appointment)
 
 private function resolveGiftVoucherForBooking(User $therapist, ?string $voucherCode): ?GiftVoucher
 {
+    app(GiftVoucherRedeemService::class)->releaseStaleOnlineReservations();
+
     $code = strtoupper(trim((string) $voucherCode));
     if ($code === '') {
         return null;
@@ -2558,7 +2565,25 @@ private function applyGiftVoucherFromStripeMetadata(Appointment $appointment, ar
         ->where('user_id', $appointment->user_id)
         ->first();
 
-    if (! $voucher || ! $voucher->isUsable()) {
+    if (! $voucher) {
+        return 0;
+    }
+
+    $appliedCents = app(GiftVoucherRedeemService::class)->finalizeReservedForAppointment(
+        $voucher,
+        (int) $appointment->id,
+        'Reservation Stripe payee, bon cadeau applique.'
+    );
+
+    if ($appliedCents > 0) {
+        $appointment->gift_voucher_id = $voucher->id;
+        $appointment->gift_voucher_amount_cents = $appliedCents;
+        $appointment->save();
+
+        return $appliedCents;
+    }
+
+    if (! $voucher->isUsable()) {
         return 0;
     }
 
@@ -3183,18 +3208,6 @@ public function storeByToken(Request $request, string $token)
         ? min((int) $voucherForBooking->remaining_amount_cents, $totalAmountCents)
         : 0;
 
-    // Production safety: for Stripe online collection we only allow full-coverage vouchers.
-    // Partial voucher + online payment creates race conditions on remaining balance.
-    if (!empty($product->collect_payment)
-        && !empty($therapist->stripe_account_id)
-        && $voucherForBooking
-        && $voucherPlannedCents > 0
-        && $voucherPlannedCents < $totalAmountCents) {
-        return back()->withErrors([
-            'gift_voucher_code' => 'Pour les paiements en ligne, le bon cadeau doit couvrir la totalité du montant.',
-        ])->withInput();
-    }
-
     // Inférer le "type" (mode) à partir du produit si non fourni
     // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
     $mode = $request->input('type');
@@ -3449,6 +3462,16 @@ public function storeByToken(Request $request, string $token)
             $stripe = new StripeClient($stripeSecretKey);
 
             try {
+                if ($voucherForBooking && $voucherPlannedCents > 0) {
+                    app(GiftVoucherRedeemService::class)->reserveForAppointment(
+                        $voucherForBooking,
+                        $voucherPlannedCents,
+                        $appointment->id,
+                        $therapist->id,
+                        'Reservation bon cadeau en attente du paiement Stripe'
+                    );
+                }
+
                 $session = $stripe->checkout->sessions->create([
                     'payment_method_types' => ['card'],
                     'line_items' => [[
@@ -3460,6 +3483,7 @@ public function storeByToken(Request $request, string $token)
                         'quantity' => 1,
                     ]],
                     'mode' => 'payment',
+                    'expires_at' => now()->addMinutes(GiftVoucherRedeemService::BOOKING_ONLINE_HOLD_MINUTES)->timestamp,
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
                     'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
                     'payment_intent_data' => [
@@ -3481,6 +3505,7 @@ public function storeByToken(Request $request, string $token)
 
             } catch (\Exception $e) {
                 Log::error('Stripe Checkout creation failed: ' . $e->getMessage());
+                $this->rollbackFailedBooking($appointment, $bookingLink ?? null);
                 return back()->withErrors(['payment' => 'Erreur lors de la création de la session de paiement. Veuillez réessayer.'])
                              ->withInput();
             }
@@ -3652,6 +3677,11 @@ public function createByToken(string $token)
 private function rollbackFailedBooking(Appointment $appointment, $bookingLink = null): void
 {
     try {
+        app(GiftVoucherRedeemService::class)->releaseReservedForAppointment(
+            $appointment,
+            'Reservation Stripe abandonnee, bon cadeau libere.'
+        );
+
         \App\Models\Meeting::query()
             ->where('appointment_id', $appointment->id)
             ->delete();
