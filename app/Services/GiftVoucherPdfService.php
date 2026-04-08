@@ -18,17 +18,8 @@ class GiftVoucherPdfService
     {
         $therapist = $voucher->therapist;
 
-        // QR: point to therapist public portal (as requested)
-        // If you want QR to a voucher lookup later, change URL accordingly.
-        $portalUrl = url('/pro/' . ($therapist->slug ?? $therapist->id));
-
-        // Generate QR PNG binary then base64 for embedding in HTML
-        $qrPng = QrCode::format('png')
-            ->size(240)
-            ->margin(1)
-            ->generate($portalUrl);
-
-        $qrBase64 = 'data:image/png;base64,' . base64_encode($qrPng);
+        $portalUrl = $this->resolvePortalUrl($voucher);
+        $qrSvg = $this->buildQrSvgMarkup($portalUrl);
 
         $backgroundBase64 = $this->buildPdfSafeBackgroundDataUri($voucher->background_path_snapshot);
 
@@ -36,11 +27,39 @@ class GiftVoucherPdfService
             'voucher' => $voucher,
             'therapist' => $therapist,
             'portalUrl' => $portalUrl,
-            'qrBase64' => $qrBase64,
+            'qrSvg' => $qrSvg,
             'backgroundBase64' => $backgroundBase64,
         ])->setPaper('a4', 'portrait');
 
         return $pdf->output();
+    }
+
+    public function resolvePortalUrl(GiftVoucher $voucher): string
+    {
+        $therapist = $voucher->therapist;
+
+        if ($therapist?->slug) {
+            return route('therapist.show', ['slug' => $therapist->slug]);
+        }
+
+        return route('appointments.createPatient', ['therapist' => $therapist?->id]);
+    }
+
+    public function buildQrSvgMarkup(string $portalUrl): ?string
+    {
+        try {
+            return QrCode::format('svg')
+                ->size(240)
+                ->margin(1)
+                ->generate($portalUrl);
+        } catch (\Throwable $e) {
+            Log::warning('Gift voucher QR code could not be generated.', [
+                'portal_url' => $portalUrl,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     private function buildPdfSafeBackgroundDataUri(?string $backgroundPath): ?string

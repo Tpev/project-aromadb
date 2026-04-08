@@ -15,15 +15,20 @@
         }
         .card-bg-image {
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             opacity: 0.18;
             width: 100%;
             height: 100%;
-            object-fit: cover;
         }
         .card-inner {
             position: relative;
             z-index: 2;
+            background: rgba(255, 255, 255, 0.72);
+            border-radius: 10px;
+            padding: 14px;
         }
         .muted { color: #6b7280; font-size: 12px; }
         .title { font-size: 26px; font-weight: 700; margin: 0; }
@@ -35,6 +40,7 @@
         .pill { display: inline-block; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px; font-size: 12px; }
         .footer { margin-top: 18px; font-size: 11px; color: #6b7280; }
         .qr { width: 140px; height: 140px; }
+        .qr svg { width: 140px; height: 140px; display: block; }
     </style>
 </head>
 <body>
@@ -90,7 +96,13 @@
                 </td>
 
                 <td style="width:180px; text-align:right;">
-                    <img class="qr" src="{{ $qrBase64 }}" alt="QR code">
+                    @if(!empty($qrSvg))
+                        <div class="qr">{!! $qrSvg !!}</div>
+                    @else
+                        <div style="width:140px;height:140px;border:1px solid #e5e7eb;border-radius:12px;text-align:center;padding-top:50px;font-size:12px;color:#6b7280;">
+                            QR indisponible
+                        </div>
+                    @endif
                     <div class="muted" style="margin-top:8px;">
                         Portail : {{ $portalUrl }}
                     </div>
