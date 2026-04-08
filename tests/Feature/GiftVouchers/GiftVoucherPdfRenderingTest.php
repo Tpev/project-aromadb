@@ -35,8 +35,12 @@ test('gift voucher pdf service falls back to the public booking page when therap
 
     expect($qrBuild['src'])
         ->not->toBeNull()
-        ->toStartWith('data:image/');
-    expect($qrBuild['mode'])->toBeIn(['png', 'svg']);
+        ->toContain('gift-voucher-qr-');
+    expect($qrBuild['mode'])->toBeIn(['png-file', 'svg-file']);
+
+    if (is_file($qrBuild['src'])) {
+        @unlink($qrBuild['src']);
+    }
 });
 
 test('gift voucher pdf download works with a custom background image', function () {

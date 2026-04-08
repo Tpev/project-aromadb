@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\GiftVoucher;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -20,11 +21,13 @@ class GiftVoucherPdfService
     public function renderPdf(GiftVoucher $voucher): string
     {
         $therapist = $voucher->therapist;
+        $temporaryFiles = [];
 
         $portalUrl = $this->resolvePortalUrl($voucher);
         $qrBuild = $this->buildQrImageSrc($portalUrl);
 
         $backgroundBuild = $this->buildPdfSafeBackgroundSource($voucher->background_path_snapshot);
+        $temporaryFiles = array_merge($temporaryFiles, $qrBuild['cleanup'] ?? [], $backgroundBuild['cleanup'] ?? []);
 
         Log::info('Gift voucher PDF render starting.', [
             'voucher_id' => $voucher->id,
@@ -43,25 +46,40 @@ class GiftVoucherPdfService
             'background_available' => $backgroundBuild['src'] !== null,
         ]);
 
-        $pdf = Pdf::loadView('pdf.gift-voucher', [
-            'voucher' => $voucher,
-            'therapist' => $therapist,
-            'portalUrl' => $portalUrl,
-            'qrImageSrc' => $qrBuild['src'],
-            'backgroundImageSrc' => $backgroundBuild['src'],
-        ])->setPaper('a4', 'portrait');
+        try {
+            $pdf = Pdf::loadView('pdf.gift-voucher', [
+                'voucher' => $voucher,
+                'therapist' => $therapist,
+                'portalUrl' => $portalUrl,
+                'qrImageSrc' => $qrBuild['src'],
+                'backgroundImageSrc' => $backgroundBuild['src'],
+            ])->setPaper('a4', 'portrait');
 
-        $output = $pdf->output();
+            $output = $pdf->output();
 
-        Log::info('Gift voucher PDF render completed.', [
-            'voucher_id' => $voucher->id,
-            'voucher_code' => $voucher->code,
-            'pdf_bytes' => strlen($output),
-            'qr_mode' => $qrBuild['mode'],
-            'background_source_type' => $backgroundBuild['type'],
-        ]);
+            Log::info('Gift voucher PDF render completed.', [
+                'voucher_id' => $voucher->id,
+                'voucher_code' => $voucher->code,
+                'pdf_bytes' => strlen($output),
+                'qr_mode' => $qrBuild['mode'],
+                'background_source_type' => $backgroundBuild['type'],
+            ]);
 
-        return $output;
+            return $output;
+        } finally {
+            foreach ($temporaryFiles as $tempFile) {
+                try {
+                    if (is_string($tempFile) && $tempFile !== '' && is_file($tempFile)) {
+                        @unlink($tempFile);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Gift voucher temporary asset cleanup failed.', [
+                        'file' => $tempFile,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
     }
 
     public function resolvePortalUrl(GiftVoucher $voucher): string
@@ -82,10 +100,12 @@ class GiftVoucherPdfService
                 ->size(240)
                 ->margin(1)
                 ->generate($portalUrl);
+            $path = $this->storeTemporaryAsset('gift-voucher-qr-', '.png', $qrPng);
 
             return [
-                'src' => 'data:image/png;base64,' . base64_encode($qrPng),
-                'mode' => 'png',
+                'src' => $path,
+                'mode' => 'png-file',
+                'cleanup' => [$path],
             ];
         } catch (\Throwable $e) {
             Log::info('Gift voucher PNG QR generation failed, trying SVG fallback.', [
@@ -99,10 +119,12 @@ class GiftVoucherPdfService
                 ->size(240)
                 ->margin(1)
                 ->generate($portalUrl);
+            $path = $this->storeTemporaryAsset('gift-voucher-qr-', '.svg', $qrSvg);
 
             return [
-                'src' => 'data:image/svg+xml;base64,' . base64_encode($qrSvg),
-                'mode' => 'svg',
+                'src' => $path,
+                'mode' => 'svg-file',
+                'cleanup' => [$path],
             ];
         } catch (\Throwable $e) {
             Log::warning('Gift voucher QR code could not be generated.', [
@@ -113,6 +135,7 @@ class GiftVoucherPdfService
             return [
                 'src' => null,
                 'mode' => 'none',
+                'cleanup' => [],
             ];
         }
     }
@@ -123,6 +146,7 @@ class GiftVoucherPdfService
             return [
                 'src' => null,
                 'type' => 'none',
+                'cleanup' => [],
             ];
         }
 
@@ -136,6 +160,7 @@ class GiftVoucherPdfService
                 ->orient()
                 ->cover(self::PDF_BACKGROUND_WIDTH, self::PDF_BACKGROUND_HEIGHT)
                 ->encode(new JpegEncoder(quality: 82));
+            $path = $this->storeTemporaryAsset('gift-voucher-bg-', '.jpg', (string) $jpeg);
 
             Log::info('Gift voucher background prepared for PDF.', [
                 'background_path' => $backgroundPath,
@@ -147,8 +172,9 @@ class GiftVoucherPdfService
             ]);
 
             return [
-                'src' => 'data:image/jpeg;base64,' . base64_encode((string) $jpeg),
-                'type' => 'data-jpeg',
+                'src' => $path,
+                'type' => 'temp-jpeg-file',
+                'cleanup' => [$path],
             ];
         } catch (\Throwable $e) {
             Log::warning('Gift voucher background could not be rendered for PDF.', [
@@ -159,7 +185,23 @@ class GiftVoucherPdfService
             return [
                 'src' => null,
                 'type' => 'failed',
+                'cleanup' => [],
             ];
         }
+    }
+
+    private function storeTemporaryAsset(string $prefix, string $extension, string $binary): string
+    {
+        $directory = storage_path('app/tmp/gift-vouchers');
+        if (! File::exists($directory)) {
+            File::ensureDirectoryExists($directory);
+        }
+
+        $filename = $prefix . uniqid('', true) . $extension;
+        $path = $directory . DIRECTORY_SEPARATOR . $filename;
+
+        file_put_contents($path, $binary);
+
+        return $path;
     }
 }
