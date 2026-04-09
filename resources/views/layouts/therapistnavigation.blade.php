@@ -1,5 +1,10 @@
 <!-- resources/views/layouts/therapistnavigation.blade.php -->
 
+@php
+    $canUseGiftVouchers = auth()->check() && auth()->user()->canUseFeature('gift_vouchers');
+    $giftVoucherNavUrl = $canUseGiftVouchers ? route('pro.gift-vouchers.index') : url('/license-tiers/pricing');
+@endphp
+
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Inclure Alpine.js si ce n'est pas déjà fait ailleurs -->
   
@@ -172,8 +177,11 @@
                             <a href="{{ route('events.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Evénements') }}
                             </a>
-                            <a href="{{ route('pro.gift-vouchers.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <a href="{{ $giftVoucherNavUrl }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Bon cadeau') }}
+                                @unless($canUseGiftVouchers)
+                                    <span class="ml-1 text-xs font-semibold text-amber-700">(Upgrade)</span>
+                                @endunless
                             </a>
                             <a href="{{ route('questionnaires.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Questionnaires') }}
@@ -365,8 +373,8 @@
             <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Evénements') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('pro.gift-vouchers.index')" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Bon cadeau') }}
+            <x-responsive-nav-link :href="$giftVoucherNavUrl" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                {{ __('Bon cadeau') }} @unless($canUseGiftVouchers) {{ __('(Upgrade)') }} @endunless
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Disponibilités') }}

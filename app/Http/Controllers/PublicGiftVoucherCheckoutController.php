@@ -20,6 +20,7 @@ class PublicGiftVoucherCheckoutController extends Controller
             ->where('is_therapist', true)
             ->firstOrFail();
 
+        abort_unless($therapist->canUseFeature('gift_vouchers'), 404);
         abort_unless((bool) $therapist->gift_voucher_online_enabled, 404);
         abort_unless($stripeGuard->canAcceptOnlineCheckout($therapist), 404);
 
@@ -35,7 +36,9 @@ class PublicGiftVoucherCheckoutController extends Controller
             ->where('is_therapist', true)
             ->firstOrFail();
 
-        if (! $therapist->gift_voucher_online_enabled || ! $stripeGuard->canAcceptOnlineCheckout($therapist)) {
+        if (! $therapist->canUseFeature('gift_vouchers')
+            || ! $therapist->gift_voucher_online_enabled
+            || ! $stripeGuard->canAcceptOnlineCheckout($therapist)) {
             return back()->withErrors([
                 'payment' => 'L’achat en ligne de bons cadeaux n’est pas disponible pour ce profil.',
             ])->withInput();

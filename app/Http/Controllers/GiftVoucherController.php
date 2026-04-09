@@ -12,6 +12,7 @@ use App\Services\GiftVoucherCodeGenerator;
 use App\Services\GiftVoucherInvoiceService;
 use App\Services\GiftVoucherPdfService;
 use App\Services\GiftVoucherRedeemService;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Storage;
@@ -23,6 +24,7 @@ class GiftVoucherController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $this->authorizeGiftVoucherFeature($user);
 
         $status = $request->query('status', 'all'); // all|active|expired|exhausted|disabled
 
@@ -66,6 +68,7 @@ class GiftVoucherController extends Controller
     public function create()
     {
         $user = auth()->user();
+        $this->authorizeGiftVoucherFeature($user);
         return view('dashboard-pro/gift-vouchers/create', compact('user'));
     }
 
@@ -75,6 +78,7 @@ class GiftVoucherController extends Controller
         GiftVoucherInvoiceService $invoiceService
     ) {
         $user = auth()->user();
+        $this->authorizeGiftVoucherFeature($user);
 
         $amountEur = (float) $request->input('amount_eur');
         $amountCents = (int) round($amountEur * 100);
@@ -129,6 +133,7 @@ class GiftVoucherController extends Controller
         GiftVoucherSettingsUpdateRequest $request
     ) {
         $user = auth()->user();
+        $this->authorizeGiftVoucherFeature($user);
 
         $user->gift_voucher_online_enabled = $request->boolean('gift_voucher_online_enabled');
 
@@ -165,6 +170,7 @@ class GiftVoucherController extends Controller
 
     public function show(GiftVoucher $voucher)
     {
+        $this->authorizeGiftVoucherFeature(auth()->user());
         $this->authorize('view', $voucher);
 
         $voucher->load(['redemptions' => function ($q) {
@@ -176,6 +182,7 @@ class GiftVoucherController extends Controller
 
     public function downloadPdf(GiftVoucher $voucher, GiftVoucherPdfService $pdfService)
     {
+        $this->authorizeGiftVoucherFeature(auth()->user());
         $this->authorize('view', $voucher);
 
         $pdfBinary = $pdfService->renderPdf($voucher);
@@ -190,6 +197,7 @@ class GiftVoucherController extends Controller
 
     public function resendEmails(GiftVoucher $voucher)
     {
+        $this->authorizeGiftVoucherFeature(auth()->user());
         $this->authorize('update', $voucher);
 
         SendGiftVoucherEmailsJob::dispatch($voucher->id);
@@ -199,6 +207,7 @@ class GiftVoucherController extends Controller
 
     public function redeem(GiftVoucher $voucher, GiftVoucherRedeemRequest $request, GiftVoucherRedeemService $service)
     {
+        $this->authorizeGiftVoucherFeature(auth()->user());
         $this->authorize('update', $voucher);
 
         $amountEur = (float) $request->input('amount_eur');
@@ -220,11 +229,17 @@ class GiftVoucherController extends Controller
 
     public function disable(GiftVoucher $voucher)
     {
+        $this->authorizeGiftVoucherFeature(auth()->user());
         $this->authorize('update', $voucher);
 
         $voucher->is_active = false;
         $voucher->save();
 
         return back()->with('success', 'Bon cadeau désactivé.');
+    }
+
+    private function authorizeGiftVoucherFeature(?User $user): void
+    {
+        abort_unless($user && $user->canUseFeature('gift_vouchers'), 403);
     }
 }

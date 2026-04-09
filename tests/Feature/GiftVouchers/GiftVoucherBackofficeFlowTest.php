@@ -173,3 +173,35 @@ test('public gift voucher checkout page returns 404 when stripe guard is not rea
 
     $response->assertNotFound();
 });
+
+test('starter therapist cannot access gift vouchers backoffice', function () {
+    $this->withoutMiddleware();
+
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'license_product' => 'new_starter_mensuelle',
+    ]);
+
+    $response = $this->actingAs($therapist)->get(route('pro.gift-vouchers.index'));
+
+    $response->assertForbidden();
+});
+
+test('public gift voucher checkout returns 404 when therapist plan does not include the feature', function () {
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'slug' => 'therapist-voucher-checkout-starter',
+        'license_product' => 'new_starter_mensuelle',
+        'gift_voucher_online_enabled' => true,
+        'stripe_account_id' => 'acct_ready',
+    ]);
+
+    $this->mock(StripeAccountGuard::class, function ($mock) {
+        $mock->shouldReceive('canAcceptOnlineCheckout')
+            ->never();
+    });
+
+    $response = $this->get(route('gift-vouchers.checkout.show', ['slug' => $therapist->slug]));
+
+    $response->assertNotFound();
+});
