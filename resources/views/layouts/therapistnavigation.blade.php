@@ -2,7 +2,7 @@
 
 @php
     $canUseGiftVouchers = auth()->check() && auth()->user()->canUseFeature('gift_vouchers');
-    $giftVoucherNavUrl = $canUseGiftVouchers ? route('pro.gift-vouchers.index') : url('/license-tiers/pricing');
+    $giftVoucherNavUrl = route('pro.gift-vouchers.index');
 @endphp
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">

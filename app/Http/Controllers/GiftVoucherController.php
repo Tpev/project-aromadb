@@ -24,7 +24,6 @@ class GiftVoucherController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $this->authorizeGiftVoucherFeature($user);
 
         $status = $request->query('status', 'all'); // all|active|expired|exhausted|disabled
 

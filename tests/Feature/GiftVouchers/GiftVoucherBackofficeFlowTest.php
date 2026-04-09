@@ -174,7 +174,7 @@ test('public gift voucher checkout page returns 404 when stripe guard is not rea
     $response->assertNotFound();
 });
 
-test('starter therapist cannot access gift vouchers backoffice', function () {
+test('starter therapist can open the locked gift vouchers backoffice teaser', function () {
     $this->withoutMiddleware();
 
     $therapist = User::factory()->create([
@@ -184,7 +184,9 @@ test('starter therapist cannot access gift vouchers backoffice', function () {
 
     $response = $this->actingAs($therapist)->get(route('pro.gift-vouchers.index'));
 
-    $response->assertForbidden();
+    $response->assertOk();
+    $response->assertSee('Fonction disponible avec votre formule');
+    $response->assertSee('Débloquer les bons cadeaux');
 });
 
 test('public gift voucher checkout returns 404 when therapist plan does not include the feature', function () {
