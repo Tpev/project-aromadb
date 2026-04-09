@@ -23,6 +23,18 @@
     .row{ display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin:.5rem 0; }
     label{ font-weight:600; }
     .sig-pad{ border:1px dashed #bbb; height:180px; border-radius:10px; display:none; background:#fff; }
+    .choice-row label{ font-weight:700; }
+    .choice-help{ display:block; font-size:.9rem; font-weight:500; color:#5b6472; margin-top:.15rem; margin-left:1.4rem; }
+    .confirm-panel{
+      margin-top:.75rem;
+      padding:.85rem 1rem;
+      border-radius:12px;
+      border:1px solid #dbe4c0;
+      background:#f7fbef;
+    }
+    .confirm-panel label{ display:flex; align-items:flex-start; gap:.6rem; font-weight:700; line-height:1.45; }
+    .confirm-panel input[type="checkbox"]{ margin-top:.2rem; }
+    .helper-text{ color:#5f6b7a; font-size:.9rem; margin-top:.35rem; }
     .alert{ padding:.75rem 1rem; border-radius:10px; margin:.75rem 0; }
     .alert.error{ background:#fde8e8; color:#7f1d1d; border:1px solid #fecaca; }
     .alert.info{ background:#eef2ff; color:#1e3a8a; border:1px solid #c7d2fe; }
@@ -70,31 +82,50 @@
 
     <div class="alert info" role="status">
       {{ $isTherapist
-          ? 'Étape praticien : relisez le document, puis confirmez ou dessinez votre signature pour contre-signer.'
-          : 'Étape client : relisez le document, puis confirmez ou dessinez votre signature pour signer.' }}
+          ? 'Étape praticien : relisez le document, confirmez votre acceptation, puis choisissez votre mode de signature.'
+          : 'Étape client : relisez le document, confirmez votre acceptation, puis choisissez votre mode de signature.' }}
     </div>
 
     <form method="POST" action="{{ route('documents.sign.submit', $signing->token) }}" class="section" id="signForm">
       @csrf
 
-      <div class="row">
+      @if($errors->any())
+        <div class="alert error">
+          <ul style="margin:0; padding-left:1.1rem;">
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
+
+      <div class="row choice-row">
         <label>
-          <input type="radio" name="mode" value="checkbox" checked>
+          <input type="radio" name="mode" value="checkbox" {{ old('mode', 'checkbox') !== 'canvas' ? 'checked' : '' }}>
           {{ $isTherapist
-              ? 'Je confirme ma lecture et je contre-signe en tant que praticien'
-              : 'Je confirme ma lecture et mon accord (client)' }}
+              ? 'Signer sans dessin'
+              : 'Signer sans dessin' }}
+          <span class="choice-help">
+            {{ $isTherapist
+                ? 'Validez simplement votre accord, sans tracer de signature manuscrite.'
+                : 'Validez simplement votre accord, sans tracer de signature manuscrite.' }}
+          </span>
         </label>
         <label>
-          <input type="radio" name="mode" value="canvas" id="modeCanvas">
+          <input type="radio" name="mode" value="canvas" id="modeCanvas" {{ old('mode') === 'canvas' ? 'checked' : '' }}>
           Dessiner ma signature
+          <span class="choice-help">Tracez votre signature directement dans la zone prévue.</span>
         </label>
       </div>
 
-      <div id="confirmBox" class="row" aria-live="polite">
+      <div id="confirmBox" class="confirm-panel" aria-live="polite">
         <label>
-          <input type="checkbox" name="confirmed" value="1">
-          {{ $isTherapist ? 'J’atteste contre-signer ce document.' : 'J’atteste avoir lu et accepté ce document.' }}
+          <input type="checkbox" name="confirmed" value="1" {{ old('confirmed') ? 'checked' : '' }}>
+          {{ $isTherapist ? 'J’atteste avoir lu ce document et je confirme ma contre-signature.' : 'J’atteste avoir lu et accepté ce document avant de le signer.' }}
         </label>
+        <div class="helper-text">
+          Cette confirmation reste obligatoire, que vous choisissiez une signature simple ou un dessin manuscrit.
+        </div>
       </div>
 
       <div id="canvasWrap" class="sig-pad" aria-hidden="true">
@@ -104,8 +135,8 @@
       <input type="hidden" name="signature_data" id="signature_data" />
 
       <div class="bar" style="margin-top:.75rem;">
-        <button class="btn" type="submit" id="submitBtn">Signer</button>
-        <button class="btn alt" type="button" id="clearSig" style="display:none;">Effacer la signature</button>
+        <button class="btn" type="submit" id="submitBtn">{{ $isTherapist ? 'Contre-signer le document' : 'Signer le document' }}</button>
+        <button class="btn alt" type="button" id="clearSig" style="display:none;">Effacer le dessin</button>
       </div>
     </form>
 
@@ -149,7 +180,6 @@
     sigWrap.style.display = on ? 'block' : 'none';
     sigWrap.setAttribute('aria-hidden', on ? 'false':'true');
     clearBtn.style.display = on ? 'inline-block' : 'none';
-    confirmBox.style.display = on ? 'none' : 'flex';
     if(!on){
       // clear canvas data if switching back
       ctx.clearRect(0,0,sigCanvas.width, sigCanvas.height);
@@ -161,6 +191,8 @@
   modeRadios.forEach(r => {
     r.addEventListener('change', e => showCanvas(e.target.value === 'canvas'));
   });
+
+  showCanvas(document.querySelector('input[name="mode"]:checked')?.value === 'canvas');
 
   // Pointer & mouse support for signature
   function getPos(evt){
@@ -207,7 +239,7 @@
     const mode = document.querySelector('input[name="mode"]:checked')?.value || 'checkbox';
     if(mode === 'canvas' && !sigData.value){
       e.preventDefault();
-      alert('Merci de dessiner votre signature ou choisissez la confirmation par case à cocher.');
+      alert('Merci de dessiner votre signature avant de valider, ou choisissez l’option de signature sans dessin.');
       return false;
     }
     submitBtn.disabled = true;

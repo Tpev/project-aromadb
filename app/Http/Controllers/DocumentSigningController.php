@@ -62,6 +62,14 @@ class DocumentSigningController extends Controller
         $mode   = $request->input('mode', 'checkbox');
         $sigPng = null;
 
+        $request->validate([
+            'confirmed' => 'accepted',
+            'signature_data' => $mode === 'canvas' ? ['required', 'string'] : ['nullable', 'string'],
+        ], [
+            'confirmed.accepted' => 'Merci de confirmer que vous avez lu et accepté le document avant de signer.',
+            'signature_data.required' => 'Merci de dessiner votre signature avant de valider.',
+        ]);
+
         if ($mode === 'canvas' && $request->filled('signature_data')) {
             // store base64 PNG
             $payload = $request->input('signature_data');
@@ -74,9 +82,6 @@ class DocumentSigningController extends Controller
             $sigDir  = 'documents/signatures';
             $sigPng  = $sigDir.'/'.uniqid($role.'_').'.png';
             Storage::disk('public')->put($sigPng, $bin);
-        } else {
-            // checkbox confirmation
-            $request->validate(['confirmed' => 'accepted']);
         }
 
         // Write audit trail
