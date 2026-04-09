@@ -82,6 +82,29 @@ test('therapist can update gift voucher global settings', function () {
     expect($therapist->gift_voucher_background_path)->toBeNull();
 });
 
+test('therapist can disable online gift voucher purchase without reuploading the custom background', function () {
+    $this->withoutMiddleware();
+
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'gift_voucher_online_enabled' => true,
+        'gift_voucher_background_mode' => 'custom_upload',
+        'gift_voucher_background_path' => 'gift-vouchers/backgrounds/demo/background.jpg',
+    ]);
+
+    $response = $this->actingAs($therapist)->post(route('pro.gift-vouchers.settings.update'), [
+        'gift_voucher_background_mode' => 'custom_upload',
+    ]);
+
+    $response->assertSessionHas('success');
+
+    $therapist->refresh();
+
+    expect($therapist->gift_voucher_online_enabled)->toBeFalse();
+    expect($therapist->gift_voucher_background_mode)->toBe('custom_upload');
+    expect($therapist->gift_voucher_background_path)->toBe('gift-vouchers/backgrounds/demo/background.jpg');
+});
+
 test('therapist can upload a custom global gift voucher background', function () {
     $this->withoutMiddleware();
     Storage::fake('public');

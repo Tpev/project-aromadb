@@ -134,6 +134,7 @@ class GiftVoucherController extends Controller
 
         $mode = $request->input('gift_voucher_background_mode', 'default');
         $removeBackground = $request->boolean('remove_gift_voucher_background');
+        $user->gift_voucher_background_mode = $mode;
 
         if ($removeBackground || $mode === 'default') {
             GiftVoucherBackgroundService::removeGlobalBackground($user);
@@ -156,6 +157,8 @@ class GiftVoucherController extends Controller
                 ->withErrors(['gift_voucher_background' => 'Ajoutez une image pour activer le mode personnalisé.'])
                 ->withInput();
         }
+
+        $user->save();
 
         return back()->with('success', 'Paramètres bon cadeau mis à jour.');
     }
