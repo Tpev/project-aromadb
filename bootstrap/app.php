@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
+use App\Support\UploadLimit;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,6 +22,17 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (PostTooLargeException $e, $request) {
+            $message = 'Le fichier envoyé dépasse la limite actuelle du serveur (' . UploadLimit::trainingVideoLimitLabel() . '). Réduisez la taille du fichier ou demandez une augmentation de la limite d’upload.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => $message,
+                    'max_upload_size' => UploadLimit::trainingVideoLimitLabel(),
+                ], 413);
+            }
+
+            return response($message, 413);
+        });
     })
     ->create();

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Support\UploadLimit;
 
 class DigitalTrainingController extends Controller
 {
@@ -462,7 +463,7 @@ class DigitalTrainingController extends Controller
 
             if ($data['type'] === 'video_url') {
                 $request->validate([
-                    'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000',
+                    'file' => 'file|mimes:mp4,mov,webm,ogg|max:' . UploadLimit::trainingVideoValidationMaxKilobytes(),
                 ]);
                 $filePath = $request->file('file')->store('digital-trainings/videos', 'public');
             }
@@ -507,7 +508,7 @@ class DigitalTrainingController extends Controller
 
             if ($block->type === 'video_url') {
                 $request->validate([
-                    'file' => 'file|mimes:mp4,mov,webm,ogg|max:512000',
+                    'file' => 'file|mimes:mp4,mov,webm,ogg|max:' . UploadLimit::trainingVideoValidationMaxKilobytes(),
                 ]);
 
                 if ($block->file_path) {

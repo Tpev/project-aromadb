@@ -1,6 +1,9 @@
 {{-- resources/views/digital-trainings/builder.blade.php --}}
 
 <x-app-layout>
+    @php
+        $videoUploadLimitLabel = \App\Support\UploadLimit::trainingVideoLimitLabel();
+    @endphp
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -813,6 +816,7 @@
                                                    class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Formats conseillés : MP4 / WebM. Vous pouvez aussi utiliser uniquement une URL.') }}
+                                                {{ __('Limite actuelle du serveur : :size.', ['size' => $videoUploadLimitLabel]) }}
                                             </p>
                                         </div>
 
