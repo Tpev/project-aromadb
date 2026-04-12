@@ -469,9 +469,7 @@ class DigitalTrainingController extends Controller
             }
 
             if ($data['type'] === 'audio') {
-                $request->validate([
-                    'file' => 'file|mimes:mp3,wav,m4a,aac,ogg,oga,webm|max:' . UploadLimit::trainingAudioValidationMaxKilobytes(),
-                ]);
+                $this->validateAudioUpload($request);
                 $filePath = $request->file('file')->store('digital-trainings/audios', 'public');
             }
         }
@@ -525,9 +523,7 @@ class DigitalTrainingController extends Controller
             }
 
             if ($block->type === 'audio') {
-                $request->validate([
-                    'file' => 'file|mimes:mp3,wav,m4a,aac,ogg,oga,webm|max:' . UploadLimit::trainingAudioValidationMaxKilobytes(),
-                ]);
+                $this->validateAudioUpload($request);
 
                 if ($block->file_path) {
                     Storage::disk('public')->delete($block->file_path);
@@ -672,5 +668,47 @@ class DigitalTrainingController extends Controller
         if ($block->training_module_id !== $module->id) {
             abort(403);
         }
+    }
+
+    protected function validateAudioUpload(Request $request): void
+    {
+        $allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'oga', 'webm'];
+        $allowedMimes = [
+            'audio/mpeg',
+            'audio/mp3',
+            'audio/wav',
+            'audio/x-wav',
+            'audio/wave',
+            'audio/vnd.wave',
+            'audio/mp4',
+            'audio/x-m4a',
+            'audio/aac',
+            'audio/aacp',
+            'audio/ogg',
+            'application/ogg',
+            'audio/webm',
+            'audio/quicktime',
+            'video/quicktime',
+            'video/mp4',
+        ];
+
+        $request->validate([
+            'file' => [
+                'file',
+                'max:' . UploadLimit::trainingAudioValidationMaxKilobytes(),
+                function (string $attribute, $file, \Closure $fail) use ($allowedExtensions, $allowedMimes) {
+                    $extension = strtolower((string) $file->getClientOriginalExtension());
+                    $mime = strtolower((string) $file->getMimeType());
+
+                    if (in_array($extension, $allowedExtensions, true) || in_array($mime, $allowedMimes, true)) {
+                        return;
+                    }
+
+                    $fail('Veuillez uploader un fichier audio valide (MP3, WAV, M4A, AAC, OGG ou WebM).');
+                },
+            ],
+        ], [
+            'file.max' => 'Le fichier audio dépasse la limite actuelle du serveur.',
+        ]);
     }
 }

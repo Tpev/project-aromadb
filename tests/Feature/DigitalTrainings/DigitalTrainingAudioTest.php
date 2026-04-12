@@ -92,6 +92,42 @@ test('owner can replace uploaded audio file on existing block', function () {
     Storage::disk('public')->assertExists($block->file_path);
 });
 
+test('owner can upload an m4a audio even when mime is generic or unusual', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $training = makeDigitalTrainingForAudio($user);
+    $module = TrainingModule::create([
+        'digital_training_id' => $training->id,
+        'title' => 'Module m4a',
+        'display_order' => 1,
+    ]);
+
+    $tempFile = tempnam(sys_get_temp_dir(), 'audio-test-');
+    file_put_contents($tempFile, 'fake-m4a-audio-stream');
+
+    $response = $this->actingAs($user)
+        ->withSession(['_token' => 'csrf-token'])
+        ->post(route('digital-trainings.blocks.store', [$training, $module]), [
+            '_token' => 'csrf-token',
+            'type' => 'audio',
+            'title' => 'Audio m4a',
+            'file' => new UploadedFile($tempFile, 'podcast.m4a', 'application/octet-stream', null, true),
+        ]);
+
+    $response->assertRedirect();
+
+    $block = TrainingBlock::where('training_module_id', $module->id)
+        ->where('title', 'Audio m4a')
+        ->first();
+
+    expect($block)->not->toBeNull()
+        ->and($block->type)->toBe('audio')
+        ->and($block->file_path)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($block->file_path);
+});
+
 test('public digital training page shows audio badge when a module contains audio content', function () {
     $user = User::factory()->create();
     $training = makeDigitalTrainingForAudio($user, [
