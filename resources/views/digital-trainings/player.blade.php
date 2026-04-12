@@ -441,6 +441,7 @@
                                                     $icon = '📝';
                                                     if ($block->type === 'pdf') $icon = '📄';
                                                     elseif ($block->type === 'video_url') $icon = '🎬';
+                                                    elseif ($block->type === 'audio') $icon = '🎧';
                                                 @endphp
                                                 <span class="block-pill"
                                                       data-module-index="{{ $index }}"
@@ -686,6 +687,58 @@
                                 <div style="font-size:12px;color:#6b7280;">
                                     Si la vidéo ne s’affiche pas correctement, vous pouvez
                                     <a href="${raw}" target="_blank" style="color:#647a0b;text-decoration:underline;">ouvrir la vidéo dans un nouvel onglet</a>.
+                                </div>
+                            </div>`;
+                    }
+                }
+            } else if (block.type === 'audio') {
+                if (block.file_path) {
+                    const src = `{{ rtrim(config('app.url'), '/') }}/storage/` + block.file_path;
+                    const url = block.content || '';
+
+                    html = `
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <div style="border:1px solid #e5e7eb;background:#ffffff;border-radius:12px;padding:16px;">
+                                <audio controls preload="metadata" style="width:100%;display:block;">
+                                    <source src="${src}">
+                                    {{ __('Votre navigateur ne supporte pas la lecture audio.') }}
+                                </audio>
+                            </div>
+
+                            <div style="font-size:12px;color:#6b7280;">
+                                <a href="${src}" target="_blank" style="color:#647a0b;text-decoration:underline;">
+                                    {{ __('Ouvrir l’audio dans un nouvel onglet') }}
+                                </a>
+                            </div>
+
+                            ${url ? `
+                                <div style="border:1px solid #e5e7eb;background:#ffffff;border-radius:12px;padding:10px;">
+                                    <div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:4px;">
+                                        {{ __('URL (optionnelle) :') }}
+                                    </div>
+                                    <div style="font-size:11px;color:#6b7280;word-break:break-all;">
+                                        ${escapeHtml(url)}
+                                    </div>
+                                </div>
+                            ` : ``}
+                        </div>
+                    `;
+                } else {
+                    const raw = block.content || '';
+
+                    if (!raw) {
+                        html = `<p style="font-size:13px;color:#6b7280;">Aucun audio n’est renseigné pour ce contenu.</p>`;
+                    } else {
+                        html = `
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div style="border:1px solid #e5e7eb;background:#ffffff;border-radius:12px;padding:16px;">
+                                    <audio controls preload="metadata" src="${escapeHtml(raw)}" style="width:100%;display:block;">
+                                        {{ __('Votre navigateur ne supporte pas la lecture audio.') }}
+                                    </audio>
+                                </div>
+                                <div style="font-size:12px;color:#6b7280;">
+                                    Si l’audio ne se lance pas correctement, vous pouvez
+                                    <a href="${raw}" target="_blank" style="color:#647a0b;text-decoration:underline;">ouvrir le fichier dans un nouvel onglet</a>.
                                 </div>
                             </div>`;
                     }

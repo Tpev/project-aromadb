@@ -85,4 +85,22 @@ class UploadLimit
     {
         return self::formatBytes(self::trainingVideoMaxBytes());
     }
+
+    public static function trainingAudioMaxBytes(): int
+    {
+        $appMax = 500 * 1024 * 1024;
+        $phpMax = self::phpUploadMaxBytes();
+
+        return $phpMax === null ? $appMax : min($appMax, $phpMax);
+    }
+
+    public static function trainingAudioValidationMaxKilobytes(): int
+    {
+        return max(1, (int) floor(self::trainingAudioMaxBytes() / 1024));
+    }
+
+    public static function trainingAudioLimitLabel(): string
+    {
+        return self::formatBytes(self::trainingAudioMaxBytes());
+    }
 }

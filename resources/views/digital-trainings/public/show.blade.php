@@ -205,7 +205,7 @@ if ($therapist) {
                         {!! nl2br(e($training->description)) !!}
                     @else
                         <p>
-                            {{ __('Cette formation digitale vous permet de revoir les notions clés abordées en séance, et d’avancer pas à pas grâce à des supports clairs (vidéos, PDF, fiches pratiques…).') }}
+                            {{ __('Cette formation digitale vous permet de revoir les notions clés abordées en séance, et d’avancer pas à pas grâce à des supports clairs (textes, vidéos, audios, PDF, fiches pratiques…).') }}
                         </p>
                     @endif
                 </article>
@@ -253,6 +253,7 @@ if ($therapist) {
 
                                 $hasText   = $blocks->contains(fn($b) => $b->type === 'text');
                                 $hasVideo  = $blocks->contains(fn($b) => $b->type === 'video_url');
+                                $hasAudio  = $blocks->contains(fn($b) => $b->type === 'audio');
                                 $hasPdf    = $blocks->contains(fn($b) => $b->type === 'pdf');
                             @endphp
 
@@ -283,6 +284,11 @@ if ($therapist) {
                                                 @if($hasVideo)
                                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
                                                         🎬 {{ __('Vidéos') }}
+                                                    </span>
+                                                @endif
+                                                @if($hasAudio)
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
+                                                        🎧 {{ __('Audios') }}
                                                     </span>
                                                 @endif
                                                 @if($hasPdf)

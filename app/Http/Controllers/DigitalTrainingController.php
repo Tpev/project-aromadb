@@ -445,7 +445,7 @@ class DigitalTrainingController extends Controller
         $this->authorizeModule($digitalTraining, $module);
 
         $data = $request->validate([
-            'type'    => 'required|in:text,video_url,pdf',
+            'type'    => 'required|in:text,video_url,audio,pdf',
             'title'   => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'file'    => 'nullable|file|max:512000', // 500MB
@@ -466,6 +466,13 @@ class DigitalTrainingController extends Controller
                     'file' => 'file|mimes:mp4,mov,webm,ogg|max:' . UploadLimit::trainingVideoValidationMaxKilobytes(),
                 ]);
                 $filePath = $request->file('file')->store('digital-trainings/videos', 'public');
+            }
+
+            if ($data['type'] === 'audio') {
+                $request->validate([
+                    'file' => 'file|mimes:mp3,wav,m4a,aac,ogg,oga,webm|max:' . UploadLimit::trainingAudioValidationMaxKilobytes(),
+                ]);
+                $filePath = $request->file('file')->store('digital-trainings/audios', 'public');
             }
         }
 
@@ -515,6 +522,17 @@ class DigitalTrainingController extends Controller
                     Storage::disk('public')->delete($block->file_path);
                 }
                 $block->file_path = $request->file('file')->store('digital-trainings/videos', 'public');
+            }
+
+            if ($block->type === 'audio') {
+                $request->validate([
+                    'file' => 'file|mimes:mp3,wav,m4a,aac,ogg,oga,webm|max:' . UploadLimit::trainingAudioValidationMaxKilobytes(),
+                ]);
+
+                if ($block->file_path) {
+                    Storage::disk('public')->delete($block->file_path);
+                }
+                $block->file_path = $request->file('file')->store('digital-trainings/audios', 'public');
             }
         }
 

@@ -337,6 +337,54 @@
                             `;
                         }
                     }
+                } else if (block.type === 'audio') {
+                    if (block.file_path) {
+                        const src = `/storage/${block.file_path}`;
+                        html = `
+                            <div class="space-y-4">
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-5">
+                                    <audio class="w-full" controls preload="metadata">
+                                        <source src="${src}">
+                                        {{ __('Votre navigateur ne supporte pas la lecture audio.') }}
+                                    </audio>
+                                </div>
+
+                                ${block.content ? `
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                        <div class="text-[11px] font-semibold text-slate-700">{{ __('URL (optionnelle) :') }}</div>
+                                        <div class="text-[11px] text-slate-600 break-all">${escapeHtml(block.content)}</div>
+                                    </div>
+                                ` : ''}
+
+                                <p class="text-[11px] text-slate-500">
+                                    {{ __('Aperçu : lecture du fichier audio uploadé.') }}
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        const url = block.content || '';
+
+                        if (!url) {
+                            html = `
+                                <p class="text-sm text-slate-500">
+                                    {{ __('Aucun audio renseigné : ajoutez une URL ou uploadez un fichier dans le builder.') }}
+                                </p>
+                            `;
+                        } else {
+                            html = `
+                                <div class="space-y-4">
+                                    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-5">
+                                        <audio class="w-full" controls preload="metadata" src="${escapeHtml(url)}">
+                                            {{ __('Votre navigateur ne supporte pas la lecture audio.') }}
+                                        </audio>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 break-all">
+                                        ${escapeHtml(url)}
+                                    </p>
+                                </div>
+                            `;
+                        }
+                    }
                 } else if (block.type === 'pdf') {
                     if (block.file_path) {
                         const src = `/storage/${block.file_path}#toolbar=1&navpanes=1&scrollbar=1`;

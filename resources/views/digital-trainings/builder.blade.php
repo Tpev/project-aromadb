@@ -3,6 +3,7 @@
 <x-app-layout>
     @php
         $videoUploadLimitLabel = \App\Support\UploadLimit::trainingVideoLimitLabel();
+        $audioUploadLimitLabel = \App\Support\UploadLimit::trainingAudioLimitLabel();
     @endphp
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -58,7 +59,7 @@
                     activeAction: null,      // 'edit' | 'create'
                     activeModuleId: null,
                     activeBlockId: null,
-                    activeType: null,        // 'text' | 'video_url' | 'pdf'
+                    activeType: null,        // 'text' | 'video_url' | 'audio' | 'pdf'
                     showEditorModal: false
                  }">
 
@@ -203,7 +204,7 @@
                         <p class="font-semibold mb-1 text-slate-700">{{ __('Comment ça marche ?') }}</p>
                         <ol class="list-decimal list-inside space-y-0.5">
                             <li>{{ __('Créez un module (colonne gauche).') }}</li>
-                            <li>{{ __('Dans le module, cliquez sur “Texte”, “Vidéo” ou “PDF”.') }}</li>
+                            <li>{{ __('Dans le module, cliquez sur “Texte”, “Vidéo”, “Audio” ou “PDF”.') }}</li>
                             <li>{{ __('Un grand éditeur plein écran s’ouvre pour rédiger votre contenu.') }}</li>
                         </ol>
                     </div>
@@ -346,6 +347,8 @@
                                                                     📝 {{ __('Texte riche') }}
                                                                 @elseif($block->type === 'video_url')
                                                                     🎥 {{ __('Vidéo (URL)') }}
+                                                                @elseif($block->type === 'audio')
+                                                                    🎧 {{ __('Audio') }}
                                                                 @else
                                                                     📄 {{ __('PDF') }}
                                                                 @endif
@@ -387,6 +390,28 @@
 
                                                                 @if(!$block->file_path && !$block->content)
                                                                     <div class="text-slate-400">{{ __('Aucune vidéo renseignée.') }}</div>
+                                                                @endif
+                                                            </div>
+                                                        @elseif($block->type === 'audio')
+                                                            <div class="space-y-1 text-[11px] text-slate-600">
+                                                                @if($block->file_path)
+                                                                    <div>
+                                                                        {{ __('Audio uploadé :') }}
+                                                                        <span class="underline">{{ __('Fichier associé') }}</span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if($block->content)
+                                                                    <div>
+                                                                        {{ __('URL audio :') }}
+                                                                        <span class="underline">
+                                                                            {{ \Illuminate\Support\Str::limit($block->content, 50) }}
+                                                                        </span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if(!$block->file_path && !$block->content)
+                                                                    <div class="text-slate-400">{{ __('Aucun audio renseigné.') }}</div>
                                                                 @endif
                                                             </div>
                                                         @elseif($block->type === 'pdf' && $block->file_path)
@@ -489,6 +514,17 @@
                                                         @click="
                                                             activeAction='create';
                                                             activeModuleId={{ $module->id }};
+                                                            activeType='audio';
+                                                            activeBlockId=null;
+                                                            showEditorModal = true;
+                                                        "
+                                                        class="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 border border-slate-200 hover:bg-slate-50">
+                                                    🎧 {{ __('Audio') }}
+                                                </button>
+                                                <button type="button"
+                                                        @click="
+                                                            activeAction='create';
+                                                            activeModuleId={{ $module->id }};
                                                             activeType='pdf';
                                                             activeBlockId=null;
                                                             showEditorModal = true;
@@ -548,7 +584,7 @@
                             {{-- DEFAULT STATE --}}
                             <div x-show="!activeAction" class="h-full flex items-center justify-center text-center text-[12px] text-slate-400">
                                 <div class="max-w-sm space-y-2">
-                                    <p>{{ __('Choisissez un module à gauche, puis cliquez sur “Texte”, “Vidéo” ou “PDF”, ou sur “Éditer” pour modifier un contenu existant.') }}</p>
+                                    <p>{{ __('Choisissez un module à gauche, puis cliquez sur “Texte”, “Vidéo”, “Audio” ou “PDF”, ou sur “Éditer” pour modifier un contenu existant.') }}</p>
                                     <p>{{ __('Ce grand éditeur vous permet de travailler à l’aise, comme dans un traitement de texte.') }}</p>
                                 </div>
                             </div>
@@ -570,6 +606,10 @@
                                             @elseif($block->type === 'video_url')
                                                 <span class="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 border border-sky-100 text-sky-700">
                                                     🎥 {{ __('Vidéo') }}
+                                                </span>
+                                            @elseif($block->type === 'audio')
+                                                <span class="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 border border-violet-100 text-violet-700">
+                                                    🎧 {{ __('Audio') }}
                                                 </span>
                                             @else
                                                 <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 border border-amber-100 text-amber-700">
@@ -650,6 +690,42 @@
                                                                class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Formats conseillés : MP4 / WebM. Si un fichier est uploadé, il pourra être prioritaire à l’affichage.') }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            @elseif($block->type === 'audio')
+                                                <div class="space-y-3">
+                                                    <div>
+                                                        <label class="block text-[11px] text-slate-600 mb-1">
+                                                            {{ __('URL audio (optionnel)') }}
+                                                        </label>
+                                                        <textarea name="content" rows="3"
+                                                                  class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                                  placeholder="{{ __('Collez l’URL publique de votre audio si vous ne souhaitez pas uploader un fichier.') }}">{{ $block->content }}</textarea>
+                                                        <p class="mt-1 text-[10px] text-slate-400">
+                                                            {{ __('Vous pouvez utiliser un simple lien audio public, ou laisser vide si vous uploadez un fichier.') }}
+                                                        </p>
+                                                    </div>
+
+                                                    @if($block->file_path)
+                                                        <div class="text-[11px] text-slate-600">
+                                                            {{ __('Audio actuel :') }}
+                                                            <a href="{{ asset('storage/'.$block->file_path) }}" target="_blank" class="underline">
+                                                                {{ __('Écouter / ouvrir le fichier') }}
+                                                            </a>
+                                                        </div>
+                                                    @endif
+
+                                                    <div>
+                                                        <label class="block text-[11px] text-slate-600 mb-1">
+                                                            {{ __('Uploader / remplacer un audio (optionnel)') }}
+                                                        </label>
+                                                        <input type="file" name="file"
+                                                               accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/webm,audio/*"
+                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                        <p class="mt-1 text-[10px] text-slate-400">
+                                                            {{ __('Formats conseillés : MP3, WAV, M4A, AAC, OGG. Si un fichier est uploadé, il sera prioritaire à la lecture.') }}
+                                                            {{ __('Limite actuelle du serveur : :size.', ['size' => $audioUploadLimitLabel]) }}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -779,7 +855,8 @@
                                           method="POST"
                                           enctype="multipart/form-data"
                                           class="space-y-3"
-                                          data-video-upload-form
+                                          data-media-upload-form
+                                          data-upload-kind="{{ __('vidéo') }}"
                                           data-redirect-url="{{ route('digital-trainings.builder', $training) }}">
                                         @csrf
                                         <input type="hidden" name="type" value="video_url">
@@ -833,6 +910,93 @@
                                         </div>
 
                                         {{-- Error UI --}}
+                                        <div class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700" data-upload-error></div>
+
+                                        <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                                            <button type="button"
+                                                    @click="showEditorModal = false; activeAction=null; activeModuleId=null; activeType=null;"
+                                                    class="rounded-md border border-slate-200 px-3 py-1.5 text-[11px] text-slate-600 hover:bg-slate-50">
+                                                {{ __('Fermer sans créer') }}
+                                            </button>
+                                            <div class="flex gap-2">
+                                                <button type="submit"
+                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]"
+                                                        data-upload-submit>
+                                                    {{ __('Créer ce contenu') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                {{-- Create AUDIO (with upload progress if file is selected) --}}
+                                <div x-show="activeAction === 'create' && activeModuleId === {{ $module->id }} && activeType === 'audio'"
+                                     x-cloak
+                                     class="space-y-3">
+                                    <div class="mb-2 text-[11px] text-slate-500 flex flex-wrap gap-2 items-center">
+                                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 border border-slate-100">
+                                            {{ $module->title ?: __('Module') }}
+                                        </span>
+                                        <span class="inline-flex items-center rounded-full bg-violet-50 px-2 py-0.5 border border-violet-100 text-violet-700">
+                                            🎧 {{ __('Nouvel audio') }}
+                                        </span>
+                                    </div>
+
+                                    <form action="{{ route('digital-trainings.blocks.store', [$training, $module]) }}"
+                                          method="POST"
+                                          enctype="multipart/form-data"
+                                          class="space-y-3"
+                                          data-media-upload-form
+                                          data-upload-kind="{{ __('audio') }}"
+                                          data-redirect-url="{{ route('digital-trainings.builder', $training) }}">
+                                        @csrf
+                                        <input type="hidden" name="type" value="audio">
+
+                                        <div>
+                                            <label class="block text-[11px] text-slate-600 mb-1">
+                                                {{ __('Titre du contenu') }}
+                                            </label>
+                                            <input type="text" name="title"
+                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                   placeholder="{{ __('Ex : Méditation guidée') }}">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-[11px] text-slate-600 mb-1">
+                                                {{ __('URL audio (optionnel)') }}
+                                            </label>
+                                            <textarea name="content" rows="3"
+                                                      class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                      placeholder="{{ __('Collez l’URL publique de votre audio si vous ne souhaitez pas uploader un fichier.') }}"></textarea>
+                                            <p class="mt-1 text-[10px] text-slate-400">
+                                                {{ __('Vous pouvez utiliser un lien audio public, ou laisser vide si vous uploadez directement un fichier.') }}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-[11px] text-slate-600 mb-1">
+                                                {{ __('Uploader un audio (optionnel)') }}
+                                            </label>
+                                            <input type="file" name="file"
+                                                   accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/webm,audio/*"
+                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                            <p class="mt-1 text-[10px] text-slate-400">
+                                                {{ __('Formats conseillés : MP3, WAV, M4A, AAC, OGG. Vous pouvez aussi utiliser uniquement une URL.') }}
+                                                {{ __('Limite actuelle du serveur : :size.', ['size' => $audioUploadLimitLabel]) }}
+                                            </p>
+                                        </div>
+
+                                        <div class="hidden" data-upload-ui>
+                                            <div class="flex items-center justify-between text-[11px] text-slate-600 mb-1">
+                                                <span data-upload-label>{{ __('Envoi de l’audio…') }}</span>
+                                                <span class="font-semibold" data-upload-percent>0%</span>
+                                            </div>
+                                            <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
+                                                <div class="h-2 rounded-full bg-[#647a0b]" style="width:0%" data-upload-bar></div>
+                                            </div>
+                                            <div class="mt-2 text-[11px] text-slate-500" data-upload-detail></div>
+                                        </div>
+
                                         <div class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700" data-upload-error></div>
 
                                         <div class="flex justify-between items-center pt-3 border-t border-slate-100">
@@ -956,13 +1120,14 @@
                 }
             });
 
-            // ===== VIDEO UPLOAD PROGRESS (XHR) =====
-            document.querySelectorAll('form[data-video-upload-form]').forEach((form) => {
+            // ===== MEDIA UPLOAD PROGRESS (XHR) =====
+            document.querySelectorAll('form[data-media-upload-form]').forEach((form) => {
                 form.addEventListener('submit', (e) => {
                     const fileInput = form.querySelector('input[type="file"][name="file"]');
                     const hasFile   = fileInput && fileInput.files && fileInput.files.length > 0;
+                    const mediaKind = form.getAttribute('data-upload-kind') || 'média';
 
-                    // If no file, allow normal submit (URL-only)
+                    // If no file, allow normal submit (URL-only when available)
                     if (!hasFile) return;
 
                     e.preventDefault();
@@ -980,7 +1145,7 @@
                     if (ui) ui.classList.remove('hidden');
                     if (bar) bar.style.width = '0%';
                     if (percentEl) percentEl.textContent = '0%';
-                    if (labelEl) labelEl.textContent = 'Envoi de la vidéo…';
+                    if (labelEl) labelEl.textContent = `Envoi du ${mediaKind}…`;
                     if (detailEl) detailEl.textContent = 'Merci de ne pas fermer cette fenêtre pendant l’upload.';
                     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Upload…'; }
 
