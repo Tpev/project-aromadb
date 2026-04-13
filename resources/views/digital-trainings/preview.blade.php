@@ -47,6 +47,9 @@
         }
         .rich-text-content ul { list-style: disc; }
         .rich-text-content ol { list-style: decimal; }
+        .rich-text-content ol li[data-list="bullet"] { list-style-type: disc; }
+        .rich-text-content ol li[data-list="ordered"] { list-style-type: decimal; }
+        .rich-text-content ol li[data-list="bullet"]::marker { content: "\2022  "; }
         .rich-text-content li { margin: 0.25rem 0; }
         .rich-text-content p { margin: 0 0 1rem; }
         .rich-text-content h1,
