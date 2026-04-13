@@ -449,6 +449,7 @@ class DigitalTrainingController extends Controller
             'title'   => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'file'    => 'nullable|file|max:512000', // 500MB
+            'comments_enabled' => 'nullable|boolean',
         ]);
 
         $filePath = null;
@@ -481,6 +482,9 @@ class DigitalTrainingController extends Controller
             'title'         => $data['title'] ?? null,
             'content'       => $data['type'] === 'pdf' ? null : ($data['content'] ?? null),
             'file_path'     => $filePath,
+            'meta'          => [
+                'comments_enabled' => $request->boolean('comments_enabled'),
+            ],
             'display_order' => $maxOrder + 1,
         ]);
 
@@ -497,6 +501,7 @@ class DigitalTrainingController extends Controller
             'title'   => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'file'    => 'nullable|file|max:512000',
+            'comments_enabled' => 'nullable|boolean',
         ]);
 
         if ($request->hasFile('file')) {
@@ -537,6 +542,10 @@ class DigitalTrainingController extends Controller
         if ($block->type !== 'pdf') {
             $block->content = $data['content'] ?? $block->content;
         }
+
+        $meta = $block->meta ?? [];
+        $meta['comments_enabled'] = $request->boolean('comments_enabled');
+        $block->meta = $meta;
 
         $block->save();
 

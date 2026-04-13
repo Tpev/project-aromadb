@@ -66,6 +66,11 @@ class DigitalTraining extends Model
         return $this->hasMany(DigitalTrainingEnrollment::class);
     }
 
+    public function comments()
+    {
+        return $this->hasMany(DigitalTrainingBlockComment::class);
+    }
+
     public function getFormattedPriceAttribute(): ?string
     {
         if (($this->is_free ?? false) || is_null($this->price_cents)) {

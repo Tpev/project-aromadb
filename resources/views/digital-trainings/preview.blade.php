@@ -37,7 +37,36 @@
                 ← {{ __('Retour à vos formations') }}
             </a>
         </div>
-    </x-slot>
+</x-slot>
+
+    <style>
+        .rich-text-content ul,
+        .rich-text-content ol {
+            margin: 0 0 1rem 1.5rem;
+            padding-left: 1rem;
+        }
+        .rich-text-content ul { list-style: disc; }
+        .rich-text-content ol { list-style: decimal; }
+        .rich-text-content li { margin: 0.25rem 0; }
+        .rich-text-content p { margin: 0 0 1rem; }
+        .rich-text-content h1,
+        .rich-text-content h2,
+        .rich-text-content h3 {
+            margin: 0 0 0.75rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        .rich-text-content h1 { font-size: 1.5rem; }
+        .rich-text-content h2 { font-size: 1.25rem; }
+        .rich-text-content h3 { font-size: 1.125rem; }
+        .rich-text-content a { color: #647a0b; text-decoration: underline; }
+        .rich-text-content blockquote {
+            margin: 0 0 1rem;
+            padding-left: 1rem;
+            border-left: 3px solid #cbd5e1;
+            color: #475569;
+        }
+    </style>
 
     <div class="container mt-6">
         <div class="mx-auto max-w-6xl space-y-4">
@@ -281,7 +310,7 @@
                 if (block.type === 'text') {
                     const content = (block.content || '').replace(/\n/g, '<br>');
                     html = `
-                        <div class="prose max-w-none text-sm text-slate-700">
+                        <div class="rich-text-content text-sm text-slate-700">
                             ${content || '<span class="text-slate-400 text-xs">{{ __('Aucun texte renseigné pour ce contenu.') }}</span>'}
                         </div>
                     `;

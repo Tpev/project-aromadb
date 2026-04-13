@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DigitalTrainingBlockComment;
 use App\Models\DigitalTrainingEnrollment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PublicTrainingAccessController extends Controller
 {
@@ -46,6 +48,30 @@ class PublicTrainingAccessController extends Controller
         $enrollment->save();
 
         // Sort modules and blocks by display_order if not already done in relationships
+        $blockIds = $training->modules
+            ->flatMap(fn ($module) => $module->blocks->pluck('id'))
+            ->values();
+
+        $commentsByBlock = DigitalTrainingBlockComment::query()
+            ->where('digital_training_id', $training->id)
+            ->whereIn('training_block_id', $blockIds)
+            ->where('is_visible', true)
+            ->orderBy('created_at')
+            ->get()
+            ->map(function ($comment) {
+                $name = trim((string) ($comment->participant_name_snapshot ?? ''));
+                $firstName = $name !== '' ? Str::of($name)->before(' ')->trim()->value() : null;
+
+                if (!$firstName && filled($comment->participant_email_snapshot)) {
+                    $firstName = Str::of((string) $comment->participant_email_snapshot)->before('@')->trim()->value();
+                }
+
+                $comment->setAttribute('participant_first_name', $firstName ?: 'Participant');
+
+                return $comment;
+            })
+            ->groupBy('training_block_id');
+
         $modules = $training->modules->sortBy('display_order')->values()->map(function ($module) {
             $module->sorted_blocks = $module->blocks->sortBy('display_order')->values();
             return $module;
@@ -55,6 +81,8 @@ class PublicTrainingAccessController extends Controller
             'training'   => $training,
             'enrollment' => $enrollment,
             'modules'    => $modules,
+            'commentsByBlock' => $commentsByBlock,
+            'selectedBlockId' => (int) request()->query('block', 0),
         ]);
     }
 

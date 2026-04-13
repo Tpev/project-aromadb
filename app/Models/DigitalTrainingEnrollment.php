@@ -41,4 +41,9 @@ class DigitalTrainingEnrollment extends Model
     {
         return $this->belongsTo(ClientProfile::class);
     }
+
+    public function comments()
+    {
+        return $this->hasMany(DigitalTrainingBlockComment::class, 'digital_training_enrollment_id');
+    }
 }

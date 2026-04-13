@@ -155,6 +155,10 @@
                                class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">
                                 ⚙️ {{ __('Modifier les paramètres') }}
                             </a>
+                            <a href="{{ route('digital-trainings.comments.index', $training) }}"
+                               class="inline-flex items-center rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">
+                                💬 {{ __('Voir les commentaires') }}
+                            </a>
                             <a href="{{ route('digital-trainings.preview', $training) }}"
                                class="inline-flex items-center rounded-full bg-[#647a0b] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
                                 👀 {{ __('Prévisualiser la formation') }}
@@ -361,6 +365,11 @@
                                                             @else
                                                                 <span class="text-[11px] text-slate-500 italic">
                                                                     {{ __('Sans titre') }}
+                                                                </span>
+                                                            @endif
+                                                            @if($block->commentsEnabled())
+                                                                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
+                                                                    💬 {{ __('Commentaires activés') }}
                                                                 </span>
                                                             @endif
                                                         </div>
@@ -753,6 +762,21 @@
                                                 </div>
                                             @endif
 
+                                            <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                                <label class="inline-flex items-center gap-2 text-[12px] font-medium text-slate-700">
+                                                    <input type="hidden" name="comments_enabled" value="0">
+                                                    <input type="checkbox"
+                                                           name="comments_enabled"
+                                                           value="1"
+                                                           @checked($block->commentsEnabled())
+                                                           class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                    <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
+                                                </label>
+                                                <p class="mt-1 text-[10px] text-slate-500">
+                                                    {{ __('Si activé, les apprenants pourront laisser un commentaire sous cette section et vous recevrez une notification dans l’application.') }}
+                                                </p>
+                                            </div>
+
                                             <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                                                 <button type="button"
                                                         @click="showEditorModal = false; activeAction=null; activeBlockId=null; activeModuleId=null; activeType=null;"
@@ -819,6 +843,20 @@
                                             </div>
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Ajoutez du texte mis en forme, des listes, des titres, des liens et des images (via URL).') }}
+                                            </p>
+                                        </div>
+
+                                        <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                            <label class="inline-flex items-center gap-2 text-[12px] font-medium text-slate-700">
+                                                <input type="hidden" name="comments_enabled" value="0">
+                                                <input type="checkbox"
+                                                       name="comments_enabled"
+                                                       value="1"
+                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
+                                            </label>
+                                            <p class="mt-1 text-[10px] text-slate-500">
+                                                {{ __('L’apprenant pourra commenter cette section depuis son lecteur de formation.') }}
                                             </p>
                                         </div>
 
@@ -912,6 +950,20 @@
                                         {{-- Error UI --}}
                                         <div class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700" data-upload-error></div>
 
+                                        <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                            <label class="inline-flex items-center gap-2 text-[12px] font-medium text-slate-700">
+                                                <input type="hidden" name="comments_enabled" value="0">
+                                                <input type="checkbox"
+                                                       name="comments_enabled"
+                                                       value="1"
+                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
+                                            </label>
+                                            <p class="mt-1 text-[10px] text-slate-500">
+                                                {{ __('Pratique pour que le client pose une question après avoir regardé la vidéo.') }}
+                                            </p>
+                                        </div>
+
                                         <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                                             <button type="button"
                                                     @click="showEditorModal = false; activeAction=null; activeModuleId=null; activeType=null;"
@@ -999,6 +1051,20 @@
 
                                         <div class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700" data-upload-error></div>
 
+                                        <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                            <label class="inline-flex items-center gap-2 text-[12px] font-medium text-slate-700">
+                                                <input type="hidden" name="comments_enabled" value="0">
+                                                <input type="checkbox"
+                                                       name="comments_enabled"
+                                                       value="1"
+                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
+                                            </label>
+                                            <p class="mt-1 text-[10px] text-slate-500">
+                                                {{ __('Idéal pour recueillir les retours ou questions après un exercice audio.') }}
+                                            </p>
+                                        </div>
+
                                         <div class="flex justify-between items-center pt-3 border-t border-slate-100">
                                             <button type="button"
                                                     @click="showEditorModal = false; activeAction=null; activeModuleId=null; activeType=null;"
@@ -1054,6 +1120,20 @@
                                                    class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Le document sera consultable directement dans un lecteur PDF intégré côté client.') }}
+                                            </p>
+                                        </div>
+
+                                        <div class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                                            <label class="inline-flex items-center gap-2 text-[12px] font-medium text-slate-700">
+                                                <input type="hidden" name="comments_enabled" value="0">
+                                                <input type="checkbox"
+                                                       name="comments_enabled"
+                                                       value="1"
+                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
+                                            </label>
+                                            <p class="mt-1 text-[10px] text-slate-500">
+                                                {{ __('Utile si vous souhaitez que le client puisse vous poser une question après lecture du PDF.') }}
                                             </p>
                                         </div>
 

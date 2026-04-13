@@ -16,19 +16,35 @@
     if ($enrollment->completed_at ?? false) { $progress = 100; }
     $progress = max(0, min(100, $progress));
 
-    $modulesPayload = $modules->map(function($m) {
+    $commentsByBlock = $commentsByBlock ?? collect();
+
+    $modulesPayload = $modules->map(function($m) use ($commentsByBlock) {
         return [
             'id'          => $m->id,
             'title'       => $m->title,
             'description' => $m->description,
             'blocks'      => ($m->sorted_blocks ?? $m->blocks ?? collect())
-                                ->map(function($b) {
+                                ->map(function($b) use ($commentsByBlock) {
+                                    $comments = collect($commentsByBlock[$b->id] ?? [])
+                                        ->map(function ($comment) {
+                                            return [
+                                                'id' => $comment->id,
+                                                'comment' => $comment->comment,
+                                                'participant_name' => $comment->participant_first_name ?: __('Participant'),
+                                                'created_at_label' => optional($comment->created_at)->timezone(config('app.timezone'))->format('d/m/Y H:i'),
+                                            ];
+                                        })
+                                        ->values()
+                                        ->all();
+
                                     return [
                                         'id'        => $b->id,
                                         'type'      => $b->type,
                                         'title'     => $b->title,
                                         'content'   => $b->content,
                                         'file_path' => $b->file_path,
+                                        'comments_enabled' => $b->commentsEnabled(),
+                                        'comments' => $comments,
                                     ];
                                 })
                                 ->values()
@@ -278,6 +294,44 @@
         }
         #block-content { height: 100%; display: flex; flex-direction: column; }
         .content-body-inner { font-size: 14px; line-height: 1.6; color: #111827; flex: 1; overflow: auto; }
+        .rich-text-content ul,
+        .rich-text-content ol {
+            margin: 0 0 1rem 1.5rem;
+            padding-left: 1rem;
+        }
+        .rich-text-content ul { list-style: disc; }
+        .rich-text-content ol { list-style: decimal; }
+        .rich-text-content li { margin: 0.25rem 0; }
+        .rich-text-content p { margin: 0 0 1rem; }
+        .rich-text-content h1,
+        .rich-text-content h2,
+        .rich-text-content h3 {
+            margin: 0 0 0.75rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        .rich-text-content h1 { font-size: 1.5rem; }
+        .rich-text-content h2 { font-size: 1.25rem; }
+        .rich-text-content h3 { font-size: 1.125rem; }
+        .rich-text-content a { color: #647a0b; text-decoration: underline; }
+        .rich-text-content blockquote {
+            margin: 0 0 1rem;
+            padding-left: 1rem;
+            border-left: 3px solid #cbd5e1;
+            color: #475569;
+        }
+        .comments-section { margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .comments-title { font-size: 13px; font-weight: 700; color: #111827; }
+        .comments-help { font-size: 11px; color: #6b7280; }
+        .comment-item { border: 1px solid #e5e7eb; background: #fff; border-radius: 12px; padding: 10px 12px; }
+        .comment-meta { font-size: 11px; color: #6b7280; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+        .comment-body { font-size: 13px; color: #1f2937; white-space: pre-wrap; }
+        .comment-empty { font-size: 12px; color: #6b7280; padding: 10px 12px; border: 1px dashed #d1d5db; border-radius: 12px; background: #fff; }
+        .comment-form { display: flex; flex-direction: column; gap: 8px; }
+        .comment-form textarea { width: 100%; min-height: 96px; border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px; font-size: 13px; resize: vertical; }
+        .comment-form-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .comment-status { font-size: 11px; color: #6b7280; }
+        .comment-error { font-size: 12px; color: #b91c1c; border: 1px solid #fecaca; background: #fef2f2; border-radius: 12px; padding: 8px 10px; }
 
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 10px; gap: 10px; }
         .nav-side { font-size: 11px; color: #6b7280; }
@@ -515,6 +569,9 @@
 
     <script>
         const modules = @json($modulesPayload);
+        const commentStoreUrlTemplate = @json(route('digital-trainings.access.comments.store', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
+        const csrfToken = @json(csrf_token());
+        const selectedBlockId = @json($selectedBlockId ?? 0);
 
         let currentModuleIndex = 0;
         let currentBlockIndex  = 0;
@@ -543,6 +600,109 @@
 
             // Fallback
             return url;
+        }
+
+        function getCommentStoreUrl(blockId) {
+            return commentStoreUrlTemplate.replace('__BLOCK__', String(blockId));
+        }
+
+        function renderCommentsSection(block) {
+            if (!block.comments_enabled) {
+                return '';
+            }
+
+            const comments = Array.isArray(block.comments) ? block.comments : [];
+            const commentsHtml = comments.length
+                ? comments.map((comment) => `
+                    <div class="comment-item">
+                        <div class="comment-meta">
+                            <span>${escapeHtml(comment.participant_name || 'Participant')}</span>
+                            <span>${escapeHtml(comment.created_at_label || '')}</span>
+                        </div>
+                        <div class="comment-body">${escapeHtml(comment.comment || '')}</div>
+                    </div>
+                `).join('')
+                : `<div class="comment-empty">Aucun commentaire pour le moment sur cette section.</div>`;
+
+            return `
+                <div class="comments-section">
+                    <div>
+                        <div class="comments-title">Questions et commentaires sur cette section</div>
+                        <div class="comments-help">Votre thérapeute sera notifié dans l’application lorsque vous laissez un commentaire.</div>
+                    </div>
+                    <div>${commentsHtml}</div>
+                    <form class="comment-form" data-training-comment-form data-block-id="${block.id}">
+                        <textarea name="comment" maxlength="2000" placeholder="Écrivez votre commentaire, question ou retour sur ce contenu..."></textarea>
+                        <div class="comment-error" data-comment-error hidden></div>
+                        <div class="comment-form-actions">
+                            <span class="comment-status" data-comment-status></span>
+                            <button type="submit" class="btn btn-primary" data-comment-submit>Envoyer mon commentaire</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        function bindCommentForm(block) {
+            const form = document.querySelector('[data-training-comment-form]');
+            if (!form) return;
+
+            const textarea = form.querySelector('textarea[name="comment"]');
+            const errorBox = form.querySelector('[data-comment-error]');
+            const statusEl = form.querySelector('[data-comment-status]');
+            const submitBtn = form.querySelector('[data-comment-submit]');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const comment = (textarea?.value || '').trim();
+                if (!comment) {
+                    if (errorBox) {
+                        errorBox.hidden = false;
+                        errorBox.textContent = 'Merci de saisir un commentaire avant l’envoi.';
+                    }
+                    return;
+                }
+
+                if (errorBox) {
+                    errorBox.hidden = true;
+                    errorBox.textContent = '';
+                }
+                if (statusEl) statusEl.textContent = 'Envoi en cours...';
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const response = await fetch(getCommentStoreUrl(block.id), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: JSON.stringify({ comment }),
+                    });
+
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        throw new Error(payload.message || 'Impossible d’envoyer le commentaire.');
+                    }
+
+                    block.comments = Array.isArray(block.comments) ? block.comments : [];
+                    block.comments.push(payload.comment);
+                    if (textarea) textarea.value = '';
+                    if (statusEl) statusEl.textContent = 'Commentaire envoyé.';
+                    renderCurrentBlock();
+                } catch (error) {
+                    if (errorBox) {
+                        errorBox.hidden = false;
+                        errorBox.textContent = error.message || 'Une erreur est survenue pendant l’envoi.';
+                    }
+                    if (statusEl) statusEl.textContent = '';
+                } finally {
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            });
         }
 
         function selectModule(mIndex) {
@@ -636,7 +796,7 @@
             let html = '';
 
             if (block.type === 'text') {
-                html = `<div>${block.content || ''}</div>`;
+                html = `<div class="rich-text-content">${block.content || ''}</div>`;
             } else if (block.type === 'video_url') {
                 // Uploaded file has priority
                 if (block.file_path) {
@@ -770,7 +930,9 @@
                 html = `<p style="font-size:13px;color:#6b7280;">Type de contenu non reconnu.</p>`;
             }
 
+            html += renderCommentsSection(block);
             contentWrap.innerHTML = html;
+            bindCommentForm(block);
             updateNavButtons();
         }
 
@@ -834,6 +996,17 @@
                 }
             });
             if (!found) { currentModuleIndex = 0; currentBlockIndex = 0; }
+
+            if (selectedBlockId) {
+                modules.forEach((module, moduleIndex) => {
+                    (module.blocks || []).forEach((block, blockIndex) => {
+                        if (Number(block.id) === Number(selectedBlockId)) {
+                            currentModuleIndex = moduleIndex;
+                            currentBlockIndex = blockIndex;
+                        }
+                    });
+                });
+            }
             updateActiveUI();
             renderCurrentBlock();
         })();

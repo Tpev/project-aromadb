@@ -27,4 +27,14 @@ class TrainingBlock extends Model
     {
         return $this->belongsTo(TrainingModule::class, 'training_module_id');
     }
+
+    public function comments()
+    {
+        return $this->hasMany(DigitalTrainingBlockComment::class, 'training_block_id');
+    }
+
+    public function commentsEnabled(): bool
+    {
+        return (bool) data_get($this->meta ?? [], 'comments_enabled', false);
+    }
 }

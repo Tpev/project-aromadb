@@ -68,6 +68,8 @@ use App\Http\Controllers\NewsletterUnsubscribeController;
 use App\Http\Controllers\DigitalTrainingController;
 use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
+use App\Http\Controllers\PublicTrainingCommentController;
+use App\Http\Controllers\DigitalTrainingCommentController;
 use App\Http\Controllers\PackProductController;
 use App\Http\Controllers\PackPurchaseSubscriptionController;
 use App\Http\Controllers\PublicPackCheckoutController;
@@ -182,6 +184,9 @@ Route::get('/training-access/{token}', [PublicTrainingAccessController::class, '
 Route::post('/training-access/{token}/complete', [PublicTrainingAccessController::class, 'markCompleted'])
     ->name('digital-trainings.access.complete');
 
+Route::post('/training-access/{token}/blocks/{block}/comments', [PublicTrainingCommentController::class, 'store'])
+    ->name('digital-trainings.access.comments.store');
+
 Route::middleware(['auth'])->group(function () {
     // ...
 
@@ -194,7 +199,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     });
-		Route::delete('/digital-trainings/{digitalTraining}/enrollments/{enrollment}', [DigitalTrainingEnrollmentController::class, 'destroy'])
+    Route::get('/digital-trainings/{digitalTraining}/comments', [DigitalTrainingCommentController::class, 'index'])
+        ->name('digital-trainings.comments.index');
+                Route::delete('/digital-trainings/{digitalTraining}/enrollments/{enrollment}', [DigitalTrainingEnrollmentController::class, 'destroy'])
     ->name('digital-trainings.enrollments.destroy');
     // Future: public client access via token (to implement later)
     // Route::get('training-access/{token}', [PublicTrainingAccessController::class, 'show'])
