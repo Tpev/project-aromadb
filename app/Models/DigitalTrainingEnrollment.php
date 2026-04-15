@@ -30,6 +30,7 @@ class DigitalTrainingEnrollment extends Model
         'first_accessed_at' => 'datetime',
         'last_accessed_at'  => 'datetime',
         'completed_at'      => 'datetime',
+        'viewed_block_ids'  => 'array',
     ];
 
     public function training()

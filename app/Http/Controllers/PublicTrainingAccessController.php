@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\DigitalTrainingBlockComment;
 use App\Models\DigitalTrainingEnrollment;
+use App\Models\TrainingBlock;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -76,6 +78,55 @@ class PublicTrainingAccessController extends Controller
             'modules'    => $modules,
             'commentsByBlock' => $commentsByBlock,
             'selectedBlockId' => (int) request()->query('block', 0),
+        ]);
+    }
+
+    public function markBlockViewed(Request $request, string $token, TrainingBlock $block): JsonResponse
+    {
+        $enrollment = DigitalTrainingEnrollment::where('access_token', $token)
+            ->with(['training.modules.blocks'])
+            ->first();
+
+        if (! $enrollment || ($enrollment->token_expires_at && $enrollment->token_expires_at->isPast())) {
+            return new JsonResponse(['message' => 'Lien d’accès invalide ou expiré.'], 403);
+        }
+
+        $training = $enrollment->training;
+        if (! $training || ! $block->module || $block->module->digital_training_id !== $training->id) {
+            return new JsonResponse(['message' => 'Contenu introuvable pour cette formation.'], 404);
+        }
+
+        $viewedBlockIds = collect($enrollment->viewed_block_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->values();
+
+        if (! $viewedBlockIds->contains((int) $block->id)) {
+            $viewedBlockIds->push((int) $block->id);
+        }
+
+        $totalBlocks = $training->modules
+            ->flatMap(fn ($module) => $module->blocks->pluck('id'))
+            ->filter()
+            ->count();
+
+        $progress = $totalBlocks > 0
+            ? (int) round(min(100, ($viewedBlockIds->unique()->count() / $totalBlocks) * 100))
+            : 0;
+
+        $enrollment->viewed_block_ids = $viewedBlockIds->unique()->values()->all();
+        $enrollment->progress_percent = $progress;
+
+        if ($progress >= 100) {
+            $enrollment->completed_at ??= now();
+        }
+
+        $enrollment->last_accessed_at = now();
+        $enrollment->save();
+
+        return new JsonResponse([
+            'progress_percent' => $enrollment->progress_percent,
+            'completed' => (bool) $enrollment->completed_at,
         ]);
     }
 

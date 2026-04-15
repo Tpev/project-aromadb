@@ -185,6 +185,9 @@ Route::get('/training-access/{token}', [PublicTrainingAccessController::class, '
 Route::post('/training-access/{token}/complete', [PublicTrainingAccessController::class, 'markCompleted'])
     ->name('digital-trainings.access.complete');
 
+Route::post('/training-access/{token}/blocks/{block}/viewed', [PublicTrainingAccessController::class, 'markBlockViewed'])
+    ->name('digital-trainings.access.blocks.viewed');
+
 Route::post('/training-access/{token}/blocks/{block}/comments', [PublicTrainingCommentController::class, 'store'])
     ->name('digital-trainings.access.comments.store');
 

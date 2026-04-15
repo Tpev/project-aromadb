@@ -436,7 +436,7 @@
                     <span class="email">{{ $participantEmail }}</span>
                 </div>
                 <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-                    <span style="font-size:11px;color:#6b7280;">
+                    <span style="font-size:11px;color:#6b7280;" id="globalProgressLabel">
                         {{ __('Progrès : :p%', ['p' => $progress]) }}
                     </span>
                     <div class="progress-bar-outer">
@@ -591,8 +591,10 @@
     <script>
         const modules = @json($modulesPayload);
         const commentStoreUrlTemplate = @json(route('digital-trainings.access.comments.store', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
+        const markViewedUrlTemplate = @json(route('digital-trainings.access.blocks.viewed', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
         const csrfToken = @json(csrf_token());
         const selectedBlockId = @json($selectedBlockId ?? 0);
+        const viewedBlocks = new Set();
 
         let currentModuleIndex = 0;
         let currentBlockIndex  = 0;
@@ -625,6 +627,53 @@
 
         function getCommentStoreUrl(blockId) {
             return commentStoreUrlTemplate.replace('__BLOCK__', String(blockId));
+        }
+
+        function getMarkViewedUrl(blockId) {
+            return markViewedUrlTemplate.replace('__BLOCK__', String(blockId));
+        }
+
+        async function markBlockViewed(block) {
+            if (!block || !block.id) return;
+
+            const blockKey = String(block.id);
+            if (viewedBlocks.has(blockKey)) {
+                return;
+            }
+
+            viewedBlocks.add(blockKey);
+
+            try {
+                const response = await fetch(getMarkViewedUrl(block.id), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({}),
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Impossible de mettre à jour la progression.');
+                }
+
+                const progress = Number(payload.progress_percent || 0);
+                const bar = document.getElementById('globalProgressBar');
+                const label = document.getElementById('globalProgressLabel');
+
+                if (bar) {
+                    bar.style.width = `${progress}%`;
+                }
+
+                if (label) {
+                    label.textContent = `Progrès : ${progress}%`;
+                }
+            } catch (error) {
+                viewedBlocks.delete(blockKey);
+            }
         }
 
         function renderCommentsSection(block) {
@@ -969,6 +1018,7 @@
             html += renderCommentsSection(block);
             contentWrap.innerHTML = html;
             bindCommentForm(block);
+            markBlockViewed(block);
             updateNavButtons();
         }
 
