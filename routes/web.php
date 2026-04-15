@@ -70,6 +70,7 @@ use App\Http\Controllers\DigitalTrainingEnrollmentController;
 use App\Http\Controllers\PublicTrainingAccessController;
 use App\Http\Controllers\PublicTrainingCommentController;
 use App\Http\Controllers\DigitalTrainingCommentController;
+use App\Http\Controllers\TherapistTrainingCommentReplyController;
 use App\Http\Controllers\PackProductController;
 use App\Http\Controllers\PackPurchaseSubscriptionController;
 use App\Http\Controllers\PublicPackCheckoutController;
@@ -201,6 +202,8 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::get('/digital-trainings/{digitalTraining}/comments', [DigitalTrainingCommentController::class, 'index'])
         ->name('digital-trainings.comments.index');
+    Route::post('/digital-trainings/{digitalTraining}/comments/{comment}/reply', [TherapistTrainingCommentReplyController::class, 'store'])
+        ->name('digital-trainings.comments.reply.store');
                 Route::delete('/digital-trainings/{digitalTraining}/enrollments/{enrollment}', [DigitalTrainingEnrollmentController::class, 'destroy'])
     ->name('digital-trainings.enrollments.destroy');
     // Future: public client access via token (to implement later)

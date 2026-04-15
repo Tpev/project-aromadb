@@ -69,6 +69,8 @@ class PublicTrainingCommentController extends Controller
                     'id' => $comment->id,
                     'comment' => $comment->comment,
                     'participant_name' => $displayName ?: 'Participant',
+                    'author_role' => 'participant',
+                    'author_role_label' => 'Participant',
                     'created_at_label' => $comment->created_at->timezone(config('app.timezone'))->format('d/m/Y H:i'),
                 ],
             ]);

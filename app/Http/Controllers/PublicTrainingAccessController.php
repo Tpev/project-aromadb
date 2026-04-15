@@ -56,20 +56,13 @@ class PublicTrainingAccessController extends Controller
             ->where('digital_training_id', $training->id)
             ->whereIn('training_block_id', $blockIds)
             ->where('is_visible', true)
+            ->with(['replies' => function ($query) {
+                $query->where('is_visible', true)->orderBy('created_at');
+            }])
             ->orderBy('created_at')
             ->get()
-            ->map(function ($comment) {
-                $name = trim((string) ($comment->participant_name_snapshot ?? ''));
-                $firstName = $name !== '' ? Str::of($name)->before(' ')->trim()->value() : null;
-
-                if (!$firstName && filled($comment->participant_email_snapshot)) {
-                    $firstName = Str::of((string) $comment->participant_email_snapshot)->before('@')->trim()->value();
-                }
-
-                $comment->setAttribute('participant_first_name', $firstName ?: 'Participant');
-
-                return $comment;
-            })
+            ->map(fn ($comment) => $this->decorateCommentDisplay($comment, $training))
+            ->whereNull('parent_comment_id')
             ->groupBy('training_block_id');
 
         $modules = $training->modules->sortBy('display_order')->values()->map(function ($module) {
@@ -114,5 +107,31 @@ class PublicTrainingAccessController extends Controller
         return redirect()
             ->route('digital-trainings.access.show', $enrollment->access_token)
             ->with('success', 'Bravo ! Votre formation est marquée comme terminée.');
+    }
+
+    protected function decorateCommentDisplay(DigitalTrainingBlockComment $comment, $training): DigitalTrainingBlockComment
+    {
+        $name = trim((string) ($comment->participant_name_snapshot ?? ''));
+        $firstName = $name !== '' ? Str::of($name)->before(' ')->trim()->value() : null;
+
+        if (! $firstName && filled($comment->participant_email_snapshot)) {
+            $firstName = Str::of((string) $comment->participant_email_snapshot)->before('@')->trim()->value();
+        }
+
+        if ($comment->created_by_role === 'therapist') {
+            $fallback = trim((string) optional($training->user)->name);
+            $firstName = $firstName ?: ($fallback !== '' ? Str::of($fallback)->before(' ')->trim()->value() : null);
+            $comment->setAttribute('participant_first_name', $firstName ?: 'Votre thérapeute');
+            $comment->setAttribute('author_role_label', 'Thérapeute');
+        } else {
+            $comment->setAttribute('participant_first_name', $firstName ?: 'Participant');
+            $comment->setAttribute('author_role_label', 'Participant');
+        }
+
+        $comment->setRelation('replies', $comment->replies->map(
+            fn ($reply) => $this->decorateCommentDisplay($reply, $training)
+        )->values());
+
+        return $comment;
     }
 }

@@ -14,9 +14,17 @@ class DigitalTrainingCommentController extends Controller
             abort(403);
         }
 
-        $comments = DigitalTrainingBlockComment::with(['module', 'block', 'enrollment'])
+        $comments = DigitalTrainingBlockComment::with([
+                'module',
+                'block',
+                'enrollment',
+                'replies' => function ($query) {
+                    $query->where('is_visible', true)->orderBy('created_at');
+                },
+            ])
             ->where('digital_training_id', $digitalTraining->id)
             ->where('is_visible', true)
+            ->whereNull('parent_comment_id')
             ->latest()
             ->paginate(30);
 

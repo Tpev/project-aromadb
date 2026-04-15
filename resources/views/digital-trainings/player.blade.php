@@ -31,7 +31,19 @@
                                                 'id' => $comment->id,
                                                 'comment' => $comment->comment,
                                                 'participant_name' => $comment->participant_first_name ?: __('Participant'),
+                                                'author_role' => $comment->created_by_role,
+                                                'author_role_label' => $comment->author_role_label ?: ($comment->created_by_role === 'therapist' ? __('Thérapeute') : __('Participant')),
                                                 'created_at_label' => optional($comment->created_at)->timezone(config('app.timezone'))->format('d/m/Y H:i'),
+                                                'replies' => collect($comment->replies ?? [])->map(function ($reply) {
+                                                    return [
+                                                        'id' => $reply->id,
+                                                        'comment' => $reply->comment,
+                                                        'participant_name' => $reply->participant_first_name ?: __('Participant'),
+                                                        'author_role' => $reply->created_by_role,
+                                                        'author_role_label' => $reply->author_role_label ?: ($reply->created_by_role === 'therapist' ? __('Thérapeute') : __('Participant')),
+                                                        'created_at_label' => optional($reply->created_at)->timezone(config('app.timezone'))->format('d/m/Y H:i'),
+                                                    ];
+                                                })->values()->all(),
                                             ];
                                         })
                                         ->values()
@@ -327,8 +339,14 @@
         .comments-title { font-size: 13px; font-weight: 700; color: #111827; }
         .comments-help { font-size: 11px; color: #6b7280; }
         .comment-item { border: 1px solid #e5e7eb; background: #fff; border-radius: 12px; padding: 10px 12px; }
+        .comment-item.is-therapist { border-color: #d9f99d; background: #f7fee7; }
         .comment-meta { font-size: 11px; color: #6b7280; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+        .comment-author { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .comment-role-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 8px; font-size: 10px; font-weight: 700; border: 1px solid #d1d5db; background: #f8fafc; color: #475569; }
+        .comment-role-badge.is-therapist { border-color: #d9f99d; background: #ecfccb; color: #4d5f11; }
         .comment-body { font-size: 13px; color: #1f2937; white-space: pre-wrap; }
+        .comment-replies { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #d1d5db; display: flex; flex-direction: column; gap: 10px; }
+        .comment-reply { margin-left: 16px; padding-left: 12px; border-left: 3px solid #d1d5db; }
         .comment-empty { font-size: 12px; color: #6b7280; padding: 10px 12px; border: 1px dashed #d1d5db; border-radius: 12px; background: #fff; }
         .comment-form { display: flex; flex-direction: column; gap: 8px; }
         .comment-form textarea { width: 100%; min-height: 96px; border: 1px solid #d1d5db; border-radius: 12px; padding: 10px 12px; font-size: 13px; resize: vertical; }
@@ -615,16 +633,31 @@
             }
 
             const comments = Array.isArray(block.comments) ? block.comments : [];
-            const commentsHtml = comments.length
-                ? comments.map((comment) => `
-                    <div class="comment-item">
+            const renderComment = (comment, isReply = false) => {
+                const replies = Array.isArray(comment.replies) ? comment.replies : [];
+                const roleLabel = comment.author_role_label || (comment.author_role === 'therapist' ? 'Thérapeute' : 'Participant');
+                const wrapperClass = isReply ? 'comment-reply' : `comment-item${comment.author_role === 'therapist' ? ' is-therapist' : ''}`;
+                const repliesHtml = replies.length
+                    ? `<div class="comment-replies">${replies.map((reply) => renderComment(reply, true)).join('')}</div>`
+                    : '';
+
+                return `
+                    <div class="${wrapperClass}">
                         <div class="comment-meta">
-                            <span>${escapeHtml(comment.participant_name || 'Participant')}</span>
+                            <span class="comment-author">
+                                <span>${escapeHtml(comment.participant_name || 'Participant')}</span>
+                                <span class="comment-role-badge${comment.author_role === 'therapist' ? ' is-therapist' : ''}">${escapeHtml(roleLabel)}</span>
+                            </span>
                             <span>${escapeHtml(comment.created_at_label || '')}</span>
                         </div>
                         <div class="comment-body">${escapeHtml(comment.comment || '')}</div>
+                        ${repliesHtml}
                     </div>
-                `).join('')
+                `;
+            };
+
+            const commentsHtml = comments.length
+                ? comments.map((comment) => renderComment(comment)).join('')
                 : `<div class="comment-empty">Aucun commentaire pour le moment sur cette section.</div>`;
 
             return `
@@ -692,7 +725,7 @@
                     }
 
                     block.comments = Array.isArray(block.comments) ? block.comments : [];
-                    block.comments.push(payload.comment);
+                    block.comments.push({ ...payload.comment, replies: [] });
                     if (textarea) textarea.value = '';
                     if (statusEl) statusEl.textContent = 'Commentaire envoyé.';
                     renderCurrentBlock();

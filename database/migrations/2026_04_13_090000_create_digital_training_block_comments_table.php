@@ -79,6 +79,10 @@ return new class extends Migration
 
     private function hasForeignKey(string $table, string $constraintName): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return false;
+        }
+
         return DB::table('information_schema.TABLE_CONSTRAINTS')
             ->where('CONSTRAINT_SCHEMA', DB::getDatabaseName())
             ->where('TABLE_NAME', $table)
@@ -89,6 +93,10 @@ return new class extends Migration
 
     private function hasIndex(string $table, string $indexName): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return false;
+        }
+
         return DB::table('information_schema.STATISTICS')
             ->where('TABLE_SCHEMA', DB::getDatabaseName())
             ->where('TABLE_NAME', $table)

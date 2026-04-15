@@ -15,6 +15,7 @@ class DigitalTrainingBlockComment extends Model
         'training_block_id',
         'digital_training_enrollment_id',
         'client_profile_id',
+        'parent_comment_id',
         'participant_name_snapshot',
         'participant_email_snapshot',
         'comment',
@@ -25,6 +26,16 @@ class DigitalTrainingBlockComment extends Model
     protected $casts = [
         'is_visible' => 'boolean',
     ];
+
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_comment_id');
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(self::class, 'parent_comment_id')->orderBy('created_at');
+    }
 
     public function training()
     {

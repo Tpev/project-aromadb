@@ -71,6 +71,58 @@
                             <div class="mt-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
                                 {{ $comment->comment }}
                             </div>
+
+                            @if($comment->replies->isNotEmpty())
+                                <div class="mt-4 space-y-3">
+                                    @foreach($comment->replies as $reply)
+                                        <div class="ml-4 rounded-xl border border-[#d9f99d] bg-[#f7fee7] px-4 py-3">
+                                            <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                                <div>
+                                                    <div class="inline-flex items-center rounded-full border border-[#d9f99d] bg-[#ecfccb] px-2 py-0.5 text-[11px] font-semibold text-[#4d5f11]">
+                                                        {{ __('Réponse praticien') }}
+                                                    </div>
+                                                    <div class="mt-2 text-sm font-semibold text-slate-900">
+                                                        {{ $reply->participant_name_snapshot ?: __('Votre thérapeute') }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-xs text-slate-500">
+                                                    {{ $reply->created_at?->format('d/m/Y H:i') }}
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
+                                                {{ $reply->comment }}
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <form action="{{ route('digital-trainings.comments.reply.store', [$training, $comment]) }}" method="POST" class="mt-4 space-y-3 rounded-2xl border border-[#d9f99d] bg-[#fcfdf7] p-4">
+                                @csrf
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900">{{ __('Répondre à ce commentaire') }}</div>
+                                    <div class="text-xs text-slate-500">{{ __('Votre réponse sera visible dans l’espace de formation sur cette section.') }}</div>
+                                </div>
+
+                                <textarea
+                                    name="comment"
+                                    rows="4"
+                                    maxlength="2000"
+                                    class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-[#647a0b] focus:ring-[#647a0b]"
+                                    placeholder="{{ __('Écrivez votre réponse ici...') }}"
+                                >{{ old('comment') }}</textarea>
+
+                                @error('comment')
+                                    <div class="text-xs text-red-600">{{ $message }}</div>
+                                @enderror
+
+                                <div class="flex justify-end">
+                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white hover:bg-[#506108]">
+                                        {{ __('Envoyer la réponse') }}
+                                    </button>
+                                </div>
+                            </form>
                         </article>
                     @endforeach
                 </div>

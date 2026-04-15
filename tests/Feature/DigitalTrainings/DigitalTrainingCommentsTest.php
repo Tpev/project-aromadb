@@ -214,3 +214,64 @@ test('therapist can view training comments page', function () {
         ->assertSee('Merci pour cette explication.')
         ->assertSee('Claire');
 });
+
+test('therapist can reply from comments inbox and participant sees the reply', function () {
+    $therapist = User::factory()->create(['name' => 'Julie Martin']);
+    $training = makeTrainingForComments($therapist);
+    $module = TrainingModule::create([
+        'digital_training_id' => $training->id,
+        'title' => 'Module 1',
+        'display_order' => 1,
+    ]);
+    $block = TrainingBlock::create([
+        'training_module_id' => $module->id,
+        'type' => 'text',
+        'title' => 'Bloc 1',
+        'content' => '<p>Contenu</p>',
+        'meta' => ['comments_enabled' => true],
+        'display_order' => 1,
+    ]);
+    $enrollment = DigitalTrainingEnrollment::create([
+        'digital_training_id' => $training->id,
+        'participant_name' => 'Claire Dupont',
+        'participant_email' => 'claire@example.test',
+        'access_token' => 'token-' . uniqid(),
+        'progress_percent' => 0,
+    ]);
+
+    $comment = DigitalTrainingBlockComment::create([
+        'digital_training_id' => $training->id,
+        'training_module_id' => $module->id,
+        'training_block_id' => $block->id,
+        'digital_training_enrollment_id' => $enrollment->id,
+        'participant_name_snapshot' => 'Claire Dupont',
+        'participant_email_snapshot' => 'claire@example.test',
+        'comment' => 'Est-ce que vous pouvez préciser ce point ?',
+        'created_by_role' => 'participant',
+        'is_visible' => true,
+    ]);
+
+    $this->actingAs($therapist)
+        ->post(route('digital-trainings.comments.reply.store', [$training, $comment]), [
+            'comment' => 'Bien sûr, voici une précision complémentaire.',
+        ])
+        ->assertRedirect(route('digital-trainings.comments.index', $training));
+
+    $reply = DigitalTrainingBlockComment::where('parent_comment_id', $comment->id)->first();
+
+    expect($reply)->not->toBeNull()
+        ->and($reply->created_by_role)->toBe('therapist')
+        ->and($reply->participant_name_snapshot)->toBe('Julie Martin');
+
+    $response = $this->get(route('digital-trainings.access.show', ['token' => $enrollment->access_token, 'block' => $block->id]))
+        ->assertOk();
+
+    $commentsByBlock = $response->viewData('commentsByBlock');
+    $blockComments = collect($commentsByBlock[$block->id] ?? []);
+    $replyInView = optional($blockComments->first())->replies?->first();
+
+    expect($replyInView)->not->toBeNull()
+        ->and($replyInView->comment)->toBe('Bien sûr, voici une précision complémentaire.')
+        ->and($replyInView->participant_first_name)->toBe('Julie')
+        ->and($replyInView->author_role_label)->toBe('Thérapeute');
+});
