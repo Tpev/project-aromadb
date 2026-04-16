@@ -128,11 +128,25 @@
                 </thead>
                 <tbody>
                     @foreach($unavailabilities as $unavailability)
+                        @php
+                            $startAt = \Carbon\Carbon::parse($unavailability->start_date)->locale('fr');
+                            $endAt = \Carbon\Carbon::parse($unavailability->end_date)->locale('fr');
+                        @endphp
                         <tr>
-                            <td>{{ \Carbon\Carbon::parse($unavailability->start_date)->format('d/m/Y') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($unavailability->start_date)->format('H:i') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($unavailability->end_date)->format('d/m/Y') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($unavailability->end_date)->format('H:i') }}</td>
+                            <td>
+                                <div class="date-cell">
+                                    <span class="date-main">{{ $startAt->format('d/m/Y') }}</span>
+                                    <span class="date-day">{{ ucfirst($startAt->isoFormat('dddd')) }}</span>
+                                </div>
+                            </td>
+                            <td>{{ $startAt->format('H:i') }}</td>
+                            <td>
+                                <div class="date-cell">
+                                    <span class="date-main">{{ $endAt->format('d/m/Y') }}</span>
+                                    <span class="date-day">{{ ucfirst($endAt->isoFormat('dddd')) }}</span>
+                                </div>
+                            </td>
+                            <td>{{ $endAt->format('H:i') }}</td>
                             <td>{{ $unavailability->reason ?? __('Aucune raison spécifiée') }}</td>
                             <td class="action-buttons">
                                 <a href="{{ route('unavailabilities.edit', $unavailability->id) }}"
@@ -222,6 +236,28 @@
         .table th, .table td {
             vertical-align: middle;
             text-align: center;
+        }
+
+        .date-cell {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            line-height: 1.2;
+        }
+
+        .date-main {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .date-day {
+            font-size: 0.75rem;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            padding: 2px 8px;
         }
 
         #search {

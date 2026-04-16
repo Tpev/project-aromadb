@@ -164,6 +164,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 
     <script>
         $(document).ready(function() {
@@ -171,12 +172,16 @@
             const endDateValue = $('#end_date').val();
             const startTimeValue = $('#start_time').val();
             const endTimeValue = $('#end_time').val();
+            const frenchLocale = {
+                ...flatpickr.l10ns.fr,
+                firstDayOfWeek: 1,
+            };
 
             const endDatePicker = flatpickr("#end_date", {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d-m-Y",
-                locale: "fr",
+                locale: frenchLocale,
                 defaultDate: endDateValue || null,
             });
 
@@ -184,7 +189,7 @@
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d-m-Y",
-                locale: "fr",
+                locale: frenchLocale,
                 defaultDate: startDateValue || null,
                 onChange: function(selectedDates) {
                     const selectedDate = selectedDates[0];
@@ -198,7 +203,7 @@
                 dateFormat: "H:i",
                 altInput: true,
                 altFormat: "H:i",
-                locale: "fr",
+                locale: frenchLocale,
                 time_24hr: true,
                 defaultDate: startTimeValue || null
             });
@@ -209,7 +214,7 @@
                 dateFormat: "H:i",
                 altInput: true,
                 altFormat: "H:i",
-                locale: "fr",
+                locale: frenchLocale,
                 time_24hr: true,
                 defaultDate: endTimeValue || null
             });

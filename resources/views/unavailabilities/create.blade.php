@@ -156,15 +156,21 @@
 
     <!-- Flatpickr JS -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 
     <script>
         $(document).ready(function() {
+            const frenchLocale = {
+                ...flatpickr.l10ns.fr,
+                firstDayOfWeek: 1,
+            };
+
             // Initialize Flatpickr for date inputs
             const startDatePicker = flatpickr("#start_date", {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d-m-Y",
-                locale: "fr",
+                locale: frenchLocale,
                 minDate: "today",
                 onChange: function(selectedDates) {
                     // Set the minimum date of end_date to the selected start_date
@@ -178,7 +184,7 @@
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d-m-Y",
-                locale: "fr",
+                locale: frenchLocale,
                 minDate: "today",
             });
 
@@ -189,7 +195,7 @@
                 dateFormat: "H:i",
                 altInput: true,
                 altFormat: "H:i",
-                locale: "fr",
+                locale: frenchLocale,
                 time_24hr: true
             });
 
@@ -199,7 +205,7 @@
                 dateFormat: "H:i",
                 altInput: true,
                 altFormat: "H:i",
-                locale: "fr",
+                locale: frenchLocale,
                 time_24hr: true
             });
 
