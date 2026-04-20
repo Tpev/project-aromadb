@@ -519,6 +519,11 @@
             @endif
 
             {{-- Boutons bas de page --}}
+            @php
+                $canSendPaymentReminder = $invoice->canSendPaymentReminder();
+                $nextPaymentReminderAt = $invoice->nextPaymentReminderAt();
+                $hasRemainingBalance = $invoice->solde_restant > 0.001;
+            @endphp
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <a href="{{ route('invoices.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
@@ -537,6 +542,28 @@
                             <i class="fas fa-check-circle"></i>
                             {{ __('Facture envoyée') }} le {{ $invoice->sent_at->format('d/m/Y à H:i') }}
                         </div>
+
+                        @if($hasRemainingBalance && ($invoice->type ?? 'invoice') === 'invoice')
+                            @if($canSendPaymentReminder)
+                                <form action="{{ route('invoices.sendPaymentReminder', $invoice->id) }}" method="POST" style="display:inline-block;margin-left:10px;">
+                                    @csrf
+                                    <button type="submit" class="btn-secondary" onclick="return confirm('Voulez-vous vraiment envoyer une relance de paiement par email ?')">
+                                        <i class="fas fa-bell"></i> {{ __('Relancer le paiement') }}
+                                    </button>
+                                </form>
+                            @elseif($nextPaymentReminderAt && $nextPaymentReminderAt->isFuture())
+                                <div class="text-muted small mt-2" style="display:inline-block;margin-left:10px;">
+                                    {{ __('Relance disponible à partir du') }} {{ $nextPaymentReminderAt->format('d/m/Y à H:i') }}
+                                </div>
+                            @endif
+
+                            @if(($invoice->payment_reminder_count ?? 0) > 0 && $invoice->last_payment_reminder_sent_at)
+                                <div class="text-muted small mt-2">
+                                    {{ __('Dernière relance envoyée le') }} {{ $invoice->last_payment_reminder_sent_at->format('d/m/Y à H:i') }}
+                                    • {{ __('Nombre de relances') }} : {{ $invoice->payment_reminder_count }}
+                                </div>
+                            @endif
+                        @endif
                     @endif
                 </div>
             </div>
@@ -755,3 +782,4 @@
         });
     </script>
 </x-app-layout>
+

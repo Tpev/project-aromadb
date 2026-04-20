@@ -23,6 +23,7 @@ use App\Models\PracticeLocation;
 use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
 use App\Notifications\AppointmentBooked;
+use App\Services\AppointmentQuestionnaireAutomationService;
 use App\Services\CabinetAccessService;
 use App\Services\SharedCabinetSchedulingService;
 use Stripe\StripeClient;
@@ -282,6 +283,8 @@ class MobileAppointmentController extends Controller
                     Log::error("Erreur envoi emails : " . $e->getMessage());
                 }
 
+                app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
+
                 // MOBILE confirmation page
                 return redirect()
                     ->route('mobile.appointments.show', $appointment->token)
@@ -302,6 +305,8 @@ class MobileAppointmentController extends Controller
         } catch (\Exception $e) {
             Log::error("Erreur envoi emails : " . $e->getMessage());
         }
+
+        app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
 
         return redirect()
             ->route('mobile.appointments.show', $appointment->token)

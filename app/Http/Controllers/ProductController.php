@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Invoice;
 use App\Models\BookingLink;
+use App\Models\Questionnaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -32,7 +34,9 @@ class ProductController extends Controller
 
     public function create()
     {
-        return $this->noCacheView('products.create');
+        $questionnaires = Questionnaire::where('user_id', Auth::id())->orderBy('title')->get();
+
+        return $this->noCacheView('products.create', compact('questionnaires'));
     }
 
     public function store(Request $request)
@@ -54,8 +58,13 @@ class ProductController extends Controller
             'visible_in_portal'    => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
 			'direct_booking_enabled' => 'nullable|boolean',
+            'booking_questionnaire_enabled' => 'nullable|boolean',
+            'booking_questionnaire_id' => 'nullable|integer|exists:questionnaires,id',
+            'booking_questionnaire_frequency' => 'nullable|string|in:first_time_only,every_booking',
 
         ]);
+
+        $questionnaireAutomation = $this->resolveQuestionnaireAutomationSettings($request, $validatedData);
 
         if ($request->hasFile('image')) {
             $validatedData['image'] = $request->file('image')->store('products/images', 'public');
@@ -90,6 +99,9 @@ class ProductController extends Controller
             'requires_emargement'   => $validatedData['requires_emargement'],
             'visible_in_portal'     => $validatedData['visible_in_portal'],
             'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
+            'booking_questionnaire_enabled' => $questionnaireAutomation['booking_questionnaire_enabled'],
+            'booking_questionnaire_id' => $questionnaireAutomation['booking_questionnaire_id'],
+            'booking_questionnaire_frequency' => $questionnaireAutomation['booking_questionnaire_frequency'],
         ]);
 		/* ---------------------- Lien réservation directe (partenaire) ---------------------- */
 		if ($request->boolean('direct_booking_enabled')) {
@@ -128,6 +140,8 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        $questionnaires = Questionnaire::where('user_id', Auth::id())->orderBy('title')->get();
+
         // Direct booking link (active) for this product (for the checkbox + copy link)
         $directBookingLink = BookingLink::query()
             ->where('user_id', $product->user_id)
@@ -140,7 +154,7 @@ class ProductController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        return $this->noCacheView('products.edit', compact('product', 'directBookingLink'));
+        return $this->noCacheView('products.edit', compact('product', 'directBookingLink', 'questionnaires'));
     }
 
     private function noCacheView(string $view, array $data = [])
@@ -174,7 +188,12 @@ class ProductController extends Controller
             'visible_in_portal'    => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
             'remove_image'         => 'nullable|boolean',
+            'booking_questionnaire_enabled' => 'nullable|boolean',
+            'booking_questionnaire_id' => 'nullable|integer|exists:questionnaires,id',
+            'booking_questionnaire_frequency' => 'nullable|string|in:first_time_only,every_booking',
         ]);
+
+        $questionnaireAutomation = $this->resolveQuestionnaireAutomationSettings($request, $validatedData);
 
         // ✅ 1) If user uploads a new image: replace old
         if ($request->hasFile('image')) {
@@ -224,6 +243,9 @@ class ProductController extends Controller
             'requires_emargement'  => $validatedData['requires_emargement'],
             'visible_in_portal'    => $validatedData['visible_in_portal'],
             'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
+            'booking_questionnaire_enabled' => $questionnaireAutomation['booking_questionnaire_enabled'],
+            'booking_questionnaire_id' => $questionnaireAutomation['booking_questionnaire_id'],
+            'booking_questionnaire_frequency' => $questionnaireAutomation['booking_questionnaire_frequency'],
         ]);
 
         /* ---------------------- Lien réservation directe (partenaire) ---------------------- */
@@ -273,6 +295,49 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès.');
     }
 
+    private function resolveQuestionnaireAutomationSettings(Request $request, array $validatedData): array
+    {
+        $enabled = $request->boolean('booking_questionnaire_enabled');
+
+        if (!$enabled) {
+            return [
+                'booking_questionnaire_enabled' => false,
+                'booking_questionnaire_id' => null,
+                'booking_questionnaire_frequency' => null,
+            ];
+        }
+
+        if (!Auth::user()->canUseFeature('questionnaires')) {
+            throw ValidationException::withMessages([
+                'booking_questionnaire_enabled' => 'Votre formule actuelle ne permet pas d’automatiser l’envoi de questionnaires.',
+            ]);
+        }
+
+        $questionnaireId = (int) ($validatedData['booking_questionnaire_id'] ?? 0);
+        $frequency = $validatedData['booking_questionnaire_frequency'] ?? Product::BOOKING_QUESTIONNAIRE_FIRST_TIME_ONLY;
+
+        if ($questionnaireId < 1) {
+            throw ValidationException::withMessages([
+                'booking_questionnaire_id' => 'Veuillez sélectionner un questionnaire à envoyer automatiquement.',
+            ]);
+        }
+
+        $ownedQuestionnaire = Questionnaire::where('user_id', Auth::id())
+            ->whereKey($questionnaireId)
+            ->exists();
+
+        if (!$ownedQuestionnaire) {
+            throw ValidationException::withMessages([
+                'booking_questionnaire_id' => 'Le questionnaire sélectionné est invalide pour votre compte.',
+            ]);
+        }
+
+        return [
+            'booking_questionnaire_enabled' => true,
+            'booking_questionnaire_id' => $questionnaireId,
+            'booking_questionnaire_frequency' => $frequency,
+        ];
+    }
     public function duplicate(Product $product)
     {
         if ($product->user_id !== Auth::id()) {

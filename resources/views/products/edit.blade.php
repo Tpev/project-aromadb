@@ -159,6 +159,68 @@
                         </div>
 
                         <!-- Liens réservation directe -->
+                        @php
+                            $canConfigureQuestionnaires = auth()->user()?->canUseFeature('questionnaires');
+                            $hasQuestionnaires = ($questionnaires ?? collect())->isNotEmpty();
+                        @endphp
+
+                        <div class="details-box">
+                            <label class="details-label" for="booking_questionnaire_enabled">{{ __('Questionnaire automatique') }}</label>
+
+                            <input type="hidden" name="booking_questionnaire_enabled" value="0">
+                            <label style="display:flex;align-items:center;gap:10px;margin:0 0 10px 0;">
+                                <input type="checkbox"
+                                       id="booking_questionnaire_enabled"
+                                       name="booking_questionnaire_enabled"
+                                       value="1"
+                                       {{ old('booking_questionnaire_enabled', $product->booking_questionnaire_enabled) ? 'checked' : '' }}
+                                       {{ $canConfigureQuestionnaires ? '' : 'disabled' }}>
+                                <span>{{ __('Envoyer automatiquement un questionnaire après la réservation') }}</span>
+                            </label>
+                            @error('booking_questionnaire_enabled') <p class="text-red-500">{{ $message }}</p> @enderror
+
+                            <label class="details-label" for="booking_questionnaire_id">{{ __('Questionnaire à envoyer') }}</label>
+                            <select id="booking_questionnaire_id"
+                                    name="booking_questionnaire_id"
+                                    class="form-control"
+                                    {{ ($canConfigureQuestionnaires && $hasQuestionnaires) ? '' : 'disabled' }}>
+                                <option value="">{{ __('Sélectionner un questionnaire') }}</option>
+                                @foreach(($questionnaires ?? collect()) as $questionnaire)
+                                    <option value="{{ $questionnaire->id }}" {{ (string) old('booking_questionnaire_id', $product->booking_questionnaire_id) === (string) $questionnaire->id ? 'selected' : '' }}>
+                                        {{ $questionnaire->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('booking_questionnaire_id') <p class="text-red-500">{{ $message }}</p> @enderror
+
+                            <label class="details-label" for="booking_questionnaire_frequency" style="margin-top:10px;">{{ __('Quand l’envoyer') }}</label>
+                            <select id="booking_questionnaire_frequency"
+                                    name="booking_questionnaire_frequency"
+                                    class="form-control"
+                                    {{ ($canConfigureQuestionnaires && $hasQuestionnaires) ? '' : 'disabled' }}>
+                                <option value="first_time_only" {{ old('booking_questionnaire_frequency', $product->booking_questionnaire_frequency ?: 'first_time_only') === 'first_time_only' ? 'selected' : '' }}>
+                                    {{ __('Uniquement la première réservation de cette prestation') }}
+                                </option>
+                                <option value="every_booking" {{ old('booking_questionnaire_frequency', $product->booking_questionnaire_frequency) === 'every_booking' ? 'selected' : '' }}>
+                                    {{ __('À chaque réservation de cette prestation') }}
+                                </option>
+                            </select>
+                            @error('booking_questionnaire_frequency') <p class="text-red-500">{{ $message }}</p> @enderror
+
+                            @if(!$canConfigureQuestionnaires)
+                                <small class="text-gray-500">
+                                    {{ __('L’automatisation des questionnaires est disponible avec une formule incluant la fonctionnalité questionnaires.') }}
+                                </small>
+                            @elseif(!$hasQuestionnaires)
+                                <small class="text-gray-500">
+                                    {{ __('Créez d’abord un questionnaire pour pouvoir l’envoyer automatiquement après réservation.') }}
+                                </small>
+                            @else
+                                <small class="text-gray-500">
+                                    {{ __('Le questionnaire sera envoyé par email au client dès que la réservation sera confirmée.') }}
+                                </small>
+                            @endif
+                        </div>
                         <div class="details-box">
                             <label class="details-label" for="direct_booking_enabled">{{ __('Liens réservation directe') }}</label>
 

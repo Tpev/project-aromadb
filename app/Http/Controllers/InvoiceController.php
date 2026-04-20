@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use App\Mail\InvoiceMail;
+use App\Mail\InvoicePaymentReminderMail;
 use Stripe\Stripe;
 use Stripe\PaymentLink;
 use Stripe\Exception\ApiErrorException;
@@ -610,6 +611,65 @@ public function sendEmail(Invoice $invoice)
         return redirect()
             ->route('invoices.show', $invoice)
             ->with('error', "Une erreur est survenue lors de l'envoi de l'email.");
+    }
+}
+
+public function sendPaymentReminder(Invoice $invoice)
+{
+    $this->authorize('view', $invoice);
+
+    if (($invoice->type ?? 'invoice') !== 'invoice') {
+        return back()->with('error', "Une relance de paiement n'est disponible que pour les factures.");
+    }
+
+    if (!$invoice->sent_at) {
+        return back()->with('error', "La facture doit d'abord avoir été envoyée une première fois avant de pouvoir être relancée.");
+    }
+
+    if ($invoice->solde_restant <= 0.001) {
+        return back()->with('error', "La facture est déjà réglée, aucune relance n'a été envoyée.");
+    }
+
+    if (!$invoice->canSendPaymentReminder()) {
+        $nextReminderAt = $invoice->nextPaymentReminderAt();
+
+        if ($nextReminderAt) {
+            return back()->with('error', 'La relance de paiement sera disponible à partir du ' . $nextReminderAt->format('d/m/Y à H:i') . '.');
+        }
+
+        return back()->with('error', "La relance de paiement n'est pas encore disponible.");
+    }
+
+    ['to' => $to, 'cc' => $cc] = $this->resolveInvoiceEmailRecipients($invoice);
+
+    if (!$to) {
+        return back()->with('error', "Aucune adresse email de facturation n'est définie (client ou entreprise).");
+    }
+
+    $therapistName = Auth::user()->name;
+
+    try {
+        Mail::to($to)
+            ->when($cc, fn ($message) => $message->cc($cc))
+            ->queue(new InvoicePaymentReminderMail($invoice, $therapistName));
+
+        $invoice->forceFill([
+            'last_payment_reminder_sent_at' => now(),
+            'payment_reminder_count' => (int) ($invoice->payment_reminder_count ?? 0) + 1,
+        ])->save();
+
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('success', 'Relance de paiement envoyée par email avec succès.');
+    } catch (\Exception $e) {
+        Log::error("Error sending invoice payment reminder email: " . $e->getMessage(), [
+            'invoice_id' => $invoice->id,
+            'user_id' => $invoice->user_id,
+        ]);
+
+        return redirect()
+            ->route('invoices.show', $invoice)
+            ->with('error', "Une erreur est survenue lors de l'envoi de la relance de paiement.");
     }
 }
 

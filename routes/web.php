@@ -964,6 +964,8 @@ Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.st
 	// Route to send invoice via email
     Route::post('/invoices/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])
          ->name('invoices.sendEmail');
+    Route::post('/invoices/{invoice}/send-payment-reminder', [InvoiceController::class, 'sendPaymentReminder'])
+         ->name('invoices.sendPaymentReminder');
     Route::put('/invoices/{invoice}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('invoices.markAsPaid');
 	
 	// Livre de recettes : index + export CSV + CA mensuel

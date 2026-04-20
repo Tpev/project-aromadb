@@ -25,9 +25,11 @@ class Invoice extends Model
         'total_amount_with_tax',
         'status',
         'notes',
-    	'invoice_number',
+        'invoice_number',
     	'sent_at',	// Add this line
 		'payment_link', // Add this line
+        'last_payment_reminder_sent_at',
+        'payment_reminder_count',
 		'type',
 		'quote_number',
         'global_discount_type',
@@ -76,6 +78,7 @@ public function appointment()
         'invoice_date' => 'date',
         'due_date' => 'date',
         'sent_at' => 'datetime',
+        'last_payment_reminder_sent_at' => 'datetime',
     ];
 	
 	
@@ -97,6 +100,46 @@ public function getSoldeRestantAttribute(): float
     $ttc = (float) $this->total_amount_with_tax;
     return max(0, $ttc - $this->total_encaisse);
 }	
+
+public function canSendPaymentReminder(): bool
+{
+    if (($this->type ?? 'invoice') !== 'invoice') {
+        return false;
+    }
+
+    if (!$this->sent_at) {
+        return false;
+    }
+
+    if ($this->solde_restant <= 0.001) {
+        return false;
+    }
+
+    if ($this->sent_at->gt(now()->subDay())) {
+        return false;
+    }
+
+    if ($this->last_payment_reminder_sent_at && $this->last_payment_reminder_sent_at->gt(now()->subDay())) {
+        return false;
+    }
+
+    return true;
+}
+
+public function nextPaymentReminderAt()
+{
+    if (!$this->sent_at) {
+        return null;
+    }
+
+    $availableAt = $this->sent_at->copy()->addDay();
+
+    if ($this->last_payment_reminder_sent_at) {
+        $availableAt = $availableAt->max($this->last_payment_reminder_sent_at->copy()->addDay());
+    }
+
+    return $availableAt;
+}
 public function corporateClient()
 {
     return $this->belongsTo(CorporateClient::class, 'corporate_client_id');

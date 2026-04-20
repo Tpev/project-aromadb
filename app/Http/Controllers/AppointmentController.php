@@ -31,6 +31,7 @@ use App\Models\BookingLink;
 use App\Models\GiftVoucher;
 use App\Models\Receipt;
 use App\Services\GiftVoucherRedeemService;
+use App\Services\AppointmentQuestionnaireAutomationService;
 use App\Services\CabinetAccessService;
 use App\Services\SharedCabinetSchedulingService;
 use App\Models\PracticeLocation;
@@ -368,6 +369,9 @@ public function store(Request $request)
         $patientEmail   = $appointment->clientProfile->email;
         if (!empty($patientEmail))  { Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment)); }
         if (!empty($therapistEmail)){ Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment)); }
+        if (!$appointment->isCancelled()) {
+            app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
+        }
     }
 
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
@@ -1273,6 +1277,8 @@ public function storePatient(Request $request)
                     Log::error("Erreur envoi emails (pack auto-consumption) : " . $e->getMessage());
                 }
 
+                app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
+
                 return redirect()->route('appointments.showPatient', $appointment->token)
                     ->with('success', 'Votre rendez-vous a été réservé avec succès. Votre pack a été utilisé automatiquement.');
             }
@@ -1324,6 +1330,8 @@ public function storePatient(Request $request)
             } catch (\Exception $e) {
                 Log::error("Erreur envoi emails : " . $e->getMessage());
             }
+
+            app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
 
             return redirect()->route('appointments.showPatient', $appointment->token)
                 ->with('success', 'Votre rendez-vous a été réservé avec succès. Le bon cadeau a été appliqué.');
@@ -1422,6 +1430,8 @@ public function storePatient(Request $request)
                 Log::error("Erreur envoi emails : " . $e->getMessage());
             }
 
+            app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
+
             return redirect()->route('appointments.showPatient', $appointment->token)
                              ->with('success', 'Votre rendez-vous a été réservé avec succès.');
         }
@@ -1465,6 +1475,8 @@ public function storePatient(Request $request)
     } catch (\Exception $e) {
         Log::error("Erreur envoi emails : " . $e->getMessage());
     }
+
+    app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
 
     return redirect()->route('appointments.showPatient', $appointment->token)
                      ->with('success', 'Votre rendez-vous a été réservé avec succès.');
@@ -2291,6 +2303,8 @@ public function success(Request $request)
                     Log::error('Erreur lors de l\'envoi des e-mails après paiement : ' . $e->getMessage());
                     // Vous pouvez également informer l'utilisateur que les emails n'ont pas pu être envoyés
                 }
+
+                app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
             } else {
                 // Si l'appointment n'est pas trouvée
                 Log::warning('Rendez-vous non trouvé avec l\'ID : ' . $appointment_id);
@@ -3401,6 +3415,8 @@ public function storeByToken(Request $request, string $token)
                     Log::error("Erreur envoi emails (pack auto-consumption) : " . $e->getMessage());
                 }
 
+                app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
+
                 return redirect()->route('appointments.showPatient', $appointment->token)
                     ->with('success', 'Votre rendez-vous a été réservé avec succès. Votre pack a été utilisé automatiquement.');
             }
@@ -3452,6 +3468,8 @@ public function storeByToken(Request $request, string $token)
             } catch (\Exception $e) {
                 Log::error("Erreur envoi emails : " . $e->getMessage());
             }
+
+            app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
 
             return redirect()->route('appointments.showPatient', $appointment->token)
                 ->with('success', 'Votre rendez-vous a été réservé avec succès. Le bon cadeau a été appliqué.');
@@ -3550,6 +3568,8 @@ public function storeByToken(Request $request, string $token)
                 Log::error("Erreur envoi emails : " . $e->getMessage());
             }
 
+            app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
+
             return redirect()->route('appointments.showPatient', $appointment->token)
                              ->with('success', 'Votre rendez-vous a été réservé avec succès.');
         }
@@ -3593,6 +3613,8 @@ public function storeByToken(Request $request, string $token)
     } catch (\Exception $e) {
         Log::error("Erreur envoi emails : " . $e->getMessage());
     }
+
+    app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
 
     return redirect()->route('appointments.showPatient', $appointment->token)
                      ->with('success', 'Votre rendez-vous a été réservé avec succès.');

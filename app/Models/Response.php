@@ -9,7 +9,20 @@ class Response extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['questionnaire_id', 'client_profile_id', 'token', 'answers', 'is_completed'];
+    protected $fillable = [
+        'questionnaire_id',
+        'client_profile_id',
+        'appointment_id',
+        'token',
+        'answers',
+        'is_completed',
+        'source',
+    ];
+
+    protected $casts = [
+        'answers' => 'array',
+        'is_completed' => 'boolean',
+    ];
 
     /**
      * Get the questionnaire that the response belongs to.
@@ -25,6 +38,11 @@ class Response extends Model
     public function clientProfile()
     {
         return $this->belongsTo(ClientProfile::class);
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
     }
 	
 }

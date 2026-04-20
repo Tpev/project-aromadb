@@ -5,11 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\InvoiceItem;
+use App\Models\Questionnaire;
 use App\Models\User;
 
 class Product extends Model
 {
     use HasFactory;
+
+    public const BOOKING_QUESTIONNAIRE_FIRST_TIME_ONLY = 'first_time_only';
+    public const BOOKING_QUESTIONNAIRE_EVERY_BOOKING = 'every_booking';
 
     protected $fillable = [
         'user_id',
@@ -33,6 +37,9 @@ class Product extends Model
         'requires_emargement',
         'visible_in_portal',
         'price_visible_in_portal',
+        'booking_questionnaire_enabled',
+        'booking_questionnaire_id',
+        'booking_questionnaire_frequency',
     ];
 
     protected $casts = [
@@ -47,6 +54,7 @@ class Product extends Model
         'dans_le_cabinet' => 'boolean',
         'can_be_booked_online' => 'boolean',
         'collect_payment'      => 'boolean',
+        'booking_questionnaire_enabled' => 'boolean',
     ];
 
     /** Le thérapeute qui a créé le produit. */
@@ -59,6 +67,11 @@ class Product extends Model
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function bookingQuestionnaire()
+    {
+        return $this->belongsTo(Questionnaire::class, 'booking_questionnaire_id');
     }
 
     /** Les disponibilités liées au produit. */
@@ -89,5 +102,11 @@ class Product extends Model
     public function scopeVisibleInPortal($query)
     {
         return $query->where('visible_in_portal', true);
+    }
+
+    public function usesFirstTimeQuestionnaireAutomation(): bool
+    {
+        return ($this->booking_questionnaire_frequency ?? self::BOOKING_QUESTIONNAIRE_FIRST_TIME_ONLY)
+            === self::BOOKING_QUESTIONNAIRE_FIRST_TIME_ONLY;
     }
 }
