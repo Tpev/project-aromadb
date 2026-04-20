@@ -205,3 +205,17 @@ test('automation service does not create duplicate questionnaire sends for the s
     Mail::assertQueued(QuestionnaireSentMail::class, 1);
     expect(Response::query()->where('appointment_id', $appointment->id)->where('source', AppointmentQuestionnaireAutomationService::SOURCE)->count())->toBe(1);
 });
+
+test('questionnaire mail renders with the client first name', function () {
+    $mail = new QuestionnaireSentMail(
+        'Camille Martin',
+        'Questionnaire prÃ©-sÃ©ance',
+        'https://example.test/questionnaires/token-123',
+        'Sophie'
+    );
+
+    $rendered = $mail->render();
+
+    expect($rendered)->toContain('Sophie');
+    expect($rendered)->toContain('Questionnaire prÃ©-sÃ©ance');
+});

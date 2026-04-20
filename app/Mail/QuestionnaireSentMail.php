@@ -16,6 +16,7 @@ class QuestionnaireSentMail extends Mailable
     public $therapistName;
     public $questionnaireTitle;
     public $link;
+    public $client_profile_name;
 
     /**
      * Create a new message instance.
