@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClientProfile;
 use App\Models\DigitalTraining;
 use App\Models\DigitalTrainingEnrollment;
-use App\Models\ClientProfile;
+use App\Services\DigitalTrainingEnrollmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\DigitalTrainingAccessMail;
 
 class DigitalTrainingEnrollmentController extends Controller
 {
+    public function __construct(private DigitalTrainingEnrollmentService $enrollments)
+    {
+    }
+
     public function index(DigitalTraining $digitalTraining)
     {
         $this->authorizeOwner($digitalTraining);
 
         $training = $digitalTraining->load(['enrollments.clientProfile']);
 
-        // All client profiles of this therapist (for select box)
         $clientProfiles = ClientProfile::where('user_id', Auth::id())
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -32,49 +33,63 @@ class DigitalTrainingEnrollmentController extends Controller
     {
         $this->authorizeOwner($digitalTraining);
 
-        // Either an existing client_profile_id OR free-form name/email
         $data = $request->validate([
             'client_profile_id' => 'nullable|exists:client_profiles,id',
-            'participant_name'  => 'nullable|string|max:255',
+            'participant_name' => 'nullable|string|max:255',
             'participant_email' => 'required|email|max:255',
         ]);
 
         $clientProfile = null;
-        if (!empty($data['client_profile_id'])) {
+        if (! empty($data['client_profile_id'])) {
             $clientProfile = ClientProfile::where('user_id', Auth::id())
                 ->where('id', $data['client_profile_id'])
                 ->firstOrFail();
         }
 
-        $name  = $clientProfile?->full_name ?? $data['participant_name'] ?? null;
-        $email = $clientProfile?->email ?? $data['participant_email'];
-
-        // Generate unique token
-        $token = Str::uuid()->toString();
-
-        $enrollment = DigitalTrainingEnrollment::create([
-            'digital_training_id' => $digitalTraining->id,
-            'client_profile_id'   => $clientProfile?->id,
-            'participant_name'    => $name,
-            'participant_email'   => $email,
-            'access_token'        => $token,
-            'token_expires_at'    => now()->addMonths(6), // ex: 6 months validity
-            'source'              => 'manual',
-        ]);
-
-        // Send email with access link
-        Mail::to($email)->send(new DigitalTrainingAccessMail($enrollment));
+        $this->enrollments->create(
+            training: $digitalTraining,
+            clientProfile: $clientProfile,
+            participantName: $data['participant_name'] ?? null,
+            participantEmail: $data['participant_email'] ?? null,
+            source: DigitalTrainingEnrollment::SOURCE_MANUAL,
+            sendAccessEmail: true,
+        );
 
         return redirect()
             ->route('digital-trainings.enrollments.index', $digitalTraining)
             ->with('success', 'Accès créé et invitation envoyée au client.');
     }
 
+    public function storeFreeAccess(Request $request, DigitalTraining $digitalTraining)
+    {
+        if ($digitalTraining->status !== 'published' || ! $digitalTraining->hasPublicFreeAccessGate()) {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+
+        $participantName = trim($data['first_name'] . ' ' . $data['last_name']);
+
+        $enrollment = $this->enrollments->create(
+            training: $digitalTraining,
+            clientProfile: null,
+            participantName: $participantName,
+            participantEmail: $data['email'],
+            source: DigitalTrainingEnrollment::SOURCE_FREE_GATE,
+            sendAccessEmail: false,
+        );
+
+        return redirect()->route('digital-trainings.access.show', $enrollment->access_token);
+    }
+
     public function destroy(DigitalTraining $digitalTraining, DigitalTrainingEnrollment $enrollment)
     {
         $this->authorizeOwner($digitalTraining);
 
-        // Sécurité : s’assurer que l’accès appartient bien à cette formation
         if ($enrollment->digital_training_id !== $digitalTraining->id) {
             abort(404);
         }

@@ -11,6 +11,9 @@ class DigitalTrainingEnrollment extends Model
 {
     use HasFactory;
 
+    public const SOURCE_MANUAL = 'manual';
+    public const SOURCE_FREE_GATE = 'free_gate';
+
     protected $fillable = [
         'digital_training_id',
         'client_profile_id',
@@ -46,5 +49,14 @@ class DigitalTrainingEnrollment extends Model
     public function comments()
     {
         return $this->hasMany(DigitalTrainingBlockComment::class, 'digital_training_enrollment_id');
+    }
+
+    public function sourceLabel(): string
+    {
+        return match ((string) $this->source) {
+            self::SOURCE_FREE_GATE => 'Accès gratuit',
+            self::SOURCE_MANUAL => 'Manuel',
+            default => ucfirst(str_replace('_', ' ', (string) $this->source)),
+        };
     }
 }

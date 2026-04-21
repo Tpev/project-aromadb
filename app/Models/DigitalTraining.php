@@ -19,6 +19,7 @@ class DigitalTraining extends Model
 
         // Pricing
         'is_free',
+        'free_access_requires_identity',
         'price_cents',
         'tax_rate',
         'installments_enabled',
@@ -38,6 +39,7 @@ class DigitalTraining extends Model
     protected $casts = [
         'tags'        => 'array',
         'is_free'     => 'boolean',
+        'free_access_requires_identity' => 'boolean',
         'price_cents' => 'integer',
         'tax_rate'    => 'float',
         'installments_enabled' => 'boolean',
@@ -89,5 +91,10 @@ class DigitalTraining extends Model
         $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
 
         return $owner?->hasDigitalSalesRetractationNoticeConfigured() ?? false;
+    }
+
+    public function hasPublicFreeAccessGate(): bool
+    {
+        return (bool) $this->is_free && (bool) $this->free_access_requires_identity;
     }
 }

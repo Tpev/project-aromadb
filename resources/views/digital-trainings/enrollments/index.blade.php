@@ -169,7 +169,7 @@
                                             {{ $enrollment->participant_email }}
                                         </td>
                                         <td class="px-3 py-2 text-slate-600">
-                                            {{ ucfirst($enrollment->source) }}
+                                            {{ $enrollment->sourceLabel() }}
                                         </td>
                                         <td class="px-3 py-2 text-slate-700">
                                             {{ $enrollment->progress_percent }}%

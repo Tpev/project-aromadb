@@ -3,6 +3,7 @@
 @php
     $tagsString = is_array($training->tags) ? implode(', ', $training->tags) : '';
     $isFree = (bool) ($training->is_free ?? false);
+    $freeAccessRequiresIdentity = (bool) old('free_access_requires_identity', $training->free_access_requires_identity ?? false);
     $priceEurValue = !is_null($training->price_cents)
         ? number_format($training->price_cents / 100, 2, '.', '')
         : '';
@@ -211,6 +212,31 @@
                     </div>
                 </div>
 
+
+                <div x-show="isFree" x-cloak class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-800">{{ __('Accès gratuit avec collecte de contact') }}</p>
+                            <p class="text-[11px] text-slate-500">
+                                {{ __('Optionnel : sur la page publique de cette formation, demander prénom, nom et email avant de laisser accéder gratuitement au contenu.') }}
+                            </p>
+                        </div>
+
+                        <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
+                            <input type="hidden" name="free_access_requires_identity" value="0">
+                            <input type="checkbox"
+                                   name="free_access_requires_identity"
+                                   value="1"
+                                   {{ $freeAccessRequiresIdentity ? 'checked' : '' }}
+                                   class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                            {{ __('Activer le formulaire avant accès') }}
+                        </label>
+                    </div>
+
+                    <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                        {{ __('Les visiteurs verront un bouton "Accéder gratuitement", puis un formulaire avec prénom, nom et email. Une fois validé, un accès sera créé dans vos enrollments et le contenu s’ouvrira immédiatement.') }}
+                    </div>
+                </div>
                 {{-- Accès, statut, durée --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <input type="hidden" name="access_type" value="public">

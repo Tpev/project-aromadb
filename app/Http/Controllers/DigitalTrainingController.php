@@ -64,6 +64,7 @@ class DigitalTrainingController extends Controller
 
             // Pricing
             'is_free'                    => 'nullable|boolean',
+            'free_access_requires_identity' => 'nullable|boolean',
             'price_eur'                  => 'nullable|string', // parsed manually to allow "12,50"
             'tax_rate'                   => 'nullable|numeric|min:0|max:100',
             'installments_enabled'       => 'nullable|boolean',
@@ -157,6 +158,7 @@ class DigitalTrainingController extends Controller
 
             // Pricing
             'is_free'                    => $isFree,
+            'free_access_requires_identity' => $isFree ? $request->boolean('free_access_requires_identity') : false,
             'price_cents'                => $priceCents,
             'tax_rate'                   => $taxRate,
             'installments_enabled'       => $installmentsEnabled,
@@ -209,6 +211,7 @@ class DigitalTrainingController extends Controller
 
             // Pricing
             'is_free'                    => 'nullable|boolean',
+            'free_access_requires_identity' => 'nullable|boolean',
             'price_eur'                  => 'nullable|string',
             'tax_rate'                   => 'nullable|numeric|min:0|max:100',
             'installments_enabled'       => 'nullable|boolean',
@@ -294,6 +297,7 @@ class DigitalTrainingController extends Controller
 
             // Pricing
             'is_free'                    => $isFree,
+            'free_access_requires_identity' => $isFree ? $request->boolean('free_access_requires_identity') : false,
             'price_cents'                => $priceCents,
             'tax_rate'                   => $taxRate,
             'installments_enabled'       => $installmentsEnabled,

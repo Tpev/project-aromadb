@@ -178,6 +178,8 @@ Route::post('/beta/editor/branding', [KonvaEditorController::class, 'updateBrand
 
 Route::get('/formations/{digitalTraining:slug}', [DigitalTrainingController::class, 'publicShow'])
     ->name('digital-trainings.public.show');
+Route::post('/formations/{digitalTraining:slug}/acces-gratuit', [DigitalTrainingEnrollmentController::class, 'storeFreeAccess'])
+    ->name('digital-trainings.public.free-access.store');
 // === Public training access via magic token ===
 Route::get('/training-access/{token}', [PublicTrainingAccessController::class, 'show'])
     ->name('digital-trainings.access.show');

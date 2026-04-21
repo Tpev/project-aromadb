@@ -59,6 +59,8 @@ if ($therapist) {
 
     // Can we show a buy button?
     $canBuy = (!$isFree && !is_null($priceCts) && !empty($buyUrl));
+    $canClaimFree = $isFree && ($training->free_access_requires_identity ?? false);
+    $freeAccessUrl = $canClaimFree ? route('digital-trainings.public.free-access.store', $training) : null;
 @endphp
 
 <x-app-layout>
@@ -124,7 +126,7 @@ if ($therapist) {
 
                             @if($isFree)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
-                                    💚 {{ __('Accès offert à certains clients (voir avec le thérapeute).') }}
+                                    💚 {{ $canClaimFree ? __('Accès gratuit après formulaire') : __('Accès offert à certains clients (voir avec le thérapeute).') }}
                                 </span>
                             @elseif($priceStr)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
@@ -150,6 +152,15 @@ if ($therapist) {
 
                         {{-- CTA --}}
                         <div class="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
+                            @if($canClaimFree)
+                                <a href="#free-access-gate"
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
+                                          text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
+                                          transition-colors duration-200">
+                                    ✨ {{ __('Accéder gratuitement') }}
+                                </a>
+                            @endif
+
                             {{-- BUY button --}}
                             @if($canBuy)
                                 <a href="{{ $buyUrl }}"
@@ -227,7 +238,91 @@ if ($therapist) {
                         @endif
                     </div>
                 @endif
+
+                @if($canClaimFree)
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="#free-access-gate"
+                           class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
+                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                            ✨ {{ __('Accéder gratuitement') }}
+                        </a>
+                    </div>
+                @endif
             </section>
+
+            @if($canClaimFree)
+                <section id="free-access-gate" class="bg-white shadow rounded-lg p-6 md:p-8 border border-[#e4e8d5]">
+                    <h2 class="text-2xl md:text-3xl font-semibold text-[#647a0b] flex items-center">
+                        <i class="fas fa-unlock-alt text-[#854f38] mr-3"></i>
+                        {{ __('Accéder gratuitement') }}
+                    </h2>
+
+                    <p class="mt-3 text-sm md:text-base text-gray-600 max-w-3xl">
+                        {{ __('Renseignez simplement votre prénom, votre nom et votre email pour accéder immédiatement à ce contenu gratuit.') }}
+                    </p>
+
+                    @if($errors->any())
+                        <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                            <ul class="list-disc pl-4 space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ $freeAccessUrl }}" method="POST" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @csrf
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-800 mb-1">
+                                {{ __('Prénom') }}
+                            </label>
+                            <input type="text"
+                                   name="first_name"
+                                   value="{{ old('first_name') }}"
+                                   required
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-800 mb-1">
+                                {{ __('Nom') }}
+                            </label>
+                            <input type="text"
+                                   name="last_name"
+                                   value="{{ old('last_name') }}"
+                                   required
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-slate-800 mb-1">
+                                {{ __('Email') }}
+                            </label>
+                            <input type="email"
+                                   name="email"
+                                   value="{{ old('email') }}"
+                                   required
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                                   placeholder="prenom.nom@email.com">
+                        </div>
+
+                        <div class="md:col-span-2 flex flex-wrap items-center gap-3 pt-2">
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center whitespace-nowrap bg-[#647a0b] text-white font-extrabold
+                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#8ea633]
+                                           transition-colors duration-200">
+                                ✨ {{ __('Accéder gratuitement') }}
+                            </button>
+
+                            <p class="text-xs md:text-sm text-gray-500">
+                                {{ __('Aucun paiement ne vous sera demandé pour ce contenu.') }}
+                            </p>
+                        </div>
+                    </form>
+                </section>
+            @endif
 
             {{-- Plan de la formation (modules listing) --}}
             <section class="bg-[#f9fafb] shadow rounded-lg p-6 md:p-8">
@@ -390,7 +485,9 @@ if ($therapist) {
                     </div>
 
                     <p class="mt-6 text-xs md:text-sm text-gray-500">
-                        {{ __('L’accès à la formation se fait via un lien sécurisé envoyé par email une fois la commande confirmée.') }}
+                        {{ $canClaimFree
+                            ? __('L’accès gratuit se débloque immédiatement après le formulaire de contact.')
+                            : __('L’accès à la formation se fait via un lien sécurisé envoyé par email une fois la commande confirmée.') }}
                     </p>
                 </section>
             @endif
