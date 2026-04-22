@@ -18,12 +18,16 @@ class CommunityMember extends Model
         'client_profile_id',
         'status',
         'invited_at',
+        'invitation_email_sent_at',
         'joined_at',
+        'removed_at',
     ];
 
     protected $casts = [
         'invited_at' => 'datetime',
+        'invitation_email_sent_at' => 'datetime',
         'joined_at' => 'datetime',
+        'removed_at' => 'datetime',
     ];
 
     public function group()
@@ -44,5 +48,10 @@ class CommunityMember extends Model
     public function isInvited(): bool
     {
         return $this->status === self::STATUS_INVITED;
+    }
+
+    public function isRemoved(): bool
+    {
+        return $this->status === self::STATUS_REMOVED;
     }
 }

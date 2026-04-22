@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Espace Client - AromaMade Pro' }}</title>
-    <meta name="description" content="Espace securise pour les clients AromaMade Pro : messagerie, documents, rendez-vous, factures et communautes privees.">
+    <meta name="description" content="Espace sécurisé pour les clients AromaMade Pro : messagerie, documents, rendez-vous, factures et communautés privées.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 antialiased">
@@ -17,12 +17,12 @@
                 <div class="flex items-center gap-5">
                     <nav class="flex items-center gap-4 text-sm font-medium">
                         <a href="{{ route('client.home') }}" class="hover:underline {{ request()->routeIs('client.home') ? 'underline underline-offset-4' : '' }}">Accueil</a>
-                        <a href="{{ route('client.communities.index') }}" class="hover:underline {{ request()->routeIs('client.communities.*') ? 'underline underline-offset-4' : '' }}">Communautes</a>
+                        <a href="{{ route('client.communities.index') }}" class="hover:underline {{ request()->routeIs('client.communities.*') ? 'underline underline-offset-4' : '' }}">Communautés</a>
                     </nav>
 
                     <form method="POST" action="{{ route('client.logout') }}">
                         @csrf
-                        <button type="submit" class="text-sm hover:underline">Deconnexion</button>
+                        <button type="submit" class="text-sm hover:underline">Déconnexion</button>
                     </form>
                 </div>
             @endauth
@@ -46,7 +46,7 @@
     </main>
 
     <footer class="bg-gray-100 text-center py-4 text-sm text-gray-500 mt-10 border-t">
-        &copy; {{ date('Y') }} AromaMade Pro - Espace Client securise
+        &copy; {{ date('Y') }} AromaMade Pro - Espace Client sécurisé
     </footer>
 
 </body>

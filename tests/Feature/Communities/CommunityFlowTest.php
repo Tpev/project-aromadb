@@ -7,7 +7,9 @@ use App\Models\CommunityGroup;
 use App\Models\CommunityMember;
 use App\Models\CommunityMessage;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 function makePractitioner(): User
 {
@@ -64,12 +66,13 @@ test('praticien can invite a client and invited client can accept community acce
         ->post(route('communities.members.store', $community), [
             'client_profile_id' => $client->id,
         ])
-        ->assertRedirect(route('communities.show', $community));
+        ->assertRedirect(route('communities.manage', $community));
 
     $member = CommunityMember::first();
 
     expect($member)->not->toBeNull()
-        ->and($member->status)->toBe(CommunityMember::STATUS_INVITED);
+        ->and($member->status)->toBe(CommunityMember::STATUS_INVITED)
+        ->and($member->invitation_email_sent_at)->not->toBeNull();
 
     Mail::assertQueued(CommunityInviteMail::class, function (CommunityInviteMail $mail) use ($client) {
         return $mail->client->is($client)
@@ -90,6 +93,38 @@ test('praticien can invite a client and invited client can accept community acce
 
     expect($member->status)->toBe(CommunityMember::STATUS_ACTIVE)
         ->and($member->joined_at)->not->toBeNull();
+});
+
+test('praticien can resend an invitation email', function () {
+    $practitioner = makePractitioner();
+    $client = makeClientForPractitioner($practitioner);
+    $community = CommunityGroup::create([
+        'user_id' => $practitioner->id,
+        'name' => 'Relances',
+    ]);
+
+    Mail::fake();
+
+    $this->actingAs($practitioner)
+        ->post(route('communities.members.store', $community), [
+            'client_profile_id' => $client->id,
+        ])
+        ->assertRedirect(route('communities.manage', $community));
+
+    $member = CommunityMember::first();
+
+    $this->travel(5)->minutes();
+
+    $this->actingAs($practitioner)
+        ->post(route('communities.members.resend', [$community, $member]))
+        ->assertRedirect(route('communities.manage', $community));
+
+    $member->refresh();
+
+    expect($member->status)->toBe(CommunityMember::STATUS_INVITED)
+        ->and($member->invitation_email_sent_at)->not->toBeNull();
+
+    Mail::assertQueued(CommunityInviteMail::class, 2);
 });
 
 test('client cannot post in annonces but praticien can', function () {
@@ -188,7 +223,7 @@ test('inviting a client without active espace client sends a setup-based communi
         ->post(route('communities.members.store', $community), [
             'client_profile_id' => $client->id,
         ])
-        ->assertRedirect(route('communities.show', $community));
+        ->assertRedirect(route('communities.manage', $community));
 
     Mail::assertQueued(CommunityInviteMail::class, function (CommunityInviteMail $mail) use ($client) {
         return $mail->client->is($client)
@@ -201,4 +236,88 @@ test('inviting a client without active espace client sends a setup-based communi
 
     expect($client->password_setup_token_hash)->not->toBeNull()
         ->and($client->password_setup_expires_at)->not->toBeNull();
+});
+
+test('praticien can share attachment and pin message in a channel', function () {
+    Storage::fake('public');
+
+    $practitioner = makePractitioner();
+    $community = CommunityGroup::create([
+        'user_id' => $practitioner->id,
+        'name' => 'Ressources',
+    ]);
+    $discussion = $community->channels()->create([
+        'name' => 'General',
+        'channel_type' => CommunityChannel::TYPE_DISCUSSION,
+        'position' => 1,
+    ]);
+
+    $this->actingAs($practitioner)
+        ->post(route('communities.messages.store', $community), [
+            'community_channel_id' => $discussion->id,
+            'content' => 'Voici le document de bienvenue.',
+            'attachments' => [
+                UploadedFile::fake()->create('guide.pdf', 120, 'application/pdf'),
+            ],
+        ])
+        ->assertRedirect(route('communities.show', ['community' => $community->id, 'channel' => $discussion->id]));
+
+    $message = CommunityMessage::with('attachments')->first();
+
+    expect($message)->not->toBeNull()
+        ->and($message->attachments)->toHaveCount(1);
+
+    Storage::disk('public')->assertExists($message->attachments->first()->file_path);
+
+    $this->actingAs($practitioner)
+        ->post(route('communities.messages.pin', [$community, $message]))
+        ->assertRedirect(route('communities.show', ['community' => $community->id, 'channel' => $discussion->id]));
+
+    $discussion->refresh();
+
+    expect($discussion->pinned_community_message_id)->toBe($message->id);
+
+    $this->actingAs($practitioner)
+        ->get(route('communities.attachments.download', $message->attachments->first()))
+        ->assertOk();
+});
+
+test('client can download a shared attachment from an active community', function () {
+    Storage::fake('public');
+
+    $practitioner = makePractitioner();
+    $client = makeClientForPractitioner($practitioner);
+    $community = CommunityGroup::create([
+        'user_id' => $practitioner->id,
+        'name' => 'Supports',
+    ]);
+    $discussion = $community->channels()->create([
+        'name' => 'General',
+        'channel_type' => CommunityChannel::TYPE_DISCUSSION,
+        'position' => 1,
+    ]);
+
+    CommunityMember::create([
+        'community_group_id' => $community->id,
+        'client_profile_id' => $client->id,
+        'status' => CommunityMember::STATUS_ACTIVE,
+        'invited_at' => now(),
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($practitioner)
+        ->post(route('communities.messages.store', $community), [
+            'community_channel_id' => $discussion->id,
+            'content' => 'Support de séance',
+            'attachments' => [
+                UploadedFile::fake()->create('support.pdf', 50, 'application/pdf'),
+            ],
+        ])
+        ->assertRedirect();
+
+    $attachment = CommunityMessage::first()->attachments()->first();
+
+    $this->actingAs($client, 'client')
+        ->get(route('client.communities.attachments.download', $attachment))
+        ->assertOk();
 });

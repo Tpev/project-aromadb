@@ -46,6 +46,16 @@ class CommunityMessage extends Model
         return $this->belongsTo(ClientProfile::class);
     }
 
+    public function attachments()
+    {
+        return $this->hasMany(CommunityMessageAttachment::class)->orderBy('id');
+    }
+
+    public function isPinned(): bool
+    {
+        return (int) $this->channel?->pinned_community_message_id === (int) $this->id;
+    }
+
     public function authorName(): string
     {
         if ($this->sender_type === self::SENDER_PRACTITIONER) {

@@ -16,7 +16,7 @@ class CommunityMemberController extends Controller
 {
     public function store(Request $request, CommunityGroup $community): RedirectResponse
     {
-        abort_unless((int) $community->user_id === (int) Auth::id(), 403);
+        $this->authorizeCommunity($community);
 
         $data = $request->validate([
             'client_profile_id' => 'required|integer|exists:client_profiles,id',
@@ -37,15 +37,72 @@ class CommunityMemberController extends Controller
 
         $member->status = CommunityMember::STATUS_INVITED;
         $member->invited_at = now();
+        $member->invitation_email_sent_at = $client->email ? now() : null;
         $member->joined_at = null;
+        $member->removed_at = null;
         $member->save();
 
         if (!$client->email) {
             return redirect()
-                ->route('communities.show', $community)
-                ->with('success', 'Invitation enregistrée. Ce client n’a pas d’adresse email ; il verra la communauté depuis son espace client si son accès est actif.');
+                ->route('communities.manage', $community)
+                ->with('success', 'Invitation enregistrée. Ce client n’a pas d’adresse email ; il verra la communauté dans son espace client si son accès est actif.');
         }
 
+        return $this->sendInvitationEmail($community, $client)
+            ? redirect()
+                ->route('communities.manage', $community)
+                ->with('success', 'Invitation envoyée dans la communauté et email transmis au client.')
+            : redirect()
+                ->route('communities.manage', $community)
+                ->with('error', 'Invitation enregistrée, mais l’email n’a pas pu être envoyé. Le client verra tout de même l’invitation dans son espace client.');
+    }
+
+    public function resendInvitation(CommunityGroup $community, CommunityMember $member): RedirectResponse
+    {
+        $this->authorizeCommunity($community);
+        abort_unless((int) $member->community_group_id === (int) $community->id, 404);
+        abort_unless($member->status === CommunityMember::STATUS_INVITED, 422);
+
+        $client = $member->clientProfile;
+        abort_if(!$client, 404);
+
+        $member->update([
+            'invited_at' => now(),
+            'invitation_email_sent_at' => $client->email ? now() : null,
+        ]);
+
+        if (!$client->email) {
+            return redirect()
+                ->route('communities.manage', $community)
+                ->with('success', 'L’invitation a bien été relancée dans l’espace client.');
+        }
+
+        return $this->sendInvitationEmail($community, $client)
+            ? redirect()
+                ->route('communities.manage', $community)
+                ->with('success', 'Invitation relancée par email.')
+            : redirect()
+                ->route('communities.manage', $community)
+                ->with('error', 'La relance a été enregistrée, mais l’email n’a pas pu être envoyé.');
+    }
+
+    public function destroy(CommunityGroup $community, CommunityMember $member): RedirectResponse
+    {
+        $this->authorizeCommunity($community);
+        abort_unless((int) $member->community_group_id === (int) $community->id, 404);
+
+        $member->update([
+            'status' => CommunityMember::STATUS_REMOVED,
+            'removed_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('communities.manage', $community)
+            ->with('success', 'Membre retiré de la communauté.');
+    }
+
+    protected function sendInvitationEmail(CommunityGroup $community, ClientProfile $client): bool
+    {
         try {
             Mail::to($client->email)->queue(new CommunityInviteMail(
                 community: $community->fresh('user'),
@@ -53,29 +110,11 @@ class CommunityMemberController extends Controller
                 joinUrl: $this->buildJoinUrlFor($client),
                 requiresAccountSetup: !$client->hasEspaceClient(),
             ));
+
+            return true;
         } catch (\Throwable $e) {
-            return redirect()
-                ->route('communities.show', $community)
-                ->with('error', 'Invitation enregistrée, mais l’email n’a pas pu être envoyé. Le client verra tout de même l’invitation dans son espace client.');
+            return false;
         }
-
-        return redirect()
-            ->route('communities.show', $community)
-            ->with('success', 'Invitation envoyée dans la communauté et email transmis au client.');
-    }
-
-    public function destroy(CommunityGroup $community, CommunityMember $member): RedirectResponse
-    {
-        abort_unless((int) $community->user_id === (int) Auth::id(), 403);
-        abort_unless((int) $member->community_group_id === (int) $community->id, 404);
-
-        $member->update([
-            'status' => CommunityMember::STATUS_REMOVED,
-        ]);
-
-        return redirect()
-            ->route('communities.show', $community)
-            ->with('success', 'Membre retiré de la communauté.');
     }
 
     protected function buildJoinUrlFor(ClientProfile $client): string
@@ -95,5 +134,10 @@ class CommunityMemberController extends Controller
             'token' => $plainToken,
             'redirect' => route('client.communities.index'),
         ]);
+    }
+
+    protected function authorizeCommunity(CommunityGroup $community): void
+    {
+        abort_unless((int) $community->user_id === (int) Auth::id(), 403);
     }
 }

@@ -31,7 +31,7 @@ class CommunityChannelController extends Controller
         ]);
 
         return redirect()
-            ->route('communities.show', $community)
-            ->with('success', 'Salon ajoute.');
+            ->route('communities.manage', $community)
+            ->with('success', 'Salon ajouté.');
     }
 }

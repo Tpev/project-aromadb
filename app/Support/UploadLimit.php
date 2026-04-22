@@ -103,4 +103,22 @@ class UploadLimit
     {
         return self::formatBytes(self::trainingAudioMaxBytes());
     }
+
+    public static function communityAttachmentMaxBytes(): int
+    {
+        $appMax = 20 * 1024 * 1024;
+        $phpMax = self::phpUploadMaxBytes();
+
+        return $phpMax === null ? $appMax : min($appMax, $phpMax);
+    }
+
+    public static function communityAttachmentValidationMaxKilobytes(): int
+    {
+        return max(1, (int) floor(self::communityAttachmentMaxBytes() / 1024));
+    }
+
+    public static function communityAttachmentLimitLabel(): string
+    {
+        return self::formatBytes(self::communityAttachmentMaxBytes());
+    }
 }

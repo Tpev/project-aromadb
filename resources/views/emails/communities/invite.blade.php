@@ -10,16 +10,16 @@
 @endif
 
 @if($requiresAccountSetup)
-Activez d'abord votre espace client, puis vous pourrez retrouver cette invitation et rejoindre la communauté.
+Activez d’abord votre espace client, puis vous pourrez retrouver cette invitation et rejoindre la communauté.
 @else
-Connectez-vous à votre espace client pour retrouver l'invitation et rejoindre la communauté.
+Connectez-vous à votre espace client pour retrouver l’invitation et rejoindre la communauté.
 @endif
 
 @component('mail::button', ['url' => $joinUrl])
 Rejoindre la communauté
 @endcomponent
 
-L'invitation reste également visible dans votre espace client tant qu'elle n'a pas été acceptée.
+L’invitation reste également visible dans votre espace client tant qu’elle n’a pas été acceptée.
 
 Merci,<br>
 {{ config('app.name') }}

@@ -87,6 +87,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\CommunityChannelController;
 use App\Http\Controllers\CommunityMemberController;
 use App\Http\Controllers\CommunityMessageController;
+use App\Http\Controllers\CommunityAttachmentController;
 use App\Http\Controllers\ClientCommunityController;
 
 Route::middleware(['auth'])->group(function () {
@@ -137,13 +138,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/communautes/create', [CommunityController::class, 'create'])->name('communities.create');
     Route::post('/communautes', [CommunityController::class, 'store'])->name('communities.store');
     Route::get('/communautes/{community}', [CommunityController::class, 'show'])->name('communities.show');
+    Route::get('/communautes/{community}/gestion', [CommunityController::class, 'manage'])->name('communities.manage');
     Route::get('/communautes/{community}/edit', [CommunityController::class, 'edit'])->name('communities.edit');
     Route::put('/communautes/{community}', [CommunityController::class, 'update'])->name('communities.update');
 
     Route::post('/communautes/{community}/salons', [CommunityChannelController::class, 'store'])->name('communities.channels.store');
     Route::post('/communautes/{community}/membres', [CommunityMemberController::class, 'store'])->name('communities.members.store');
+    Route::post('/communautes/{community}/membres/{member}/relancer', [CommunityMemberController::class, 'resendInvitation'])->name('communities.members.resend');
     Route::delete('/communautes/{community}/membres/{member}', [CommunityMemberController::class, 'destroy'])->name('communities.members.destroy');
     Route::post('/communautes/{community}/messages', [CommunityMessageController::class, 'store'])->name('communities.messages.store');
+    Route::post('/communautes/{community}/messages/{message}/epingler', [CommunityMessageController::class, 'pin'])->name('communities.messages.pin');
+    Route::delete('/communautes/{community}/salons/{channel}/epingler', [CommunityMessageController::class, 'unpin'])->name('communities.channels.unpin');
+    Route::get('/communautes/fichiers/{attachment}', [CommunityAttachmentController::class, 'downloadForPractitioner'])->name('communities.attachments.download');
 });
 Route::get('/pro/{slug}/checkout', [PublicCheckoutController::class, 'show'])
     ->name('public.checkout.show');
@@ -541,6 +547,7 @@ Route::prefix('client')->group(function () {
         Route::post('communautes/{community}/rejoindre', [ClientCommunityController::class, 'accept'])->name('client.communities.accept');
         Route::get('communautes/{community}', [ClientCommunityController::class, 'show'])->name('client.communities.show');
         Route::post('communautes/{community}/messages', [ClientCommunityController::class, 'storeMessage'])->name('client.communities.messages.store');
+        Route::get('communautes/fichiers/{attachment}', [CommunityAttachmentController::class, 'downloadForClient'])->name('client.communities.attachments.download');
 
         Route::post('logout', [ClientAuthController::class,'logout'])->name('client.logout');
         // future “espace client” routes here

@@ -19,6 +19,7 @@ class CommunityChannel extends Model
         'description',
         'position',
         'is_active',
+        'pinned_community_message_id',
     ];
 
     protected $casts = [
@@ -34,6 +35,11 @@ class CommunityChannel extends Model
     public function messages()
     {
         return $this->hasMany(CommunityMessage::class)->orderBy('created_at');
+    }
+
+    public function pinnedMessage()
+    {
+        return $this->belongsTo(CommunityMessage::class, 'pinned_community_message_id');
     }
 
     public function isAnnouncements(): bool

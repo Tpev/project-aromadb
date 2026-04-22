@@ -176,7 +176,7 @@
                                 {{ __('Prestations') }}
                             </a>
                             <a href="{{ route('events.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                {{ __('Evénements') }}
+                                {{ __('Événements') }}
                             </a>
                             <a href="{{ $giftVoucherNavUrl }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Bon cadeau') }}
@@ -369,7 +369,7 @@
                 {{ __('Prestations') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Evénements') }}
+                {{ __('Événements') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="$giftVoucherNavUrl" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Bon cadeau') }}
@@ -460,7 +460,7 @@
         }
     </script>
     <div class="alert alert-warning">
-        Votre licence a expiré. Veuillez
+        Votre licence a expirée. Veuillez
         <a href="{{ route('license-tiers.pricing') }}">renouveler votre licence</a>
         pour continuer à utiliser l'application.
     </div>

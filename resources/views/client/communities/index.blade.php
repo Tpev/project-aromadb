@@ -1,13 +1,15 @@
 <x-client-app-layout>
-    <div class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    <div class="mx-auto max-w-6xl space-y-8 p-4 sm:p-6 lg:p-8">
         <section class="overflow-hidden rounded-[2rem] border border-[#dfe7c7] bg-[radial-gradient(circle_at_top_left,_rgba(224,235,198,0.72),_rgba(255,255,255,0.95)_45%,_rgba(244,240,231,0.95)_100%)] p-8 shadow-sm">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#854f38]">Espace privé</p>
                     <h1 class="mt-2 text-3xl font-semibold tracking-tight text-gray-900">Mes communautés</h1>
-                    <p class="mt-3 max-w-2xl text-sm leading-7 text-gray-600">Retrouvez ici les espaces de discussion privés auxquels votre praticien vous a invité, avec des salons lisibles, des annonces bien mises en avant et un accès simple à chaque groupe.</p>
+                    <p class="mt-3 max-w-2xl text-sm leading-7 text-gray-600">Retrouvez ici les espaces de discussion privés auxquels votre praticien vous a invité, avec des salons lisibles, des ressources partagées et des annonces bien mises en avant.</p>
                 </div>
-                <a href="{{ route('client.home') }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] bg-white/90 px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:border-[#647a0b] hover:text-[#647a0b]">Retour à l'accueil</a>
+                <a href="{{ route('client.home') }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] bg-white/90 px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:border-[#647a0b] hover:text-[#647a0b]">
+                    Retour à l’accueil
+                </a>
             </div>
         </section>
 
@@ -16,7 +18,7 @@
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <h2 class="text-xl font-semibold text-gray-900">Invitations en attente</h2>
-                        <p class="mt-2 text-sm leading-7 text-gray-600">Votre praticien vous ouvre l'accès à une ou plusieurs communautés privées. Chaque invitation reste visible ici jusqu'à votre réponse.</p>
+                        <p class="mt-2 text-sm leading-7 text-gray-600">Chaque invitation reste visible ici jusqu’à votre réponse. Une fois acceptée, la communauté apparaît dans vos accès actifs.</p>
                     </div>
                     <span class="rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">{{ $pendingInvites->count() }} en attente</span>
                 </div>
@@ -50,7 +52,7 @@
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-gray-900">Communautés actives</h2>
-                    <p class="mt-2 text-sm leading-7 text-gray-600">Accédez à vos salons, relisez les annonces du praticien et poursuivez les échanges du groupe dans un environnement plus structuré et plus premium.</p>
+                    <p class="mt-2 text-sm leading-7 text-gray-600">Accédez à vos salons, relisez les annonces du praticien et poursuivez les échanges du groupe dans un environnement plus structuré.</p>
                 </div>
                 <span class="rounded-full bg-[#f7faef] px-4 py-1.5 text-sm font-semibold text-[#647a0b]">{{ $communities->count() }} active(s)</span>
             </div>
@@ -73,8 +75,8 @@
                                 <p class="mt-2 text-sm font-semibold text-gray-900">{{ $membership->group->user->company_name ?? $membership->group->user->name }}</p>
                             </div>
                             <div class="rounded-2xl bg-white/80 px-4 py-3 ring-1 ring-[#eef1e5]">
-                                <p class="text-xs uppercase tracking-[0.16em] text-gray-500">Votre accès</p>
-                                <p class="mt-2 text-sm font-semibold text-gray-900">Membre actif</p>
+                                <p class="text-xs uppercase tracking-[0.16em] text-gray-500">Ressources</p>
+                                <p class="mt-2 text-sm font-semibold text-gray-900">{{ $membership->group->channels->filter(fn ($channel) => $channel->pinnedMessage)->count() }} épinglée(s)</p>
                             </div>
                         </div>
                         <a href="{{ route('client.communities.show', $membership->group) }}" class="mt-5 inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#55670a]">

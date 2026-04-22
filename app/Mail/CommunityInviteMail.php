@@ -26,7 +26,7 @@ class CommunityInviteMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Invitation a rejoindre une communaute privee',
+            subject: 'Invitation à rejoindre une communauté privée',
         );
     }
 

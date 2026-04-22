@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClientProfile;
 use App\Models\CommunityChannel;
 use App\Models\CommunityGroup;
-use App\Models\CommunityMember;
+use App\Support\UploadLimit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +23,7 @@ class CommunityController extends Controller
                 'channels',
                 'messages',
             ])
+            ->with(['channels.pinnedMessage'])
             ->latest()
             ->get();
 
@@ -71,7 +72,9 @@ class CommunityController extends Controller
 
         $community->load([
             'user',
-            'channels',
+            'channels.pinnedMessage.user',
+            'channels.pinnedMessage.clientProfile',
+            'channels.pinnedMessage.attachments',
             'members.clientProfile',
         ]);
 
@@ -82,7 +85,7 @@ class CommunityController extends Controller
         $messages = collect();
         if ($selectedChannel) {
             $messages = $selectedChannel->messages()
-                ->with(['user', 'clientProfile'])
+                ->with(['user', 'clientProfile', 'attachments', 'channel'])
                 ->latest()
                 ->take(100)
                 ->get()
@@ -90,16 +93,32 @@ class CommunityController extends Controller
                 ->values();
         }
 
+        return view('communities.show', [
+            'community' => $community,
+            'selectedChannel' => $selectedChannel,
+            'messages' => $messages,
+            'attachmentLimitLabel' => UploadLimit::communityAttachmentLimitLabel(),
+        ]);
+    }
+
+    public function manage(CommunityGroup $community): View
+    {
+        $this->authorizeCommunity($community);
+
+        $community->load([
+            'user',
+            'channels.pinnedMessage',
+            'members.clientProfile',
+        ]);
+
         $availableClients = ClientProfile::query()
             ->where('user_id', Auth::id())
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
 
-        return view('communities.show', [
+        return view('communities.manage', [
             'community' => $community,
-            'selectedChannel' => $selectedChannel,
-            'messages' => $messages,
             'availableClients' => $availableClients,
         ]);
     }
