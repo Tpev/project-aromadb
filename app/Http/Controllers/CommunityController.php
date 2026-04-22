@@ -62,7 +62,7 @@ class CommunityController extends Controller
 
         return redirect()
             ->route('communities.show', $community)
-            ->with('success', 'Communaute creee avec succes.');
+            ->with('success', 'Communauté créée avec succès.');
     }
 
     public function show(Request $request, CommunityGroup $community): View
@@ -129,7 +129,7 @@ class CommunityController extends Controller
 
         return redirect()
             ->route('communities.show', $community)
-            ->with('success', 'Communaute mise a jour.');
+            ->with('success', 'Communauté mise à jour.');
     }
 
     protected function authorizeCommunity(CommunityGroup $community): void

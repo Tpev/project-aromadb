@@ -28,7 +28,7 @@ class CommunityInviteAccepted extends Notification implements ShouldQueue
 
         return [
             'community_group_id' => $this->group->id,
-            'message' => $clientName . ' a rejoint la communaute "' . $this->group->name . '".',
+            'message' => $clientName . ' a rejoint la communauté "' . $this->group->name . '".',
             'url' => route('communities.show', $this->group),
         ];
     }

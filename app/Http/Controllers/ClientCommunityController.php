@@ -53,7 +53,7 @@ class ClientCommunityController extends Controller
 
         return redirect()
             ->route('client.communities.show', $community)
-            ->with('success', 'Vous avez rejoint la communaute.');
+            ->with('success', 'Vous avez rejoint la communauté.');
     }
 
     public function show(Request $request, CommunityGroup $community): View
@@ -102,7 +102,7 @@ class ClientCommunityController extends Controller
             ->firstOrFail();
 
         if ($community->is_archived) {
-            return back()->with('error', 'Cette communaute est archivee.');
+            return back()->with('error', 'Cette communauté est archivée.');
         }
 
         $data = $request->validate([
@@ -132,6 +132,6 @@ class ClientCommunityController extends Controller
 
         return redirect()
             ->route('client.communities.show', ['community' => $community->id, 'channel' => $channel->id])
-            ->with('success', 'Message envoye.');
+            ->with('success', 'Message envoyé.');
     }
 }

@@ -49,7 +49,9 @@ class CommunityMessage extends Model
     public function authorName(): string
     {
         if ($this->sender_type === self::SENDER_PRACTITIONER) {
-            return 'Praticien';
+            return $this->user?->company_name
+                ?? $this->user?->name
+                ?? 'Praticien';
         }
 
         return trim((string) (($this->clientProfile?->first_name ?? '') . ' ' . ($this->clientProfile?->last_name ?? ''))) ?: 'Membre';

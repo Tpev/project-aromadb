@@ -30,7 +30,7 @@ class CommunityMessagePosted extends Notification implements ShouldQueue
         return [
             'community_group_id' => $group?->id,
             'community_channel_id' => $channel?->id,
-            'message' => $clientName . ' a repondu dans la communaute "' . ($group?->name ?? 'Communaute') . '".',
+            'message' => $clientName . ' a répondu dans la communauté "' . ($group?->name ?? 'Communauté') . '".',
             'url' => route('communities.show', ['community' => $group?->id, 'channel' => $channel?->id]),
         ];
     }

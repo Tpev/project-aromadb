@@ -32,7 +32,7 @@ class CommunityMemberController extends Controller
         ]);
 
         if ($member->exists && $member->status === CommunityMember::STATUS_ACTIVE) {
-            return back()->with('success', 'Ce client fait deja partie de la communaute.');
+            return back()->with('success', 'Ce client fait déjà partie de la communauté.');
         }
 
         $member->status = CommunityMember::STATUS_INVITED;
@@ -43,7 +43,7 @@ class CommunityMemberController extends Controller
         if (!$client->email) {
             return redirect()
                 ->route('communities.show', $community)
-                ->with('success', 'Invitation enregistree. Ce client n a pas d adresse email, il verra la communaute depuis son espace client si son acces est actif.');
+                ->with('success', 'Invitation enregistrée. Ce client n’a pas d’adresse email ; il verra la communauté depuis son espace client si son accès est actif.');
         }
 
         try {
@@ -56,12 +56,12 @@ class CommunityMemberController extends Controller
         } catch (\Throwable $e) {
             return redirect()
                 ->route('communities.show', $community)
-                ->with('error', 'Invitation enregistree, mais l email n a pas pu etre envoye. Le client verra tout de meme l invitation dans son espace client.');
+                ->with('error', 'Invitation enregistrée, mais l’email n’a pas pu être envoyé. Le client verra tout de même l’invitation dans son espace client.');
         }
 
         return redirect()
             ->route('communities.show', $community)
-            ->with('success', 'Invitation envoyee dans la communaute et email transmis au client.');
+            ->with('success', 'Invitation envoyée dans la communauté et email transmis au client.');
     }
 
     public function destroy(CommunityGroup $community, CommunityMember $member): RedirectResponse
@@ -75,7 +75,7 @@ class CommunityMemberController extends Controller
 
         return redirect()
             ->route('communities.show', $community)
-            ->with('success', 'Membre retire de la communaute.');
+            ->with('success', 'Membre retiré de la communauté.');
     }
 
     protected function buildJoinUrlFor(ClientProfile $client): string

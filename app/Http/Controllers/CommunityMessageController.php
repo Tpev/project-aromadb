@@ -16,7 +16,7 @@ class CommunityMessageController extends Controller
         abort_unless((int) $community->user_id === (int) Auth::id(), 403);
 
         if ($community->is_archived) {
-            return back()->with('error', 'Cette communaute est archivee.');
+            return back()->with('error', 'Cette communauté est archivée.');
         }
 
         $data = $request->validate([
@@ -38,6 +38,6 @@ class CommunityMessageController extends Controller
 
         return redirect()
             ->route('communities.show', ['community' => $community->id, 'channel' => $channel->id])
-            ->with('success', 'Message envoye.');
+            ->with('success', 'Message envoyé.');
     }
 }
