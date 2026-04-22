@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\ProfileAvatarService;
+use App\Services\PortalLogoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -109,6 +110,9 @@ class ProfileController extends Controller
             'profile_description' => 'nullable|string|max:1000',
             'profile_picture' => 'nullable|mimes:jpeg,jpg,png,webp,heic,heif|max:10240',
             'profile_picture_crop' => 'nullable|json',
+            'portal_logo' => 'nullable|mimes:jpeg,jpg,png,webp|max:10240',
+            'portal_logo_crop' => 'nullable|json',
+            'remove_portal_logo' => 'nullable|boolean',
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
             'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
@@ -184,6 +188,23 @@ class ProfileController extends Controller
             $user->profile_picture = $path320;
         }
 
+        /* ──────────── PORTAL LOGO HANDLING ──────────── */
+        if ($request->boolean('remove_portal_logo')) {
+            if ($user->portal_logo_path && Storage::disk('public')->exists($user->portal_logo_path)) {
+                Storage::disk('public')->delete($user->portal_logo_path);
+            }
+            Storage::disk('public')->deleteDirectory('portal_logos/' . $user->id);
+            $user->portal_logo_path = null;
+        }
+
+        if ($request->hasFile('portal_logo')) {
+            $user->portal_logo_path = PortalLogoService::store(
+                $request->file('portal_logo'),
+                $user->id,
+                $request->input('portal_logo_crop')
+            );
+        }
+
         /* ──────────── CGV PDF HANDLING ──────────── */
         if ($request->hasFile('cgv_pdf')) {
             if ($user->cgv_pdf_path && Storage::disk('public')->exists($user->cgv_pdf_path)) {
@@ -227,7 +248,7 @@ class ProfileController extends Controller
         }
 
         if (Schema::hasColumn('users', 'digital_sales_retractation_label')) {
-            $user->digital_sales_retractation_label = $validatedData['digital_sales_retractation_label'] ?: null;
+            $user->digital_sales_retractation_label = $validatedData['digital_sales_retractation_label'] ?? null;
         }
 
 		if (Schema::hasColumn('users', 'digital_sales_retractation_url')) {

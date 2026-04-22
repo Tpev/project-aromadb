@@ -49,6 +49,7 @@ class User extends Authenticatable
         'profile_description',
         'minimum_notice_hours',
         'profile_picture',
+        'portal_logo_path',
         'accept_online_appointments',
         'stripe_account_id',
         'stripe_customer_id',

@@ -241,9 +241,25 @@
                         </h2>
                     </div>
 
-                    <div class="space-y-3 text-[15px] text-gray-700">
-                        @if($therapist->share_address_publicly)
-                            <div class="flex items-start gap-2">
+                  <div class="space-y-3 text-[15px] text-gray-700">
+                      @php
+                          $portalLogoUrl = $therapist->portal_logo_path
+                              ? asset('storage/' . $therapist->portal_logo_path)
+                              : null;
+                      @endphp
+
+                      @if($portalLogoUrl)
+                          <div class="rounded-2xl border border-primary-100 bg-white p-4 flex items-center justify-center">
+                              <img
+                                  src="{{ $portalLogoUrl }}"
+                                  alt="{{ __('Logo de :name', ['name' => $therapist->company_name ?: $therapist->name]) }}"
+                                  class="w-full max-h-20 object-contain"
+                              >
+                          </div>
+                      @endif
+
+                      @if($therapist->share_address_publicly)
+                          <div class="flex items-start gap-2">
                                 <i class="fas fa-map-marker-alt mt-1 text-secondary-600"></i>
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ __('Adresse') }}</p>

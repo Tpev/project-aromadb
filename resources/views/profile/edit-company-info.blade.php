@@ -307,6 +307,106 @@
                             </div>
                         </div>
 
+                        <div class="details-box">
+                            <label class="details-label" for="portal_logo">{{ __('Logo du portail pro') }}</label>
+                            @php
+                                $currentPortalLogoUrl = $user->portal_logo_path
+                                    ? asset('storage/' . $user->portal_logo_path)
+                                    : null;
+                            @endphp
+
+                            <div class="space-y-4">
+                                <div id="portal-logo-preview-frame"
+                                     class="w-full max-w-md rounded-2xl border border-[#d8e1b9] bg-white shadow-sm p-4 min-h-[108px] flex items-center justify-center">
+                                    @if($currentPortalLogoUrl)
+                                        <img id="portal-logo-preview"
+                                             src="{{ $currentPortalLogoUrl }}"
+                                             alt="{{ __('Logo du portail') }}"
+                                             class="max-h-20 w-full object-contain">
+                                    @else
+                                        <img id="portal-logo-preview"
+                                             src=""
+                                             alt="{{ __('Logo du portail') }}"
+                                             class="max-h-20 w-full object-contain hidden">
+                                        <div id="portal-logo-placeholder" class="text-sm text-gray-400 text-center">
+                                            {{ __('Aucun logo pour le portail pour le moment.') }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="flex-1 min-w-[260px]">
+                                    <input type="file"
+                                           id="portal_logo"
+                                           name="portal_logo"
+                                           class="form-control"
+                                           accept="image/jpeg,image/jpg,image/png,image/webp">
+                                    <input type="hidden"
+                                           id="portal_logo_crop"
+                                           name="portal_logo_crop"
+                                           value="{{ old('portal_logo_crop') }}">
+
+                                    <small class="text-gray-500 block mt-1">
+                                        {{ __('Optionnel : ajoutez un logo visible sur votre portail pro. Vous pourrez le recadrer, le recentrer et zoomer dessus avant l’enregistrement. Formats : JPG/PNG/WebP. Max 10 Mo.') }}
+                                    </small>
+                                    <p id="portal-logo-client-error" class="text-red-500 mt-2 hidden"></p>
+                                </div>
+
+                                @if($currentPortalLogoUrl)
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="checkbox" name="remove_portal_logo" value="1">
+                                        <span class="text-sm text-gray-700">{{ __('Supprimer le logo du portail') }}</span>
+                                    </label>
+                                @endif
+                            </div>
+
+                            @error('portal_logo')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                            @error('portal_logo_crop')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                            @error('remove_portal_logo')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="portal-logo-cropper-modal" class="avatar-cropper-modal hidden" aria-hidden="true">
+                            <div class="avatar-cropper-backdrop"></div>
+                            <div class="avatar-cropper-dialog" role="dialog" aria-modal="true" aria-label="{{ __('Recadrer le logo du portail') }}">
+                                <div class="avatar-cropper-header">
+                                    <h4 class="font-semibold text-[#647a0b]">{{ __('Recadrer le logo') }}</h4>
+                                    <button type="button" id="portal-logo-cropper-cancel-top" class="avatar-cropper-close" aria-label="{{ __('Fermer') }}">×</button>
+                                </div>
+
+                                <div class="avatar-cropper-body">
+                                    <div class="avatar-cropper-image-wrap bg-[#f9fafb]">
+                                        <img id="portal-logo-cropper-image" alt="{{ __('Aperçu recadrage logo') }}">
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <label for="portal-logo-cropper-zoom" class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ __('Zoom') }}
+                                        </label>
+                                        <input type="range"
+                                               id="portal-logo-cropper-zoom"
+                                               min="0"
+                                               max="100"
+                                               value="0"
+                                               class="w-full">
+                                    </div>
+                                </div>
+
+                                <div class="avatar-cropper-footer">
+                                    <button type="button" id="portal-logo-cropper-cancel" class="btn-secondary">
+                                        {{ __('Annuler') }}
+                                    </button>
+                                    <button type="button" id="portal-logo-cropper-apply" class="btn-primary">
+                                        {{ __('Utiliser ce logo') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Public sharing checkboxes -->
                         <div class="mb-4">
                             <label class="flex items-center">
@@ -839,7 +939,6 @@
             </div> {{-- /x-data --}}
         </div>
     </div>
-
     <!-- Add JavaScript to handle dynamic services list -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -850,7 +949,6 @@
 
             let services = [];
 
-            // Initialize services from hidden input
             if (servicesInputHidden && servicesInputHidden.value) {
                 try {
                     const parsed = JSON.parse(servicesInputHidden.value);
@@ -861,7 +959,6 @@
                 }
             }
 
-            // Function to render services
             function renderServices() {
                 if (!servicesList || !servicesInputHidden) return;
 
@@ -881,10 +978,10 @@
                     tag.appendChild(removeBtn);
                     servicesList.appendChild(tag);
                 });
+
                 servicesInputHidden.value = JSON.stringify(services);
             }
 
-            // Function to add a service
             function addService() {
                 const service = (serviceInput?.value || '').trim();
                 if (service && !services.includes(service)) {
@@ -894,16 +991,13 @@
                 }
             }
 
-            // Function to remove a service
             function removeService(index) {
                 services.splice(index, 1);
                 renderServices();
             }
 
-            // Event listener for add button
             if (addServiceBtn) addServiceBtn.addEventListener('click', addService);
 
-            // Event listener for Enter key in input
             if (serviceInput) {
                 serviceInput.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') {
@@ -913,12 +1007,11 @@
                 });
             }
 
-            // Initial render
             renderServices();
         });
     </script>
 
-    <!-- Styles personnalisés -->
+    <!-- Styles personnalis?s -->
     <style>
         [x-cloak] { display: none !important; }
 
@@ -1122,180 +1215,232 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const fileInput = document.getElementById('profile_picture');
-            const cropField = document.getElementById('profile_picture_crop');
-            const preview = document.getElementById('profile-picture-preview');
-            const clientError = document.getElementById('profile-picture-client-error');
+            function initImageCropper(config) {
+                const fileInput = document.getElementById(config.fileInputId);
+                const cropField = document.getElementById(config.cropFieldId);
+                const preview = document.getElementById(config.previewId);
+                const clientError = document.getElementById(config.errorId);
+                const modal = document.getElementById(config.modalId);
+                const modalImage = document.getElementById(config.modalImageId);
+                const zoomInput = document.getElementById(config.zoomInputId);
+                const cancelBtn = document.getElementById(config.cancelBtnId);
+                const cancelTopBtn = document.getElementById(config.cancelTopBtnId);
+                const applyBtn = document.getElementById(config.applyBtnId);
+                const placeholder = config.placeholderId ? document.getElementById(config.placeholderId) : null;
 
-            const modal = document.getElementById('profile-picture-cropper-modal');
-            const modalImage = document.getElementById('profile-picture-cropper-image');
-            const zoomInput = document.getElementById('profile-picture-cropper-zoom');
-            const cancelBtn = document.getElementById('profile-picture-cropper-cancel');
-            const cancelTopBtn = document.getElementById('profile-picture-cropper-cancel-top');
-            const applyBtn = document.getElementById('profile-picture-cropper-apply');
-
-            if (!fileInput || !cropField || !preview || !modal || !modalImage || !zoomInput || !applyBtn) {
-                return;
-            }
-
-            let cropper = null;
-            let objectUrl = null;
-            let baseZoomRatio = 1;
-            let maxZoomRatio = 3;
-            const maxBytes = 10 * 1024 * 1024;
-            const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
-
-            function setClientError(message) {
-                if (!clientError) return;
-                if (!message) {
-                    clientError.classList.add('hidden');
-                    clientError.textContent = '';
+                if (!fileInput || !cropField || !preview || !modal || !modalImage || !zoomInput || !applyBtn) {
                     return;
                 }
 
-                clientError.textContent = message;
-                clientError.classList.remove('hidden');
-            }
+                let cropper = null;
+                let objectUrl = null;
+                let baseZoomRatio = 1;
+                let maxZoomRatio = 3;
+                const maxBytes = 10 * 1024 * 1024;
+                const allowedMimeTypes = config.allowedMimeTypes;
 
-            function cleanupCropper() {
-                if (cropper) {
-                    cropper.destroy();
-                    cropper = null;
-                }
-                if (objectUrl) {
-                    URL.revokeObjectURL(objectUrl);
-                    objectUrl = null;
-                }
-                baseZoomRatio = 1;
-                maxZoomRatio = 3;
-                zoomInput.value = '0';
-            }
+                function setClientError(message) {
+                    if (!clientError) return;
+                    if (!message) {
+                        clientError.classList.add('hidden');
+                        clientError.textContent = '';
+                        return;
+                    }
 
-            function closeModal(resetInput) {
-                modal.classList.add('hidden');
-                modal.setAttribute('aria-hidden', 'true');
-                cleanupCropper();
-                if (resetInput) {
-                    fileInput.value = '';
-                    cropField.value = '';
-                }
-            }
-
-            function openModal() {
-                modal.classList.remove('hidden');
-                modal.setAttribute('aria-hidden', 'false');
-            }
-
-            fileInput.addEventListener('change', function (event) {
-                const file = event.target.files && event.target.files[0];
-                setClientError('');
-
-                if (!file) {
-                    cropField.value = '';
-                    return;
+                    clientError.textContent = message;
+                    clientError.classList.remove('hidden');
                 }
 
-                if (file.size > maxBytes) {
-                    setClientError("{{ __('Le fichier est trop lourd (max 10 Mo).') }}");
-                    fileInput.value = '';
-                    cropField.value = '';
-                    return;
+                function cleanupCropper() {
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+                    if (objectUrl) {
+                        URL.revokeObjectURL(objectUrl);
+                        objectUrl = null;
+                    }
+                    baseZoomRatio = 1;
+                    maxZoomRatio = 3;
+                    zoomInput.value = '0';
                 }
 
-                if (file.type && !allowedMimeTypes.includes(file.type)) {
-                    setClientError("{{ __('Format non pris en charge. Utilisez JPG, PNG, WebP ou HEIC.') }}");
-                    fileInput.value = '';
-                    cropField.value = '';
-                    return;
+                function closeModal(resetInput) {
+                    modal.classList.add('hidden');
+                    modal.setAttribute('aria-hidden', 'true');
+                    cleanupCropper();
+                    if (resetInput) {
+                        fileInput.value = '';
+                        cropField.value = '';
+                    }
                 }
 
-                if (typeof Cropper === 'undefined') {
-                    setClientError("{{ __('L’outil de recadrage n’a pas pu se charger. L’image sera importée et recadrée automatiquement.') }}");
-                    cropField.value = '';
-                    return;
+                function openModal() {
+                    modal.classList.remove('hidden');
+                    modal.setAttribute('aria-hidden', 'false');
                 }
 
-                cleanupCropper();
+                fileInput.addEventListener('change', function (event) {
+                    const file = event.target.files && event.target.files[0];
+                    setClientError('');
 
-                modalImage.onload = function () {
-                    cropper = new Cropper(modalImage, {
-                        aspectRatio: 1,
-                        viewMode: 1,
-                        dragMode: 'move',
-                        autoCropArea: 1,
-                        responsive: true,
-                        background: false,
-                        guides: false,
-                        center: true,
-                        ready() {
-                            const imageData = cropper?.getImageData();
-                            const naturalWidth = imageData?.naturalWidth || 0;
-                            const currentWidth = imageData?.width || 0;
-                            baseZoomRatio = naturalWidth > 0
-                                ? Math.max(0.05, currentWidth / naturalWidth)
-                                : 1;
-                            maxZoomRatio = Math.max(baseZoomRatio * 3, baseZoomRatio + 1);
-                            zoomInput.value = '0';
-                        },
-                    });
-                };
-                modalImage.onerror = function () {
-                    setClientError("{{ __('Votre navigateur ne peut pas recadrer ce format. L’image sera quand même importée et recadrée automatiquement.') }}");
-                    closeModal(false);
-                };
+                    if (!file) {
+                        cropField.value = '';
+                        return;
+                    }
 
-                objectUrl = URL.createObjectURL(file);
-                modalImage.src = objectUrl;
-                openModal();
-            });
+                    if (file.size > maxBytes) {
+                        setClientError(config.maxSizeMessage);
+                        fileInput.value = '';
+                        cropField.value = '';
+                        return;
+                    }
 
-            zoomInput.addEventListener('input', function () {
-                if (!cropper) return;
+                    if (file.type && !allowedMimeTypes.includes(file.type)) {
+                        setClientError(config.invalidTypeMessage);
+                        fileInput.value = '';
+                        cropField.value = '';
+                        return;
+                    }
 
-                const sliderRatio = Number(zoomInput.value) / 100;
-                const targetRatio = baseZoomRatio + (maxZoomRatio - baseZoomRatio) * sliderRatio;
-                cropper.zoomTo(Math.max(0.05, targetRatio));
-            });
+                    if (typeof Cropper === 'undefined') {
+                        setClientError(config.missingCropperMessage);
+                        cropField.value = '';
+                        return;
+                    }
 
-            function cancelCropper() {
-                closeModal(true);
-            }
+                    cleanupCropper();
 
-            cancelBtn?.addEventListener('click', cancelCropper);
-            cancelTopBtn?.addEventListener('click', cancelCropper);
+                    modalImage.onload = function () {
+                        cropper = new Cropper(modalImage, {
+                            aspectRatio: config.aspectRatio,
+                            viewMode: 1,
+                            dragMode: 'move',
+                            autoCropArea: 1,
+                            responsive: true,
+                            background: false,
+                            guides: false,
+                            center: true,
+                            ready() {
+                                const imageData = cropper?.getImageData();
+                                const naturalWidth = imageData?.naturalWidth || 0;
+                                const currentWidth = imageData?.width || 0;
+                                baseZoomRatio = naturalWidth > 0
+                                    ? Math.max(0.05, currentWidth / naturalWidth)
+                                    : 1;
+                                maxZoomRatio = Math.max(baseZoomRatio * 3, baseZoomRatio + 1);
+                                zoomInput.value = '0';
+                            },
+                        });
+                    };
 
-            modal.querySelector('.avatar-cropper-backdrop')?.addEventListener('click', cancelCropper);
+                    modalImage.onerror = function () {
+                        setClientError(config.loadErrorMessage);
+                        closeModal(false);
+                    };
 
-            applyBtn.addEventListener('click', function () {
-                if (!cropper) {
-                    closeModal(true);
-                    return;
-                }
-
-                const data = cropper.getData(true);
-                const imageData = cropper.getImageData();
-                cropField.value = JSON.stringify({
-                    x: data.x,
-                    y: data.y,
-                    width: data.width,
-                    height: data.height,
-                    image_width: imageData.naturalWidth,
-                    image_height: imageData.naturalHeight,
+                    objectUrl = URL.createObjectURL(file);
+                    modalImage.src = objectUrl;
+                    openModal();
                 });
 
-                const canvas = cropper.getCroppedCanvas({
+                zoomInput.addEventListener('input', function () {
+                    if (!cropper) return;
+
+                    const sliderRatio = Number(zoomInput.value) / 100;
+                    const targetRatio = baseZoomRatio + (maxZoomRatio - baseZoomRatio) * sliderRatio;
+                    cropper.zoomTo(Math.max(0.05, targetRatio));
+                });
+
+                function cancelCropper() {
+                    closeModal(true);
+                }
+
+                cancelBtn?.addEventListener('click', cancelCropper);
+                cancelTopBtn?.addEventListener('click', cancelCropper);
+                modal.querySelector('.avatar-cropper-backdrop')?.addEventListener('click', cancelCropper);
+
+                applyBtn.addEventListener('click', function () {
+                    if (!cropper) {
+                        closeModal(true);
+                        return;
+                    }
+
+                    const data = cropper.getData(true);
+                    const imageData = cropper.getImageData();
+                    cropField.value = JSON.stringify({
+                        x: data.x,
+                        y: data.y,
+                        width: data.width,
+                        height: data.height,
+                        image_width: imageData.naturalWidth,
+                        image_height: imageData.naturalHeight,
+                    });
+
+                    const canvas = cropper.getCroppedCanvas(config.canvasOptions);
+
+                    if (canvas) {
+                        preview.src = canvas.toDataURL('image/webp', 0.9);
+                        preview.classList.remove('hidden');
+                        if (placeholder) {
+                            placeholder.classList.add('hidden');
+                        }
+                    }
+
+                    setClientError('');
+                    closeModal(false);
+                });
+            }
+
+            initImageCropper({
+                fileInputId: 'profile_picture',
+                cropFieldId: 'profile_picture_crop',
+                previewId: 'profile-picture-preview',
+                errorId: 'profile-picture-client-error',
+                modalId: 'profile-picture-cropper-modal',
+                modalImageId: 'profile-picture-cropper-image',
+                zoomInputId: 'profile-picture-cropper-zoom',
+                cancelBtnId: 'profile-picture-cropper-cancel',
+                cancelTopBtnId: 'profile-picture-cropper-cancel-top',
+                applyBtnId: 'profile-picture-cropper-apply',
+                allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
+                maxSizeMessage: "{{ __('Le fichier est trop lourd (max 10 Mo).') }}",
+                invalidTypeMessage: "{{ __('Format non pris en charge. Utilisez JPG, PNG, WebP ou HEIC.') }}",
+                missingCropperMessage: "{{ __('L?outil de recadrage n?a pas pu se charger. L?image sera import?e et recadr?e automatiquement.') }}",
+                loadErrorMessage: "{{ __('Votre navigateur ne peut pas recadrer ce format. L?image sera quand m?me import?e et recadr?e automatiquement.') }}",
+                aspectRatio: 1,
+                canvasOptions: {
                     width: 320,
                     height: 320,
                     imageSmoothingEnabled: true,
                     imageSmoothingQuality: 'high',
-                });
+                },
+            });
 
-                if (canvas) {
-                    preview.src = canvas.toDataURL('image/webp', 0.9);
-                }
-
-                setClientError('');
-                closeModal(false);
+            initImageCropper({
+                fileInputId: 'portal_logo',
+                cropFieldId: 'portal_logo_crop',
+                previewId: 'portal-logo-preview',
+                placeholderId: 'portal-logo-placeholder',
+                errorId: 'portal-logo-client-error',
+                modalId: 'portal-logo-cropper-modal',
+                modalImageId: 'portal-logo-cropper-image',
+                zoomInputId: 'portal-logo-cropper-zoom',
+                cancelBtnId: 'portal-logo-cropper-cancel',
+                cancelTopBtnId: 'portal-logo-cropper-cancel-top',
+                applyBtnId: 'portal-logo-cropper-apply',
+                allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+                maxSizeMessage: "{{ __('Le fichier est trop lourd (max 10 Mo).') }}",
+                invalidTypeMessage: "{{ __('Format non pris en charge. Utilisez JPG, PNG ou WebP.') }}",
+                missingCropperMessage: "{{ __('L?outil de recadrage n?a pas pu se charger. Le logo sera import? et recadr? automatiquement.') }}",
+                loadErrorMessage: "{{ __('Votre navigateur ne peut pas recadrer ce format. Le logo sera quand m?me import? et recadr? automatiquement.') }}",
+                aspectRatio: NaN,
+                canvasOptions: {
+                    maxWidth: 1200,
+                    maxHeight: 480,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                },
             });
         });
     </script>

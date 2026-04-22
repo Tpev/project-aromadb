@@ -325,6 +325,20 @@
                 <i class="fas fa-address-book text-[#854f38] mr-3"></i> {{ __('Contact') }}
             </h3>
 
+            @php
+                $portalLogoUrl = $therapist->portal_logo_path
+                    ? asset('storage/' . $therapist->portal_logo_path)
+                    : null;
+            @endphp
+
+            @if($portalLogoUrl)
+                <div class="mt-6 rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm flex items-center justify-center">
+                    <img src="{{ $portalLogoUrl }}"
+                         alt="{{ __('Logo de :name', ['name' => $therapist->company_name ?: $therapist->name]) }}"
+                         class="w-full max-h-24 object-contain">
+                </div>
+            @endif
+
             <ul class="mt-6 space-y-6">
 @if ($therapist->share_address_publicly)
     <li class="flex items-start">
