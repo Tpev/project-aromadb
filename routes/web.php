@@ -713,6 +713,8 @@ Route::get('/appointments/cancel', [AppointmentController::class, 'cancel'])->na
 Route::get('/test-certificate', [TestCertificateController::class, 'generateTestCertificate'])->name('generateTestCertificate');
 
 
+Route::get('events/{event}/infos', [EventController::class, 'publicShow'])->name('events.public.show');
+
 // Route to show the reservation form
 Route::get('events/{event}/reserve', [ReservationController::class, 'create'])->name('events.reserve.create');
 

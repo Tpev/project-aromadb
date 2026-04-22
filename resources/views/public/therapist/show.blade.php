@@ -823,8 +823,10 @@
         ? $event->number_of_spot - $event->reservations->count()
         : null;
 
-    // Always share the public event page so social previews use event OG metadata.
-    $eventUrl = url("/events/{$event->id}/reserve");
+    // Share the booking page only for reservable events; otherwise use the public info page.
+    $eventUrl = $event->booking_required
+        ? route('events.reserve.create', $event->id)
+        : route('events.public.show', $event->id);
 
     // Default share text
     $shareText = "Découvrez cet événement : {$event->name}";

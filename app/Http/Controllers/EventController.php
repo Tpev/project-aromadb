@@ -623,4 +623,19 @@ public function show(Event $event)
     return view('events.show', compact('event'));
 }
 
+public function publicShow(Event $event)
+{
+    abort_unless($event->showOnPortail, 404);
+
+    $event->load([
+        'user',
+        'associatedProduct',
+        'reservations' => function ($q) {
+            $q->orderBy('created_at', 'desc');
+        },
+    ]);
+
+    return view('events.public-show', compact('event'));
+}
+
 }

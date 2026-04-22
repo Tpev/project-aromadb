@@ -174,8 +174,7 @@ public function create($eventId)
 
     // Check if the event requires booking
     if (!$event->booking_required) {
-        $canReserve = false;
-        $reservationStatusMessage = __('Cet événement est accessible sans réservation en ligne. Contactez directement le thérapeute si besoin.');
+        return redirect()->route('events.public.show', $event);
     }
 
     // Check if the event has spots available
