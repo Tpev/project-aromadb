@@ -147,21 +147,34 @@ class ReceiptController extends Controller
         $year = (int)($request->input('year') ?: now()->year);
 
         $rows = Receipt::selectRaw("
-                MONTH(encaissement_date) m,
-                SUM(CASE WHEN direction='credit' THEN amount_ttc ELSE -amount_ttc END) ca_ttc
+                MONTH(encaissement_date) as m,
+                nature,
+                SUM(CASE WHEN direction='credit' THEN amount_ttc ELSE -amount_ttc END) as ca_ttc
             ")
             ->where('user_id', Auth::id())
             ->whereYear('encaissement_date', $year)
-            ->groupBy('m')
+            ->groupBy('m', 'nature')
             ->orderBy('m')
             ->get();
 
         $data = [];
         for ($i = 1; $i <= 12; $i++) {
-            $data[$i] = 0.0;
+            $data[$i] = [
+                'total'   => 0.0,
+                'service' => 0.0,
+                'goods'   => 0.0,
+            ];
         }
+
         foreach ($rows as $r) {
-            $data[(int)$r->m] = (float)$r->ca_ttc;
+            $month = (int) $r->m;
+            $amount = (float) $r->ca_ttc;
+
+            $data[$month]['total'] += $amount;
+
+            if (in_array($r->nature, ['service', 'goods'], true)) {
+                $data[$month][$r->nature] += $amount;
+            }
         }
 
         return view('receipts.ca-monthly', compact('data', 'year'));
