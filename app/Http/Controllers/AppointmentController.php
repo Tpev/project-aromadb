@@ -31,6 +31,7 @@ use App\Models\BookingLink;
 use App\Models\GiftVoucher;
 use App\Models\Receipt;
 use App\Services\GiftVoucherRedeemService;
+use App\Services\AppointmentIcsService;
 use App\Services\AppointmentQuestionnaireAutomationService;
 use App\Services\CabinetAccessService;
 use App\Services\SharedCabinetSchedulingService;
@@ -1498,61 +1499,26 @@ public function storePatient(Request $request)
 
         return view('appointments.show_patient', compact('appointment'));
     }
-
     /**
      * Download the ICS file for the specified appointment.
      */
     public function downloadICS($token)
     {
-        // Retrieve the appointment by the token
         $appointment = Appointment::where('token', $token)
-            ->with(['clientProfile', 'user'])
+            ->with(['clientProfile', 'user', 'product', 'practiceLocation', 'meeting'])
             ->firstOrFail();
 
-        // Prepare the ICS file contents
-        $icsContent = $this->generateICS($appointment);
+        $icsService = app(AppointmentIcsService::class);
+        $icsContent = $icsService->build($appointment);
+        $fileName = $icsService->fileName($appointment);
 
-        // Generate the filename
-        $fileName = 'appointment_' . $appointment->id . '.ics';
-
-        // Return the ICS file as a download response
         return response($icsContent)
-            ->header('Content-Type', 'text/calendar')
+            ->header('Content-Type', 'text/calendar; charset=UTF-8; method=PUBLISH')
             ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
     }
 
-    /**
-     * Generate ICS content for the appointment.
-     */
-    private function generateICS($appointment)
+    public function getAvailableSlotsForPatient(Request $request)
     {
-        $start = $appointment->appointment_date->format('Ymd\THis');
-        $end = $appointment->appointment_date->copy()->addMinutes($appointment->duration)->format('Ymd\THis');
-
-        $description = $appointment->notes ?? 'Aucune note ajoutée';
-        $therapist = $appointment->user->company_name ?? $appointment->user->name;
-
-        $icsContent = "BEGIN:VCALENDAR\r\n";
-        $icsContent .= "VERSION:2.0\r\n";
-        $icsContent .= "PRODID:-//YourApp//NONSGML v1.0//EN\r\n";
-        $icsContent .= "CALSCALE:GREGORIAN\r\n";
-        $icsContent .= "METHOD:PUBLISH\r\n";
-        $icsContent .= "BEGIN:VEVENT\r\n";
-        $icsContent .= "UID:" . uniqid() . "\r\n";
-        $icsContent .= "DTSTART:$start\r\n";
-        $icsContent .= "DTEND:$end\r\n";
-        $icsContent .= "SUMMARY:Rendez-vous avec $therapist\r\n";
-        $icsContent .= "DESCRIPTION:$description\r\n";
-        $icsContent .= "LOCATION:En ligne ou au cabinet\r\n";
-        $icsContent .= "STATUS:CONFIRMED\r\n";
-        $icsContent .= "END:VEVENT\r\n";
-        $icsContent .= "END:VCALENDAR\r\n";
-
-        return $icsContent;
-    }
-
-public function getAvailableSlotsForPatient(Request $request)
-{
     // 1) Basic validation (core fields)
     $request->validate([
         'therapist_id' => 'required|exists:users,id',

@@ -16,25 +16,24 @@ uses(TestCase::class);
 function buildAppointmentForEmails(array $overrides = []): Appointment
 {
     $user = new User(array_merge([
-        'id' => 101,
         'name' => 'Therapeute Test',
         'email' => 'therapeute@example.test',
         'company_name' => 'Cabinet Test',
         'company_address' => '99 Rue du Cabinet, 75008 Paris',
         'cancellation_notice_hours' => 24,
     ], $overrides['user'] ?? []));
+    $user->id = 101;
 
     $client = new ClientProfile(array_merge([
-        'id' => 202,
         'user_id' => 101,
         'first_name' => 'Alice',
         'last_name' => 'Martin',
         'email' => 'alice@example.test',
         'address' => '12 Rue des Lilas, 75001 Paris',
     ], $overrides['client'] ?? []));
+    $client->id = 202;
 
     $product = new Product(array_merge([
-        'id' => 303,
         'user_id' => 101,
         'name' => 'Massage Test',
         'duration' => 60,
@@ -43,9 +42,9 @@ function buildAppointmentForEmails(array $overrides = []): Appointment
         'en_entreprise' => false,
         'dans_le_cabinet' => false,
     ], $overrides['product'] ?? []));
+    $product->id = 303;
 
     $appointment = new Appointment(array_merge([
-        'id' => 404,
         'token' => 'tok_appointment_test_1234567890',
         'client_profile_id' => 202,
         'user_id' => 101,
@@ -57,6 +56,7 @@ function buildAppointmentForEmails(array $overrides = []): Appointment
         'duration' => 60,
         'address' => null,
     ], $overrides['appointment'] ?? []));
+    $appointment->id = 404;
 
     $appointment->setRelation('user', $user);
     $appointment->setRelation('clientProfile', $client);

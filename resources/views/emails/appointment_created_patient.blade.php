@@ -41,6 +41,12 @@ Vous pouvez retrouver les informations de votre rendez-vous via ce lien :
 Voir mon rendez-vous
 @endcomponent
 
+@if(!empty($icsUrl))
+@component('mail::button', ['url' => $icsUrl, 'color' => 'success'])
+Ajouter à mon calendrier
+@endcomponent
+@endif
+
 @if(($cutoffHours ?? 0) > 0 && !empty($latestCancelAt))
 Si vous avez un empêchement, vous pouvez également **annuler votre rendez-vous** depuis cette page, **jusqu’à {{ $cutoffHours }}h avant** (soit jusqu’au **{{ $latestCancelAt->format('d/m/Y à H:i') }}**).
 @else

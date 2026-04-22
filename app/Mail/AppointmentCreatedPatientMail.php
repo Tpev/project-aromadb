@@ -104,6 +104,7 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
         // ✅ Magic link confirmation page URL
         // You said you want to keep the GET route name "appointments.showPatient"
         $confirmationUrl = route('appointments.showPatient', ['token' => $this->appointment->token]);
+        $icsUrl = route('appointments.downloadICS', ['token' => $this->appointment->token]);
 
         // ✅ Cancellation cutoff message (based on therapist setting)
         $cutoffHours = max(0, (int) ($this->appointment->user?->cancellation_notice_hours ?? 0));
@@ -125,6 +126,7 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
                 'clientAddress'   => $clientAddress,
                 'visioUrl'        => $visioUrl,
                 'confirmationUrl' => $confirmationUrl,
+                'icsUrl'          => $icsUrl,
                 'cutoffHours'     => $cutoffHours,
                 'latestCancelAt'  => $latestCancelAt,
             ]);
