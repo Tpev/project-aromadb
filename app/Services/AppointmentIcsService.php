@@ -9,6 +9,64 @@ class AppointmentIcsService
 {
     public function build(Appointment $appointment): string
     {
+        $eventData = $this->buildEventData($appointment);
+        $nowUtc = Carbon::now('UTC');
+        $uid = sprintf('appointment-%s-%s@aromamade.com', $appointment->id ?: 'draft', $appointment->token ?: uniqid());
+
+        $lines = array_filter([
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//AromaMade//Appointments//FR',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'BEGIN:VEVENT',
+            'UID:' . $this->escapeText($uid),
+            'DTSTAMP:' . $nowUtc->format('Ymd\THis\Z'),
+            'DTSTART:' . $eventData['start_utc']->format('Ymd\THis\Z'),
+            'DTEND:' . $eventData['end_utc']->format('Ymd\THis\Z'),
+            'SUMMARY:' . $this->escapeText($eventData['summary']),
+            'DESCRIPTION:' . $this->escapeText($eventData['description']),
+            $eventData['location'] !== null ? 'LOCATION:' . $this->escapeText($eventData['location']) : null,
+            'STATUS:CONFIRMED',
+            'TRANSP:OPAQUE',
+            'URL:' . $this->escapeText($eventData['event_url']),
+            $appointment->user?->email
+                ? 'ORGANIZER;CN=' . $this->escapeParam($eventData['practitioner_name']) . ':MAILTO:' . $this->escapeText($appointment->user->email)
+                : null,
+            $appointment->clientProfile?->email
+                ? 'ATTENDEE;CN=' . $this->escapeParam($eventData['client_name'] ?: 'Client') . ';ROLE=REQ-PARTICIPANT:MAILTO:' . $this->escapeText($appointment->clientProfile->email)
+                : null,
+            'END:VEVENT',
+            'END:VCALENDAR',
+        ]);
+
+        return collect($lines)
+            ->map(fn (string $line) => $this->foldLine($line))
+            ->implode("\r\n") . "\r\n";
+    }
+
+    public function fileName(Appointment $appointment): string
+    {
+        return 'rendez-vous-' . ($appointment->id ?: 'aromamade') . '.ics';
+    }
+
+    public function googleCalendarUrl(Appointment $appointment): string
+    {
+        $eventData = $this->buildEventData($appointment);
+
+        $query = http_build_query([
+            'action' => 'TEMPLATE',
+            'text' => $eventData['summary'],
+            'dates' => $eventData['start_utc']->format('Ymd\THis\Z') . '/' . $eventData['end_utc']->format('Ymd\THis\Z'),
+            'details' => $eventData['description'],
+            'location' => $eventData['location'] ?? '',
+        ], '', '&', PHP_QUERY_RFC3986);
+
+        return 'https://calendar.google.com/calendar/render?' . $query;
+    }
+
+    private function buildEventData(Appointment $appointment): array
+    {
         $appointment->loadMissing([
             'product',
             'user',
@@ -22,7 +80,6 @@ class AppointmentIcsService
             ->addMinutes((int) ($appointment->duration ?? 60))
             ->utc();
 
-        $nowUtc = Carbon::now('UTC');
         $practitionerName = $appointment->user?->company_name ?: $appointment->user?->name ?: 'Praticien';
         $clientName = trim((string) (($appointment->clientProfile?->first_name ?? '') . ' ' . ($appointment->clientProfile?->last_name ?? '')));
         $productName = $appointment->product?->name ?: 'Rendez-vous';
@@ -41,45 +98,19 @@ class AppointmentIcsService
             $visioUrl
         );
 
-        $summary = trim("{$productName} avec {$practitionerName}");
-        $uid = sprintf('appointment-%s-%s@aromamade.com', $appointment->id ?: 'draft', $appointment->token ?: uniqid());
-        $eventUrl = $visioUrl ?: $confirmationUrl;
-
-        $lines = array_filter([
-            'BEGIN:VCALENDAR',
-            'VERSION:2.0',
-            'PRODID:-//AromaMade//Appointments//FR',
-            'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH',
-            'BEGIN:VEVENT',
-            'UID:' . $this->escapeText($uid),
-            'DTSTAMP:' . $nowUtc->format('Ymd\THis\Z'),
-            'DTSTART:' . $startUtc->format('Ymd\THis\Z'),
-            'DTEND:' . $endUtc->format('Ymd\THis\Z'),
-            'SUMMARY:' . $this->escapeText($summary),
-            'DESCRIPTION:' . $this->escapeText($description),
-            $location !== null ? 'LOCATION:' . $this->escapeText($location) : null,
-            'STATUS:CONFIRMED',
-            'TRANSP:OPAQUE',
-            'URL:' . $this->escapeText($eventUrl),
-            $appointment->user?->email
-                ? 'ORGANIZER;CN=' . $this->escapeParam($practitionerName) . ':MAILTO:' . $this->escapeText($appointment->user->email)
-                : null,
-            $appointment->clientProfile?->email
-                ? 'ATTENDEE;CN=' . $this->escapeParam($clientName ?: 'Client') . ';ROLE=REQ-PARTICIPANT:MAILTO:' . $this->escapeText($appointment->clientProfile->email)
-                : null,
-            'END:VEVENT',
-            'END:VCALENDAR',
-        ]);
-
-        return collect($lines)
-            ->map(fn (string $line) => $this->foldLine($line))
-            ->implode("\r\n") . "\r\n";
-    }
-
-    public function fileName(Appointment $appointment): string
-    {
-        return 'rendez-vous-' . ($appointment->id ?: 'aromamade') . '.ics';
+        return [
+            'start_utc' => $startUtc,
+            'end_utc' => $endUtc,
+            'practitioner_name' => $practitionerName,
+            'client_name' => $clientName,
+            'product_name' => $productName,
+            'summary' => trim("{$productName} avec {$practitionerName}"),
+            'description' => $description,
+            'location' => $location,
+            'confirmation_url' => $confirmationUrl,
+            'visio_url' => $visioUrl,
+            'event_url' => $visioUrl ?: $confirmationUrl,
+        ];
     }
 
     private function buildDescription(

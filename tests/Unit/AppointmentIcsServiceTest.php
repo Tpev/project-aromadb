@@ -149,3 +149,31 @@ test('ics export includes visio url and email contains add to calendar button', 
     expect($html)->toContain('Ajouter à mon calendrier');
     expect($html)->toContain(route('appointments.downloadICS', ['token' => $appointment->token]));
 });
+
+
+test('google calendar url reuses appointment details with mode-specific data', function () {
+    $appointment = buildAppointmentForIcsTests([
+        'product' => [
+            'visio' => false,
+            'adomicile' => true,
+            'dans_le_cabinet' => false,
+        ],
+        'appointment' => [
+            'type' => 'domicile',
+            'practice_location_id' => null,
+            'address' => '22 Rue de la Paix, 75002 Paris',
+        ],
+    ]);
+    $appointment->setRelation('practiceLocation', null);
+
+    $url = app(AppointmentIcsService::class)->googleCalendarUrl($appointment);
+    $decodedUrl = urldecode($url);
+
+    expect($url)->toStartWith('https://calendar.google.com/calendar/render?action=TEMPLATE');
+    expect($decodedUrl)->toContain('text=Consultation Aroma avec Cabinet Aroma');
+    expect($decodedUrl)->toContain('details=Rendez-vous AromaMade');
+    expect($decodedUrl)->toContain('Domicile');
+    expect($decodedUrl)->toContain('Adresse du domicile : 22 Rue de la Paix, 75002 Paris');
+    expect($decodedUrl)->toContain('location=');
+    expect($decodedUrl)->toContain(route('appointments.showPatient', ['token' => $appointment->token]));
+});

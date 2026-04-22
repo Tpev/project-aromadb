@@ -234,7 +234,7 @@
 
             {{-- ICS --}}
             <div class="text-center mt-4">
-                <a href="{{ route('appointments.downloadICS', $appointment->token) }}" class="btn-home">
+                <a href="{{ $icsUrl }}" class="btn-home" id="appointment-calendar-link" data-ics-url="{{ $icsUrl }}" data-google-calendar-url="{{ $googleCalendarUrl }}">
                     <i class="fas fa-calendar-plus mr-2"></i> {{ __('Ajouter Ã  votre calendrier') }}
                 </a>
             </div>
@@ -327,4 +327,25 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarLink = document.getElementById('appointment-calendar-link');
+
+            if (!calendarLink) {
+                return;
+            }
+
+            const isAndroid = /Android/i.test(window.navigator.userAgent || '');
+            const googleCalendarUrl = calendarLink.dataset.googleCalendarUrl;
+
+            if (isAndroid && googleCalendarUrl) {
+                calendarLink.href = googleCalendarUrl;
+                calendarLink.setAttribute('target', '_blank');
+                calendarLink.setAttribute('rel', 'noopener noreferrer');
+                calendarLink.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> {{ __('Ajouter à Google Agenda') }}';
+            }
+        });
+    </script>
 </x-app-layout>
+
+

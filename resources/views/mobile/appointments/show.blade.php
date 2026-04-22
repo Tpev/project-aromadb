@@ -250,7 +250,10 @@
         <div class="space-y-3 mt-2">
             @if($isConfirmed)
                 {{-- Use existing web route for ICS download --}}
-                <a href="{{ route('appointments.downloadICS', $appointment->token) }}"
+                <a href="{{ $icsUrl }}"
+                   id="appointment-calendar-link"
+                   data-ics-url="{{ $icsUrl }}"
+                   data-google-calendar-url="{{ $googleCalendarUrl }}"
                    class="w-full inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary-600 text-white text-sm font-semibold shadow-sm active:scale-[0.98] transition-transform">
                     <i class="fas fa-calendar-plus mr-2 text-xs"></i>
                     {{ __('Ajouter Ã  mon agenda') }}
@@ -277,6 +280,26 @@
         </p>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarLink = document.getElementById('appointment-calendar-link');
+
+            if (!calendarLink) {
+                return;
+            }
+
+            const isAndroid = /Android/i.test(window.navigator.userAgent || '');
+            const googleCalendarUrl = calendarLink.dataset.googleCalendarUrl;
+
+            if (isAndroid && googleCalendarUrl) {
+                calendarLink.href = googleCalendarUrl;
+                calendarLink.setAttribute('target', '_blank');
+                calendarLink.setAttribute('rel', 'noopener noreferrer');
+                calendarLink.innerHTML = '<i class="fas fa-calendar-plus mr-2 text-xs"></i> {{ __('Ajouter à Google Agenda') }}';
+            }
+        });
+    </script>
+
     <style>
         .animate-spin-slow {
             animation: spin 2s linear infinite;
@@ -288,3 +311,5 @@
     </style>
 
 </x-mobile-layout>
+
+

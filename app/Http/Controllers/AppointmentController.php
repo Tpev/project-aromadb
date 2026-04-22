@@ -1494,10 +1494,16 @@ public function storePatient(Request $request)
     {
         // Retrieve the appointment by token instead of ID
         $appointment = Appointment::where('token', $token)
-            ->with(['clientProfile', 'user', 'product'])
+            ->with(['clientProfile', 'user', 'product', 'practiceLocation', 'meeting'])
             ->firstOrFail();
 
-        return view('appointments.show_patient', compact('appointment'));
+        $icsService = app(AppointmentIcsService::class);
+
+        return view('appointments.show_patient', [
+            'appointment' => $appointment,
+            'icsUrl' => route('appointments.downloadICS', $appointment->token),
+            'googleCalendarUrl' => $icsService->googleCalendarUrl($appointment),
+        ]);
     }
     /**
      * Download the ICS file for the specified appointment.

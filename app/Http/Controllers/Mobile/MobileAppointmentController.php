@@ -321,10 +321,16 @@ class MobileAppointmentController extends Controller
     public function show(string $token)
     {
         $appointment = Appointment::where('token', $token)
-            ->with(['clientProfile', 'user', 'product', 'practiceLocation'])
+            ->with(['clientProfile', 'user', 'product', 'practiceLocation', 'meeting'])
             ->firstOrFail();
 
-        return view('mobile.appointments.show', compact('appointment'));
+        $icsService = app(AppointmentIcsService::class);
+
+        return view('mobile.appointments.show', [
+            'appointment' => $appointment,
+            'icsUrl' => route('appointments.downloadICS', $appointment->token),
+            'googleCalendarUrl' => $icsService->googleCalendarUrl($appointment),
+        ]);
     }
     /**
      * 4) Download ICS for the specified appointment (MOBILE).
