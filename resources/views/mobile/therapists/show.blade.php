@@ -42,6 +42,22 @@
     @section('title', $pageTitle)
     @section('meta_description', $meta)
 
+    @once
+        <style>
+            .am-about-content a,
+            .am-about-content .ql-editor a {
+                color: #2563eb !important;
+                text-decoration: underline !important;
+                text-underline-offset: 2px;
+                word-break: break-word;
+            }
+            .am-about-content a:hover,
+            .am-about-content .ql-editor a:hover {
+                color: #1d4ed8 !important;
+            }
+        </style>
+    @endonce
+
     <div
         x-data="{
             infoOpen: false,
@@ -184,7 +200,7 @@
                         </h2>
                     </div>
 
-                    <div class="text-[15px] text-gray-700 leading-relaxed break-words prose max-w-none prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-400 prose-a:underline-offset-2 hover:prose-a:text-blue-700">
+                    <div class="am-about-content text-[15px] text-gray-700 leading-relaxed break-words prose max-w-none">
                         {!! $therapist->about ?? __('Informations à propos non disponibles pour le moment.') !!}
                     </div>
                 </div>

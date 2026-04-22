@@ -15,6 +15,17 @@
         .am-quill-view .ql-editor h1,
         .am-quill-view .ql-editor h2,
         .am-quill-view .ql-editor h3 { margin: .55rem 0 .35rem; }
+        .am-about-content a,
+        .am-about-content .ql-editor a {
+            color: #2563eb !important;
+            text-decoration: underline !important;
+            text-underline-offset: 2px;
+            word-break: break-word;
+        }
+        .am-about-content a:hover,
+        .am-about-content .ql-editor a:hover {
+            color: #1d4ed8 !important;
+        }
     </style>
 @endonce
 
@@ -271,7 +282,7 @@
                 <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
             </h3>
 
-            <article class="mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-400 prose-a:underline-offset-2 hover:prose-a:text-blue-700">
+            <article class="am-about-content mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none">
                 {!! $therapist->about ?? __('Informations à propos non disponibles.') !!}
             </article>
         </div>
