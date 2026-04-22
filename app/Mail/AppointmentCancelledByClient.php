@@ -70,6 +70,7 @@ class AppointmentCancelledByClient extends Mailable implements ShouldQueue
                 'therapistName'  => $therapistName,
                 'dateStr'        => $dateStr,
                 'timeStr'        => $timeStr,
+                'appointmentUrl' => route('appointments.show', $a),
             ]);
 
         if (!empty($replyToEmail)) {

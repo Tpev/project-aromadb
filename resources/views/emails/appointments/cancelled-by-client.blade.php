@@ -1,4 +1,4 @@
-@php
+﻿@php
     $a = $appointment;
     $clientName = trim(($a->clientProfile?->first_name ?? '').' '.($a->clientProfile?->last_name ?? ''));
     $therapistName = $a->user?->company_name ?? $a->user?->name ?? 'Votre thérapeute';
@@ -25,6 +25,15 @@
 <p>
     Vous pouvez retrouver ce rendez-vous dans votre agenda / tableau de bord.
 </p>
+
+@if(!empty($appointmentUrl))
+<p style="margin: 18px 0;">
+    <a href="{{ $appointmentUrl }}"
+       style="display:inline-block;background:#647a0b;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;">
+        Voir le rendez-vous dans l’agenda
+    </a>
+</p>
+@endif
 
 <p style="margin-top: 16px;">
     — AromaMade PRO

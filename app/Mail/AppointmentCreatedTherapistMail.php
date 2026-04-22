@@ -71,6 +71,7 @@ class AppointmentCreatedTherapistMail extends Mailable implements ShouldQueue
                         'modeLabel'      => $modeLabel,
                         'cabinetAddress' => $cabinetAddress,
                         'clientAddress'  => $clientAddress,
+                        'appointmentUrl' => route('appointments.show', $this->appointment),
                     ]);
     }
 }

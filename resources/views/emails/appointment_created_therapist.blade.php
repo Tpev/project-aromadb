@@ -21,6 +21,12 @@ Un nouveau rendez-vous a été programmé.
 
 Vous pouvez consulter ce rendez-vous dans votre agenda.
 
+@isset($appointmentUrl)
+@component('mail::button', ['url' => $appointmentUrl])
+Voir le rendez-vous dans l'agenda
+@endcomponent
+@endisset
+
 Merci,<br>
 {{ config('app.name') }}
 @endcomponent
