@@ -175,44 +175,43 @@
                     </p>
                 @endif
 
-                @if ($therapist->accept_online_appointments)
-                    <nav aria-label="{{ __('Liens de prise de contact') }}"
-                         class="mt-8 flex flex-wrap md:flex-nowrap gap-4
-                                justify-center md:justify-start">
-
+                <nav aria-label="{{ __('Liens de prise de contact') }}"
+                     class="mt-8 flex flex-wrap md:flex-nowrap gap-4
+                            justify-center md:justify-start">
+                    @if ($therapist->accept_online_appointments)
                         <a  href="{{ route('appointments.createPatient', $therapist->id) }}"
                             class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
                                    text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
                                    transition-colors duration-200">
                             {{ __('Prendre Rendez-vous') }}
                         </a>
+                    @endif
 
-                        <button type="button"
-                                class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
-                                       text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
-                                       transition-colors duration-200"
-                                x-data
-                                x-on:click.prevent="$dispatch('open-request-modal')">
-                            {{ __('Demander des informations') }}
-                        </button>
+                    <button type="button"
+                            class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
+                                   text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
+                                   transition-colors duration-200"
+                            x-data
+                            x-on:click.prevent="$dispatch('open-request-modal')">
+                        {{ __('Demander des informations') }}
+                    </button>
 
-                        <a  href="{{ route('client.login') }}"
-                            class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
-                                   text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
+                    <a  href="{{ route('client.login') }}"
+                        class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
+                               text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
+                               transition-colors duration-200">
+                        {{ __('Accès Client') }}
+                    </a>
+
+                    @if($therapist->canUseFeature('gift_vouchers') && ($therapist->gift_voucher_online_enabled ?? false) && !empty($therapist->stripe_account_id))
+                        <a  href="{{ route('gift-vouchers.checkout.show', ['slug' => $therapist->slug]) }}"
+                            class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
+                                   text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
                                    transition-colors duration-200">
-                            {{ __('Accès Client') }}
+                            {{ __('Offrir un bon cadeau') }}
                         </a>
-
-                        @if($therapist->canUseFeature('gift_vouchers') && ($therapist->gift_voucher_online_enabled ?? false) && !empty($therapist->stripe_account_id))
-                            <a  href="{{ route('gift-vouchers.checkout.show', ['slug' => $therapist->slug]) }}"
-                                class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
-                                       text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
-                                       transition-colors duration-200">
-                                {{ __('Offrir un bon cadeau') }}
-                            </a>
-                        @endif
-                    </nav>
-                @endif
+                    @endif
+                </nav>
             </div>
         </div>
     </div>
@@ -248,10 +247,12 @@
         <span class="font-medium truncate">{{ $therapist->company_name }}</span>
 
         <div class="flex gap-3">
-            <a href="{{ route('appointments.createPatient', $therapist->id) }}"
-               class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
-                {{ __('Prendre Rendez-vous') }}
-            </a>
+            @if ($therapist->accept_online_appointments)
+                <a href="{{ route('appointments.createPatient', $therapist->id) }}"
+                   class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
+                    {{ __('Prendre Rendez-vous') }}
+                </a>
+            @endif
             <button type="button"
                     class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full"
                     x-on:click="$dispatch('open-request-modal')">

@@ -137,9 +137,8 @@
                         </div>
                     </div>
 
-                    {{-- CTAs (kept same logic: only if accept_online_appointments) --}}
-                    @if($therapist->accept_online_appointments)
-                        <div class="w-full flex flex-col gap-3 mt-2">
+                    <div class="w-full flex flex-col gap-3 mt-2">
+                        @if($therapist->accept_online_appointments)
                             <x-ts-button
                                 tag="a"
                                 href="{{ route('mobile.appointments.create_from_therapist', $therapist->slug) }}"
@@ -148,28 +147,28 @@
                                 <i class="fas fa-calendar-plus mr-2"></i>
                                 {{ __('Prendre rendez-vous') }}
                             </x-ts-button>
+                        @endif
 
-                            <div class="flex gap-3">
-                                <x-ts-button
-                                    type="button"
-                                    class="flex-1 !bg-white/20 !border-0"
-                                    x-on:click="infoOpen = true"
-                                >
-                                    <i class="fas fa-envelope-open-text mr-2"></i>
-                                    {{ __('Demande d’information') }}
-                                </x-ts-button>
+                        <div class="flex gap-3">
+                            <x-ts-button
+                                type="button"
+                                class="flex-1 !bg-white/20 !border-0"
+                                x-on:click="infoOpen = true"
+                            >
+                                <i class="fas fa-envelope-open-text mr-2"></i>
+                                {{ __('Demande d’information') }}
+                            </x-ts-button>
 
-                                <x-ts-button
-                                    tag="a"
-                                    href="{{ route('client.login') }}"
-                                    class="flex-1 !bg-white/20 !border-0"
-                                >
-                                    <i class="fas fa-user-circle mr-2"></i>
-                                    {{ __('Accès client') }}
-                                </x-ts-button>
-                            </div>
+                            <x-ts-button
+                                tag="a"
+                                href="{{ route('client.login') }}"
+                                class="flex-1 !bg-white/20 !border-0"
+                            >
+                                <i class="fas fa-user-circle mr-2"></i>
+                                {{ __('Accès client') }}
+                            </x-ts-button>
                         </div>
-                    @endif
+                    </div>
                 </div>
             </x-ts-card>
 
