@@ -184,7 +184,7 @@
                         </h2>
                     </div>
 
-                    <div class="text-[15px] text-gray-700 leading-relaxed break-words prose max-w-none">
+                    <div class="text-[15px] text-gray-700 leading-relaxed break-words prose max-w-none prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-400 prose-a:underline-offset-2 hover:prose-a:text-blue-700">
                         {!! $therapist->about ?? __('Informations à propos non disponibles pour le moment.') !!}
                     </div>
                 </div>

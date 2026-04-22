@@ -271,7 +271,7 @@
                 <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
             </h3>
 
-            <article class="mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none">
+            <article class="mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none prose-a:text-blue-600 prose-a:underline prose-a:decoration-blue-400 prose-a:underline-offset-2 hover:prose-a:text-blue-700">
                 {!! $therapist->about ?? __('Informations à propos non disponibles.') !!}
             </article>
         </div>
