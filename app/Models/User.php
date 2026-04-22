@@ -359,7 +359,7 @@ class User extends Authenticatable
         return "J'ai pris connaissance des informations relatives au droit de rétractation.";
     }
 
-    public function digitalSalesRetractationNoticeDocumentUrl(): ?string
+        public function digitalSalesRetractationNoticeDocumentUrl(): ?string
     {
         if (filled($this->digital_sales_retractation_document_path)) {
             return asset('storage/' . ltrim((string) $this->digital_sales_retractation_document_path, '/'));
@@ -370,5 +370,10 @@ class User extends Authenticatable
         }
 
         return null;
+    }
+
+    public function communityGroups()
+    {
+        return $this->hasMany(CommunityGroup::class);
     }
 }

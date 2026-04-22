@@ -72,6 +72,12 @@
                     </div>
                     <!-- ======= /Clients ======= -->
 
+                    <x-nav-link :href="route('communities.index')"
+                                :active="request()->routeIs('communities.*')"
+                                class="text-[#647a0b] hover:text-[#854f38]">
+                        {{ __('Communautés') }}
+                    </x-nav-link>
+
                     <!-- Rendez-vous -->
                     <x-nav-link :href="route('appointments.index')"
                                 :active="request()->routeIs('appointments.*')"

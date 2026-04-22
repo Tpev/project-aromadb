@@ -83,6 +83,11 @@ use App\Http\Controllers\SessionNoteTemplateController;
 use App\Http\Controllers\PublicCheckoutController;
 use App\Http\Controllers\PublicGiftVoucherCheckoutController;
 use App\Http\Controllers\KonvaEditorController;
+use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommunityChannelController;
+use App\Http\Controllers\CommunityMemberController;
+use App\Http\Controllers\CommunityMessageController;
+use App\Http\Controllers\ClientCommunityController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -125,6 +130,20 @@ Route::get('/bons-cadeaux/checkout/cancel', [PublicGiftVoucherCheckoutController
 Route::middleware(['auth'])->group(function () {
     Route::post('/invoices/from-pack/{packPurchase}', [InvoiceController::class, 'createFromPackPurchase'])
         ->name('invoices.fromPackPurchase');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/communautes', [CommunityController::class, 'index'])->name('communities.index');
+    Route::get('/communautes/create', [CommunityController::class, 'create'])->name('communities.create');
+    Route::post('/communautes', [CommunityController::class, 'store'])->name('communities.store');
+    Route::get('/communautes/{community}', [CommunityController::class, 'show'])->name('communities.show');
+    Route::get('/communautes/{community}/edit', [CommunityController::class, 'edit'])->name('communities.edit');
+    Route::put('/communautes/{community}', [CommunityController::class, 'update'])->name('communities.update');
+
+    Route::post('/communautes/{community}/salons', [CommunityChannelController::class, 'store'])->name('communities.channels.store');
+    Route::post('/communautes/{community}/membres', [CommunityMemberController::class, 'store'])->name('communities.members.store');
+    Route::delete('/communautes/{community}/membres/{member}', [CommunityMemberController::class, 'destroy'])->name('communities.members.destroy');
+    Route::post('/communautes/{community}/messages', [CommunityMessageController::class, 'store'])->name('communities.messages.store');
 });
 Route::get('/pro/{slug}/checkout', [PublicCheckoutController::class, 'show'])
     ->name('public.checkout.show');
@@ -518,6 +537,10 @@ Route::prefix('client')->group(function () {
 
     Route::middleware('auth:client')->group(function () {
         Route::get('home', [ClientProfileController::class, 'home'])->name('client.home');
+        Route::get('communautes', [ClientCommunityController::class, 'index'])->name('client.communities.index');
+        Route::post('communautes/{community}/rejoindre', [ClientCommunityController::class, 'accept'])->name('client.communities.accept');
+        Route::get('communautes/{community}', [ClientCommunityController::class, 'show'])->name('client.communities.show');
+        Route::post('communautes/{community}/messages', [ClientCommunityController::class, 'storeMessage'])->name('client.communities.messages.store');
 
         Route::post('logout', [ClientAuthController::class,'logout'])->name('client.logout');
         // future “espace client” routes here
@@ -1395,3 +1418,4 @@ Route::middleware(['auth'])->prefix('dashboard-pro')->group(function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/mobile.php';
+

@@ -1,0 +1,111 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#854f38]">Communautes privees</p>
+                <h2 class="mt-2 text-2xl font-semibold text-[#647a0b]">Animez vos groupes d'echange</h2>
+                <p class="mt-2 max-w-2xl text-sm text-gray-600">Créez des espaces prives sur invitation, partagez des annonces, et gardez une conversation claire avec vos clients autour d'un accompagnement ou d'un programme.</p>
+            </div>
+            <a href="{{ route('communities.create') }}" class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
+                Creer une communaute
+            </a>
+        </div>
+    </x-slot>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <section class="overflow-hidden rounded-[2rem] border border-[#dfe7c7] bg-[radial-gradient(circle_at_top_left,_rgba(216,230,181,0.55),_rgba(255,255,255,0.95)_48%,_rgba(245,241,231,0.95)_100%)] p-8 shadow-sm">
+            <div class="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] lg:items-center">
+                <div>
+                    <div class="inline-flex items-center rounded-full border border-[#d6dfbc] bg-white/75 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#647a0b]">
+                        Communautes AromaMade
+                    </div>
+                    <h3 class="mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-gray-900">Transformez vos accompagnements en espace vivant, cadre et rassurant.</h3>
+                    <p class="mt-4 max-w-2xl text-sm leading-7 text-gray-600">Chaque communaute reste fermee, reservee a vos invites, avec des salons pensés pour distinguer les annonces du praticien et les echanges entre membres.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="rounded-3xl bg-white/85 p-5 shadow-sm ring-1 ring-[#ebf0dd] backdrop-blur">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">Communautes</p>
+                        <p class="mt-3 text-3xl font-semibold text-gray-900">{{ $communities->count() }}</p>
+                    </div>
+                    <div class="rounded-3xl bg-white/85 p-5 shadow-sm ring-1 ring-[#ebf0dd] backdrop-blur">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">Membres actifs</p>
+                        <p class="mt-3 text-3xl font-semibold text-gray-900">{{ $communities->sum('active_members_count') }}</p>
+                    </div>
+                    <div class="rounded-3xl bg-white/85 p-5 shadow-sm ring-1 ring-[#ebf0dd] backdrop-blur">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">Salons</p>
+                        <p class="mt-3 text-3xl font-semibold text-gray-900">{{ $communities->sum('channels_count') }}</p>
+                    </div>
+                    <div class="rounded-3xl bg-white/85 p-5 shadow-sm ring-1 ring-[#ebf0dd] backdrop-blur">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">Messages</p>
+                        <p class="mt-3 text-3xl font-semibold text-gray-900">{{ $communities->sum('messages_count') }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            @forelse($communities as $community)
+                <article class="group overflow-hidden rounded-[2rem] border border-[#e8eadf] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:shadow-lime-900/5">
+                    <div class="bg-[linear-gradient(135deg,_rgba(236,243,219,0.95),_rgba(255,255,255,0.95))] px-6 pb-5 pt-6">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#647a0b] text-sm font-semibold text-white shadow-sm shadow-lime-900/15">
+                                        {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($community->name, 0, 2)) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="truncate text-lg font-semibold text-gray-900">{{ $community->name }}</h3>
+                                        <p class="mt-1 text-xs uppercase tracking-[0.18em] text-gray-500">{{ $community->is_archived ? 'Archivee' : 'Active' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $community->is_archived ? 'bg-gray-100 text-gray-600' : 'bg-lime-100 text-lime-700' }}">
+                                {{ $community->is_archived ? 'En pause' : 'Ouverte' }}
+                            </span>
+                        </div>
+                        <p class="mt-5 line-clamp-3 text-sm leading-7 text-gray-600">{{ $community->description ?: 'Aucune description pour le moment. Utilisez cette communaute pour publier des annonces et animer les echanges entre vos membres.' }}</p>
+                    </div>
+
+                    <div class="px-6 py-5">
+                        <dl class="grid grid-cols-2 gap-3 text-sm text-gray-600">
+                            <div class="rounded-2xl bg-[#f8f9f4] px-4 py-3">
+                                <dt class="text-xs uppercase tracking-[0.16em] text-gray-500">Actifs</dt>
+                                <dd class="mt-2 text-2xl font-semibold text-gray-900">{{ $community->active_members_count }}</dd>
+                            </div>
+                            <div class="rounded-2xl bg-[#f8f9f4] px-4 py-3">
+                                <dt class="text-xs uppercase tracking-[0.16em] text-gray-500">Invites</dt>
+                                <dd class="mt-2 text-2xl font-semibold text-gray-900">{{ $community->invited_members_count }}</dd>
+                            </div>
+                            <div class="rounded-2xl bg-[#f8f9f4] px-4 py-3">
+                                <dt class="text-xs uppercase tracking-[0.16em] text-gray-500">Salons</dt>
+                                <dd class="mt-2 text-2xl font-semibold text-gray-900">{{ $community->channels_count }}</dd>
+                            </div>
+                            <div class="rounded-2xl bg-[#f8f9f4] px-4 py-3">
+                                <dt class="text-xs uppercase tracking-[0.16em] text-gray-500">Messages</dt>
+                                <dd class="mt-2 text-2xl font-semibold text-gray-900">{{ $community->messages_count }}</dd>
+                            </div>
+                        </dl>
+
+                        <div class="mt-6 flex items-center gap-3">
+                            <a href="{{ route('communities.show', $community) }}" class="inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#55670a]">
+                                Ouvrir la communaute
+                            </a>
+                            <a href="{{ route('communities.edit', $community) }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                                Reglages
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <div class="md:col-span-2 xl:col-span-3 overflow-hidden rounded-[2rem] border border-dashed border-[#cfd8b5] bg-[linear-gradient(135deg,_rgba(247,250,239,1),_rgba(255,255,255,1))] p-12 text-center">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-2xl shadow-sm shadow-lime-900/10">#</div>
+                    <h3 class="mt-6 text-xl font-semibold text-[#647a0b]">Aucune communaute pour le moment</h3>
+                    <p class="mx-auto mt-3 max-w-2xl text-sm leading-7 text-gray-600">Créez un premier espace prive pour rassembler vos clients autour d'un accompagnement, d'un programme ou d'un groupe de discussion encadre.</p>
+                    <a href="{{ route('communities.create') }}" class="mt-6 inline-flex items-center rounded-full bg-[#647a0b] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
+                        Creer ma premiere communaute
+                    </a>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</x-app-layout>

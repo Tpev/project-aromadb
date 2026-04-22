@@ -132,7 +132,7 @@ class ClientProfile extends Authenticatable implements CanResetPasswordContract
        This ensures the email goes to /client/reset-password/{token}
        instead of the normal /reset-password/{token}.
     --------------------------------------------------------- */
-    public function sendPasswordResetNotification($token): void
+        public function sendPasswordResetNotification($token): void
     {
         $this->notify(new class($token) extends ResetPassword {
             protected function resetUrl($notifiable)
@@ -144,10 +144,21 @@ class ClientProfile extends Authenticatable implements CanResetPasswordContract
             }
         });
     }
-	public function hasEspaceClient(): bool
-{
-    // In your setup, if password is set, the client has portal access
-    return !empty($this->password);
-}
 
+    public function hasEspaceClient(): bool
+    {
+        return !empty($this->password);
+    }
+
+    public function communityMemberships()
+    {
+        return $this->hasMany(CommunityMember::class);
+    }
+
+    public function communityGroups()
+    {
+        return $this->belongsToMany(CommunityGroup::class, 'community_members')
+            ->withPivot(['status', 'invited_at', 'joined_at'])
+            ->withTimestamps();
+    }
 }
