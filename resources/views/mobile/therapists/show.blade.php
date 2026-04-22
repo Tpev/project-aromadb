@@ -644,7 +644,7 @@
                     <x-ts-input
                         name="phone"
                         label="{{ __('Téléphone (optionnel)') }}"
-                        placeholder="06 12 34 56 78"
+                        placeholder="06.00.00.00.00"
                     />
 
                     <div class="space-y-1">

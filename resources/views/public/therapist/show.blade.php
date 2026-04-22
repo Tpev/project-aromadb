@@ -1093,7 +1093,7 @@
 				id="phone"
 				class="mt-1 w-full border border-gray-300 rounded-md p-2"
 				pattern="^[0-9\-\+\(\)\s]+$"
-				placeholder="0612345614"
+				placeholder="06.00.00.00.00"
 			/>
 			@error('phone')
 				<p class="text-red-600 text-sm mt-1">{{ $message }}</p>
