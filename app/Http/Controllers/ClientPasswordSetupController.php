@@ -11,9 +11,6 @@ use Illuminate\Support\Str;
 
 class ClientPasswordSetupController extends Controller
 {
-    /* ---------------------------------------------------------
-       EXISTING: Show the “choose password” form (setup via token)
-    --------------------------------------------------------- */
     public function show(string $token)
     {
         $client = $this->resolveClientFrom($token);
@@ -21,13 +18,11 @@ class ClientPasswordSetupController extends Controller
         return view('client.setup-password', [
             'token' => $token,
             'email' => $client->email,
-            'name'  => $client->first_name,
+            'name' => $client->first_name,
+            'redirect' => request()->query('redirect'),
         ]);
     }
 
-    /* ---------------------------------------------------------
-       EXISTING: Handle setup submission & log the client in
-    --------------------------------------------------------- */
     public function store(Request $request, string $token)
     {
         $client = $this->resolveClientFrom($token);
@@ -35,10 +30,11 @@ class ClientPasswordSetupController extends Controller
         $request->validate(
             [
                 'password' => ['required', 'confirmed', 'min:8'],
+                'redirect' => ['nullable', 'string', 'max:2000'],
             ],
             [
                 'password.required' => 'Veuillez choisir un mot de passe.',
-                'password.min' => 'Votre mot de passe doit contenir au moins 8 caractères.',
+                'password.min' => 'Votre mot de passe doit contenir au moins 8 caracteres.',
                 'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
             ],
             [
@@ -47,28 +43,26 @@ class ClientPasswordSetupController extends Controller
         );
 
         $client->update([
-            'password'                  => bcrypt($request->password),
+            'password' => bcrypt($request->password),
             'password_setup_token_hash' => null,
             'password_setup_expires_at' => null,
         ]);
 
         Auth::guard('client')->login($client);
 
-        return redirect()->route('client.home')
-            ->with('success', 'Mot de passe enregistré !');
+        $redirectTo = $request->filled('redirect')
+            ? $request->string('redirect')->toString()
+            : route('client.home');
+
+        return redirect()->to($redirectTo)
+            ->with('success', 'Mot de passe enregistre !');
     }
 
-    /* ---------------------------------------------------------
-       NEW: Show “forgot password” form (email input)
-    --------------------------------------------------------- */
     public function forgotForm()
     {
         return view('client.forgot-password');
     }
 
-    /* ---------------------------------------------------------
-       NEW: Send reset link email (IMPORTANT: client_profiles broker)
-    --------------------------------------------------------- */
     public function sendResetLink(Request $request)
     {
         $request->validate(
@@ -84,7 +78,6 @@ class ClientPasswordSetupController extends Controller
             ]
         );
 
-        // ✅ CRITICAL: use your client broker (not default users)
         $status = Password::broker('client_profiles')->sendResetLink(
             $request->only('email')
         );
@@ -94,9 +87,6 @@ class ClientPasswordSetupController extends Controller
             : back()->withErrors(['email' => __($status)]);
     }
 
-    /* ---------------------------------------------------------
-       NEW: Show reset form (token + email + new password)
-    --------------------------------------------------------- */
     public function resetForm(Request $request, string $token)
     {
         return view('client.reset-password', [
@@ -105,9 +95,6 @@ class ClientPasswordSetupController extends Controller
         ]);
     }
 
-    /* ---------------------------------------------------------
-       NEW: Handle reset password submission + login
-    --------------------------------------------------------- */
     public function resetStore(Request $request)
     {
         $request->validate(
@@ -117,11 +104,11 @@ class ClientPasswordSetupController extends Controller
                 'password' => ['required', 'confirmed', 'min:8'],
             ],
             [
-                'token.required' => 'Le lien de réinitialisation est invalide ou incomplet.',
+                'token.required' => 'Le lien de reinitialisation est invalide ou incomplet.',
                 'email.required' => 'Veuillez renseigner votre adresse e-mail.',
                 'email.email' => 'Veuillez renseigner une adresse e-mail valide.',
                 'password.required' => 'Veuillez choisir un mot de passe.',
-                'password.min' => 'Votre mot de passe doit contenir au moins 8 caractères.',
+                'password.min' => 'Votre mot de passe doit contenir au moins 8 caracteres.',
                 'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
             ],
             [
@@ -130,7 +117,6 @@ class ClientPasswordSetupController extends Controller
             ]
         );
 
-        // ✅ CRITICAL: client_profiles broker
         $status = Password::broker('client_profiles')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($client, $password) {
@@ -144,14 +130,10 @@ class ClientPasswordSetupController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('client.home')->with('success', 'Mot de passe réinitialisé !')
+            ? redirect()->route('client.home')->with('success', 'Mot de passe reinitialise !')
             : back()->withErrors(['email' => __($status)]);
     }
 
-    /* ---------------------------------------------------------
-       Private helper that turns a raw token into a ClientProfile
-       (setup-password token flow only)
-    --------------------------------------------------------- */
     protected function resolveClientFrom(string $token): ClientProfile
     {
         return ClientProfile::where('password_setup_token_hash', hash('sha256', $token))

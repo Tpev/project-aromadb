@@ -1,11 +1,13 @@
 <?php
 
+use App\Mail\CommunityInviteMail;
 use App\Models\ClientProfile;
 use App\Models\CommunityChannel;
 use App\Models\CommunityGroup;
 use App\Models\CommunityMember;
 use App\Models\CommunityMessage;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 function makePractitioner(): User
 {
@@ -56,6 +58,7 @@ test('praticien can invite a client and invited client can accept community acce
         'channel_type' => CommunityChannel::TYPE_DISCUSSION,
         'position' => 1,
     ]);
+    Mail::fake();
 
     $this->actingAs($practitioner)
         ->post(route('communities.members.store', $community), [
@@ -67,6 +70,17 @@ test('praticien can invite a client and invited client can accept community acce
 
     expect($member)->not->toBeNull()
         ->and($member->status)->toBe(CommunityMember::STATUS_INVITED);
+
+    Mail::assertQueued(CommunityInviteMail::class, function (CommunityInviteMail $mail) use ($client) {
+        return $mail->client->is($client)
+            && $mail->requiresAccountSetup === false
+            && $mail->joinUrl === route('client.communities.index');
+    });
+
+    $this->actingAs($client, 'client')
+        ->get(route('client.communities.index'))
+        ->assertOk()
+        ->assertSee('Groupe souffle');
 
     $this->actingAs($client, 'client')
         ->post(route('client.communities.accept', $community))
@@ -156,4 +170,35 @@ test('client message in discussion notifies the praticien', function () {
     expect(CommunityMessage::count())->toBe(1)
         ->and($practitioner->notifications()->count())->toBe(1)
         ->and($practitioner->notifications()->first()->data['community_group_id'])->toBe($community->id);
+});
+
+test('inviting a client without active espace client sends a setup-based community invite email', function () {
+    $practitioner = makePractitioner();
+    $client = makeClientForPractitioner($practitioner, [
+        'password' => null,
+    ]);
+    $community = CommunityGroup::create([
+        'user_id' => $practitioner->id,
+        'name' => 'Groupe bienvenue',
+    ]);
+
+    Mail::fake();
+
+    $this->actingAs($practitioner)
+        ->post(route('communities.members.store', $community), [
+            'client_profile_id' => $client->id,
+        ])
+        ->assertRedirect(route('communities.show', $community));
+
+    Mail::assertQueued(CommunityInviteMail::class, function (CommunityInviteMail $mail) use ($client) {
+        return $mail->client->is($client)
+            && $mail->requiresAccountSetup === true
+            && str_contains($mail->joinUrl, '/client/setup/')
+            && str_contains($mail->joinUrl, 'redirect=');
+    });
+
+    $client->refresh();
+
+    expect($client->password_setup_token_hash)->not->toBeNull()
+        ->and($client->password_setup_expires_at)->not->toBeNull();
 });

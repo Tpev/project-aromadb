@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CommunityInviteMail;
 use App\Models\ClientProfile;
 use App\Models\CommunityGroup;
 use App\Models\CommunityMember;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class CommunityMemberController extends Controller
 {
@@ -37,9 +40,28 @@ class CommunityMemberController extends Controller
         $member->joined_at = null;
         $member->save();
 
+        if (!$client->email) {
+            return redirect()
+                ->route('communities.show', $community)
+                ->with('success', 'Invitation enregistree. Ce client n a pas d adresse email, il verra la communaute depuis son espace client si son acces est actif.');
+        }
+
+        try {
+            Mail::to($client->email)->queue(new CommunityInviteMail(
+                community: $community->fresh('user'),
+                client: $client->fresh('user'),
+                joinUrl: $this->buildJoinUrlFor($client),
+                requiresAccountSetup: !$client->hasEspaceClient(),
+            ));
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('communities.show', $community)
+                ->with('error', 'Invitation enregistree, mais l email n a pas pu etre envoye. Le client verra tout de meme l invitation dans son espace client.');
+        }
+
         return redirect()
             ->route('communities.show', $community)
-            ->with('success', 'Invitation envoyee dans la communaute.');
+            ->with('success', 'Invitation envoyee dans la communaute et email transmis au client.');
     }
 
     public function destroy(CommunityGroup $community, CommunityMember $member): RedirectResponse
@@ -54,5 +76,24 @@ class CommunityMemberController extends Controller
         return redirect()
             ->route('communities.show', $community)
             ->with('success', 'Membre retire de la communaute.');
+    }
+
+    protected function buildJoinUrlFor(ClientProfile $client): string
+    {
+        if ($client->hasEspaceClient()) {
+            return route('client.communities.index');
+        }
+
+        $plainToken = Str::uuid()->toString();
+
+        $client->forceFill([
+            'password_setup_token_hash' => hash('sha256', $plainToken),
+            'password_setup_expires_at' => now()->addDays(3),
+        ])->save();
+
+        return route('client.setup.show', [
+            'token' => $plainToken,
+            'redirect' => route('client.communities.index'),
+        ]);
     }
 }

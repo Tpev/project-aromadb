@@ -23,6 +23,9 @@
 
             <form method="POST" action="{{ route('client.setup.store', $token) }}" class="mt-6 space-y-4">
                 @csrf
+                @if(!empty($redirect))
+                    <input type="hidden" name="redirect" value="{{ $redirect }}">
+                @endif
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
