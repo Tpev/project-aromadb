@@ -6,7 +6,7 @@
 @endphp
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Inclure Alpine.js si ce n'est pas déjà fait ailleurs -->
+    <!-- Inclure Alpine.js si ce n'est pas dÃ©jÃ  fait ailleurs -->
   
     <!-- Menu de Navigation Principal -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,11 +72,6 @@
                     </div>
                     <!-- ======= /Clients ======= -->
 
-                    <x-nav-link :href="route('communities.index')"
-                                :active="request()->routeIs('communities.*')"
-                                class="text-[#647a0b] hover:text-[#854f38]">
-                        {{ __('Communautés') }}
-                    </x-nav-link>
 
                     <!-- Rendez-vous -->
                     <x-nav-link :href="route('appointments.index')"
@@ -85,7 +80,7 @@
                         {{ __('Rendez-vous') }}
                     </x-nav-link>
 
-                    <!-- ======= Comptabilité ======= -->
+                    <!-- ======= ComptabilitÃ© ======= -->
                     <div class="relative flex items-center"
                          x-data="{ openAccounting: false, timeoutAcc: null }"
                          @mouseenter="clearTimeout(timeoutAcc); openAccounting = true"
@@ -95,7 +90,7 @@
                                     @click.prevent="openAccounting = !openAccounting"
                                     :active="request()->routeIs('invoices.*') || request()->routeIs('receipts.*')"
                                     x-bind:aria-expanded="openAccounting.toString()" aria-haspopup="true">
-                            {{ __('Comptabilité') }}
+                            {{ __('ComptabilitÃ©') }}
                             <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
                                 <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z"></path>
                             </svg>
@@ -129,9 +124,9 @@
                             </a>
                         </div>
                     </div>
-                    <!-- ======= /Comptabilité ======= -->
+                    <!-- ======= /ComptabilitÃ© ======= -->
 
-                    <!-- Menu déroulant Configuration -->
+                    <!-- Menu dÃ©roulant Configuration -->
                     <div class="relative flex items-center"
                          x-data="{ openConfig: false, timeout: null }"
                          @mouseenter="clearTimeout(timeout); openConfig = true"
@@ -169,19 +164,19 @@
                              @mouseenter="clearTimeout(timeout); openConfig = true"
                              @mouseleave="timeout = setTimeout(() => openConfig = false, 200)">
                             <a href="{{ route('availabilities.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                {{ __('Disponibilités') }}
+                                {{ __('DisponibilitÃ©s') }}
                             </a>
                             <a href="{{ route('practice-locations.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Cabinets & Lieux') }}
                             </a>
                             <a href="{{ route('unavailabilities.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                {{ __('Indisponibilités') }}
+                                {{ __('IndisponibilitÃ©s') }}
                             </a>
                             <a href="{{ route('products.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Prestations') }}
                             </a>
                             <a href="{{ route('events.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                {{ __('Evénements') }}
+                                {{ __('EvÃ©nements') }}
                             </a>
                             <a href="{{ $giftVoucherNavUrl }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Bon cadeau') }}
@@ -225,7 +220,7 @@
                 </div>
             </div>
 
-            <!-- Dropdown des Paramètres et Notifications -->
+            <!-- Dropdown des ParamÃ¨tres et Notifications -->
             <div class="hidden sm:flex sm:items-center sm:ml-6 space-x-4">
                 <!-- Notification Bell Icon -->
                 <div class="relative">
@@ -259,7 +254,7 @@
                                     <br>
                                     <small class="text-gray-500">
                                         {{ $notification->data['amount_paid'] ?? '' }}
-                                        @if(!empty($notification->data['amount_paid']) && !empty($notification->data['appointment_date'])) – @endif
+                                        @if(!empty($notification->data['amount_paid']) && !empty($notification->data['appointment_date'])) â€“ @endif
                                         {{ $notification->data['appointment_date'] ?? '' }}
                                     </small>
                                 </a>
@@ -305,7 +300,7 @@
                             @csrf
                             <x-dropdown-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
                                 onclick="event.preventDefault(); this.closest('form').submit();">
-                                {{ __('Déconnexion') }}
+                                {{ __('DÃ©connexion') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
@@ -331,7 +326,7 @@
         </div>
     </div>
 
-    <!-- Menu de Navigation Réactif -->
+    <!-- Menu de Navigation RÃ©actif -->
     <div :class="{ 'block': open, 'hidden': ! open }" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
@@ -356,8 +351,8 @@
                 {{ __('Rendez-vous') }}
             </x-responsive-nav-link>
 
-            <!-- Comptabilité (mobile) -->
-            <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Comptabilité</div>
+            <!-- ComptabilitÃ© (mobile) -->
+            <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">ComptabilitÃ©</div>
             <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Factures & Devis') }}
             </x-responsive-nav-link>
@@ -374,19 +369,19 @@
                 {{ __('Prestations') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Evénements') }}
+                {{ __('EvÃ©nements') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="$giftVoucherNavUrl" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Bon cadeau') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Disponibilités') }}
+                {{ __('DisponibilitÃ©s') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('practice-locations.index')" :active="request()->routeIs('practice-locations.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Cabinets & Lieux') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('unavailabilities.index')" :active="request()->routeIs('unavailabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
-                {{ __('Indisponibilités') }}
+                {{ __('IndisponibilitÃ©s') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('questionnaires.index')" :active="request()->routeIs('questionnaires.*')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Questionnaires') }}
@@ -446,7 +441,7 @@
                     @csrf
                     <x-responsive-nav-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
                         onclick="event.preventDefault(); this.closest('form').submit();">
-                        {{ __('Déconnexion') }}
+                        {{ __('DÃ©connexion') }}
                     </x-responsive-nav-link>
                 </form>
             </div>
@@ -458,15 +453,15 @@
     $user = Auth::user();
 @endphp
 
-@if($user && $user->is_therapist && $user->license_status === 'expirée')
+@if($user && $user->is_therapist && $user->license_status === 'expirÃ©e')
     <script>
         if (window.location.pathname !== "{{ route('license-tiers.pricing', [], false) }}") {
             window.location.href = "{{ route('license-tiers.pricing') }}";
         }
     </script>
     <div class="alert alert-warning">
-        Votre licence a expiré. Veuillez
+        Votre licence a expirÃ©. Veuillez
         <a href="{{ route('license-tiers.pricing') }}">renouveler votre licence</a>
-        pour continuer à utiliser l'application.
+        pour continuer Ã  utiliser l'application.
     </div>
 @endif
