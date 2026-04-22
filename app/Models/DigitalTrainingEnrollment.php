@@ -26,6 +26,8 @@ class DigitalTrainingEnrollment extends Model
         'last_accessed_at',
         'completed_at',
         'source',
+        'email_communication_consent',
+        'email_communication_consent_at',
     ];
 
     protected $casts = [
@@ -34,6 +36,8 @@ class DigitalTrainingEnrollment extends Model
         'last_accessed_at'  => 'datetime',
         'completed_at'      => 'datetime',
         'viewed_block_ids'  => 'array',
+        'email_communication_consent' => 'boolean',
+        'email_communication_consent_at' => 'datetime',
     ];
 
     public function training()

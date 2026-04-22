@@ -308,6 +308,20 @@ if ($therapist) {
                                    placeholder="prenom.nom@email.com">
                         </div>
 
+                        <div class="md:col-span-2">
+                            <label class="inline-flex items-start gap-3 text-sm text-slate-700">
+                                <input type="hidden" name="email_communication_consent" value="0">
+                                <input type="checkbox"
+                                       name="email_communication_consent"
+                                       value="1"
+                                       {{ old('email_communication_consent') ? 'checked' : '' }}
+                                       class="mt-1 rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                <span>
+                                    {{ __('J’accepte de recevoir des communications par email de la part de :name.', ['name' => $therapistName ?: __('ce praticien')]) }}
+                                </span>
+                            </label>
+                        </div>
+
                         <div class="md:col-span-2 flex flex-wrap items-center gap-3 pt-2">
                             <button type="submit"
                                     class="inline-flex items-center justify-center whitespace-nowrap bg-[#647a0b] text-white font-extrabold

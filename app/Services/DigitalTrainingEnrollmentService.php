@@ -17,7 +17,8 @@ class DigitalTrainingEnrollmentService
         ?string $participantName = null,
         ?string $participantEmail = null,
         string $source = DigitalTrainingEnrollment::SOURCE_MANUAL,
-        bool $sendAccessEmail = false
+        bool $sendAccessEmail = false,
+        bool $emailCommunicationConsent = false
     ): DigitalTrainingEnrollment {
         $name = $clientProfile
             ? $this->normalizeName(trim(($clientProfile->last_name ?? '') . ' ' . ($clientProfile->first_name ?? '')))
@@ -32,6 +33,8 @@ class DigitalTrainingEnrollmentService
             'access_token' => (string) Str::uuid(),
             'token_expires_at' => now()->addMonths(6),
             'source' => $source,
+            'email_communication_consent' => $emailCommunicationConsent,
+            'email_communication_consent_at' => $emailCommunicationConsent ? now() : null,
         ]);
 
         if ($sendAccessEmail && $email !== '') {

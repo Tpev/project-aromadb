@@ -70,6 +70,7 @@ class DigitalTrainingEnrollmentController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'email_communication_consent' => 'nullable|boolean',
         ]);
 
         $participantName = trim($data['first_name'] . ' ' . $data['last_name']);
@@ -81,6 +82,7 @@ class DigitalTrainingEnrollmentController extends Controller
             participantEmail: $data['email'],
             source: DigitalTrainingEnrollment::SOURCE_FREE_GATE,
             sendAccessEmail: false,
+            emailCommunicationConsent: $request->boolean('email_communication_consent'),
         );
 
         return redirect()->route('digital-trainings.access.show', $enrollment->access_token);

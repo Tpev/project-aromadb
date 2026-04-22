@@ -57,13 +57,13 @@ test('public landing page shows the free access gate when enabled', function () 
 
     $this->get(route('digital-trainings.public.show', $training))
         ->assertOk()
-        ->assertSee('Accéder gratuitement')
-        ->assertSee('Prénom')
+        ->assertSee('communications par email')
         ->assertSee('Nom')
-        ->assertSee('Email');
+        ->assertSee('Email')
+        ->assertSee($therapist->name);
 });
 
-test('visitor can unlock a free gated training and gets redirected to the player', function () {
+test('visitor can unlock a free gated training and store email communication consent', function () {
     Mail::fake();
 
     $therapist = makeTherapistForFreeAccessGate();
@@ -73,6 +73,7 @@ test('visitor can unlock a free gated training and gets redirected to the player
         'first_name' => 'Sophie',
         'last_name' => 'Martin',
         'email' => 'sophie@example.test',
+        'email_communication_consent' => 1,
     ]);
 
     $enrollment = DigitalTrainingEnrollment::query()->latest('id')->first();
@@ -81,10 +82,31 @@ test('visitor can unlock a free gated training and gets redirected to the player
         ->and($enrollment->digital_training_id)->toBe($training->id)
         ->and($enrollment->participant_name)->toBe('Sophie Martin')
         ->and($enrollment->participant_email)->toBe('sophie@example.test')
-        ->and($enrollment->source)->toBe(DigitalTrainingEnrollment::SOURCE_FREE_GATE);
+        ->and($enrollment->source)->toBe(DigitalTrainingEnrollment::SOURCE_FREE_GATE)
+        ->and($enrollment->email_communication_consent)->toBeTrue()
+        ->and($enrollment->email_communication_consent_at)->not->toBeNull();
 
     $response->assertRedirect(route('digital-trainings.access.show', $enrollment->access_token));
     Mail::assertNothingSent();
+});
+
+test('visitor can unlock a free gated training without giving email communication consent', function () {
+    Mail::fake();
+
+    $therapist = makeTherapistForFreeAccessGate();
+    $training = makePublishedFreeTraining($therapist);
+
+    $this->post(route('digital-trainings.public.free-access.store', $training), [
+        'first_name' => 'Lucie',
+        'last_name' => 'Bernard',
+        'email' => 'lucie@example.test',
+    ])->assertRedirect();
+
+    $enrollment = DigitalTrainingEnrollment::query()->latest('id')->first();
+
+    expect($enrollment)->not->toBeNull()
+        ->and($enrollment->email_communication_consent)->toBeFalse()
+        ->and($enrollment->email_communication_consent_at)->toBeNull();
 });
 
 test('free gated access route is not available when the gate is disabled', function () {
@@ -101,3 +123,4 @@ test('free gated access route is not available when the gate is disabled', funct
 
     expect(DigitalTrainingEnrollment::count())->toBe(0);
 });
+

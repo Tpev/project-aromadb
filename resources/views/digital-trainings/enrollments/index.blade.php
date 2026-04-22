@@ -166,7 +166,16 @@
                                             </div>
                                         </td>
                                         <td class="px-3 py-2 text-slate-700">
-                                            {{ $enrollment->participant_email }}
+                                            <div class="flex flex-col">
+                                                <span>{{ $enrollment->participant_email }}</span>
+                                                @if($enrollment->source === \App\Models\DigitalTrainingEnrollment::SOURCE_FREE_GATE)
+                                                    <span class="text-[11px] {{ $enrollment->email_communication_consent ? 'text-emerald-600' : 'text-slate-400' }}">
+                                                        {{ $enrollment->email_communication_consent
+                                                            ? __('Consentement email donné')
+                                                            : __('Pas de consentement email') }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td class="px-3 py-2 text-slate-600">
                                             {{ $enrollment->sourceLabel() }}
