@@ -28,6 +28,29 @@
         '…'
     );
 
+    $aboutHtml = $therapist->about ?? __('Informations à propos non disponibles pour le moment.');
+
+    if (!empty($therapist->about)) {
+        $aboutHtml = preg_replace_callback('/<a\b([^>]*)>/i', function ($matches) {
+            $attrs = $matches[1];
+            $forcedStyle = 'color:#2563eb;text-decoration:underline;text-underline-offset:2px;word-break:break-word;';
+
+            if (preg_match('/\sstyle=(["\'])(.*?)\1/i', $attrs, $styleMatch)) {
+                $mergedStyle = rtrim($styleMatch[2], ';') . ';' . $forcedStyle;
+                $attrs = preg_replace(
+                    '/\sstyle=(["\'])(.*?)\1/i',
+                    ' style="' . e($mergedStyle) . '"',
+                    $attrs,
+                    1
+                );
+            } else {
+                $attrs .= ' style="' . e($forcedStyle) . '"';
+            }
+
+            return '<a' . $attrs . '>';
+        }, $aboutHtml);
+    }
+
     // === IMAGE VERSIONING ===
     $imgVer = $therapist->updated_at?->timestamp ?? time();
 
@@ -201,7 +224,7 @@
                     </div>
 
                     <div class="am-about-content text-[15px] text-gray-700 leading-relaxed break-words prose max-w-none">
-                        {!! $therapist->about ?? __('Informations à propos non disponibles pour le moment.') !!}
+                        {!! $aboutHtml !!}
                     </div>
                 </div>
             </x-ts-card>

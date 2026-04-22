@@ -114,6 +114,31 @@
 
 @section('meta_description', $meta)
 
+@php
+    $aboutHtml = $therapist->about ?? __('Informations à propos non disponibles.');
+
+    if (!empty($therapist->about)) {
+        $aboutHtml = preg_replace_callback('/<a\b([^>]*)>/i', function ($matches) {
+            $attrs = $matches[1];
+            $forcedStyle = 'color:#2563eb;text-decoration:underline;text-underline-offset:2px;word-break:break-word;';
+
+            if (preg_match('/\sstyle=(["\'])(.*?)\1/i', $attrs, $styleMatch)) {
+                $mergedStyle = rtrim($styleMatch[2], ';') . ';' . $forcedStyle;
+                $attrs = preg_replace(
+                    '/\sstyle=(["\'])(.*?)\1/i',
+                    ' style="' . e($mergedStyle) . '"',
+                    $attrs,
+                    1
+                );
+            } else {
+                $attrs .= ' style="' . e($forcedStyle) . '"';
+            }
+
+            return '<a' . $attrs . '>';
+        }, $aboutHtml);
+    }
+@endphp
+
 
     {{-- Contenu principal --}}
 <div>
@@ -283,7 +308,7 @@
             </h3>
 
             <article class="am-about-content mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none">
-                {!! $therapist->about ?? __('Informations à propos non disponibles.') !!}
+                {!! $aboutHtml !!}
             </article>
         </div>
 
