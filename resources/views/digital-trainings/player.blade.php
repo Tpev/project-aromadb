@@ -592,6 +592,7 @@
         const modules = @json($modulesPayload);
         const commentStoreUrlTemplate = @json(route('digital-trainings.access.comments.store', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
         const markViewedUrlTemplate = @json(route('digital-trainings.access.blocks.viewed', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
+        const downloadBlockUrlTemplate = @json(route('digital-trainings.access.blocks.download', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
         const csrfToken = @json(csrf_token());
         const selectedBlockId = @json($selectedBlockId ?? 0);
         const viewedBlocks = new Set();
@@ -631,6 +632,10 @@
 
         function getMarkViewedUrl(blockId) {
             return markViewedUrlTemplate.replace('__BLOCK__', String(blockId));
+        }
+
+        function getDownloadBlockUrl(blockId) {
+            return downloadBlockUrlTemplate.replace('__BLOCK__', String(blockId));
         }
 
         async function markBlockViewed(block) {
@@ -886,6 +891,7 @@
                 // Uploaded file has priority
                 if (block.file_path) {
                     const src = `{{ rtrim(config('app.url'), '/') }}/storage/` + block.file_path;
+                    const downloadUrl = getDownloadBlockUrl(block.id);
                     const url = block.content || '';
 
                     html = `
@@ -897,10 +903,17 @@
                                 </video>
                             </div>
 
-                            <div style="font-size:12px;color:#6b7280;">
-                                <a href="${src}" target="_blank" style="color:#647a0b;text-decoration:underline;">
-                                    {{ __('Ouvrir la vidéo dans un nouvel onglet') }}
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                                <a href="${downloadUrl}" download style="display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #647a0b;background:#647a0b;color:#ffffff;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;">
+                                    {{ __('Télécharger la vidéo') }}
                                 </a>
+                                <a href="${src}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #d1d5db;background:#ffffff;color:#374151;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;">
+                                    {{ __('Ouvrir dans un nouvel onglet') }}
+                                </a>
+                            </div>
+
+                            <div style="font-size:12px;color:#6b7280;">
+                                {{ __('Si le bouton de téléchargement du lecteur n’apparaît pas sur votre appareil, utilisez le bouton Télécharger la vidéo ci-dessus.') }}
                             </div>
 
                             ${url ? `

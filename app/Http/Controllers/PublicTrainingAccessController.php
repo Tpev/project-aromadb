@@ -7,7 +7,9 @@ use App\Models\DigitalTrainingEnrollment;
 use App\Models\TrainingBlock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PublicTrainingAccessController extends Controller
 {
@@ -130,6 +132,28 @@ class PublicTrainingAccessController extends Controller
         ]);
     }
 
+    public function downloadBlockFile(string $token, TrainingBlock $block): StreamedResponse
+    {
+        $enrollment = $this->resolveAccessibleEnrollment($token);
+
+        abort_unless($block->module && (int) $block->module->digital_training_id === (int) $enrollment->digital_training_id, 404);
+        abort_unless(filled($block->file_path), 404);
+        abort_unless(Storage::disk('public')->exists($block->file_path), 404);
+
+        $extension = strtolower(pathinfo((string) $block->file_path, PATHINFO_EXTENSION));
+        $safeTitle = Str::slug($block->title ?: $enrollment->training?->title ?: 'contenu');
+        $fallbackBase = match ((string) $block->type) {
+            'video_url' => 'video-formation',
+            'audio' => 'audio-formation',
+            'pdf' => 'document-formation',
+            default => 'fichier-formation',
+        };
+
+        $fileName = ($safeTitle !== '' ? $safeTitle : $fallbackBase) . ($extension !== '' ? '.' . $extension : '');
+
+        return Storage::disk('public')->download($block->file_path, $fileName);
+    }
+
     /**
      * Mark the training as completed for this token.
      */
@@ -184,5 +208,17 @@ class PublicTrainingAccessController extends Controller
         )->values());
 
         return $comment;
+    }
+
+    protected function resolveAccessibleEnrollment(string $token): DigitalTrainingEnrollment
+    {
+        $enrollment = DigitalTrainingEnrollment::where('access_token', $token)
+            ->with('training')
+            ->first();
+
+        abort_unless($enrollment, 404);
+        abort_unless(!($enrollment->token_expires_at && $enrollment->token_expires_at->isPast()), 403);
+
+        return $enrollment;
     }
 }
