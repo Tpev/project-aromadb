@@ -69,6 +69,9 @@ class AppointmentController extends Controller
      | Construction du tableau $events pour FullCalendar
      | ---------------------------------------------------------------------- */
     foreach ($allAppointments as $appointment) {
+        if ($appointment->isCancelled()) {
+            continue;
+        }
 
         $isPast = Carbon::parse($appointment->appointment_date)->isPast();
 

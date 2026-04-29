@@ -186,7 +186,7 @@
                             </thead>
                             <tbody>
                                 @foreach($rendezVousAVenir as $appointment)
-                                    <tr class="table-row am-row-clickable"
+                                    <tr class="table-row am-row-clickable {{ $appointment->isCancelled() ? 'am-row-cancelled' : '' }}"
                                         data-url="{{ route('appointments.show', $appointment->id) }}">
                                         {{-- Nom du client / externe --}}
                                         <td>
@@ -232,7 +232,9 @@
                                         <td>
                                             <span id="status-{{ $appointment->id }}"
                                                   class="badge rounded-pill px-3 py-2
-                                                  @if($appointment->status === 'Complété')
+                                                  @if($appointment->isCancelled())
+                                                      bg-secondary-subtle text-secondary
+                                                  @elseif($appointment->status === 'Complété')
                                                       bg-success-subtle text-success
                                                   @else
                                                       bg-warning-subtle text-warning
@@ -240,7 +242,6 @@
                                                 {{ ucfirst($appointment->status) }}
                                             </span>
                                         </td>
-
                                         {{-- Actions (masquées pour external) --}}
                                         <td>
                                             @unless($appointment->external)
@@ -332,7 +333,7 @@
                             </thead>
                             <tbody>
                                 @foreach($rendezVousPasses as $appointment)
-                                    <tr class="table-row am-row-clickable"
+                                    <tr class="table-row am-row-clickable {{ $appointment->isCancelled() ? 'am-row-cancelled' : '' }}"
                                         data-url="{{ route('appointments.show', $appointment->id) }}">
                                         {{-- Nom du client / externe --}}
                                         <td>
@@ -374,11 +375,12 @@
                                             {{ $appointment->product->name ?? '—' }}
                                         </td>
 
-                                        {{-- Statut --}}
                                         <td>
                                             <span id="status-{{ $appointment->id }}"
                                                   class="badge rounded-pill px-3 py-2
-                                                  @if($appointment->status === 'Complété')
+                                                  @if($appointment->isCancelled())
+                                                      bg-secondary-subtle text-secondary
+                                                  @elseif($appointment->status === 'Complété')
                                                       bg-success-subtle text-success
                                                   @else
                                                       bg-secondary-subtle text-secondary
@@ -386,7 +388,6 @@
                                                 {{ ucfirst($appointment->status) }}
                                             </span>
                                         </td>
-
                                         {{-- Actions (masquées pour external) --}}
                                         <td>
                                             @unless($appointment->external)
@@ -649,6 +650,19 @@
             transform: translateY(-1px);
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
         }
+        .appointment-table tbody tr.am-row-cancelled {
+            background-color: #f8f9fa;
+            opacity: 0.68;
+            box-shadow: none;
+        }
+
+        .appointment-table tbody tr.am-row-cancelled:hover {
+            background-color: #f3f4f6;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.82;
+        }
+
 
         .appointment-table tbody td {
             text-align: center;
@@ -733,3 +747,4 @@
         }
     </style>
 </x-app-layout>
+
