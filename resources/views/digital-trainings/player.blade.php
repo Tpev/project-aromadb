@@ -15,6 +15,8 @@
     $progress = (int) ($enrollment->progress_percent ?? 0);
     if ($enrollment->completed_at ?? false) { $progress = 100; }
     $progress = max(0, min(100, $progress));
+    $viewedBlockIds = collect($enrollment->viewed_block_ids ?? [])->map(fn ($id) => (int) $id)->filter()->values();
+    $completedBlockIds = collect($enrollment->completed_block_ids ?? [])->map(fn ($id) => (int) $id)->filter()->values();
 
     $commentsByBlock = $commentsByBlock ?? collect();
 
@@ -252,11 +254,12 @@
         .module-title-text { font-size: 12px; font-weight: 600; color: #111827; }
         .module-index-pill { font-size: 10px; padding: 2px 6px; border-radius: 999px; background: #e5e7eb; color: #374151; white-space: nowrap; }
         .module-desc { margin-top: 2px; font-size: 11px; color: #6b7280; }
+        .module-progress-text { margin-top: 4px; font-size: 10px; color: #94a3b8; }
 
         .block-list { margin-top: 5px; }
         .block-pill {
             font-size: 11px;
-            padding: 3px 6px;
+            padding: 5px 8px;
             border-radius: 999px;
             margin-right: 4px;
             margin-bottom: 4px;
@@ -265,10 +268,47 @@
             gap: 4px;
             background: #f3f4f6;
             color: #4b5563;
-            border: 1px solid transparent;
+            border: 1px solid #e5e7eb;
             cursor: pointer;
+            transition: .2s ease;
         }
         .block-pill.active { background: var(--brand); color: #ffffff; border-color: var(--brand); }
+        .block-pill.is-viewed:not(.active) { background: #f5f9e8; color: #4d5f11; border-color: #d9f99d; }
+        .block-pill.is-completed:not(.active) { background: #ecfccb; color: #3f6212; border-color: #bef264; }
+        .block-pill:hover { transform: translateY(-1px); }
+        .block-status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            line-height: 1;
+            flex-shrink: 0;
+            transition: .2s ease;
+        }
+        .block-pill.is-viewed .block-status-icon,
+        .block-pill.is-completed .block-status-icon {
+            color: #ffffff;
+            border-color: #84cc16;
+            background: linear-gradient(135deg, #84cc16, #647a0b);
+        }
+        .block-pill.active .block-status-icon {
+            border-color: rgba(255,255,255,.35);
+            background: rgba(255,255,255,.18);
+            color: #ffffff;
+        }
+        .block-status-label {
+            display: none;
+            font-size: 10px;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+        .block-pill.is-completed .block-status-label { display: inline; }
 
         .sidebar-footer { margin-top: auto; }
 
@@ -291,9 +331,32 @@
 
         .content-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
         .content-meta-left { display: flex; flex-direction: column; gap: 4px; }
+        .content-meta-right { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
         .content-path { font-size: 11px; color: #9ca3af; }
         .content-header-title { font-size: 18px; font-weight: 630; color: #111827; }
         .content-subtitle { font-size: 13px; color: #6b7280; }
+        .content-state-badge {
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            color: #64748b;
+        }
+        .content-state-badge.is-viewed {
+            border-color: #d9f99d;
+            background: #f7fee7;
+            color: #4d5f11;
+        }
+        .content-state-badge.is-completed {
+            border-color: #bef264;
+            background: #ecfccb;
+            color: #365314;
+        }
 
         .content-body {
             border-radius: 14px;
@@ -356,6 +419,23 @@
 
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 10px; gap: 10px; }
         .nav-side { font-size: 11px; color: #6b7280; }
+        .completion-toolbar {
+            border: 1px solid #e5e7eb;
+            background: linear-gradient(180deg, #f9fafb 0%, #ffffff 100%);
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+        .completion-copy { display: flex; flex-direction: column; gap: 4px; }
+        .completion-title { font-size: 13px; font-weight: 700; color: #111827; }
+        .completion-help { font-size: 12px; color: #6b7280; }
+        .completion-toolbar.is-completed {
+            border-color: #bef264;
+            background: linear-gradient(180deg, #f7fee7 0%, #ffffff 100%);
+        }
 
         /* ============= PDF SPECIFIC ============= */
         .pdf-block { display: flex; flex-direction: column; gap: 8px; height: 100%; }
@@ -420,6 +500,9 @@
             .content-body { min-height: 50vh; }
             .pdf-main { min-height: 60vh; }
             .progress-bar-outer { width: 150px; }
+            .content-meta-row,
+            .completion-toolbar { flex-direction: column; align-items: flex-start; }
+            .content-meta-right { align-items: flex-start; }
         }
     </style>
 
@@ -509,6 +592,19 @@
                                     @endif
 
                                     @php $blocks = $module->sorted_blocks ?? $module->blocks ?? collect(); @endphp
+                                    @php
+                                        $moduleViewedCount = $blocks->filter(fn ($block) => $viewedBlockIds->contains((int) $block->id))->count();
+                                        $moduleCompletedCount = $blocks->filter(fn ($block) => $completedBlockIds->contains((int) $block->id))->count();
+                                    @endphp
+                                    @if($blocks->count())
+                                        <div class="module-progress-text" data-module-progress="{{ $index }}">
+                                            {{ __(':completed/:total terminés · :viewed vus', [
+                                                'completed' => $moduleCompletedCount,
+                                                'total' => $blocks->count(),
+                                                'viewed' => $moduleViewedCount,
+                                            ]) }}
+                                        </div>
+                                    @endif
                                     @if($blocks->count())
                                         <div class="block-list">
                                             @foreach($blocks as $bIndex => $block)
@@ -517,13 +613,18 @@
                                                     if ($block->type === 'pdf') $icon = '📄';
                                                     elseif ($block->type === 'video_url') $icon = '🎬';
                                                     elseif ($block->type === 'audio') $icon = '🎧';
+                                                    $isViewed = $viewedBlockIds->contains((int) $block->id);
+                                                    $isCompleted = $completedBlockIds->contains((int) $block->id);
                                                 @endphp
-                                                <span class="block-pill"
+                                                <span class="block-pill{{ $isViewed ? ' is-viewed' : '' }}{{ $isCompleted ? ' is-completed' : '' }}"
                                                       data-module-index="{{ $index }}"
                                                       data-block-index="{{ $bIndex }}"
+                                                      data-block-id="{{ $block->id }}"
                                                       onclick="event.stopPropagation(); selectBlock({{ $index }}, {{ $bIndex }})">
+                                                    <span class="block-status-icon" data-block-status-icon>✓</span>
                                                     <span>{{ $icon }}</span>
                                                     <span>{{ $block->title ?: __('Contenu :num', ['num' => $bIndex + 1]) }}</span>
+                                                    <span class="block-status-label">Terminé</span>
                                                 </span>
                                             @endforeach
                                         </div>
@@ -552,11 +653,12 @@
                             <div class="content-header-title" id="block-title"></div>
                             <div class="content-subtitle" id="block-subtitle"></div>
                         </div>
-                        <div class="nav-side">
+                        <div class="content-meta-right">
                             <span class="badge-pill">
                                 <span>👣</span>
                                 <span id="stepIndicator">0/0</span>
                             </span>
+                            <span class="content-state-badge" id="currentBlockStateBadge">À découvrir</span>
                         </div>
                     </div>
 
@@ -564,6 +666,16 @@
                         <div id="block-content">
                             <div class="content-body-inner"></div>
                         </div>
+                    </div>
+
+                    <div class="completion-toolbar" id="completionToolbar">
+                        <div class="completion-copy">
+                            <div class="completion-title" id="completionTitle">Continuez à votre rythme</div>
+                            <div class="completion-help" id="completionHelp">Quand vous avez fini cette partie, marquez-la comme terminée pour garder un suivi visuel simple.</div>
+                        </div>
+                        <button class="btn btn-primary" type="button" id="btnMarkBlockCompleted" onclick="markCurrentBlockCompleted()">
+                            ✓ Marquer cette partie comme terminée
+                        </button>
                     </div>
 
                     <div class="nav-buttons">
@@ -592,10 +704,14 @@
         const modules = @json($modulesPayload);
         const commentStoreUrlTemplate = @json(route('digital-trainings.access.comments.store', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
         const markViewedUrlTemplate = @json(route('digital-trainings.access.blocks.viewed', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
+        const markCompletedUrlTemplate = @json(route('digital-trainings.access.blocks.complete', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
         const downloadBlockUrlTemplate = @json(route('digital-trainings.access.blocks.download', ['token' => $enrollment->access_token, 'block' => '__BLOCK__']));
         const csrfToken = @json(csrf_token());
         const selectedBlockId = @json($selectedBlockId ?? 0);
-        const viewedBlocks = new Set();
+        const initialViewedBlockIds = @json($viewedBlockIds->values()->all());
+        const initialCompletedBlockIds = @json($completedBlockIds->values()->all());
+        const viewedBlocks = new Set(initialViewedBlockIds.map(String));
+        const completedBlocks = new Set(initialCompletedBlockIds.map(String));
 
         let currentModuleIndex = 0;
         let currentBlockIndex  = 0;
@@ -634,8 +750,46 @@
             return markViewedUrlTemplate.replace('__BLOCK__', String(blockId));
         }
 
+        function getMarkCompletedUrl(blockId) {
+            return markCompletedUrlTemplate.replace('__BLOCK__', String(blockId));
+        }
+
         function getDownloadBlockUrl(blockId) {
             return downloadBlockUrlTemplate.replace('__BLOCK__', String(blockId));
+        }
+
+        function getBlockState(blockId) {
+            const key = String(blockId);
+            if (completedBlocks.has(key)) return 'completed';
+            if (viewedBlocks.has(key)) return 'viewed';
+            return 'unseen';
+        }
+
+        function applyProgressPayload(payload) {
+            const progress = Number(payload.progress_percent || 0);
+            const bar = document.getElementById('globalProgressBar');
+            const label = document.getElementById('globalProgressLabel');
+
+            if (Array.isArray(payload.viewed_block_ids)) {
+                viewedBlocks.clear();
+                payload.viewed_block_ids.forEach((id) => viewedBlocks.add(String(id)));
+            }
+
+            if (Array.isArray(payload.completed_block_ids)) {
+                completedBlocks.clear();
+                payload.completed_block_ids.forEach((id) => completedBlocks.add(String(id)));
+            }
+
+            if (bar) {
+                bar.style.width = `${progress}%`;
+            }
+
+            if (label) {
+                label.textContent = `Progrès : ${progress}%`;
+            }
+
+            updateActiveUI();
+            updateCurrentBlockCompletionUI();
         }
 
         async function markBlockViewed(block) {
@@ -664,20 +818,47 @@
                 if (!response.ok) {
                     throw new Error(payload.message || 'Impossible de mettre à jour la progression.');
                 }
-
-                const progress = Number(payload.progress_percent || 0);
-                const bar = document.getElementById('globalProgressBar');
-                const label = document.getElementById('globalProgressLabel');
-
-                if (bar) {
-                    bar.style.width = `${progress}%`;
-                }
-
-                if (label) {
-                    label.textContent = `Progrès : ${progress}%`;
-                }
+                applyProgressPayload(payload);
             } catch (error) {
                 viewedBlocks.delete(blockKey);
+            }
+        }
+
+        async function markCurrentBlockCompleted() {
+            const module = modules[currentModuleIndex];
+            const block = module?.blocks?.[currentBlockIndex];
+
+            if (!block || !block.id) {
+                return;
+            }
+
+            const button = document.getElementById('btnMarkBlockCompleted');
+            if (button) {
+                button.disabled = true;
+            }
+
+            try {
+                const response = await fetch(getMarkCompletedUrl(block.id), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({}),
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Impossible de marquer cette partie comme terminée.');
+                }
+
+                applyProgressPayload(payload);
+            } finally {
+                if (button && getBlockState(block.id) !== 'completed') {
+                    button.disabled = false;
+                }
             }
         }
 
@@ -1032,6 +1213,7 @@
             contentWrap.innerHTML = html;
             bindCommentForm(block);
             markBlockViewed(block);
+            updateCurrentBlockCompletionUI();
             updateNavButtons();
         }
 
@@ -1040,10 +1222,69 @@
                 el.classList.toggle('active', idx === currentModuleIndex);
             });
             document.querySelectorAll('.block-pill').forEach((el) => {
+                const blockId = el.getAttribute('data-block-id');
                 const mi = parseInt(el.getAttribute('data-module-index'), 10);
                 const bi = parseInt(el.getAttribute('data-block-index'), 10);
+                const state = getBlockState(blockId);
+
+                el.classList.toggle('is-viewed', state === 'viewed' || state === 'completed');
+                el.classList.toggle('is-completed', state === 'completed');
                 el.classList.toggle('active', (mi === currentModuleIndex && bi === currentBlockIndex));
             });
+            updateModuleProgressUI();
+        }
+
+        function updateModuleProgressUI() {
+            document.querySelectorAll('[data-module-progress]').forEach((el) => {
+                const moduleIndex = Number(el.getAttribute('data-module-progress'));
+                const blocks = modules[moduleIndex]?.blocks || [];
+                const total = blocks.length;
+                const viewed = blocks.filter((block) => getBlockState(block.id) !== 'unseen').length;
+                const completed = blocks.filter((block) => getBlockState(block.id) === 'completed').length;
+
+                el.textContent = `${completed}/${total} terminés · ${viewed} vus`;
+            });
+        }
+
+        function updateCurrentBlockCompletionUI() {
+            const module = modules[currentModuleIndex];
+            const block = module?.blocks?.[currentBlockIndex];
+            const stateBadge = document.getElementById('currentBlockStateBadge');
+            const toolbar = document.getElementById('completionToolbar');
+            const title = document.getElementById('completionTitle');
+            const help = document.getElementById('completionHelp');
+            const button = document.getElementById('btnMarkBlockCompleted');
+
+            if (!block || !stateBadge || !toolbar || !title || !help || !button) {
+                return;
+            }
+
+            const state = getBlockState(block.id);
+
+            stateBadge.classList.remove('is-viewed', 'is-completed');
+            toolbar.classList.toggle('is-completed', state === 'completed');
+
+            if (state === 'completed') {
+                stateBadge.textContent = '✓ Terminé';
+                stateBadge.classList.add('is-completed');
+                title.textContent = 'Cette partie est terminée';
+                help.textContent = 'Votre progression visuelle est à jour. Vous pouvez revenir dessus quand vous le souhaitez.';
+                button.textContent = '✓ Partie terminée';
+                button.disabled = true;
+            } else if (state === 'viewed') {
+                stateBadge.textContent = '✓ Vu';
+                stateBadge.classList.add('is-viewed');
+                title.textContent = 'Vous avez déjà ouvert cette partie';
+                help.textContent = 'Quand vous l’avez vraiment terminée, cliquez ci-dessous pour garder un suivi clair.';
+                button.textContent = '✓ Marquer cette partie comme terminée';
+                button.disabled = false;
+            } else {
+                stateBadge.textContent = 'À découvrir';
+                title.textContent = 'Continuez à votre rythme';
+                help.textContent = 'Quand vous avez fini cette partie, marquez-la comme terminée pour garder un suivi visuel simple.';
+                button.textContent = '✓ Marquer cette partie comme terminée';
+                button.disabled = false;
+            }
         }
 
         function updateNavButtons() {

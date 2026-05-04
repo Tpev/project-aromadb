@@ -215,6 +215,9 @@ Route::post('/training-access/{token}/complete', [PublicTrainingAccessController
 Route::post('/training-access/{token}/blocks/{block}/viewed', [PublicTrainingAccessController::class, 'markBlockViewed'])
     ->name('digital-trainings.access.blocks.viewed');
 
+Route::post('/training-access/{token}/blocks/{block}/complete', [PublicTrainingAccessController::class, 'markBlockCompleted'])
+    ->name('digital-trainings.access.blocks.complete');
+
 Route::get('/training-access/{token}/blocks/{block}/download', [PublicTrainingAccessController::class, 'downloadBlockFile'])
     ->name('digital-trainings.access.blocks.download');
 

@@ -25,6 +25,7 @@ class DigitalTrainingEnrollment extends Model
         'first_accessed_at',
         'last_accessed_at',
         'completed_at',
+        'completed_block_ids',
         'source',
         'email_communication_consent',
         'email_communication_consent_at',
@@ -36,6 +37,7 @@ class DigitalTrainingEnrollment extends Model
         'last_accessed_at'  => 'datetime',
         'completed_at'      => 'datetime',
         'viewed_block_ids'  => 'array',
+        'completed_block_ids' => 'array',
         'email_communication_consent' => 'boolean',
         'email_communication_consent_at' => 'datetime',
     ];

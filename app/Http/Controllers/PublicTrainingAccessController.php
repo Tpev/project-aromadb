@@ -107,29 +107,47 @@ class PublicTrainingAccessController extends Controller
             $viewedBlockIds->push((int) $block->id);
         }
 
-        $totalBlocks = $training->modules
-            ->flatMap(fn ($module) => $module->blocks->pluck('id'))
-            ->filter()
-            ->count();
+        $this->syncEnrollmentProgress($enrollment, $training, $viewedBlockIds, null);
 
-        $progress = $totalBlocks > 0
-            ? (int) round(min(100, ($viewedBlockIds->unique()->count() / $totalBlocks) * 100))
-            : 0;
+        return new JsonResponse($this->progressPayload($enrollment));
+    }
 
-        $enrollment->viewed_block_ids = $viewedBlockIds->unique()->values()->all();
-        $enrollment->progress_percent = $progress;
+    public function markBlockCompleted(Request $request, string $token, TrainingBlock $block): JsonResponse
+    {
+        $enrollment = DigitalTrainingEnrollment::where('access_token', $token)
+            ->with(['training.modules.blocks'])
+            ->first();
 
-        if ($progress >= 100) {
-            $enrollment->completed_at ??= now();
+        if (! $enrollment || ($enrollment->token_expires_at && $enrollment->token_expires_at->isPast())) {
+            return new JsonResponse(['message' => 'Lien d’accès invalide ou expiré.'], 403);
         }
 
-        $enrollment->last_accessed_at = now();
-        $enrollment->save();
+        $training = $enrollment->training;
+        if (! $training || ! $block->module || $block->module->digital_training_id !== $training->id) {
+            return new JsonResponse(['message' => 'Contenu introuvable pour cette formation.'], 404);
+        }
 
-        return new JsonResponse([
-            'progress_percent' => $enrollment->progress_percent,
-            'completed' => (bool) $enrollment->completed_at,
-        ]);
+        $viewedBlockIds = collect($enrollment->viewed_block_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->values();
+
+        if (! $viewedBlockIds->contains((int) $block->id)) {
+            $viewedBlockIds->push((int) $block->id);
+        }
+
+        $completedBlockIds = collect($enrollment->completed_block_ids ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->values();
+
+        if (! $completedBlockIds->contains((int) $block->id)) {
+            $completedBlockIds->push((int) $block->id);
+        }
+
+        $this->syncEnrollmentProgress($enrollment, $training, $viewedBlockIds, $completedBlockIds);
+
+        return new JsonResponse($this->progressPayload($enrollment));
     }
 
     public function downloadBlockFile(string $token, TrainingBlock $block): StreamedResponse
@@ -173,6 +191,16 @@ class PublicTrainingAccessController extends Controller
             ]);
         }
 
+        $training = $enrollment->training()->with(['modules.blocks'])->first();
+        $allBlockIds = $training?->modules
+            ->flatMap(fn ($module) => $module->blocks->pluck('id'))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->values()
+            ->all() ?? [];
+
+        $enrollment->viewed_block_ids = $allBlockIds;
+        $enrollment->completed_block_ids = $allBlockIds;
         $enrollment->progress_percent = 100;
         if (!$enrollment->completed_at) {
             $enrollment->completed_at = now();
@@ -220,5 +248,54 @@ class PublicTrainingAccessController extends Controller
         abort_unless(!($enrollment->token_expires_at && $enrollment->token_expires_at->isPast()), 403);
 
         return $enrollment;
+    }
+
+    protected function syncEnrollmentProgress(
+        DigitalTrainingEnrollment $enrollment,
+        $training,
+        \Illuminate\Support\Collection $viewedBlockIds,
+        ?\Illuminate\Support\Collection $completedBlockIds,
+    ): void {
+        $viewedBlockIds = $viewedBlockIds
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $completedBlockIds = ($completedBlockIds ?? collect($enrollment->completed_block_ids ?? []))
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $totalBlocks = $training->modules
+            ->flatMap(fn ($module) => $module->blocks->pluck('id'))
+            ->filter()
+            ->count();
+
+        $progress = $totalBlocks > 0
+            ? (int) round(min(100, ($viewedBlockIds->count() / $totalBlocks) * 100))
+            : 0;
+
+        $enrollment->viewed_block_ids = $viewedBlockIds->all();
+        $enrollment->completed_block_ids = $completedBlockIds->all();
+        $enrollment->progress_percent = $progress;
+
+        if ($progress >= 100 || ($totalBlocks > 0 && $completedBlockIds->count() >= $totalBlocks)) {
+            $enrollment->completed_at ??= now();
+        }
+
+        $enrollment->last_accessed_at = now();
+        $enrollment->save();
+    }
+
+    protected function progressPayload(DigitalTrainingEnrollment $enrollment): array
+    {
+        return [
+            'progress_percent' => $enrollment->progress_percent,
+            'completed' => (bool) $enrollment->completed_at,
+            'viewed_block_ids' => collect($enrollment->viewed_block_ids ?? [])->map(fn ($id) => (int) $id)->values()->all(),
+            'completed_block_ids' => collect($enrollment->completed_block_ids ?? [])->map(fn ($id) => (int) $id)->values()->all(),
+        ];
     }
 }
