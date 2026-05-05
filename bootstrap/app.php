@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+        ]);
+
         // 👇 Add your custom middleware alias here.
         // This does NOT remove Laravel’s default aliases/groups.
         $middleware->alias([

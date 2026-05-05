@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PackPurchase;
 use App\Models\PurchaseInstallment;
+use App\Models\GiftVoucherOrder;
 use App\Models\StripeWebhookEvent;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,8 @@ use Stripe\StripeClient;
 class StripePurchaseWebhookService
 {
     public function __construct(
-        private readonly PackPurchaseInvoicingService $purchaseInvoicingService
+        private readonly PackPurchaseInvoicingService $purchaseInvoicingService,
+        private readonly GiftVoucherCheckoutService $giftVoucherCheckoutService
     ) {
     }
 
@@ -29,7 +31,22 @@ class StripePurchaseWebhookService
 
         if ($type === 'checkout.session.completed') {
             $meta = $this->extractMetadata($object);
-            if (!in_array((string) ($meta['purchase_kind'] ?? ''), ['pack', 'training'], true)) {
+            $purchaseKind = (string) ($meta['purchase_kind'] ?? '');
+
+            if ($purchaseKind === 'gift_voucher') {
+                if ($this->alreadyProcessed($eventId)) {
+                    return true;
+                }
+
+                $handled = $this->handleGiftVoucherCheckoutSessionCompleted($object, $connectedAccountId);
+                if ($handled) {
+                    $this->markProcessed($eventId, $type, $connectedAccountId);
+                }
+
+                return $handled;
+            }
+
+            if (!in_array($purchaseKind, ['pack', 'training'], true)) {
                 return false;
             }
             if ($this->alreadyProcessed($eventId)) {
@@ -136,6 +153,54 @@ class StripePurchaseWebhookService
         }
 
         return false;
+    }
+
+    private function handleGiftVoucherCheckoutSessionCompleted(object $session, ?string $connectedAccountId): bool
+    {
+        if (($session->payment_status ?? null) !== 'paid') {
+            return false;
+        }
+
+        $meta = $this->extractMetadata($session);
+        $orderId = isset($meta['gift_voucher_order_id']) ? (int) $meta['gift_voucher_order_id'] : 0;
+        if ($orderId <= 0) {
+            return false;
+        }
+
+        $order = GiftVoucherOrder::find($orderId);
+        if (!$order) {
+            Log::warning('Gift voucher webhook received for missing order', [
+                'order_id' => $orderId,
+                'session_id' => $session->id ?? null,
+            ]);
+
+            return false;
+        }
+
+        if (!$this->accountMatchesGiftVoucherOrder($order, $connectedAccountId)) {
+            Log::warning('Gift voucher webhook account mismatch', [
+                'order_id' => $order->id,
+                'connected_account_id' => $connectedAccountId,
+                'therapist_stripe_account_id' => $order->therapist?->stripe_account_id,
+            ]);
+
+            return false;
+        }
+
+        $paymentIntentId = '';
+        if (!empty($session->payment_intent)) {
+            $paymentIntentId = is_object($session->payment_intent)
+                ? (string) ($session->payment_intent->id ?? '')
+                : (string) $session->payment_intent;
+        }
+
+        $this->giftVoucherCheckoutService->finalizePaidOrder(
+            $order,
+            (string) ($session->id ?? ''),
+            $paymentIntentId !== '' ? $paymentIntentId : null
+        );
+
+        return true;
     }
 
     private function handleCheckoutSessionCompleted(object $session, ?string $connectedAccountId): bool
@@ -381,6 +446,20 @@ class StripePurchaseWebhookService
         }
 
         $therapist = $purchase->user;
+        if (!$therapist) {
+            return false;
+        }
+
+        return (string) ($therapist->stripe_account_id ?? '') === (string) $connectedAccountId;
+    }
+
+    private function accountMatchesGiftVoucherOrder(GiftVoucherOrder $order, ?string $connectedAccountId): bool
+    {
+        if (!$connectedAccountId) {
+            return true;
+        }
+
+        $therapist = $order->therapist;
         if (!$therapist) {
             return false;
         }

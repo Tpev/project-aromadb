@@ -3,8 +3,10 @@
 use App\Jobs\SendGiftVoucherEmailsJob;
 use App\Models\GiftVoucher;
 use App\Models\GiftVoucherOrder;
+use App\Models\StripeWebhookEvent;
 use App\Models\User;
 use App\Services\GiftVoucherCheckoutService;
+use App\Services\StripePurchaseWebhookService;
 use Illuminate\Support\Facades\Queue;
 
 test('checkout service finalizes a paid order and creates voucher plus accounting records', function () {
@@ -107,5 +109,105 @@ test('checkout service is idempotent for an already paid order', function () {
 
     expect($resolvedVoucher->id)->toBe($firstVoucher->id);
     expect(GiftVoucher::count())->toBe(1);
+    Queue::assertNothingPushed();
+});
+
+test('stripe checkout webhook finalizes a paid gift voucher order', function () {
+    Queue::fake();
+
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'stripe_account_id' => 'acct_gift_voucher_ready',
+    ]);
+
+    $order = GiftVoucherOrder::create([
+        'user_id' => $therapist->id,
+        'amount_cents' => 7500,
+        'currency' => 'EUR',
+        'buyer_name' => 'Acheteur Webhook',
+        'buyer_email' => 'buyer-webhook@example.test',
+        'recipient_name' => 'Destinataire Webhook',
+        'recipient_email' => 'recipient-webhook@example.test',
+        'status' => 'pending',
+    ]);
+
+    $event = (object) [
+        'id' => 'evt_gift_voucher_paid',
+        'type' => 'checkout.session.completed',
+        'data' => (object) [
+            'object' => (object) [
+                'id' => 'cs_gift_voucher_paid',
+                'payment_status' => 'paid',
+                'payment_intent' => 'pi_gift_voucher_paid',
+                'metadata' => (object) [
+                    'purchase_kind' => 'gift_voucher',
+                    'gift_voucher_order_id' => (string) $order->id,
+                    'therapist_id' => (string) $therapist->id,
+                ],
+            ],
+        ],
+    ];
+
+    $handled = app(StripePurchaseWebhookService::class)->handleEvent($event, 'acct_gift_voucher_ready');
+
+    expect($handled)->toBeTrue();
+
+    $order->refresh();
+
+    expect($order->status)->toBe('paid');
+    expect($order->gift_voucher_id)->not->toBeNull();
+    expect($order->stripe_session_id)->toBe('cs_gift_voucher_paid');
+    expect($order->stripe_payment_intent_id)->toBe('pi_gift_voucher_paid');
+    expect(GiftVoucher::count())->toBe(1);
+    expect(StripeWebhookEvent::where('event_id', 'evt_gift_voucher_paid')->exists())->toBeTrue();
+
+    Queue::assertPushed(SendGiftVoucherEmailsJob::class);
+});
+
+test('stripe checkout webhook ignores unpaid gift voucher sessions', function () {
+    Queue::fake();
+
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'stripe_account_id' => 'acct_gift_voucher_ready',
+    ]);
+
+    $order = GiftVoucherOrder::create([
+        'user_id' => $therapist->id,
+        'amount_cents' => 7500,
+        'currency' => 'EUR',
+        'buyer_name' => 'Acheteur Webhook',
+        'buyer_email' => 'buyer-webhook@example.test',
+        'status' => 'pending',
+    ]);
+
+    $event = (object) [
+        'id' => 'evt_gift_voucher_unpaid',
+        'type' => 'checkout.session.completed',
+        'data' => (object) [
+            'object' => (object) [
+                'id' => 'cs_gift_voucher_unpaid',
+                'payment_status' => 'unpaid',
+                'payment_intent' => 'pi_gift_voucher_unpaid',
+                'metadata' => (object) [
+                    'purchase_kind' => 'gift_voucher',
+                    'gift_voucher_order_id' => (string) $order->id,
+                    'therapist_id' => (string) $therapist->id,
+                ],
+            ],
+        ],
+    ];
+
+    $handled = app(StripePurchaseWebhookService::class)->handleEvent($event, 'acct_gift_voucher_ready');
+
+    expect($handled)->toBeFalse();
+
+    $order->refresh();
+
+    expect($order->status)->toBe('pending');
+    expect($order->gift_voucher_id)->toBeNull();
+    expect(GiftVoucher::count())->toBe(0);
+    expect(StripeWebhookEvent::where('event_id', 'evt_gift_voucher_unpaid')->exists())->toBeFalse();
+
     Queue::assertNothingPushed();
 });
