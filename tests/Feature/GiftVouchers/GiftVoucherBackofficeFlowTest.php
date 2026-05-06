@@ -2,6 +2,7 @@
 
 use App\Jobs\SendGiftVoucherEmailsJob;
 use App\Models\GiftVoucher;
+use App\Models\GiftVoucherOrder;
 use App\Models\User;
 use App\Services\StripeAccountGuard;
 use Illuminate\Support\Facades\Queue;
@@ -206,4 +207,57 @@ test('public gift voucher checkout returns 404 when therapist plan does not incl
     $response = $this->get(route('gift-vouchers.checkout.show', ['slug' => $therapist->slug]));
 
     $response->assertNotFound();
+});
+
+test('public gift voucher success does not 404 when the local order cannot be resolved yet', function () {
+    $response = $this->get(route('gift-vouchers.checkout.success', [
+        'session_id' => 'cs_missing_local_order',
+        'account_id' => 'acct_missing_local_order',
+    ]));
+
+    $response->assertRedirect('/');
+    $response->assertSessionHasErrors('payment');
+});
+
+test('public gift voucher success redirects cleanly when webhook already finalized the order', function () {
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'slug' => 'therapist-voucher-success',
+        'stripe_account_id' => 'acct_voucher_success',
+    ]);
+
+    $voucher = GiftVoucher::create([
+        'user_id' => $therapist->id,
+        'code' => 'AM-SUCCESS-0001',
+        'original_amount_cents' => 9000,
+        'remaining_amount_cents' => 9000,
+        'currency' => 'EUR',
+        'is_active' => true,
+        'buyer_name' => 'Buyer Success',
+        'buyer_email' => 'buyer-success@example.test',
+        'source' => 'stripe',
+        'sale_channel' => 'online_stripe',
+        'sale_status' => 'paid',
+    ]);
+
+    GiftVoucherOrder::create([
+        'user_id' => $therapist->id,
+        'amount_cents' => 9000,
+        'currency' => 'EUR',
+        'cancel_token' => 'success-token',
+        'buyer_name' => 'Buyer Success',
+        'buyer_email' => 'buyer-success@example.test',
+        'status' => 'paid',
+        'gift_voucher_id' => $voucher->id,
+        'stripe_session_id' => 'cs_success_already_paid',
+        'stripe_payment_intent_id' => 'pi_success_already_paid',
+    ]);
+
+    $response = $this->get(route('gift-vouchers.checkout.success', [
+        'session_id' => 'cs_success_already_paid',
+        'account_id' => 'acct_voucher_success',
+    ]));
+
+    $response->assertRedirect(route('therapist.show', $therapist->slug));
+    $response->assertSessionHas('success');
 });

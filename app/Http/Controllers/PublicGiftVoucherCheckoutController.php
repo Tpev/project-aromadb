@@ -82,7 +82,7 @@ class PublicGiftVoucherCheckoutController extends Controller
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => route('gift-vouchers.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
+                'success_url' => route('gift-vouchers.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id . '&order_id=' . $order->id . '&token=' . $order->cancel_token,
                 'cancel_url' => route('gift-vouchers.checkout.cancel') . '?order_id=' . $order->id . '&token=' . $order->cancel_token,
                 'payment_intent_data' => [
                     'metadata' => [
@@ -118,38 +118,106 @@ class PublicGiftVoucherCheckoutController extends Controller
     ) {
         $sessionId = (string) $request->query('session_id');
         $accountId = (string) $request->query('account_id');
-        abort_unless($sessionId !== '' && $accountId !== '', 404);
+        $orderIdFromUrl = (int) $request->query('order_id', 0);
+        $tokenFromUrl = (string) $request->query('token', '');
+
+        if ($sessionId === '') {
+            Log::warning('Gift voucher checkout success called without session id', [
+                'query' => $request->query(),
+            ]);
+
+            return redirect('/')
+                ->withErrors(['payment' => 'Paiement recu, verification en cours. Si besoin, contactez le praticien.']);
+        }
+
+        $order = GiftVoucherOrder::query()
+            ->where('stripe_session_id', $sessionId)
+            ->first();
+
+        if (! $order && $orderIdFromUrl > 0 && $tokenFromUrl !== '') {
+            $order = GiftVoucherOrder::query()
+                ->whereKey($orderIdFromUrl)
+                ->where('cancel_token', $tokenFromUrl)
+                ->first();
+        }
+
+        if (! $order) {
+            Log::warning('Gift voucher checkout success could not resolve local order', [
+                'session_id' => $sessionId,
+                'account_id' => $accountId,
+                'order_id' => $orderIdFromUrl ?: null,
+            ]);
+
+            return redirect('/')
+                ->withErrors(['payment' => 'Paiement recu, mais la commande est encore en cours de synchronisation.']);
+        }
+
+        $therapist = $order->therapist;
+        if (! $therapist) {
+            Log::warning('Gift voucher checkout success resolved order without therapist', [
+                'order_id' => $order->id,
+                'session_id' => $sessionId,
+            ]);
+
+            return redirect('/')
+                ->withErrors(['payment' => 'Paiement recu, mais la commande est encore en cours de synchronisation.']);
+        }
+
+        $resolvedAccountId = $accountId !== ''
+            ? $accountId
+            : (string) ($therapist->stripe_account_id ?? '');
+
+        if ($resolvedAccountId === '' || (string) $therapist->stripe_account_id !== $resolvedAccountId) {
+            Log::warning('Gift voucher checkout success account mismatch', [
+                'order_id' => $order->id,
+                'session_id' => $sessionId,
+                'query_account_id' => $accountId ?: null,
+                'therapist_stripe_account_id' => $therapist->stripe_account_id,
+            ]);
+
+            return redirect()
+                ->route('therapist.show', $therapist->slug)
+                ->withErrors(['payment' => 'Paiement recu, verification en cours.']);
+        }
+
+        if ($order->status === 'paid' && $order->gift_voucher_id) {
+            return redirect()
+                ->route('therapist.show', $therapist->slug)
+                ->with('success', 'Paiement confirme. Votre bon cadeau a ete envoye.');
+        }
 
         try {
             $stripe = new StripeClient((string) config('services.stripe.secret'));
             $session = $stripe->checkout->sessions->retrieve($sessionId, [
                 'expand' => ['payment_intent'],
             ], [
-                'stripe_account' => $accountId,
+                'stripe_account' => $resolvedAccountId,
             ]);
         } catch (\Throwable $e) {
             Log::warning('Gift voucher checkout success lookup failed', [
+                'order_id' => $order->id,
                 'session_id' => $sessionId,
-                'account_id' => $accountId,
+                'account_id' => $resolvedAccountId,
                 'error' => $e->getMessage(),
             ]);
 
-            abort(404);
+            return redirect()
+                ->route('therapist.show', $therapist->slug)
+                ->withErrors(['payment' => 'Paiement recu, votre bon cadeau est en cours de preparation.']);
         }
 
-        $meta = (array) ($session->payment_intent->metadata ?? $session->metadata ?? []);
-        $orderId = isset($meta['gift_voucher_order_id']) ? (int) $meta['gift_voucher_order_id'] : 0;
-        abort_unless($orderId > 0, 404);
-
-        $order = GiftVoucherOrder::findOrFail($orderId);
-        $therapist = $order->therapist;
-        abort_unless($therapist && $therapist->stripe_account_id === $accountId, 404);
-
         if (($session->payment_status ?? null) === 'paid') {
+            $paymentIntentId = '';
+            if (!empty($session->payment_intent)) {
+                $paymentIntentId = is_object($session->payment_intent)
+                    ? (string) ($session->payment_intent->id ?? '')
+                    : (string) $session->payment_intent;
+            }
+
             $checkoutService->finalizePaidOrder(
                 $order,
                 (string) $session->id,
-                (string) ($session->payment_intent->id ?? '')
+                $paymentIntentId !== '' ? $paymentIntentId : null
             );
 
             return redirect()
