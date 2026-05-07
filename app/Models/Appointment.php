@@ -187,6 +187,11 @@ public function syncToGoogle(): void
 {
     if ($this->external) return;
 
+    if ($this->isCancelled()) {
+        $this->removeFromGoogle();
+        return;
+    }
+
     $therapist = $this->user;
     if (!$therapist?->google_access_token) return;
 
@@ -326,6 +331,10 @@ public function syncToGoogle(): void
 
         try {
             GoogleEvent::find($this->google_event_id)?->delete();
+
+            if ($this->exists) {
+                $this->forceFill(['google_event_id' => null])->saveQuietly();
+            }
         } finally {
             \App\Support\GoogleTokenFile::forget($therapist->id);
         }
