@@ -330,7 +330,13 @@ public function syncToGoogle(): void
         ]);
 
         try {
-            GoogleEvent::find($this->google_event_id)?->delete();
+            try {
+                GoogleEvent::find($this->google_event_id)?->delete();
+            } catch (\Google\Service\Exception $e) {
+                if (! in_array((int) $e->getCode(), [404, 410], true)) {
+                    throw $e;
+                }
+            }
 
             if ($this->exists) {
                 $this->forceFill(['google_event_id' => null])->saveQuietly();
