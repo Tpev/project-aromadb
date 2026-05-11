@@ -1,9 +1,7 @@
 name: Deploy to Server
 
 on:
-  push:
-    branches:
-      - master  # Triggefr this workflow when code is pushed to the main branch
+  workflow_dispatch:
 
 jobs:
   deploy:
