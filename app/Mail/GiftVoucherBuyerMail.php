@@ -20,7 +20,7 @@ class GiftVoucherBuyerMail extends Mailable
     {
         $therapist = $this->voucher->therapist;
 
-        return $this->subject('Votre bon cadeau – ' . ($therapist->company_name ?? $therapist->name ?? 'AromaMade'))
+        return $this->subject('Votre bon cadeau – ' . ($therapist->company_name ?? $therapist->name ?? 'Olithea'))
             ->markdown('emails.gift-voucher.buyer')
             ->with([
                 'voucher' => $this->voucher,

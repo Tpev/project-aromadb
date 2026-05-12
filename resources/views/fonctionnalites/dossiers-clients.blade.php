@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Dossiers clients | Suivi & documents | AromaMade PRO')
+    @section('title', 'Dossiers clients | Suivi & documents | Olithea PRO')
     @section('meta_description')
 Centralisez l’historique, les notes de séance et objectifs de vos clients. Consentements signés (SES), documents, photos, questionnaires et exports PDF. Stockage en France chez un hébergeur certifié HDS, conforme RGPD.
     @endsection
@@ -7,7 +7,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
     @push('styles')
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
     @endpush>
 
@@ -30,7 +30,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Commencer l’essai gratuit</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea PRO</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -205,7 +205,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
     <section class="py-8 bg-white">
         <div class="container mx-auto px-4">
             <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-sm" data-aos="fade-up">
-                <strong>Important :</strong> AromaMade PRO s’adresse à des praticiens du bien-être. La plateforme n’est pas un service de télémédecine ni un Dossier Médical Partagé. 
+                <strong>Important :</strong> Olithea PRO s’adresse à des praticiens du bien-être. La plateforme n’est pas un service de télémédecine ni un Dossier Médical Partagé.
                 Les informations saisies ne constituent ni un diagnostic, ni une prescription médicale et ne remplacent pas l’avis d’un professionnel de santé.
             </div>
         </div>
@@ -217,7 +217,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
             <h2 class="section-title text-center" data-aos="fade-up">Pensé avec des praticiens</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
                 <div class="testimonial-card" data-aos="fade-up">
-                    <p class="quote">« Le dossier client d’AromaMade me fait gagner un temps fou. Les notes et objectifs sont bien rangés et je retrouve tout en 2 secondes. »</p>
+                    <p class="quote">« Le dossier client d’Olithea me fait gagner un temps fou. Les notes et objectifs sont bien rangés et je retrouve tout en 2 secondes. »</p>
                     <h4 class="author">— Élodie, Réflexologue</h4>
                 </div>
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
@@ -308,7 +308,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
                     <h3 style="
                         font-size:1.5rem;
                         font-weight:700;
-                        color:#647a0b;
+                        color:#6B4A3A;
                         margin-bottom:8px;
                     ">
                         Vous êtes praticien ? Découvrez la page dédiée à votre métier
@@ -319,7 +319,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea PRO s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>
@@ -337,16 +337,16 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🌿 Logiciel naturopathe
                     </a>
@@ -359,16 +359,16 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🧘 Logiciel sophrologue
                     </a>
@@ -380,7 +380,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
                 font-size:.85rem;
                 color:#6b7280;
             ">
-               
+
             </p>
         </div>
     </div>

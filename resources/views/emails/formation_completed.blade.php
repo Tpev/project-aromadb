@@ -5,7 +5,7 @@
     <title>Un utilisateur a terminé la formation !</title>
 </head>
 <body>
-    <h1 style="color: #647a0b;">🎓 Félicitations ! Un utilisateur a terminé la formation</h1>
+    <h1 style="color: #6B4A3A;">🎓 Félicitations ! Un utilisateur a terminé la formation</h1>
     <p style="font-size: 1.1rem;">
         Bonjour les lapiz,
     </p>

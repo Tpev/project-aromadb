@@ -1,6 +1,6 @@
 <x-app-layout>
   <x-slot name="header">
-    <h2 class="font-semibold text-xl" style="color:#647a0b;">Ajouter une écriture</h2>
+    <h2 class="font-semibold text-xl" style="color:#6B4A3A;">Ajouter une écriture</h2>
   </x-slot>
 
   @php
@@ -182,7 +182,7 @@
     .details-title {
       font-size:2rem;
       font-weight:700;
-      color:#647a0b;
+      color:#6B4A3A;
       margin:0;
     }
 
@@ -215,7 +215,7 @@
     .field { display:flex; flex-direction:column; gap:6px; }
     .field.full { grid-column: 1 / -1; }
 
-    label { font-weight:700; color:#647a0b; font-size:.95rem; }
+    label { font-weight:700; color:#6B4A3A; font-size:.95rem; }
 
     .form-control {
       padding:10px 12px;
@@ -225,8 +225,8 @@
       background:#fff;
     }
     .form-control:focus {
-      border-color:#647a0b;
-      box-shadow:0 0 0 3px rgba(100,122,11,.12);
+      border-color:#6B4A3A;
+      box-shadow:0 0 0 3px rgba(167, 184, 138,.12);
     }
 
     .hint { color:#6b7280; font-size:.85rem; }
@@ -239,7 +239,7 @@
     }
     .info-title{
       font-weight:800;
-      color:#647a0b;
+      color:#6B4A3A;
       margin-bottom:4px;
     }
     .info-text{
@@ -267,14 +267,14 @@
       font-weight:600;
       border:none;
     }
-    .btn-primary { background:#647a0b; color:#fff; }
+    .btn-primary { background:#6B4A3A; color:#fff; }
     .btn-primary:hover { background:#566f09; }
     .btn-secondary {
       background:transparent;
-      color:#854f38;
-      border:1px solid #854f38;
+      color:#5F7048;
+      border:1px solid #5F7048;
     }
-    .btn-secondary:hover { background:#854f38; color:#fff; }
+    .btn-secondary:hover { background:#5F7048; color:#fff; }
 
     @media (max-width:768px){
       .grid { grid-template-columns: 1fr; }

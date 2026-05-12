@@ -13,7 +13,7 @@
             <div class="relative">
                 <input id="invoiceSearch"
                        type="text"
-                       class="w-full rounded-2xl border border-[#d5dcc0] bg-white/90 px-3 py-2.5 text-[13px] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                       class="w-full rounded-2xl border border-[#d5dcc0] bg-white/90 px-3 py-2.5 text-[13px] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"
                        placeholder="{{ __('Rechercher par client, numéro ou statut...') }}">
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
                     <i class="fas fa-search"></i>
@@ -22,12 +22,12 @@
 
             <div class="grid grid-cols-2 gap-2 text-[12px]">
                 <a href="{{ route('invoices.create') }}"
-                   class="inline-flex items-center justify-center px-3 py-2.5 rounded-2xl bg-[#647a0b] text-white font-medium shadow-sm active:scale-[0.99]">
+                   class="inline-flex items-center justify-center px-3 py-2.5 rounded-2xl bg-[#6B4A3A] text-white font-medium shadow-sm active:scale-[0.99]">
                     <i class="fas fa-file-invoice-dollar text-[11px] mr-1.5"></i>
                     {{ __('Créer une facture') }}
                 </a>
                 <a href="{{ route('invoices.createQuote') }}"
-                   class="inline-flex items-center justify-center px-3 py-2.5 rounded-2xl bg-white text-gray-800 font-medium border border-[#e4e8d5] shadow-sm active:scale-[0.99]">
+                   class="inline-flex items-center justify-center px-3 py-2.5 rounded-2xl bg-white text-gray-800 font-medium border border-[#D8CFBF] shadow-sm active:scale-[0.99]">
                     <i class="fas fa-file-signature text-[11px] mr-1.5"></i>
                     {{ __('Créer un devis') }}
                 </a>
@@ -38,7 +38,7 @@
         <div class="rounded-3xl bg-gradient-to-br from-[#f5f7eb] via-white to-[#f1f3e4] p-3.5 border border-[#e2e8d0] shadow-sm">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-2">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-2xl bg-[#647a0b]/10 text-[#647a0b] text-xs">
+                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-2xl bg-[#6B4A3A]/10 text-[#6B4A3A] text-xs">
                         <i class="fas fa-chart-line"></i>
                     </span>
                     <div class="flex flex-col">
@@ -51,7 +51,7 @@
                     </div>
                 </div>
 
-                <span class="inline-flex items-center rounded-full bg-white/80 px-2.5 py-1 text-[10px] text-gray-600 border border-[#e4e8d5]">
+                <span class="inline-flex items-center rounded-full bg-white/80 px-2.5 py-1 text-[10px] text-gray-600 border border-[#D8CFBF]">
                     <i class="far fa-clock mr-1"></i>
                     {{ __('Mis à jour en temps réel') }}
                 </span>
@@ -59,10 +59,10 @@
 
             <div class="grid grid-cols-2 gap-3 text-[11px]">
                 {{-- Invoices --}}
-                <div class="rounded-2xl bg-white/90 p-3 border border-[#e4e8d5]">
+                <div class="rounded-2xl bg-white/90 p-3 border border-[#D8CFBF]">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-[11px] font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
-                            <i class="fas fa-file-invoice-dollar text-[#647a0b] text-[10px]"></i>
+                            <i class="fas fa-file-invoice-dollar text-[#6B4A3A] text-[10px]"></i>
                             {{ __('Factures') }}
                         </span>
                         <span class="text-[11px] text-gray-400">
@@ -79,30 +79,30 @@
                         </p>
                         <p class="text-[11px] text-gray-600 flex justify-between">
                             <span>{{ __('En attente') }}</span>
-                            <span class="font-semibold text-[#854f38]">
+                            <span class="font-semibold text-[#5F7048]">
                                 {{ $invoiceStats['outstanding_count'] }} {{ __('factures') }}
                             </span>
                         </p>
                         <p class="text-[11px] text-gray-600 flex justify-between">
                             <span>{{ __('Solde restant') }}</span>
-                            <span class="font-semibold text-[#854f38]">
+                            <span class="font-semibold text-[#5F7048]">
                                 {{ $formatEuro($invoiceStats['outstanding_total']) }}
                             </span>
                         </p>
                     </div>
 
                     <a href="{{ route('invoices.index') }}"
-                       class="mt-2 inline-flex items-center text-[11px] text-[#647a0b]">
+                       class="mt-2 inline-flex items-center text-[11px] text-[#6B4A3A]">
                         {{ __('Ouvrir la vue web') }}
                         <i class="fas fa-external-link-alt text-[9px] ml-1"></i>
                     </a>
                 </div>
 
                 {{-- Quotes --}}
-                <div class="rounded-2xl bg-white/90 p-3 border border-[#e4e8d5]">
+                <div class="rounded-2xl bg-white/90 p-3 border border-[#D8CFBF]">
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-[11px] font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-1.5">
-                            <i class="fas fa-file-signature text-[#647a0b] text-[10px]"></i>
+                            <i class="fas fa-file-signature text-[#6B4A3A] text-[10px]"></i>
                             {{ __('Devis') }}
                         </span>
                         <span class="text-[11px] text-gray-400">
@@ -137,7 +137,7 @@
                     </div>
 
                     <a href="{{ route('invoices.index') }}#devis"
-                       class="mt-2 inline-flex items-center text-[11px] text-[#647a0b]">
+                       class="mt-2 inline-flex items-center text-[11px] text-[#6B4A3A]">
                         {{ __('Gérer les devis (web)') }}
                         <i class="fas fa-external-link-alt text-[9px] ml-1"></i>
                     </a>
@@ -146,10 +146,10 @@
         </div>
 
         {{-- Factures list --}}
-        <div class="rounded-3xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+        <div class="rounded-3xl border border-[#D8CFBF] bg-white p-4 shadow-sm">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-1.5">
-                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#647a0b]/10 text-[#647a0b] text-[10px]">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6B4A3A]/10 text-[#6B4A3A] text-[10px]">
                         <i class="fas fa-file-invoice"></i>
                     </span>
                     <h2 class="text-xs font-semibold text-gray-700 uppercase tracking-wide">
@@ -182,7 +182,7 @@
                         @endphp
 
                         <a href="{{ route('invoices.show', $invoice->id) }}"
-                           class="block rounded-2xl border border-[#e4e8d5] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
+                           class="block rounded-2xl border border-[#D8CFBF] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
                            data-type="invoice"
                            data-client="{{ strtolower($invoice->clientProfile->first_name . ' ' . $invoice->clientProfile->last_name) }}"
                            data-status="{{ strtolower($status) }}"
@@ -239,10 +239,10 @@
         </div>
 
         {{-- Devis list --}}
-        <div class="rounded-3xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+        <div class="rounded-3xl border border-[#D8CFBF] bg-white p-4 shadow-sm">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center gap-1.5">
-                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#647a0b]/10 text-[#647a0b] text-[10px]">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#6B4A3A]/10 text-[#6B4A3A] text-[10px]">
                         <i class="fas fa-file-contract"></i>
                     </span>
                     <h2 class="text-xs font-semibold text-gray-700 uppercase tracking-wide">
@@ -273,7 +273,7 @@
                         @endphp
 
                         <a href="{{ route('invoices.showQuote', $quote->id) }}"
-                           class="block rounded-2xl border border-[#e4e8d5] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
+                           class="block rounded-2xl border border-[#D8CFBF] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
                            data-type="quote"
                            data-client="{{ strtolower($quote->clientProfile->first_name . ' ' . $quote->clientProfile->last_name) }}"
                            data-status="{{ strtolower($status) }}"
@@ -321,7 +321,7 @@
 
         {{-- Back to dashboard --}}
         <a href="{{ route('dashboard') }}"
-           class="inline-flex items-center justify-center w-full px-3 py-2.5 rounded-2xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 shadow-sm active:scale-[0.99]">
+           class="inline-flex items-center justify-center w-full px-3 py-2.5 rounded-2xl bg-white border border-[#D8CFBF] text-[12px] font-medium text-gray-800 shadow-sm active:scale-[0.99]">
             <i class="fas fa-arrow-left text-[11px] mr-1.5"></i>
             {{ __('Retour au tableau de bord') }}
         </a>

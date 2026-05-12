@@ -309,7 +309,7 @@
             font-weight: 600;
             font-size: 0.95rem;
             color: #fff;
-            background: rgba(100, 122, 11, 0.85); /* your green-ish */
+            background: rgba(167, 184, 138, 0.85); /* your green-ish */
             transition: transform .08s ease, opacity .2s ease;
         }
         .imp-btn:hover { opacity: .92; transform: translateY(-1px); }

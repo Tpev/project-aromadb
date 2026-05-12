@@ -1,7 +1,7 @@
 {{-- resources/views/dashboard-pro.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Tableau de Bord') }}
         </h2>
     </x-slot>
@@ -19,8 +19,8 @@
         {{-- Bandeau titre + progression globale --}}
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-                <h3 class="text-lg font-semibold text-[#647a0b]">
-                    👋 Bienvenue sur AromaMade PRO
+                <h3 class="text-lg font-semibold text-[#6B4A3A]">
+                    👋 Bienvenue sur Olithea PRO
                 </h3>
                 <p class="text-sm text-gray-600">
                     Suivez ces étapes pour être prêt à recevoir des réservations en ligne et profiter de toutes les fonctionnalités.
@@ -33,7 +33,7 @@
                     <span>{{ $globalCompletion }}%</span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                    <div class="h-2 bg-[#647a0b] rounded-full transition-all duration-300"
+                    <div class="h-2 bg-[#6B4A3A] rounded-full transition-all duration-300"
                          style="width: {{ $globalCompletion }}%;"></div>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                             @endif
                         </div>
                     </div>
-                    <a href="#step1" class="text-xs text-[#647a0b] hover:underline font-medium">
+                    <a href="#step1" class="text-xs text-[#6B4A3A] hover:underline font-medium">
                         Voir
                     </a>
                 </div>
@@ -106,7 +106,7 @@
                             @endif
                         </div>
                     </div>
-                    <a href="#step2" class="text-xs text-[#647a0b] hover:underline font-medium">
+                    <a href="#step2" class="text-xs text-[#6B4A3A] hover:underline font-medium">
                         Voir
                     </a>
                 </div>
@@ -130,7 +130,7 @@
                         </div>
                     </div>
                     @unless($skipStep3)
-                        <a href="#step3" class="text-xs text-[#647a0b] hover:underline font-medium">
+                        <a href="#step3" class="text-xs text-[#6B4A3A] hover:underline font-medium">
                             Voir
                         </a>
                     @endunless
@@ -155,7 +155,7 @@
                         </div>
                     </div>
                     @unless($skipStep4)
-                        <a href="#step4" class="text-xs text-[#647a0b] hover:underline font-medium">
+                        <a href="#step4" class="text-xs text-[#6B4A3A] hover:underline font-medium">
                             Voir
                         </a>
                     @endunless
@@ -176,9 +176,9 @@
 
                         {{-- Total Clients --}}
                         <a href="{{ route('client_profiles.index') }}"
-                           class="bg-[#8ea633] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
+                           class="bg-[#4E5F3A] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#8ea633] mr-4">
+                                <div class="p-3 rounded-full bg-white text-[#4E5F3A] mr-4">
                                     ✔
                                 </div>
                                 <div>
@@ -190,9 +190,9 @@
 
                         {{-- RDV à venir --}}
                         <a href="{{ route('appointments.index', ['filter' => 'upcoming']) }}"
-                           class="bg-[#647a0b] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
+                           class="bg-[#6B4A3A] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#647a0b] mr-4">
+                                <div class="p-3 rounded-full bg-white text-[#6B4A3A] mr-4">
                                     📅
                                 </div>
                                 <div>
@@ -227,9 +227,9 @@
 
                         {{-- Factures en attente --}}
                         <a href="{{ route('invoices.index', ['filter' => 'pending']) }}"
-                           class="bg-[#854f38] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
+                           class="bg-[#5F7048] shadow rounded-lg p-5 text-white hover:shadow-lg transition">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#854f38] mr-4">⏳</div>
+                                <div class="p-3 rounded-full bg-white text-[#5F7048] mr-4">⏳</div>
                                 <div>
                                     <div class="text-2xl font-bold">{{ $pendingInvoices }}</div>
                                     <div class="text-sm">En attente</div>
@@ -239,9 +239,9 @@
 
                         {{-- Revenus du mois --}}
                         <a href="{{ route('invoices.index', ['filter' => 'current_month']) }}"
-                           class="bg-[#6a3f2c] shadow rounded-lg p-5 text-white hover:shadow-lg transition col-span-1 sm:col-span-2">
+                           class="bg-[#4E5F3A] shadow rounded-lg p-5 text-white hover:shadow-lg transition col-span-1 sm:col-span-2">
                             <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#6a3f2c] mr-4">💶</div>
+                                <div class="p-3 rounded-full bg-white text-[#4E5F3A] mr-4">💶</div>
                                 <div>
                                     <div class="text-2xl font-bold">
                                         {{ number_format($monthlyRevenue, 2, ',', ' ') }} €
@@ -265,7 +265,7 @@
 
                 {{-- RDV par mois --}}
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                    <h3 class="text-xl font-semibold text-[#647a0b] mb-4">Rendez-vous par Mois</h3>
+                    <h3 class="text-xl font-semibold text-[#6B4A3A] mb-4">Rendez-vous par Mois</h3>
                     <div class="h-60">
                         <canvas id="appointmentsChart" class="w-full h-full"></canvas>
                     </div>
@@ -273,7 +273,7 @@
 
                 {{-- Revenus mensuels --}}
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                    <h3 class="text-xl font-semibold text-[#854f38] mb-4">Revenus Mensuels</h3>
+                    <h3 class="text-xl font-semibold text-[#5F7048] mb-4">Revenus Mensuels</h3>
                     <div class="h-60">
                         <canvas id="revenueChart" class="w-full h-full"></canvas>
                     </div>
@@ -283,7 +283,7 @@
 
             {{-- Prochains Rendez-vous --}}
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-xl font-semibold text-[#647a0b] mb-3">Prochains Rendez-vous</h3>
+                <h3 class="text-xl font-semibold text-[#6B4A3A] mb-3">Prochains Rendez-vous</h3>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -324,7 +324,7 @@
 
             {{-- Dernières Factures --}}
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-xl font-semibold text-[#854f38] mb-3">Dernières Factures</h3>
+                <h3 class="text-xl font-semibold text-[#5F7048] mb-3">Dernières Factures</h3>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -384,18 +384,18 @@
             {{-- QR Code --}}
             @if($therapist->slug)
                 <div class="bg-white shadow rounded-lg p-6">
-                    <h3 class="text-xl font-semibold text-[#647a0b] mb-3">QR Code pour votre Portail</h3>
+                    <h3 class="text-xl font-semibold text-[#6B4A3A] mb-3">QR Code pour votre Portail</h3>
 
                     <p class="text-sm text-gray-500 mb-4">
                         Utilisez-le sur vos cartes de visite ou supports imprimés.
                     </p>
 
-                    <button id="generate-qrcode" class="bg-[#647a0b] text-white px-4 py-2 rounded hover:bg-[#8ea633]">
+                    <button id="generate-qrcode" class="bg-[#6B4A3A] text-white px-4 py-2 rounded hover:bg-[#4E5F3A]">
                         Générer le QR Code
                     </button>
 
                     <a id="download-qrcode" href="#" download="qrcode.png"
-                       class="bg-[#a96b56] text-white px-4 py-2 rounded hover:bg-[#854f38] ml-3 hidden">
+                       class="bg-[#a96b56] text-white px-4 py-2 rounded hover:bg-[#5F7048] ml-3 hidden">
                         Télécharger
                     </a>
 
@@ -428,8 +428,8 @@
                     datasets: [{
                         label: '{{ __("Nombre de Rendez-vous") }}',
                         data: appointmentsData,
-                        backgroundColor: 'rgba(100, 122, 11, 0.6)',
-                        borderColor: 'rgba(100, 122, 11, 1)',
+                        backgroundColor: 'rgba(167, 184, 138, 0.6)',
+                        borderColor: 'rgba(167, 184, 138, 1)',
                         borderWidth: 1
                     }]
                 },
@@ -469,15 +469,15 @@
                     datasets: [{
                         label: '{{ __("Revenus (€)") }}',
                         data: revenueData,
-                        backgroundColor: 'rgba(133, 79, 56, 0.2)',
-                        borderColor: 'rgba(133, 79, 56, 1)',
+                        backgroundColor: 'rgba(107, 74, 58, 0.2)',
+                        borderColor: 'rgba(107, 74, 58, 1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                        pointBackgroundColor: 'rgba(107, 74, 58, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                        pointHoverBorderColor: 'rgba(107, 74, 58, 1)'
                     }]
                 },
                 options: {

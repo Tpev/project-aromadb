@@ -1,6 +1,6 @@
 <x-app-layout>
   {{-- ========================  SEO  ======================== --}}
-  @section('title', 'Trouvez un thérapeute près de chez vous | AromaMade')
+  @section('title', 'Trouvez un thérapeute près de chez vous | Olithea')
   @section('meta_description')
     Réservez en ligne avec des thérapeutes certifiés (naturopathie, sophrologie, ostéopathie…). Profils vérifiés, avis, tarifs, prise de RDV simple. Espace Client pour partager vos documents en toute sécurité. Événements & ateliers organisés par nos membres.
   @endsection
@@ -11,14 +11,14 @@
     <meta name="robots" content="index,follow">
 
     {{-- Social --}}
-    <meta property="og:site_name" content="AromaMade">
+    <meta property="og:site_name" content="Olithea">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Trouvez un thérapeute près de chez vous | AromaMade">
+    <meta property="og:title" content="Trouvez un thérapeute près de chez vous | Olithea">
     <meta property="og:description" content="Réservez avec des praticiens vérifiés. Avis, tarifs, Espace Client sécurisé.">
     <meta property="og:image" content="{{ asset('images/og-home.webp') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Trouvez un thérapeute près de chez vous | AromaMade">
+    <meta name="twitter:title" content="Trouvez un thérapeute près de chez vous | Olithea">
     <meta name="twitter:description" content="Prise de RDV simple, profils vérifiés, Espace Client sécurisé.">
     <meta name="twitter:image" content="{{ asset('images/og-home.webp') }}">
 
@@ -33,7 +33,7 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "AromaMade",
+      "name": "Olithea",
       "url": "{{ url('/') }}",
       "potentialAction": {
         "@type": "SearchAction",
@@ -51,8 +51,8 @@
   <section class="relative bg-cover bg-center" style="background-image:url('{{ asset('images/hero-background.webp') }}')">
     <div class="absolute inset-0 bg-black/45"></div>
     <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 text-center">
-      <img src="{{ asset('images/white-logo.png') }}" alt="AromaMade - Plateforme de prise de rendez-vous bien-être"
-           class="mx-auto w-[200px] sm:w-[260px] md:w-[320px] mb-5 md:mb-7" loading="lazy">
+      <img src="{{ asset('images/brand/olithea-logo-horizontal-green-cropped.png') }}" alt="Olithea - Plateforme de prise de rendez-vous bien-être"
+           class="mx-auto w-[200px] sm:w-[260px] md:w-[320px] mb-5 md:mb-7 brightness-0 invert drop-shadow-xl" loading="lazy">
 
       <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
         Trouvez votre thérapeute et réservez en quelques clics
@@ -69,32 +69,32 @@
 
           {{-- Name (fuzzy across name & company_name) --}}
           <div>
-            <label for="name" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
+            <label for="name" class="block text-xs sm:text-sm font-semibold text-[#6B4A3A] mb-1">
               Nom (optionnel)
             </label>
             <input type="text" id="name" name="name"
-                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
+                   class="w-full rounded-xl border-gray-300 focus:ring-[#6B4A3A] focus:border-[#6B4A3A] px-4 py-3"
                    placeholder="Ex. Marie Dupont ou Cabinet Harmonie" value="{{ old('name', request('name')) }}">
           </div>
 
           {{-- Specialty --}}
           <div>
-            <label for="specialty" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
+            <label for="specialty" class="block text-xs sm:text-sm font-semibold text-[#6B4A3A] mb-1">
               Spécialité
             </label>
             <input type="text" id="specialty" name="specialty" list="specialties"
-                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
+                   class="w-full rounded-xl border-gray-300 focus:ring-[#6B4A3A] focus:border-[#6B4A3A] px-4 py-3"
                    placeholder="Ex. naturopathie, sophrologie" value="{{ old('specialty', request('specialty')) }}">
             <datalist id="specialties"></datalist>
           </div>
 
           {{-- Location --}}
           <div>
-            <label for="location" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
+            <label for="location" class="block text-xs sm:text-sm font-semibold text-[#6B4A3A] mb-1">
               Lieu
             </label>
             <input type="text" id="location" name="location" list="regions"
-                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
+                   class="w-full rounded-xl border-gray-300 focus:ring-[#6B4A3A] focus:border-[#6B4A3A] px-4 py-3"
                    placeholder="Ville, code postal ou région" value="{{ old('location', request('location')) }}">
             <datalist id="regions"></datalist>
           </div>
@@ -102,7 +102,7 @@
           {{-- Submit --}}
           <div class="flex items-end">
             <button type="submit"
-                    class="w-full inline-flex items-center justify-center bg-[#647a0b] hover:bg-[#576a0a] text-white font-semibold rounded-xl px-6 py-3 shadow-lg transition active:scale-[0.99]">
+                    class="w-full inline-flex items-center justify-center bg-[#6B4A3A] hover:bg-[#4E5F3A] text-white font-semibold rounded-xl px-6 py-3 shadow-lg transition active:scale-[0.99]">
               Rechercher
             </button>
           </div>
@@ -125,15 +125,15 @@
   <section class="bg-[#f8f8f8] py-6">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold text-[#647a0b]">Praticiens vérifiés</p>
+        <p class="font-semibold text-[#6B4A3A]">Praticiens vérifiés</p>
         <p class="text-sm text-gray-600">Diplômes & profils revus par notre équipe.</p>
       </div>
       <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold text-[#647a0b]">Réservation rapide</p>
+        <p class="font-semibold text-[#6B4A3A]">Réservation rapide</p>
         <p class="text-sm text-gray-600">Créneaux en cabinet, à domicile ou en visio.</p>
       </div>
       <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold text-[#647a0b]">Données sécurisées</p>
+        <p class="font-semibold text-[#6B4A3A]">Données sécurisées</p>
         <p class="text-sm text-gray-600">Confidentialité & chiffrement renforcés.</p>
       </div>
     </div>
@@ -144,8 +144,8 @@
   <section class="py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Praticiens à la une</h2>
-        <a href="{{ route('nos-practiciens') }}" class="text-[#854f38] hover:underline font-semibold">Voir tout</a>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#6B4A3A]">Praticiens à la une</h2>
+        <a href="{{ route('nos-practiciens') }}" class="text-[#5F7048] hover:underline font-semibold">Voir tout</a>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -153,7 +153,7 @@
           <div class="flex flex-col bg-white shadow-xl rounded-xl overflow-hidden transform hover:-translate-y-1 transition-all duration-300">
 
             <!-- Header Banner -->
-            <div class="relative h-40 bg-[#647a0b]">
+            <div class="relative h-40 bg-[#6B4A3A]">
               @if($therapist->verified ?? false)
                 <div class="absolute top-2 right-2">
                   <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
@@ -175,14 +175,14 @@
             <!-- Card Details -->
             <div class="flex flex-col flex-grow px-4 pt-2 pb-4">
               <div class="text-center">
-                <h4 class="text-2xl font-bold text-[#647a0b]">{{ $therapist->name }}</h4>
+                <h4 class="text-2xl font-bold text-[#6B4A3A]">{{ $therapist->name }}</h4>
 
                 @if($therapist->company_name)
-                  <p class="text-sm text-[#647a0b]">{{ $therapist->company_name }}</p>
+                  <p class="text-sm text-[#6B4A3A]">{{ $therapist->company_name }}</p>
                 @endif
 
                 @if($therapist->city_setByAdmin)
-                  <p class="text-sm text-[#647a0b]">
+                  <p class="text-sm text-[#6B4A3A]">
                     <i class="fas fa-map-marker-alt"></i> {{ $therapist->city_setByAdmin }}
                   </p>
                 @endif
@@ -197,7 +197,7 @@
                 @endphp
                 @if(!empty($services))
                   @foreach($services as $service)
-                    <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full m-1">
+                    <span class="inline-block bg-[#6B4A3A] text-white text-xs px-3 py-1 rounded-full m-1">
                       {{ $service }}
                     </span>
                   @endforeach
@@ -208,13 +208,13 @@
                 $aboutPlain = strip_tags($therapist->about ?? 'Informations à propos non disponibles.');
               @endphp
 
-              <p class="mt-4 text-sm text-[#647a0b] text-center">
+              <p class="mt-4 text-sm text-[#6B4A3A] text-center">
                 {{ Str::limit($aboutPlain, 100) }}
               </p>
 
               <!-- Rating / Testimonials and CTA -->
               <div class="mt-4 flex flex-col items-center space-y-2">
-                <div class="flex items-center space-x-2 text-[#647a0b] text-sm">
+                <div class="flex items-center space-x-2 text-[#6B4A3A] text-sm">
                   <i class="fas fa-comment-alt"></i>
                   <span>{{ $therapist->testimonials()->count() }} témoignage(s)</span>
 
@@ -241,18 +241,18 @@
   {{-- ========================  HOW IT WORKS + ESPACE CLIENT  ======================== --}}
   <section class="bg-[#f9fafb] py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl md:text-3xl font-bold text-center text-[#647a0b]">Comment ça marche ?</h2>
+      <h2 class="text-2xl md:text-3xl font-bold text-center text-[#6B4A3A]">Comment ça marche ?</h2>
       <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-white rounded-2xl shadow p-6">
-          <h3 class="font-semibold text-lg text-[#647a0b]">1. Recherchez</h3>
+          <h3 class="font-semibold text-lg text-[#6B4A3A]">1. Recherchez</h3>
           <p class="text-gray-600">Saisissez une spécialité et un lieu pour afficher les praticiens disponibles.</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-6">
-          <h3 class="font-semibold text-lg text-[#647a0b]">2. Comparez</h3>
+          <h3 class="font-semibold text-lg text-[#6B4A3A]">2. Comparez</h3>
           <p class="text-gray-600">Lisez les profils, avis et tarifs pour choisir le bon accompagnement.</p>
         </div>
         <div class="bg-white rounded-2xl shadow p-6">
-          <h3 class="font-semibold text-lg text-[#647a0b]">3. Réservez</h3>
+          <h3 class="font-semibold text-lg text-[#6B4A3A]">3. Réservez</h3>
           <p class="text-gray-600">
             Confirmez votre créneau. Votre <strong>Espace Client</strong> est créé pour partager documents, formulaires et notes en toute confidentialité.
           </p>
@@ -340,7 +340,7 @@
     {{-- Header --}}
     <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#5F7048]">
           Événements & Ateliers des membres
         </h2>
       </div>
@@ -404,7 +404,7 @@
 
               {{-- Body --}}
               <div class="p-5 flex flex-col h-80">
-                <h3 class="text-lg font-bold text-[#854f38] line-clamp-2">
+                <h3 class="text-lg font-bold text-[#5F7048] line-clamp-2">
                   {{ $event->name }}
                 </h3>
 
@@ -418,7 +418,7 @@
                     <div>
                       Organisé par
                       <a href="{{ route('therapist.show', $event->user->slug) }}"
-                         class="text-[#647a0b] underline font-semibold">
+                         class="text-[#6B4A3A] underline font-semibold">
                         {{ $event->user->name }}
                       </a>
                     </div>
@@ -451,7 +451,7 @@
                     @if($isLong)
                       <button type="button"
                               @click="open = !open"
-                              class="mt-2 inline-flex items-center gap-2 text-[#854f38] font-semibold hover:underline">
+                              class="mt-2 inline-flex items-center gap-2 text-[#5F7048] font-semibold hover:underline">
                         <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
                         <span class="text-[10px]" :class="open ? 'rotate-180' : ''">▼</span>
                       </button>
@@ -464,7 +464,7 @@
                   @if($event->booking_required)
                     @if(!$event->limited_spot || ($spotsLeft > 0))
                       <a href="{{ route('events.reserve.create', $event->id) }}"
-                         class="inline-flex items-center justify-center w-full bg-[#854f38] hover:bg-[#6a3f2c]
+                         class="inline-flex items-center justify-center w-full bg-[#5F7048] hover:bg-[#4E5F3A]
                                 text-white font-semibold text-sm px-5 py-2.5 rounded-full transition">
                         S’inscrire
                       </a>
@@ -499,8 +499,8 @@
     <section class="py-12 bg-[#f9fafb]">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl md:text-3xl font-bold text-[#6a3f2c]">Conseils & Articles</h2>
-          <a href="{{ route('blog.index') }}" class="text-[#854f38] hover:underline font-semibold">Tous les articles</a>
+          <h2 class="text-2xl md:text-3xl font-bold text-[#4E5F3A]">Conseils & Articles</h2>
+          <a href="{{ route('blog.index') }}" class="text-[#5F7048] hover:underline font-semibold">Tous les articles</a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           @forelse($blogPosts as $post)
@@ -509,11 +509,11 @@
               <img src="{{ asset('images/'.$post->slug.'.webp') }}" alt="{{ $post->Title }}" class="w-full h-44 object-cover" loading="lazy">
               <div class="p-5">
                 @if($post->Tags)
-                  <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">{{ $post->Tags }}</span>
+                  <span class="inline-block bg-[#6B4A3A] text-white text-xs px-3 py-1 rounded-full">{{ $post->Tags }}</span>
                 @endif
-                <h3 class="mt-2 text-lg sm:text-xl font-semibold text-[#854f38] line-clamp-2">{{ $post->Title }}</h3>
+                <h3 class="mt-2 text-lg sm:text-xl font-semibold text-[#5F7048] line-clamp-2">{{ $post->Title }}</h3>
                 <p class="mt-1 text-gray-600 line-clamp-3">{{ Str::limit(strip_tags($post->Contents), 110) }}</p>
-                <span class="mt-3 inline-flex items-center text-[#647a0b] font-semibold">
+                <span class="mt-3 inline-flex items-center text-[#6B4A3A] font-semibold">
                   Lire l’article →
                 </span>
               </div>
@@ -527,14 +527,14 @@
   @endif
 
   {{-- ========================  PRO CTA (Therapists only)  ======================== --}}
-  <section class="bg-gradient-to-r from-[#854f38] to-[#6a3f2c] py-12 text-white text-center">
+  <section class="bg-gradient-to-r from-[#5F7048] to-[#4E5F3A] py-12 text-white text-center">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl md:text-3xl font-bold">Vous êtes thérapeute ? Rejoignez AromaMade PRO</h2>
+      <h2 class="text-2xl md:text-3xl font-bold">Vous êtes thérapeute ? Rejoignez Olithea PRO</h2>
       <p class="mt-3 text-white/90">
         Agenda en ligne, téléconsultation, dossiers clients, facturation, questionnaires, rappels — <strong>sans commission</strong>.
       </p>
       <a href="{{ route('prolanding') }}"
-         class="inline-block mt-6 bg-white text-[#6a3f2c] font-semibold px-6 py-3 rounded-full shadow hover:shadow-lg transition">
+         class="inline-block mt-6 bg-white text-[#4E5F3A] font-semibold px-6 py-3 rounded-full shadow hover:shadow-lg transition">
         Découvrir l’Espace PRO
       </a>
     </div>
@@ -544,7 +544,7 @@
   <section class="py-12 bg-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
       <div>
-        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">AromaMade, votre guide bien-être</h2>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#6B4A3A]">Olithea, votre guide bien-être</h2>
         <p class="mt-3 text-gray-700">
           Notre mission : rendre l’accès aux médecines douces simple, fiable et transparent. Nous centralisons un
           annuaire de praticiens vérifiés et des contenus pédagogiques (huiles essentielles, végétales, tisanes,
@@ -554,28 +554,28 @@
           Réservez votre rendez-vous en toute sérénité, comparez les profils, découvrez les avis, et utilisez votre
           <strong>Espace Client</strong> pour partager vos informations avec votre thérapeute en toute confidentialité.
         </p>
-        <a href="{{ route('welcome') }}" class="mt-4 inline-flex items-center text-[#854f38] font-semibold hover:underline">
+        <a href="{{ route('welcome') }}" class="mt-4 inline-flex items-center text-[#5F7048] font-semibold hover:underline">
           En savoir plus →
         </a>
       </div>
 
       <div class="bg-[#f9fafb] rounded-2xl shadow p-6">
-        <h3 class="text-xl font-semibold text-[#647a0b]">Questions fréquentes</h3>
+        <h3 class="text-xl font-semibold text-[#6B4A3A]">Questions fréquentes</h3>
         <div class="mt-4 divide-y">
           <details class="py-3">
-            <summary class="cursor-pointer font-medium text-[#647a0b]">
+            <summary class="cursor-pointer font-medium text-[#6B4A3A]">
               Comment vérifiez-vous les praticiens ?
             </summary>
             <p class="mt-2 text-gray-600">Contrôle manuel des diplômes/certifications et revues régulières des profils.</p>
           </details>
           <details class="py-3">
-            <summary class="cursor-pointer font-medium text-[#647a0b]">
+            <summary class="cursor-pointer font-medium text-[#6B4A3A]">
               L’Espace Client est-il inclus ?
             </summary>
             <p class="mt-2 text-gray-600">Oui, il est créé automatiquement après votre première réservation.</p>
           </details>
           <details class="py-3">
-            <summary class="cursor-pointer font-medium text-[#647a0b]">
+            <summary class="cursor-pointer font-medium text-[#6B4A3A]">
               Mes données sont-elles protégées ?
             </summary>
             <p class="mt-2 text-gray-600">Oui. Nous appliquons des mesures strictes de sécurité et ne revendons jamais vos informations.</p>

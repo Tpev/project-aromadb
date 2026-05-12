@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     Bons cadeaux
                 </h2>
                 <p class="mt-1 text-xs text-slate-600">
@@ -15,7 +15,7 @@
                 @if($user->canUseFeature('gift_vouchers'))
                     <a href="{{ route('pro.gift-vouchers.create') }}"
                        class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-95 transition"
-                       style="background:#647a0b;">
+                       style="background:#6B4A3A;">
                         + Nouveau bon cadeau
                     </a>
                 @else
@@ -54,15 +54,15 @@
 
     <style>
         :root{
-            --brand: #647a0b;
+            --brand: #6B4A3A;
             --brown: #6b4f2a;
             --cream: #f7f2ea;
         }
         .am-shell{
             background:
-                radial-gradient(circle at 0% 0%, rgba(100,122,11,0.10), transparent 45%),
-                radial-gradient(circle at 100% 10%, rgba(107,79,42,0.10), transparent 45%),
-                radial-gradient(circle at 20% 100%, rgba(100,122,11,0.08), transparent 55%),
+                radial-gradient(circle at 0% 0%, rgba(167, 184, 138,0.10), transparent 45%),
+                radial-gradient(circle at 100% 10%, rgba(107, 74, 58,0.10), transparent 45%),
+                radial-gradient(circle at 20% 100%, rgba(167, 184, 138,0.08), transparent 55%),
                 linear-gradient(180deg, #fbfaf7 0%, #f3f4f6 100%);
             border-radius: 1.25rem;
         }
@@ -91,7 +91,7 @@
             letter-spacing: .05em;
             text-transform: uppercase;
         }
-        .am-row:hover{ background: rgba(100,122,11,0.06); }
+        .am-row:hover{ background: rgba(167, 184, 138,0.06); }
         .am-chip{
             border-radius: 999px;
             padding: .4rem .75rem;
@@ -101,10 +101,10 @@
             background: white;
             transition: .15s ease;
         }
-        .am-chip:hover{ background: rgba(100,122,11,0.06); }
+        .am-chip:hover{ background: rgba(167, 184, 138,0.06); }
         .am-chip-active{
-            background: rgba(100,122,11,0.12);
-            border-color: rgba(100,122,11,0.25);
+            background: rgba(167, 184, 138,0.12);
+            border-color: rgba(167, 184, 138,0.25);
             color: var(--brand);
         }
         .am-btn{
@@ -123,19 +123,19 @@
             background: white;
             border: 1px solid rgba(15,23,42,0.10);
         }
-        .am-btn-soft:hover{ background: rgba(100,122,11,0.06); }
+        .am-btn-soft:hover{ background: rgba(167, 184, 138,0.06); }
         .am-btn-brand{
             background: var(--brand);
             color: white;
-            box-shadow: 0 10px 22px rgba(100,122,11,0.18);
+            box-shadow: 0 10px 22px rgba(167, 184, 138,0.18);
         }
         .am-btn-brand:hover{ opacity: .95; }
         .am-btn-brown{
-            background: rgba(107,79,42,0.10);
+            background: rgba(107, 74, 58,0.10);
             color: var(--brown);
-            border: 1px solid rgba(107,79,42,0.20);
+            border: 1px solid rgba(107, 74, 58,0.20);
         }
-        .am-btn-brown:hover{ background: rgba(107,79,42,0.14); }
+        .am-btn-brown:hover{ background: rgba(107, 74, 58,0.14); }
         .am-upgrade-band{
             border-radius: 1.25rem;
             border: 1px solid rgba(154,103,0,.18);
@@ -158,9 +158,9 @@
             padding: .8rem 1.1rem;
             font-size: .86rem;
             font-weight: 900;
-            background: linear-gradient(135deg, #8ea633 0%, #647a0b 100%);
+            background: linear-gradient(135deg, #4E5F3A 0%, #6B4A3A 100%);
             color: #fff;
-            box-shadow: 0 14px 26px rgba(100,122,11,.22);
+            box-shadow: 0 14px 26px rgba(167, 184, 138,.22);
         }
         .am-upgrade-btn:hover{ opacity:.96; }
         .am-lock-wrapper{ position:relative; }
@@ -231,7 +231,7 @@
                             <div class="text-sm font-extrabold">Succès</div>
                             <div class="text-sm mt-0.5">{{ session('success') }}</div>
                         </div>
-                        <div class="text-xs font-bold opacity-70">AromaMade PRO</div>
+                        <div class="text-xs font-bold opacity-70">Olithea PRO</div>
                     </div>
                 </div>
             @endif
@@ -318,7 +318,7 @@
                     @php
                         $previewInlineStyle = $backgroundPreviewDataUri
                             ? "background-image:url('{$backgroundPreviewDataUri}');background-size:cover;background-position:center;"
-                            : "background:linear-gradient(145deg, rgba(100,122,11,0.30), rgba(107,79,42,0.25));";
+                            : "background:linear-gradient(145deg, rgba(167, 184, 138,0.30), rgba(107, 74, 58,0.25));";
                     @endphp
                     <div class="md:col-span-3">
                         <div class="text-xs font-bold text-slate-600 uppercase mb-2">Aperçu bon cadeau</div>
@@ -393,7 +393,7 @@
                             <div class="mt-1 text-2xl font-extrabold text-slate-900">{{ $total }}</div>
                         </div>
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                             style="background: rgba(100,122,11,0.10); color: var(--brand);">🎁</div>
+                             style="background: rgba(167, 184, 138,0.10); color: var(--brand);">🎁</div>
                     </div>
                     <div class="mt-2 text-xs text-slate-600">Tous vos bons cadeaux.</div>
                 </div>
@@ -405,7 +405,7 @@
                             <div class="mt-1 text-2xl font-extrabold text-slate-900">{{ $activeCount }}</div>
                         </div>
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                             style="background: rgba(100,122,11,0.10); color: var(--brand);">●</div>
+                             style="background: rgba(167, 184, 138,0.10); color: var(--brand);">●</div>
                     </div>
                     <div class="mt-2 text-xs text-slate-600">Utilisables.</div>
                 </div>
@@ -417,7 +417,7 @@
                             <div class="mt-1 text-2xl font-extrabold text-slate-900">{{ $expiredCount }}</div>
                         </div>
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                             style="background: rgba(107,79,42,0.10); color: var(--brown);">⏳</div>
+                             style="background: rgba(107, 74, 58,0.10); color: var(--brown);">⏳</div>
                     </div>
                     <div class="mt-2 text-xs text-slate-600">Date dépassée.</div>
                 </div>
@@ -492,8 +492,8 @@
                         @php
                             $label = method_exists($v, 'statusLabel') ? $v->statusLabel() : ($v->is_active ? 'Actif' : 'Désactivé');
                             $badgeStyle = 'color:#334155;background:rgba(15,23,42,0.04);';
-                            if ($label === 'Actif') $badgeStyle='color:var(--brand);border-color:rgba(100,122,11,0.25);background:rgba(100,122,11,0.06);';
-                            if ($label === 'Expiré') $badgeStyle='color:var(--brown);border-color:rgba(107,79,42,0.25);background:rgba(107,79,42,0.07);';
+                            if ($label === 'Actif') $badgeStyle='color:var(--brand);border-color:rgba(167, 184, 138,0.25);background:rgba(167, 184, 138,0.06);';
+                            if ($label === 'Expiré') $badgeStyle='color:var(--brown);border-color:rgba(107, 74, 58,0.25);background:rgba(107, 74, 58,0.07);';
                             if ($label === 'Épuisé') $badgeStyle='color:#1d4ed8;border-color:rgba(29,78,216,0.20);background:rgba(29,78,216,0.06);';
                             if ($label === 'Désactivé') $badgeStyle='color:#b91c1c;border-color:rgba(185,28,28,0.20);background:rgba(185,28,28,0.06);';
                         @endphp
@@ -557,7 +557,7 @@
                 {{-- Desktop --}}
                 <div class="hidden md:block overflow-x-auto">
                     <table class="min-w-full text-sm am-table">
-                        <thead style="background: linear-gradient(90deg, rgba(100,122,11,0.10), rgba(107,79,42,0.08));">
+                        <thead style="background: linear-gradient(90deg, rgba(167, 184, 138,0.10), rgba(107, 74, 58,0.08));">
                             <tr class="text-left text-slate-700">
                                 <th class="px-4 py-3 font-extrabold">Code</th>
                                 <th class="px-4 py-3 font-extrabold">Acheteur</th>
@@ -574,8 +574,8 @@
                                 @php
                                     $label = method_exists($v, 'statusLabel') ? $v->statusLabel() : ($v->is_active ? 'Actif' : 'Désactivé');
                                     $badgeStyle = 'color:#334155;background:rgba(15,23,42,0.04);';
-                                    if ($label === 'Actif') $badgeStyle='color:var(--brand);border-color:rgba(100,122,11,0.25);background:rgba(100,122,11,0.06);';
-                                    if ($label === 'Expiré') $badgeStyle='color:var(--brown);border-color:rgba(107,79,42,0.25);background:rgba(107,79,42,0.07);';
+                                    if ($label === 'Actif') $badgeStyle='color:var(--brand);border-color:rgba(167, 184, 138,0.25);background:rgba(167, 184, 138,0.06);';
+                                    if ($label === 'Expiré') $badgeStyle='color:var(--brown);border-color:rgba(107, 74, 58,0.25);background:rgba(107, 74, 58,0.07);';
                                     if ($label === 'Épuisé') $badgeStyle='color:#1d4ed8;border-color:rgba(29,78,216,0.20);background:rgba(29,78,216,0.06);';
                                     if ($label === 'Désactivé') $badgeStyle='color:#b91c1c;border-color:rgba(185,28,28,0.20);background:rgba(185,28,28,0.06);';
                                 @endphp

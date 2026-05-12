@@ -85,9 +85,9 @@
     <style>
         /* Couleurs du Thème - Mettez à jour ces variables selon votre thème */
         :root {
-            --primary-color: #647a0b; /* Vert Foncé */
-            --secondary-color: #854f38; /* Brunâtre */
-            --card-hover-shadow: rgba(133, 79, 56, 0.2); /* Utilisation de la couleur secondaire avec transparence */
+            --primary-color: #6B4A3A; /* Vert Foncé */
+            --secondary-color: #5F7048; /* Brunâtre */
+            --card-hover-shadow: rgba(107, 74, 58, 0.2); /* Utilisation de la couleur secondaire avec transparence */
             --description-bg: #f9f9f9;
             --description-hover-bg: #ffffff;
             --text-color: #333;
@@ -95,7 +95,7 @@
             --favorite-color: var(--secondary-color);
             --card-text-color: var(--secondary-color); /* Nouvelle variable pour le texte des cartes */
             --input-border-color: var(--secondary-color);
-            --input-focus-shadow: rgba(133, 79, 56, 0.5);
+            --input-focus-shadow: rgba(107, 74, 58, 0.5);
         }
 
         body {

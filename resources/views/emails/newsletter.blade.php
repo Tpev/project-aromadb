@@ -206,7 +206,7 @@
                                             $url        = $block['url'] ?? '#';
                                             $fontSize   = $block['font_size'] ?? '14px';
                                             $textColor  = $block['text_color'] ?? '#ffffff';
-                                            $btnBgColor = $block['background_color'] ?? '#647a0b';
+                                            $btnBgColor = $block['background_color'] ?? '#6B4A3A';
                                         @endphp
 
                                         @if(!empty($url))
@@ -247,7 +247,7 @@
                                 @if(!empty($unsubscribeUrl))
                                     <div style="margin-top:8px; font-family: Arial, sans-serif; font-size:11px; color:#9ca3af;">
                                         Si vous ne souhaitez plus recevoir ces emails,
-                                        <a href="{{ $unsubscribeUrl }}" style="color:#647a0b; text-decoration:underline;">
+                                        <a href="{{ $unsubscribeUrl }}" style="color:#6B4A3A; text-decoration:underline;">
                                             cliquez ici pour vous désabonner
                                         </a>.
                                     </div>

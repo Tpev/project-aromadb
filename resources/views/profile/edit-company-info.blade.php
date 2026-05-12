@@ -1,7 +1,7 @@
 {{-- resources/views/profile/edit-company-info.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Informations de l\'Entreprise') }}
         </h2>
     </x-slot>
@@ -44,8 +44,8 @@
                     <button type="button"
                             class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
                             :class="activeTab === 'company'
-                                ? 'border-[#647a0b] text-[#647a0b]'
-                                : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                                ? 'border-[#6B4A3A] text-[#6B4A3A]'
+                                : 'border-transparent text-gray-500 hover:text-[#6B4A3A]'"
                             @click="activeTab = 'company'">
                         {{ __('Entreprise') }}
                     </button>
@@ -53,8 +53,8 @@
                     <button type="button"
                             class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
                             :class="activeTab === 'public'
-                                ? 'border-[#647a0b] text-[#647a0b]'
-                                : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                                ? 'border-[#6B4A3A] text-[#6B4A3A]'
+                                : 'border-transparent text-gray-500 hover:text-[#6B4A3A]'"
                             @click="activeTab = 'public'">
                         {{ __('Profil public') }}
                     </button>
@@ -62,8 +62,8 @@
                     <button type="button"
                             class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
                             :class="activeTab === 'booking'
-                                ? 'border-[#647a0b] text-[#647a0b]'
-                                : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                                ? 'border-[#6B4A3A] text-[#6B4A3A]'
+                                : 'border-transparent text-gray-500 hover:text-[#6B4A3A]'"
                             @click="activeTab = 'booking'">
                         {{ __('Prise de RDV & agenda') }}
                     </button>
@@ -71,8 +71,8 @@
                     <button type="button"
                             class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
                             :class="activeTab === 'legal'
-                                ? 'border-[#647a0b] text-[#647a0b]'
-                                : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                                ? 'border-[#6B4A3A] text-[#6B4A3A]'
+                                : 'border-transparent text-gray-500 hover:text-[#6B4A3A]'"
                             @click="activeTab = 'legal'">
                         {{ __('Mentions légales & CGV') }}
                     </button>
@@ -80,8 +80,8 @@
                     <button type="button"
                             class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
                             :class="activeTab === 'google'
-                                ? 'border-[#647a0b] text-[#647a0b]'
-                                : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                                ? 'border-[#6B4A3A] text-[#6B4A3A]'
+                                : 'border-transparent text-gray-500 hover:text-[#6B4A3A]'"
                             @click="activeTab = 'google'">
                         {{ __('Connexions & Google') }}
                     </button>
@@ -274,7 +274,7 @@
                             <div class="avatar-cropper-backdrop"></div>
                             <div class="avatar-cropper-dialog" role="dialog" aria-modal="true" aria-label="{{ __('Recadrer la photo de profil') }}">
                                 <div class="avatar-cropper-header">
-                                    <h4 class="font-semibold text-[#647a0b]">{{ __('Recadrer la photo') }}</h4>
+                                    <h4 class="font-semibold text-[#6B4A3A]">{{ __('Recadrer la photo') }}</h4>
                                     <button type="button" id="profile-picture-cropper-cancel-top" class="avatar-cropper-close" aria-label="{{ __('Fermer') }}">×</button>
                                 </div>
 
@@ -374,7 +374,7 @@
                             <div class="avatar-cropper-backdrop"></div>
                             <div class="avatar-cropper-dialog" role="dialog" aria-modal="true" aria-label="{{ __('Recadrer le logo du portail') }}">
                                 <div class="avatar-cropper-header">
-                                    <h4 class="font-semibold text-[#647a0b]">{{ __('Recadrer le logo') }}</h4>
+                                    <h4 class="font-semibold text-[#6B4A3A]">{{ __('Recadrer le logo') }}</h4>
                                     <button type="button" id="portal-logo-cropper-cancel-top" class="avatar-cropper-close" aria-label="{{ __('Fermer') }}">×</button>
                                 </div>
 
@@ -454,7 +454,7 @@
 
                             <!-- Helper text -->
                             <small class="text-gray-500">
-                                {{ __('Si vous souhaitez que vos clients puissent prendre rendez-vous en ligne de manière autonome via votre portail pro sur aromamade.com') }}
+                                {{ __('Si vous souhaitez que vos clients puissent prendre rendez-vous en ligne de manière autonome via votre portail pro sur olithea.fr') }}
                             </small>
 
                             @error('accept_online_appointments')
@@ -615,7 +615,7 @@
                              ========================= --}}
                         <div class="details-box mt-6">
                             <div class="flex items-center justify-between mb-2">
-                                <h3 class="font-semibold text-lg" style="color:#647a0b;">
+                                <h3 class="font-semibold text-lg" style="color:#6B4A3A;">
                                     {{ __('Branding des factures') }}
                                 </h3>
                             </div>
@@ -719,7 +719,7 @@
 
                             {{-- Couleur primaire --}}
                             @php
-                                $currentColor = old('invoice_primary_color', $user->invoice_primary_color ?: '#647a0b');
+                                $currentColor = old('invoice_primary_color', $user->invoice_primary_color ?: '#6B4A3A');
                             @endphp
 
                             <div class="mb-2">
@@ -738,7 +738,7 @@
                                            class="form-control"
                                            style="max-width:160px;"
                                            value="{{ $currentColor }}"
-                                           placeholder="#647a0b"
+                                           placeholder="#6B4A3A"
                                            oninput="document.getElementById('invoice_primary_color_picker').value = this.value">
                                 </div>
 
@@ -769,7 +769,7 @@
                                     font-size: 10px;
                                     border-radius: 9999px;
                                     font-weight: 600;
-                                    color: #854f38;
+                                    color: #5F7048;
                                     display: inline-flex;
                                     align-items: center;
                                     gap: 4px;
@@ -798,7 +798,7 @@
 
                             <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
                             <p class="text-gray-500 text-sm mb-3">
-                                {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
+                                {{ __('Connectez votre compte Olithea à Google pour automatiser encore plus votre organisation.') }}
                             </p>
 
                             <div class="flex flex-wrap items-center gap-3">
@@ -852,7 +852,7 @@
                             </div>
 
                             <small class="text-gray-500 block mt-3">
-                                {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
+                                {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous Olithea y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
                             </small>
                         </div>
 
@@ -881,7 +881,7 @@
                             <div class="details-box mt-5"
                                  x-data="{ selected: '{{ $currentGoogleColorId }}' }">
                                 <label class="details-label mb-2">
-                                    {{ __('Couleur des rendez-vous AromaMade dans Google Agenda') }}
+                                    {{ __('Couleur des rendez-vous Olithea dans Google Agenda') }}
                                 </label>
 
                                 <p class="text-gray-500 text-sm mb-3">
@@ -896,7 +896,7 @@
                                         <button type="button"
                                                 class="rounded-full border transition"
                                                 :class="selected === '{{ $id }}'
-                                                    ? 'ring-2 ring-offset-2 ring-[#647a0b] border-transparent'
+                                                    ? 'ring-2 ring-offset-2 ring-[#6B4A3A] border-transparent'
                                                     : 'border-gray-300 hover:border-gray-400'"
                                                 style="width: 34px; height: 34px; background: {{ $hex }};"
                                                 @click="selected = '{{ $id }}'"
@@ -1030,7 +1030,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 24px;
             text-align: center;
         }
@@ -1041,7 +1041,7 @@
 
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 6px;
         }
@@ -1049,7 +1049,7 @@
         .form-control {
             width: 100%;
             padding: 10px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             font-size: 1rem;
             color: #333;
@@ -1057,13 +1057,13 @@
         }
 
         .form-control:focus {
-            border-color: #647a0b;
+            border-color: #6B4A3A;
             outline: none;
-            box-shadow: 0 0 5px rgba(100, 122, 11, 0.5);
+            box-shadow: 0 0 5px rgba(167, 184, 138, 0.5);
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -1075,15 +1075,15 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             transform: translateY(-2px);
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             cursor: pointer;
@@ -1092,7 +1092,7 @@
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
             transform: translateY(-2px);
         }

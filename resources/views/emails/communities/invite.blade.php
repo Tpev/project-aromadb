@@ -1,7 +1,7 @@
 @component('mail::message')
 # Bonjour {{ $clientFirstName }},
 
-{{ $practitionerName }} vous invite à rejoindre la communauté privée **{{ $communityName }}** sur AromaMade.
+{{ $practitionerName }} vous invite à rejoindre la communauté privée **{{ $communityName }}** sur Olithea.
 
 @if(!empty($communityDescription))
 @component('mail::panel')

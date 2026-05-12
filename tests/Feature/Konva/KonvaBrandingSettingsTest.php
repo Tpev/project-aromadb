@@ -9,28 +9,28 @@ test('authenticated user can save konva branding settings', function () {
     ]);
 
     $payload = [
-        'preset' => 'forest_clarity',
-        'font_heading' => 'montserrat',
-        'font_body' => 'manrope',
-        'color_primary' => '#166534',
-        'color_secondary' => '#15803D',
-        'color_accent' => '#86EFAC',
-        'color_background' => '#F0FDF4',
-        'color_text' => '#052E16',
+        'preset' => 'zen_olive',
+        'font_heading' => 'cormorant',
+        'font_body' => 'montserrat',
+        'color_primary' => '#A7B88A',
+        'color_secondary' => '#6B4A3A',
+        'color_accent' => '#E9B07A',
+        'color_background' => '#F6F2EB',
+        'color_text' => '#3F2B22',
     ];
 
     $this->actingAs($user)
         ->postJson(route('konva.branding.update'), $payload)
         ->assertOk()
         ->assertJsonPath('ok', true)
-        ->assertJsonPath('settings.fonts.heading', 'montserrat')
-        ->assertJsonPath('settings.colors.primary', '#166534');
+        ->assertJsonPath('settings.fonts.heading', 'cormorant')
+        ->assertJsonPath('settings.colors.primary', '#A7B88A');
 
     $user->refresh();
 
     expect($user->konva_branding_settings)->toBeArray()
-        ->and($user->konva_branding_settings['fonts']['body'] ?? null)->toBe('manrope')
-        ->and($user->konva_branding_settings['colors']['accent'] ?? null)->toBe('#86EFAC');
+        ->and($user->konva_branding_settings['fonts']['body'] ?? null)->toBe('montserrat')
+        ->and($user->konva_branding_settings['colors']['accent'] ?? null)->toBe('#E9B07A');
 });
 
 test('authenticated user can open konva editor', function () {
@@ -42,19 +42,19 @@ test('authenticated user can open konva editor', function () {
         ->get(route('konva.editor'))
         ->assertOk()
         ->assertSee('Studio visuel', false)
-        ->assertSee('Branding auto', false)
-        ->assertSee('Sources intelligentes', false);
+        ->assertSee('Etape 3 - Style', false)
+        ->assertSee('Branding', false);
 });
 
 test('guest cannot save konva branding settings', function () {
     $this->postJson(route('konva.branding.update'), [
         'preset' => 'zen_olive',
-        'font_heading' => 'poppins',
-        'font_body' => 'inter',
-        'color_primary' => '#647A0B',
-        'color_secondary' => '#854F38',
-        'color_accent' => '#D4A373',
-        'color_background' => '#F8F9F5',
-        'color_text' => '#1F2937',
+        'font_heading' => 'cormorant',
+        'font_body' => 'montserrat',
+        'color_primary' => '#A7B88A',
+        'color_secondary' => '#6B4A3A',
+        'color_accent' => '#E9B07A',
+        'color_background' => '#F6F2EB',
+        'color_text' => '#3F2B22',
     ])->assertStatus(401);
 });

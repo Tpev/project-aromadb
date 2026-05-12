@@ -3,7 +3,7 @@
 
     <!-- Simple mobile header -->
     <div class="px-4 pt-4">
-        <h2 class="text-xl font-semibold text-[#647a0b]">
+        <h2 class="text-xl font-semibold text-[#6B4A3A]">
             {{ __('Demander un Rendez-vous') }}
         </h2>
     </div>
@@ -215,7 +215,7 @@
                 <!-- STEP 2: PERSONAL INFO -->
                 <div id="step-2" style="display:none;">
                     <!-- Summary of chosen slot -->
-                    <div class="details-box mb-3 rounded-md p-3 bg-[#fff9f6] border border-[#e4e8d5]">
+                    <div class="details-box mb-3 rounded-md p-3 bg-[#F6F2EB] border border-[#D8CFBF]">
                         <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">
                             {{ __('Récapitulatif du rendez-vous') }}
                         </p>
@@ -306,20 +306,20 @@
             background-color: #f9f9f9; border-radius: 10px; padding: 20px;
             box-shadow: 0 5px 15px rgba(0,0,0,.06); margin: 0 auto;
         }
-        .details-title { font-size: 1.5rem; font-weight: 700; color: #647a0b; }
+        .details-title { font-size: 1.5rem; font-weight: 700; color: #6B4A3A; }
         .details-box { margin-bottom: 14px; }
-        .details-label { font-weight: 700; color: #647a0b; display:block; margin-bottom: 5px; font-size: 0.9rem; }
-        .form-control { width: 100%; padding: 8px 10px; border: 1px solid #854f38; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
-        .form-control:focus { border-color:#647a0b; outline: none; box-shadow: 0 0 5px rgba(100,122,11,.4); }
+        .details-label { font-weight: 700; color: #6B4A3A; display:block; margin-bottom: 5px; font-size: 0.9rem; }
+        .form-control { width: 100%; padding: 8px 10px; border: 1px solid #5F7048; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
+        .form-control:focus { border-color:#6B4A3A; outline: none; box-shadow: 0 0 5px rgba(167, 184, 138,.4); }
         .btn-primary, .btn-secondary, .btn-secondary-outline {
             border:none; color:#fff; padding:10px 16px; border-radius:6px;
             display:inline-flex; align-items:center; justify-content:center; cursor:pointer;
             transition:.3s; font-size:0.95rem;
         }
-        .btn-primary { background-color:#647a0b; }
-        .btn-secondary { background-color:#854f38; }
+        .btn-primary { background-color:#6B4A3A; }
+        .btn-secondary { background-color:#5F7048; }
         .btn-secondary-outline {
-            background-color:transparent; color:#854f38; border:1px solid #854f38;
+            background-color:transparent; color:#5F7048; border:1px solid #5F7048;
         }
         .btn-primary[disabled] {
             opacity: 0.5;
@@ -328,7 +328,7 @@
         .btn-primary:hover:not([disabled]) { background-color:#4f5e08; }
         .btn-secondary:hover { background-color:#6b3b2c; }
         .btn-secondary-outline:hover {
-            background-color:#854f38; color:#fff;
+            background-color:#5F7048; color:#fff;
         }
         .text-red-500 { color:#e3342f; font-size:.8rem; margin-top:5px; }
 
@@ -339,9 +339,9 @@
             gap: 0.4rem;
         }
         .time-slot-btn {
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             background: #ffffff;
-            color: #854f38;
+            color: #5F7048;
             padding: 5px 10px;
             border-radius: 999px;
             cursor: pointer;
@@ -351,9 +351,9 @@
         }
         .time-slot-btn.active,
         .time-slot-btn:hover {
-            background: #647a0b;
+            background: #6B4A3A;
             color: #ffffff;
-            border-color: #647a0b;
+            border-color: #6B4A3A;
         }
 
         /* Wizard progress */
@@ -372,7 +372,7 @@
             width: 26px;
             height: 26px;
             border-radius: 999px;
-            border: 2px solid #e4e8d5;
+            border: 2px solid #D8CFBF;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -381,13 +381,13 @@
             color: #9ca3af;
         }
         .wizard-step.active .circle {
-            border-color: #647a0b;
-            background-color: #647a0b;
+            border-color: #6B4A3A;
+            background-color: #6B4A3A;
             color: #fff;
         }
         .wizard-step.completed .circle {
-            border-color: #647a0b;
-            background-color: #647a0b;
+            border-color: #6B4A3A;
+            background-color: #6B4A3A;
             color: #fff;
         }
         .wizard-step .label {
@@ -401,12 +401,12 @@
         }
         .wizard-line {
             height: 2px;
-            background-color: #e4e8d5;
+            background-color: #D8CFBF;
             flex: 0 0 28px;
             margin: 0 4px;
         }
         .wizard-line.active {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
         }
     </style>
 

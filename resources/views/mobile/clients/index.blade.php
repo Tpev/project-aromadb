@@ -5,7 +5,7 @@
         {{-- Header + search --}}
         <div class="flex items-center justify-between gap-2 mb-1">
             <div>
-                <h1 class="text-lg font-semibold text-[#647a0b]">
+                <h1 class="text-lg font-semibold text-[#6B4A3A]">
                     {{ __('Mes clients') }}
                 </h1>
                 <p class="text-[11px] text-gray-500 mt-0.5">
@@ -14,13 +14,13 @@
             </div>
 
             <a href="{{ route('client_profiles.create') }}"
-               class="inline-flex items-center justify-center rounded-full bg-[#647a0b] text-white text-xs px-3 py-1.5 active:scale-[0.97]">
+               class="inline-flex items-center justify-center rounded-full bg-[#6B4A3A] text-white text-xs px-3 py-1.5 active:scale-[0.97]">
                 <i class="fas fa-user-plus text-[11px] mr-1.5"></i>
                 {{ __('Nouveau') }}
             </a>
         </div>
 
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-3 shadow-sm">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-3 shadow-sm">
             <div class="flex items-center gap-2 px-2 py-1.5 rounded-xl bg-[#f5f7eb]">
                 <i class="fas fa-search text-[11px] text-gray-400"></i>
                 <input
@@ -35,7 +35,7 @@
 
         {{-- List --}}
         @if($clientProfiles->isEmpty())
-            <div class="rounded-2xl border border-dashed border-[#e4e8d5] bg-white p-6 text-center text-sm text-gray-500">
+            <div class="rounded-2xl border border-dashed border-[#D8CFBF] bg-white p-6 text-center text-sm text-gray-500">
                 {{ __('Vous n’avez pas encore de clients enregistrés.') }}<br>
                 <span class="text-xs text-gray-400">
                     {{ __('Créez votre première fiche client pour commencer.') }}
@@ -51,11 +51,11 @@
                     @endphp
 
                     <a href="{{ route('mobile.clients.show', $client->id) }}"
-                       class="block rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm active:scale-[0.99] transition transform"
+                       class="block rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm active:scale-[0.99] transition transform"
                        data-name="{{ Str::lower($fullName) }}">
                         <div class="flex items-start gap-3">
                             {{-- Avatar --}}
-                            <div class="w-10 h-10 rounded-full bg-[#647a0b]/10 flex items-center justify-center text-[13px] font-semibold text-[#647a0b]">
+                            <div class="w-10 h-10 rounded-full bg-[#6B4A3A]/10 flex items-center justify-center text-[13px] font-semibold text-[#6B4A3A]">
                                 {{ $initials ?: 'C' }}
                             </div>
 
@@ -66,7 +66,7 @@
                                     </p>
 
                                     @if($companyTag)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#647a0b]/10 text-[#647a0b] whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#6B4A3A]/10 text-[#6B4A3A] whitespace-nowrap">
                                             👔 {{ __('Entreprise') }}
                                         </span>
                                     @endif

@@ -104,8 +104,8 @@ test('patient reminder email includes visio link when appointment is visio', fun
     config([
         'services.jitsi.app_id' => 'test-app-id',
         'services.jitsi.secret' => 'test-secret',
-        'services.jitsi.base_url' => 'https://visio.aromamade.com',
-        'services.jitsi.domain' => 'visio.aromamade.com',
+        'services.jitsi.base_url' => 'https://visio.olithea.fr',
+        'services.jitsi.domain' => 'visio.olithea.fr',
     ]);
 
     $appointment = buildAppointmentForEmails([
@@ -127,7 +127,7 @@ test('patient reminder email includes visio link when appointment is visio', fun
 
     expect($html)->toContain('Lien de visioconférence');
     expect($html)->toContain('Rejoindre la visio');
-    expect($html)->toContain('visio.aromamade.com/room-test-123?jwt=');
+    expect($html)->toContain('visio.olithea.fr/room-test-123?jwt=');
 });
 
 test('therapist creation email includes domicile address', function () {

@@ -5,7 +5,7 @@
     </x-slot>
 
     <div class="py-8 px-4 max-w-3xl mx-auto">
-	        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+	        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             Mesure : {{ $metric->name }} &mdash; Client : {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
         </h2>
         <p class="mb-4 text-gray-700">
@@ -21,7 +21,7 @@
             </a>
         </div>
 
-        <h3 class="text-lg font-semibold mb-2" style="color: #647a0b;">
+        <h3 class="text-lg font-semibold mb-2" style="color: #6B4A3A;">
             Liste des Entrées
         </h3>
 

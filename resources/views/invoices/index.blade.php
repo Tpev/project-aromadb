@@ -1,7 +1,7 @@
 {{-- resources/views/invoices/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Liste des Factures') }}
         </h2>
     </x-slot>
@@ -9,7 +9,7 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <!-- Titre de la Page -->
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Liste des Factures') }}
             </h1>
 
@@ -51,8 +51,8 @@
     <div class="w-full md:w-auto">
         <input type="text"
                id="search"
-               class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80 
-                      focus:outline-none focus:ring-2 focus:ring-[#854f38]"
+               class="border border-[#5F7048] rounded-md py-2 px-4 w-full md:w-80
+                      focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
                placeholder="{{ __('Recherche par client ou statut...') }}"
                onkeyup="filterTable()">
     </div>
@@ -63,13 +63,13 @@
         @if($canUseBilling)
             {{-- Green button (normal) --}}
             <a href="{{ route('invoices.create') }}"
-               class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38]
+               class="bg-[#6B4A3A] text-white px-4 py-2 rounded-md hover:bg-[#5F7048]
                       transition duration-200 flex items-center justify-center">
 
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2"
                      fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 5a1 1 0 011 1v3h3a1 1 0 
-                             110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1 0
+                             110 2h-3v3a1 1 0 11-2 0v-3H6a1 1
                              0 110-2h3V6a1 1 0 011-1z" />
                 </svg>
 
@@ -85,8 +85,8 @@
 
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500"
                      fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 5a1 1 0 011 1v3h3a1 1 
-                             0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1
+                             0 110 2h-3v3a1 1 0 11-2 0v-3H6a1
                              1 0 110-2h3V6a1 1 0 011-1z" />
                 </svg>
 
@@ -94,18 +94,18 @@
             </a>
 
             {{-- Floating pill --}}
-            <div class="absolute -top-2 -right-2 bg-[#fff1d6] border border-[#facc15]/40 
-                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#854f38]
+            <div class="absolute -top-2 -right-2 bg-[#fff1d6] border border-[#facc15]/40
+                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#5F7048]
                         shadow-sm flex items-center gap-1">
 
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
-                          d="M10 2a4 4 0 00-4 4v2H5a2 
-                             2 0 00-2 2v6a2 2 0 002 2h10a2 
+                          d="M10 2a4 4 0 00-4 4v2H5a2
+                             2 0 00-2 2v6a2 2 0 002 2h10a2
                              2 0 002-2v-6a2 2 0 00-2-2h-1V6
                              a4 4 0 00-4-4zm0 6a2 2 0 00-2
-                             2v2a2 2 0 104 0v-2a2 2 0 
+                             2v2a2 2 0 104 0v-2a2 2 0
                              00-2-2z" clip-rule="evenodd"/>
                 </svg>
 
@@ -122,7 +122,7 @@
             <div class="bg-white shadow overflow-hidden rounded-lg">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200" id="invoiceTable">
-                        <thead class="bg-[#647a0b] text-white">
+                        <thead class="bg-[#6B4A3A] text-white">
                             <tr>
                                 <th onclick="sortTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
                                     {{ __('Numéro de Facture') }}
@@ -197,7 +197,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @if(is_null($invoice->sent_at))
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center">
                                                 <!-- Icône Non Envoyée -->
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M10 9a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V10a1 1 0 011-1z" />
@@ -227,9 +227,9 @@
                     </table>
                 </div>
             </div>
-			
-			
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+
+
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Liste des Devis') }}
             </h1>
 
@@ -245,13 +245,13 @@
 
         @if($canUseBilling)
             <a href="{{ route('invoices.createQuote') }}"
-               class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38]
+               class="bg-[#6B4A3A] text-white px-4 py-2 rounded-md hover:bg-[#5F7048]
                       transition duration-200 flex items-center justify-center">
 
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2"
                      fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 5a1 1 0 011 1v3h3a1 1 
-                             0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1
+                             0 110 2h-3v3a1 1 0 11-2 0v-3H6a1
                              1 0 110-2h3V6a1 1 0 011-1z" />
                 </svg>
 
@@ -266,8 +266,8 @@
 
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500"
                      fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 5a1 1 0 011 1v3h3a1 1 
-                             0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 
+                    <path d="M10 5a1 1 0 011 1v3h3a1 1
+                             0 110 2h-3v3a1 1 0 11-2 0v-3H6a1
                              1 0 110-2h3V6a1 1 0 011-1z" />
                 </svg>
 
@@ -275,18 +275,18 @@
             </a>
 
             {{-- Pill --}}
-            <div class="absolute -top-2 -right-2 bg-[#fff1d6] border border-[#facc15]/40 
-                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#854f38]
+            <div class="absolute -top-2 -right-2 bg-[#fff1d6] border border-[#facc15]/40
+                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#5F7048]
                         shadow-sm flex items-center gap-1">
 
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
-                          d="M10 2a4 4 0 00-4 4v2H5a2 
-                             2 0 00-2 2v6a2 2 0 002 2h10a2 
+                          d="M10 2a4 4 0 00-4 4v2H5a2
+                             2 0 00-2 2v6a2 2 0 002 2h10a2
                              2 0 002-2v-6a2 2 0 00-2-2h-1V6
                              a4 4 0 00-4-4zm0 6a2 2 0 00-2
-                             2v2a2 2 0 104 0v-2a2 2 0 
+                             2v2a2 2 0 104 0v-2a2 2 0
                              00-2-2z" clip-rule="evenodd"/>
                 </svg>
 
@@ -299,7 +299,7 @@
 </div>
 
 <table class="min-w-full divide-y divide-gray-200" id="quoteTable">
-    <thead class="bg-[#647a0b] text-white">
+    <thead class="bg-[#6B4A3A] text-white">
         <tr>
             <th onclick="sortQuoteTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
                 {{ __('Numéro de Devis') }}
@@ -374,7 +374,7 @@
                 </td>
 				                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @if(is_null($quote->sent_at))
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold inline-flex items-center">
                                                 <!-- Icône Non Envoyée -->
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                                     <path d="M10 9a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V10a1 1 0 011-1z" />
@@ -535,7 +535,7 @@ function filterTable() {
                 }
             }
         }
-		
+
 		function sortQuoteTable(n) {
     let table = document.getElementById('quoteTable');
     let tbody = table.tBodies[0];

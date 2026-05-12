@@ -29,7 +29,7 @@ class StripeController extends Controller
                     'type' => 'express',
 					'business_profile' => [
 					'name' => $user->company_name,
-					'url' => 'https://aromamade.com/pro/' . auth()->user()->slug,
+					'url' => 'https://olithea.fr/pro/' . auth()->user()->slug,
 					],
                 ]);
 				

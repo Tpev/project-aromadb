@@ -1,8 +1,8 @@
-<div id="step3" class="border border-[#e4e8d5] rounded-xl p-5 bg-[#fff9f6]">
+<div id="step3" class="border border-[#D8CFBF] rounded-xl p-5 bg-[#F6F2EB]">
 
     <div class="flex items-start justify-between gap-3 mb-4">
         <div class="flex items-start gap-3">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#647a0b] text-white text-sm font-semibold">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#6B4A3A] text-white text-sm font-semibold">
                 3
             </span>
         </div>
@@ -21,7 +21,7 @@
 
     <!-- Feature overview -->
     <div class="text-xs text-gray-600 leading-relaxed mb-4">
-        Voici un aperçu de tout ce que vous pouvez faire dans AromaMade PRO. 
+        Voici un aperçu de tout ce que vous pouvez faire dans Olithea PRO.
         Prenez quelques minutes pour explorer — cela vous montrera le véritable potentiel de la plateforme.
 
         <div class="mt-3 space-y-3">

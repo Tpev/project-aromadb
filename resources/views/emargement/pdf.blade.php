@@ -45,7 +45,7 @@
 <body>
     <div class="header">
         <div class="title">Preuve d’émargement</div>
-        <div class="subtitle muted">Document généré automatiquement par AromaMade PRO</div>
+        <div class="subtitle muted">Document généré automatiquement par Olithea PRO</div>
     </div>
 
     <div class="note">
@@ -136,7 +136,7 @@
 
         <div class="footer">
             Ce document atteste de la présence du client au rendez-vous indiqué ci-dessus.
-            Il a été généré automatiquement par le système AromaMade PRO à partir des informations
+            Il a été généré automatiquement par le système Olithea PRO à partir des informations
             enregistrées au moment de la signature.
         </div>
     </div>

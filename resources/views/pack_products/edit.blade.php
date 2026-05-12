@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div>
-            <h2 class="font-semibold text-xl" style="color:#647a0b;">
+            <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                 Modifier le pack (forfait)
             </h2>
             <p class="mt-1 text-xs text-slate-600">
@@ -12,7 +12,7 @@
 
     <style>
         :root{
-            --brand:#647a0b;
+            --brand:#6B4A3A;
             --brown:#6b4f2a;
             --cream:#f7f2ea;
         }

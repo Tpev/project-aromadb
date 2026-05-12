@@ -1,7 +1,7 @@
 {{-- resources/views/corporate_clients/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Liste des Entreprises Clientes') }}
         </h2>
     </x-slot>
@@ -9,13 +9,13 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <!-- Titre de la Page -->
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Liste des Entreprises Clientes') }}
             </h1>
 
 @php
     $user = auth()->user();
-    $canCreateCorporate = $user->canUseFeature('client_profiles_pro'); 
+    $canCreateCorporate = $user->canUseFeature('client_profiles_pro');
     // If you later want a dedicated permission for corporate clients,
     // change to something like 'corporate_profiles'
 
@@ -57,11 +57,11 @@
             type="text"
             placeholder="{{ __('Rechercher une entreprise...') }}"
             onkeyup="filterTable()"
-            class="w-full rounded-xl border border-[#854f38]/40 bg-white px-4 py-2.5 text-sm shadow-sm 
-                   focus:outline-none focus:ring-2 focus:ring-[#854f38] transition" />
+            class="w-full rounded-xl border border-[#5F7048]/40 bg-white px-4 py-2.5 text-sm shadow-sm
+                   focus:outline-none focus:ring-2 focus:ring-[#5F7048] transition" />
 
         <svg xmlns="http://www.w3.org/2000/svg"
-             class="h-5 w-5 text-[#854f38]/70 absolute right-3 top-1/2 -translate-y-1/2"
+             class="h-5 w-5 text-[#5F7048]/70 absolute right-3 top-1/2 -translate-y-1/2"
              fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 12.65z" />
@@ -75,7 +75,7 @@
             @if($canCreateCorporate)
                 {{-- Normal green button --}}
                 <a href="{{ route('corporate-clients.create') }}"
-                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#647a0b] px-5 py-2.5 text-white text-sm font-semibold
+                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#6B4A3A] px-5 py-2.5 text-white text-sm font-semibold
                           shadow-sm hover:bg-[#586f09] transition w-full md:w-auto">
 
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
@@ -101,16 +101,16 @@
                 </a>
 
                 {{-- Floating pill --}}
-                <div class="absolute -top-3 right-0 translate-x-2 inline-flex items-center gap-1 rounded-full 
-                            bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5 
-                            text-[10px] font-semibold text-[#854f38] shadow-sm">
+                <div class="absolute -top-3 right-0 translate-x-2 inline-flex items-center gap-1 rounded-full
+                            bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5
+                            text-[10px] font-semibold text-[#5F7048] shadow-sm">
 
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
                          viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
-                              d="M10 2a4 4 0 00-4 4v2H5a2 2 0 
-                                 00-2 2v6a2 2 0 002 2h10a2 2 0 
-                                 002-2v-6a2 2 0 00-2-2h-1V6a4 4 
+                              d="M10 2a4 4 0 00-4 4v2H5a2 2 0
+                                 00-2 2v6a2 2 0 002 2h10a2 2 0
+                                 002-2v-6a2 2 0 00-2-2h-1V6a4 4
                                  0 00-4-4zm0 6a2 2 0 00-2 2v2a2 2 0 104 0v-2a2 2 0 00-2-2z"
                               clip-rule="evenodd" />
                     </svg>
@@ -132,7 +132,7 @@
             <div class="bg-white shadow overflow-hidden rounded-lg">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200" id="corporateClientTable">
-                        <thead class="bg-[#647a0b] text-white">
+                        <thead class="bg-[#6B4A3A] text-white">
                             <tr>
                                 <th onclick="sortTable(0)"
                                     class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">

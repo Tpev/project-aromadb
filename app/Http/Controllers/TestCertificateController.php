@@ -23,10 +23,10 @@ $image = ImageManager::imagick()->read('images/certificat.png');
 
 // write text to image
 $image->text($userName, 950, 600, function (FontFactory $font) {
-    $font->filename('images/Roboto-Regular.ttf');
+    $font->filename('images/CormorantGaramond-Regular.ttf');
     $font->size(70);
-    $font->color('854f38');
-    $font->stroke('854f38', 2);
+    $font->color('5F7048');
+    $font->stroke('5F7048', 2);
     $font->align('center');
     $font->valign('middle');
     $font->lineHeight(1.6);

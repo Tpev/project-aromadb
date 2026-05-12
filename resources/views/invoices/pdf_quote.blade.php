@@ -7,7 +7,7 @@
     @php
         $user = $invoice->user;
 
-        $brandColor = $user?->invoice_primary_color ?: '#854f38';
+        $brandColor = $user?->invoice_primary_color ?: '#5F7048';
 
         $logoFile = null;
         if (!empty($user?->invoice_logo_path)) {

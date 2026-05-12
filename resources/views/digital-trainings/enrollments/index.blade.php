@@ -4,7 +4,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color: #647a0b;">
+                <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
                     {{ __('Participants de la formation') }} – {{ $training->title }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -59,7 +59,7 @@
                             </label>
                             <select name="client_profile_id"
                                     id="client_profile_id"
-                                    class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                    class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                                 <option value="">{{ __('Aucun / saisir manuellement') }}</option>
                                 @foreach($clientProfiles as $client)
                                     <option value="{{ $client->id }}"
@@ -86,7 +86,7 @@
                                    name="participant_name"
                                    id="participant_name"
                                    value="{{ old('participant_name') }}"
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"
                                    placeholder="{{ __('Ex : Marie Dupont') }}">
                             <p class="mt-1 text-[11px] text-slate-500">
                                 {{ __('Optionnel si un profil client est sélectionné.') }}
@@ -104,7 +104,7 @@
                                    id="participant_email"
                                    value="{{ old('participant_email') }}"
                                    required
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"
                                    placeholder="prenom.nom@email.com">
                             <p class="mt-1 text-[11px] text-slate-500">
                                 {{ __('L’email sera utilisé pour envoyer le lien d’accès à la formation.') }}
@@ -114,7 +114,7 @@
 
                     <div class="flex justify-end pt-2">
                         <button type="submit"
-                                class="rounded-full bg-[#647a0b] px-5 py-2 text-sm font-semibold text-white hover:bg-[#506108]">
+                                class="rounded-full bg-[#6B4A3A] px-5 py-2 text-sm font-semibold text-white hover:bg-[#506108]">
                             {{ __('Créer l’accès et envoyer l’invitation') }}
                         </button>
                     </div>

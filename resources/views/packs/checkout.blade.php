@@ -23,7 +23,7 @@
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ $isPack ? __('Acheter un pack') : __('Acheter une formation') }}
         </h2>
     </x-slot>
@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
     <style>
-        :root { --brand:#647a0b; --brown:#854f38; --bg:#f9f9f9; }
+        :root { --brand:#6B4A3A; --brown:#5F7048; --bg:#f9f9f9; }
         .container { max-width: 900px; }
         .details-container{
             background:var(--bg); border-radius:14px; padding:22px;
@@ -44,21 +44,21 @@
         .card-soft{ background:rgba(255,255,255,.85); border:1px solid rgba(0,0,0,.05); border-radius:14px; padding:14px; }
         .details-label{ font-weight:800; color:var(--brand); display:block; margin-bottom:6px; font-size:.95rem;}
         .form-control{
-            width:100%; padding:10px 12px; border:1px solid rgba(133,79,56,.55);
+            width:100%; padding:10px 12px; border:1px solid rgba(107, 74, 58,.55);
             border-radius:10px; background:#fff;
         }
-        .form-control:focus{ border-color:var(--brand); outline:none; box-shadow:0 0 0 4px rgba(100,122,11,.14); }
+        .form-control:focus{ border-color:var(--brand); outline:none; box-shadow:0 0 0 4px rgba(167, 184, 138,.14); }
         .btn-primary, .btn-secondary{
             border:none; padding:10px 16px; border-radius:12px; font-size:1rem; font-weight:800;
             display:inline-flex; align-items:center; gap:.5rem; text-decoration:none; user-select:none;
         }
         .btn-primary{ background:var(--brand); color:#fff; }
         .btn-primary:hover{ background:var(--brown); color:#fff; }
-        .btn-secondary{ background:#fff; color:var(--brand); border:1px solid rgba(100,122,11,.35); }
-        .btn-secondary:hover{ background:rgba(100,122,11,.08); color:var(--brand); }
+        .btn-secondary{ background:#fff; color:var(--brand); border:1px solid rgba(167, 184, 138,.35); }
+        .btn-secondary:hover{ background:rgba(167, 184, 138,.08); color:var(--brand); }
         .summary-row{
             display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between;
-            background:rgba(100,122,11,.06); border:1px dashed rgba(100,122,11,.35);
+            background:rgba(167, 184, 138,.06); border:1px dashed rgba(167, 184, 138,.35);
             border-radius:12px; padding:10px 12px; margin-top:10px;
         }
         .summary-row .item{ font-size:.92rem; color:#334155; }
@@ -270,13 +270,13 @@
                                        name="retractation_notice_acknowledged"
                                        value="1"
                                        {{ old('retractation_notice_acknowledged') ? 'checked' : '' }}
-                                       class="mt-1 rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                       class="mt-1 rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
                                 <span>
                                     {{ $selectedRetractationNoticeLabel }}
                                     <a href="{{ $selectedRetractationNoticeUrl }}"
                                        target="_blank"
                                        rel="noopener noreferrer"
-                                       class="font-semibold text-[#647a0b] underline underline-offset-2">
+                                       class="font-semibold text-[#6B4A3A] underline underline-offset-2">
                                         {{ __('Consulter le document PDF') }}
                                     </a>
                                 </span>
@@ -313,7 +313,7 @@
                     {{ $therapistName }}
                 </div>
                 <div>
-                    {{ __('Paiement sécurisé — AromaMade') }}
+                    {{ __('Paiement sécurisé — Olithea') }}
                 </div>
             </div>
 

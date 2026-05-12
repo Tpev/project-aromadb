@@ -29,7 +29,7 @@
                         value="{{ old('email') }}"
                         required
                         autofocus
-                        class="w-full rounded-lg border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"
+                        class="w-full rounded-lg border-gray-300 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]"
                     >
                     @error('email')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -38,7 +38,7 @@
 
                 <button
                     type="submit"
-                    class="w-full inline-flex items-center justify-center rounded-lg bg-[#647a0b] px-4 py-2 font-semibold text-white hover:opacity-90 transition"
+                    class="w-full inline-flex items-center justify-center rounded-lg bg-[#6B4A3A] px-4 py-2 font-semibold text-white hover:opacity-90 transition"
                 >
                     Envoyer le lien
                 </button>

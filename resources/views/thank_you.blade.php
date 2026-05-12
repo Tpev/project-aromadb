@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Merci !') }}
         </h2>
     </x-slot>
@@ -30,7 +30,7 @@
         .thank-you-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 15px;
         }
 
@@ -50,24 +50,24 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: white;
             border: none;
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
-            border: 1px solid #854f38;
+            color: #5F7048;
+            border: 1px solid #5F7048;
             margin-left: 10px;
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: white;
         }
     </style>

@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->string('account_display_name')->nullable(); // ex: "Olivia Burgard"
 
             $table->string('location_id')->nullable();          // ex: 15368859932155211034
-            $table->string('location_title')->nullable();       // ex: "AromaMade PRO"
+            $table->string('location_title')->nullable();       // ex: "Olithea PRO"
 
             // Tokens OAuth
             $table->text('refresh_token')->nullable();

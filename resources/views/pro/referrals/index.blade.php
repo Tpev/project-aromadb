@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl" style="color:#647a0b;">
+            <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                 Parrainage & invitations
             </h2>
             <span class="text-xs text-gray-500">
@@ -61,7 +61,7 @@
                     <button
                         type="button"
                         class="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-white shadow-sm"
-                        style="background:#647a0b;"
+                        style="background:#6B4A3A;"
                         onclick="
                             navigator.clipboard.writeText(document.getElementById('refLink').value);
                             this.dataset.originalText = this.dataset.originalText || this.innerText;
@@ -79,7 +79,7 @@
 
                 <div class="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-emerald-900">
                     <p class="text-sm leading-relaxed">
-                        💚 <span class="font-semibold">En partageant AromaMade PRO</span>, vous gagnez un avantage,
+                        💚 <span class="font-semibold">En partageant Olithea PRO</span>, vous gagnez un avantage,
                         mais vous aidez aussi directement à faire grandir la plateforme.
                         Chaque recommandation nous permet d’investir davantage dans le produit,
                         d’améliorer les outils, d’ajouter de nouvelles fonctionnalités et de renforcer l’écosystème
@@ -163,7 +163,7 @@
                         name="message"
                         value="{{ old('message') }}"
                         class="w-full rounded-xl border-gray-300 focus:border-gray-400 focus:ring-gray-200"
-                        placeholder="Ex : Je te recommande AromaMade PRO pour gérer tes RDV, dossiers clients, factures..."
+                        placeholder="Ex : Je te recommande Olithea PRO pour gérer tes RDV, dossiers clients, factures..."
                     >
                 </div>
 
@@ -171,7 +171,7 @@
                     <button
                         type="submit"
                         class="inline-flex items-center justify-center rounded-xl px-6 py-3 font-semibold text-white shadow-sm"
-                        style="background:#647a0b;"
+                        style="background:#6B4A3A;"
                     >
                         Envoyer l’invitation
                     </button>

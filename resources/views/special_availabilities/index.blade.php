@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Vos Disponibilités Ponctuelles') }}
         </h2>
     </x-slot>
@@ -10,7 +10,7 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Liste des Disponibilités Ponctuelles') }}
             </h1>
 
@@ -22,11 +22,11 @@
 
             <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
                 <div class="w-full md:w-auto">
-                    <input type="text" id="search" class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-[#854f38]" placeholder="{{ __('Recherche par date, prestation ou lieu...') }}" onkeyup="filterTable()">
+                    <input type="text" id="search" class="border border-[#5F7048] rounded-md py-2 px-4 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-[#5F7048]" placeholder="{{ __('Recherche par date, prestation ou lieu...') }}" onkeyup="filterTable()">
                 </div>
 
                 <div class="flex flex-col sm:flex-row sm:space-x-4 w-full md:w-auto space-y-4 sm:space-y-0">
-                    <a href="{{ route('special-availabilities.create') }}" class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
+                    <a href="{{ route('special-availabilities.create') }}" class="bg-[#6B4A3A] text-white px-4 py-2 rounded-md hover:bg-[#5F7048] transition duration-200 flex items-center justify-center">
                         <i class="fas fa-plus mr-2"></i> {{ __('Ajouter des Disponibilités Ponctuelles') }}
                     </a>
                 </div>
@@ -35,7 +35,7 @@
             <div class="bg-white shadow overflow-hidden rounded-lg">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200" id="specialAvailabilityTable">
-                        <thead class="bg-[#647a0b] text-white">
+                        <thead class="bg-[#6B4A3A] text-white">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap">
                                     {{ __('Date') }}
@@ -74,7 +74,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($sa->practiceLocation)
-                                            <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-[#f5f5f5] text-[#647a0b] border border-[#647a0b]">
+                                            <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-[#f5f5f5] text-[#6B4A3A] border border-[#6B4A3A]">
                                                 {{ $sa->practiceLocation->label }}
                                                 @if($sa->practiceLocation->is_primary)
                                                     &nbsp;· {{ __('Principal') }}
@@ -87,35 +87,35 @@
                                                 @endif
                                             </div>
                                         @else
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Sans lieu') }}
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($sa->applies_to_all)
-                                            <span class="bg-[#647a0b] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#6B4A3A] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Oui') }}
                                             </span>
                                         @else
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Non') }}
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($sa->applies_to_all)
-                                            <span class="bg-[#647a0b] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#6B4A3A] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Toutes les Prestations') }}
                                             </span>
                                         @elseif($sa->products->isEmpty())
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Aucune Prestation associée') }}
                                             </span>
                                         @else
                                             <div class="flex flex-wrap">
                                                 @foreach($sa->products as $product)
-                                                    <span class="bg-[#647a0b] text-white px-2 py-1 rounded-full text-xs font-semibold inline-block mb-1 mr-1">
+                                                    <span class="bg-[#6B4A3A] text-white px-2 py-1 rounded-full text-xs font-semibold inline-block mb-1 mr-1">
                                                         {{ $product->name }}
                                                     </span>
                                                 @endforeach

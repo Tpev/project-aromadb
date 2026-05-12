@@ -81,7 +81,7 @@ if ($therapist) {
             @endif
 
             {{-- Green overlay band --}}
-            <div class="bg-[#8ea633]/90 backdrop-blur-sm text-white w-full">
+            <div class="bg-[#4E5F3A]/90 backdrop-blur-sm text-white w-full">
                 <div class="max-w-7xl mx-auto px-6
                             flex flex-col md:flex-row items-center gap-10
                             py-12 md:py-16
@@ -154,7 +154,7 @@ if ($therapist) {
                         <div class="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
                             @if($canClaimFree)
                                 <a href="#free-access-gate"
-                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#6B4A3A] font-extrabold
                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
                                           transition-colors duration-200">
                                     ✨ {{ __('Accéder gratuitement') }}
@@ -164,7 +164,7 @@ if ($therapist) {
                             {{-- BUY button --}}
                             @if($canBuy)
                                 <a href="{{ $buyUrl }}"
-                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#6B4A3A] font-extrabold
                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
                                           transition-colors duration-200">
                                     🔒 {{ __('Acheter la formation') }}
@@ -173,8 +173,8 @@ if ($therapist) {
 
                             @if($therapistPublicUrl)
                                 <a href="{{ $therapistPublicUrl }}"
-                                   class="inline-flex items-center justify-center whitespace-nowrap bg-[#854f38] text-white font-semibold
-                                          text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#6a3f2c]
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-[#5F7048] text-white font-semibold
+                                          text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#4E5F3A]
                                           transition-colors duration-200">
                                     🌿 {{ __('Voir la page du thérapeute') }}
                                 </a>
@@ -206,8 +206,8 @@ if ($therapist) {
         <div class="max-w-7xl mx-auto px-6 py-10 space-y-8">
             {{-- À propos de la formation --}}
             <section class="bg-white shadow rounded-lg p-6 md:p-8">
-                <h2 class="text-2xl md:text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-info-circle text-[#854f38] mr-3"></i>
+                <h2 class="text-2xl md:text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                    <i class="fas fa-info-circle text-[#5F7048] mr-3"></i>
                     {{ __('À propos de cette formation') }}
                 </h2>
 
@@ -225,13 +225,13 @@ if ($therapist) {
                 @if($canBuy)
                     <div class="mt-6 flex flex-wrap gap-3">
                         <a href="{{ $buyUrl }}"
-                           class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
-                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                           class="inline-flex items-center bg-[#6B4A3A] text-white font-extrabold
+                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#4E5F3A] transition-colors duration-200">
                             🔒 {{ __('Acheter maintenant (:price)', ['price' => $priceStr]) }}
                         </a>
                         @if($therapistPublicUrl)
                             <a href="{{ $therapistPublicUrl }}"
-                               class="inline-flex items-center border border-[#e4e8d5] text-[#647a0b] font-medium
+                               class="inline-flex items-center border border-[#D8CFBF] text-[#6B4A3A] font-medium
                                       px-6 py-2.5 rounded-full text-sm bg-white hover:bg-[#f4f6ec] transition-colors duration-200">
                                 🌿 {{ __('Voir le thérapeute') }}
                             </a>
@@ -242,8 +242,8 @@ if ($therapist) {
                 @if($canClaimFree)
                     <div class="mt-6 flex flex-wrap gap-3">
                         <a href="#free-access-gate"
-                           class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
-                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                           class="inline-flex items-center bg-[#6B4A3A] text-white font-extrabold
+                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#4E5F3A] transition-colors duration-200">
                             ✨ {{ __('Accéder gratuitement') }}
                         </a>
                     </div>
@@ -251,9 +251,9 @@ if ($therapist) {
             </section>
 
             @if($canClaimFree)
-                <section id="free-access-gate" class="bg-white shadow rounded-lg p-6 md:p-8 border border-[#e4e8d5]">
-                    <h2 class="text-2xl md:text-3xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-unlock-alt text-[#854f38] mr-3"></i>
+                <section id="free-access-gate" class="bg-white shadow rounded-lg p-6 md:p-8 border border-[#D8CFBF]">
+                    <h2 class="text-2xl md:text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-unlock-alt text-[#5F7048] mr-3"></i>
                         {{ __('Accéder gratuitement') }}
                     </h2>
 
@@ -282,7 +282,7 @@ if ($therapist) {
                                    name="first_name"
                                    value="{{ old('first_name') }}"
                                    required
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                         </div>
 
                         <div>
@@ -293,7 +293,7 @@ if ($therapist) {
                                    name="last_name"
                                    value="{{ old('last_name') }}"
                                    required
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                         </div>
 
                         <div class="md:col-span-2">
@@ -304,7 +304,7 @@ if ($therapist) {
                                    name="email"
                                    value="{{ old('email') }}"
                                    required
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"
                                    placeholder="prenom.nom@email.com">
                         </div>
 
@@ -315,7 +315,7 @@ if ($therapist) {
                                        name="email_communication_consent"
                                        value="1"
                                        {{ old('email_communication_consent') ? 'checked' : '' }}
-                                       class="mt-1 rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                       class="mt-1 rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
                                 <span>
                                     {{ __('J’accepte de recevoir des communications par email de la part de :name.', ['name' => $therapistName ?: __('ce praticien')]) }}
                                 </span>
@@ -324,8 +324,8 @@ if ($therapist) {
 
                         <div class="md:col-span-2 flex flex-wrap items-center gap-3 pt-2">
                             <button type="submit"
-                                    class="inline-flex items-center justify-center whitespace-nowrap bg-[#647a0b] text-white font-extrabold
-                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#8ea633]
+                                    class="inline-flex items-center justify-center whitespace-nowrap bg-[#6B4A3A] text-white font-extrabold
+                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#4E5F3A]
                                            transition-colors duration-200">
                                 ✨ {{ __('Accéder gratuitement') }}
                             </button>
@@ -340,8 +340,8 @@ if ($therapist) {
 
             {{-- Plan de la formation (modules listing) --}}
             <section class="bg-[#f9fafb] shadow rounded-lg p-6 md:p-8">
-                <h2 class="text-2xl md:text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-list-ul text-[#854f38] mr-3"></i>
+                <h2 class="text-2xl md:text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                    <i class="fas fa-list-ul text-[#5F7048] mr-3"></i>
                     {{ __('Plan de la formation') }}
                 </h2>
 
@@ -366,42 +366,42 @@ if ($therapist) {
                                 $hasPdf    = $blocks->contains(fn($b) => $b->type === 'pdf');
                             @endphp
 
-                            <div class="bg-white border border-[#e4e8d5] rounded-lg p-4 md:p-5 flex gap-4">
+                            <div class="bg-white border border-[#D8CFBF] rounded-lg p-4 md:p-5 flex gap-4">
                                 <div class="flex-shrink-0">
-                                    <div class="w-10 h-10 rounded-full bg-[#647a0b] text-white flex items-center justify-center font-semibold text-sm">
+                                    <div class="w-10 h-10 rounded-full bg-[#6B4A3A] text-white flex items-center justify-center font-semibold text-sm">
                                         {{ $displayIndex }}
                                     </div>
                                 </div>
 
                                 <div class="flex-1">
                                     <div class="flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
-                                        <h3 class="text-sm md:text-base font-semibold text-[#647a0b]">
+                                        <h3 class="text-sm md:text-base font-semibold text-[#6B4A3A]">
                                             {{ $moduleTitle }}
                                         </h3>
 
                                         @if($blocksCount > 0)
                                             <div class="flex flex-wrap gap-2 text-[11px] md:text-xs text-gray-600">
-                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#D8CFBF]">
                                                     📚 {{ trans_choice(':count contenu|:count contenus', $blocksCount, ['count' => $blocksCount]) }}
                                                 </span>
 
                                                 @if($hasText)
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#D8CFBF]">
                                                         📝 {{ __('Textes & explications') }}
                                                     </span>
                                                 @endif
                                                 @if($hasVideo)
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#D8CFBF]">
                                                         🎬 {{ __('Vidéos') }}
                                                     </span>
                                                 @endif
                                                 @if($hasAudio)
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#D8CFBF]">
                                                         🎧 {{ __('Audios') }}
                                                     </span>
                                                 @endif
                                                 @if($hasPdf)
-                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f9fafb] border border-[#D8CFBF]">
                                                         📄 {{ __('PDF & fiches pratiques') }}
                                                     </span>
                                                 @endif
@@ -428,8 +428,8 @@ if ($therapist) {
             {{-- Proposé par le thérapeute --}}
             @if($therapist)
                 <section class="bg-white shadow rounded-lg p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-user-md text-[#854f38] mr-3"></i>
+                    <h2 class="text-2xl md:text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-user-md text-[#5F7048] mr-3"></i>
                         {{ __('Proposé par votre thérapeute') }}
                     </h2>
 
@@ -449,7 +449,7 @@ if ($therapist) {
                                      alt="{{ $therapistName }}">
                             @else
                                 <div class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-white flex items-center
-                                            justify-center text-[#8ea633] text-3xl font-bold ring-4 ring-white
+                                            justify-center text-[#4E5F3A] text-3xl font-bold ring-4 ring-white
                                             select-none shadow-md">
                                     {{ $therapistInit }}
                                 </div>
@@ -458,7 +458,7 @@ if ($therapist) {
 
                         <div class="flex-1 space-y-3 text-sm md:text-base text-gray-700">
                             <div>
-                                <p class="text-lg md:text-xl font-semibold text-[#647a0b]">
+                                <p class="text-lg md:text-xl font-semibold text-[#6B4A3A]">
                                     {{ $therapistName }}
                                 </p>
                                 @if($therapistCity)
@@ -481,15 +481,15 @@ if ($therapist) {
                             <div class="pt-3 flex flex-wrap gap-3">
                                 @if($canBuy)
                                     <a href="{{ $buyUrl }}"
-                                       class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
-                                              px-5 py-2 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                                       class="inline-flex items-center bg-[#6B4A3A] text-white font-extrabold
+                                              px-5 py-2 rounded-full text-sm hover:bg-[#4E5F3A] transition-colors duration-200">
                                         🔒 {{ __('Acheter la formation') }}
                                     </a>
                                 @endif
 
                                 @if($therapistPublicUrl)
                                     <a href="{{ $therapistPublicUrl }}"
-                                       class="inline-flex items-center border border-[#e4e8d5] text-[#647a0b] font-medium
+                                       class="inline-flex items-center border border-[#D8CFBF] text-[#6B4A3A] font-medium
                                               px-5 py-2 rounded-full text-sm bg-white hover:bg-[#f4f6ec] transition-colors duration-200">
                                         🌿 {{ __('Voir sa page publique') }}
                                     </a>

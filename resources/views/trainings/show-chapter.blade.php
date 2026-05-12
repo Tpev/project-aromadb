@@ -1,7 +1,7 @@
 <!-- resources/views/trainings/show-chapter.blade.php -->
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-bold text-[#647a0b] leading-tight">
+        <h2 class="text-3xl font-bold text-[#6B4A3A] leading-tight">
             {{ $training->title }} – {{ $chapter->title }}
         </h2>
     </x-slot>
@@ -9,7 +9,7 @@
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         @foreach($chapter->lessons as $lesson)
             <article class="bg-white shadow-lg rounded-lg p-6 mb-6">
-                <h3 class="text-2xl font-bold mb-4 text-[#647a0b]">
+                <h3 class="text-2xl font-bold mb-4 text-[#6B4A3A]">
                     {{ $lesson->title }}
                 </h3>
                 <div class="leading-relaxed text-gray-700">
@@ -64,11 +64,11 @@
             justify-content: center;
         }
         .btn-primary {
-            background-color: #647a0b; /* Matches your primary brand color */
+            background-color: #6B4A3A; /* Matches your primary brand color */
             color: #ffffff;
         }
         .btn-primary:hover {
-            background-color: #8ea633; /* Slightly lighter shade on hover */
+            background-color: #4E5F3A; /* Slightly lighter shade on hover */
         }
 
         /* Disabled/Inactive State */

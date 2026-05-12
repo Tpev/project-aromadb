@@ -42,7 +42,7 @@
                 </label>
                 <input type="text" name="title"
                        value="{{ old('title', $newsletter->title ?? '') }}"
-                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                 @error('title')
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -55,7 +55,7 @@
                 <input type="text" name="subject"
                        x-model="subjectLine"
                        value="{{ $initialSubject }}"
-                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                 @error('subject')
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -68,7 +68,7 @@
                 <input type="text" name="preheader"
                        x-model="preheaderText"
                        value="{{ $initialPreheader }}"
-                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                 @error('preheader')
                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                 @enderror
@@ -82,7 +82,7 @@
                     <input type="text" name="from_name"
                            x-model="senderName"
                            value="{{ $initialFromName }}"
-                           class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                           class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                     @error('from_name')
                         <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -106,10 +106,10 @@
 
 			</div>
 
-            {{-- Email d’envoi caché, forcé à contact@aromamade.com --}}
+            {{-- Email d’envoi caché, forcé à contact@olithea.fr --}}
             <input type="hidden"
                    name="from_email"
-                   value="contact@aromamade.com">
+                   value="contact@olithea.fr">
         </div>
 
         {{-- Couleur de fond --}}
@@ -126,7 +126,7 @@
                            class="w-10 h-10 rounded border border-gray-300 p-0 cursor-pointer">
                     <input type="text"
                            x-model="backgroundColor"
-                           class="flex-1 rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                           class="flex-1 rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                            placeholder="#ffffff">
                 </div>
                 @error('background_color')
@@ -219,7 +219,7 @@
                                                 Titre
                                             </label>
                                             <input type="text"
-                                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                    x-model="block.heading">
                                         </div>
 
@@ -264,7 +264,7 @@
                                                 Texte
                                             </label>
                                             <div contenteditable="true"
-                                                 class="w-full min-h-[90px] rounded-lg border border-gray-300 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#647a0b] focus:border-[#647a0b] prose-sm"
+                                                 class="w-full min-h-[90px] rounded-lg border border-gray-300 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#6B4A3A] focus:border-[#6B4A3A] prose-sm"
                                                  :style="`text-align:${block.text_align || 'left'};`"
                                                  x-init="$el.innerHTML = block.html || ''"
                                                  @input="onEditorInput(index, $event)">
@@ -283,7 +283,7 @@
                                                 </label>
                                                 <input type="text"
                                                        x-model="block.heading_size"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        placeholder="22px">
                                             </div>
                                             <div>
@@ -303,7 +303,7 @@
                                                 </label>
                                                 <input type="text"
                                                        x-model="block.text_size"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        placeholder="14px">
                                             </div>
                                             <div>
@@ -321,7 +321,7 @@
                                                 Police
                                             </label>
                                             <select x-model="block.font_family"
-                                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                                                 <option value="Montserrat">Montserrat</option>
                                                 <option value="Arial">Arial</option>
                                                 <option value="Georgia">Georgia</option>
@@ -375,7 +375,7 @@
                                                 Texte
                                             </label>
                                             <div contenteditable="true"
-                                                 class="w-full min-h-[90px] rounded-lg border border-gray-300 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                 class="w-full min-h-[90px] rounded-lg border border-gray-300 bg-white text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                  :style="`text-align:${block.text_align || 'left'};`"
                                                  x-init="$el.innerHTML = block.html || ''"
                                                  @input="onEditorInput(index, $event)">
@@ -390,7 +390,7 @@
                                                 </label>
                                                 <input type="text"
                                                        x-model="block.text_size"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        placeholder="14px">
                                             </div>
                                             <div>
@@ -408,7 +408,7 @@
                                                 Police
                                             </label>
                                             <select x-model="block.font_family"
-                                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                                                    class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                                                 <option value="Montserrat">Montserrat</option>
                                                 <option value="Arial">Arial</option>
                                                 <option value="Georgia">Georgia</option>
@@ -428,7 +428,7 @@
                                                     URL de l’image
                                                 </label>
                                                 <input type="text"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        x-model="block.url">
                                             </div>
                                             <div class="flex flex-col items-start gap-1">
@@ -452,7 +452,7 @@
                                                 Texte alternatif (alt)
                                             </label>
                                             <input type="text"
-                                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                    x-model="block.alt">
                                         </div>
                                     </div>
@@ -467,7 +467,7 @@
                                                     Texte du bouton
                                                 </label>
                                                 <input type="text"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        x-model="block.label">
                                             </div>
                                             <div>
@@ -475,7 +475,7 @@
                                                     Lien (URL)
                                                 </label>
                                                 <input type="text"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        x-model="block.url">
                                             </div>
                                         </div>
@@ -487,7 +487,7 @@
                                                 </label>
                                                 <input type="text"
                                                        x-model="block.font_size"
-                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                                                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                                                        placeholder="14px">
                                             </div>
                                             <div>
@@ -602,7 +602,7 @@
                                                :style="`
                                                     font-size: ${block.font_size || '14px'};
                                                     color: ${block.text_color || '#ffffff'};
-                                                    background-color: ${block.background_color || '#647a0b'};
+                                                    background-color: ${block.background_color || '#6B4A3A'};
                                                `"
                                                x-text="block.label || 'En savoir plus'">
                                             </a>
@@ -635,7 +635,7 @@
     <div class="mt-4 flex justify-end">
         <button type="submit"
                 class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                style="background-color:#647a0b;">
+                style="background-color:#6B4A3A;">
             {{ $isEdit ? 'Enregistrer les modifications' : 'Créer la newsletter' }}
         </button>
     </div>
@@ -729,7 +729,7 @@
                         block.url = '';
                         block.font_size = '14px';
                         block.text_color = '#ffffff';
-                        block.background_color = '#647a0b';
+                        block.background_color = '#6B4A3A';
                     }
 
                     this.blocks.push(block);

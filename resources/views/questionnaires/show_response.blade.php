@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Détails de la Réponse au Questionnaire') }}
         </h2>
     </x-slot>
@@ -58,7 +58,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -69,7 +69,7 @@
 
         .details-box h2 {
             font-size: 1.5rem;
-            color: #854f38;
+            color: #5F7048;
         }
 
         .details-box p, .details-box li {
@@ -79,16 +79,16 @@
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             display: inline-block;
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
         }
     </style>

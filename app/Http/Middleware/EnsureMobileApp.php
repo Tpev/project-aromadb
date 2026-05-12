@@ -11,7 +11,7 @@ class EnsureMobileApp
     {
         $ua = $request->header('User-Agent', '');
 
-        if (! str_contains($ua, 'AromaMadeMobile')) {
+        if (! str_contains($ua, 'OlitheaMobile')) {
             abort(404); // or redirect('/') if you prefer
         }
 

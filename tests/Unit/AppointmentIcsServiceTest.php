@@ -118,8 +118,8 @@ test('ics export includes visio url and email contains add to calendar button', 
     config([
         'services.jitsi.app_id' => 'test-app-id',
         'services.jitsi.secret' => 'test-secret',
-        'services.jitsi.base_url' => 'https://visio.aromamade.com',
-        'services.jitsi.domain' => 'visio.aromamade.com',
+        'services.jitsi.base_url' => 'https://visio.olithea.fr',
+        'services.jitsi.domain' => 'visio.olithea.fr',
     ]);
 
     $appointment = buildAppointmentForIcsTests([
@@ -144,8 +144,8 @@ test('ics export includes visio url and email contains add to calendar button', 
 
     expect($ics)->toContain('LOCATION:En visio - lien dans la description');
     expect($ics)->toContain('Lien de visioconférence : https://');
-    expect($ics)->toContain('visio.aromamade.com/room-test-123?jwt=');
-    expect($ics)->toContain('URL:https://visio.aromamade.com/room-test-123?jwt=');
+    expect($ics)->toContain('visio.olithea.fr/room-test-123?jwt=');
+    expect($ics)->toContain('URL:https://visio.olithea.fr/room-test-123?jwt=');
     expect($html)->toContain('Ajouter à mon calendrier');
     expect($html)->toContain(route('appointments.downloadICS', ['token' => $appointment->token]));
 });
@@ -171,7 +171,7 @@ test('google calendar url reuses appointment details with mode-specific data', f
 
     expect($url)->toStartWith('https://calendar.google.com/calendar/render?action=TEMPLATE');
     expect($decodedUrl)->toContain('text=Consultation Aroma avec Cabinet Aroma');
-    expect($decodedUrl)->toContain('details=Rendez-vous AromaMade');
+    expect($decodedUrl)->toContain('details=Rendez-vous Olithea');
     expect($decodedUrl)->toContain('Domicile');
     expect($decodedUrl)->toContain('Adresse du domicile : 22 Rue de la Paix, 75002 Paris');
     expect($decodedUrl)->toContain('location=');

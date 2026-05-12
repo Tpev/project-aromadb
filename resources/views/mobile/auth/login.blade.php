@@ -6,7 +6,7 @@
 
         <div class="w-full max-w-sm mx-auto space-y-6">
 
-            <h1 class="text-2xl font-extrabold text-center text-[#647a0b]">
+            <h1 class="text-2xl font-extrabold text-center text-[#6B4A3A]">
                 Connexion
             </h1>
 
@@ -19,7 +19,7 @@
                     <input type="email" name="email"
                            value="{{ old('email') }}"
                            required autofocus
-                           class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#647a0b]">
+                           class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#6B4A3A]">
                     @error('email')
                         <p class="text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -30,7 +30,7 @@
                     <label class="text-sm font-medium text-gray-700">Mot de passe</label>
                     <input type="password" name="password"
                            required
-                           class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#647a0b]">
+                           class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#6B4A3A]">
                     @error('password')
                         <p class="text-xs text-red-500">{{ $message }}</p>
                     @enderror
@@ -44,7 +44,7 @@
 
                 {{-- SUBMIT --}}
                 <button type="submit"
-                        class="w-full bg-[#647a0b] text-white py-3 rounded-xl font-semibold text-base hover:bg-[#8ea633]">
+                        class="w-full bg-[#6B4A3A] text-white py-3 rounded-xl font-semibold text-base hover:bg-[#4E5F3A]">
                     Se connecter
                 </button>
 
@@ -57,7 +57,7 @@
 
             <div class="text-center text-sm text-gray-600">
                 Pas encore de compte ?
-                <a href="{{ route('register') }}" class="underline text-[#647a0b]">
+                <a href="{{ route('register') }}" class="underline text-[#6B4A3A]">
                     Créer un compte
                 </a>
             </div>

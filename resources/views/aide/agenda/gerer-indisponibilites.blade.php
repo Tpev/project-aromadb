@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Gérer les indisponibilités agenda | AromaMade PRO')
+    @section('title', 'Gérer les indisponibilités agenda | Olithea PRO')
     @section('meta_description')
-Bloquez congés, absences et fermetures dans AromaMade PRO pour éviter les réservations non souhaitées et garder un agenda praticien fiable.
+Bloquez congés, absences et fermetures dans Olithea PRO pour éviter les réservations non souhaitées et garder un agenda praticien fiable.
     @endsection
     @section('structured_data')
         <script type="application/ld+json">

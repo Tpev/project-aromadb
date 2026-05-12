@@ -1,7 +1,7 @@
 {{-- resources/views/conseils/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Détails du Conseil') }}
         </h2>
     </x-slot>
@@ -10,7 +10,7 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <!-- Section Titre -->
             <div class="bg-white shadow overflow-hidden rounded-lg p-6">
-                <h1 class="text-4xl font-bold text-[#647a0b] text-center mb-4">
+                <h1 class="text-4xl font-bold text-[#6B4A3A] text-center mb-4">
                     {{ $conseil->name }}
                 </h1>
 
@@ -18,7 +18,7 @@
                 <div class="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
                     <div class="flex flex-col">
                         @if($conseil->tag)
-                            <span class="inline-block bg-[#647a0b] text-white text-xs font-semibold px-2 py-1 rounded-full mb-2">
+                            <span class="inline-block bg-[#6B4A3A] text-white text-xs font-semibold px-2 py-1 rounded-full mb-2">
                                 {{ __('Tag :') }} {{ $conseil->tag }}
                             </span>
                         @endif
@@ -36,7 +36,7 @@
                         </a>
 
                         <!-- Modifier -->
-                        <a href="{{ route('conseils.edit', $conseil->id) }}" class="inline-block bg-[#647a0b] text-white py-2 px-4 rounded-md hover:bg-[#854f38] transition duration-200">
+                        <a href="{{ route('conseils.edit', $conseil->id) }}" class="inline-block bg-[#6B4A3A] text-white py-2 px-4 rounded-md hover:bg-[#5F7048] transition duration-200">
                             {{ __('Modifier') }}
                         </a>
 
@@ -61,14 +61,14 @@
                 @endif
 
                 <!-- Contenu (Rich Text) -->
-                <div class="prose max-w-none prose-lg prose-[#647a0b]">
+                <div class="prose max-w-none prose-lg prose-[#6B4A3A]">
                     {!! $conseil->content !!}
                 </div>
 
                 <!-- Pièce Jointe (PDF) -->
                 @if($conseil->attachment)
                     <div class="mt-6">
-                        <a href="{{ asset('storage/' . $conseil->attachment) }}" target="_blank" class="inline-flex items-center text-[#647a0b] font-semibold hover:underline">
+                        <a href="{{ asset('storage/' . $conseil->attachment) }}" target="_blank" class="inline-flex items-center text-[#6B4A3A] font-semibold hover:underline">
                             <!-- Icône PDF -->
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M16.5 2H7a2 2 0 00-2 2v12a2 2 0 002 2h9.5a1.5 1.5 0 001.5-1.5V3.5A1.5 1.5 0 0016.5 2zM5 4a2 2 0 00-2 2v12a2 2 0 002 2h.5V4H5z" />
@@ -89,16 +89,16 @@
         }
 
         .prose h1, .prose h2, .prose h3 {
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         .prose a {
-            color: #854f38;
+            color: #5F7048;
             text-decoration: underline;
         }
 
         .prose blockquote {
-            border-left: 4px solid #647a0b;
+            border-left: 4px solid #6B4A3A;
             padding-left: 1rem;
             font-style: italic;
             color: #555;

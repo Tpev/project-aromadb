@@ -1,6 +1,6 @@
-﻿<x-app-layout>
+<x-app-layout>
   <x-slot name="header">
-    <h2 class="font-semibold text-xl" style="color:#647a0b;">CA encaissé par mois - {{ $year }}</h2>
+    <h2 class="font-semibold text-xl" style="color:#6B4A3A;">CA encaiss� par mois - {{ $year }}</h2>
   </x-slot>
 
   @php
@@ -27,23 +27,23 @@
 
       $requiredLabel = $requiredFamily
           ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
-          : __('une formule supérieure');
+          : __('une formule sup�rieure');
   @endphp
 
   <div class="container-fluid mt-5 details-container mx-auto p-4">
 
     <div class="flex-between mb-4">
-      <h1 class="details-title">Chiffre d'affaires encaissé - {{ $year }}</h1>
+      <h1 class="details-title">Chiffre d'affaires encaiss� - {{ $year }}</h1>
       <span class="chip chip-success">Statistiques annuelles</span>
     </div>
     <p class="text-muted mb-4">
-      Visualisez le total des encaissements mensuels ainsi que le détail entre prestations et marchandises pour l'année sélectionnée.
-      Ces données proviennent automatiquement de votre livre de recettes.
+      Visualisez le total des encaissements mensuels ainsi que le d�tail entre prestations et marchandises pour l'ann�e s�lectionn�e.
+      Ces donn�es proviennent automatiquement de votre livre de recettes.
     </p>
 
     <form method="GET" class="filter-form mb-4">
       <div class="form-group">
-        <label>Année</label>
+        <label>Ann�e</label>
         <input type="number" name="year" value="{{ $year }}" class="form-control" style="max-width:140px;">
       </div>
       <button class="btn-secondary" type="submit">Afficher</button>
@@ -56,9 +56,9 @@
           <thead>
             <tr>
               <th style="width:34%">Mois</th>
-              <th style="width:22%" class="text-right">CA total TTC (€)</th>
-              <th style="width:22%" class="text-right">Prestations (€)</th>
-              <th style="width:22%" class="text-right">Marchandises (€)</th>
+              <th style="width:22%" class="text-right">CA total TTC (�)</th>
+              <th style="width:22%" class="text-right">Prestations (�)</th>
+              <th style="width:22%" class="text-right">Marchandises (�)</th>
             </tr>
           </thead>
           <tbody>
@@ -88,10 +88,10 @@
           </tbody>
           <tfoot>
             <tr style="background:#f9faf5;font-weight:700;">
-              <td>Total annuel encaissé</td>
-              <td class="text-right">{{ number_format($totalAnnuel, 2, ',', ' ') }} €</td>
-              <td class="text-right">{{ number_format($totalServices, 2, ',', ' ') }} €</td>
-              <td class="text-right">{{ number_format($totalGoods, 2, ',', ' ') }} €</td>
+              <td>Total annuel encaiss�</td>
+              <td class="text-right">{{ number_format($totalAnnuel, 2, ',', ' ') }} �</td>
+              <td class="text-right">{{ number_format($totalServices, 2, ',', ' ') }} �</td>
+              <td class="text-right">{{ number_format($totalGoods, 2, ',', ' ') }} �</td>
             </tr>
           </tfoot>
         </table>
@@ -100,16 +100,16 @@
       @unless($canViewLivreRecettes)
         <div class="blur-overlay">
           <div class="blur-overlay-inner">
-            <h3 class="blur-title">Statistiques de CA bloquées</h3>
+            <h3 class="blur-title">Statistiques de CA bloqu�es</h3>
             <p class="blur-text">
-              Le détail du chiffre d'affaires encaissé par mois est réservé aux formules incluant le livre de recettes.
+              Le d�tail du chiffre d'affaires encaiss� par mois est r�serv� aux formules incluant le livre de recettes.
             </p>
             <p class="blur-text-small">
-              Disponible à partir de : <span class="blur-plan">{{ $requiredLabel }}</span>
+              Disponible � partir de : <span class="blur-plan">{{ $requiredLabel }}</span>
             </p>
 
             <a href="/license-tiers/pricing" class="btn-primary mt-3">
-              Voir les formules & débloquer les statistiques
+              Voir les formules & d�bloquer les statistiques
             </a>
           </div>
         </div>
@@ -139,7 +139,7 @@
     .details-title {
       font-size:2rem;
       font-weight:700;
-      color:#647a0b;
+      color:#6B4A3A;
       margin:0;
     }
 
@@ -180,7 +180,7 @@
     }
     .filter-form label {
       font-weight:600;
-      color:#647a0b;
+      color:#6B4A3A;
       font-size:.95rem;
     }
 
@@ -204,7 +204,7 @@
       border-bottom:1px solid #eee;
     }
     .am-table thead {
-      background:#647a0b;
+      background:#6B4A3A;
       color:#fff;
     }
     .am-table tbody tr:hover {
@@ -224,7 +224,7 @@
       font-weight:600;
     }
     .btn-primary {
-      background:#647a0b;
+      background:#6B4A3A;
       color:#fff;
       border:none;
     }
@@ -233,11 +233,11 @@
     }
     .btn-secondary {
       background:transparent;
-      color:#854f38;
-      border:1px solid #854f38;
+      color:#5F7048;
+      border:1px solid #5F7048;
     }
     .btn-secondary:hover {
-      background:#854f38;
+      background:#5F7048;
       color:#fff;
     }
 
@@ -267,13 +267,13 @@
       padding:20px 24px;
       box-shadow:0 12px 40px rgba(0,0,0,.12);
       text-align:center;
-      border:1px solid rgba(100,122,11,.12);
+      border:1px solid rgba(167, 184, 138,.12);
     }
     .blur-title {
       margin:0 0 8px;
       font-size:1.2rem;
       font-weight:800;
-      color:#647a0b;
+      color:#6B4A3A;
     }
     .blur-text {
       color:#4b5563;
@@ -287,7 +287,7 @@
     }
     .blur-plan {
       font-weight:700;
-      color:#854f38;
+      color:#5F7048;
     }
 
     @media (max-width: 640px) {

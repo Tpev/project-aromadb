@@ -15,7 +15,7 @@
     $servicesSeo = collect($servicesArr)->unique()->take(3)->implode(', ');
 
     // === PAGE TITLE / META ===
-    $brand     = config('app.name', 'AromaMade');
+    $brand     = config('app.name', 'Olithea');
     $nameLabel = $therapist->company_name ?? $therapist->name;
     $labelSeo  = $servicesSeo ?: 'Thérapeute';
 
@@ -124,7 +124,7 @@
             </div>
 
             {{-- ─────────────────── HERO CARD (PRIMARY GREEN, NO GRADIENT) ─────────────────── --}}
-            <x-ts-card class="rounded-3xl shadow-xl border-0 bg-[#647a0b] text-white px-6 py-7">
+            <x-ts-card class="rounded-3xl shadow-xl border-0 bg-[#6B4A3A] text-white px-6 py-7">
                 <div class="flex flex-col items-center text-center space-y-4">
 
                     {{-- Avatar --}}
@@ -181,7 +181,7 @@
                             <x-ts-button
                                 tag="a"
                                 href="{{ route('mobile.appointments.create_from_therapist', $therapist->slug) }}"
-                                class="w-full !bg-white !text-[#647a0b] !font-semibold !border-0 hover:!bg-primary-50"
+                                class="w-full !bg-white !text-[#6B4A3A] !font-semibold !border-0 hover:!bg-primary-50"
                             >
                                 <i class="fas fa-calendar-plus mr-2"></i>
                                 {{ __('Prendre rendez-vous') }}
@@ -380,27 +380,27 @@
 
                                             <div class="flex flex-wrap gap-1.5 mt-1 text-[11px]">
                                                 @if($hasCabinet)
-                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#D8CFBF]">
                                                         📍 {{ __('Cabinet') }}
                                                     </span>
                                                 @endif
                                                 @if($hasDomicile)
-                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#D8CFBF]">
                                                         🏠 {{ __('À domicile') }}
                                                     </span>
                                                 @endif
                                                 @if($hasVisio)
-                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#D8CFBF]">
                                                         💻 {{ __('Visio') }}
                                                     </span>
                                                 @endif
                                                 @if(!is_null($prestation->duration))
-                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-gray-800 border border-[#D8CFBF]">
                                                         ⏱ {{ $prestation->duration }} {{ __('min') }}
                                                     </span>
                                                 @endif
                                                 @if($canCollectOnline)
-                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-[#854f38] border border-[#e4e8d5]">
+                                                    <span class="inline-flex items-center px-2 py-[3px] rounded-full bg-white text-[#5F7048] border border-[#D8CFBF]">
                                                         💳 {{ __('Paiement en ligne possible') }}
                                                     </span>
                                                 @endif
@@ -408,7 +408,7 @@
                                         </div>
 
                                         @if($prestation->price_visible_in_portal && $prestation->price > 0)
-                                            <p class="text-[14px] font-semibold text-[#854f38] whitespace-nowrap">
+                                            <p class="text-[14px] font-semibold text-[#5F7048] whitespace-nowrap">
                                                 {{ number_format($prestation->price_incl_tax ?? $prestation->price, 2, ',', ' ') }} €
                                             </p>
                                         @endif
@@ -458,7 +458,7 @@
                                         @click="open = !open"
                                     >
                                         <div class="space-y-1 min-w-0">
-                                            <p class="text-[15px] font-semibold text-[#854f38] break-words">
+                                            <p class="text-[15px] font-semibold text-[#5F7048] break-words">
                                                 {{ $event->name }}
                                             </p>
 
@@ -476,7 +476,7 @@
 
                                         <div class="flex flex-col items-end justify-between gap-1 shrink-0">
                                             @if($event->associatedProduct && $event->associatedProduct->price > 0)
-                                                <p class="text-[13px] font-semibold text-[#854f38] whitespace-nowrap">
+                                                <p class="text-[13px] font-semibold text-[#5F7048] whitespace-nowrap">
                                                     {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
                                                 </p>
                                             @endif
@@ -554,7 +554,7 @@
                                                         href="{{ route('events.reserve.create', $event->id) }}"
                                                         size="sm"
                                                         rounded
-                                                        class="!text-[12px] !px-3 !py-1.5 !bg-[#854f38] !text-white !border-0 hover:!bg-[#6a3f2c]"
+                                                        class="!text-[12px] !px-3 !py-1.5 !bg-[#5F7048] !text-white !border-0 hover:!bg-[#4E5F3A]"
                                                     >
                                                         {{ __('Réserver ma place') }}
                                                     </x-ts-button>
@@ -599,7 +599,7 @@
                                         : $testimonial->created_at->format('d/m/Y');
                                 @endphp
 
-                                <div class="border-l-4 {{ $isGoogle ? 'border-[#8ea633]' : 'border-[#854f38]' }} bg-[#f9fafb] rounded-md px-3 py-3 space-y-2">
+                                <div class="border-l-4 {{ $isGoogle ? 'border-[#4E5F3A]' : 'border-[#5F7048]' }} bg-[#f9fafb] rounded-md px-3 py-3 space-y-2">
                                     <div class="flex items-center justify-between gap-2">
                                         <div class="flex items-center gap-2">
                                             <p class="text-[14px] font-semibold text-gray-900">
@@ -607,7 +607,7 @@
                                             </p>
 
                                             @if($isGoogle)
-                                                <span class="inline-flex items-center text-[11px] bg-[#e5f0c8] text-[#647a0b] px-2 py-[2px] rounded-full">
+                                                <span class="inline-flex items-center text-[11px] bg-[#e5f0c8] text-[#6B4A3A] px-2 py-[2px] rounded-full">
                                                     <i class="fab fa-google mr-1 text-[10px]"></i>
                                                     {{ __('Avis Google') }}
                                                 </span>
@@ -661,7 +661,7 @@
                 x-on:click.outside="infoOpen = false"
             >
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-[18px] font-semibold text-[#647a0b]">
+                    <h2 class="text-[18px] font-semibold text-[#6B4A3A]">
                         {{ __('Demander une information') }}
                     </h2>
                     <button

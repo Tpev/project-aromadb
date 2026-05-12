@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Ajouter un Article d\'Inventaire') }}
         </h2>
     </x-slot>
@@ -20,26 +20,26 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
         .details-box { margin-bottom: 20px; }
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 5px;
         }
         .form-control {
             width: 100%;
             padding: 10px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             box-sizing: border-box;
         }
         .btn-primary, .btn-secondary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             border: none;
             color: #fff;
             padding: 10px 20px;
@@ -51,7 +51,7 @@
             font-size: 1rem;
         }
         .btn-primary:hover, .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
         .text-red-500 {
             color: #e3342f;
@@ -129,7 +129,7 @@
         id="vat_rate_purchase"
         step="0.01"
         min="0"
-        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] sm:text-sm"
+        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A] sm:text-sm"
         value="{{ old('vat_rate_purchase', $inventoryItem->vat_rate_purchase ?? '') }}"
     >
 </div>
@@ -143,7 +143,7 @@
         id="vat_rate_sale"
         step="0.01"
         min="0"
-        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] sm:text-sm"
+        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A] sm:text-sm"
         value="{{ old('vat_rate_sale', $inventoryItem->vat_rate_sale ?? '') }}"
     >
 </div>

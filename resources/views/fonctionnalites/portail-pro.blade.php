@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Portail Pro | Vitrine en ligne & prise de rendez-vous | AromaMade PRO')
+    @section('title', 'Portail Pro | Vitrine en ligne & prise de rendez-vous | Olithea PRO')
     @section('meta_description')
 Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients et prise de rendez-vous. Lien unique à partager, QR code, SEO local, annuaire des praticiens et événements avec paiement à l’inscription.
     @endsection
@@ -9,7 +9,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
         <!-- Icons & Fonts -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <!-- Shared feature stylesheet -->
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
     @endpush>
@@ -33,7 +33,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Créer mon Portail Pro</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea PRO</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -96,7 +96,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-qrcode tile-icon"></i>
                     <h3>QR code</h3>
-                    <p>Générez un <strong>QR code</strong> vers <code>aromamade.com/pro/{{ '{slug}' }}</code> pour cartes de visite, affiches, salons.</p>
+                    <p>Générez un <strong>QR code</strong> vers <code>olithea.fr/pro/{{ '{slug}' }}</code> pour cartes de visite, affiches, salons.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="250">
@@ -238,7 +238,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Depuis votre tableau de bord, bouton <strong>“Générer le QR code”</strong> qui pointe vers <code>aromamade.com/pro/{{ '{slug}' }}</code>.</p>
+                        <p>Depuis votre tableau de bord, bouton <strong>“Générer le QR code”</strong> qui pointe vers <code>olithea.fr/pro/{{ '{slug}' }}</code>.</p>
                     </div>
                 </div>
 
@@ -287,7 +287,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                     <h3 style="
                         font-size:1.5rem;
                         font-weight:700;
-                        color:#647a0b;
+                        color:#6B4A3A;
                         margin-bottom:8px;
                     ">
                         Vous êtes praticien ? Découvrez la page dédiée à votre métier
@@ -298,7 +298,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea PRO s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>
@@ -316,16 +316,16 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🌿 Logiciel naturopathe
                     </a>
@@ -338,16 +338,16 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🧘 Logiciel sophrologue
                     </a>

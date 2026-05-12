@@ -25,7 +25,7 @@
   /* ---- PDF-safe CSS (Dompdf/KnP friendly) ---- */
   @page { margin: 28mm 18mm 24mm; }
   body { font-family: DejaVu Sans, Helvetica, Arial, sans-serif; color:#222; font-size:12px; }
-  h1 { font-size:20px; margin:0 0 10px; color:#647a0b; }
+  h1 { font-size:20px; margin:0 0 10px; color:#6B4A3A; }
   h2 { font-size:14px; margin:18px 0 8px; color:#333; }
   .muted{ color:#666; }
   .small{ font-size:11px; }
@@ -33,16 +33,16 @@
   .header {
     border-bottom:1px solid #e5e5e5; padding-bottom:8px; margin-bottom:14px;
   }
-  .brand { font-weight:800; color:#647a0b; }
+  .brand { font-weight:800; color:#6B4A3A; }
   .grid-2 { width:100%; border-collapse:separate; border-spacing:0 6px; }
   .grid-2 td { vertical-align:top; width:50%; padding-right:10px; }
-  .label { color:#647a0b; font-weight:700; display:block; margin-bottom:2px; }
+  .label { color:#6B4A3A; font-weight:700; display:block; margin-bottom:2px; }
   .box {
     border:1px solid #eaeaea; border-radius:8px; padding:10px 12px; margin-bottom:8px;
   }
   table.meta { width:100%; border-collapse:collapse; margin-top:6px; }
   table.meta th, table.meta td { text-align:left; border-bottom:1px solid #f0f0f0; padding:8px 6px; }
-  table.meta th { width:28%; color:#647a0b; font-weight:700; }
+  table.meta th { width:28%; color:#6B4A3A; font-weight:700; }
   .signature-area {
     border:1px dashed #cfcfcf; border-radius:8px; padding:10px; min-height:120px; display:flex; align-items:center; justify-content:center; margin-top:8px;
   }

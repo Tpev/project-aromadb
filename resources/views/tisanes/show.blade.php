@@ -10,7 +10,7 @@
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
             {{-- Nom de la Tisane --}}
-            <h1 class="text-4xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-4xl font-bold text-[#6B4A3A] text-center">
                 {{ $tisane->NomTisane }}
             </h1>
 
@@ -21,15 +21,15 @@
                         @csrf
                         <button type="submit" class="btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $tisane->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\Tisane'))
-                                <i class="fas fa-heart" style="color: #854f38;"></i> <span>Retirer des Favoris</span>
+                                <i class="fas fa-heart" style="color: #5F7048;"></i> <span>Retirer des Favoris</span>
                             @else
-                                <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
+                                <i class="far fa-heart" style="color: #5F7048;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
+                        <i class="far fa-heart" style="color: #5F7048;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
@@ -45,15 +45,15 @@
                     <div class="space-y-6">
                         {{-- Nom Latin --}}
                         <div>
-                            <h2 class="text-2xl font-bold text-[#647a0b] flex items-center">
-                                <i class="fas fa-leaf mr-2 text-[#854f38]"></i> Nom Latin
+                            <h2 class="text-2xl font-bold text-[#6B4A3A] flex items-center">
+                                <i class="fas fa-leaf mr-2 text-[#5F7048]"></i> Nom Latin
                             </h2>
                             <p class="mt-2 text-gray-700 italic">{{ $tisane->NomLatin }}</p>
                         </div>
                         {{-- Provenance --}}
                         <div>
-                            <h2 class="text-2xl font-bold text-[#647a0b] flex items-center">
-                                <i class="fas fa-globe mr-2 text-[#854f38]"></i> Provenance
+                            <h2 class="text-2xl font-bold text-[#6B4A3A] flex items-center">
+                                <i class="fas fa-globe mr-2 text-[#5F7048]"></i> Provenance
                             </h2>
                             <p class="mt-2 text-gray-700">{{ $tisane->Provenance }}</p>
                         </div>
@@ -65,8 +65,8 @@
             <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
                 {{-- Propriétés --}}
                 <div class="md:w-1/2">
-                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-capsules mr-2 text-[#854f38]"></i> Propriétés
+                    <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-capsules mr-2 text-[#5F7048]"></i> Propriétés
                     </h3>
                     @php
                         $properties = explode(';', $tisane->Properties);
@@ -83,8 +83,8 @@
                 </div>
                 {{-- Indications --}}
                 <div class="md:w-1/2">
-                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-stethoscope mr-2 text-[#854f38]"></i> Indications
+                    <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-stethoscope mr-2 text-[#5F7048]"></i> Indications
                     </h3>
                     @php
                         $indications = explode(';', $tisane->Indications);
@@ -105,8 +105,8 @@
             <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
                 {{-- Composition --}}
                 <div class="md:w-1/2">
-                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-flask mr-2 text-[#854f38]"></i> Composition
+                    <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-flask mr-2 text-[#5F7048]"></i> Composition
                     </h3>
                     @php
                         $compositions = explode(';', $tisane->Sb);
@@ -123,8 +123,8 @@
                 </div>
                 {{-- Contre-indications --}}
                 <div class="md:w-1/2">
-                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2 text-[#854f38]"></i> Contre-indications
+                    <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2 text-[#5F7048]"></i> Contre-indications
                     </h3>
                     @php
                         $contreIndications = explode(';', $tisane->ContreIndications);
@@ -143,8 +143,8 @@
 
             {{-- Partie Utilisée --}}
             <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-seedling mr-2 text-[#854f38]"></i> Partie Utilisée
+                <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                    <i class="fas fa-seedling mr-2 text-[#5F7048]"></i> Partie Utilisée
                 </h3>
                 <p class="mt-4 text-gray-700">{{ $tisane->OrganeProducteur }}</p>
             </div>
@@ -153,15 +153,15 @@
             <div class="bg-white shadow rounded-lg p-8 flex flex-col md:flex-row space-y-8 md:space-y-0 md:space-x-8">
                 {{-- Description --}}
                 <div class="md:w-1/2">
-                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-align-left mr-2 text-[#854f38]"></i> Description
+                    <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-align-left mr-2 text-[#5F7048]"></i> Description
                     </h3>
                     <p class="mt-4 text-gray-700">{{ $tisane->Description ?? 'Aucune' }}</p>
                 </div>
                 {{-- Note --}}
                 <div class="md:w-1/2">
-                    <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                        <i class="fas fa-sticky-note mr-2 text-[#854f38]"></i> Note
+                    <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                        <i class="fas fa-sticky-note mr-2 text-[#5F7048]"></i> Note
                     </h3>
                     <p class="mt-4 text-gray-700">{{ $tisane->Note ?? 'Aucune note' }}</p>
                 </div>
@@ -169,14 +169,14 @@
 
             {{-- Liste des Recettes --}}
             <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-2xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-book-open mr-2 text-[#854f38]"></i> Recettes avec {{ $tisane->NomTisane }}
+                <h3 class="text-2xl font-semibold text-[#6B4A3A] flex items-center">
+                    <i class="fas fa-book-open mr-2 text-[#5F7048]"></i> Recettes avec {{ $tisane->NomTisane }}
                 </h3>
                 @if($tisane->relatedRecettes()->isNotEmpty())
                     <ul class="mt-4 list-disc list-inside text-gray-700">
                         @foreach($tisane->relatedRecettes() as $recette)
                             <li class="mb-2">
-                                <a href="{{ route('recettes.show', $recette->slug) }}" class="text-[#854f38] hover:underline">
+                                <a href="{{ route('recettes.show', $recette->slug) }}" class="text-[#5F7048] hover:underline">
                                      {{ $recette->NomRecette }} ({{ $recette->TypeApplication }})
                                 </a>
                             </li>
@@ -189,7 +189,7 @@
 
             {{-- Bouton Retour --}}
             <div class="text-center mt-8">
-                <a href="{{ route('tisanes.index') }}" class="inline-block bg-[#854f38] text-white text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c] transition-colors duration-300">
+                <a href="{{ route('tisanes.index') }}" class="inline-block bg-[#5F7048] text-white text-lg px-8 py-3 rounded-full hover:bg-[#4E5F3A] transition-colors duration-300">
                     Retour à la liste
                 </a>
             </div>
@@ -208,14 +208,14 @@
         .btn-favorite {
             background-color: transparent;
             border: none;
-            color: #854f38;
+            color: #5F7048;
             font-size: 1.25rem;
             cursor: pointer;
             transition: color 0.3s ease;
         }
 
         .btn-favorite:hover {
-            color: #6a3f2c;
+            color: #4E5F3A;
         }
 
         .shadow {

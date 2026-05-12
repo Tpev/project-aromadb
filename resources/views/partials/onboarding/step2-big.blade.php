@@ -1,8 +1,8 @@
 {{-- resources/views/partials/onboarding/step2-big.blade.php --}}
-<div id="step2" class="border border-[#e4e8d5] rounded-xl p-5 bg-[#fdfbf8]">
+<div id="step2" class="border border-[#D8CFBF] rounded-xl p-5 bg-[#fdfbf8]">
     <div class="flex items-start justify-between gap-3 mb-4">
         <div class="flex items-start gap-3">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#647a0b] text-white text-sm font-semibold">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#6B4A3A] text-white text-sm font-semibold">
                 2
             </span>
             <div>
@@ -29,7 +29,7 @@
 
     {{-- Barre de progression --}}
     <div class="w-full bg-gray-100 rounded-full h-1.5 mb-4 overflow-hidden">
-        <div class="h-1.5 rounded-full bg-[#647a0b] transition-all duration-300"
+        <div class="h-1.5 rounded-full bg-[#6B4A3A] transition-all duration-300"
              style="width: {{ $step2Completion }}%;"></div>
     </div>
 
@@ -67,19 +67,19 @@
     <div class="flex flex-wrap gap-2">
         <a href="{{ route('practice-locations.index') }}"
            class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold rounded-lg
-                  bg-white text-[#647a0b] border border-[#647a0b] hover:bg-[#f5f7eb] transition-colors">
+                  bg-white text-[#6B4A3A] border border-[#6B4A3A] hover:bg-[#f5f7eb] transition-colors">
             Gérer mes lieux
         </a>
 
         <a href="{{ route('availabilities.index') }}"
            class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold rounded-lg
-                  bg-white text-[#647a0b] border border-[#647a0b] hover:bg-[#f5f7eb] transition-colors">
+                  bg-white text-[#6B4A3A] border border-[#6B4A3A] hover:bg-[#f5f7eb] transition-colors">
             Définir mes horaires
         </a>
 
         <a href="{{ route('products.index') }}"
            class="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold rounded-lg
-                  bg-[#647a0b] text-white hover:bg-[#8ea633] transition-colors">
+                  bg-[#6B4A3A] text-white hover:bg-[#4E5F3A] transition-colors">
             Rendre mes prestations réservables
         </a>
     </div>

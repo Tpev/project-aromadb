@@ -2,22 +2,22 @@
     @push('styles')
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @endpush
 
-    @section('title', 'Logiciel sophrologue – Agenda, dossiers clients & facturation | AromaMade PRO')
+    @section('title', 'Logiciel sophrologue – Agenda, dossiers clients & facturation | Olithea PRO')
     @section('meta_description')
-AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservation en ligne, dossiers clients, questionnaires de suivi, facturation simple et visibilité pour développer votre activité de sophrologie.
+Olithea PRO est un logiciel conçu pour les sophrologues : agenda et réservation en ligne, dossiers clients, questionnaires de suivi, facturation simple et visibilité pour développer votre activité de sophrologie.
     @endsection
 
     <style>
         :root {
-            --primary-color: #647a0b;
-            --secondary-color: #854f38;
+            --primary-color: #6B4A3A;
+            --secondary-color: #5F7048;
         }
 
-        body { font-family: 'Roboto', sans-serif; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        body { font-family: Montserrat, "Avenir Next", sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: "Cormorant Garamond", Georgia, serif; }
         .text-primary { color: var(--primary-color); }
         .bg-primary { background-color: var(--primary-color); }
         .text-secondary { color: var(--secondary-color); }
@@ -111,8 +111,8 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
             gap:8px;
             padding:8px 12px;
             border-radius:999px;
-            background: rgba(100,122,11,.08);
-            border: 1px solid rgba(100,122,11,.18);
+            background: rgba(167, 184, 138,.08);
+            border: 1px solid rgba(167, 184, 138,.18);
             color: var(--primary-color);
             font-weight: 800;
             font-size: .95rem;
@@ -166,7 +166,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                 </h1>
 
                 <p class="text-white text-lg md:text-xl opacity-90 leading-relaxed mb-8" data-aos="fade-up" data-aos-delay="100">
-                    AromaMade PRO vous aide à organiser votre activité de sophrologue de façon fluide et professionnelle :
+                    Olithea PRO vous aide à organiser votre activité de sophrologue de façon fluide et professionnelle :
                     <b>agenda</b>, <b>prise de rendez-vous en ligne</b>, <b>dossiers clients</b>, <b>questionnaires de suivi</b> et <b>facturation</b>.
                     Un seul outil pour gagner en clarté, en régularité et en sérénité.
                 </p>
@@ -188,7 +188,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                 </div>
 
                 <p class="text-white opacity-80 mt-6 text-sm" data-aos="fade-up" data-aos-delay="350">
-                    Vous êtes sophrologue (séances individuelles, ateliers, accompagnement stress/émotions) ? AromaMade PRO vous aide à structurer votre quotidien et à gagner du temps.
+                    Vous êtes sophrologue (séances individuelles, ateliers, accompagnement stress/émotions) ? Olithea PRO vous aide à structurer votre quotidien et à gagner du temps.
                 </p>
             </div>
         </div>
@@ -244,7 +244,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
 
             <div class="mt-12 text-center" data-aos="fade-up">
                 <a href="{{ route('register-pro') }}" class="btn-primary">
-                    Tester AromaMade PRO <i class="fas fa-arrow-right"></i>
+                    Tester Olithea PRO <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -334,7 +334,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
             <div class="max-w-5xl mx-auto seo-text">
                 <div class="text-center mb-10">
                     <h2 class="text-3xl md:text-4xl font-bold text-primary" data-aos="fade-up">
-                        AromaMade PRO : un logiciel de sophrologie pensé pour le quotidien
+                        Olithea PRO : un logiciel de sophrologie pensé pour le quotidien
                     </h2>
                     <p class="text-lg text-gray-600 leading-relaxed mt-4" data-aos="fade-up" data-aos-delay="100">
                         La sophrologie implique souvent un accompagnement progressif : objectifs, exercices, retours d’expérience,
@@ -348,7 +348,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                         <h3 class="text-2xl font-bold text-primary">Structurer votre activité de sophrologue</h3>
                         <p class="mt-3">
                             Entre les séances individuelles, les suivis et parfois les ateliers, il est facile de perdre du temps
-                            à rechercher des notes ou à reconstituer l’historique d’un client. AromaMade PRO rassemble vos informations
+                            à rechercher des notes ou à reconstituer l’historique d’un client. Olithea PRO rassemble vos informations
                             (dossiers, notes, documents, réponses aux questionnaires) pour rester cohérent d’une séance à l’autre.
                         </p>
                         <ul class="mt-4">
@@ -378,7 +378,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                         <h3 class="text-2xl font-bold text-primary">Facturation sophrologue : simple et présentable</h3>
                         <p class="mt-3">
                             Si vous exercez en micro-entreprise, vous avez besoin de documents propres, rapides à produire,
-                            et faciles à retrouver. AromaMade PRO vous aide à générer devis et factures en quelques clics et à
+                            et faciles à retrouver. Olithea PRO vous aide à générer devis et factures en quelques clics et à
                             garder une vision claire de votre activité.
                         </p>
                         <ul class="mt-4">
@@ -406,7 +406,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                 <div class="mt-12 text-center" data-aos="fade-up">
                     <p class="text-gray-600 mb-6">
                         Vous cherchez un <b>logiciel sophrologue</b> pour gagner du temps et professionnaliser votre pratique ?
-                        Testez AromaMade PRO gratuitement.
+                        Testez Olithea PRO gratuitement.
                     </p>
                     <a href="{{ route('register-pro') }}" class="btn-primary">
                         Créer mon compte <i class="fas fa-arrow-right"></i>
@@ -481,7 +481,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="accordion-content">
-                        Choisissez un outil simple qui centralise agenda, dossiers, suivi et facturation. AromaMade PRO est pensé pour un usage quotidien, rapide à prendre en main.
+                        Choisissez un outil simple qui centralise agenda, dossiers, suivi et facturation. Olithea PRO est pensé pour un usage quotidien, rapide à prendre en main.
                     </div>
                 </div>
 
@@ -521,7 +521,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="accordion-content">
-                        Oui, AromaMade PRO propose un essai gratuit de 14 jours, sans engagement.
+                        Oui, Olithea PRO propose un essai gratuit de 14 jours, sans engagement.
                     </div>
                 </div>
             </div>
@@ -538,7 +538,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
               "name": "Quel logiciel choisir pour un sophrologue en micro-entreprise ?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Choisissez un outil simple qui centralise agenda, dossiers, suivi et facturation. AromaMade PRO est pensé pour un usage quotidien, rapide à prendre en main."
+                "text": "Choisissez un outil simple qui centralise agenda, dossiers, suivi et facturation. Olithea PRO est pensé pour un usage quotidien, rapide à prendre en main."
               }
             },
             {
@@ -570,7 +570,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
               "name": "Y a-t-il un essai gratuit du logiciel sophrologue ?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Oui, AromaMade PRO propose un essai gratuit de 14 jours, sans engagement."
+                "text": "Oui, Olithea PRO propose un essai gratuit de 14 jours, sans engagement."
               }
             }
           ]
@@ -583,7 +583,7 @@ AromaMade PRO est un logiciel conçu pour les sophrologues : agenda et réservat
         <div class="container mx-auto px-6">
             <div class="max-w-4xl mx-auto text-center feature-card p-10" data-aos="zoom-in">
                 <h2 class="text-3xl md:text-4xl font-bold mb-4 text-primary">
-                    Essayez le logiciel sophrologue AromaMade PRO
+                    Essayez le logiciel sophrologue Olithea PRO
                 </h2>
                 <p class="text-lg text-gray-600 leading-relaxed mb-8">
                     Centralisez votre agenda, vos rendez-vous en ligne, vos dossiers clients, vos questionnaires de suivi

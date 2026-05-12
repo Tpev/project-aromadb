@@ -32,7 +32,7 @@
             </div>
 
             <a href="{{ route('appointments.create') }}"
-               class="inline-flex items-center px-3 py-2 rounded-full text-xs font-medium bg-[#647a0b] text-white shadow-sm">
+               class="inline-flex items-center px-3 py-2 rounded-full text-xs font-medium bg-[#6B4A3A] text-white shadow-sm">
                 <i class="fas fa-plus mr-1.5 text-[11px]"></i>
                 Nouveau
             </a>
@@ -40,15 +40,15 @@
 
         {{-- Quick stats --}}
         <div class="grid grid-cols-3 gap-2 text-center text-xs">
-            <div class="rounded-xl bg-white border border-[#e4e8d5] py-2">
+            <div class="rounded-xl bg-white border border-[#D8CFBF] py-2">
                 <p class="text-[10px] uppercase tracking-wide text-gray-400">Aujourd’hui</p>
                 <p class="mt-1 text-sm font-semibold text-gray-900">{{ $today->count() }}</p>
             </div>
-            <div class="rounded-xl bg-white border border-[#e4e8d5] py-2">
+            <div class="rounded-xl bg-white border border-[#D8CFBF] py-2">
                 <p class="text-[10px] uppercase tracking-wide text-gray-400">À venir</p>
                 <p class="mt-1 text-sm font-semibold text-gray-900">{{ $upcoming->count() }}</p>
             </div>
-            <div class="rounded-xl bg-white border border-[#e4e8d5] py-2">
+            <div class="rounded-xl bg-white border border-[#D8CFBF] py-2">
                 <p class="text-[10px] uppercase tracking-wide text-gray-400">Passés</p>
                 <p class="mt-1 text-sm font-semibold text-gray-900">{{ $past->count() }}</p>
             </div>
@@ -57,12 +57,12 @@
         {{-- Filters + list --}}
         <div x-data="{ tab: 'today' }" class="space-y-4">
             {{-- Tabs --}}
-            <div class="flex items-center gap-2 text-xs bg-white rounded-full p-1 border border-[#e4e8d5]">
+            <div class="flex items-center gap-2 text-xs bg-white rounded-full p-1 border border-[#D8CFBF]">
                 <button
                     type="button"
                     @click="tab = 'today'"
                     :class="tab === 'today'
-                        ? 'bg-[#647a0b] text-white shadow-sm'
+                        ? 'bg-[#6B4A3A] text-white shadow-sm'
                         : 'text-gray-600'"
                     class="flex-1 px-3 py-1.5 rounded-full font-medium transition">
                     Aujourd’hui
@@ -72,7 +72,7 @@
                     type="button"
                     @click="tab = 'upcoming'"
                     :class="tab === 'upcoming'
-                        ? 'bg-[#647a0b] text-white shadow-sm'
+                        ? 'bg-[#6B4A3A] text-white shadow-sm'
                         : 'text-gray-600'"
                     class="flex-1 px-3 py-1.5 rounded-full font-medium transition">
                     À venir
@@ -82,7 +82,7 @@
                     type="button"
                     @click="tab = 'past'"
                     :class="tab === 'past'
-                        ? 'bg-[#647a0b] text-white shadow-sm'
+                        ? 'bg-[#6B4A3A] text-white shadow-sm'
                         : 'text-gray-600'"
                     class="flex-1 px-3 py-1.5 rounded-full font-medium transition">
                     Passés

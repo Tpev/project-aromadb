@@ -1,7 +1,7 @@
 {{-- resources/views/session_note_templates/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Templates de notes de séance') }}
         </h2>
     </x-slot>
@@ -101,7 +101,7 @@
     <style>
         .am-card{
             background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);
-            border:1px solid rgba(100,122,11,.15); overflow:hidden;
+            border:1px solid rgba(167, 184, 138,.15); overflow:hidden;
         }
         .am-head{
             display:flex;gap:16px;align-items:flex-end;justify-content:space-between;
@@ -111,16 +111,16 @@
         .am-sub{margin:6px 0 0;color:#6b7280;font-size:13px;}
         .am-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
         .am-input{
-            width:280px;max-width:70vw;padding:10px 12px;border-radius:10px;border:1px solid rgba(133,79,56,.35);
+            width:280px;max-width:70vw;padding:10px 12px;border-radius:10px;border:1px solid rgba(107, 74, 58,.35);
             outline:none;background:#fff;
         }
-        .am-input:focus{border-color:#854f38; box-shadow:0 0 0 3px rgba(133,79,56,.12);}
+        .am-input:focus{border-color:#5F7048; box-shadow:0 0 0 3px rgba(107, 74, 58,.12);}
 
         .am-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;text-decoration:none;border:1px solid transparent;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;}
-        .am-btn-primary{background:#647a0b;color:#fff;}
-        .am-btn-primary:hover{background:#854f38;}
+        .am-btn-primary{background:#6B4A3A;color:#fff;}
+        .am-btn-primary:hover{background:#5F7048;}
         .am-btn-soft{background:#f8fafc;color:#0f172a;border-color:rgba(15,23,42,.12);}
-        .am-btn-soft:hover{border-color:rgba(133,79,56,.55); background:#fff;}
+        .am-btn-soft:hover{border-color:rgba(107, 74, 58,.55); background:#fff;}
         .am-btn-danger{background:#dc2626;color:#fff;}
         .am-btn-danger:hover{background:#b91c1c;}
         .am-inline{display:inline;}
@@ -133,12 +133,12 @@
         .am-sort{cursor:pointer;user-select:none;}
         .am-sort-icon{opacity:.6;margin-left:6px;}
         .am-row td{padding:14px 12px;border-bottom:1px solid rgba(15,23,42,.06);vertical-align:top;}
-        .am-row:hover{background:rgba(100,122,11,.05);}
+        .am-row:hover{background:rgba(167, 184, 138,.05);}
 
         .am-td-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
         .am-th-actions{text-align:right;}
         .am-link{color:#0f172a;text-decoration:none;font-weight:900;}
-        .am-link:hover{color:#854f38;text-decoration:underline;}
+        .am-link:hover{color:#5F7048;text-decoration:underline;}
         .am-meta{margin-top:4px;color:#6b7280;font-size:12px;}
 
         .am-empty{padding:28px;text-align:center;}

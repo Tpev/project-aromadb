@@ -3,15 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Espace Client - AromaMade Pro' }}</title>
-    <meta name="description" content="Espace sécurisé pour les clients AromaMade Pro : messagerie, documents, rendez-vous, factures et communautés privées.">
+    <title>{{ $title ?? 'Espace Client - Olithea Pro' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/brand/olithea-mark-cropped.png') }}">
+    <meta name="description" content="Espace sécurisé pour les clients Olithea Pro : messagerie, documents, rendez-vous, factures et communautés privées.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 antialiased">
+<body class="min-h-screen flex flex-col bg-brand-background text-brand-text antialiased">
 
-    <header class="bg-lime-700 text-white shadow">
+    <header class="bg-primary-600 text-white shadow">
         <div class="container mx-auto flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 class="text-lg font-semibold tracking-wide">AromaMade Pro - Espace Client</h1>
+            <h1 class="text-lg font-semibold tracking-wide">Olithea Pro - Espace Client</h1>
 
             @auth('client')
                 <div class="flex items-center gap-5">
@@ -45,8 +46,8 @@
         {{ $slot }}
     </main>
 
-    <footer class="bg-gray-100 text-center py-4 text-sm text-gray-500 mt-10 border-t">
-        &copy; {{ date('Y') }} AromaMade Pro - Espace Client sécurisé
+    <footer class="bg-brand-surface-warm text-center py-4 text-sm text-brand-text mt-10 border-t border-brand-border">
+        &copy; {{ date('Y') }} Olithea Pro - Espace Client sécurisé
     </footer>
 
 </body>

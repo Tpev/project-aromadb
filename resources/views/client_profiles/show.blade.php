@@ -1,7 +1,7 @@
 {{-- resources/views/client_profiles/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Détails du profil client') }} - {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
         </h2>
     </x-slot>
@@ -17,15 +17,15 @@
             </h1>
 
             @if($clientProfile->company)
-                <div class="bg-white border-l-4 border-[#647a0b] p-4 rounded-md mb-4 flex items-center justify-between">
+                <div class="bg-white border-l-4 border-[#6B4A3A] p-4 rounded-md mb-4 flex items-center justify-between">
                     <div>
-                        <p class="font-semibold text-[#647a0b]">
+                        <p class="font-semibold text-[#6B4A3A]">
                             👔 Client rattaché à une entreprise
                         </p>
                         <p class="text-sm text-gray-700">
                             {{ __('Entreprise :') }}
                             <a href="{{ route('corporate-clients.show', $clientProfile->company) }}"
-                               class="underline text-[#854f38]">
+                               class="underline text-[#5F7048]">
                                 {{ $clientProfile->company->name }}
                             </a>
                         </p>
@@ -86,7 +86,7 @@
                     type="button"
                     class="px-3 py-1.5 rounded-full font-semibold transition text-xs sm:text-sm flex items-center gap-1"
                     :class="tab === '{{ $t }}'
-                        ? 'bg-[#647a0b] text-white shadow-sm'
+                        ? 'bg-[#6B4A3A] text-white shadow-sm'
                         : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'"
                     @click="
                         @if($isLocked)
@@ -102,7 +102,7 @@
                 {{-- Lock pill for locked tabs --}}
                 @if($isLocked)
                     <div class="absolute -top-2 -right-2 rounded-full bg-[#fff1d6] border border-[#facc15]/40 
-                                px-1.5 py-0.5 text-[9px] font-semibold text-[#854f38] shadow-sm flex items-center gap-1">
+                                px-1.5 py-0.5 text-[9px] font-semibold text-[#5F7048] shadow-sm flex items-center gap-1">
 
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
                              viewBox="0 0 20 20">
@@ -168,7 +168,7 @@
         @unless($canUseReview)
             <div class="inline-flex items-center gap-1 rounded-full 
                         bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5 
-                        text-[10px] font-semibold text-[#854f38] shadow-sm">
+                        text-[10px] font-semibold text-[#5F7048] shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
                      viewBox="0 0 20 20">
                     <path fill-rule="evenodd"
@@ -353,7 +353,7 @@
         @unless($canUseReview)
             <div class="inline-flex items-center gap-1 rounded-full 
                         bg-[#fff1d6] border border-[#facc15]/40 px-2.5 py-0.5
-                        text-[10px] font-semibold text-[#854f38] shadow-sm">
+                        text-[10px] font-semibold text-[#5F7048] shadow-sm">
 
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="currentColor"
                      viewBox="0 0 20 20">
@@ -432,8 +432,8 @@
 <div x-show="tab === 'Forfaits'" x-cloak>
     <style>
         :root{
-            --brand:#647a0b;
-            --brown:#854f38;
+            --brand:#6B4A3A;
+            --brown:#5F7048;
             --cream:#f7f2ea;
         }
         .am-card{ background:#fff; border-radius:1rem; box-shadow:0 10px 25px rgba(15,23,42,.06); border:1px solid rgba(15,23,42,.08); }
@@ -441,7 +441,7 @@
         .am-dot{ width:.45rem; height:.45rem; border-radius:999px; display:inline-block; }
         .am-input{ width:100%; border-radius:.9rem; border-color: rgb(203 213 225); }
         .am-input:focus{ border-color: var(--brand); --tw-ring-color: var(--brand); }
-        .am-row:hover{ background: rgba(100,122,11,0.06); }
+        .am-row:hover{ background: rgba(167, 184, 138,0.06); }
         .am-th{ font-size:.72rem; text-transform:uppercase; letter-spacing:.03em; font-weight:900; }
     </style>
 
@@ -457,7 +457,7 @@
 
             <div class="mt-4 overflow-x-auto rounded-xl ring-1 ring-slate-200">
                 <table class="min-w-full text-sm bg-white">
-                    <thead style="background:linear-gradient(90deg, rgba(100,122,11,0.10), rgba(133,79,56,0.08));">
+                    <thead style="background:linear-gradient(90deg, rgba(167, 184, 138,0.10), rgba(107, 74, 58,0.08));">
                         <tr class="text-slate-700">
                             <th class="px-3 py-2 text-left am-th">Pack</th>
                             <th class="px-3 py-2 text-left am-th">Statut</th>
@@ -496,11 +496,11 @@
 
         <td class="px-3 py-2">
             @if($p->status === 'active')
-                <span class="am-badge" style="color:var(--brand); background:rgba(100,122,11,0.06); border-color:rgba(100,122,11,0.25);">
+                <span class="am-badge" style="color:var(--brand); background:rgba(167, 184, 138,0.06); border-color:rgba(167, 184, 138,0.25);">
                     <span class="am-dot" style="background:var(--brand)"></span> Actif
                 </span>
             @elseif($p->status === 'exhausted')
-                <span class="am-badge" style="color:var(--brown); background:rgba(133,79,56,0.06); border-color:rgba(133,79,56,0.22);">
+                <span class="am-badge" style="color:var(--brown); background:rgba(107, 74, 58,0.06); border-color:rgba(107, 74, 58,0.22);">
                     <span class="am-dot" style="background:var(--brown)"></span> Terminé
                 </span>
             @elseif($p->status === 'expired')
@@ -534,7 +534,7 @@
 
         <td class="px-3 py-2">
             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold"
-                  style="background: rgba(133,79,56,0.10); color: var(--brown); border: 1px solid rgba(133,79,56,0.18);">
+                  style="background: rgba(107, 74, 58,0.10); color: var(--brown); border: 1px solid rgba(107, 74, 58,0.18);">
                 {{ $rem }} / {{ $tot }}
             </span>
         </td>
@@ -1372,7 +1372,7 @@
 
                                             <tr data-doc-id="{{ $doc->id }}"
                                                 @if($newId && $newId == $doc->id)
-                                                    style="outline:3px solid #647a0b44;"
+                                                    style="outline:3px solid #6B4A3A44;"
                                                 @endif>
                                                 <td title="{{ $doc->original_name }}">
                                                     <div class="flex items-center gap-2">
@@ -1507,9 +1507,9 @@
                                     row.scrollIntoView({behavior: 'smooth', block: 'center'});
                                     row.animate(
                                         [
-                                            {outlineColor: '#647a0b00'},
-                                            {outlineColor: '#647a0b'},
-                                            {outlineColor: '#647a0b00'},
+                                            {outlineColor: '#6B4A3A00'},
+                                            {outlineColor: '#6B4A3A'},
+                                            {outlineColor: '#6B4A3A00'},
                                         ],
                                         {duration: 1600, iterations: 1},
                                     );
@@ -1554,8 +1554,8 @@
 
         /* ====== Design tokens ====== */
         :root {
-            --brand: #647a0b;
-            --brand-2: #854f38;
+            --brand: #6B4A3A;
+            --brand-2: #5F7048;
             --ink: #222;
             --muted: #666;
             --bg: #f9f9f9;

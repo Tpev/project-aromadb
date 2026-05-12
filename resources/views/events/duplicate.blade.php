@@ -1,7 +1,7 @@
 {{-- resources/views/events/duplicate.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Dupliquer l\'Événement') }}
         </h2>
     </x-slot>
@@ -142,8 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </label>
 
                         <label class="d-flex align-items-center gap-2">
-                            <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
-                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                            <input type="radio" name="visio_provider" value="olithea" {{ in_array($oldProvider, ['olithea', 'aromamade'], true) ? 'checked' : '' }}>
+                            <span>{{ __('Créer un lien Olithea') }}</span>
                         </label>
                     </div>
 
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span>{{ __('Info') }}</span>
                             </div>
                             <p class="callout-text">
-                                {{ __('Si vous choisissez "Créer un lien AromaMade", un NOUVEAU lien sera généré pour le duplicata (même si l\'événement d\'origine en avait déjà un).') }}
+                                {{ __('Si vous choisissez "Créer un lien Olithea", un NOUVEAU lien sera généré pour le duplicata (même si l\'événement d\'origine en avait déjà un).') }}
                             </p>
                         </div>
                     </div>
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 5px;
         }
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .form-check input { margin-right: 10px; }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -378,19 +378,19 @@ document.addEventListener('DOMContentLoaded', () => {
             display: inline-block;
             cursor: pointer;
         }
-        .btn-primary:hover { background-color: #854f38; }
+        .btn-primary:hover { background-color: #5F7048; }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             display: inline-block;
             cursor: pointer;
         }
-        .btn-secondary:hover { background-color: #854f38; color: #fff; }
+        .btn-secondary:hover { background-color: #5F7048; color: #fff; }
 
         .text-red-500 { color: #e3342f; font-size: 0.875rem; }
 
@@ -428,8 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
             display:flex;
             align-items:center;
             justify-content:center;
-            background: rgba(100,122,11,0.12);
-            color: #647a0b;
+            background: rgba(167, 184, 138,0.12);
+            color: #6B4A3A;
             flex: 0 0 auto;
         }
 
@@ -465,10 +465,10 @@ document.addEventListener('DOMContentLoaded', () => {
             line-height: 1.4;
         }
         .callout-info{
-            border-color: rgba(100,122,11,0.25);
+            border-color: rgba(167, 184, 138,0.25);
             background: rgba(243,249,221,0.65);
         }
-        .callout-info .callout-title{ color:#647a0b; }
+        .callout-info .callout-title{ color:#6B4A3A; }
 
         .callout-warn{
             border-color: rgba(234,179,8,0.35);

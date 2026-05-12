@@ -12,7 +12,7 @@
             name="password"
             required
             autocomplete="current-password"
-            class="w-full rounded border-gray-300 mb-6 focus:border-[#647a0b] focus:ring-[#647a0b]"
+            class="w-full rounded border-gray-300 mb-6 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]"
         />
 
         <button class="bg-lime-700 text-white px-4 py-2 rounded">Se connecter</button>
@@ -22,11 +22,11 @@
 	
 	<div class="mt-4 space-y-2 text-sm">
         <div>
-            <a href="{{ route('client.password.request') }}" class="text-[#647a0b] underline">Mot de passe oublié ?</a>
+            <a href="{{ route('client.password.request') }}" class="text-[#6B4A3A] underline">Mot de passe oublié ?</a>
         </div>
         <div>
             <span class="text-gray-600">Vous êtes praticien ?</span>
-            <a href="{{ route('login.practitioner') }}" class="text-[#854f38] underline">Accéder à l’espace praticien</a>
+            <a href="{{ route('login.practitioner') }}" class="text-[#5F7048] underline">Accéder à l’espace praticien</a>
         </div>
         <div>
             <a href="{{ route('login') }}" class="text-gray-500 underline">Retour au choix de connexion</a>

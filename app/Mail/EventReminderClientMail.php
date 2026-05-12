@@ -38,8 +38,8 @@ class EventReminderClientMail extends Mailable implements ShouldQueue
         // Determine format + link
         $isVisio = ($this->event->event_type ?? 'in_person') === 'visio';
 
-        // Participant link (external or AromaMade public link)
-        // Note: for AromaMade (Jitsi+JWT), this should be generated dynamically via accessor.
+        // Participant link (external or Olithea public link)
+        // Note: for Olithea (Jitsi+JWT), this should be generated dynamically via accessor.
         $visioJoinLink = null;
 
         if ($isVisio) {

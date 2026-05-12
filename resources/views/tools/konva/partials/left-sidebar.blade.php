@@ -252,27 +252,27 @@
                     <label class="small-label text-center">
                         P
                         <input id="brandColorPrimary" type="color" class="h-7 w-full rounded-md border border-slate-200"
-                            value="{{ $konvaBranding['colors']['primary'] ?? '#647A0B' }}">
+                            value="{{ $konvaBranding['colors']['primary'] ?? '#A7B88A' }}">
                     </label>
                     <label class="small-label text-center">
                         S
                         <input id="brandColorSecondary" type="color" class="h-7 w-full rounded-md border border-slate-200"
-                            value="{{ $konvaBranding['colors']['secondary'] ?? '#854F38' }}">
+                            value="{{ $konvaBranding['colors']['secondary'] ?? '#6B4A3A' }}">
                     </label>
                     <label class="small-label text-center">
                         A
                         <input id="brandColorAccent" type="color" class="h-7 w-full rounded-md border border-slate-200"
-                            value="{{ $konvaBranding['colors']['accent'] ?? '#D4A373' }}">
+                            value="{{ $konvaBranding['colors']['accent'] ?? '#E9B07A' }}">
                     </label>
                     <label class="small-label text-center">
                         BG
                         <input id="brandColorBackground" type="color" class="h-7 w-full rounded-md border border-slate-200"
-                            value="{{ $konvaBranding['colors']['background'] ?? '#F8F9F5' }}">
+                            value="{{ $konvaBranding['colors']['background'] ?? '#F6F2EB' }}">
                     </label>
                     <label class="small-label text-center">
                         Txt
                         <input id="brandColorText" type="color" class="h-7 w-full rounded-md border border-slate-200"
-                            value="{{ $konvaBranding['colors']['text'] ?? '#1F2937' }}">
+                            value="{{ $konvaBranding['colors']['text'] ?? '#3F2B22' }}">
                     </label>
                 </div>
 

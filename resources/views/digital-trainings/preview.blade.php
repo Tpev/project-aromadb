@@ -25,7 +25,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     {{ __('Prévisualisation de la formation') }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -62,7 +62,7 @@
         .rich-text-content h1 { font-size: 1.5rem; }
         .rich-text-content h2 { font-size: 1.25rem; }
         .rich-text-content h3 { font-size: 1.125rem; }
-        .rich-text-content a { color: #647a0b; text-decoration: underline; }
+        .rich-text-content a { color: #6B4A3A; text-decoration: underline; }
         .rich-text-content blockquote {
             margin: 0 0 1rem;
             padding-left: 1rem;
@@ -75,7 +75,7 @@
         <div class="mx-auto max-w-6xl space-y-4">
 
             {{-- Top card: title + meta + progress --}}
-            <div class="rounded-2xl bg-gradient-to-r from-[#647a0b]/10 via-white to-[#647a0b]/5 border border-slate-100 p-5">
+            <div class="rounded-2xl bg-gradient-to-r from-[#6B4A3A]/10 via-white to-[#6B4A3A]/5 border border-slate-100 p-5">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex items-center gap-4">
                         @if($training->cover_image_path)
@@ -83,7 +83,7 @@
                                  alt=""
                                  class="h-16 w-16 rounded-xl object-cover shadow-sm">
                         @else
-                            <div class="h-16 w-16 rounded-xl bg-[#647a0b]/10 flex items-center justify-center text-xs font-semibold text-[#647a0b]">
+                            <div class="h-16 w-16 rounded-xl bg-[#6B4A3A]/10 flex items-center justify-center text-xs font-semibold text-[#6B4A3A]">
                                 {{ __('AM') }}
                             </div>
                         @endif
@@ -130,7 +130,7 @@
                                     {{ __('Brouillon') }}
                                 </span>
                             @elseif($training->status === 'published')
-                                <span class="inline-flex items-center rounded-full bg-[#647a0b] px-3 py-1 text-[11px] font-semibold text-white">
+                                <span class="inline-flex items-center rounded-full bg-[#6B4A3A] px-3 py-1 text-[11px] font-semibold text-white">
                                     {{ __('Publié') }}
                                 </span>
                             @else
@@ -148,7 +148,7 @@
                             <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
                                 <div id="preview-progress-bar"
                                      class="h-2 rounded-full"
-                                     style="background: linear-gradient(90deg, #647a0b, #8da72c); width:0%;"></div>
+                                     style="background: linear-gradient(90deg, #6B4A3A, #8da72c); width:0%;"></div>
                             </div>
                         </div>
                     </div>
@@ -164,7 +164,7 @@
                         {{ __('Ajoutez des modules et des blocs depuis l’éditeur de contenu pour voir ici un aperçu côté client.') }}
                     </p>
                     <a href="{{ route('digital-trainings.builder', $training) }}"
-                       class="mt-4 inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white hover:bg-[#506108]">
+                       class="mt-4 inline-flex items-center rounded-full bg-[#6B4A3A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#506108]">
                         {{ __('Ouvrir l’éditeur de contenu') }}
                     </a>
                 </div>
@@ -173,7 +173,7 @@
                 <div class="flex flex-col lg:flex-row gap-4">
                     {{-- MAIN CONTENT --}}
                     <div class="flex-1 rounded-2xl bg-white shadow-sm border border-slate-100 p-5 flex flex-col">
-                        <div id="preview-module-label" class="text-xs font-semibold uppercase tracking-wide text-[#647a0b] mb-1"></div>
+                        <div id="preview-module-label" class="text-xs font-semibold uppercase tracking-wide text-[#6B4A3A] mb-1"></div>
                         <h1 id="preview-title" class="text-xl font-semibold text-slate-900 mb-3"></h1>
 
                         <div id="preview-content" class="flex-1 text-sm text-slate-700 leading-relaxed"></div>
@@ -193,7 +193,7 @@
                                 <button type="button"
                                         id="preview-next-btn"
                                         onclick="goToNextBlock()"
-                                        class="inline-flex items-center rounded-full bg-[#647a0b] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#506108] disabled:bg-slate-300 disabled:cursor-not-allowed">
+                                        class="inline-flex items-center rounded-full bg-[#6B4A3A] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#506108] disabled:bg-slate-300 disabled:cursor-not-allowed">
                                     {{ __('Suivant') }} →
                                 </button>
                             </div>
@@ -224,7 +224,7 @@
                                                 <li>
                                                     <button
                                                         type="button"
-                                                        class="toc-item w-full text-left text-[12px] px-2 py-1 rounded-lg text-slate-600 hover:bg-white hover:text-[#647a0b]"
+                                                        class="toc-item w-full text-left text-[12px] px-2 py-1 rounded-lg text-slate-600 hover:bg-white hover:text-[#6B4A3A]"
                                                         data-index="{{ $globalIndex }}"
                                                         onclick="goToIndex({{ $globalIndex }})">
                                                         <span class="mr-1 text-[10px] text-slate-400">
@@ -463,9 +463,9 @@
                 tocItems.forEach((el) => {
                     const idx = parseInt(el.getAttribute('data-index'), 10);
                     if (idx === currentIndex) {
-                        el.classList.add('bg-white', 'border', 'border-[#647a0b]/40', 'text-[#647a0b]');
+                        el.classList.add('bg-white', 'border', 'border-[#6B4A3A]/40', 'text-[#6B4A3A]');
                     } else {
-                        el.classList.remove('bg-white', 'border', 'border-[#647a0b]/40', 'text-[#647a0b]');
+                        el.classList.remove('bg-white', 'border', 'border-[#6B4A3A]/40', 'text-[#6B4A3A]');
                     }
                 });
             }

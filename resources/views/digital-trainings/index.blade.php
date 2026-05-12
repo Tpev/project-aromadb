@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Formations & Contenu digital') }}
         </h2>
     </x-slot>
@@ -23,7 +23,7 @@
                     </p>
                 </div>
                 <a href="{{ route('digital-trainings.create') }}"
-                   class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#506108]">
+                   class="inline-flex items-center justify-center rounded-full bg-[#6B4A3A] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#506108]">
                     <span class="mr-1 text-base">+</span>
                     <span>{{ __('Créer une formation') }}</span>
                 </a>
@@ -100,7 +100,7 @@
                                             {{ __('Brouillon') }}
                                         </span>
                                     @elseif($training->status === 'published')
-                                        <span class="inline-flex items-center rounded-full bg-[#647a0b]/10 px-2.5 py-0.5 text-xs font-medium text-[#647a0b]">
+                                        <span class="inline-flex items-center rounded-full bg-[#6B4A3A]/10 px-2.5 py-0.5 text-xs font-medium text-[#6B4A3A]">
                                             {{ __('Publié') }}
                                         </span>
                                     @else
@@ -120,7 +120,7 @@
                                         <div class="flex flex-wrap justify-end gap-2">
                                             {{-- Builder / contenu --}}
                                             <a href="{{ route('digital-trainings.builder', $training) }}"
-                                               class="inline-flex items-center gap-1 rounded-full bg-[#647a0b]/10 px-3 py-1.5 text-xs font-semibold text-[#647a0b] hover:bg-[#647a0b]/20">
+                                               class="inline-flex items-center gap-1 rounded-full bg-[#6B4A3A]/10 px-3 py-1.5 text-xs font-semibold text-[#6B4A3A] hover:bg-[#6B4A3A]/20">
                                                 🧱 <span class="hidden sm:inline">{{ __('Contenu') }}</span>
                                                 <span class="sm:hidden">{{ __('Éditer') }}</span>
                                             </a>

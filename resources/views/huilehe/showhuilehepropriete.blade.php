@@ -20,13 +20,13 @@
 
         <!-- Property-based Display -->
         <div class="mb-4 text-end">
-            <input type="text" id="search" class="form-control" placeholder="Recherche par propriété..." onkeyup="filterProperty()" style="border-color: #854f38;">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par propriété..." onkeyup="filterProperty()" style="border-color: #5F7048;">
         </div>
 
         <div class="table-responsive mx-auto">
             @foreach($groupedByProperty as $property => $huileHEs)
                 <div class="property-section mb-5"> <!-- Wrapper for each property -->
-               <h2 class="text-2xl font-bold mb-4" style="color: #647a0b; text-align: left;">{{ $property }}</h2>
+               <h2 class="text-2xl font-bold mb-4" style="color: #6B4A3A; text-align: left;">{{ $property }}</h2>
 
                     <table class="table table-bordered table-hover">
                         <thead>
@@ -41,7 +41,7 @@
                                         {{ $huileHE->NomHE }} (<em>{{ $huileHE->NomLatin ?? 'Unknown' }}</em>)
                                         @auth
                                             @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $huileHE->id && $fav->favoritable_type == 'App\Models\HuileHE'))
-                                                <i class="fas fa-heart ms-2" style="color: #854f38;"></i> <!-- Show only if it's a favorite -->
+                                                <i class="fas fa-heart ms-2" style="color: #5F7048;"></i> <!-- Show only if it's a favorite -->
                                             @endif
                                         @endauth
                                     </td>
@@ -89,12 +89,12 @@
         }
 
         .table thead {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
         }
 
         .table tbody tr:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #ffffff;
             transform: scale(1.02);
         }
@@ -112,7 +112,7 @@
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
         }
 
@@ -128,7 +128,7 @@
         }
 
         .btn-favorite:hover i {
-            color: #854f38;
+            color: #5F7048;
         }
 
         #search {
@@ -136,7 +136,7 @@
             max-width: 300px;
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             margin-right: 15px;
         }
 

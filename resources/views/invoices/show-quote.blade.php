@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-gray-800 leading-tight" style="color:#647a0b;">
+        <h2 class="font-semibold text-2xl text-gray-800 leading-tight" style="color:#6B4A3A;">
             {{ __('Devis') }} - #{{ $quote->quote_number ?? $quote->id }}
         </h2>
     </x-slot>
@@ -247,7 +247,7 @@
         .details-title, .details-subtitle {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -258,23 +258,23 @@
             padding:20px; transition:transform .3s; width:100%;
         }
         .invoice-box:hover { transform: scale(1.02); }
-        .icon { font-size:2rem; color:#854f38; margin-right:15px; min-width:40px; text-align:center; }
-        .invoice-label { font-weight:bold; color:#647a0b; margin:0; }
+        .icon { font-size:2rem; color:#5F7048; margin-right:15px; min-width:40px; text-align:center; }
+        .invoice-label { font-weight:bold; color:#6B4A3A; margin:0; }
         .invoice-value { color:#333; font-size:1rem; margin:5px 0 0 0; }
         .table-responsive { background:#fff; border-radius:8px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-top:20px; }
         #quoteItemsTable { width:100%; border-collapse:collapse; }
         #quoteItemsTable th, #quoteItemsTable td { padding:12px 15px; text-align:left; border-bottom:1px solid #ddd; }
-        #quoteItemsTable thead th { background:#647a0b; color:#fff; }
+        #quoteItemsTable thead th { background:#6B4A3A; color:#fff; }
         .btn-primary {
-            background-color:#647a0b; color:#fff; padding:10px 20px; border:none; border-radius:5px;
+            background-color:#6B4A3A; color:#fff; padding:10px 20px; border:none; border-radius:5px;
             text-decoration:none; display:inline-block; cursor:pointer; margin:5px;
         }
-        .btn-primary:hover { background-color:#854f38; }
+        .btn-primary:hover { background-color:#5F7048; }
         .btn-secondary {
-            background:transparent; color:#854f38; padding:10px 20px; border:1px solid #854f38; border-radius:5px;
+            background:transparent; color:#5F7048; padding:10px 20px; border:1px solid #5F7048; border-radius:5px;
             text-decoration:none; display:inline-block; cursor:pointer; margin:5px;
         }
-        .btn-secondary:hover { background:#854f38; color:#fff; }
+        .btn-secondary:hover { background:#5F7048; color:#fff; }
         .totals-container { background:#fff; border-radius:10px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
         .total { margin:6px 0; text-align:right; }
     </style>

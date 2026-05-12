@@ -19,7 +19,7 @@
 </div>
         <!-- Search Bar -->
         <div class="mb-4 text-end">
-            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #854f38;">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #5F7048;">
         </div>
 
         <div class="table-responsive mx-auto">
@@ -37,7 +37,7 @@
                                 {{ $recette->NomRecette }}
                                 @auth
                                     @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $recette->id && $fav->favoritable_type == 'App\Models\Recette'))
-                                        <i class="fas fa-heart ms-2" style="color: #854f38;"></i> <!-- Show heart if favorited -->
+                                        <i class="fas fa-heart ms-2" style="color: #5F7048;"></i> <!-- Show heart if favorited -->
                                     @endif
                                 @endauth
                             </td>
@@ -72,7 +72,7 @@
         }
 
         .table thead {
-            background-color: #647a0b; /* Primary color */
+            background-color: #6B4A3A; /* Primary color */
             color: #ffffff;
         }
 
@@ -82,7 +82,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: #854f38; /* Hover color */
+            background-color: #5F7048; /* Hover color */
             color: #ffffff; /* Change text color to white on hover */
         }
 
@@ -98,7 +98,7 @@
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b; /* Primary color */
+            color: #6B4A3A; /* Primary color */
             margin-bottom: 20px;
             text-align: center;
         }
@@ -115,7 +115,7 @@
         }
 
         .btn-favorite:hover i {
-            color: #854f38; /* Hover color */
+            color: #5F7048; /* Hover color */
         }
 
         #search {
@@ -123,7 +123,7 @@
             max-width: 300px; /* Adjust the width of the search bar */
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             margin-right: 15px; /* Add a bit of margin on the right for spacing */
         }
 

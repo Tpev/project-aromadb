@@ -58,24 +58,24 @@ protected $fillable = [
         return ($this->event_type ?? 'in_person') === 'visio';
     }
 
-    public function isAromaMadeVisio(): bool
+    public function isOlitheaVisio(): bool
     {
         return $this->isVisio()
-            && (($this->visio_provider ?? null) === 'aromamade')
+            && in_array($this->visio_provider ?? null, ['olithea', 'aromamade'], true)
             && !empty($this->visio_token);
     }
 
     /**
      * Base URL for Jitsi (your visio subdomain).
-     * Defaults to https://visio.aromamade.com
+     * Defaults to https://visio.olithea.fr
      */
     protected function visioBaseUrl(): string
     {
-        // if you have services.jitsi.base_url you can set it (ex: https://visio.aromamade.com)
+        // if you have services.jitsi.base_url you can set it (ex: https://visio.olithea.fr)
         $base = config('services.jitsi.base_url');
 
         if (empty($base)) {
-            $domain = config('services.jitsi.domain', 'visio.aromamade.com');
+            $domain = config('services.jitsi.domain', 'visio.olithea.fr');
             $base = 'https://' . $domain;
         }
 
@@ -106,7 +106,7 @@ protected $fillable = [
 
             return $jitsi->generate([
                 'room' => $room,
-                'sub'  => config('services.jitsi.domain', 'visio.aromamade.com'),
+                'sub'  => config('services.jitsi.domain', 'visio.olithea.fr'),
                 'context' => [
                     'user' => [
                         'id' => (string)($u?->id ?? Str::uuid()),
@@ -122,7 +122,7 @@ protected $fillable = [
         // Public/participant: generic non-moderator JWT
         return $jitsi->generate([
             'room' => $room,
-            'sub'  => config('services.jitsi.domain', 'visio.aromamade.com'),
+            'sub'  => config('services.jitsi.domain', 'visio.olithea.fr'),
             'context' => [
                 'user' => [
                     'id' => (string) Str::uuid(),
@@ -138,10 +138,10 @@ protected $fillable = [
     /**
      * Participant/public link:
      * - external url if provided
-     * - otherwise AromaMade visio URL (Jitsi + JWT non-moderator)
+     * - otherwise Olithea visio URL (Jitsi + JWT non-moderator)
      *
      * Example:
-     * https://visio.aromamade.com/{room}?jwt=...
+     * https://visio.olithea.fr/{room}?jwt=...
      */
     public function getVisioPublicLinkAttribute(): ?string
     {
@@ -151,7 +151,7 @@ protected $fillable = [
             return $this->visio_url;
         }
 
-        if ($this->isAromaMadeVisio()) {
+        if ($this->isOlitheaVisio()) {
             $jwt = $this->makeEventJwt(false);
             return $this->visioBaseUrl() . '/' . $this->visio_token . '?jwt=' . urlencode($jwt);
         }
@@ -162,7 +162,7 @@ protected $fillable = [
     /**
      * Therapist/host link:
      * - external url if provided (same link)
-     * - otherwise AromaMade visio URL (Jitsi + JWT moderator)
+     * - otherwise Olithea visio URL (Jitsi + JWT moderator)
      */
     public function getVisioHostLinkAttribute(): ?string
     {
@@ -172,7 +172,7 @@ protected $fillable = [
             return $this->visio_url;
         }
 
-        if ($this->isAromaMadeVisio()) {
+        if ($this->isOlitheaVisio()) {
             $jwt = $this->makeEventJwt(true);
             return $this->visioBaseUrl() . '/' . $this->visio_token . '?jwt=' . urlencode($jwt);
         }

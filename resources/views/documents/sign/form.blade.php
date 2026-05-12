@@ -5,9 +5,9 @@
   <title>Signature du document</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root{ --brand:#647a0b; --ink:#222; --muted:#666; --bg:#f8f9fb; }
+    :root{ --brand:#6B4A3A; --ink:#222; --muted:#666; --bg:#f8f9fb; }
     *{ box-sizing:border-box; }
-    body{ font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--ink); margin:0; background:var(--bg); }
+    body{ font-family: Montserrat, "Avenir Next", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; color:var(--ink); margin:0; background:var(--bg); }
     .wrap{ max-width:1000px; margin:0 auto; padding:1rem; }
     header{ display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
     h1{ font-size:1.35rem; font-weight:800; color:var(--brand); margin:1rem 0 .25rem; }

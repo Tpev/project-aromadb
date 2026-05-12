@@ -1,7 +1,7 @@
 {{-- resources/views/audiences/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Modifier la liste / audience') }} - {{ $audience->name }}
         </h2>
     </x-slot>

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Liste des Indisponibilités') }}
         </h2>
     </x-slot>
@@ -48,7 +48,7 @@
            class="form-control"
            placeholder="{{ __('Recherche par date ou raison...') }}"
            onkeyup="filterTable()"
-           style="border-color: #854f38; max-width: 300px;">
+           style="border-color: #5F7048; max-width: 300px;">
 
     {{-- Button container --}}
     <div style="position: relative; display: inline-flex; margin-top: 10px;">
@@ -87,7 +87,7 @@
                 font-size: 9px;
                 border-radius: 9999px;
                 font-weight: 600;
-                color: #854f38;
+                color: #5F7048;
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
@@ -176,13 +176,13 @@
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
         }
 
         .btn-primary {
-            background-color: #647a0b;
-            border-color: #647a0b;
+            background-color: #6B4A3A;
+            border-color: #6B4A3A;
             color: #ffffff;
             padding: 10px 20px;
             border-radius: 5px;
@@ -192,8 +192,8 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
-            border-color: #854f38;
+            background-color: #5F7048;
+            border-color: #5F7048;
         }
 
         .btn-danger {
@@ -223,7 +223,7 @@
         }
 
         .table thead {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             cursor: pointer;
         }
@@ -263,13 +263,13 @@
         #search {
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             margin-right: 15px;
         }
 
         i.fas.fa-sort {
             margin-left: 5px;
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         .d-flex {

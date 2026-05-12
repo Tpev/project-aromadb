@@ -69,7 +69,7 @@
 
 <x-guest-layout>
     <style>
-        :root { --brand: #647a0b; }
+        :root { --brand: #6B4A3A; }
         * { box-sizing: border-box; }
 
         /* === Override Jetstream guest layout to be full-width on THIS page === */
@@ -248,7 +248,7 @@
         .module-item.active {
             border-color: var(--brand);
             background: #f7fbe8;
-            box-shadow: 0 0 0 1px rgba(100, 122, 11, 0.06);
+            box-shadow: 0 0 0 1px rgba(167, 184, 138, 0.06);
         }
         .module-title-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
         .module-title-text { font-size: 12px; font-weight: 600; color: #111827; }
@@ -295,7 +295,7 @@
         .block-pill.is-completed .block-status-icon {
             color: #ffffff;
             border-color: #84cc16;
-            background: linear-gradient(135deg, #84cc16, #647a0b);
+            background: linear-gradient(135deg, #84cc16, #6B4A3A);
         }
         .block-pill.active .block-status-icon {
             border-color: rgba(255,255,255,.35);
@@ -391,7 +391,7 @@
         .rich-text-content h1 { font-size: 1.5rem; }
         .rich-text-content h2 { font-size: 1.25rem; }
         .rich-text-content h3 { font-size: 1.125rem; }
-        .rich-text-content a { color: #647a0b; text-decoration: underline; }
+        .rich-text-content a { color: #6B4A3A; text-decoration: underline; }
         .rich-text-content blockquote {
             margin: 0 0 1rem;
             padding-left: 1rem;
@@ -452,7 +452,7 @@
             justify-content: space-between;
         }
         .pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .pdf-action-link { font-size: 12px; color: #647a0b; text-decoration: underline; cursor: pointer; border: none; padding: 0; background: none; }
+        .pdf-action-link { font-size: 12px; color: #6B4A3A; text-decoration: underline; cursor: pointer; border: none; padding: 0; background: none; }
 
         .pdf-fullscreen-overlay {
             position: fixed;
@@ -510,7 +510,7 @@
         <header class="training-player-header">
             <div class="training-header-left">
                 <div class="training-title">{{ $training->title }}</div>
-                <div class="training-subtitle">{{ __('Accès direct à votre formation – AromaMade') }}</div>
+                <div class="training-subtitle">{{ __('Accès direct à votre formation – Olithea') }}</div>
             </div>
 
             <div class="training-header-right">
@@ -1085,7 +1085,7 @@
                             </div>
 
                             <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
-                                <a href="${downloadUrl}" download style="display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #647a0b;background:#647a0b;color:#ffffff;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;">
+                                <a href="${downloadUrl}" download style="display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #6B4A3A;background:#6B4A3A;color:#ffffff;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;">
                                     {{ __('Télécharger la vidéo') }}
                                 </a>
                                 <a href="${src}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #d1d5db;background:#ffffff;color:#374151;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;">
@@ -1125,7 +1125,7 @@
                                 </div>
                                 <div style="font-size:12px;color:#6b7280;">
                                     Si la vidéo ne s’affiche pas correctement, vous pouvez
-                                    <a href="${raw}" target="_blank" style="color:#647a0b;text-decoration:underline;">ouvrir la vidéo dans un nouvel onglet</a>.
+                                    <a href="${raw}" target="_blank" style="color:#6B4A3A;text-decoration:underline;">ouvrir la vidéo dans un nouvel onglet</a>.
                                 </div>
                             </div>`;
                     }
@@ -1145,7 +1145,7 @@
                             </div>
 
                             <div style="font-size:12px;color:#6b7280;">
-                                <a href="${src}" target="_blank" style="color:#647a0b;text-decoration:underline;">
+                                <a href="${src}" target="_blank" style="color:#6B4A3A;text-decoration:underline;">
                                     {{ __('Ouvrir l’audio dans un nouvel onglet') }}
                                 </a>
                             </div>
@@ -1177,7 +1177,7 @@
                                 </div>
                                 <div style="font-size:12px;color:#6b7280;">
                                     Si l’audio ne se lance pas correctement, vous pouvez
-                                    <a href="${raw}" target="_blank" style="color:#647a0b;text-decoration:underline;">ouvrir le fichier dans un nouvel onglet</a>.
+                                    <a href="${raw}" target="_blank" style="color:#6B4A3A;text-decoration:underline;">ouvrir le fichier dans un nouvel onglet</a>.
                                 </div>
                             </div>`;
                     }
@@ -1193,7 +1193,7 @@
                             <div class="pdf-footer">
                                 <div>
                                     Si le document ne s’affiche pas correctement, vous pouvez
-                                    <a href="${filePath}" target="_blank" style="color:#647a0b;text-decoration:underline;">télécharger le PDF</a>.
+                                    <a href="${filePath}" target="_blank" style="color:#6B4A3A;text-decoration:underline;">télécharger le PDF</a>.
                                 </div>
                                 <div class="pdf-actions">
                                     <button type="button" class="pdf-action-link" onclick="openPdfFullscreen('${filePath}')">

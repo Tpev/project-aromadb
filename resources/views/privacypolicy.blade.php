@@ -3,14 +3,14 @@
 
     <!-- Meta Description for SEO -->
     @section('meta_description')
-        Découvrez la politique de protection des données d'AromaMade concernant la collecte et le traitement de vos données personnelles, ainsi que les droits dont vous disposez.
+        Découvrez la politique de protection des données d'Olithea concernant la collecte et le traitement de vos données personnelles, ainsi que les droits dont vous disposez.
     @endsection
 
     <!-- Big Page Title Section -->
     <section class="py-12 bg-white">
         <div class="container mx-auto text-center">
             <!-- Big H1 Title with Custom Large Font Size -->
-            <h1 class="font-bold text-center mb-8 animate-fade-in" style="color: #647a0b; font-size: 2.5rem;">
+            <h1 class="font-bold text-center mb-8 animate-fade-in" style="color: #6B4A3A; font-size: 2.5rem;">
                 Politique de protection des données
             </h1>
         </div>
@@ -22,25 +22,25 @@
             <article class="bg-white p-8 rounded-lg shadow-lg">
 
                 <p class="text-gray-700 mb-4">
-                    La présente Politique de Confidentialité décrit les engagements et pratiques d’AromaMade en matière de protection des données personnelles. Elle précise les conditions de collecte et d’utilisation de vos données ainsi que les droits dont vous disposez à leur égard.
+                    La présente Politique de Confidentialité décrit les engagements et pratiques d’Olithea en matière de protection des données personnelles. Elle précise les conditions de collecte et d’utilisation de vos données ainsi que les droits dont vous disposez à leur égard.
                 </p>
                 <p class="text-gray-700 mb-4">
                     Cette Politique de Confidentialité complète les Conditions Générales d’Utilisation (CGU). Les termes utilisés ci-après avec une majuscule renvoient aux définitions établies dans ces CGU.
                 </p>
 
                 <!-- 1. Qui est responsable du traitement... -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     1. Qui est responsable du traitement de vos données personnelles ?
                 </h3>
                 <p class="text-gray-700">
-                    AromaMade, auto-entrepreneur dont le siège social est situé 22a rue du Pfoeller, 67100 Barr et immatriculée au Registre du Commerce et des Sociétés sous le numéro 93129781600015 est responsable du traitement de vos données personnelles dans le cadre de la mise à disposition de la Plateforme et des Services.
+                    Olithea, auto-entrepreneur dont le siège social est situé 22a rue du Pfoeller, 67100 Barr et immatriculée au Registre du Commerce et des Sociétés sous le numéro 93129781600015 est responsable du traitement de vos données personnelles dans le cadre de la mise à disposition de la Plateforme et des Services.
                 </p>
                 <p class="text-gray-700">
-                    Le Professionnel agissant sur la Plateforme est, quant à lui, responsable du traitement des données personnelles de l’Utilisateur lorsqu’il fournit ses prestations via ou grâce à la Plateforme. Dans ce cas, AromaMade intervient en qualité de sous-traitant pour le Professionnel.
+                    Le Professionnel agissant sur la Plateforme est, quant à lui, responsable du traitement des données personnelles de l’Utilisateur lorsqu’il fournit ses prestations via ou grâce à la Plateforme. Dans ce cas, Olithea intervient en qualité de sous-traitant pour le Professionnel.
                 </p>
 
                 <!-- 2. Quelles données collectons-nous ? -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     2. Quelles données collectons-nous ?
                 </h3>
                 <p class="text-gray-700">
@@ -75,7 +75,7 @@
                 </ul>
 
                 <!-- 3. Pourquoi collectons-nous... -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     3. Pourquoi collectons-nous et traitons-nous vos données ?
                 </h3>
                 <p class="text-gray-700">
@@ -92,7 +92,7 @@
                 </p>
 
                 <!-- 4. Combien de temps conservons-nous vos données ? -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     4. Combien de temps conservons-nous vos données ?
                 </h3>
                 <p class="text-gray-700">
@@ -106,15 +106,15 @@
                 </p>
 
                 <!-- 5. Qui a accès à vos données personnelles ? -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     5. Qui a accès à vos données personnelles ?
                 </h3>
                 <p class="text-gray-700">
                     <strong>Données liées aux Comptes :</strong>
                 </p>
                 <ul class="list-disc list-inside text-gray-700 mb-4">
-                    <li>Les membres du personnel d’AromaMade habilités, uniquement dans la mesure de leurs fonctions.</li>
-                    <li>Les membres du personnel des sous-traitants d’AromaMade, également tenus de respecter la confidentialité et la finalité des traitements.</li>
+                    <li>Les membres du personnel d’Olithea habilités, uniquement dans la mesure de leurs fonctions.</li>
+                    <li>Les membres du personnel des sous-traitants d’Olithea, également tenus de respecter la confidentialité et la finalité des traitements.</li>
                     <li>Les tiers autorisés par la loi.</li>
                 </ul>
                 <p class="text-gray-700">
@@ -126,15 +126,15 @@
                 <p class="text-gray-700">
                     Nous ne transmettons pas vos données à des entités commerciales ou publicitaires sans votre consentement.
                     <br />
-                    Enfin, AromaMade ne réalise aucun transfert de données personnelles hors de l’Union européenne.
+                    Enfin, Olithea ne réalise aucun transfert de données personnelles hors de l’Union européenne.
                 </p>
 
                 <!-- 6. Quelles mesures de sécurité... -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     6. Quelles mesures de sécurité sont mises en place ?
                 </h3>
                 <p class="text-gray-700">
-                    AromaMade applique des mesures techniques et organisationnelles adéquates pour protéger la confidentialité et l’intégrité de vos données personnelles. Nous veillons notamment à :
+                    Olithea applique des mesures techniques et organisationnelles adéquates pour protéger la confidentialité et l’intégrité de vos données personnelles. Nous veillons notamment à :
                 </p>
                 <ul class="list-disc list-inside text-gray-700 mb-4">
                     <li>Désigner un Délégué à la Protection des Données (DPO).</li>
@@ -145,7 +145,7 @@
                 </ul>
 
                 <!-- 7. Quels sont vos droits ? -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     7. Quels sont vos droits ?
                 </h3>
                 <p class="text-gray-700">
@@ -156,7 +156,7 @@
                     <li><strong>Droit de rectification :</strong> demander la correction ou la mise à jour de vos informations.</li>
                     <li><strong>Droit à l’effacement (droit à l’oubli) :</strong> solliciter la suppression de vos données dans certains cas.</li>
                     <li><strong>Droit à la limitation du traitement :</strong> demander le gel d’un traitement dans certaines circonstances.</li>
-                    <li><strong>Droit d’opposition :</strong> vous opposer à tout moment à un traitement fondé sur l’intérêt légitime d’AromaMade (sauf motifs légitimes et impérieux prévalant sur vos droits).</li>
+                    <li><strong>Droit d’opposition :</strong> vous opposer à tout moment à un traitement fondé sur l’intérêt légitime d’Olithea (sauf motifs légitimes et impérieux prévalant sur vos droits).</li>
                     <li><strong>Droit de définir le sort de vos données après votre décès :</strong> établir des directives sur la conservation, l’effacement ou la communication de vos données.</li>
                     <li><strong>Droit de retirer votre consentement :</strong> à tout moment pour les traitements basés sur celui-ci.</li>
                 </ul>
@@ -169,15 +169,15 @@
                 </ul>
 
                 <!-- 8. Comment nous contacter ? -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     8. Comment nous contacter ?
                 </h3>
                 <p class="text-gray-700">
                     Pour exercer vos droits ou pour toute question concernant la protection de vos données, vous pouvez écrire à :
                 </p>
                 <p class="text-gray-700">
-                    <strong>AromaMade – Délégué à la Protection des Données (DPO)</strong><br>
-                    <a href="mailto:contact@aromamade.com" class="text-blue-500">contact@aromamade.com</a>
+                    <strong>Olithea – Délégué à la Protection des Données (DPO)</strong><br>
+                    <a href="mailto:contact@olithea.fr" class="text-blue-500">contact@olithea.fr</a>
                 </p>
                 <p class="text-gray-700">
                     Pour faciliter le traitement de votre demande, merci de joindre :
@@ -188,7 +188,7 @@
                 </ul>
 
                 <!-- 9. Modifications de la Politique de Confidentialité -->
-                <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">
+                <h3 class="text-lg font-semibold mt-6" style="color: #5F7048;">
                     9. Modifications de la Politique de Confidentialité
                 </h3>
                 <p class="text-gray-700">
@@ -212,7 +212,7 @@
         }
 
         h2, h3, h4 {
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         /* Ensure a clean and consistent typography */

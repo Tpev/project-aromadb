@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             Éditer l’article
         </h2>
     </x-slot>
@@ -31,7 +31,7 @@
         .ql-editor h2 { font-size: 26px; line-height: 1.25; margin: 18px 0 10px; }
         .ql-editor p  { margin: 10px 0; }
         .ql-editor blockquote {
-            border-left: 4px solid #8ea633;
+            border-left: 4px solid #4E5F3A;
             padding-left: 14px;
             color: #374151;
         }
@@ -39,14 +39,14 @@
 
         /* Buttons */
         .btn-primary {
-            background: #8ea633;
+            background: #4E5F3A;
             color: white;
         }
         .btn-primary:hover { filter: brightness(0.98); }
         .btn-soft {
             border: 1px solid #edf1df;
             background: white;
-            color: #647a0b;
+            color: #6B4A3A;
         }
         .btn-soft:hover { background: #f7f9ef; }
 
@@ -94,7 +94,7 @@
                                 @php
                                     $isPublished = ($article->status === 'published');
                                 @endphp
-                                <span class="dot {{ $isPublished ? 'bg-[#8ea633]' : 'bg-gray-300' }}"></span>
+                                <span class="dot {{ $isPublished ? 'bg-[#4E5F3A]' : 'bg-gray-300' }}"></span>
                                 <span class="text-sm font-semibold text-gray-900 truncate">
                                     {{ $article->title ?: 'Sans titre' }}
                                 </span>
@@ -138,7 +138,7 @@
 
                 @if(session('success'))
                     <div class="mb-5 bg-white shadow rounded-2xl p-4 border border-[#edf1df]">
-                        <div class="text-[#647a0b] font-semibold">{{ session('success') }}</div>
+                        <div class="text-[#6B4A3A] font-semibold">{{ session('success') }}</div>
                     </div>
                 @endif
 
@@ -178,7 +178,7 @@
                                     <div class="mt-3 flex flex-wrap items-center gap-2">
                                         {{-- Status pill --}}
                                         @if($article->status === 'published')
-                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#8ea633]/15 text-[#647a0b] text-xs font-semibold">
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#4E5F3A]/15 text-[#6B4A3A] text-xs font-semibold">
                                                 Publié
                                             </span>
                                         @else
@@ -200,7 +200,7 @@
                                 {{-- Editor --}}
                                 <div class="p-6 pt-4">
                                     <div class="flex items-center justify-between mb-3">
-                                        <div class="text-sm font-semibold text-[#647a0b]">Rédaction</div>
+                                        <div class="text-sm font-semibold text-[#6B4A3A]">Rédaction</div>
                                         <div id="saveState" class="text-xs text-gray-500">Non enregistré</div>
                                     </div>
 
@@ -219,8 +219,8 @@
                             {{-- Publish panel --}}
                             <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df]">
                                 <div class="flex items-center justify-between">
-                                    <div class="text-sm font-semibold text-[#647a0b]">Publication</div>
-                                    <a href="{{ route('dashboardpro.articles.show', $article) }}" class="text-xs font-semibold text-[#647a0b] hover:underline">
+                                    <div class="text-sm font-semibold text-[#6B4A3A]">Publication</div>
+                                    <a href="{{ route('dashboardpro.articles.show', $article) }}" class="text-xs font-semibold text-[#6B4A3A] hover:underline">
                                         Aperçu
                                     </a>
                                 </div>
@@ -263,7 +263,7 @@
 
                             {{-- Cover --}}
                             <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df]">
-                                <div class="text-sm font-semibold text-[#647a0b]">Couverture</div>
+                                <div class="text-sm font-semibold text-[#6B4A3A]">Couverture</div>
 
                                 <div class="mt-4">
                                     <input id="cover"
@@ -295,7 +295,7 @@
 
                             {{-- SEO --}}
                             <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df]">
-                                <div class="text-sm font-semibold text-[#647a0b]">SEO</div>
+                                <div class="text-sm font-semibold text-[#6B4A3A]">SEO</div>
 
                                 <div class="mt-4 space-y-4">
                                     <div>
@@ -341,7 +341,7 @@
 
                             {{-- Excerpt --}}
                             <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df]">
-                                <div class="text-sm font-semibold text-[#647a0b]">Extrait</div>
+                                <div class="text-sm font-semibold text-[#6B4A3A]">Extrait</div>
                                 <div class="mt-4">
                                     <textarea name="excerpt"
                                               rows="4"

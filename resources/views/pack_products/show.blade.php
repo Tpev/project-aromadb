@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     {{ $pack->name }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-600">
@@ -13,7 +13,7 @@
             <div class="flex flex-col sm:flex-row gap-2">
                 <a href="{{ route('pack-products.edit', $pack) }}"
                    class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-bold text-white shadow-sm hover:opacity-95 transition"
-                   style="background:#647a0b;">
+                   style="background:#6B4A3A;">
                     ✎ Modifier
                 </a>
 
@@ -28,15 +28,15 @@
 
     <style>
         :root{
-            --brand:#647a0b;
+            --brand:#6B4A3A;
             --brown:#6b4f2a;
             --cream:#f7f2ea;
         }
         .am-shell{
             background:
-                radial-gradient(circle at 0% 0%, rgba(100,122,11,0.10), transparent 45%),
-                radial-gradient(circle at 100% 10%, rgba(107,79,42,0.10), transparent 45%),
-                radial-gradient(circle at 20% 100%, rgba(100,122,11,0.08), transparent 55%),
+                radial-gradient(circle at 0% 0%, rgba(167, 184, 138,0.10), transparent 45%),
+                radial-gradient(circle at 100% 10%, rgba(107, 74, 58,0.10), transparent 45%),
+                radial-gradient(circle at 20% 100%, rgba(167, 184, 138,0.08), transparent 55%),
                 linear-gradient(180deg, #fbfaf7 0%, #f3f4f6 100%);
             border-radius: 1.25rem;
         }
@@ -59,7 +59,7 @@
         }
         .am-dot{ width:.45rem; height:.45rem; border-radius:999px; display:inline-block; }
         .am-table th{ font-size:.75rem; letter-spacing:.02em; text-transform: uppercase; }
-        .am-row:hover{ background: rgba(100,122,11,0.06); }
+        .am-row:hover{ background: rgba(167, 184, 138,0.06); }
         .am-input{
             width:100%;
             border-radius: .9rem;
@@ -81,7 +81,7 @@
                             <div class="text-sm font-extrabold">Succès</div>
                             <div class="text-sm mt-0.5">{{ session('success') }}</div>
                         </div>
-                        <div class="text-xs font-bold opacity-70">AromaMade</div>
+                        <div class="text-xs font-bold opacity-70">Olithea</div>
                     </div>
                 </div>
             @endif
@@ -114,7 +114,7 @@
 
                             <div class="mt-4 flex flex-wrap gap-2">
                                 @if($pack->is_active)
-                                    <span class="am-badge" style="color:var(--brand); border-color: rgba(100,122,11,0.25); background: rgba(100,122,11,0.06);">
+                                    <span class="am-badge" style="color:var(--brand); border-color: rgba(167, 184, 138,0.25); background: rgba(167, 184, 138,0.06);">
                                         <span class="am-dot" style="background:var(--brand)"></span> Actif
                                     </span>
                                 @else
@@ -179,7 +179,7 @@
 
                         <div class="mt-3 overflow-x-auto rounded-xl ring-1 ring-slate-200 bg-white">
                             <table class="min-w-full text-sm am-table">
-                                <thead style="background: linear-gradient(90deg, rgba(100,122,11,0.10), rgba(107,79,42,0.08));" class="text-slate-700">
+                                <thead style="background: linear-gradient(90deg, rgba(167, 184, 138,0.10), rgba(107, 74, 58,0.08));" class="text-slate-700">
                                     <tr>
                                         <th class="px-3 py-2 text-left font-extrabold">Prestation</th>
                                         <th class="px-3 py-2 text-left font-extrabold">Crédits</th>
@@ -193,7 +193,7 @@
                                         </td>
                                         <td class="px-3 py-2">
                                             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold"
-                                                  style="background: rgba(107,79,42,0.10); color: var(--brown); border: 1px solid rgba(107,79,42,0.18);">
+                                                  style="background: rgba(107, 74, 58,0.10); color: var(--brown); border: 1px solid rgba(107, 74, 58,0.18);">
                                                 {{ $it->quantity }}
                                             </span>
                                         </td>
@@ -217,7 +217,7 @@
                             <p class="mt-1 text-xs text-slate-600">Crée un achat de pack avec crédits initiaux.</p>
                         </div>
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                             style="background: rgba(100,122,11,0.10); color: var(--brand);">
+                             style="background: rgba(167, 184, 138,0.10); color: var(--brand);">
                             ✦
                         </div>
                     </div>
@@ -281,7 +281,7 @@
 
                 <div class="mt-3 overflow-x-auto rounded-xl ring-1 ring-slate-200 bg-white">
                     <table class="min-w-full text-sm am-table">
-                        <thead style="background: linear-gradient(90deg, rgba(100,122,11,0.10), rgba(107,79,42,0.08));" class="text-slate-700">
+                        <thead style="background: linear-gradient(90deg, rgba(167, 184, 138,0.10), rgba(107, 74, 58,0.08));" class="text-slate-700">
                             <tr>
                                 <th class="px-3 py-2 text-left font-extrabold">Client</th>
                                 <th class="px-3 py-2 text-left font-extrabold">Statut</th>
@@ -305,11 +305,11 @@
                                 </td>
                                 <td class="px-3 py-2">
                                     @if($p->status === 'active')
-                                        <span class="am-badge" style="color:var(--brand); border-color: rgba(100,122,11,0.25); background: rgba(100,122,11,0.06);">
+                                        <span class="am-badge" style="color:var(--brand); border-color: rgba(167, 184, 138,0.25); background: rgba(167, 184, 138,0.06);">
                                             <span class="am-dot" style="background:var(--brand)"></span> Actif
                                         </span>
                                     @elseif($p->status === 'exhausted')
-                                        <span class="am-badge" style="color:var(--brown); border-color: rgba(107,79,42,0.25); background: rgba(107,79,42,0.06);">
+                                        <span class="am-badge" style="color:var(--brown); border-color: rgba(107, 74, 58,0.25); background: rgba(107, 74, 58,0.06);">
                                             <span class="am-dot" style="background:var(--brown)"></span> Terminé
                                         </span>
                                     @elseif($p->status === 'expired')
@@ -336,7 +336,7 @@
                                 </td>
                                 <td class="px-3 py-2">
                                     <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold"
-                                          style="background: rgba(107,79,42,0.10); color: var(--brown); border: 1px solid rgba(107,79,42,0.18);">
+                                          style="background: rgba(107, 74, 58,0.10); color: var(--brown); border: 1px solid rgba(107, 74, 58,0.18);">
                                         {{ $rem }} / {{ $tot }}
                                     </span>
                                 </td>

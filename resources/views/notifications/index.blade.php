@@ -1,7 +1,7 @@
 {{-- resources/views/notifications/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Liste des Notifications') }}
         </h2>
     </x-slot>
@@ -9,7 +9,7 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <!-- Titre de la Page -->
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Liste des Notifications') }}
             </h1>
 
@@ -17,13 +17,13 @@
             <div class="flex flex-col md:flex-row md:justify-between items-center mb-4 space-y-4 md:space-y-0">
                 <!-- Barre de Recherche -->
                 <div class="w-full md:w-auto">
-                    <input type="text" id="search" class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-[#854f38]" placeholder="{{ __('Recherche par message...') }}" onkeyup="filterTable()">
+                    <input type="text" id="search" class="border border-[#5F7048] rounded-md py-2 px-4 w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-[#5F7048]" placeholder="{{ __('Recherche par message...') }}" onkeyup="filterTable()">
                 </div>
 
                 <!-- Bouton Marquer Tout comme Lu -->
                 <form id="markAllAsReadForm" method="POST" action="{{ route('notifications.markAllAsRead') }}">
                     @csrf
-                    <button type="submit" class="bg-[#647a0b] text-white px-4 py-2 rounded-md hover:bg-[#854f38] transition duration-200 flex items-center justify-center">
+                    <button type="submit" class="bg-[#6B4A3A] text-white px-4 py-2 rounded-md hover:bg-[#5F7048] transition duration-200 flex items-center justify-center">
                         <!-- Icône Check -->
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -37,7 +37,7 @@
             <div class="bg-white shadow overflow-hidden rounded-lg">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200" id="notificationTable">
-                        <thead class="bg-[#647a0b] text-white">
+                        <thead class="bg-[#6B4A3A] text-white">
                             <tr>
                                 <th onclick="sortTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
                                     {{ __('Message') }}
@@ -61,7 +61,7 @@
                             @foreach($notifications as $notification)
                                 <tr class="hover:bg-gray-100 cursor-pointer">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ $notification->data['url'] }}" class="text-[#647a0b] hover:text-[#854f38]">
+                                        <a href="{{ $notification->data['url'] }}" class="text-[#6B4A3A] hover:text-[#5F7048]">
                                             {{ $notification->data['message'] }}
                                         </a>
                                     </td>

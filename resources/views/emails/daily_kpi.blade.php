@@ -7,7 +7,7 @@ Bonjour les Lapiz,
 @if($kpis['isNewHigh'])
 
 
-	 ![Bravo](https://aromamade.com/images/congratz.webp)
+	 ![Bravo](https://olithea.fr/images/congratz.webp)
      🎉 Nouveau Record Atteint ! 🎉
         Hier, vous avez atteint un nouveau record de **{{ $kpis['sessionsYesterday'] }}** sessions, dépassant l'ancien record de **{{ $kpis['lastHighCount'] }}** sessions (Le {{ \Carbon\Carbon::parse($kpis['lastHighDate'])->format('d/m/Y') }}).
 

@@ -1,7 +1,7 @@
 {{-- resources/views/contact-confirmation.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Confirmation') }}
         </h2>
     </x-slot>
@@ -33,7 +33,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
         }
 
@@ -45,14 +45,14 @@
             display: inline-flex;
             align-items: center;
             cursor: pointer;
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             border: none;
             transition: background-color 0.3s;
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .mr-2 {

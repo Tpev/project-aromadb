@@ -4,7 +4,7 @@
     if (isset($specialty) && isset($region)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region));
         $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) .
-            " en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade.";
+            " en " . ucfirst(str_replace('-', ' ', $region)) . " sur Olithea.";
     } elseif (isset($specialty)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty));
         $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . ".";
@@ -12,8 +12,8 @@
         $pageTitle = "Résultats en " . ucfirst(str_replace('-', ' ', $region));
         $pageDescription = "Recherchez des praticiens en " . ucfirst(str_replace('-', ' ', $region)) . ".";
     } else {
-        $pageTitle = "Résultats de recherche | AromaMade";
-        $pageDescription = "Trouvez des praticiens en médecines douces sur AromaMade.";
+        $pageTitle = "Résultats de recherche | Olithea";
+        $pageDescription = "Trouvez des praticiens en médecines douces sur Olithea.";
     }
 
     // === HEADING ===
@@ -75,7 +75,7 @@
                     @endif
                 </span>
 
-                <h1 class="text-2xl font-extrabold text-[#647a0b] leading-snug break-words">
+                <h1 class="text-2xl font-extrabold text-[#6B4A3A] leading-snug break-words">
                     {{ $heading }}
                 </h1>
 
@@ -136,7 +136,7 @@
                                         @endif
 
                                         @if(!empty($therapist->profile_description))
-                                            <div class="text-sm text-[#854f38] italic leading-snug break-words">
+                                            <div class="text-sm text-[#5F7048] italic leading-snug break-words">
                                                 {{ $therapist->profile_description }}
                                             </div>
                                         @endif
@@ -219,7 +219,7 @@
                                         href="{{ route('mobile.therapists.show', $therapist->slug) }}"
                                         size="sm"
                                         rounded
-                                        class="!text-sm !px-4 !py-2 !bg-[#647a0b] !border-0 !text-white hover:!bg-[#8ea633]"
+                                        class="!text-sm !px-4 !py-2 !bg-[#6B4A3A] !border-0 !text-white hover:!bg-[#4E5F3A]"
                                     >
                                         {{ __('Voir le profil') }}
                                         <i class="fas fa-arrow-right ml-1 text-[10px]"></i>
@@ -253,7 +253,7 @@
                                 href="{{ url('/mobile/therapeutes') }}"
                                 size="sm"
                                 rounded
-                                class="!text-sm !px-5 !py-2 !bg-[#647a0b] !text-white hover:!bg-[#8ea633]"
+                                class="!text-sm !px-5 !py-2 !bg-[#6B4A3A] !text-white hover:!bg-[#4E5F3A]"
                             >
                                 {{ __('Revenir à la recherche') }}
                             </x-ts-button>

@@ -3,7 +3,7 @@
 body,
 body *:not(html):not(style):not(br):not(tr):not(code) {
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    font-family: Montserrat, 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
     position: relative;
 }
@@ -28,7 +28,7 @@ blockquote {
 }
 
 a {
-    color: #854f38; /* Changed link color to your accent color */
+    color: #5F7048; /* Changed link color to your accent color */
 }
 
 a img {
@@ -40,7 +40,7 @@ a img {
 h1,
 h2,
 h3 {
-    color: #647a0b; /* Changed heading colors to your primary color */
+    color: #6B4A3A; /* Changed heading colors to your primary color */
     font-weight: bold;
     margin-top: 0;
     text-align: left;
@@ -103,7 +103,7 @@ img {
 }
 
 .header a {
-    color: #647a0b; /* Updated header link color to primary color */
+    color: #6B4A3A; /* Updated header link color to primary color */
     font-size: 19px;
     font-weight: bold;
     text-decoration: none;
@@ -222,11 +222,11 @@ img {
 .button-primary,
 .button-green,
 .button-success {
-    background-color: #647a0b; /* Updated button background to primary color */
-    border-bottom: 8px solid #647a0b;
-    border-left: 18px solid #647a0b;
-    border-right: 18px solid #647a0b;
-    border-top: 8px solid #647a0b;
+    background-color: #6B4A3A; /* Updated button background to primary color */
+    border-bottom: 8px solid #6B4A3A;
+    border-left: 18px solid #6B4A3A;
+    border-right: 18px solid #6B4A3A;
+    border-top: 8px solid #6B4A3A;
 }
 
 .button-red,
@@ -241,7 +241,7 @@ img {
 /* Panels */
 
 .panel {
-    border-left: #647a0b solid 4px; /* Updated panel border to primary color */
+    border-left: #6B4A3A solid 4px; /* Updated panel border to primary color */
     margin: 21px 0;
 }
 

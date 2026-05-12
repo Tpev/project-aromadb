@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Gestion des Licences des Thérapeutes') }}
         </h2>
     </x-slot>
@@ -84,7 +84,7 @@
         .details-title {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -103,7 +103,7 @@
         }
 
         .table th {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
         }
 
@@ -112,7 +112,7 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             border: none;
             color: #fff;
             padding: 8px 16px;
@@ -122,7 +122,7 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .alert-success {

@@ -12,5 +12,5 @@ Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :
 {{ $url }}
 
 Merci,  
-L’équipe AromaMade PRO
+L’équipe Olithea PRO
 @endcomponent

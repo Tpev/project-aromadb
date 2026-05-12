@@ -33,7 +33,7 @@
 
     <div class="container max-w-4xl py-8 space-y-6">
         <div class="rounded-2xl border border-[#dbe3b8] bg-white shadow-md overflow-hidden">
-            <div class="px-6 py-5 sm:px-8" style="background-color: #647a0b;">
+            <div class="px-6 py-5 sm:px-8" style="background-color: #6B4A3A;">
                 <div class="flex flex-col gap-3 text-white">
                     <div>
                         <h1 class="text-3xl font-bold">{{ $event->name }}</h1>
@@ -74,19 +74,19 @@
 
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
-                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#854f38]">{{ __('Date & heure') }}</h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#5F7048]">{{ __('Date & heure') }}</h3>
                         <p class="mt-2 text-sm font-medium text-slate-900">
                             {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
                         </p>
                     </div>
 
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
-                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#854f38]">{{ __('Durée') }}</h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#5F7048]">{{ __('Durée') }}</h3>
                         <p class="mt-2 text-sm font-medium text-slate-900">{{ $event->duration }} {{ __('minutes') }}</p>
                     </div>
 
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 md:col-span-2">
-                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">
                             {{ $isVisio ? __('Visio') : __('Lieu') }}
                         </h3>
                         <p class="mt-2 text-sm font-medium text-slate-900">{{ $event->location }}</p>
@@ -94,7 +94,7 @@
 
                     @if($event->associatedProduct && ($event->associatedProduct->price ?? 0) > 0)
                         <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3 md:col-span-2">
-                            <h3 class="text-xs font-semibold uppercase tracking-wide text-[#854f38]">{{ __('Prix') }}</h3>
+                            <h3 class="text-xs font-semibold uppercase tracking-wide text-[#5F7048]">{{ __('Prix') }}</h3>
                             <p class="mt-2 text-sm font-medium text-slate-900">
                                 {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
                             </p>
@@ -104,7 +104,7 @@
 
                 @if($descText !== '')
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-4">
-                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#647a0b]">{{ __('Description') }}</h3>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">{{ __('Description') }}</h3>
 
                         <div class="mt-3 text-sm leading-relaxed text-slate-800">
                             @if($descLooksHtml)
@@ -134,13 +134,13 @@
 
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ route('therapist.show', $event->user->slug) }}"
-                       class="inline-flex items-center rounded-full bg-[#647a0b] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#50620c] transition">
+                       class="inline-flex items-center rounded-full bg-[#6B4A3A] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#50620c] transition">
                         <i class="fas fa-arrow-left mr-2"></i>{{ __('Retour au portail du praticien') }}
                     </a>
 
                     @if($event->booking_required)
                         <a href="{{ route('events.reserve.create', $event->id) }}"
-                           class="inline-flex items-center rounded-full border border-[#854f38]/40 bg-white px-5 py-2.5 text-sm font-semibold text-[#854f38] hover:bg-[#854f38] hover:text-white transition">
+                           class="inline-flex items-center rounded-full border border-[#5F7048]/40 bg-white px-5 py-2.5 text-sm font-semibold text-[#5F7048] hover:bg-[#5F7048] hover:text-white transition">
                             <i class="fas fa-ticket-alt mr-2"></i>{{ __('Réserver') }}
                         </a>
                     @endif

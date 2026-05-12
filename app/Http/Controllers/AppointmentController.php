@@ -86,7 +86,7 @@ class AppointmentController extends Controller
         // ---------- Couleur ----------
         $color = $appointment->external
             ? '#999999'
-            : ($isPast ? '#854f38' : '#647a0b');
+            : ($isPast ? '#5F7048' : '#6B4A3A');
 
         // ---------- Push dans FullCalendar ----------
         $events[] = [
@@ -407,7 +407,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         $room = $appointment->meeting->room_token;
 
         // IMPORTANT: Jitsi domain (your hosted meet)
-        $jitsiBase = rtrim(config('services.jitsi.base_url', 'https://visio.aromamade.com'), '/');
+        $jitsiBase = rtrim(config('services.jitsi.base_url', 'https://visio.olithea.fr'), '/');
 
         // Therapist JWT (moderator)
         $therapistJwt = $jitsi->makeJwtForTherapist([

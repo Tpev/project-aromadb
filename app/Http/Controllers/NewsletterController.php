@@ -32,7 +32,7 @@ class NewsletterController extends Controller
 
         $newsletter = new Newsletter([
             'from_name'  => $user->name ?? $user->company_name ?? config('app.name'),
-            'from_email' => 'news@aromamade.com',
+            'from_email' => 'news@olithea.fr',
         ]);
 
         // On laisse Alpine gérer le bloc par défaut (JS)

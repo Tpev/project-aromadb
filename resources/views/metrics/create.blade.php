@@ -1,7 +1,7 @@
 <!-- resources/views/metrics/create.blade.php -->
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             Créer une Nouvelle Mesure pour {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
         </h2>
     </x-slot>

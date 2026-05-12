@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Synchroniser agenda Google, Apple, Outlook | AromaMade PRO')
+    @section('title', 'Synchroniser agenda Google, Apple, Outlook | Olithea PRO')
     @section('meta_description')
-Connectez Google Agenda à AromaMade PRO, gérez la couleur des événements et utilisez l’export ICS pour Apple Calendar et Outlook.
+Connectez Google Agenda à Olithea PRO, gérez la couleur des événements et utilisez l’export ICS pour Apple Calendar et Outlook.
     @endsection
     @section('structured_data')
         <script type="application/ld+json">
@@ -22,7 +22,7 @@ Connectez Google Agenda à AromaMade PRO, gérez la couleur des événements et 
               "mainEntity": [
                 {
                   "@type": "Question",
-                  "name": "Comment connecter Google Agenda à AromaMade ?",
+                  "name": "Comment connecter Google Agenda à Olithea ?",
                   "acceptedAnswer": {
                     "@type": "Answer",
                     "text": "Depuis Informations d'entreprise, cliquez sur Connecter Google Agenda puis autorisez l'accès."
@@ -64,7 +64,7 @@ Connectez Google Agenda à AromaMade PRO, gérez la couleur des événements et 
 
             <p class="text-lg text-gray-600 mb-8 leading-relaxed">
                 La connexion agenda vous aide à centraliser votre planning.
-                Dans AromaMade PRO, la connexion native se fait avec <strong>Google Agenda</strong>,
+                Dans Olithea PRO, la connexion native se fait avec <strong>Google Agenda</strong>,
                 et les liens <strong>.ics</strong> permettent d’ajouter les rendez-vous dans d’autres calendriers compatibles.
             </p>
 
@@ -79,7 +79,7 @@ Connectez Google Agenda à AromaMade PRO, gérez la couleur des événements et 
                     Cliquez sur <strong>Connecter Google Agenda</strong> puis autorisez l’accès.
                 </li>
                 <li class="mt-3">
-                    Une fois connecté, vous pouvez aussi choisir une couleur d’événement Google pour les rendez-vous créés depuis AromaMade.
+                    Une fois connecté, vous pouvez aussi choisir une couleur d’événement Google pour les rendez-vous créés depuis Olithea.
                 </li>
             </ol>
 
@@ -87,7 +87,7 @@ Connectez Google Agenda à AromaMade PRO, gérez la couleur des événements et 
                 2. Ce que fait la synchronisation Google
             </h2>
             <ul class="list-disc pl-6 text-gray-600 leading-relaxed mb-8">
-                <li>Les rendez-vous créés ou modifiés dans AromaMade peuvent être poussés dans Google Agenda.</li>
+                <li>Les rendez-vous créés ou modifiés dans Olithea peuvent être poussés dans Google Agenda.</li>
                 <li>En visio, le système peut tenter d’ajouter un lien Meet lors de la création de l’événement Google.</li>
                 <li>Vous pouvez déconnecter Google Agenda à tout moment depuis la même section profil.</li>
             </ul>

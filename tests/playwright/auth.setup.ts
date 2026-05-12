@@ -6,7 +6,7 @@ test('authenticate as therapist and save storage state', async ({ page }) => {
   await page.goto('/login');
 
   // Fill credentials for the seeded therapist user
-  await page.fill('input[name="email"]', 'therapist@test.aromamade.local');
+  await page.fill('input[name="email"]', 'therapist@test.olithea.local');
   await page.fill('input[name="password"]', 'password123');
 
   // Submit the form

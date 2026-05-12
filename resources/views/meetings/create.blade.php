@@ -40,7 +40,7 @@
                 </select>
             </div>
 
-            <button type="submit" class="w-full bg-[#647a0b] hover:bg-[#854f38] text-white font-bold py-2 rounded">Créer la réunion</button>
+            <button type="submit" class="w-full bg-[#6B4A3A] hover:bg-[#5F7048] text-white font-bold py-2 rounded">Créer la réunion</button>
         </form>
     </div>
 </x-app-layout>

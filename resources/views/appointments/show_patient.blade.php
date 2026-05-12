@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #6d9c2e;">
+        <h2 class="font-semibold text-xl" style="color: #5F7048;">
             {{ __('Confirmation de Rendez-vous') }}
         </h2>
     </x-slot>
@@ -81,12 +81,12 @@
             transition: box-shadow 0.3s ease-in-out;
         }
         .confirmation-container:hover { box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
-        .confirmation-title { font-size: 2rem; font-weight: bold; color: #6d9c2e; text-align: center; margin-bottom: 25px; }
-        .confirmation-label { font-weight: bold; color: #6d9c2e; font-size: 1.1rem; }
+        .confirmation-title { font-size: 2rem; font-weight: bold; color: #5F7048; text-align: center; margin-bottom: 25px; }
+        .confirmation-label { font-weight: bold; color: #5F7048; font-size: 1.1rem; }
         .confirmation-content { font-size: 1rem; color: #4f4f4f; margin-bottom: 15px; line-height: 1.5; }
 
         .btn-home {
-            background-color: #6d9c2e; color: #fff; font-size: 1.2rem; padding: 10px 25px; border-radius: 30px; border: none;
+            background-color: #5F7048; color: #fff; font-size: 1.2rem; padding: 10px 25px; border-radius: 30px; border: none;
             text-align: center; cursor: pointer; display: inline-block; transition: background-color 0.3s ease-in-out; text-decoration: none;
         }
         .btn-home:hover { background-color: #56781f; }
@@ -113,7 +113,7 @@
         .alert-success { background: #e7f6e7; color: #2f6b2f; border: 1px solid #bfe6bf; }
         .alert-error { background: #fdecec; color: #8a2b2b; border: 1px solid #f3b6b6; }
 
-        .icon-success { color: #6d9c2e; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; }
+        .icon-success { color: #5F7048; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; }
         .icon-pending { color: #ffc107; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; animation: spin 2s linear infinite; }
         .icon-cancel  { color: #d9534f; font-size: 3rem; text-align: center; display: block; margin: 0 auto 20px auto; }
 
@@ -342,7 +342,7 @@
                 calendarLink.href = googleCalendarUrl;
                 calendarLink.setAttribute('target', '_blank');
                 calendarLink.setAttribute('rel', 'noopener noreferrer');
-                calendarLink.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> {{ __('Ajouter à Google Agenda') }}';
+                calendarLink.innerHTML = '<i class="fas fa-calendar-plus mr-2"></i> {{ __('Ajouter ï¿½ Google Agenda') }}';
             }
         });
     </script>

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Détails du Rendez-vous') }} - {{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
         </h2>
     </x-slot>
@@ -64,8 +64,8 @@
                     // $clientJwt     = generated with JitsiJwtService (non-moderator)
                     //
                     // Then build:
-                    // $meetingLink         = "https://visio.aromamade.com/{$meetingRoom}?jwt={$therapistJwt}";
-                    // $meetingLinkPatient  = "https://visio.aromamade.com/{$meetingRoom}?jwt={$clientJwt}";
+                    // $meetingLink         = "https://visio.olithea.fr/{$meetingRoom}?jwt={$therapistJwt}";
+                    // $meetingLinkPatient  = "https://visio.olithea.fr/{$meetingRoom}?jwt={$clientJwt}";
                     //
                     // Here we just render the variables if present.
                 @endphp
@@ -115,7 +115,7 @@
 
                 {{-- VISIO BLOCK --}}
                 @if(!empty($meetingLink) || !empty($meetingLinkPatient))
-                    <div class="info-box mt-4" style="border-left: 6px solid #647a0b;">
+                    <div class="info-box mt-4" style="border-left: 6px solid #6B4A3A;">
                         <h2 class="section-title" style="margin-bottom: 10px;">
                             <i class="fas fa-video"></i> {{ __('Visio') }}
                         </h2>
@@ -266,7 +266,7 @@
         .details-title {
             font-size: 1.75rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             text-align: center;
             margin-bottom: 20px;
         }
@@ -274,7 +274,7 @@
         .section-title {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 15px;
         }
 
@@ -288,7 +288,7 @@
 
         .details-label {
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 5px;
         }
@@ -308,22 +308,22 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
-            border: 1px solid #854f38;
+            color: #5F7048;
+            border: 1px solid #5F7048;
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
         }
 

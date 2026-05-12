@@ -1,16 +1,16 @@
 <x-app-layout>
-    @section('title', 'AromaMade PRO | Le logiciel pour praticiens du bien-être')
-    @section('meta_description', 'AromaMade PRO centralise rendez-vous, suivi client, facturation, paiements, visio, visibilité en ligne et communication pour les praticiens du bien-être.')
+    @section('title', 'Olithea PRO | Le logiciel pour praticiens du bien-être')
+    @section('meta_description', 'Olithea PRO centralise rendez-vous, suivi client, facturation, paiements, visio, visibilité en ligne et communication pour les praticiens du bien-être.')
 
     @section('meta_og')
         <meta property="og:type" content="website">
         <meta property="og:locale" content="fr_FR">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:title" content="AromaMade PRO | Le logiciel pour praticiens du bien-être">
+        <meta property="og:title" content="Olithea PRO | Le logiciel pour praticiens du bien-être">
         <meta property="og:description" content="Un seul outil pour piloter votre activité: agenda, clients, facturation, paiements, visio et visibilité en ligne.">
         <meta property="og:image" content="{{ asset('images/hero.webp') }}">
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="AromaMade PRO | Le logiciel pour praticiens du bien-être">
+        <meta name="twitter:title" content="Olithea PRO | Le logiciel pour praticiens du bien-être">
         <meta name="twitter:description" content="Pilotez votre activité avec un flux simple: réservation, suivi, facturation et croissance.">
         <meta name="twitter:image" content="{{ asset('images/hero.webp') }}">
     @endsection
@@ -20,7 +20,7 @@
             {
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              "name": "AromaMade PRO",
+              "name": "Olithea PRO",
               "applicationCategory": "BusinessApplication",
               "operatingSystem": "Web",
               "url": "{{ url('/pro') }}",
@@ -43,7 +43,7 @@
                 <h1>Structurez votre activité et gagnez du temps chaque semaine</h1>
                 <p class="pro-subtitle">
                     Agenda, suivi client, paiements, facturation, visio, portail public, avis et communication:
-                    AromaMade PRO vous permet de tout piloter sans empiler plusieurs outils.
+                    Olithea PRO vous permet de tout piloter sans empiler plusieurs outils.
                     Multiplier des logiciels séparés est vite laborieux et coûteux.
                 </p>
                 <div class="pro-cta-row">
@@ -89,7 +89,7 @@
     <section class="pro-section">
         <div class="pro-wrap">
             <header class="pro-head">
-                <p class="pro-overline">Différence AromaMade</p>
+                <p class="pro-overline">Différence Olithea</p>
                 <h2>Pourquoi notre approche est plus simple et plus rentable</h2>
             </header>
             <div class="pro-diff-grid">
@@ -133,7 +133,7 @@
         <div class="pro-wrap">
             <header class="pro-head">
                 <p class="pro-overline">Valeur concrète</p>
-                <h2>Pourquoi des praticiens choisissent AromaMade PRO</h2>
+                <h2>Pourquoi des praticiens choisissent Olithea PRO</h2>
             </header>
             <div class="pro-outcome-grid">
                 <article class="pro-card">
@@ -316,7 +316,7 @@
                 <details><summary>Le paiement en ligne est-il inclus ?</summary><p>Il est inclus à partir du plan Pro.</p></details>
                 <details><summary>Comment choisir entre Starter et Pro ?</summary><p>Starter structure les bases; Pro ajoute les leviers avancés de productivité et conversion.</p></details>
                 <details><summary>Puis-je évoluer de plan facilement ?</summary><p>Oui, vous pouvez passer au plan supérieur quand vous le souhaitez.</p></details>
-                <details><summary>Pourquoi éviter d'assembler plusieurs logiciels séparés ?</summary><p>Parce que cela augmente les coûts, la complexité et les risques d'erreurs. Avec AromaMade PRO, tout reste synchronisé dans un seul environnement.</p></details>
+                <details><summary>Pourquoi éviter d'assembler plusieurs logiciels séparés ?</summary><p>Parce que cela augmente les coûts, la complexité et les risques d'erreurs. Avec Olithea PRO, tout reste synchronisé dans un seul environnement.</p></details>
                 <details><summary>Est-ce que vous m'aidez à configurer mon espace ?</summary><p>Oui. Un appel de démarrage est prévu pour vous guider étape par étape et répondre à vos questions.</p></details>
                 <details><summary>En cas de besoin, ai-je un vrai contact humain ?</summary><p>Oui. Vous avez un accompagnement humain, pas seulement une file de tickets automatique.</p></details>
             </div>
@@ -326,7 +326,7 @@
     <section class="pro-final-cta">
         <div class="pro-wrap pro-center">
             <h2>Passez d'une gestion dispersée à une activité mieux pilotée</h2>
-            <p>Essayez AromaMade PRO et voyez rapidement l'impact sur votre organisation et votre croissance.</p>
+            <p>Essayez Olithea PRO et voyez rapidement l'impact sur votre organisation et votre croissance.</p>
             <div class="pro-cta-row pro-center-row">
                 <a href="{{ route('register-pro') }}" class="pro-btn pro-btn-primary">Lancer mon essai gratuit</a>
                 <a href="{{ route('features.index') }}" class="pro-btn pro-btn-outline">Explorer les fonctionnalités</a>
@@ -422,7 +422,7 @@
             .pro-head h2,
             .pro-center h2 {
                 font-family: 'Space Grotesk', sans-serif;
-                letter-spacing: -.015em;
+                letter-spacing: 0;
             }
             .pro-hero-copy h1 {
                 margin: 0;
@@ -669,7 +669,7 @@
             }
             .pro-plan-highlight {
                 border: 2px solid var(--pro-primary);
-                box-shadow: 0 20px 34px rgba(100,122,11,.2);
+                box-shadow: 0 20px 34px rgba(167,184,138,.2);
                 position: relative;
             }
             .pro-badge {

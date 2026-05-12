@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Facturation thérapeute | Devis, factures, livre de recettes | AromaMade PRO')
+    @section('title', 'Facturation thérapeute | Devis, factures, livre de recettes | Olithea PRO')
     @section('meta_description')
 Créez devis et factures propres, suivez les paiements (espèces, virement, CB), gérez acomptes/avoirs et exportez votre livre de recettes (micro-entreprise). Numérotation séquentielle, mentions légales 🇫🇷 et tableau de chiffre d’affaires mensuel.
     @endsection
@@ -7,7 +7,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
     @push('styles')
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
     @endpush
 
@@ -30,7 +30,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essai gratuit 14 jours</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea PRO</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -117,7 +117,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
                     <i class="fas fa-envelope-open-text tile-icon"></i>
                     <h3>Envoi & relances email</h3>
-                    <p>Envoyez devis/factures depuis AromaMade, relancez automatiquement en cas d’échéance dépassée. Pièces jointes propres.</p>
+                    <p>Envoyez devis/factures depuis Olithea, relancez automatiquement en cas d’échéance dépassée. Pièces jointes propres.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="450">
@@ -205,8 +205,8 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
     <section class="py-8 bg-white">
         <div class="container mx-auto px-4">
             <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-sm" data-aos="fade-up">
-                <strong>À savoir :</strong> AromaMade PRO facilite l’édition de devis/factures et le suivi des encaissements. 
-                La solution n’est pas un <em>logiciel de caisse certifié (NF525)</em>. 
+                <strong>À savoir :</strong> Olithea PRO facilite l’édition de devis/factures et le suivi des encaissements.
+                La solution n’est pas un <em>logiciel de caisse certifié (NF525)</em>.
                 Si votre activité est soumise à l’usage d’un logiciel de caisse certifié, utilisez un système conforme en complément.
             </div>
         </div>
@@ -299,7 +299,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                     <h3 style="
                         font-size:1.5rem;
                         font-weight:700;
-                        color:#647a0b;
+                        color:#6B4A3A;
                         margin-bottom:8px;
                     ">
                         Vous êtes praticien ? Découvrez la page dédiée à votre métier
@@ -310,7 +310,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea PRO s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>
@@ -328,16 +328,16 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🌿 Logiciel naturopathe
                     </a>
@@ -350,16 +350,16 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🧘 Logiciel sophrologue
                     </a>
@@ -371,7 +371,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                 font-size:.85rem;
                 color:#6b7280;
             ">
-               
+
             </p>
         </div>
     </div>

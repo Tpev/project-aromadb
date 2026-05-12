@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-gray-800 leading-tight" style="color:#647a0b;">
+        <h2 class="font-semibold text-2xl text-gray-800 leading-tight" style="color:#6B4A3A;">
             {{ __('Créer un devis') }}
         </h2>
     </x-slot>
@@ -661,7 +661,7 @@
         .am-title{
             font-size: 1.9rem;
             font-weight: 800;
-            color:#647a0b;
+            color:#6B4A3A;
             margin: 6px 0 14px;
             text-align:center;
         }
@@ -692,7 +692,7 @@
         .am-field{ width:100%; }
         .am-label{
             font-weight: 800;
-            color:#647a0b;
+            color:#6B4A3A;
             display:block;
             margin-bottom: 6px;
             font-size: .95rem;
@@ -708,8 +708,8 @@
             font-size: .95rem;
         }
         .am-input:focus{
-            border-color: rgba(100,122,11,.55);
-            box-shadow: 0 0 0 3px rgba(100,122,11,.15);
+            border-color: rgba(167, 184, 138,.55);
+            box-shadow: 0 0 0 3px rgba(167, 184, 138,.15);
         }
         .am-textarea{ resize: vertical; }
         .am-error{ color:#e3342f; font-size:.875rem; margin-top:6px; }
@@ -767,7 +767,7 @@
             width:10px;
             height:10px;
             border-radius: 999px;
-            background:#647a0b;
+            background:#6B4A3A;
             display:inline-block;
         }
 
@@ -796,16 +796,16 @@
         }
         .am-btn:active{ transform: translateY(1px); }
         .am-btn-primary{
-            background:#647a0b;
+            background:#6B4A3A;
             color:#fff;
         }
         .am-btn-primary:hover{ opacity:.92; }
         .am-btn-secondary{
             background:transparent;
-            color:#854f38;
-            border:1px solid #854f38;
+            color:#5F7048;
+            border:1px solid #5F7048;
         }
-        .am-btn-secondary:hover{ background:#854f38; color:#fff; }
+        .am-btn-secondary:hover{ background:#5F7048; color:#fff; }
         .am-btn-danger{
             background:#e3342f;
             color:#fff;
@@ -831,7 +831,7 @@
         .am-th{
             position: sticky;
             top: 0;
-            background:#647a0b;
+            background:#6B4A3A;
             color:#fff;
             text-align:left;
             font-weight: 900;
@@ -891,14 +891,14 @@
             border-radius: 999px;
             font-weight: 900;
             font-size: .82rem;
-            background: rgba(100,122,11,.12);
+            background: rgba(167, 184, 138,.12);
             color:#374151;
-            border:1px solid rgba(100,122,11,.25);
+            border:1px solid rgba(167, 184, 138,.25);
             white-space:nowrap;
         }
         .am-pill--alt{
-            background: rgba(133,79,56,.12);
-            border-color: rgba(133,79,56,.25);
+            background: rgba(107, 74, 58,.12);
+            border-color: rgba(107, 74, 58,.25);
         }
         .am-pill--inv{
             background: rgba(17,24,39,.08);
@@ -970,7 +970,7 @@
         .am-modal-title{
             font-weight: 900;
             font-size: 1.05rem;
-            color:#647a0b;
+            color:#6B4A3A;
         }
         .am-x{
             width: 36px;

@@ -108,54 +108,39 @@ return [
 
     'branding_fonts' => [
         [
-            'key' => 'poppins',
-            'label' => 'Poppins',
-            'family' => "'Poppins', sans-serif",
-        ],
-        [
-            'key' => 'inter',
-            'label' => 'Inter',
-            'family' => "'Inter', sans-serif",
-        ],
-        [
-            'key' => 'manrope',
-            'label' => 'Manrope',
-            'family' => "'Manrope', sans-serif",
+            'key' => 'cormorant',
+            'label' => 'Cormorant Garamond',
+            'family' => '"Cormorant Garamond", Georgia, serif',
         ],
         [
             'key' => 'montserrat',
             'label' => 'Montserrat',
-            'family' => "'Montserrat', sans-serif",
+            'family' => 'Montserrat, "Avenir Next", sans-serif',
         ],
         [
-            'key' => 'playfair',
-            'label' => 'Playfair Display',
-            'family' => "'Playfair Display', serif",
-        ],
-        [
-            'key' => 'lora',
-            'label' => 'Lora',
-            'family' => "'Lora', serif",
+            'key' => 'avenir_next',
+            'label' => 'Avenir Next',
+            'family' => '"Avenir Next", Montserrat, sans-serif',
         ],
     ],
 
     'branding_presets' => [
         [
             'id' => 'zen_olive',
-            'label' => 'Zen Olive',
-            'fonts' => ['heading' => 'poppins', 'body' => 'inter'],
+            'label' => 'Olithea',
+            'fonts' => ['heading' => 'cormorant', 'body' => 'montserrat'],
             'colors' => [
-                'primary' => '#647A0B',
-                'secondary' => '#854F38',
-                'accent' => '#D4A373',
-                'background' => '#F8F9F5',
-                'text' => '#1F2937',
+                'primary' => '#A7B88A',
+                'secondary' => '#6B4A3A',
+                'accent' => '#E9B07A',
+                'background' => '#F6F2EB',
+                'text' => '#3F2B22',
             ],
         ],
         [
             'id' => 'soft_terracotta',
             'label' => 'Soft Terracotta',
-            'fonts' => ['heading' => 'playfair', 'body' => 'inter'],
+            'fonts' => ['heading' => 'cormorant', 'body' => 'montserrat'],
             'colors' => [
                 'primary' => '#9A3412',
                 'secondary' => '#C2410C',
@@ -167,7 +152,7 @@ return [
         [
             'id' => 'forest_clarity',
             'label' => 'Forest Clarity',
-            'fonts' => ['heading' => 'montserrat', 'body' => 'manrope'],
+            'fonts' => ['heading' => 'cormorant', 'body' => 'montserrat'],
             'colors' => [
                 'primary' => '#166534',
                 'secondary' => '#15803D',
@@ -179,7 +164,7 @@ return [
         [
             'id' => 'midnight_gold',
             'label' => 'Midnight Gold',
-            'fonts' => ['heading' => 'playfair', 'body' => 'lora'],
+            'fonts' => ['heading' => 'cormorant', 'body' => 'montserrat'],
             'colors' => [
                 'primary' => '#0F172A',
                 'secondary' => '#1E293B',

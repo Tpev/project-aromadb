@@ -58,7 +58,7 @@
     $label = $services ?: 'Thérapeute';
 
     // 4) Assemble final title (max ~60 chars)
-    $brand = config('app.name', 'AromaMade');
+    $brand = config('app.name', 'Olithea');
     $title = \Illuminate\Support\Str::limit(
                 trim(sprintf('%s • %s | %s', $label, $loc ?: __('près de chez vous'), $brand)),
                 60,
@@ -167,7 +167,7 @@
     @endif
 
     {{-- green overlay – spans full viewport width ------------------------- --}}
-    <div class="bg-[#8ea633]/90 backdrop-blur-sm text-white shadow-lg w-full">
+    <div class="bg-[#4E5F3A]/90 backdrop-blur-sm text-white shadow-lg w-full">
 
         {{-- FLEX container -------------------------------------------------- --}}
         <div class="max-w-7xl mx-auto px-6
@@ -192,7 +192,7 @@
 
                 @else
                     <div class="w-48 h-48 md:w-56 md:h-56 rounded-full bg-white flex items-center
-                                justify-center text-[#8ea633] text-4xl font-bold ring-4 ring-white
+                                justify-center text-[#4E5F3A] text-4xl font-bold ring-4 ring-white
                                 select-none">
                         {{ strtoupper(substr($therapist->company_name, 0, 1)) }}
                     </div>
@@ -216,7 +216,7 @@
                             justify-center md:justify-start">
                     @if ($therapist->accept_online_appointments)
                         <a  href="{{ route('appointments.createPatient', $therapist->id) }}"
-                            class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
+                            class="inline-block whitespace-nowrap bg-white text-[#4E5F3A] font-semibold
                                    text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
                                    transition-colors duration-200">
                             {{ __('Prendre Rendez-vous') }}
@@ -224,8 +224,8 @@
                     @endif
 
                     <button type="button"
-                            class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
-                                   text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
+                            class="inline-block whitespace-nowrap bg-[#5F7048] text-white font-semibold
+                                   text-lg px-8 py-3 rounded-full hover:bg-[#4E5F3A]
                                    transition-colors duration-200"
                             x-data
                             x-on:click.prevent="$dispatch('open-request-modal')">
@@ -233,7 +233,7 @@
                     </button>
 
                     <a  href="{{ route('client.login') }}"
-                        class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
+                        class="inline-block whitespace-nowrap bg-white text-[#4E5F3A] font-semibold
                                text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
                                transition-colors duration-200">
                         {{ __('Accès Client') }}
@@ -241,8 +241,8 @@
 
                     @if($therapist->canUseFeature('gift_vouchers') && ($therapist->gift_voucher_online_enabled ?? false) && !empty($therapist->stripe_account_id))
                         <a  href="{{ route('gift-vouchers.checkout.show', ['slug' => $therapist->slug]) }}"
-                            class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
-                                   text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
+                            class="inline-block whitespace-nowrap bg-[#5F7048] text-white font-semibold
+                                   text-lg px-8 py-3 rounded-full hover:bg-[#4E5F3A]
                                    transition-colors duration-200">
                             {{ __('Offrir un bon cadeau') }}
                         </a>
@@ -276,7 +276,7 @@
      x-transition.opacity.duration.300ms
      class="fixed inset-x-0
             bottom-0 md:top-0 md:bottom-auto
-            z-40 bg-[#8ea633] text-white {{ $barH }}
+            z-40 bg-[#4E5F3A] text-white {{ $barH }}
             shadow-lg flex items-center">
 
     <div class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
@@ -285,12 +285,12 @@
         <div class="flex gap-3">
             @if ($therapist->accept_online_appointments)
                 <a href="{{ route('appointments.createPatient', $therapist->id) }}"
-                   class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
+                   class="bg-white text-[#4E5F3A] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
                     {{ __('Prendre Rendez-vous') }}
                 </a>
             @endif
             <button type="button"
-                    class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full"
+                    class="hidden md:inline bg-[#5F7048] hover:bg-[#4E5F3A] px-5 py-2 rounded-full"
                     x-on:click="$dispatch('open-request-modal')">
                 {{ __('Infos') }}
             </button>
@@ -303,8 +303,8 @@
     <div class="grid md:grid-cols-3 gap-12">
         {{-- Column 1-2 : À Propos --}}
         <div class="md:col-span-2">
-            <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                <i class="fas fa-info-circle text-[#854f38] mr-3"></i> {{ __('À Propos') }}
+            <h3 class="text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                <i class="fas fa-info-circle text-[#5F7048] mr-3"></i> {{ __('À Propos') }}
             </h3>
 
             <article class="am-about-content mt-6 text-gray-700 text-lg leading-relaxed prose max-w-none">
@@ -321,8 +321,8 @@
         ->values();
 @endphp
         <aside>
-            <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                <i class="fas fa-address-book text-[#854f38] mr-3"></i> {{ __('Contact') }}
+            <h3 class="text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                <i class="fas fa-address-book text-[#5F7048] mr-3"></i> {{ __('Contact') }}
             </h3>
 
             @php
@@ -332,7 +332,7 @@
             @endphp
 
             @if($portalLogoUrl)
-                <div class="mt-6 rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm flex items-center justify-center">
+                <div class="mt-6 rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm flex items-center justify-center">
                     <img src="{{ $portalLogoUrl }}"
                          alt="{{ __('Logo de :name', ['name' => $therapist->company_name ?: $therapist->name]) }}"
                          class="w-full max-h-24 object-contain">
@@ -342,9 +342,9 @@
             <ul class="mt-6 space-y-6">
 @if ($therapist->share_address_publicly)
     <li class="flex items-start">
-        <i class="fas fa-map-marker-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
+        <i class="fas fa-map-marker-alt text-2xl text-[#5F7048] mr-4 mt-1"></i>
         <div>
-            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Cabinet') }}</h4>
+            <h4 class="text-xl font-semibold text-[#6B4A3A]">{{ __('Cabinet') }}</h4>
 
             @if($practiceLocations->count() > 0)
                 <div class="mt-2 space-y-3">
@@ -359,7 +359,7 @@
                             </div>
 
                             @if(!empty($loc->is_primary))
-                                <div class="mt-1 inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7]">
+                                <div class="mt-1 inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-[#e8f0d8] text-[#6B4A3A] border border-[#dfe8c7]">
                                     {{ __('Cabinet principal') }}
                                 </div>
                             @endif
@@ -376,9 +376,9 @@
 
                 @if ($therapist->share_phone_publicly)
                     <li class="flex items-start">
-                        <i class="fas fa-phone-alt text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <i class="fas fa-phone-alt text-2xl text-[#5F7048] mr-4 mt-1"></i>
                         <div>
-                            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Téléphone') }}</h4>
+                            <h4 class="text-xl font-semibold text-[#6B4A3A]">{{ __('Téléphone') }}</h4>
                             <p class="text-gray-700 mt-2">
                                 {{ $therapist->company_phone ?? __('Téléphone non disponible.') }}
                             </p>
@@ -388,12 +388,12 @@
 
                 @if ($therapist->share_email_publicly)
                     <li class="flex items-start">
-                        <i class="fas fa-envelope text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <i class="fas fa-envelope text-2xl text-[#5F7048] mr-4 mt-1"></i>
                         <div>
-                            <h4 class="text-xl font-semibold text-[#647a0b]">{{ __('Email') }}</h4>
+                            <h4 class="text-xl font-semibold text-[#6B4A3A]">{{ __('Email') }}</h4>
                             <p class="text-gray-700 mt-2">
                                 <a href="mailto:{{ $therapist->company_email }}"
-                                   class="text-[#854f38] hover:text-[#6a3f2c]">
+                                   class="text-[#5F7048] hover:text-[#4E5F3A]">
                                     {{ $therapist->company_email }}
                                 </a>
                             </p>
@@ -403,16 +403,16 @@
 
                 @if ($therapist->cgv_pdf_path)
                     <li class="flex items-start">
-                        <i class="fas fa-file-pdf text-2xl text-[#854f38] mr-4 mt-1"></i>
+                        <i class="fas fa-file-pdf text-2xl text-[#5F7048] mr-4 mt-1"></i>
                         <div>
-                            <h4 class="text-xl font-semibold text-[#647a0b]">
+                            <h4 class="text-xl font-semibold text-[#6B4A3A]">
                                 {{ __('Conditions Générales de Vente') }}
                             </h4>
                             <p class="text-gray-700 mt-2">
                                 <a href="{{ asset('storage/' . $therapist->cgv_pdf_path) }}"
                                    target="_blank"
                                    rel="noopener"
-                                   class="text-[#854f38] hover:text-[#6a3f2c] underline">
+                                   class="text-[#5F7048] hover:text-[#4E5F3A] underline">
                                     {{ __('Consulter les CGV du praticien') }}
                                 </a>
                             </p>
@@ -428,8 +428,8 @@
 
             {{-- Section Services --}}
             <div class="bg-white shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-concierge-bell text-[#854f38] mr-3"></i> {{ __('Services') }}
+                <h3 class="text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                    <i class="fas fa-concierge-bell text-[#5F7048] mr-3"></i> {{ __('Services') }}
                 </h3>
                 
                 {{-- Decode services JSON string into an array --}}
@@ -440,7 +440,7 @@
                 @if(is_array($services) && count($services) > 0)
                     <div class="mt-6 flex flex-wrap gap-3">
                         @foreach($services as $service)
-                            <span class="bg-[#647a0b] text-white px-4 py-2 rounded-full text-sm font-medium service-tag">
+                            <span class="bg-[#6B4A3A] text-white px-4 py-2 rounded-full text-sm font-medium service-tag">
                                 {{ $service }}
                             </span>
                         @endforeach
@@ -454,8 +454,8 @@
 
 {{-- Section Prestations --}}
 <div class="bg-white shadow rounded-lg p-8">
-    <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">
-        <i class="fas fa-spa text-[#854f38] mr-3"></i> {{ __('Prestations') }}
+    <h3 class="text-3xl font-semibold text-[#5F7048] flex items-center">
+        <i class="fas fa-spa text-[#5F7048] mr-3"></i> {{ __('Prestations') }}
     </h3>
 
     @php
@@ -508,11 +508,11 @@
                 <div class="border border-[#e8e8e8] rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item bg-[#f9fafb]">
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-3">
-                            <h4 class="text-2xl font-semibold text-[#647a0b] leading-tight">
+                            <h4 class="text-2xl font-semibold text-[#6B4A3A] leading-tight">
                                 {{ $pack->name }}
                             </h4>
 
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7]">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#e8f0d8] text-[#6B4A3A] border border-[#dfe8c7]">
                                 🎁 {{ __('Pack') }}
                             </span>
                         </div>
@@ -545,7 +545,7 @@
                             <div class="mt-4">
                                 <p class="text-gray-600 font-semibold">
                                     {{ __('Prix du pack :') }}
-                                    <span class="text-[#854f38] font-extrabold">
+                                    <span class="text-[#5F7048] font-extrabold">
                                         {{ number_format($packPriceTtc, 2, ',', ' ') }} €
                                     </span>
                                 </p>
@@ -556,7 +556,7 @@
                                             {{ __('À l’unité :') }} {{ number_format($unitTotalTtc, 2, ',', ' ') }} €
                                         </span>
 
-                                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b] font-bold text-xs">
+                                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-white border border-[#D8CFBF] text-[#6B4A3A] font-bold text-xs">
                                             {{ __('Économie :') }} {{ number_format($saving, 2, ',', ' ') }} €
                                             @if(!is_null($savingPct))
                                                 ({{ $savingPct }}%)
@@ -567,7 +567,7 @@
                             </div>
                         @endif
 <a href="{{ route('packs.checkout.show', ['slug' => $therapist->slug, 'pack' => $pack->id]) }}"
-   class="mt-5 inline-flex items-center justify-center w-full bg-[#647a0b] text-white font-semibold py-2.5 rounded-full hover:bg-[#8ea633] transition">
+   class="mt-5 inline-flex items-center justify-center w-full bg-[#6B4A3A] text-white font-semibold py-2.5 rounded-full hover:bg-[#4E5F3A] transition">
     <i class="fas fa-shopping-cart mr-2"></i> {{ __('Acheter le pack') }}
 </a>
 
@@ -578,7 +578,7 @@
                                data-truncated-text="{{ e($truncatedPackDescription) }}">
                                 {!! nl2br(e($truncatedPackDescription)) !!}
                                 @if(\Illuminate\Support\Str::length($packDesc) > 200)
-                                    <span class="text-[#854f38] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
+                                    <span class="text-[#5F7048] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
                                 @endif
                             </p>
                         @endif
@@ -614,25 +614,25 @@
                     @endif
 
                     <div class="p-6">
-                        <h4 class="text-2xl font-semibold text-[#647a0b]">{{ $prestation->name }}</h4>
+                        <h4 class="text-2xl font-semibold text-[#6B4A3A]">{{ $prestation->name }}</h4>
 
                         {{-- Badges : lieux, durée, paiement --}}
                         @if(count($locationBadges) > 0 || !is_null($prestation->duration) || $canCollectOnline)
                             <div class="mt-3 flex flex-wrap gap-2 text-xs sm:text-sm">
                                 @foreach($locationBadges as [$icon, $label])
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b]">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#D8CFBF] text-[#6B4A3A]">
                                         <span class="mr-1">{{ $icon }}</span> {{ $label }}
                                     </span>
                                 @endforeach
 
                                 @if(!is_null($prestation->duration))
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-gray-700">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#D8CFBF] text-gray-700">
                                         <span class="mr-1">⏱</span> {{ $prestation->duration }} {{ __('min') }}
                                     </span>
                                 @endif
 
                                 @if($canCollectOnline)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#854f38]">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#D8CFBF] text-[#5F7048]">
                                         <span class="mr-1">💳</span> {{ __('Paiement en ligne possible') }}
                                     </span>
                                 @endif
@@ -653,7 +653,7 @@
                            data-truncated-text="{{ e($truncatedDescription) }}">
                             {!! nl2br(e($truncatedDescription)) !!}
                             @if(\Illuminate\Support\Str::length($prestation->description) > 200)
-                                <span class="text-[#854f38] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
+                                <span class="text-[#5F7048] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
                             @endif
                         </p>
 
@@ -661,7 +661,7 @@
                         @if($prestation->brochure)
                             <a href="{{ asset('storage/' . $prestation->brochure) }}"
                                target="_blank"
-                               class="mt-4 inline-block text-[#854f38] hover:text-[#6a3f2c]">
+                               class="mt-4 inline-block text-[#5F7048] hover:text-[#4E5F3A]">
                                 {{ __('Télécharger la brochure') }}
                             </a>
                         @endif
@@ -682,8 +682,8 @@
 <div class="bg-white shadow rounded-lg p-8 mt-8">
     <div class="flex items-start sm:items-center justify-between gap-6">
         <div>
-            <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                <i class="fas fa-graduation-cap text-[#854f38] mr-3"></i>
+            <h3 class="text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                <i class="fas fa-graduation-cap text-[#5F7048] mr-3"></i>
                 {{ __('Formations & contenus digitaux') }}
             </h3>
             <p class="mt-2 text-gray-600 text-base">
@@ -693,7 +693,7 @@
 
         {{-- optional small badge --}}
         <div class="hidden sm:flex items-center gap-2">
-            <span class="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7] text-xs font-bold">
+            <span class="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0d8] text-[#6B4A3A] border border-[#dfe8c7] text-xs font-bold">
                 {{ $trainings->count() }} {{ __('contenu(s)') }}
             </span>
         </div>
@@ -723,7 +723,7 @@
             <a href="{{ $url }}"
                class="group block border border-gray-200 rounded-2xl overflow-hidden bg-[#f9fafb]
                       hover:shadow-xl hover:-translate-y-1 transition-all duration-300 focus:outline-none
-                      focus:ring-2 focus:ring-[#8ea633]/40">
+                      focus:ring-2 focus:ring-[#4E5F3A]/40">
 
                 {{-- Cover --}}
                 <div class="relative h-48 bg-gradient-to-br from-[#e8f0d8] to-white">
@@ -733,7 +733,7 @@
                              class="absolute inset-0 w-full h-full object-cover">
                         <div class="absolute inset-0 bg-black/10"></div>
                     @else
-                        <div class="absolute inset-0 flex items-center justify-center text-[#647a0b]/70">
+                        <div class="absolute inset-0 flex items-center justify-center text-[#6B4A3A]/70">
                             <i class="fas fa-leaf text-4xl"></i>
                         </div>
                     @endif
@@ -741,11 +741,11 @@
                     {{-- Top badges --}}
                     <div class="absolute top-4 left-4 flex flex-wrap gap-2">
                         @if($isFree)
-                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-[#647a0b] border border-[#dfe8c7] text-xs font-bold">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-[#6B4A3A] border border-[#dfe8c7] text-xs font-bold">
                                 {{ __('Gratuit') }}
                             </span>
                         @elseif($priceLabel)
-                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-[#854f38] border border-[#eadfd8] text-xs font-bold">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 text-[#5F7048] border border-[#eadfd8] text-xs font-bold">
                                 {{ $priceLabel }}
                             </span>
                         @endif
@@ -765,7 +765,7 @@
                             </span>
                         @endif
 
-                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-[#647a0b] font-semibold">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/90 border border-gray-200 text-[#6B4A3A] font-semibold">
                             {{ __('Voir le détail') }} <i class="fas fa-arrow-right ml-2 text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
                         </span>
                     </div>
@@ -773,7 +773,7 @@
 
                 {{-- Content --}}
                 <div class="p-6">
-                    <h4 class="text-xl font-extrabold text-[#647a0b] leading-snug line-clamp-2">
+                    <h4 class="text-xl font-extrabold text-[#6B4A3A] leading-snug line-clamp-2">
                         {{ $training->title }}
                     </h4>
 
@@ -787,7 +787,7 @@
                     @if($tags->count() > 0)
                         <div class="mt-4 flex flex-wrap gap-2">
                             @foreach($tags as $tag)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b] text-xs font-semibold">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#D8CFBF] text-[#6B4A3A] text-xs font-semibold">
                                     #{{ $tag }}
                                 </span>
                             @endforeach
@@ -797,8 +797,8 @@
                     {{-- CTA bar --}}
                     <div class="mt-6">
                         <div class="w-full inline-flex items-center justify-center rounded-full
-                                    bg-[#647a0b] text-white font-semibold py-2.5
-                                    group-hover:bg-[#8ea633] transition-colors">
+                                    bg-[#6B4A3A] text-white font-semibold py-2.5
+                                    group-hover:bg-[#4E5F3A] transition-colors">
                             <i class="fas fa-play-circle mr-2"></i>
                             {{ __('Découvrir') }}
                         </div>
@@ -817,8 +817,8 @@
 
             {{-- Section Événements --}}
             <div class="bg-[#f9fafb] shadow rounded-lg p-8">
-                <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">
-                    <i class="fas fa-calendar-alt text-[#854f38] mr-3"></i> {{ __('Événements à Venir') }}
+                <h3 class="text-3xl font-semibold text-[#5F7048] flex items-center">
+                    <i class="fas fa-calendar-alt text-[#5F7048] mr-3"></i> {{ __('Événements à Venir') }}
                 </h3>
                 @if($events->count() > 0)
                     <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -828,22 +828,22 @@
                                     <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->name }}" class="w-full h-48 object-cover">
                                 @endif
                                 <div class="p-6">
-                                    <h4 class="text-2xl font-semibold text-[#854f38]">{{ $event->name }}</h4>
+                                    <h4 class="text-2xl font-semibold text-[#5F7048]">{{ $event->name }}</h4>
                                     <p class="mt-2 text-gray-600">
-                                        <i class="fas fa-calendar-alt mr-1 text-[#854f38]"></i> {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                                        <i class="fas fa-calendar-alt mr-1 text-[#5F7048]"></i> {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
                                     </p>
                                     <p class="text-gray-600 mt-1">
-                                        <i class="fas fa-map-marker-alt mr-1 text-[#854f38]"></i> {{ $event->location }}
+                                        <i class="fas fa-map-marker-alt mr-1 text-[#5F7048]"></i> {{ $event->location }}
                                     </p>
                                     @if($event->limited_spot)
                                         <p class="text-gray-600 mt-1">
-                                            <i class="fas fa-users mr-1 text-[#854f38]"></i> {{ __('Places restantes :') }} {{ $event->number_of_spot - $event->reservations->count() }}
+                                            <i class="fas fa-users mr-1 text-[#5F7048]"></i> {{ __('Places restantes :') }} {{ $event->number_of_spot - $event->reservations->count() }}
                                         </p>
                                     @endif
                                     
                                     @if($event->associatedProduct && $event->associatedProduct->price > 0)
                                         <p class="text-gray-600 mt-1">
-                                            <i class="fas fa-tag mr-1 text-[#854f38]"></i> {{ __('Prix :') }} {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
+                                            <i class="fas fa-tag mr-1 text-[#5F7048]"></i> {{ __('Prix :') }} {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €
                                         </p>
                                     @endif
                                     
@@ -893,7 +893,7 @@
     @if($event->booking_required)
         @if(!$event->limited_spot || ($spotsLeft > 0))
             <a href="{{ $eventUrl }}"
-               class="inline-block bg-[#854f38] text-white text-sm px-6 py-2 rounded-full hover:bg-[#6a3f2c] transition-colors duration-300">
+               class="inline-block bg-[#5F7048] text-white text-sm px-6 py-2 rounded-full hover:bg-[#4E5F3A] transition-colors duration-300">
                 {{ __('Réserver') }}
             </a>
         @else
@@ -923,8 +923,8 @@
     <div class="bg-white shadow rounded-lg p-8 mt-8">
         <div class="flex items-start sm:items-center justify-between gap-6">
             <div>
-                <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-                    <i class="fas fa-newspaper text-[#854f38] mr-3"></i>
+                <h3 class="text-3xl font-semibold text-[#6B4A3A] flex items-center">
+                    <i class="fas fa-newspaper text-[#5F7048] mr-3"></i>
                     {{ __('Articles & Conseils') }}
                 </h3>
                 <p class="mt-2 text-gray-600 text-base">
@@ -934,12 +934,12 @@
             </div>
 
             <div class="hidden sm:flex items-center gap-3">
-                <span class="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0d8] text-[#647a0b] border border-[#dfe8c7] text-xs font-bold">
+                <span class="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0d8] text-[#6B4A3A] border border-[#dfe8c7] text-xs font-bold">
                     {{ $publishedArticles->count() }} {{ __('article(s)') }}
                 </span>
 
                 <a href="{{ route('pro.articles.index', $therapist->slug) }}"
-                   class="inline-flex items-center px-4 py-2 rounded-full bg-[#647a0b] text-white text-sm font-semibold hover:bg-[#8ea633] transition">
+                   class="inline-flex items-center px-4 py-2 rounded-full bg-[#6B4A3A] text-white text-sm font-semibold hover:bg-[#4E5F3A] transition">
                     {{ __('Voir tous') }} <i class="fas fa-arrow-right ml-2 text-[10px]"></i>
                 </a>
             </div>
@@ -957,7 +957,7 @@
                     @endif
 
                     <div class="p-6">
-                        <h4 class="text-xl font-semibold text-[#647a0b] group-hover:text-[#8ea633] transition line-clamp-2">
+                        <h4 class="text-xl font-semibold text-[#6B4A3A] group-hover:text-[#4E5F3A] transition line-clamp-2">
                             {{ $article->title }}
                         </h4>
 
@@ -969,18 +969,18 @@
 
                         <div class="mt-4 flex items-center justify-between text-xs text-gray-500">
                             <span>
-                                <i class="far fa-calendar-alt mr-1 text-[#854f38]"></i>
+                                <i class="far fa-calendar-alt mr-1 text-[#5F7048]"></i>
                                 {{ optional($article->published_at)->format('d/m/Y') }}
                             </span>
 
                             @if($article->reading_time)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b] font-semibold">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white border border-[#D8CFBF] text-[#6B4A3A] font-semibold">
                                     ⏱ {{ $article->reading_time }} {{ __('min') }}
                                 </span>
                             @endif
                         </div>
 
-                        <div class="mt-5 inline-flex items-center text-sm font-semibold text-[#854f38] group-hover:text-[#6a3f2c] transition">
+                        <div class="mt-5 inline-flex items-center text-sm font-semibold text-[#5F7048] group-hover:text-[#4E5F3A] transition">
                             {{ __('Lire l’article') }} <i class="fas fa-arrow-right ml-2 text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
                         </div>
                     </div>
@@ -991,7 +991,7 @@
         {{-- Mobile CTA --}}
         <div class="mt-8 text-center sm:hidden">
             <a href="{{ route('pro.articles.index', $therapist->slug) }}"
-               class="inline-flex items-center px-6 py-3 rounded-full bg-[#647a0b] text-white font-semibold hover:bg-[#8ea633] transition">
+               class="inline-flex items-center px-6 py-3 rounded-full bg-[#6B4A3A] text-white font-semibold hover:bg-[#4E5F3A] transition">
                 {{ __('Voir tous les articles') }}
             </a>
         </div>
@@ -1000,8 +1000,8 @@
 
 {{-- Section Témoignages --}}
 <div class="bg-white shadow rounded-lg p-8">
-    <h3 class="text-3xl font-semibold text-[#647a0b] flex items-center">
-        <i class="fas fa-comments text-[#854f38] mr-3"></i> {{ __('Témoignages') }}
+    <h3 class="text-3xl font-semibold text-[#6B4A3A] flex items-center">
+        <i class="fas fa-comments text-[#5F7048] mr-3"></i> {{ __('Témoignages') }}
     </h3>
 
     @if($testimonials->count() > 0)
@@ -1019,7 +1019,7 @@
                         : $testimonial->created_at->format('d/m/Y');
                 @endphp
 
-                <div class="p-6 border-l-4 {{ $isGoogle ? 'border-[#8ea633]' : 'border-[#854f38]' }} bg-[#f9fafb] rounded-md">
+                <div class="p-6 border-l-4 {{ $isGoogle ? 'border-[#4E5F3A]' : 'border-[#5F7048]' }} bg-[#f9fafb] rounded-md">
                     <div class="flex items-center justify-between gap-3 mb-2">
                         <div class="flex items-center gap-2">
                             <p class="text-sm text-gray-800 font-semibold">
@@ -1027,7 +1027,7 @@
                             </p>
 
                             @if($isGoogle)
-                                <span class="inline-flex items-center text-xs bg-[#e5f0c8] text-[#647a0b] px-2 py-0.5 rounded-full">
+                                <span class="inline-flex items-center text-xs bg-[#e5f0c8] text-[#6B4A3A] px-2 py-0.5 rounded-full">
                                     <i class="fab fa-google mr-1"></i> Avis Google
                                 </span>
                             @endif
@@ -1089,7 +1089,7 @@
             <i class="fas fa-times"></i>
         </button>
 
-        <h2 class="text-2xl font-semibold text-[#647a0b] mb-4">
+        <h2 class="text-2xl font-semibold text-[#6B4A3A] mb-4">
             {{ __('Demande d\'information') }}
         </h2>
 
@@ -1169,7 +1169,7 @@
                 <!-- Accept Terms & Privacy Policy -->
                 <div class="mb-4">
                     <label for="terms" class="flex items-center text-sm text-gray-600">
-                        <input id="terms" type="checkbox" class="form-checkbox h-4 w-4 text-[#647a0b]" name="terms" required>
+                        <input id="terms" type="checkbox" class="form-checkbox h-4 w-4 text-[#6B4A3A]" name="terms" required>
                         <span class="ml-2">
                             {{ __('J\'accepte les') }} 
                             <a href="{{ route('cgu') }}" target="_blank" class="underline text-blue-600 hover:text-blue-800">
@@ -1186,7 +1186,7 @@
             <div class="text-right">
                 <button
                     type="submit"
-                    class="bg-[#647a0b] text-white font-semibold py-2 px-4 rounded-full hover:bg-[#8ea633] transition-colors duration-300"
+                    class="bg-[#6B4A3A] text-white font-semibold py-2 px-4 rounded-full hover:bg-[#4E5F3A] transition-colors duration-300"
                 >
                     {{ __('Envoyer') }}
                 </button>
@@ -1208,7 +1208,7 @@
             }
             .service-tag:hover {
                 transform: translateY(-3px);
-                background-color: #8ea633; /* Vert Secondaire */
+                background-color: #4E5F3A; /* Vert Secondaire */
             }
 
             /* Prestations et Événements */
@@ -1226,7 +1226,7 @@
                 transition: background-color 0.3s ease, transform 0.3s ease;
             }
             .button:hover {
-                background-color: #6a3f2c; /* Teinte plus foncée au survol */
+                background-color: #4E5F3A; /* Teinte plus foncée au survol */
                 transform: translateY(-2px);
             }
 
@@ -1283,12 +1283,12 @@
                     description.addEventListener('click', function(event) {
                         if (event.target.classList.contains('voir-plus')) {
                             const fullText = description.getAttribute('data-full-text');
-                            description.innerHTML = fullText.replace(/\n/g, '<br>') + ` <span class="text-[#854f38] cursor-pointer voir-moins">${voirMoinsText}</span>`;
+                            description.innerHTML = fullText.replace(/\n/g, '<br>') + ` <span class="text-[#5F7048] cursor-pointer voir-moins">${voirMoinsText}</span>`;
                         } else if (event.target.classList.contains('voir-moins')) {
                             const truncatedText = description.getAttribute('data-truncated-text');
                             let voirPlusSpan = '';
                             if (description.getAttribute('data-full-text').length > 200) {
-                                voirPlusSpan = ` <span class="text-[#854f38] cursor-pointer voir-plus">${voirPlusText}</span>`;
+                                voirPlusSpan = ` <span class="text-[#5F7048] cursor-pointer voir-plus">${voirPlusText}</span>`;
                             }
                             description.innerHTML = truncatedText.replace(/\n/g, '<br>') + voirPlusSpan;
                         }

@@ -1,3 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --brand-primary: #A7B88A;
+        --brand-secondary: #6B4A3A;
+        --brand-background: #F6F2EB;
+        --brand-surface-warm: #EDE7DB;
+        --brand-surface-cool: #B8CDBD;
+        --brand-accent: #E9B07A;
+        --brand-text: #6B4A3A;
+        --brand-text-strong: #3F2B22;
+        --brand-border: #D8CFBF;
+    }
+
+    html {
+        background: var(--brand-background);
+    }
+
+    body {
+        color: var(--brand-text);
+        background: var(--brand-background);
+    }
+}
+
+@layer components {
+    .brand-heading {
+        @apply font-display text-brand-text-strong;
+    }
+
+    .brand-surface {
+        @apply border border-brand-border bg-brand-surface-warm;
+    }
+
+    .brand-button-primary {
+        @apply inline-flex items-center justify-center rounded-full bg-primary-600 px-4 py-2 font-semibold text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-brand-accent focus:ring-offset-2;
+    }
+}

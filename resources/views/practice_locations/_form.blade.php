@@ -46,7 +46,7 @@
                     <span>
                         <span class="block font-medium text-gray-900">{{ __('Cabinet partagé') }}</span>
                         <span class="block text-sm text-gray-600">
-                            {{ __('Permet d’inviter d’autres thérapeutes déjà inscrits sur AromaMade. Lorsqu’un créneau est réservé au cabinet, il devient indisponible pour tous les membres de ce cabinet partagé.') }}
+                            {{ __('Permet d’inviter d’autres thérapeutes déjà inscrits sur Olithea. Lorsqu’un créneau est réservé au cabinet, il devient indisponible pour tous les membres de ce cabinet partagé.') }}
                         </span>
                     </span>
                 </label>
@@ -56,7 +56,7 @@
 </div>
 
 <div class="mt-6 flex gap-2">
-    <button class="px-4 py-2 rounded-lg bg-[#647a0b] text-white hover:bg-[#8ea633] transition">
+    <button class="px-4 py-2 rounded-lg bg-[#6B4A3A] text-white hover:bg-[#4E5F3A] transition">
         {{ __('Enregistrer') }}
     </button>
     <a href="{{ route('practice-locations.index') }}" class="px-4 py-2 rounded-lg border hover:bg-gray-50">

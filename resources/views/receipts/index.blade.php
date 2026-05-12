@@ -1,6 +1,6 @@
 <x-app-layout>
   <x-slot name="header">
-    <h2 class="font-semibold text-xl" style="color:#647a0b;">Livre de recettes</h2>
+    <h2 class="font-semibold text-xl" style="color:#6B4A3A;">Livre de recettes</h2>
   </x-slot>
 
   @php
@@ -269,7 +269,7 @@
     }
 
     .flex-between { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
-    .details-title { font-size:2rem; font-weight:700; color:#647a0b; margin:0; }
+    .details-title { font-size:2rem; font-weight:700; color:#6B4A3A; margin:0; }
     .chip { padding:6px 10px; border-radius:999px; font-weight:600; font-size:.9rem; background:#fff; border:1px solid #e3e3e3; color:#555; white-space:nowrap; }
     .chip-success { background:#e9f7ef; color:#1e7e34; border-color:#cfe9d8; }
     .text-muted { color:#555; font-size:.95rem; }
@@ -286,11 +286,11 @@
       padding:16px 20px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,.05);
     }
     .filter-form .form-group { display:flex; flex-direction:column; gap:4px; }
-    .filter-form label { font-weight:600; color:#647a0b; font-size:.95rem; }
+    .filter-form label { font-weight:600; color:#6B4A3A; font-size:.95rem; }
     .form-control {
       padding:10px 12px; border-radius:10px; border:1px solid #e5e7eb; outline:none; background:#fff;
     }
-    .form-control:focus { border-color:#647a0b; box-shadow:0 0 0 3px rgba(100,122,11,.12); }
+    .form-control:focus { border-color:#6B4A3A; box-shadow:0 0 0 3px rgba(167, 184, 138,.12); }
 
     .table-card {
       background:#fff; border:1px solid #e5e7eb; border-radius:12px;
@@ -301,7 +301,7 @@
       display:flex; align-items:baseline; justify-content:space-between; gap:12px;
       background:linear-gradient(180deg, #ffffff, #fbfbfb);
     }
-    .table-card-title{ font-weight:800; color:#647a0b; font-size:1.05rem; }
+    .table-card-title{ font-weight:800; color:#6B4A3A; font-size:1.05rem; }
     .table-card-subtitle{ color:#6b7280; font-size:.9rem; white-space:nowrap; }
 
     .table-scroll{ width:100%; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }
@@ -309,7 +309,7 @@
     .am-table { width:100%; border-collapse:separate; border-spacing:0; min-width:1150px; font-size:.92rem; }
     .am-table thead th{
       position:sticky; top:0; z-index:2;
-      background:#647a0b; color:#fff; text-align:left;
+      background:#6B4A3A; color:#fff; text-align:left;
       padding:12px 12px; font-weight:800; border-bottom:1px solid rgba(255,255,255,.18);
       white-space:nowrap;
     }
@@ -342,10 +342,10 @@
       display:inline-flex; align-items:center; gap:8px;
       cursor:pointer; transition:all .25s ease; font-weight:600; border:none; white-space:nowrap;
     }
-    .btn-primary { background:#647a0b; color:#fff; }
+    .btn-primary { background:#6B4A3A; color:#fff; }
     .btn-primary:hover { background:#566f09; }
-    .btn-secondary { background:transparent; color:#854f38; border:1px solid #854f38; }
-    .btn-secondary:hover { background:#854f38; color:#fff; }
+    .btn-secondary { background:transparent; color:#5F7048; border:1px solid #5F7048; }
+    .btn-secondary:hover { background:#5F7048; color:#fff; }
 
     .btn-disabled-link {
       background:#e5e7eb !important; color:#6b7280 !important;
@@ -359,7 +359,7 @@
     }
     .badge-soft {
       display:inline-block; padding:5px 10px; border-radius:999px;
-      background:#f9faf5; border:1px solid #e3e8d1; color:#647a0b;
+      background:#f9faf5; border:1px solid #e3e8d1; color:#6B4A3A;
       font-weight:800; font-size:.78rem; line-height:1; white-space:nowrap;
     }
     .badge-green{
@@ -379,11 +379,11 @@
       font-size:.85rem; background:#fff; min-width:135px;
     }
     .btn-mini {
-      padding:8px 10px; border-radius:10px; border:1px solid #854f38;
-      background:transparent; color:#854f38; font-weight:800;
+      padding:8px 10px; border-radius:10px; border:1px solid #5F7048;
+      background:transparent; color:#5F7048; font-weight:800;
       cursor:pointer; transition:all .2s ease; font-size:.85rem; white-space:nowrap;
     }
-    .btn-mini:hover { background:#854f38; color:#fff; }
+    .btn-mini:hover { background:#5F7048; color:#fff; }
     .btn-mini:disabled { opacity:.6; cursor:not-allowed; }
 
     .blur-wrapper { position:relative; margin-top:20px; }
@@ -397,10 +397,10 @@
       border-radius:14px; padding:20px 24px; box-shadow:0 10px 30px rgba(0,0,0,0.12);
       text-align:center; border:1px solid #e5e7eb;
     }
-    .blur-title { font-size:1.15rem; font-weight:800; color:#647a0b; margin-bottom:8px; }
+    .blur-title { font-size:1.15rem; font-weight:800; color:#6B4A3A; margin-bottom:8px; }
     .blur-text { font-size:.95rem; color:#4b5563; margin-bottom:6px; }
     .blur-text-small { font-size:.85rem; color:#6b7280; margin-bottom:10px; }
-    .blur-plan { font-weight:800; color:#854f38; }
+    .blur-plan { font-weight:800; color:#5F7048; }
 
     @media (max-width:768px){
       .filter-form { flex-direction:column; align-items:stretch; }

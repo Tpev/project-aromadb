@@ -84,7 +84,7 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
                     'appointment' => $this->appointment,
                 ]);
 
-                $base = rtrim(config('services.jitsi.base_url', 'https://visio.aromamade.com'), '/');
+                $base = rtrim(config('services.jitsi.base_url', 'https://visio.olithea.fr'), '/');
                 $visioUrl = "{$base}/{$room}?jwt={$jwt}";
             } catch (\Throwable $e) {
                 // Fallback to non-JWT room URL so reminder still includes a usable link.

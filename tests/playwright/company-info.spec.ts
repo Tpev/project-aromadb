@@ -23,7 +23,7 @@ test.describe('Therapist company info configuration', () => {
 
     // 5. Bypass Quill: set the hidden input value via JS
     const aboutText =
-      'Je suis un thérapeute de test utilisant AromaMade PRO pour gérer mes rendez-vous, mes clients et ma facturation.';
+      'Je suis un thérapeute de test utilisant Olithea PRO pour gérer mes rendez-vous, mes clients et ma facturation.';
     await page.evaluate((value) => {
       const input = document.querySelector('#about-input') as HTMLInputElement | null;
       if (input) {

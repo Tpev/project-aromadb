@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Profile') }}
         </h2>
     </x-slot>
@@ -71,7 +71,7 @@
         .details-title {
             font-size: 1.75rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -84,7 +84,7 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 30px;
             border: none;
@@ -96,7 +96,7 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .mt-4 {

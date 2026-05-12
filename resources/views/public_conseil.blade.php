@@ -13,14 +13,14 @@
         }
 
         h1 {
-            color: #647a0b;
+            color: #6B4A3A;
             font-size: 1.8rem; /* Larger heading for easier reading on mobile */
             margin-bottom: 1rem;
             text-align: center;
         }
 
         a {
-            color: #854f38;
+            color: #5F7048;
             text-decoration: underline;
             word-wrap: break-word; /* Ensures long URLs wrap on small screens */
         }
@@ -39,7 +39,7 @@
         }
 
         .content h2, .content h3 {
-            color: #647a0b;
+            color: #6B4A3A;
             margin-top: 1.5rem;
             margin-bottom: 1rem;
             font-weight: bold;
@@ -50,7 +50,7 @@
         }
 
         .content a {
-            color: #854f38;
+            color: #5F7048;
         }
 
         /* Tag and link section */

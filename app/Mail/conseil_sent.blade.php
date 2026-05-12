@@ -5,7 +5,7 @@
     <title>Nouveau Conseil Disponible</title>
 </head>
 <body style="font-family: Arial, sans-serif; color: #333;">
-    <h1 style="color: #647a0b;">Bonjour {{ $clientProfile->first_name }} {{ $clientProfile->last_name }},</h1>
+    <h1 style="color: #6B4A3A;">Bonjour {{ $clientProfile->first_name }} {{ $clientProfile->last_name }},</h1>
 
     <p>Votre thérapeute vous a envoyé un nouveau conseil : <strong>{{ $conseil->name }}</strong>.</p>
 
@@ -15,7 +15,7 @@
 
     <p>Pour accéder à ce conseil, veuillez cliquer sur le lien ci-dessous :</p>
 
-    <p><a href="{{ $link }}" style="color: #854f38; text-decoration: underline;">Voir le Conseil</a></p>
+    <p><a href="{{ $link }}" style="color: #5F7048; text-decoration: underline;">Voir le Conseil</a></p>
 
     <p>Ce lien est unique et ne devrait pas être partagé.</p>
 

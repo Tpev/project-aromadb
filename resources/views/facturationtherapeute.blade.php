@@ -1,7 +1,7 @@
 <x-app-layout>
 
-    @section('title', 'Facturation et devis pour thérapeute : logiciel AromaMade')
-    @section('meta_description', 'Découvrez AromaMade, l’application idéale pour créer facilement vos factures et devis thérapeute en ligne. Modèles gratuits, automatisation et paiement sécurisé.')
+    @section('title', 'Facturation et devis pour thérapeute : logiciel Olithea')
+    @section('meta_description', 'Découvrez Olithea, l’application idéale pour créer facilement vos factures et devis thérapeute en ligne. Modèles gratuits, automatisation et paiement sécurisé.')
 
 <section class="hero relative"
          style="background-image: url('{{ asset('images/facturation-therapeute-en-ligne.webp') }}');
@@ -10,14 +10,14 @@
                 background-repeat: no-repeat;">
     <!-- Balise image cachée pour le SEO -->
     <img src="{{ asset('images/facturation-therapeute-en-ligne.webp') }}"
-         alt="Illustration de la facturation en ligne pour thérapeutes avec AromaMade"
+         alt="Illustration de la facturation en ligne pour thérapeutes avec Olithea"
          class="hidden">
 
     <div class="overlay absolute inset-0 bg-black opacity-50"></div>
 
     <div class="container mx-auto relative z-10 py-24 px-6 lg:px-20 max-w-6xl text-center">
         <h1 class="text-5xl font-bold text-white">Facturation simplifiée pour thérapeutes</h1>
-        <p class="text-xl text-white mt-4">Créez facilement vos factures et devis avec AromaMade</p>
+        <p class="text-xl text-white mt-4">Créez facilement vos factures et devis avec Olithea</p>
         <a href="{{ route('register-pro') }}" class="btn-primary mt-6">Essai gratuit 14 jours</a>
     </div>
 </section>
@@ -31,9 +31,9 @@
     <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-primary mb-4">Factures thérapeute en quelques clics</h2>
 
-        <p class="text-lg text-gray-700">Avec AromaMade, vous gagnez un temps précieux sur la gestion de votre facturation. Notre outil a été conçu spécifiquement pour répondre aux besoins des thérapeutes : simplicité, conformité légale, rapidité d’exécution et image professionnelle.</p>
+        <p class="text-lg text-gray-700">Avec Olithea, vous gagnez un temps précieux sur la gestion de votre facturation. Notre outil a été conçu spécifiquement pour répondre aux besoins des thérapeutes : simplicité, conformité légale, rapidité d’exécution et image professionnelle.</p>
 
-        <p class="mt-4 text-lg text-gray-700">Fini les tableurs ou les documents Word à dupliquer et adapter manuellement. Dès la création de votre compte, vous pouvez personnaliser votre logo, vos informations professionnelles et vos mentions obligatoires. AromaMade intègre ces éléments dans chaque facture automatiquement, vous garantissant des documents conformes et cohérents.</p>
+        <p class="mt-4 text-lg text-gray-700">Fini les tableurs ou les documents Word à dupliquer et adapter manuellement. Dès la création de votre compte, vous pouvez personnaliser votre logo, vos informations professionnelles et vos mentions obligatoires. Olithea intègre ces éléments dans chaque facture automatiquement, vous garantissant des documents conformes et cohérents.</p>
 
         <p class="mt-4 text-lg text-gray-700">La génération de factures devient un jeu d’enfant : sélectionnez votre client, ajoutez la prestation réalisée, appliquez si besoin la TVA ou une exonération selon votre statut (ex : article 293B du CGI), et envoyez en un clic. Le tout dans une interface fluide et intuitive, utilisable sur ordinateur, tablette ou smartphone.</p>
 
@@ -54,7 +54,7 @@
 
         <p class="mt-6 text-lg text-gray-700">Notre objectif est simple : vous libérer du temps et vous permettre de vous concentrer sur votre cœur de métier. La facturation ne doit plus être une corvée, mais un réflexe automatisé et sécurisé.</p>
 
-        <a href="https://support.aromamade.com/fr/tutoriel-facturation-aromamade-pro" class="text-primary font-bold mt-6 inline-block">Découvrez comment créer votre facture →</a>
+        <a href="https://support.olithea.fr/fr/tutoriel-facturation-olithea-pro" class="text-primary font-bold mt-6 inline-block">Découvrez comment créer votre facture →</a>
     </div>
 </section>
 
@@ -69,7 +69,7 @@
                 <li>Respect des obligations légales</li>
                 <li>Conversion devis → facture en 1 clic</li>
             </ul>
-            <a href="https://support.aromamade.com/fr/conseils-metiers/devis-therapeute-modele" class="text-primary font-bold mt-4 inline-block">Voir nos modèles de devis →</a>
+            <a href="https://support.olithea.fr/fr/conseils-metiers/devis-therapeute-modele" class="text-primary font-bold mt-4 inline-block">Voir nos modèles de devis →</a>
         </div>
     </section>
 
@@ -97,14 +97,14 @@
             <li>Statut de TVA : exonération éventuelle selon l'article 293B du CGI</li>
             <li>Coordonnées complètes du praticien et du client</li>
         </ul>
-        <p class="mt-4 text-gray-700">Une fois votre compte correctement configuré, AromaMade ajoutera automatiquement toutes les mentions légales nécessaires à vos documents.</p>
+        <p class="mt-4 text-gray-700">Une fois votre compte correctement configuré, Olithea ajoutera automatiquement toutes les mentions légales nécessaires à vos documents.</p>
     </div>
 </section>
 
-<!-- H2 (NEW): Pourquoi choisir AromaMade plutôt que facture à la main sur Word ? -->
+<!-- H2 (NEW): Pourquoi choisir Olithea plutôt que facture à la main sur Word ? -->
 <section class="py-12 bg-gray-100">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-primary mb-4">Pourquoi choisir AromaMade plutôt que facture à la main sur Word ?</h2>
+        <h2 class="text-3xl font-bold text-primary mb-4">Pourquoi choisir Olithea plutôt que facture à la main sur Word ?</h2>
         <p class="text-lg text-gray-700">Créer ses factures manuellement avec Word peut sembler simple, mais génère des risques et des pertes de temps importants :</p>
         <ul class="mt-4 list-disc ml-5">
             <li><strong>Risques d’erreurs légales</strong> : mentions obligatoires oubliées, erreurs de numérotation.</li>
@@ -112,28 +112,28 @@
             <li><strong>Archivage complexe</strong> : gestion manuelle des documents administratifs.</li>
             <li><strong>Image professionnelle réduite</strong> : manque de cohérence et d’esthétique.</li>
         </ul>
-        <p class="mt-4 text-gray-700">AromaMade simplifie l’ensemble du processus : création, suivi automatisé des paiements, archivage sécurisé et facilite le respect des obligations légales.</p>
+        <p class="mt-4 text-gray-700">Olithea simplifie l’ensemble du processus : création, suivi automatisé des paiements, archivage sécurisé et facilite le respect des obligations légales.</p>
     </div>
 </section>
 <section class="py-12 bg-green-50">
     <div class="container mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold text-primary mb-4">Bien plus qu’un simple outil de facturation</h2>
         <p class="text-lg text-gray-700 max-w-3xl mx-auto">
-            La facturation, c’est seulement une petite partie de ce que propose AromaMade. Notre application est conçue pour accompagner les thérapeutes dans la gestion complète de leur activité : prise de rendez-vous, dossiers patients, questionnaires, visio, paiements, inventaire, portail pro, synchronisation calendrier et plus encore.
+            La facturation, c’est seulement une petite partie de ce que propose Olithea. Notre application est conçue pour accompagner les thérapeutes dans la gestion complète de leur activité : prise de rendez-vous, dossiers patients, questionnaires, visio, paiements, inventaire, portail pro, synchronisation calendrier et plus encore.
         </p>
         <p class="mt-6 text-lg text-gray-700">Découvrez toutes les fonctionnalités qui révolutionnent votre quotidien de praticien.</p>
         <a href="/pro" class="btn-secondary mt-6 inline-block">Voir toutes les fonctionnalités →</a>
     </div>
 </section>
 
-<!-- H2 (NEW): Témoignages utilisateurs sur la facturation AromaMade -->
+<!-- H2 (NEW): Témoignages utilisateurs sur la facturation Olithea -->
 <section class="py-12 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-primary mb-4">Témoignages utilisateurs sur la facturation AromaMade</h2>
+        <h2 class="text-3xl font-bold text-primary mb-4">Témoignages utilisateurs sur la facturation Olithea</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Témoignage 1 -->
             <div class="testimonial-card p-6 bg-gray-50 rounded shadow">
-                <p class="italic text-gray-700">« AromaMade m'a fait gagner plusieurs heures chaque semaine grâce à son système automatisé. Fini les erreurs ou oublis sur mes factures, tout est parfait dès la première fois ! »</p>
+                <p class="italic text-gray-700">« Olithea m'a fait gagner plusieurs heures chaque semaine grâce à son système automatisé. Fini les erreurs ou oublis sur mes factures, tout est parfait dès la première fois ! »</p>
                 <h4 class="mt-4 font-bold text-primary">— Claire, Sophrologue</h4>
             </div>
             <!-- Témoignage 2 -->
@@ -150,14 +150,14 @@
         <div class="container mx-auto px-4">
             <h2 class="text-3xl font-bold text-primary mb-4">Exemple gratuit de facture thérapeute</h2>
             <p class="text-lg text-gray-700">Téléchargez gratuitement un exemple de facture thérapeute en format PDF, respectant les obligations légales actuelles.</p>
-            <a href="https://support.aromamade.com/fr/conseils-metiers/exemple-facture-therapeute" class="text-primary font-bold mt-4 inline-block">Télécharger l'exemple PDF →</a>
+            <a href="https://support.olithea.fr/fr/conseils-metiers/exemple-facture-therapeute" class="text-primary font-bold mt-4 inline-block">Télécharger l'exemple PDF →</a>
         </div>
     </section>
 
     <!-- Avantages Section -->
     <section class="py-12 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold text-primary mb-4">Pourquoi choisir AromaMade ?</h2>
+            <h2 class="text-3xl font-bold text-primary mb-4">Pourquoi choisir Olithea ?</h2>
             <ul class="mt-4 list-disc ml-5 text-lg text-gray-700">
                 <li>Facile à utiliser, pensé spécifiquement pour les thérapeutes</li>
                 <li>Automatisation de vos tâches administratives</li>
@@ -173,14 +173,14 @@
             <h2 class="text-3xl font-bold text-primary mb-6">Questions fréquentes sur la facturation thérapeute</h2>
 
             <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question" class="mb-4">
-                <h3 itemprop="name" class="font-bold">Comment créer une facture rapidement avec AromaMade ?</h3>
+                <h3 itemprop="name" class="font-bold">Comment créer une facture rapidement avec Olithea ?</h3>
                 <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <p itemprop="text">Créez une facture thérapeute en quelques clics grâce à nos modèles pré-remplis et facilement adaptables directement depuis votre interface.</p>
                 </div>
             </div>
 
             <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question" class="mb-4">
-                <h3 itemprop="name" class="font-bold">Est-ce que AromaMade gère aussi les devis thérapeute ?</h3>
+                <h3 itemprop="name" class="font-bold">Est-ce que Olithea gère aussi les devis thérapeute ?</h3>
                 <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
                     <p itemprop="text">Oui, vous pouvez créer facilement des devis thérapeute et les convertir automatiquement en factures en quelques secondes.</p>
                 </div>
@@ -197,16 +197,16 @@
     <style>
         /* Custom Colors */
         :root {
-            --primary-color: #647a0b;
-            --secondary-color: #854f38;
+            --primary-color: #6B4A3A;
+            --secondary-color: #5F7048;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: Montserrat, "Avenir Next", sans-serif;
         }
 
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Poppins', sans-serif;
+            font-family: "Cormorant Garamond", Georgia, serif;
         }
 
         .text-primary {

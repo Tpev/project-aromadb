@@ -13,7 +13,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color: #647a0b;">
+                <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
                     {{ __('Paramètres de la formation') }} – {{ $training->title }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -63,7 +63,7 @@
                                name="title"
                                value="{{ old('title', $training->title) }}"
                                required
-                               class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                               class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                     </div>
 
                     <div>
@@ -72,7 +72,7 @@
                         </label>
                         <textarea name="description"
                                   rows="4"
-                                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                                  class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"
                                   placeholder="{{ __('Expliquez en quelques lignes le contenu et les bénéfices pour vos clients.') }}">{{ old('description', $training->description) }}</textarea>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
 
                         <input type="file"
                                name="cover_image"
-                               class="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white">
+                               class="w-full rounded-lg border border-slate-200 px-2 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white">
                         <p class="mt-1 text-[11px] text-slate-500">
                             {{ __('JPG ou PNG. Si vous ne choisissez rien, l’image actuelle sera conservée.') }}
                         </p>
@@ -110,7 +110,7 @@
                                name="tags"
                                value="{{ old('tags', $tagsString) }}"
                                placeholder="stress, sommeil, digestion"
-                               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                     </div>
                 </div>
 
@@ -129,7 +129,7 @@
                                    name="is_free"
                                    value="1"
                                    x-model="isFree"
-                                   class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                   class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
                             {{ __('Formation gratuite') }}
                         </label>
                     </div>
@@ -145,7 +145,7 @@
                                    :disabled="isFree"
                                    :class="isFree ? 'opacity-50 cursor-not-allowed' : ''"
                                    placeholder="Ex : 29,90"
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                             @error('price_eur') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                         </div>
 
@@ -157,7 +157,7 @@
                                    name="tax_rate"
                                    value="{{ old('tax_rate', (float)($training->tax_rate ?? 0)) }}"
                                    min="0" max="100" step="0.01"
-                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                             @error('tax_rate') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
@@ -183,7 +183,7 @@
                                     value="1"
                                     {{ old('installments_enabled', $training->installments_enabled) ? 'checked' : '' }}
                                     :disabled="isFree"
-                                    class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40"
+                                    class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40"
                                 >
                                 {{ __('Autoriser') }}
                             </label>
@@ -228,7 +228,7 @@
                                    name="free_access_requires_identity"
                                    value="1"
                                    {{ $freeAccessRequiresIdentity ? 'checked' : '' }}
-                                   class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                   class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
                             {{ __('Activer le formulaire avant accès') }}
                         </label>
                     </div>
@@ -246,7 +246,7 @@
                             {{ __('Statut') }} <span class="text-rose-500">*</span>
                         </label>
                         <select name="status"
-                                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                             <option value="draft" {{ old('status', $training->status) === 'draft' ? 'selected' : '' }}>
                                 {{ __('Brouillon') }}
                             </option>
@@ -267,7 +267,7 @@
                                name="estimated_duration_minutes"
                                value="{{ old('estimated_duration_minutes', $training->estimated_duration_minutes) }}"
                                min="1"
-                               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"
+                               class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"
                                placeholder="Ex : 90">
                     </div>
                 </div>
@@ -278,7 +278,7 @@
                         {{ __('Lier à une prestation (produit)') }}
                     </label>
                     <select name="product_id"
-                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                         <option value="">
                             {{ __('Aucun') }}
                         </option>
@@ -308,7 +308,7 @@
                                    name="use_global_retractation_notice"
                                    value="1"
                                    {{ old('use_global_retractation_notice', $training->use_global_retractation_notice) ? 'checked' : '' }}
-                                   class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]/40">
+                                   class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
                             {{ __('Activer pour cette formation') }}
                         </label>
                     </div>
@@ -324,7 +324,7 @@
                             <a href="{{ $owner->digital_sales_retractation_url }}"
                                target="_blank"
                                rel="noopener noreferrer"
-                               class="mt-2 inline-flex text-sm font-semibold text-[#647a0b] underline underline-offset-2">
+                               class="mt-2 inline-flex text-sm font-semibold text-[#6B4A3A] underline underline-offset-2">
                                 {{ __('Ouvrir le document') }}
                             </a>
                         </div>
@@ -342,7 +342,7 @@
                         {{ __('Retour à la liste') }}
                     </a>
                     <button type="submit"
-                            class="rounded-full bg-[#647a0b] px-5 py-2 text-sm font-semibold text-white hover:bg-[#506108]">
+                            class="rounded-full bg-[#6B4A3A] px-5 py-2 text-sm font-semibold text-white hover:bg-[#506108]">
                         {{ __('Enregistrer les paramètres') }}
                     </button>
                 </div>

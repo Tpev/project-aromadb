@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::table('events', function (Blueprint $table) {
             $table->string('event_type')->default('in_person'); // in_person | visio
-            $table->string('visio_provider')->nullable();       // external | aromamade
+            $table->string('visio_provider')->nullable();       // external | managed visio provider
             $table->text('visio_url')->nullable();              // lien externe (ou futur)
-            $table->string('visio_token')->nullable()->unique();// lien AromaMade (token)
+            $table->string('visio_token')->nullable()->unique();// lien Olithea (token)
         });
     }
 

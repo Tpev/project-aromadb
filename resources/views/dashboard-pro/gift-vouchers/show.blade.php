@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     Bon cadeau
                 </h2>
                 <p class="mt-1 text-xs text-slate-600">
@@ -21,7 +21,7 @@
 
                 <a href="{{ route('pro.gift-vouchers.pdf', $voucher) }}"
                    class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-95 transition"
-                   style="background:#647a0b;">
+                   style="background:#6B4A3A;">
                     Télécharger PDF
                 </a>
             </div>
@@ -29,12 +29,12 @@
     </x-slot>
 
     <style>
-        :root{ --brand:#647a0b; --brown:#6b4f2a; --cream:#f7f2ea; }
+        :root{ --brand:#6B4A3A; --brown:#6b4f2a; --cream:#f7f2ea; }
         .am-shell{
             background:
-                radial-gradient(circle at 0% 0%, rgba(100,122,11,0.10), transparent 45%),
-                radial-gradient(circle at 100% 10%, rgba(107,79,42,0.10), transparent 45%),
-                radial-gradient(circle at 20% 100%, rgba(100,122,11,0.08), transparent 55%),
+                radial-gradient(circle at 0% 0%, rgba(167, 184, 138,0.10), transparent 45%),
+                radial-gradient(circle at 100% 10%, rgba(107, 74, 58,0.10), transparent 45%),
+                radial-gradient(circle at 20% 100%, rgba(167, 184, 138,0.08), transparent 55%),
                 linear-gradient(180deg, #fbfaf7 0%, #f3f4f6 100%);
             border-radius: 1.25rem;
         }
@@ -68,8 +68,8 @@
             outline: none;
         }
         .am-input:focus{
-            border-color: rgba(100,122,11,0.55);
-            box-shadow: 0 0 0 4px rgba(100,122,11,0.12);
+            border-color: rgba(167, 184, 138,0.55);
+            box-shadow: 0 0 0 4px rgba(167, 184, 138,0.12);
         }
         .am-btn{
             border-radius: .95rem;
@@ -84,15 +84,15 @@
             white-space: nowrap;
         }
         .am-btn-soft{ background: white; border: 1px solid rgba(15,23,42,0.10); }
-        .am-btn-soft:hover{ background: rgba(100,122,11,0.06); }
-        .am-btn-brand{ background: var(--brand); color:white; box-shadow: 0 12px 26px rgba(100,122,11,0.18); }
+        .am-btn-soft:hover{ background: rgba(167, 184, 138,0.06); }
+        .am-btn-brand{ background: var(--brand); color:white; box-shadow: 0 12px 26px rgba(167, 184, 138,0.18); }
         .am-btn-brand:hover{ opacity:.95; }
         .am-btn-brown{
-            background: rgba(107,79,42,0.10);
+            background: rgba(107, 74, 58,0.10);
             color: var(--brown);
-            border: 1px solid rgba(107,79,42,0.20);
+            border: 1px solid rgba(107, 74, 58,0.20);
         }
-        .am-btn-brown:hover{ background: rgba(107,79,42,0.14); }
+        .am-btn-brown:hover{ background: rgba(107, 74, 58,0.14); }
         .am-btn-danger{
             background: rgba(185,28,28,0.06);
             color: #b91c1c;
@@ -111,7 +111,7 @@
                             <div class="text-sm font-extrabold">Succès</div>
                             <div class="text-sm mt-0.5">{{ session('success') }}</div>
                         </div>
-                        <div class="text-xs font-bold opacity-70">AromaMade PRO</div>
+                        <div class="text-xs font-bold opacity-70">Olithea PRO</div>
                     </div>
                 </div>
             @endif
@@ -130,8 +130,8 @@
             @php
                 $label = $voucher->statusLabel();
                 $badgeStyle = 'color: #334155; background: rgba(15,23,42,0.04);';
-                if ($label === 'Actif') $badgeStyle = 'color: var(--brand); border-color: rgba(100,122,11,0.25); background: rgba(100,122,11,0.06);';
-                if ($label === 'Expiré') $badgeStyle = 'color: var(--brown); border-color: rgba(107,79,42,0.25); background: rgba(107,79,42,0.07);';
+                if ($label === 'Actif') $badgeStyle = 'color: var(--brand); border-color: rgba(167, 184, 138,0.25); background: rgba(167, 184, 138,0.06);';
+                if ($label === 'Expiré') $badgeStyle = 'color: var(--brown); border-color: rgba(107, 74, 58,0.25); background: rgba(107, 74, 58,0.07);';
                 if ($label === 'Épuisé') $badgeStyle = 'color: #1d4ed8; border-color: rgba(29,78,216,0.20); background: rgba(29,78,216,0.06);';
                 if ($label === 'Désactivé') $badgeStyle = 'color: #b91c1c; border-color: rgba(185,28,28,0.20); background: rgba(185,28,28,0.06);';
             @endphp
@@ -151,7 +151,7 @@
                                     </span>
 
                                     @if($voucher->expires_at)
-                                        <span class="am-badge" style="color: var(--brown); border-color: rgba(107,79,42,0.20); background: rgba(107,79,42,0.07);">
+                                        <span class="am-badge" style="color: var(--brown); border-color: rgba(107, 74, 58,0.20); background: rgba(107, 74, 58,0.07);">
                                             ⏳ Valable jusqu’au {{ $voucher->expiresAtStr() }}
                                         </span>
                                     @endif
@@ -240,7 +240,7 @@
                                 @if($voucher->sale_invoice_id)
                                     <div class="mt-1 text-sm">
                                         Facture :
-                                        <a href="{{ route('invoices.show', $voucher->sale_invoice_id) }}" class="font-bold text-[#647a0b] hover:underline">
+                                        <a href="{{ route('invoices.show', $voucher->sale_invoice_id) }}" class="font-bold text-[#6B4A3A] hover:underline">
                                             #{{ $voucher->sale_invoice_id }}
                                         </a>
                                     </div>

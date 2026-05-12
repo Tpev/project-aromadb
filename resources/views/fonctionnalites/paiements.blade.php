@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Paiements en ligne | Acomptes, soldes, remboursements | AromaMade PRO')
+    @section('title', 'Paiements en ligne | Acomptes, soldes, remboursements | Olithea PRO')
     @section('meta_description')
 Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur facture, acomptes, soldes, reçus automatiques, relances email, remboursements partiels. SCA (3D Secure) via Stripe & cadre PSD2. Compatible CB, Apple Pay, Google Pay, SEPA.
     @endsection
@@ -9,7 +9,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
         <!-- Icons & Fonts -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <!-- Shared feature stylesheet -->
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
     @endpush
@@ -33,7 +33,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Activer les paiements</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea PRO</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -120,7 +120,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
                     <i class="fas fa-plug tile-icon"></i>
                     <h3>Intégration Stripe</h3>
-                    <p>Encaissements sécurisés via Stripe. Activation rapide et suivi centralisé dans AromaMade PRO.</p>
+                    <p>Encaissements sécurisés via Stripe. Activation rapide et suivi centralisé dans Olithea PRO.</p>
                 </div>
             </div>
 
@@ -296,7 +296,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                     <h3 style="
                         font-size:1.5rem;
                         font-weight:700;
-                        color:#647a0b;
+                        color:#6B4A3A;
                         margin-bottom:8px;
                     ">
                         Vous êtes praticien ? Découvrez la page dédiée à votre métier
@@ -307,7 +307,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea PRO s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>
@@ -325,16 +325,16 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🌿 Logiciel naturopathe
                     </a>
@@ -347,16 +347,16 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🧘 Logiciel sophrologue
                     </a>

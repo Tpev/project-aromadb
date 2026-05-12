@@ -64,7 +64,7 @@ class EventController extends Controller
 
         // Visio
         'event_type'     => 'required|in:in_person,visio',
-        'visio_provider' => 'nullable|in:external,aromamade',
+        'visio_provider' => 'nullable|in:external,olithea,aromamade',
         'visio_url'      => 'nullable|url|max:2000',
 
         // ✅ NEW: Payment
@@ -135,7 +135,8 @@ class EventController extends Controller
 
     } else {
         // Visio
-        $provider = $data['visio_provider'] ?? 'external';
+        $provider = $this->normalizeVisioProvider($data['visio_provider'] ?? 'external');
+        $data['visio_provider'] = $provider;
 
         if ($provider === 'external') {
 
@@ -148,7 +149,7 @@ class EventController extends Controller
             $data['visio_token'] = null;
 
         } else {
-            // AromaMade WebRTC room
+            // Olithea WebRTC room
             $data['visio_url'] = null;
 
             do {
@@ -218,7 +219,7 @@ class EventController extends Controller
         'location'           => 'nullable|string|max:255',
 
         'event_type'     => 'required|in:in_person,visio',
-        'visio_provider' => 'nullable|in:external,aromamade',
+        'visio_provider' => 'nullable|in:external,olithea,aromamade',
         'visio_url'      => 'nullable|url|max:2000',
 
         // ✅ NEW: Payment
@@ -282,7 +283,8 @@ class EventController extends Controller
         $data['visio_token']    = null;
 
     } else {
-        $provider = $data['visio_provider'] ?? 'external';
+        $provider = $this->normalizeVisioProvider($data['visio_provider'] ?? 'external');
+        $data['visio_provider'] = $provider;
 
         if ($provider === 'external') {
             if (empty($data['visio_url'])) {
@@ -435,7 +437,7 @@ public function storeDuplicate(Request $request, Event $event)
 
         // Visio
         'event_type'     => 'required|in:in_person,visio',
-        'visio_provider' => 'nullable|in:external,aromamade',
+        'visio_provider' => 'nullable|in:external,olithea,aromamade',
         'visio_url'      => 'nullable|url|max:2000',
 
         // duplication options
@@ -469,7 +471,8 @@ $validated['description'] = $this->sanitizeEventDescription($validated['descript
         $data['visio_token']    = null;
 
     } else {
-        $provider = $data['visio_provider'] ?? 'external';
+        $provider = $this->normalizeVisioProvider($data['visio_provider'] ?? 'external');
+        $data['visio_provider'] = $provider;
 
         if ($provider === 'external') {
             if (empty($data['visio_url'])) {
@@ -606,6 +609,12 @@ private function sanitizeEventDescription(?string $value): ?string
 
     return $clean;
 }
+
+private function normalizeVisioProvider(?string $provider): string
+{
+    return $provider === 'aromamade' ? 'olithea' : ($provider ?: 'external');
+}
+
 public function show(Event $event)
 {
     // Same authorization level as edit/update in your controller

@@ -1,7 +1,7 @@
 {{-- resources/views/session_notes/create.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Créer une note de séance') }}
         </h2>
     </x-slot>
@@ -201,7 +201,7 @@
     <style>
         .am-card{
             background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);
-            border:1px solid rgba(100,122,11,.15); overflow:hidden;
+            border:1px solid rgba(167, 184, 138,.15); overflow:hidden;
         }
         .am-head{
             display:flex;gap:16px;align-items:flex-end;justify-content:space-between;
@@ -219,21 +219,21 @@
 
         .am-inline-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
         .am-input{
-            padding:10px 12px;border-radius:10px;border:1px solid rgba(133,79,56,.35);
+            padding:10px 12px;border-radius:10px;border:1px solid rgba(107, 74, 58,.35);
             outline:none;background:#fff;
         }
-        .am-input:focus{border-color:#854f38; box-shadow:0 0 0 3px rgba(133,79,56,.12);}
+        .am-input:focus{border-color:#5F7048; box-shadow:0 0 0 3px rgba(107, 74, 58,.12);}
 
         .am-textarea{
-            width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(133,79,56,.35);
+            width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(107, 74, 58,.35);
             outline:none;background:#fff;
         }
 
         .am-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;text-decoration:none;border:1px solid transparent;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;}
-        .am-btn-primary{background:#647a0b;color:#fff;}
-        .am-btn-primary:hover{background:#854f38;}
+        .am-btn-primary{background:#6B4A3A;color:#fff;}
+        .am-btn-primary:hover{background:#5F7048;}
         .am-btn-soft{background:#fff;color:#0f172a;border-color:rgba(15,23,42,.12);border-width:1px;border-style:solid;}
-        .am-btn-soft:hover{border-color:rgba(133,79,56,.55);}
+        .am-btn-soft:hover{border-color:rgba(107, 74, 58,.55);}
 
         .am-footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;}
 

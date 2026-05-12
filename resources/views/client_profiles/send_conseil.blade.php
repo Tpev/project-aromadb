@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Envoyer un Conseil à ') }}{{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
         </h2>
     </x-slot>
@@ -27,8 +27,8 @@
                 @csrf
 
                 <div class="mb-4">
-                    <label class="block text-[#647a0b] font-semibold mb-2" for="conseil_id">{{ __('Sélectionner un Conseil à envoyer') }}</label>
-                    <select name="conseil_id" id="conseil_id" class="border border-[#854f38] rounded-md w-full py-2 px-3">
+                    <label class="block text-[#6B4A3A] font-semibold mb-2" for="conseil_id">{{ __('Sélectionner un Conseil à envoyer') }}</label>
+                    <select name="conseil_id" id="conseil_id" class="border border-[#5F7048] rounded-md w-full py-2 px-3">
                         <option value="" disabled selected>{{ __('Choisir un conseil') }}</option>
                         @foreach($conseils as $conseil)
                             <option value="{{ $conseil->id }}" {{ old('conseil_id') == $conseil->id ? 'selected' : '' }}>
@@ -62,13 +62,13 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -79,21 +79,21 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             display: inline-block;
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
         }
     </style>

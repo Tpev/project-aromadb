@@ -9,7 +9,7 @@
     <!-- Big Page Title Section -->
     <section class="py-12 bg-white">
         <div class="container mx-auto text-center">
-            <h1 class="font-bold text-center mb-8 animate-fade-in text-2xl md:text-4xl" style="color: #647a0b;">
+            <h1 class="font-bold text-center mb-8 animate-fade-in text-2xl md:text-4xl" style="color: #6B4A3A;">
                 De la Passion au Succès : Guide Complet pour Lancer et Développer son Activité de Thérapeute du Bien-Être
             </h1>
             <img src="{{ asset('images/pro.webp') }}" alt="Formation De la Passion au Succès" class="mx-auto my-6 max-w-md shadow-lg rounded-lg">
@@ -35,24 +35,24 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                 <!-- Expertise -->
                 <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2 animate-slide-in">
-                    <i class="fas fa-briefcase text-5xl mb-4" style="color: #647a0b;"></i>
-                    <h3 class="text-2xl font-bold mb-2" style="color: #647a0b;">Expertise Professionnelle</h3>
+                    <i class="fas fa-briefcase text-5xl mb-4" style="color: #6B4A3A;"></i>
+                    <h3 class="text-2xl font-bold mb-2" style="color: #6B4A3A;">Expertise Professionnelle</h3>
                     <p class="text-lg text-gray-700">
                         Destiné aux thérapeutes compétents qui souhaitent aller au-delà de la pratique pour développer leur activité.
                     </p>
                 </div>
                 <!-- Strategies -->
                 <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2 animate-slide-in">
-                    <i class="fas fa-chart-line text-5xl mb-4" style="color: #854f38;"></i>
-                    <h3 class="text-2xl font-bold mb-2" style="color: #647a0b;">Stratégies Marketing & Business</h3>
+                    <i class="fas fa-chart-line text-5xl mb-4" style="color: #5F7048;"></i>
+                    <h3 class="text-2xl font-bold mb-2" style="color: #6B4A3A;">Stratégies Marketing & Business</h3>
                     <p class="text-lg text-gray-700">
                         Découvrez comment attirer et fidéliser vos clients grâce à des techniques digitales et locales éprouvées.
                     </p>
                 </div>
                 <!-- Management -->
                 <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-2xl transition-shadow duration-300 transform hover:-translate-y-2 animate-slide-in">
-                    <i class="fas fa-handshake text-5xl mb-4" style="color: #647a0b;"></i>
-                    <h3 class="text-2xl font-bold mb-2" style="color: #647a0b;">Gestion & Réseautage</h3>
+                    <i class="fas fa-handshake text-5xl mb-4" style="color: #6B4A3A;"></i>
+                    <h3 class="text-2xl font-bold mb-2" style="color: #6B4A3A;">Gestion & Réseautage</h3>
                     <p class="text-lg text-gray-700">
                         Apprenez à organiser votre planning et à bâtir un réseau solide pour assurer la croissance de votre pratique.
                     </p>
@@ -64,7 +64,7 @@
     <!-- Introduction Section -->
     <section class="py-12 bg-white">
         <div class="container mx-auto">
-            <h1 class="text-4xl font-bold text-center mb-6 animate-fade-in" style="color: #647a0b;">
+            <h1 class="text-4xl font-bold text-center mb-6 animate-fade-in" style="color: #6B4A3A;">
                 Transformez votre expertise en succès commercial
             </h1>
             <p class="text-lg text-center max-w-3xl mx-auto mb-8 text-gray-700">
@@ -76,7 +76,7 @@
     <!-- "Pourquoi suivre cette formation ?" Section -->
     <section class="py-12 bg-gray-100">
         <div class="container mx-auto max-w-3xl text-center">
-            <h2 class="text-4xl font-bold mb-8 animate-slide-in" style="color: #647a0b;">Pourquoi suivre cette formation ?</h2>
+            <h2 class="text-4xl font-bold mb-8 animate-slide-in" style="color: #6B4A3A;">Pourquoi suivre cette formation ?</h2>
             <div class="bg-white p-8 rounded-lg shadow-lg">
                 <p class="text-lg text-gray-700">
                     Vous êtes déjà un excellent thérapeute, mais transformer votre savoir-faire en une entreprise prospère nécessite bien plus.
@@ -93,76 +93,76 @@
     <!-- "Ce que vous apprendrez" Section -->
     <section class="py-12 bg-white">
         <div class="container mx-auto max-w-3xl text-center">
-            <h2 class="text-4xl font-bold mb-8" style="color: #647a0b;">Ce que vous apprendrez</h2>
+            <h2 class="text-4xl font-bold mb-8" style="color: #6B4A3A;">Ce que vous apprendrez</h2>
             <div class="bg-gray-100 p-8 rounded-lg shadow-lg">
                 <div class="space-y-6 text-left">
                     <div class="flex items-start">
-                        <i class="fas fa-info-circle text-3xl mr-4" style="color: #647a0b;"></i>
+                        <i class="fas fa-info-circle text-3xl mr-4" style="color: #6B4A3A;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">INTRODUCTION & OBJECTIFS</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">INTRODUCTION & OBJECTIFS</h3>
                             <p class="text-lg text-gray-700">
                                 Comprenez les bases et posez les fondations pour votre succès professionnel.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-user-edit text-3xl mr-4" style="color: #854f38;"></i>
+                        <i class="fas fa-user-edit text-3xl mr-4" style="color: #5F7048;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">CLARIFIER SON IDENTITÉ & SON POSITIONNEMENT</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">CLARIFIER SON IDENTITÉ & SON POSITIONNEMENT</h3>
                             <p class="text-lg text-gray-700">
                                 Définissez une identité forte et positionnez-vous pour vous démarquer dans un marché concurrentiel.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-share-alt text-3xl mr-4" style="color: #647a0b;"></i>
+                        <i class="fas fa-share-alt text-3xl mr-4" style="color: #6B4A3A;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">CONSTRUIRE ET OPTIMISER SES RÉSEAUX SOCIAUX</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">CONSTRUIRE ET OPTIMISER SES RÉSEAUX SOCIAUX</h3>
                             <p class="text-lg text-gray-700">
                                 Apprenez à utiliser efficacement les réseaux sociaux pour augmenter votre visibilité et attirer des clients.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-tags text-3xl mr-4" style="color: #854f38;"></i>
+                        <i class="fas fa-tags text-3xl mr-4" style="color: #5F7048;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">CRÉER UNE OFFRE SPÉCIALE DE LANCEMENT</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">CRÉER UNE OFFRE SPÉCIALE DE LANCEMENT</h3>
                             <p class="text-lg text-gray-700">
                                 Concevez une offre irrésistible pour lancer votre activité et capter rapidement l’attention de vos futurs clients.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-network-wired text-3xl mr-4" style="color: #647a0b;"></i>
+                        <i class="fas fa-network-wired text-3xl mr-4" style="color: #6B4A3A;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">PARTICIPER À DES ÉVÉNEMENTS & CONSTRUIRE SON RÉSEAU LOCAL</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">PARTICIPER À DES ÉVÉNEMENTS & CONSTRUIRE SON RÉSEAU LOCAL</h3>
                             <p class="text-lg text-gray-700">
                                 Apprenez à créer des partenariats et à développer un réseau solide pour soutenir la croissance de votre pratique.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-calendar-alt text-3xl mr-4" style="color: #854f38;"></i>
+                        <i class="fas fa-calendar-alt text-3xl mr-4" style="color: #5F7048;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">GÉRER SES PREMIERS RENDEZ-VOUS & L’EXPÉRIENCE CLIENT</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">GÉRER SES PREMIERS RENDEZ-VOUS & L’EXPÉRIENCE CLIENT</h3>
                             <p class="text-lg text-gray-700">
                                 Organisez efficacement vos rendez-vous et offrez une expérience client mémorable pour fidéliser votre clientèle.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-comments text-3xl mr-4" style="color: #647a0b;"></i>
+                        <i class="fas fa-comments text-3xl mr-4" style="color: #6B4A3A;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">FIDÉLISER & ENCOURAGER LE BOUCHE-à-OREILLE</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">FIDÉLISER & ENCOURAGER LE BOUCHE-à-OREILLE</h3>
                             <p class="text-lg text-gray-700">
                                 Découvrez des stratégies pour transformer vos clients satisfaits en ambassadeurs de votre pratique.
                             </p>
                         </div>
                     </div>
                     <div class="flex items-start">
-                        <i class="fas fa-tachometer-alt text-3xl mr-4" style="color: #854f38;"></i>
+                        <i class="fas fa-tachometer-alt text-3xl mr-4" style="color: #5F7048;"></i>
                         <div>
-                            <h3 class="text-2xl font-bold" style="color: #647a0b;">MESURER & AJUSTER SES ACTIONS</h3>
+                            <h3 class="text-2xl font-bold" style="color: #6B4A3A;">MESURER & AJUSTER SES ACTIONS</h3>
                             <p class="text-lg text-gray-700">
                                 Apprenez à analyser vos performances et à adapter vos stratégies pour assurer une croissance continue.
                             </p>
@@ -193,10 +193,10 @@
 
     <style>
         .text-primary {
-            color: #647a0b;
+            color: #6B4A3A;
         }
         .btn-primary {
-            background: linear-gradient(90deg, #647a0b 0%, #854f38 100%);
+            background: linear-gradient(90deg, #6B4A3A 0%, #5F7048 100%);
             color: white;
             padding: 14px 28px;
             border-radius: 5px;

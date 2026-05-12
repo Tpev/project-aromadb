@@ -9,8 +9,8 @@
         <section class="overflow-hidden rounded-[2rem] border border-[#dfe7c7] bg-[radial-gradient(circle_at_top_left,_rgba(224,235,198,0.72),_rgba(255,255,255,0.95)_42%,_rgba(244,240,231,0.95)_100%)] p-6 shadow-sm">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#854f38]">
-                        <span class="rounded-full border border-[#d8dfc7] bg-white/80 px-4 py-1.5 text-[#647a0b]">Communauté privée</span>
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#5F7048]">
+                        <span class="rounded-full border border-[#d8dfc7] bg-white/80 px-4 py-1.5 text-[#6B4A3A]">Communauté privée</span>
                         <span>{{ $community->channels->count() }} salons</span>
                         <span>{{ $activeMembersCount }} membres actifs</span>
                     </div>
@@ -21,7 +21,7 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <span class="rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-[#e7eadf]">{{ $adminName }} | Admin</span>
-                    <a href="{{ route('client.communities.index') }}" class="inline-flex items-center rounded-full bg-white/90 px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-[#e7eadf] hover:text-[#647a0b]">
+                    <a href="{{ route('client.communities.index') }}" class="inline-flex items-center rounded-full bg-white/90 px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-[#e7eadf] hover:text-[#6B4A3A]">
                         Toutes mes communautés
                     </a>
                 </div>
@@ -50,7 +50,7 @@
                                             <div class="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">1 ressource épinglée</div>
                                         @endif
                                     </div>
-                                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl {{ $channel->channel_type === 'annonces' ? 'bg-[#854f38] text-white' : 'bg-white text-[#647a0b]' }} shadow-sm">
+                                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl {{ $channel->channel_type === 'annonces' ? 'bg-[#5F7048] text-white' : 'bg-white text-[#6B4A3A]' }} shadow-sm">
                                         {{ $channel->channel_type === 'annonces' ? '!' : '#' }}
                                     </span>
                                 </div>
@@ -65,7 +65,7 @@
                     <div class="border-b border-[#f0f1ea] px-6 py-5">
                         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                             <div class="flex items-start gap-4">
-                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl {{ $selectedChannel->channel_type === 'annonces' ? 'bg-[#854f38] text-white' : 'bg-[#f7faef] text-[#647a0b]' }} shadow-sm">
+                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl {{ $selectedChannel->channel_type === 'annonces' ? 'bg-[#5F7048] text-white' : 'bg-[#f7faef] text-[#6B4A3A]' }} shadow-sm">
                                     {{ $selectedChannel->channel_type === 'annonces' ? '!' : '#' }}
                                 </span>
                                 <div>
@@ -113,7 +113,7 @@
                                 ])
                             @empty
                                 <div class="rounded-[1.8rem] border border-dashed border-[#d7dccb] bg-white/85 px-8 py-14 text-center shadow-sm">
-                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-[#f7faef] text-xl font-semibold text-[#647a0b]">#</div>
+                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-[#f7faef] text-xl font-semibold text-[#6B4A3A]">#</div>
                                     <p class="mt-5 text-base font-semibold text-gray-900">Aucun message pour le moment</p>
                                     <p class="mt-2 text-sm leading-7 text-gray-500">Le salon est prêt. Vous pouvez attendre la prochaine annonce du praticien ou lancer le premier échange du groupe.</p>
                                 </div>
@@ -142,7 +142,7 @@
                                     <span class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-500 ring-1 ring-[#eceee5]">Visible aux membres actifs</span>
                                 </div>
 
-                                <textarea name="content" rows="4" class="mt-4 w-full rounded-[1.4rem] border-gray-300 bg-white focus:border-[#647a0b] focus:ring-[#647a0b]" placeholder="Partagez votre retour, posez une question ou répondez au groupe.">{{ old('content') }}</textarea>
+                                <textarea name="content" rows="4" class="mt-4 w-full rounded-[1.4rem] border-gray-300 bg-white focus:border-[#6B4A3A] focus:ring-[#6B4A3A]" placeholder="Partagez votre retour, posez une question ou répondez au groupe.">{{ old('content') }}</textarea>
                                 <x-input-error :messages="$errors->get('content')" class="mt-2" />
 
                                 <div class="mt-4 rounded-[1.4rem] border border-dashed border-[#dfe5cf] bg-white px-4 py-4">
@@ -151,7 +151,7 @@
                                             <p class="text-sm font-semibold text-gray-800">Joindre des fichiers</p>
                                             <p class="mt-1 text-xs leading-6 text-gray-500">PDF, images, documents bureautiques et audio acceptés.</p>
                                         </div>
-                                        <label class="inline-flex cursor-pointer items-center rounded-full border border-[#d7ddc8] px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                                        <label class="inline-flex cursor-pointer items-center rounded-full border border-[#d7ddc8] px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#6B4A3A] hover:text-[#6B4A3A]">
                                             <input type="file" name="attachments[]" multiple class="hidden">
                                             Ajouter des fichiers
                                         </label>
@@ -162,7 +162,7 @@
 
                                 <div class="mt-4 flex items-center justify-between gap-3">
                                     <p class="text-xs text-gray-500">Gardez un ton simple, bienveillant et utile pour tous les membres.</p>
-                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#55670a]">
+                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#6B4A3A] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#55670a]">
                                         Envoyer dans le salon
                                     </button>
                                 </div>
@@ -182,7 +182,7 @@
                         <div class="rounded-[1.4rem] bg-[#fafbf7] px-4 py-3 ring-1 ring-[#eef1e5]">
                             <p class="text-xs uppercase tracking-[0.16em] text-gray-500">Admin</p>
                             <p class="mt-2 font-semibold text-gray-900">{{ $adminName }}</p>
-                            <span class="mt-3 inline-flex rounded-full bg-[#f7faef] px-3 py-1 text-xs font-semibold text-[#647a0b]">{{ $adminName }} | Admin</span>
+                            <span class="mt-3 inline-flex rounded-full bg-[#f7faef] px-3 py-1 text-xs font-semibold text-[#6B4A3A]">{{ $adminName }} | Admin</span>
                         </div>
                         <div class="rounded-[1.4rem] bg-[#fafbf7] px-4 py-3 ring-1 ring-[#eef1e5]">
                             <p class="text-xs uppercase tracking-[0.16em] text-gray-500">Statut</p>

@@ -19,7 +19,7 @@
 </div>
         <!-- Search Bar -->
         <div class="mb-4 text-end">
-            <input type="text" id="search" class="form-control" placeholder="Recherche par titre..." onkeyup="filterPosts()" style="border-color: #854f38;">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par titre..." onkeyup="filterPosts()" style="border-color: #5F7048;">
         </div>
 
         <!-- Blog Post Grid -->
@@ -86,7 +86,7 @@
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -96,7 +96,7 @@
             max-width: 300px;
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             margin-right: 15px;
         }
 
@@ -127,7 +127,7 @@
 
         .blog-card h2 {
             font-size: 1.5rem;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 10px;
         }
 
@@ -144,7 +144,7 @@
         }
 
         .tag {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             padding: 5px 10px;
             border-radius: 4px;
@@ -152,7 +152,7 @@
         }
 
         .tag:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
     </style>
 

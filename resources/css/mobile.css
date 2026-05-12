@@ -1,9 +1,9 @@
 /* resources/css/mobile.css */
 
-/* Palette AromaMade pour le mobile */
+/* Palette Olithea pour le mobile */
 body.mobile-theme {
-    --am-primary: #647a0b;
-    --am-secondary: #854f38;
+    --am-primary: #6B4A3A;
+    --am-secondary: #5F7048;
     --am-bg-soft: #fffaf3;
     --am-text-dark: #1f2933;
 }

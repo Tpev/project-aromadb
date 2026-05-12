@@ -11,7 +11,7 @@
             <input type="text"
                    name="name"
                    value="{{ old('name', $audience->name ?? '') }}"
-                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
             @error('name')
                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
             @enderror
@@ -23,7 +23,7 @@
             <input type="text"
                    name="description"
                    value="{{ old('description', $audience->description ?? '') }}"
-                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                   class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
             @error('description')
                 <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
             @enderror
@@ -55,7 +55,7 @@
                            name="client_ids[]"
                            value="{{ $client->id }}"
                            @checked($checked)
-                           class="rounded border-gray-300 text-[#647a0b] focus:ring-[#647a0b]">
+                           class="rounded border-gray-300 text-[#6B4A3A] focus:ring-[#6B4A3A]">
                 </label>
             @empty
                 <div class="px-3 py-3 text-xs text-gray-500">
@@ -72,7 +72,7 @@
 <div class="mt-4 flex justify-end">
     <button type="submit"
             class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-            style="background-color:#647a0b;">
+            style="background-color:#6B4A3A;">
         {{ $isEdit ? 'Enregistrer la liste' : 'Créer la liste' }}
     </button>
 </div>

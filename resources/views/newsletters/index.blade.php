@@ -1,7 +1,7 @@
 {{-- resources/views/newsletters/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Newsletters') }}
         </h2>
     </x-slot>
@@ -118,7 +118,7 @@
                             </div>
                             <a href="{{ $upgradeUrl }}"
                                class="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm"
-                               style="background-color:#647a0b;">
+                               style="background-color:#6B4A3A;">
                                 Voir les offres
                             </a>
                         </div>
@@ -163,7 +163,7 @@
 
                     <a href="{{ route('newsletters.create') }}"
                        class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                       style="background-color:#647a0b;">
+                       style="background-color:#6B4A3A;">
                         <span class="mr-2">+</span> Nouvelle newsletter
                     </a>
                 @else
@@ -189,7 +189,7 @@
             <div class="border border-dashed border-gray-300 rounded-xl p-8 text-center text-gray-500 text-sm">
                 Vous n’avez pas encore de newsletter. <br>
                 @if($canUseNewsletter)
-                    <a href="{{ route('newsletters.create') }}" class="text-[#647a0b] font-semibold">
+                    <a href="{{ route('newsletters.create') }}" class="text-[#6B4A3A] font-semibold">
                         Créer votre première newsletter
                     </a>
                 @else
@@ -248,7 +248,7 @@
                                         </a>
                                         <a href="{{ route('newsletters.edit', $newsletter) }}"
                                            class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-white hover:opacity-90"
-                                           style="background-color:#647a0b;">
+                                           style="background-color:#6B4A3A;">
                                             Modifier
                                         </a>
                                         <form action="{{ route('newsletters.destroy', $newsletter) }}"

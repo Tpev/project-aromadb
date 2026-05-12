@@ -1,7 +1,7 @@
 {{-- resources/views/appointments/create_therapist.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Créer un Rendez-vous (Thérapeute)') }}
         </h2>
     </x-slot>
@@ -24,33 +24,33 @@
             background-color: #f9f9f9; border-radius: 10px; padding: 30px;
             box-shadow: 0 5px 15px rgba(0,0,0,.1); margin: 0 auto;
         }
-        .details-title { font-size: 1.9rem; font-weight: 700; color: #647a0b; margin-bottom: 20px; text-align: center; }
+        .details-title { font-size: 1.9rem; font-weight: 700; color: #6B4A3A; margin-bottom: 20px; text-align: center; }
         .details-box { margin-bottom: 20px; }
-        .details-label { font-weight: 700; color: #647a0b; display:block; margin-bottom: 5px; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #854f38; border-radius: 5px; box-sizing: border-box; }
-        .form-control:focus { border-color:#647a0b; outline: none; box-shadow: 0 0 5px rgba(100,122,11,.5); }
+        .details-label { font-weight: 700; color: #6B4A3A; display:block; margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #5F7048; border-radius: 5px; box-sizing: border-box; }
+        .form-control:focus { border-color:#6B4A3A; outline: none; box-shadow: 0 0 5px rgba(167, 184, 138,.5); }
         .btn-primary, .btn-secondary {
-            background-color:#647a0b; border:none; color:#fff; padding:10px 20px; border-radius:5px;
+            background-color:#6B4A3A; border:none; color:#fff; padding:10px 20px; border-radius:5px;
             display:inline-flex; align-items:center; cursor:pointer; transition:.3s; font-size:1rem;
         }
-        .btn-primary:hover, .btn-secondary:hover { background-color:#854f38; }
+        .btn-primary:hover, .btn-secondary:hover { background-color:#5F7048; }
         .text-red-500 { color:#e3342f; font-size:.875rem; margin-top:5px; }
 
         .time-slots-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
         .time-slot-btn {
-            border: 1px solid #854f38; background: #ffffff; color: #854f38;
+            border: 1px solid #5F7048; background: #ffffff; color: #5F7048;
             padding: 6px 10px; border-radius: 4px; cursor: pointer; min-width: 72px;
             text-align: center; font-size: 0.95rem;
         }
         .time-slot-btn.active,
         .time-slot-btn:hover {
-            background: #647a0b; color: #ffffff; border-color: #647a0b;
+            background: #6B4A3A; color: #ffffff; border-color: #6B4A3A;
         }
 
         /* Flatpickr override */
-        .flatpickr-calendar { border:1px solid #647a0b; }
-        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background:#647a0b; color:#fff; }
-        .flatpickr-day:hover { background:#854f38; color:#fff; }
+        .flatpickr-calendar { border:1px solid #6B4A3A; }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange { background:#6B4A3A; color:#fff; }
+        .flatpickr-day:hover { background:#5F7048; color:#fff; }
         .flatpickr-day.disabled { background:#e9ecef; color:#6c757d; cursor:not-allowed; }
         .flatpickr-day.disabled:hover { background:#e9ecef; color:#6c757d; }
 
@@ -58,13 +58,13 @@
         .legend-dot {
             display:inline-block; width:10px; height:10px; border-radius:999px; margin-right:6px; vertical-align:middle;
         }
-        .legend-ok { background:#647a0b; }
+        .legend-ok { background:#6B4A3A; }
         .legend-warn { background:#f0ad4e; }
         .legend-bad { background:#d9534f; }
-        .legend-out { background:#854f38; }
+        .legend-out { background:#5F7048; }
 
-        .time-slot-btn.status-ok { border-color:#647a0b; color:#647a0b; }
-        .time-slot-btn.status-ok.active, .time-slot-btn.status-ok:hover { background:#647a0b; color:#fff; border-color:#647a0b; }
+        .time-slot-btn.status-ok { border-color:#6B4A3A; color:#6B4A3A; }
+        .time-slot-btn.status-ok.active, .time-slot-btn.status-ok:hover { background:#6B4A3A; color:#fff; border-color:#6B4A3A; }
 
         .time-slot-btn.status-warn { border-color:#f0ad4e; color:#8a5a00; background:#fff8e6; }
         .time-slot-btn.status-warn.active, .time-slot-btn.status-warn:hover { background:#f0ad4e; color:#fff; border-color:#f0ad4e; }
@@ -72,8 +72,8 @@
         .time-slot-btn.status-bad { border-color:#d9534f; color:#b02a37; background:#ffe9ea; }
         .time-slot-btn.status-bad.active, .time-slot-btn.status-bad:hover { background:#d9534f; color:#fff; border-color:#d9534f; }
 
-        .time-slot-btn.status-out { border-color:#854f38; color:#854f38; background:#fff3ef; }
-        .time-slot-btn.status-out.active, .time-slot-btn.status-out:hover { background:#854f38; color:#fff; border-color:#854f38; }
+        .time-slot-btn.status-out { border-color:#5F7048; color:#5F7048; background:#fff3ef; }
+        .time-slot-btn.status-out.active, .time-slot-btn.status-out:hover { background:#5F7048; color:#fff; border-color:#5F7048; }
 
         .slot-inline-reasons { font-size: 0.82rem; color: #6c757d; margin-top: 6px; }
         .slot-inline-reasons ul { margin: 0; padding-left: 18px; }
@@ -93,7 +93,7 @@
             justify-content:flex-start;
             font-size:0.92rem;
             background:#ffffff;
-            border:1px solid rgba(133,79,56,.25);
+            border:1px solid rgba(107, 74, 58,.25);
             border-radius:10px;
             padding:10px 12px;
             margin-top:10px;

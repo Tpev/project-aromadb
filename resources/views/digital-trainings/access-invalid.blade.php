@@ -1,6 +1,6 @@
 {{-- resources/views/digital-trainings/access-invalid.blade.php --}}
 @php
-    $brandGreen = '#647a0b';
+    $brandGreen = '#6B4A3A';
 
     $title = 'Lien d’accès invalide';
     $message = 'Le lien que vous avez utilisé ne semble pas valide.';

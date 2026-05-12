@@ -1,7 +1,7 @@
 {{-- resources/views/mobile/dashboard-pro.blade.php --}}
 @php
     $pageTitle       = 'Tableau de bord PRO';
-    $pageDescription = "Suivez vos rendez-vous, factures et progression d'onboarding sur AromaMade PRO.";
+    $pageDescription = "Suivez vos rendez-vous, factures et progression d'onboarding sur Olithea PRO.";
 @endphp
 
 <x-mobile-layout :title="$pageTitle">
@@ -17,7 +17,7 @@
             {{-- ───────────────────── TOP HEADER ───────────────────── --}}
             <div class="flex items-center justify-between gap-3">
                 <div class="space-y-1 min-w-0">
-                    <h1 class="text-2xl font-extrabold text-[#647a0b] leading-snug break-words">
+                    <h1 class="text-2xl font-extrabold text-[#6B4A3A] leading-snug break-words">
                         {{ __('Tableau de bord PRO') }}
                     </h1>
                     <p class="text-sm text-gray-700 leading-snug break-words">
@@ -60,8 +60,8 @@
                 <x-ts-card class="rounded-3xl border border-[#edf1df] bg-white/95 px-4 py-4 space-y-4">
                     {{-- Bandeau titre + progression globale --}}
                     <div class="space-y-2">
-                        <h2 class="text-base font-semibold text-[#647a0b] leading-snug break-words">
-                            👋 {{ __('Bienvenue sur AromaMade PRO') }}
+                        <h2 class="text-base font-semibold text-[#6B4A3A] leading-snug break-words">
+                            👋 {{ __('Bienvenue sur Olithea PRO') }}
                         </h2>
                         <p class="text-xs text-gray-600 leading-relaxed break-words">
                             {{ __('Complétez ces étapes pour être prêt à recevoir des réservations en ligne et utiliser toutes les fonctionnalités.') }}
@@ -73,7 +73,7 @@
                                 <span class="font-semibold">{{ $globalCompletion }}%</span>
                             </div>
                             <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                <div class="h-2 bg-[#647a0b] rounded-full transition-all duration-300"
+                                <div class="h-2 bg-[#6B4A3A] rounded-full transition-all duration-300"
                                      style="width: {{ $globalCompletion }}%;"></div>
                             </div>
                         </div>
@@ -87,7 +87,7 @@
                                     <div class="text-sm font-semibold text-gray-800 break-words">
                                         {{ __('Étape 1 · Profil & informations') }}
                                     </div>
-                                    <span class="text-xs font-semibold text-[#647a0b]">
+                                    <span class="text-xs font-semibold text-[#6B4A3A]">
                                         {{ $step1Completion }}%
                                     </span>
                                 </div>
@@ -95,7 +95,7 @@
                                     {{ __('Complétez vos informations professionnelles (nom, adresse, description, services…) pour présenter un profil clair à vos clients.') }}
                                 </p>
                                 <a href="{{ route('mobile.entry') }}"
-                                   class="inline-flex items-center justify-center mt-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#647a0b] text-white">
+                                   class="inline-flex items-center justify-center mt-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#6B4A3A] text-white">
                                     {{ __('Mettre à jour mon profil') }}
                                 </a>
                             </div>
@@ -105,7 +105,7 @@
                                     <div class="text-sm font-semibold text-gray-800 break-words">
                                         {{ __('Étape 2 · Réservations en ligne') }}
                                     </div>
-                                    <span class="text-xs font-semibold text-[#647a0b]">
+                                    <span class="text-xs font-semibold text-[#6B4A3A]">
                                         {{ $step2Completion }}%
                                     </span>
                                 </div>
@@ -133,12 +133,12 @@
                                     <div class="text-sm font-semibold text-gray-800 break-words">
                                         {{ __('Étape 3 · Découvrir les fonctionnalités') }}
                                     </div>
-                                    <span class="text-xs font-semibold text-[#647a0b]">
+                                    <span class="text-xs font-semibold text-[#6B4A3A]">
                                         {{ $step3Completion }}%
                                     </span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed break-words">
-                                    {{ __('Explorez la facturation, les questionnaires et les téléconsultations pour aller plus loin avec AromaMade PRO.') }}
+                                    {{ __('Explorez la facturation, les questionnaires et les téléconsultations pour aller plus loin avec Olithea PRO.') }}
                                 </p>
                                 <div class="flex flex-wrap gap-2 mt-1">
                                     <a href="{{ route('invoices.index') }}"
@@ -167,19 +167,19 @@
                                     <div class="text-sm font-semibold text-gray-800 break-words">
                                         {{ __('Étape 4 · Parrainer un thérapeute') }}
                                     </div>
-                                    <span class="text-xs font-semibold text-[#647a0b]">
+                                    <span class="text-xs font-semibold text-[#6B4A3A]">
                                         {{ $step4Completion }}%
                                     </span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed break-words">
-                                    {{ __('Invitez un(e) collègue thérapeute à découvrir AromaMade PRO et profitez de mois offerts.') }}
+                                    {{ __('Invitez un(e) collègue thérapeute à découvrir Olithea PRO et profitez de mois offerts.') }}
                                 </p>
 
                                 @if(($step4Checks['referral'] ?? false) !== true)
                                     <form method="POST" action="{{ route('dashboard-pro.markReferralOnboardingDone') }}" class="mt-1">
                                         @csrf
                                         <button type="submit"
-                                                class="text-[11px] px-3 py-1.5 rounded-full bg-[#647a0b] text-white">
+                                                class="text-[11px] px-3 py-1.5 rounded-full bg-[#6B4A3A] text-white">
                                             {{ __('J’ai parrainé un thérapeute') }}
                                         </button>
                                     </form>
@@ -239,11 +239,11 @@
             {{-- ===================================================== --}}
             <div class="grid grid-cols-1 gap-4">
                 {{-- Clients --}}
-                <x-ts-card class="rounded-3xl shadow-md border border-[#dfe5c7] bg-[#8ea633] text-white px-4 py-4">
+                <x-ts-card class="rounded-3xl shadow-md border border-[#dfe5c7] bg-[#4E5F3A] text-white px-4 py-4">
                     <button class="w-full text-left"
                             onclick="window.location='{{ route('client_profiles.index') }}'">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white text-[#8ea633] flex items-center justify-center font-bold">
+                            <div class="w-10 h-10 rounded-full bg-white text-[#4E5F3A] flex items-center justify-center font-bold">
                                 ✔
                             </div>
                             <div class="space-y-0.5">
@@ -259,11 +259,11 @@
                 </x-ts-card>
 
                 {{-- RDV à venir --}}
-                <x-ts-card class="rounded-3xl shadow-md border border-[#d9dfc0] bg-[#647a0b] text-white px-4 py-4">
+                <x-ts-card class="rounded-3xl shadow-md border border-[#d9dfc0] bg-[#6B4A3A] text-white px-4 py-4">
                     <button class="w-full text-left"
                             onclick="window.location='{{ route('appointments.index', ['filter' => 'upcoming']) }}'">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white text-[#647a0b] flex items-center justify-center text-xl">
+                            <div class="w-10 h-10 rounded-full bg-white text-[#6B4A3A] flex items-center justify-center text-xl">
                                 📅
                             </div>
                             <div class="space-y-0.5">
@@ -316,11 +316,11 @@
                 </x-ts-card>
 
                 {{-- Factures en attente --}}
-                <x-ts-card class="rounded-3xl shadow-md border border-[#e0c7be] bg-[#854f38] text-white px-4 py-4">
+                <x-ts-card class="rounded-3xl shadow-md border border-[#e0c7be] bg-[#5F7048] text-white px-4 py-4">
                     <button class="w-full text-left"
                             onclick="window.location='{{ route('invoices.index', ['filter' => 'pending']) }}'">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white text-[#854f38] flex items-center justify-center text-xl">
+                            <div class="w-10 h-10 rounded-full bg-white text-[#5F7048] flex items-center justify-center text-xl">
                                 ⏳
                             </div>
                             <div class="space-y-0.5">
@@ -336,11 +336,11 @@
                 </x-ts-card>
 
                 {{-- Revenus du mois --}}
-                <x-ts-card class="rounded-3xl shadow-md border border-[#d6c2ba] bg-[#6a3f2c] text-white px-4 py-4">
+                <x-ts-card class="rounded-3xl shadow-md border border-[#d6c2ba] bg-[#4E5F3A] text-white px-4 py-4">
                     <button class="w-full text-left"
                             onclick="window.location='{{ route('invoices.index', ['filter' => 'current_month']) }}'">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white text-[#6a3f2c] flex items-center justify-center text-xl">
+                            <div class="w-10 h-10 rounded-full bg-white text-[#4E5F3A] flex items-center justify-center text-xl">
                                 💶
                             </div>
                             <div class="space-y-0.5">
@@ -361,7 +361,7 @@
             {{-- ===================================================== --}}
             <div class="grid grid-cols-1 gap-4">
                 <x-ts-card class="rounded-3xl bg-white shadow border px-4 py-4">
-                    <h3 class="text-sm font-semibold text-[#647a0b] mb-2">
+                    <h3 class="text-sm font-semibold text-[#6B4A3A] mb-2">
                         {{ __('Rendez-vous par mois') }}
                     </h3>
                     <div class="h-48">
@@ -370,7 +370,7 @@
                 </x-ts-card>
 
                 <x-ts-card class="rounded-3xl bg-white shadow border px-4 py-4">
-                    <h3 class="text-sm font-semibold text-[#854f38] mb-2">
+                    <h3 class="text-sm font-semibold text-[#5F7048] mb-2">
                         {{ __('Revenus mensuels') }}
                     </h3>
                     <div class="h-48">
@@ -383,7 +383,7 @@
             {{--           PROCHAINS RDV + DERNIÈRES FACTURES        --}}
             {{-- ===================================================== --}}
             <x-ts-card class="rounded-3xl bg-white shadow border px-4 py-4 space-y-3">
-                <h3 class="text-base font-semibold text-[#647a0b]">
+                <h3 class="text-base font-semibold text-[#6B4A3A]">
                     {{ __('Prochains rendez-vous') }}
                 </h3>
 
@@ -421,7 +421,7 @@
             </x-ts-card>
 
             <x-ts-card class="rounded-3xl bg-white shadow border px-4 py-4 space-y-3">
-                <h3 class="text-base font-semibold text-[#854f38]">
+                <h3 class="text-base font-semibold text-[#5F7048]">
                     {{ __('Dernières factures') }}
                 </h3>
 
@@ -440,7 +440,7 @@
                                     <div class="text-sm font-semibold text-gray-800 break-words">
                                         {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
                                     </div>
-                                    <div class="text-sm font-semibold text-[#854f38]">
+                                    <div class="text-sm font-semibold text-[#5F7048]">
                                         {{ number_format($invoice->total_amount, 2, ',', ' ') }} €
                                     </div>
                                 </div>
@@ -463,7 +463,7 @@
             {{-- ===================================================== --}}
             @if($therapist->slug)
                 <x-ts-card class="rounded-3xl bg-white shadow border px-4 py-4 space-y-3">
-                    <h3 class="text-base font-semibold text-[#647a0b]">
+                    <h3 class="text-base font-semibold text-[#6B4A3A]">
                         {{ __('QR Code pour votre Portail') }}
                     </h3>
                     <p class="text-xs text-gray-600 leading-relaxed break-words">
@@ -475,7 +475,7 @@
                             id="generate-qrcode"
                             size="sm"
                             rounded
-                            class="!text-sm !px-4 !py-2 !bg-[#647a0b] !text-white hover:!bg-[#8ea633]"
+                            class="!text-sm !px-4 !py-2 !bg-[#6B4A3A] !text-white hover:!bg-[#4E5F3A]"
                         >
                             {{ __('Générer le QR Code') }}
                         </x-ts-button>
@@ -486,7 +486,7 @@
                             href="#"
                             size="sm"
                             rounded
-                            class="hidden !text-sm !px-4 !py-2 !bg-[#a96b56] !text-white hover:!bg-[#854f38]"
+                            class="hidden !text-sm !px-4 !py-2 !bg-[#a96b56] !text-white hover:!bg-[#5F7048]"
                             download="qrcode.png"
                         >
                             {{ __('Télécharger') }}
@@ -522,8 +522,8 @@
                         datasets: [{
                             label: '{{ __("Nombre de Rendez-vous") }}',
                             data: appointmentsData,
-                            backgroundColor: 'rgba(100, 122, 11, 0.6)',
-                            borderColor: 'rgba(100, 122, 11, 1)',
+                            backgroundColor: 'rgba(167, 184, 138, 0.6)',
+                            borderColor: 'rgba(167, 184, 138, 1)',
                             borderWidth: 1
                         }]
                     },
@@ -565,15 +565,15 @@
                         datasets: [{
                             label: '{{ __("Revenus (€)") }}',
                             data: revenueData,
-                            backgroundColor: 'rgba(133, 79, 56, 0.2)',
-                            borderColor: 'rgba(133, 79, 56, 1)',
+                            backgroundColor: 'rgba(107, 74, 58, 0.2)',
+                            borderColor: 'rgba(107, 74, 58, 1)',
                             borderWidth: 2,
                             fill: true,
                             tension: 0.4,
-                            pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                            pointBackgroundColor: 'rgba(107, 74, 58, 1)',
                             pointBorderColor: '#fff',
                             pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                            pointHoverBorderColor: 'rgba(107, 74, 58, 1)'
                         }]
                     },
                     options: {

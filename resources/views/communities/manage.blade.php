@@ -3,12 +3,12 @@
 
         <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#854f38]">Gestion de communauté</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#5F7048]">Gestion de communauté</p>
                 <h2 class="mt-3 text-3xl font-semibold tracking-tight text-gray-900">{{ $community->name }}</h2>
                 <p class="mt-3 max-w-3xl text-sm leading-7 text-gray-600">Invitez des membres, relancez les accès en attente et créez de nouveaux salons sans surcharger la page de discussion.</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                <span class="rounded-full bg-[#f7faef] px-4 py-2 text-sm font-semibold text-[#647a0b]">{{ $community->user->company_name ?? $community->user->name ?? 'Praticien' }} | Admin</span>
+                <span class="rounded-full bg-[#f7faef] px-4 py-2 text-sm font-semibold text-[#6B4A3A]">{{ $community->user->company_name ?? $community->user->name ?? 'Praticien' }} | Admin</span>
                 <a href="{{ route('communities.show', $community) }}" class="inline-flex items-center rounded-full bg-[#f4f5ef] px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-[#ebede4] hover:text-gray-800">
                     Retour à la conversation
                 </a>
@@ -153,14 +153,14 @@
                         @csrf
                         <div>
                             <label class="block text-sm font-medium text-gray-700" for="client_profile_id">Client</label>
-                            <select id="client_profile_id" name="client_profile_id" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]">
+                            <select id="client_profile_id" name="client_profile_id" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]">
                                 @foreach($availableClients as $client)
                                     <option value="{{ $client->id }}">{{ trim($client->first_name . ' ' . $client->last_name) }}@if($client->email) - {{ $client->email }}@endif</option>
                                 @endforeach
                             </select>
                             <x-input-error :messages="$errors->get('client_profile_id')" class="mt-2" />
                         </div>
-                        <button type="submit" class="inline-flex items-center rounded-full bg-[#854f38] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#73432f]">
+                        <button type="submit" class="inline-flex items-center rounded-full bg-[#5F7048] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#73432f]">
                             Envoyer l’invitation
                         </button>
                     </form>
@@ -175,20 +175,20 @@
                         @csrf
                         <div>
                             <label class="block text-sm font-medium text-gray-700" for="channel_name">Nom du salon</label>
-                            <input id="channel_name" name="name" type="text" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]" required>
+                            <input id="channel_name" name="name" type="text" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]" required>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700" for="channel_type">Type</label>
-                            <select id="channel_type" name="channel_type" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]">
+                            <select id="channel_type" name="channel_type" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]">
                                 <option value="discussion">Discussion</option>
                                 <option value="annonces">Annonces</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700" for="channel_description">Description</label>
-                            <textarea id="channel_description" name="description" rows="3" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></textarea>
+                            <textarea id="channel_description" name="description" rows="3" class="mt-2 w-full rounded-[1.2rem] border-gray-300 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]"></textarea>
                         </div>
-                        <button type="submit" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                        <button type="submit" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#6B4A3A] hover:text-[#6B4A3A]">
                             Ajouter le salon
                         </button>
                     </form>

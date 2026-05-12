@@ -1,7 +1,7 @@
 {{-- resources/views/onboarding.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Bienvenue sur votre espace professionnel') }}
         </h2>
     </x-slot>
@@ -189,7 +189,7 @@
                         <div class="avatar-cropper-backdrop"></div>
                         <div class="avatar-cropper-dialog" role="dialog" aria-modal="true" aria-label="{{ __('Recadrer la photo de profil') }}">
                             <div class="avatar-cropper-header">
-                                <h4 class="font-semibold text-[#647a0b]">{{ __('Recadrer la photo') }}</h4>
+                                <h4 class="font-semibold text-[#6B4A3A]">{{ __('Recadrer la photo') }}</h4>
                                 <button type="button" id="profile-picture-cropper-cancel-top" class="avatar-cropper-close" aria-label="{{ __('Fermer') }}">×</button>
                             </div>
 
@@ -634,7 +634,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -645,7 +645,7 @@
 
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 5px;
         }
@@ -653,20 +653,20 @@
         .form-control {
             width: 100%;
             padding: 10px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             font-size: 1rem;
             color: #333;
         }
 
         .form-control:focus {
-            border-color: #647a0b;
+            border-color: #6B4A3A;
             outline: none;
-            box-shadow: 0 0 5px rgba(100, 122, 11, 0.5);
+            box-shadow: 0 0 5px rgba(167, 184, 138, 0.5);
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -679,15 +679,15 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             transform: translateY(-2px);
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             cursor: pointer;
@@ -696,7 +696,7 @@
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
             transform: translateY(-2px);
         }
@@ -793,14 +793,14 @@
 
         .progressbar li.active::before,
         .progressbar li.active ~ li::before {
-            background-color: #854f38;
-            border-color: #854f38;
+            background-color: #5F7048;
+            border-color: #5F7048;
             color: white;
         }
 
         .progressbar li.active::after,
         .progressbar li.active ~ li::after {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .progressbar li[data-title]::after {

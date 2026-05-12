@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Gestion de l\'inventaire') }}
         </h2>
     </x-slot>
@@ -13,7 +13,7 @@
     <div class="py-8">
         <div class="w-full px-4 sm:px-6 lg:px-12 space-y-6">
 
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Inventaire des Articles') }}
             </h1>
 
@@ -65,8 +65,8 @@
     <!-- Search -->
     <input type="text"
            id="search"
-           class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-80
-                  focus:outline-none focus:ring-2 focus:ring-[#854f38]"
+           class="border border-[#5F7048] rounded-md py-2 px-4 w-full md:w-80
+                  focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
            placeholder="Recherche par nom ou référence..."
            onkeyup="filterTable()">
 
@@ -76,8 +76,8 @@
         @if($canUseInventory)
             {{-- Normal usable button --}}
             <a href="{{ route('inventory_items.create') }}"
-               class="bg-[#647a0b] text-white px-4 py-2 rounded-md
-                      hover:bg-[#854f38] transition duration-200
+               class="bg-[#6B4A3A] text-white px-4 py-2 rounded-md
+                      hover:bg-[#5F7048] transition duration-200
                       flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-5 w-5 mr-2" fill="currentColor"
@@ -114,7 +114,7 @@
             <div class="absolute -top-3 -right-2 bg-[#fff1d6]
                         border border-[#facc15]/40 rounded-full
                         px-2.5 py-0.5 text-[10px] font-semibold
-                        text-[#854f38] shadow-sm flex items-center gap-1">
+                        text-[#5F7048] shadow-sm flex items-center gap-1">
 
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-3 w-3" fill="currentColor"
@@ -143,7 +143,7 @@
 <div class="overflow-x-auto bg-white rounded-lg shadow">
     <table class="min-w-full divide-y divide-gray-200" id="inventoryTable">
 
-<thead class="bg-[#647a0b] text-white">
+<thead class="bg-[#6B4A3A] text-white">
     <tr>
         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Nom</th>
         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Référence</th>
@@ -370,10 +370,10 @@
             transform: rotate(180deg);
         }
         .form-control {
-            border: 1px solid #647a0b;
+            border: 1px solid #6B4A3A;
         }
 		        .btn-add {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             border: none;
             color: #ffffff;
             padding: 10px 20px;
@@ -386,13 +386,13 @@
         }
 
         .btn-add:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }

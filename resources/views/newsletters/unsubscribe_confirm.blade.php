@@ -10,7 +10,7 @@
         </p>
 
         <p class="text-sm text-gray-600 mb-4">
-            Vous ne recevrez plus de newsletters ni d’informations marketing envoyées via AromaMade par ce thérapeute.
+            Vous ne recevrez plus de newsletters ni d’informations marketing envoyées via Olithea par ce thérapeute.
             Vous continuerez toutefois à recevoir les emails strictement nécessaires à la gestion de vos rendez-vous (confirmations, rappels, etc.), le cas échéant.
         </p>
 
@@ -23,7 +23,7 @@
                 </label>
                 <input type="text"
                        name="reason"
-                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]"
+                       class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]"
                        placeholder="Trop d’emails, sujet non pertinent...">
             </div>
 
@@ -35,7 +35,7 @@
 
                 <button type="submit"
                         class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                        style="background-color:#854f38;">
+                        style="background-color:#5F7048;">
                     Confirmer le désabonnement
                 </button>
             </div>

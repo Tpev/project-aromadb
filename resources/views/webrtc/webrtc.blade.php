@@ -5,19 +5,19 @@
         <!-- Font Awesome for Icons -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
         <!-- Custom Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <!-- Tailwind CSS -->
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
         <!-- Custom Styles for Loader, Chat, and Notifications -->
         <style>
-            /* Font Family for Roboto */
-            .font-roboto {
-                font-family: 'Roboto', sans-serif;
+            /* Font family for Montserrat */
+            .font-montserrat {
+                font-family: Montserrat, "Avenir Next", sans-serif;
             }
 
             /* Spinner Animation */
             .loader {
-                border-top-color: #647a0b; /* Updated color */
+                border-top-color: #6B4A3A; /* Updated color */
                 animation: spin 1s ease-in-out infinite;
             }
 
@@ -94,7 +94,7 @@
 
             /* Chat Toggle Button */
             #toggleChat:hover {
-                background-color: #854f38; /* Updated color */
+                background-color: #5F7048; /* Updated color */
             }
 
             /* Close Button in Chat Panel */
@@ -157,7 +157,7 @@
     @endsection
 
     <!-- WebRTC Interface -->
-    <div class="min-h-screen flex flex-col bg-gray-100 font-roboto relative">
+    <div class="min-h-screen flex flex-col bg-gray-100 font-montserrat relative">
         <!-- Remote Video as Background -->
         <video id="remoteVideo" autoplay class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
 
@@ -171,7 +171,7 @@
         </div>
 
         <!-- Header -->
-        <header class="bg-[#647a0b] text-white p-4 shadow-md flex justify-between items-center relative z-30">
+        <header class="bg-[#6B4A3A] text-white p-4 shadow-md flex justify-between items-center relative z-30">
             <h1 class="text-xl font-semibold">Salle : {{ ucfirst($room) }}</h1>
             <span id="connectionStatus" class="text-sm text-yellow-500">Connexion...</span>
         </header>
@@ -187,29 +187,29 @@
             <!-- Control Panel -->
             <div class="flex space-x-4">
                 <!-- Toggle Audio Button -->
-                <button id="toggleAudio" aria-label="Couper ou activer le son" class="bg-[#647a0b] hover:bg-[#854f38] text-white p-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <button id="toggleAudio" aria-label="Couper ou activer le son" class="bg-[#6B4A3A] hover:bg-[#5F7048] text-white p-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <i id="audioIcon" class="fas fa-microphone"></i>
                 </button>
     <!-- Overlay de Réessai -->
     <div id="retryOverlay" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div class="bg-white p-6 rounded-lg shadow-lg text-center">
             <p class="mb-4">La connexion a échoué ou a été interrompue.</p>
-            <button id="retryButton" class="bg-[#647a0b] hover:bg-[#854f38] text-white px-4 py-2 rounded">
+            <button id="retryButton" class="bg-[#6B4A3A] hover:bg-[#5F7048] text-white px-4 py-2 rounded">
                 Réessayer
             </button>
         </div>
     </div>
                 <!-- Toggle Video Button -->
-                <button id="toggleVideo" aria-label="Couper ou activer la vidéo" class="bg-[#647a0b] hover:bg-[#854f38] text-white p-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <button id="toggleVideo" aria-label="Couper ou activer la vidéo" class="bg-[#6B4A3A] hover:bg-[#5F7048] text-white p-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <i id="videoIcon" class="fas fa-video"></i>
                 </button>
 
                 <!-- Full-Screen Toggle Button -->
-                <button id="toggleFullScreen" aria-label="Mode plein écran" class="bg-[#647a0b] hover:bg-[#854f38] text-white p-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <button id="toggleFullScreen" aria-label="Mode plein écran" class="bg-[#6B4A3A] hover:bg-[#5F7048] text-white p-4 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <i class="fas fa-expand"></i>
                 </button>
 
-                <button id="toggleChat" aria-label="Basculer le chat" class="bg-[#647a0b] hover:bg-[#854f38] text-white p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 relative">
+                <button id="toggleChat" aria-label="Basculer le chat" class="bg-[#6B4A3A] hover:bg-[#5F7048] text-white p-3 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400 relative">
                     <i class="fas fa-comments"></i>
                     <span id="chatNotificationBadge" class="notification-badge invisible">0</span> <!-- Initially hidden -->
                 </button>
@@ -286,9 +286,9 @@
 
                 // Configuration des serveurs ICE
                 const iceServers = [
-                    { urls: 'stun:turn.aromamade.com:3478' },
+                    { urls: 'stun:turn.olithea.fr:3478' },
                     {
-                        urls: 'turn:turn.aromamade.com:3478?transport=udp',
+                        urls: 'turn:turn.olithea.fr:3478?transport=udp',
                         username: 'userprod',
                         credential: 'blablablatesttest',
                     },
@@ -674,8 +674,8 @@
                     if (isVisible) {
                         chatPanel.classList.add('invisible', 'opacity-0');
                         chatPanel.classList.remove('transition-opacity', 'duration-300'); // Supprimer la transition pour un effet instantané
-                        toggleChatButton.classList.remove('bg-[#854f38]');
-                        toggleChatButton.classList.add('bg-[#647a0b]');
+                        toggleChatButton.classList.remove('bg-[#5F7048]');
+                        toggleChatButton.classList.add('bg-[#6B4A3A]');
                         console.log('Panneau de chat fermé.');
                     } else {
                         chatPanel.classList.remove('invisible', 'opacity-0');
@@ -688,8 +688,8 @@
                 // Fermer le chat depuis le panneau de chat
                 closeChatButton.addEventListener('click', () => {
                     chatPanel.classList.add('invisible', 'opacity-0');
-                    toggleChatButton.classList.remove('bg-[#854f38]');
-                    toggleChatButton.classList.add('bg-[#647a0b]');
+                    toggleChatButton.classList.remove('bg-[#5F7048]');
+                    toggleChatButton.classList.add('bg-[#6B4A3A]');
                     console.log('Panneau de chat fermé via le bouton de fermeture.');
                 });
 

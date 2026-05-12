@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Offrir un bon cadeau') }}
         </h2>
     </x-slot>
 
     <style>
-        :root { --brand:#647a0b; --brown:#854f38; }
+        :root { --brand:#6B4A3A; --brown:#5F7048; }
         .am-wrap {
             max-width: 900px;
             margin: 2rem auto;
@@ -21,7 +21,7 @@
         .am-field label { display:block; font-weight: 700; color: var(--brand); margin-bottom: .35rem; }
         .am-input, .am-textarea {
             width: 100%;
-            border: 1px solid rgba(133,79,56,.35);
+            border: 1px solid rgba(107, 74, 58,.35);
             border-radius: 10px;
             padding: .65rem .8rem;
             background: white;

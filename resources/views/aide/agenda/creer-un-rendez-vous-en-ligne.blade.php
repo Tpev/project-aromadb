@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Créer un rendez-vous en ligne | Portail Pro AromaMade')
+    @section('title', 'Créer un rendez-vous en ligne | Portail Pro Olithea')
     @section('meta_description')
-Activez la prise de rendez-vous en ligne sur AromaMade PRO : prestations, modes de consultation, disponibilités et créneaux publiés sur votre Portail Pro.
+Activez la prise de rendez-vous en ligne sur Olithea PRO : prestations, modes de consultation, disponibilités et créneaux publiés sur votre Portail Pro.
     @endsection
     @section('structured_data')
         <script type="application/ld+json">
@@ -41,7 +41,7 @@ Activez la prise de rendez-vous en ligne sur AromaMade PRO : prestations, modes 
                   "name": "Les créneaux tiennent-ils compte du préavis et du temps entre rendez-vous ?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Oui. AromaMade calcule les créneaux réels en tenant compte du préavis minimum, du buffer entre rendez-vous et de la durée de la prestation."
+                    "text": "Oui. Olithea calcule les créneaux réels en tenant compte du préavis minimum, du buffer entre rendez-vous et de la durée de la prestation."
                   }
                 }
               ]
@@ -63,7 +63,7 @@ Activez la prise de rendez-vous en ligne sur AromaMade PRO : prestations, modes 
             </h1>
 
             <p class="text-lg text-gray-600 mb-8 leading-relaxed">
-                Avec AromaMade PRO, vos clients peuvent réserver un créneau depuis votre
+                Avec Olithea PRO, vos clients peuvent réserver un créneau depuis votre
                 <strong>Portail Pro</strong> en choisissant la prestation, le mode de séance et une date disponible.
                 Ce guide vous explique la configuration à faire côté praticien pour obtenir une prise de rendez-vous fluide.
             </p>

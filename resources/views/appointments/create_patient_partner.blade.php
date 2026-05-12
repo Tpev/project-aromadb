@@ -15,7 +15,7 @@
 @endpush
 
 <x-slot name="header">
-    <h2 class="font-semibold text-xl" style="color: #647a0b;">
+    <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
         {{ __('Réservation partenaire') }}
     </h2>
 </x-slot>
@@ -37,14 +37,14 @@
     .details-title {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #647a0b;
+        color: #6B4A3A;
         margin-bottom: 16px;
         text-align: center;
     }
     .details-box { margin-bottom: 15px; }
     .details-label {
         font-weight: bold;
-        color: #647a0b;
+        color: #6B4A3A;
         display: block;
         margin-bottom: 6px;
     }
@@ -53,8 +53,8 @@
         display:inline-block;
         padding: 4px 10px;
         border-radius: 999px;
-        background: rgba(100,122,11,.12);
-        color:#647a0b;
+        background: rgba(167, 184, 138,.12);
+        color:#6B4A3A;
         font-weight:700;
         font-size:.85rem;
     }

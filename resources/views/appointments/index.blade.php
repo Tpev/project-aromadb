@@ -2,7 +2,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="d-flex justify-content-center">
-            <h2 class="font-semibold text-xl" style="color: #647a0b;">
+            <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
                 {{ __('Liste des Rendez-vous') }}
             </h2>
         </div>
@@ -95,7 +95,7 @@
                 padding: 2px 8px;
                 font-size: 9px;
                 font-weight: 600;
-                color: #854f38;
+                color: #5F7048;
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
@@ -127,7 +127,7 @@
         {{-- Calendrier --}}
         <div class="am-card mb-4">
             <div class="am-card-header text-center">
-                <h2 class="h5 mb-1" style="color:#647a0b;">
+                <h2 class="h5 mb-1" style="color:#6B4A3A;">
                     Calendrier des rendez-vous
                 </h2>
                 <p class="text-muted small mb-0">
@@ -144,7 +144,7 @@
         ============================= --}}
         <div class="am-card mb-4">
             <div class="am-card-header text-center">
-                <h2 class="h5 mb-1" style="color:#647a0b;">
+                <h2 class="h5 mb-1" style="color:#6B4A3A;">
                     Rendez-vous à venir
                 </h2>
                 <p class="text-muted small mb-0">
@@ -197,7 +197,7 @@
                                                 </span>
                                             @else
                                                 <span class="d-inline-flex align-items-center justify-content-center gap-1">
-                                                    <i class="fas fa-user small" style="color:#647a0b;"></i>
+                                                    <i class="fas fa-user small" style="color:#6B4A3A;"></i>
                                                     {{ optional($appointment->clientProfile)->first_name }}
                                                     {{ optional($appointment->clientProfile)->last_name }}
                                                 </span>
@@ -208,11 +208,11 @@
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
                                                 <span>
-                                                    <i class="fas fa-calendar-alt me-1 small" style="color:#647a0b;"></i>
+                                                    <i class="fas fa-calendar-alt me-1 small" style="color:#6B4A3A;"></i>
                                                     {{ \Carbon\Carbon::parse($appointment->appointment_date)->translatedFormat('d/m/Y') }}
                                                 </span>
                                                 <span class="small text-muted mt-1">
-                                                    <i class="fas fa-clock me-1 small" style="color:#647a0b;"></i>
+                                                    <i class="fas fa-clock me-1 small" style="color:#6B4A3A;"></i>
                                                     {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('H:i') }}
                                                 </span>
                                             </div>
@@ -291,7 +291,7 @@
         ============================= --}}
         <div class="am-card mb-5">
             <div class="am-card-header text-center">
-                <h2 class="h5 mb-1" style="color:#854f38;">
+                <h2 class="h5 mb-1" style="color:#5F7048;">
                     Rendez-vous passés
                 </h2>
                 <p class="text-muted small mb-0">
@@ -344,7 +344,7 @@
                                                 </span>
                                             @else
                                                 <span class="d-inline-flex align-items-center justify-content-center gap-1">
-                                                    <i class="fas fa-user small" style="color:#854f38;"></i>
+                                                    <i class="fas fa-user small" style="color:#5F7048;"></i>
                                                     {{ optional($appointment->clientProfile)->first_name }}
                                                     {{ optional($appointment->clientProfile)->last_name }}
                                                 </span>
@@ -355,11 +355,11 @@
                                         <td>
                                             <div class="d-flex flex-column align-items-center">
                                                 <span>
-                                                    <i class="fas fa-calendar-alt me-1 small" style="color:#854f38;"></i>
+                                                    <i class="fas fa-calendar-alt me-1 small" style="color:#5F7048;"></i>
                                                     {{ \Carbon\Carbon::parse($appointment->appointment_date)->translatedFormat('d/m/Y') }}
                                                 </span>
                                                 <span class="small text-muted mt-1">
-                                                    <i class="fas fa-clock me-1 small" style="color:#854f38;"></i>
+                                                    <i class="fas fa-clock me-1 small" style="color:#5F7048;"></i>
                                                     {{ \Carbon\Carbon::parse($appointment->appointment_date)->format('H:i') }}
                                                 </span>
                                             </div>
@@ -553,7 +553,7 @@
         .page-title {
             font-size: 1.9rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         .am-card {
@@ -581,14 +581,14 @@
 
         .am-search-input {
             border-radius: 9999px;
-            border-color: #854f38;
+            border-color: #5F7048;
             padding-inline: 16px;
             max-width: 280px;
         }
 
         .btn-primary {
-            background-color: #647a0b;
-            border-color: #647a0b;
+            background-color: #6B4A3A;
+            border-color: #6B4A3A;
             color: #ffffff;
             padding: 9px 22px;
             border-radius: 9999px;
@@ -601,8 +601,8 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
-            border-color: #854f38;
+            background-color: #5F7048;
+            border-color: #5F7048;
             color: #ffffff;
             transform: translateY(-1px);
         }
@@ -676,7 +676,7 @@
 
         /* Bouton "Générer une facture" */
         .btn-invoice {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             padding: 6px 12px;
             border-radius: 9999px;
@@ -694,7 +694,7 @@
         }
 
         .btn-invoice:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             transform: translateY(-1px);
             color: #ffffff;
         }
@@ -702,10 +702,10 @@
         /* Bouton "Marquer comme complété" */
         .btn-complete {
             background-color: #ffffff;
-            color: #647a0b;
+            color: #6B4A3A;
             padding: 6px 12px;
             border-radius: 9999px;
-            border: 1px solid #647a0b;
+            border: 1px solid #6B4A3A;
             cursor: pointer;
             transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
             display: inline-flex;
@@ -719,7 +719,7 @@
         }
 
         .btn-complete:hover {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             transform: translateY(-1px);
         }

@@ -12,7 +12,7 @@
                     class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-medium bg-secondary-50 text-secondary-700"
                 >
                     <i class="fas fa-mobile-alt mr-1.5 text-[10px]"></i>
-                    {{ __('Application mobile AromaMade PRO') }}
+                    {{ __('Application mobile Olithea PRO') }}
                 </span>
 
                 <h1 class="text-[24px] font-extrabold text-gray-900 tracking-tight">
@@ -20,7 +20,7 @@
                 </h1>
 
                 <p class="text-[13px] text-gray-600 leading-relaxed">
-                    {{ __('Commencez par nous dire si vous cherchez un praticien ou si vous utilisez AromaMade PRO en tant que thérapeute.') }}
+                    {{ __('Commencez par nous dire si vous cherchez un praticien ou si vous utilisez Olithea PRO en tant que thérapeute.') }}
                 </p>
             </div>
 

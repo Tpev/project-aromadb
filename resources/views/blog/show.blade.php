@@ -6,7 +6,7 @@
 @section('title', 'Article ' .  $post->Title )
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ $post->Title }}
         </h2>
     </x-slot>
@@ -19,7 +19,7 @@
             <div class="row mt-4">
                 <div class="col-md-12">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-tags" style="color: #647a0b;"></i> Tags</label>
+                        <label class="details-label"><i class="fas fa-tags" style="color: #6B4A3A;"></i> Tags</label>
                         <p class="details-value">{{ $post->Tags }}</p>
                     </div>
 								@php
@@ -35,7 +35,7 @@
 				@endif
 			</div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Contenu</label>
+                        <label class="details-label"><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Contenu</label>
                         <p class="details-value">{!! $post->Contents !!}</p>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
             <!-- Related Posts Section -->
             @if($post->RelatedPostsREF)
                 <div class="details-box mt-4">
-                    <label class="details-label"><i class="fas fa-book-open" style="color: #647a0b;"></i> Articles Connexes</label>
+                    <label class="details-label"><i class="fas fa-book-open" style="color: #6B4A3A;"></i> Articles Connexes</label>
                     @php
                         $relatedPosts = App\Models\BlogPost::whereIn('REF', explode(',', $post->RelatedPostsREF))->get();
                     @endphp
@@ -75,12 +75,12 @@
     <style>
         .recette-link {
             text-decoration: none;
-            color: #854f38;
+            color: #5F7048;
         }
 
         .recette-link:hover {
             text-decoration: underline;
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         .container {
@@ -98,7 +98,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 10px;
             text-align: center;
         }
@@ -113,7 +113,7 @@
 
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 10px;
             display: block;
             font-size: 1.1rem;
@@ -137,8 +137,8 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
-            border-color: #647a0b;
+            background-color: #6B4A3A;
+            border-color: #6B4A3A;
             color: #ffffff;
             padding: 10px 20px;
             border-radius: 5px;
@@ -147,8 +147,8 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
-            border-color: #854f38;
+            background-color: #5F7048;
+            border-color: #5F7048;
         }
 
         /* Warning Box */

@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Durée prestation et pauses agenda | AromaMade PRO')
+    @section('title', 'Durée prestation et pauses agenda | Olithea PRO')
     @section('meta_description')
-Réglez durée des séances, limite quotidienne, préavis et temps entre deux rendez-vous pour un agenda praticien réaliste dans AromaMade PRO.
+Réglez durée des séances, limite quotidienne, préavis et temps entre deux rendez-vous pour un agenda praticien réaliste dans Olithea PRO.
     @endsection
     @section('structured_data')
         <script type="application/ld+json">
@@ -64,7 +64,7 @@ Réglez durée des séances, limite quotidienne, préavis et temps entre deux re
 
             <p class="text-lg text-gray-600 mb-8 leading-relaxed">
                 Pour garder un agenda cohérent, vous devez paramétrer la <strong>durée réelle</strong> de vos séances
-                et prévoir un <strong>temps entre deux rendez-vous</strong>. AromaMade PRO combine ces paramètres pour proposer
+                et prévoir un <strong>temps entre deux rendez-vous</strong>. Olithea PRO combine ces paramètres pour proposer
                 des créneaux réalistes à vos clients.
             </p>
 

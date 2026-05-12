@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="max-w-md mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
-        <h1 class="text-2xl font-bold text-center text-[#647a0b] mb-4">
+        <h1 class="text-2xl font-bold text-center text-[#6B4A3A] mb-4">
             🔐 Réinitialiser le mot de passe
         </h1>
 
@@ -22,7 +22,7 @@
             </div>
 
             <div class="text-right">
-                <button class="bg-[#647a0b] text-white px-4 py-2 rounded hover:bg-[#4e6407]">
+                <button class="bg-[#6B4A3A] text-white px-4 py-2 rounded hover:bg-[#4e6407]">
                     Envoyer le lien
                 </button>
             </div>

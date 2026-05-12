@@ -75,7 +75,7 @@ class PublicGiftVoucherCheckoutController extends Controller
                     'price_data' => [
                         'currency' => 'eur',
                         'product_data' => [
-                            'name' => 'Bon cadeau – ' . ($therapist->company_name ?? $therapist->name ?? 'AromaMade'),
+                            'name' => 'Bon cadeau – ' . ($therapist->company_name ?? $therapist->name ?? 'Olithea'),
                         ],
                         'unit_amount' => $amountCents,
                     ],

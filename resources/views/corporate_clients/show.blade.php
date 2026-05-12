@@ -1,7 +1,7 @@
 {{-- resources/views/corporate_clients/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Détails de l\'entreprise cliente') }} - {{ $company->name }}
         </h2>
     </x-slot>
@@ -336,8 +336,8 @@
     <style>
         /* ====== Design tokens ====== */
         :root{
-            --brand:#647a0b;
-            --brand-2:#854f38;
+            --brand:#6B4A3A;
+            --brand-2:#5F7048;
             --ink:#222;
             --muted:#666;
             --bg:#f9f9f9;

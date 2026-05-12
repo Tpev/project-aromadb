@@ -16,7 +16,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard-pro') }}">
-                        <x-application-logo class="block h-12 w-auto" style="color: #647a0b;" />
+                        <x-application-logo class="block h-12 w-auto" style="color: #6B4A3A;" />
                     </a>
                 </div>
 
@@ -25,7 +25,7 @@
                     <!-- Tableau de bord -->
                     <x-nav-link :href="route('dashboard-pro')"
                                 :active="request()->routeIs('dashboard-pro')"
-                                class="text-[#647a0b] hover:text-[#854f38]">
+                                class="text-[#6B4A3A] hover:text-[#5F7048]">
                         {{ __('Tableau de Bord') }}
                     </x-nav-link>
 
@@ -36,7 +36,7 @@
                          @mouseleave="timeoutClients = setTimeout(() => openClients = false, 200)">
                         <x-nav-link href="#"
                                     :active="request()->routeIs('client_profiles.*') || request()->routeIs('corporate-clients.*')"
-                                    class="text-[#647a0b] hover:text-[#854f38] flex items-center"
+                                    class="text-[#6B4A3A] hover:text-[#5F7048] flex items-center"
                                     @click.prevent="openClients = !openClients"
                                     x-bind:aria-expanded="openClients.toString()" aria-haspopup="true">
                             {{ __('Clients') }}
@@ -76,7 +76,7 @@
                     <!-- Rendez-vous -->
                     <x-nav-link :href="route('appointments.index')"
                                 :active="request()->routeIs('appointments.*')"
-                                class="text-[#647a0b] hover:text-[#854f38]">
+                                class="text-[#6B4A3A] hover:text-[#5F7048]">
                         {{ __('Rendez-vous') }}
                     </x-nav-link>
 
@@ -86,7 +86,7 @@
                          @mouseenter="clearTimeout(timeoutAcc); openAccounting = true"
                          @mouseleave="timeoutAcc = setTimeout(() => openAccounting = false, 200)">
                         <x-nav-link href="#"
-                                    class="text-[#647a0b] hover:text-[#854f38] flex items-center"
+                                    class="text-[#6B4A3A] hover:text-[#5F7048] flex items-center"
                                     @click.prevent="openAccounting = !openAccounting"
                                     :active="request()->routeIs('invoices.*') || request()->routeIs('receipts.*')"
                                     x-bind:aria-expanded="openAccounting.toString()" aria-haspopup="true">
@@ -132,7 +132,7 @@
                          @mouseenter="clearTimeout(timeout); openConfig = true"
                          @mouseleave="timeout = setTimeout(() => openConfig = false, 200)">
                         <x-nav-link href="#"
-                                    class="text-[#647a0b] hover:text-[#854f38] flex items-center"
+                                    class="text-[#6B4A3A] hover:text-[#5F7048] flex items-center"
                                     @click.prevent="openConfig = !openConfig"
                                     :active="request()->routeIs('availabilities.*')
                                               || request()->routeIs('practice-locations.*')
@@ -214,7 +214,7 @@
                     <!-- Portail public -->
                     <x-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}"
                                 :active="request()->is('pro/' . auth()->user()->slug)"
-                                class="text-[#647a0b] hover:text-[#854f38]">
+                                class="text-[#6B4A3A] hover:text-[#5F7048]">
                         {{ __('Portail') }}
                     </x-nav-link>
                 </div>
@@ -224,7 +224,7 @@
             <div class="hidden sm:flex sm:items-center sm:ml-6 space-x-4">
                 <!-- Notification Bell Icon -->
                 <div class="relative">
-                    <button id="notificationButton" class="relative text-gray-700 hover:text-[#854f38] focus:outline-none">
+                    <button id="notificationButton" class="relative text-gray-700 hover:text-[#5F7048] focus:outline-none">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -271,7 +271,7 @@
                 <!-- User Dropdown -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-[#647a0b] bg-white hover:text-[#854f38] focus:outline-none transition ease-in-out duration-150">
+                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-[#6B4A3A] bg-white hover:text-[#5F7048] focus:outline-none transition ease-in-out duration-150">
                             <div>{{ Auth::user()->name }}</div>
                             <div class="ml-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -284,13 +284,13 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
+                        <x-dropdown-link :href="route('profile.edit')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                             {{ __('Profil') }}
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
+                        <x-dropdown-link :href="route('profile.license')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                             {{ __('License') }}
                         </x-dropdown-link>
-                        <x-dropdown-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
+                        <x-dropdown-link :href="route('contact.show')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                             {{ __('Support') }}
                         </x-dropdown-link>
 
@@ -298,7 +298,7 @@
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
+                            <x-dropdown-link :href="route('logout')" class="text-[#6B4A3A] hover:text-[#5F7048]"
                                 onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Déconnexion') }}
                             </x-dropdown-link>
@@ -310,7 +310,7 @@
             <!-- Menu Hamburger (Responsive) -->
             <div class="-mr-2 flex items-center sm:hidden">
                 <button @click="open = ! open"
-                        class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
+                        class="inline-flex items-center justify-center p-2 rounded-md text-[#6B4A3A] hover:text-[#5F7048] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{ 'hidden': open, 'inline-flex': ! open }"
                               class="inline-flex"
@@ -329,7 +329,7 @@
     <!-- Menu de Navigation Réactif -->
     <div :class="{ 'block': open, 'hidden': ! open }" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Tableau de Bord') }}
             </x-responsive-nav-link>
 
@@ -337,84 +337,84 @@
             <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Clients</div>
             <x-responsive-nav-link :href="route('client_profiles.index')"
                                    :active="request()->routeIs('client_profiles.*')"
-                                   class="text-[#647a0b] hover:text-[#854f38]">
+                                   class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Clients particuliers') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('corporate-clients.index')"
                                    :active="request()->routeIs('corporate-clients.*')"
-                                   class="text-[#647a0b] hover:text-[#854f38]">
+                                   class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Clients entreprises') }}
             </x-responsive-nav-link>
 
             <!-- Rendez-vous -->
-            <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('appointments.index')" :active="request()->routeIs('appointments.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Rendez-vous') }}
             </x-responsive-nav-link>
 
             <!-- Comptabilite (mobile) -->
             <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Comptabilité</div>
-            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Factures & Devis') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('receipts.index')" :active="request()->routeIs('receipts.index')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('receipts.index')" :active="request()->routeIs('receipts.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Livre de recettes') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('receipts.caMonthly')" :active="request()->routeIs('receipts.caMonthly')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('receipts.caMonthly')" :active="request()->routeIs('receipts.caMonthly')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Statistiques (CA mensuel)') }}
             </x-responsive-nav-link>
 
             <!-- Config (mobile) -->
             <div class="px-4 pt-4 pb-1 text-xs font-semibold uppercase text-gray-400">Configuration</div>
-            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Prestations') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Événements') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="$giftVoucherNavUrl" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="$giftVoucherNavUrl" :active="request()->routeIs('pro.gift-vouchers.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Bon cadeau') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Disponibilités') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('practice-locations.index')" :active="request()->routeIs('practice-locations.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('practice-locations.index')" :active="request()->routeIs('practice-locations.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Cabinets & Lieux') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('unavailabilities.index')" :active="request()->routeIs('unavailabilities.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('unavailabilities.index')" :active="request()->routeIs('unavailabilities.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Indisponibilités') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('questionnaires.index')" :active="request()->routeIs('questionnaires.*')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('questionnaires.index')" :active="request()->routeIs('questionnaires.*')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Questionnaires') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('profile.editCompanyInfo')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('profile.editCompanyInfo')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Informations de l\'entreprise') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('therapist.stripe')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('therapist.stripe')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Paiement en ligne') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('conseils.index')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('conseils.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Biblio Conseils') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('inventory_items.index')" class="text-[#647a0b] hover:text-[#854f38]">
+            <x-responsive-nav-link :href="route('inventory_items.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Inventaire') }}
             </x-responsive-nav-link>            
-			<x-responsive-nav-link :href="route('digital-trainings.index')" class="text-[#647a0b] hover:text-[#854f38]">
+			<x-responsive-nav-link :href="route('digital-trainings.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Formation') }}
             </x-responsive-nav-link>			
-			<x-responsive-nav-link :href="route('newsletters.index')" class="text-[#647a0b] hover:text-[#854f38]">
+			<x-responsive-nav-link :href="route('newsletters.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Newsletter') }}
             </x-responsive-nav-link>			
-			<x-responsive-nav-link :href="route('dashboardpro.articles.index')" class="text-[#647a0b] hover:text-[#854f38]">
+			<x-responsive-nav-link :href="route('dashboardpro.articles.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Article & Blog') }}
             </x-responsive-nav-link>			
-			<x-responsive-nav-link :href="route('pro.referrals.index')" class="text-[#647a0b] hover:text-[#854f38]">
+			<x-responsive-nav-link :href="route('pro.referrals.index')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Parrainage') }}
             </x-responsive-nav-link>
 
             <!-- Portail -->
             <x-responsive-nav-link href="{{ url('/pro/' . auth()->user()->slug) }}"
                                    :active="request()->is('pro/' . auth()->user()->slug)"
-                                   class="text-[#647a0b] hover:text-[#854f38]">
+                                   class="text-[#6B4A3A] hover:text-[#5F7048]">
                 {{ __('Portail') }}
             </x-responsive-nav-link>
         </div>
@@ -422,24 +422,24 @@
         <!-- Bloc utilisateur (mobile) -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-[#647a0b]">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-base text-[#6B4A3A]">{{ Auth::user()->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')" class="text-[#647a0b] hover:text-[#854f38]">
+                <x-responsive-nav-link :href="route('profile.edit')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                     {{ __('Profil') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('profile.license')" class="text-[#647a0b] hover:text-[#854f38]">
+                <x-responsive-nav-link :href="route('profile.license')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                     {{ __('License') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('contact.show')" class="text-[#647a0b] hover:text-[#854f38]">
+                <x-responsive-nav-link :href="route('contact.show')" class="text-[#6B4A3A] hover:text-[#5F7048]">
                     {{ __('Support') }}
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')" class="text-[#647a0b] hover:text-[#854f38]"
+                    <x-responsive-nav-link :href="route('logout')" class="text-[#6B4A3A] hover:text-[#5F7048]"
                         onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Déconnexion') }}
                     </x-responsive-nav-link>

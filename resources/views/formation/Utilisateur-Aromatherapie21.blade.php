@@ -1,7 +1,7 @@
 {{-- resources/views/formation/Utilisateur-Aromatherapie21.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Formation en Aromathérapie') }}
         </h2>
     </x-slot>
@@ -19,7 +19,7 @@
     @endphp
 
     <div class="progress-container" style="margin-bottom: 20px;">
-        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #647a0b; height: 20px;">
+        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #6B4A3A; height: 20px;">
             <span style="color: white; padding-left: 10px;">{{ round($progressPercent) }}%</span>
         </div>
     </div>

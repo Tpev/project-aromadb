@@ -1,7 +1,7 @@
 /* ===== Brand tokens ===== */
 :root{
-  --primary-color:#647a0b;
-  --secondary-color:#854f38;
+  --primary-color:#6B4A3A;
+  --secondary-color:#5F7048;
   --text:#1f2937;
   --muted:#4b5563;
   --bg:#ffffff;
@@ -9,8 +9,8 @@
 }
 
 /* ===== Base ===== */
-body{font-family:'Roboto',sans-serif;color:var(--text);}
-h1,h2,h3,h4,h5,h6{font-family:'Poppins',sans-serif;}
+body{font-family: Montserrat, "Avenir Next", sans-serif;color:var(--text);}
+h1,h2,h3,h4,h5,h6{font-family: "Cormorant Garamond", Georgia, serif;}
 .text-primary{color:var(--primary-color);}
 .muted{color:var(--muted);}
 

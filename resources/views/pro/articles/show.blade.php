@@ -39,14 +39,14 @@
 
     <style>
         .article-prose { font-size: 18px; line-height: 1.9; color: #0f172a; }
-        .article-prose h1 { font-size: 40px; line-height: 1.12; margin: 24px 0 10px; font-weight: 900; letter-spacing: -0.02em; }
-        .article-prose h2 { font-size: 30px; line-height: 1.2;  margin: 26px 0 10px; font-weight: 800; letter-spacing: -0.01em; }
+        .article-prose h1 { font-size: 40px; line-height: 1.12; margin: 24px 0 10px; font-weight: 900; letter-spacing: 0; }
+        .article-prose h2 { font-size: 30px; line-height: 1.2;  margin: 26px 0 10px; font-weight: 800; letter-spacing: 0; }
         .article-prose h3 { font-size: 22px; line-height: 1.3;  margin: 22px 0 8px;  font-weight: 800; }
         .article-prose p  { margin: 14px 0; }
         .article-prose ul, .article-prose ol { margin: 14px 0 14px 22px; }
         .article-prose li { margin: 8px 0; }
         .article-prose blockquote {
-            border-left: 4px solid #8ea633;
+            border-left: 4px solid #4E5F3A;
             padding-left: 14px;
             margin: 20px 0;
             color: #334155;
@@ -66,14 +66,14 @@
             font-size: 0.95em;
         }
         .article-prose pre code { background: transparent; padding: 0; }
-        .article-prose a { color: #647a0b; text-decoration: underline; font-weight: 800; }
+        .article-prose a { color: #6B4A3A; text-decoration: underline; font-weight: 800; }
         .article-prose img { border-radius: 18px; border: 1px solid #edf1df; margin: 18px 0; }
 
-        .btn-soft { border: 1px solid #edf1df; background: rgba(255,255,255,0.88); color: #647a0b; }
+        .btn-soft { border: 1px solid #edf1df; background: rgba(255,255,255,0.88); color: #6B4A3A; }
         .btn-soft:hover { background: #f7f9ef; }
-        .btn-primary { background:#8ea633; color:white; }
+        .btn-primary { background:#4E5F3A; color:white; }
         .btn-primary:hover { filter: brightness(0.98); }
-        .chip { border: 1px solid #edf1df; background: #f7f9ef; color: #647a0b; }
+        .chip { border: 1px solid #edf1df; background: #f7f9ef; color: #6B4A3A; }
         .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
 
         .glass {
@@ -93,7 +93,7 @@
                 <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#f7f9ef]"></div>
             </div>
         @else
-            <div class="absolute inset-0 -z-10 bg-gradient-to-b from-[#8ea633]/25 via-white to-[#f7f9ef]"></div>
+            <div class="absolute inset-0 -z-10 bg-gradient-to-b from-[#4E5F3A]/25 via-white to-[#f7f9ef]"></div>
         @endif
 
         <div class="max-w-7xl mx-auto px-6 py-10 md:py-14">
@@ -118,7 +118,7 @@
 
             <div class="mt-10 max-w-3xl">
                 <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-extrabold chip">
-                    <span class="dot bg-[#8ea633]"></span>
+                    <span class="dot bg-[#4E5F3A]"></span>
                     Article
                 </div>
 
@@ -217,14 +217,14 @@
                                          alt=""
                                          class="w-14 h-14 rounded-2xl object-cover border border-[#edf1df]">
                                 @else
-                                    <div class="w-14 h-14 rounded-2xl bg-[#f7f9ef] border border-[#edf1df] flex items-center justify-center text-[#647a0b] font-black">
+                                    <div class="w-14 h-14 rounded-2xl bg-[#f7f9ef] border border-[#edf1df] flex items-center justify-center text-[#6B4A3A] font-black">
                                         {{ Str::upper(Str::substr($therapistName, 0, 1)) }}
                                     </div>
                                 @endif
                             </div>
 
                             <div class="min-w-0">
-                                <div class="text-sm font-extrabold text-[#647a0b]">À propos</div>
+                                <div class="text-sm font-extrabold text-[#6B4A3A]">À propos</div>
                                 <div class="mt-1 font-black text-gray-900 truncate">{{ $therapistName }}</div>
 
                                 @if($profileDesc !== '')
@@ -255,10 +255,10 @@
                     {{-- Tags --}}
                     @if(is_array($article->tags) && count($article->tags))
                         <div class="bg-white rounded-[28px] border border-[#edf1df] shadow-sm p-6">
-                            <div class="text-sm font-extrabold text-[#647a0b]">Tags</div>
+                            <div class="text-sm font-extrabold text-[#6B4A3A]">Tags</div>
                             <div class="mt-3 flex flex-wrap gap-2">
                                 @foreach($article->tags as $t)
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f7f9ef] border border-[#edf1df] text-xs font-extrabold text-[#647a0b]">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#f7f9ef] border border-[#edf1df] text-xs font-extrabold text-[#6B4A3A]">
                                         #{{ $t }}
                                     </span>
                                 @endforeach
@@ -268,17 +268,17 @@
 
                     {{-- Navigation --}}
                     <div class="bg-white rounded-[28px] border border-[#edf1df] shadow-sm p-6">
-                        <div class="text-sm font-extrabold text-[#647a0b]">Navigation</div>
+                        <div class="text-sm font-extrabold text-[#6B4A3A]">Navigation</div>
 
                         <div class="mt-3 space-y-2 text-sm">
-                            <a class="font-semibold text-[#647a0b] hover:underline"
+                            <a class="font-semibold text-[#6B4A3A] hover:underline"
                                href="{{ route('pro.articles.index', ['therapist' => $therapist->slug]) }}">
                                 ← Retour aux articles
                             </a>
 
                             <div class="text-gray-600">
                                 Profil :
-                                <a class="font-semibold text-[#647a0b] hover:underline"
+                                <a class="font-semibold text-[#6B4A3A] hover:underline"
                                    href="{{ route('therapist.show', ['slug' => $therapist->slug]) }}">
                                     {{ $therapistName }}
                                 </a>
@@ -304,14 +304,14 @@
                                                 @if($oaCover)
                                                     <img src="{{ $oaCover }}" alt="" class="w-12 h-12 rounded-xl object-cover border border-[#edf1df]">
                                                 @else
-                                                    <div class="w-12 h-12 rounded-xl bg-[#f7f9ef] border border-[#edf1df] flex items-center justify-center text-[#647a0b] font-black">
+                                                    <div class="w-12 h-12 rounded-xl bg-[#f7f9ef] border border-[#edf1df] flex items-center justify-center text-[#6B4A3A] font-black">
                                                         {{ Str::upper(Str::substr($oa->title, 0, 1)) }}
                                                     </div>
                                                 @endif
                                             </div>
 
                                             <div class="min-w-0">
-                                                <div class="font-extrabold text-gray-900 text-sm truncate group-hover:text-[#647a0b]">
+                                                <div class="font-extrabold text-gray-900 text-sm truncate group-hover:text-[#6B4A3A]">
                                                     {{ $oa->title }}
                                                 </div>
                                                 <div class="text-xs text-gray-600">

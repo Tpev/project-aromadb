@@ -71,7 +71,7 @@ La Lavande vraie est réputée pour ses propriétés apaisantes et sédatives. E
 .blog-title {
 font-size: 2.5rem;
 font-weight: bold;
-color: #647a0b;
+color: #6B4A3A;
 margin-bottom: 20px;
 text-align: center;
 }
@@ -85,7 +85,7 @@ line-height: 1.7;
 
 .section-title {
 font-size: 1.8rem;
-color: #647a0b;
+color: #6B4A3A;
 font-weight: bold;
 margin-top: 30px;
 margin-bottom: 10px;
@@ -93,7 +93,7 @@ margin-bottom: 10px;
 
 .highlight-title {
 font-size: 1.6rem;
-color: #854f38;
+color: #5F7048;
 margin-bottom: 10px;
 font-weight: bold;
 }
@@ -110,7 +110,7 @@ margin-bottom: 5px;
 
 .method-title {
 font-size: 1.4rem;
-color: #647a0b;
+color: #6B4A3A;
 font-weight: bold;
 margin-top: 20px;
 margin-bottom: 10px;
@@ -118,7 +118,7 @@ margin-bottom: 10px;
 
 .recipe-box {
 background-color: #f9f9f9;
-border-left: 5px solid #647a0b;
+border-left: 5px solid #6B4A3A;
 padding: 10px 20px;
 margin-top: 10px;
 margin-bottom: 20px;
@@ -253,12 +253,12 @@ margin-bottom: 10px;
 <p><strong>Meta Description :</strong> Découvrez les huiles essentielles efficaces pour renforcer votre système immunitaire, ainsi que des conseils pratiques pour leur utilisation au quotidien.</p><style>
     .recette-link {
         text-decoration: none;
-        color: #854f38;
+        color: #5F7048;
     }
 
     .recette-link:hover {
         text-decoration: underline;
-        color: #647a0b;
+        color: #6B4A3A;
     }
 
     .container {
@@ -276,7 +276,7 @@ margin-bottom: 10px;
     .details-title {
         font-size: 2rem;
         font-weight: bold;
-        color: #647a0b;
+        color: #6B4A3A;
         margin-bottom: 30px;
         text-align: center;
     }
@@ -291,7 +291,7 @@ margin-bottom: 10px;
 
     .details-label {
         font-weight: bold;
-        color: #647a0b;
+        color: #6B4A3A;
         margin-bottom: 10px;
         display: block;
         font-size: 1.1rem;
@@ -361,7 +361,7 @@ margin-bottom: 10px;
     }
 
     .blog-section h3 {
-        color: #854f38;
+        color: #5F7048;
         font-weight: bold;
         margin-top: 20px;
         margin-bottom: 10px;
@@ -369,7 +369,7 @@ margin-bottom: 10px;
     }
 
     .advice-box strong {
-        color: #854f38;
+        color: #5F7048;
     }
 
     .advice-box p {
@@ -379,8 +379,8 @@ margin-bottom: 10px;
     }
 
     .btn-primary {
-        background-color: #647a0b;
-        border-color: #647a0b;
+        background-color: #6B4A3A;
+        border-color: #6B4A3A;
         color: #ffffff;
         padding: 10px 20px;
         border-radius: 5px;
@@ -391,8 +391,8 @@ margin-bottom: 10px;
     }
 
     .btn-primary:hover {
-        background-color: #854f38;
-        border-color: #854f38;
+        background-color: #5F7048;
+        border-color: #5F7048;
     }
 
     .related-posts ul {
@@ -407,11 +407,11 @@ margin-bottom: 10px;
 
     .related-posts a {
         text-decoration: none;
-        color: #854f38;
+        color: #5F7048;
     }
 
     .related-posts a:hover {
-        color: #647a0b;
+        color: #6B4A3A;
         text-decoration: underline;
     }
 
@@ -637,7 +637,7 @@ margin-bottom: 10px;
     .blog-title {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #647a0b;
+        color: #6B4A3A;
         margin-bottom: 20px;
         text-align: center;
     }
@@ -651,7 +651,7 @@ margin-bottom: 10px;
 
     .section-title {
         font-size: 1.8rem;
-        color: #647a0b;
+        color: #6B4A3A;
         font-weight: bold;
         margin-top: 30px;
         margin-bottom: 10px;
@@ -659,7 +659,7 @@ margin-bottom: 10px;
 
     .highlight-title {
         font-size: 1.6rem;
-        color: #854f38;
+        color: #5F7048;
         margin-bottom: 10px;
         font-weight: bold;
     }
@@ -676,7 +676,7 @@ margin-bottom: 10px;
 
     .method-title {
         font-size: 1.4rem;
-        color: #647a0b;
+        color: #6B4A3A;
         font-weight: bold;
         margin-top: 20px;
         margin-bottom: 10px;
@@ -684,7 +684,7 @@ margin-bottom: 10px;
 
     .recipe-box {
         background-color: #f9f9f9;
-        border-left: 5px solid #647a0b;
+        border-left: 5px solid #6B4A3A;
         padding: 10px 20px;
         margin-top: 10px;
         margin-bottom: 20px;
@@ -731,15 +731,15 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
   
   <h3 class=""highlight-title"">Les bienfaits physiques :</h3>
   <ul class=""highlight-list"">
-    <li><strong>Relaxation musculaire :</strong> L’eau chaude combinée à des huiles essentielles relaxantes, comme la <a href=""https://aromamade.com/huilehes/lavande-vraie"">lavande vraie</a> ou la <a href=""https://aromamade.com/huilehes/gaultherie-couchee"">gaulthérie couchée</a>, favorise le relâchement des tensions musculaires et soulage les douleurs articulaires ou musculaires.</li>
-    <li><strong>Amélioration de la circulation sanguine :</strong> Certaines huiles essentielles, comme le <a href=""https://aromamade.com/huilehes/genevrier"">genévrier</a>, stimulent la circulation sanguine, réduisant ainsi les sensations de jambes lourdes ou les varices.</li>
-    <li><strong>Détente et sommeil réparateur :</strong> Les huiles essentielles aux propriétés sédatives, telles que la <a href=""https://aromamade.com/huilehes/camomille-nobleromaine"">camomille romaine</a> ou la <a href=""https://aromamade.com/huilehes/mandarine-rouge"">mandarine rouge</a>, facilitent un sommeil profond et réparateur après un bain relaxant.</li>
+    <li><strong>Relaxation musculaire :</strong> L’eau chaude combinée à des huiles essentielles relaxantes, comme la <a href=""https://olithea.fr/huilehes/lavande-vraie"">lavande vraie</a> ou la <a href=""https://olithea.fr/huilehes/gaultherie-couchee"">gaulthérie couchée</a>, favorise le relâchement des tensions musculaires et soulage les douleurs articulaires ou musculaires.</li>
+    <li><strong>Amélioration de la circulation sanguine :</strong> Certaines huiles essentielles, comme le <a href=""https://olithea.fr/huilehes/genevrier"">genévrier</a>, stimulent la circulation sanguine, réduisant ainsi les sensations de jambes lourdes ou les varices.</li>
+    <li><strong>Détente et sommeil réparateur :</strong> Les huiles essentielles aux propriétés sédatives, telles que la <a href=""https://olithea.fr/huilehes/camomille-nobleromaine"">camomille romaine</a> ou la <a href=""https://olithea.fr/huilehes/mandarine-rouge"">mandarine rouge</a>, facilitent un sommeil profond et réparateur après un bain relaxant.</li>
   </ul>
   
   <h3 class=""highlight-title"">Les bienfaits émotionnels :</h3>
   <ul class=""highlight-list"">
-    <li><strong>Réduction du stress et de l'anxiété :</strong> Un bain aromatique est un moyen puissant de se déconnecter du stress quotidien. Les huiles essentielles comme l'<a href=""https://aromamade.com/huilehes/ylang-ylang"">ylang-ylang</a> ou la <a href=""https://aromamade.com/huilehes/lavande-vraie"">lavande vraie</a> sont particulièrement efficaces pour calmer l'esprit et apaiser les émotions.</li>
-    <li><strong>Renforcement de l’immunité :</strong> Un bain aux huiles essentielles comme le <a href=""https://aromamade.com/huilehes/ravintsara"">ravintsara</a> ou l’<a href=""https://aromamade.com/huilehes/eucalyptus-radie"">eucalyptus radié</a> peut aider à renforcer le système immunitaire, notamment en hiver ou lors de périodes d'épidémies virales.</li>
+    <li><strong>Réduction du stress et de l'anxiété :</strong> Un bain aromatique est un moyen puissant de se déconnecter du stress quotidien. Les huiles essentielles comme l'<a href=""https://olithea.fr/huilehes/ylang-ylang"">ylang-ylang</a> ou la <a href=""https://olithea.fr/huilehes/lavande-vraie"">lavande vraie</a> sont particulièrement efficaces pour calmer l'esprit et apaiser les émotions.</li>
+    <li><strong>Renforcement de l’immunité :</strong> Un bain aux huiles essentielles comme le <a href=""https://olithea.fr/huilehes/ravintsara"">ravintsara</a> ou l’<a href=""https://olithea.fr/huilehes/eucalyptus-radie"">eucalyptus radié</a> peut aider à renforcer le système immunitaire, notamment en hiver ou lors de périodes d'épidémies virales.</li>
   </ul>
 </div>
 
@@ -751,27 +751,27 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
   
   <h3 class=""highlight-title"">Relaxation et détente :</h3>
   <ul class=""highlight-list"">
-    <li><a href=""https://aromamade.com/huilehes/lavande-vraie""><strong>Lavande vraie (Lavandula angustifolia)</strong></a> : Calme les nerfs et favorise un sommeil réparateur.</li>
-    <li><a href=""https://aromamade.com/huilehes/camomille-nobleromaine""><strong>Camomille romaine (Chamaemelum nobile)</strong></a> : Apaise les tensions et soulage les émotions fortes comme la colère ou le chagrin.</li>
-    <li><a href=""https://aromamade.com/huilehes/mandarine-rouge""><strong>Mandarine rouge (Citrus reticulata)</strong></a> : Réduit le stress, favorise la bonne humeur et aide à lutter contre l'insomnie.</li>
+    <li><a href=""https://olithea.fr/huilehes/lavande-vraie""><strong>Lavande vraie (Lavandula angustifolia)</strong></a> : Calme les nerfs et favorise un sommeil réparateur.</li>
+    <li><a href=""https://olithea.fr/huilehes/camomille-nobleromaine""><strong>Camomille romaine (Chamaemelum nobile)</strong></a> : Apaise les tensions et soulage les émotions fortes comme la colère ou le chagrin.</li>
+    <li><a href=""https://olithea.fr/huilehes/mandarine-rouge""><strong>Mandarine rouge (Citrus reticulata)</strong></a> : Réduit le stress, favorise la bonne humeur et aide à lutter contre l'insomnie.</li>
   </ul>
   
   <h3 class=""highlight-title"">Soulagement des douleurs musculaires et articulaires :</h3>
   <ul class=""highlight-list"">
-    <li><a href=""https://aromamade.com/huilehes/gaultherie-couchee""><strong>Gaulthérie couchée (Gaultheria procumbens)</strong></a> : Puissante huile anti-inflammatoire et analgésique, idéale pour les douleurs musculaires et articulaires.</li>
-    <li><a href=""https://aromamade.com/huilehes/eucalyptus-citronne""><strong>Eucalyptus citronné (Eucalyptus citriodora)</strong></a> : Apaisant et anti-inflammatoire, parfait pour les rhumatismes et les douleurs articulaires.</li>
+    <li><a href=""https://olithea.fr/huilehes/gaultherie-couchee""><strong>Gaulthérie couchée (Gaultheria procumbens)</strong></a> : Puissante huile anti-inflammatoire et analgésique, idéale pour les douleurs musculaires et articulaires.</li>
+    <li><a href=""https://olithea.fr/huilehes/eucalyptus-citronne""><strong>Eucalyptus citronné (Eucalyptus citriodora)</strong></a> : Apaisant et anti-inflammatoire, parfait pour les rhumatismes et les douleurs articulaires.</li>
   </ul>
   
   <h3 class=""highlight-title"">Boost de l’immunité :</h3>
   <ul class=""highlight-list"">
-    <li><a href=""https://aromamade.com/huilehes/ravintsara""><strong>Ravintsara (Cinnamomum camphora)</strong></a> : Stimulante immunitaire et antivirale, parfaite pour les périodes hivernales.</li>
-    <li><a href=""https://aromamade.com/huilehes/thym-a-linalol""><strong>Thym à linalol (Thymus vulgaris linaloliferum)</strong></a> : Antibactérien doux, parfait pour toute la famille.</li>
+    <li><a href=""https://olithea.fr/huilehes/ravintsara""><strong>Ravintsara (Cinnamomum camphora)</strong></a> : Stimulante immunitaire et antivirale, parfaite pour les périodes hivernales.</li>
+    <li><a href=""https://olithea.fr/huilehes/thym-a-linalol""><strong>Thym à linalol (Thymus vulgaris linaloliferum)</strong></a> : Antibactérien doux, parfait pour toute la famille.</li>
   </ul>
   
   <h3 class=""highlight-title"">Amélioration de l’humeur et rééquilibrage émotionnel :</h3>
   <ul class=""highlight-list"">
-    <li><a href=""https://aromamade.com/huilehes/ylang-ylang""><strong>Ylang-Ylang (Cananga odorata)</strong></a> : Réduit le stress, équilibre les émotions et favorise une sensation de bien-être général.</li>
-    <li><a href=""https://aromamade.com/huilehes/orange-douce""><strong>Orange douce (Citrus sinensis)</strong></a> : Calmante et sédative, cette huile est idéale pour réduire l’anxiété et la nervosité et retrouver un sommeil plus serein.</li>
+    <li><a href=""https://olithea.fr/huilehes/ylang-ylang""><strong>Ylang-Ylang (Cananga odorata)</strong></a> : Réduit le stress, équilibre les émotions et favorise une sensation de bien-être général.</li>
+    <li><a href=""https://olithea.fr/huilehes/orange-douce""><strong>Orange douce (Citrus sinensis)</strong></a> : Calmante et sédative, cette huile est idéale pour réduire l’anxiété et la nervosité et retrouver un sommeil plus serein.</li>
   </ul>
 </div>
 
@@ -806,9 +806,9 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
   </p>
   <ul class=""highlight-list"">
     <li><strong>Test de tolérance cutanée :</strong> Avant d’utiliser une nouvelle huile essentielle en bain, il est recommandé de faire un test de tolérance cutanée. Appliquez une petite quantité d’huile essentielle diluée sur votre avant-bras et attendez 24 heures pour vérifier l’absence de réactions allergiques.</li>
-    <li><strong>Précautions pour les enfants et les femmes enceintes :</strong> Les huiles essentielles comme le <a href=""https://aromamade.com/huilehes/ravintsara"">ravintsara</a>, la <a href=""https://aromamade.com/huilehes/lavande-vraie"">lavande vraie</a>, la <a href=""https://aromamade.com/huilehes/camomille-nobleromaine"">camomille romaine</a> ou encore le <a href=""https://aromamade.com/huilehes/bois-de-ho"">bois de Hô</a> sont généralement bien tolérées. Veillez à réduire la quantité et à diluer selon les recommandations.</li>
+    <li><strong>Précautions pour les enfants et les femmes enceintes :</strong> Les huiles essentielles comme le <a href=""https://olithea.fr/huilehes/ravintsara"">ravintsara</a>, la <a href=""https://olithea.fr/huilehes/lavande-vraie"">lavande vraie</a>, la <a href=""https://olithea.fr/huilehes/camomille-nobleromaine"">camomille romaine</a> ou encore le <a href=""https://olithea.fr/huilehes/bois-de-ho"">bois de Hô</a> sont généralement bien tolérées. Veillez à réduire la quantité et à diluer selon les recommandations.</li>
     <li><strong>Attention aux peaux sensibles :</strong> Certaines huiles essentielles, comme la menthe poivrée ou l’eucalyptus, peuvent être trop fortes pour les peaux sensibles. Assurez-vous de toujours bien diluer les huiles et d'éviter celles qui sont dermocaustiques.</li>
-    <li><strong>Évitez les huiles essentielles photosensibilisantes :</strong> Les huiles essentielles d’agrumes, telles que la <a href=""https://aromamade.com/huilehes/bergamote"">bergamote</a> ou le <a href=""https://aromamade.com/huilehes/pamplemousse"">pamplemousse</a>, sont photosensibilisantes, c'est-à-dire qu'elles peuvent provoquer des brûlures ou des taches brunes si la peau est exposée au soleil après leur utilisation. Il est préférable de les utiliser le soir ou d’éviter toute exposition solaire minimum 8 heures après le bain.</li>
+    <li><strong>Évitez les huiles essentielles photosensibilisantes :</strong> Les huiles essentielles d’agrumes, telles que la <a href=""https://olithea.fr/huilehes/bergamote"">bergamote</a> ou le <a href=""https://olithea.fr/huilehes/pamplemousse"">pamplemousse</a>, sont photosensibilisantes, c'est-à-dire qu'elles peuvent provoquer des brûlures ou des taches brunes si la peau est exposée au soleil après leur utilisation. Il est préférable de les utiliser le soir ou d’éviter toute exposition solaire minimum 8 heures après le bain.</li>
   </ul>
 </div>
 
@@ -852,7 +852,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 .blog-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #647a0b;
+  color: #6B4A3A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -866,7 +866,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .section-title {
   font-size: 1.8rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
@@ -874,7 +874,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .highlight-title {
   font-size: 1.6rem;
-  color: #854f38;
+  color: #5F7048;
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -891,7 +891,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .method-title {
   font-size: 1.4rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -899,7 +899,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .recipe-box {
   background-color: #f9f9f9;
-  border-left: 5px solid #647a0b;
+  border-left: 5px solid #6B4A3A;
   padding: 10px 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -1192,7 +1192,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -1206,7 +1206,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -1214,7 +1214,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -1231,7 +1231,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -1239,7 +1239,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -1564,7 +1564,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -1578,7 +1578,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -1586,7 +1586,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -1603,7 +1603,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -1611,7 +1611,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -1887,7 +1887,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -1901,7 +1901,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -1909,7 +1909,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -1926,7 +1926,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -1934,7 +1934,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -2201,7 +2201,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -2215,7 +2215,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -2223,7 +2223,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -2240,7 +2240,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -2248,7 +2248,7 @@ Les bains aromatiques, une méthode ancestrale de détente et de soin, allient l
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -2607,7 +2607,7 @@ Le sport est essentiel pour maintenir une bonne santé physique et mentale. Pour
 .blog-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #647a0b;
+  color: #6B4A3A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -2621,7 +2621,7 @@ Le sport est essentiel pour maintenir une bonne santé physique et mentale. Pour
 
 .section-title {
   font-size: 1.8rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
@@ -2629,7 +2629,7 @@ Le sport est essentiel pour maintenir une bonne santé physique et mentale. Pour
 
 .highlight-title {
   font-size: 1.6rem;
-  color: #854f38;
+  color: #5F7048;
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -2646,7 +2646,7 @@ Le sport est essentiel pour maintenir une bonne santé physique et mentale. Pour
 
 .method-title {
   font-size: 1.4rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -2654,7 +2654,7 @@ Le sport est essentiel pour maintenir une bonne santé physique et mentale. Pour
 
 .recipe-box {
   background-color: #f9f9f9;
-  border-left: 5px solid #647a0b;
+  border-left: 5px solid #6B4A3A;
   padding: 10px 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -2924,7 +2924,7 @@ L'utilisation d'huiles essentielles dans la lessive est une pratique de plus en 
 .blog-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #647a0b;
+  color: #6B4A3A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -2938,7 +2938,7 @@ L'utilisation d'huiles essentielles dans la lessive est une pratique de plus en 
 
 .section-title {
   font-size: 1.8rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
@@ -2946,7 +2946,7 @@ L'utilisation d'huiles essentielles dans la lessive est une pratique de plus en 
 
 .highlight-title {
   font-size: 1.6rem;
-  color: #854f38;
+  color: #5F7048;
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -2963,7 +2963,7 @@ L'utilisation d'huiles essentielles dans la lessive est une pratique de plus en 
 
 .method-title {
   font-size: 1.4rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -2971,7 +2971,7 @@ L'utilisation d'huiles essentielles dans la lessive est une pratique de plus en 
 
 .recipe-box {
   background-color: #f9f9f9;
-  border-left: 5px solid #647a0b;
+  border-left: 5px solid #6B4A3A;
   padding: 10px 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3021,7 +3021,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
 <div class=""blog-section"">
   <h2 class=""section-title"">Les huiles essentielles incontournables pour le bien-être émotionnel</h2>
   
-  <h3 class=""highlight-title"">1. <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie (Lavandula angustifolia)</a></h3>
+  <h3 class=""highlight-title"">1. <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie (Lavandula angustifolia)</a></h3>
   <p><strong>Origine :</strong> Méditerranée</p>
   <p><strong>Principaux composants :</strong> Linalol, Acétate de linalyle</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3038,7 +3038,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
     <li>Soulagement des migraines</li>
   </ul>
   
-  <h3 class=""highlight-title"">2. <a href=""https://aromamade.com/huilehes/ylang-ylang"">Ylang-Ylang (Cananga odorata)</a></h3>
+  <h3 class=""highlight-title"">2. <a href=""https://olithea.fr/huilehes/ylang-ylang"">Ylang-Ylang (Cananga odorata)</a></h3>
   <p><strong>Origine :</strong> Asie du Sud-Est</p>
   <p><strong>Principaux composants :</strong> Géraniol, Linalol, Cétal</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3055,7 +3055,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
     <li>Promotion d'un état de calme intérieur</li>
   </ul>
   
-  <h3 class=""highlight-title"">3. <a href=""https://aromamade.com/huilehes/bergamote"">Bergamote (Citrus bergamia)</a></h3>
+  <h3 class=""highlight-title"">3. <a href=""https://olithea.fr/huilehes/bergamote"">Bergamote (Citrus bergamia)</a></h3>
   <p><strong>Origine :</strong> Italie</p>
   <p><strong>Principaux composants :</strong> Limonène, Linalol, Citral</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3072,7 +3072,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
     <li>Création d'une atmosphère positive</li>
   </ul>
   
-  <h3 class=""highlight-title"">4. <a href=""https://aromamade.com/huilehes/camomille-allemandematricaire"">Camomille Allemande (Matricaria recutita)</a></h3>
+  <h3 class=""highlight-title"">4. <a href=""https://olithea.fr/huilehes/camomille-allemandematricaire"">Camomille Allemande (Matricaria recutita)</a></h3>
   <p><strong>Origine :</strong> Europe</p>
   <p><strong>Principaux composants :</strong> Chamazulène, Apigénine</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3097,9 +3097,9 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
   <p><strong>Objectif :</strong> Créer une atmosphère apaisante pour réduire le stress et favoriser la détente.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie</a></li>
-    <li>5 gouttes d'huile essentielle d'<a href=""https://aromamade.com/huilehes/ylang-ylang"">Ylang-Ylang</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/camomille-allemandematricaire"">Camomille Allemande</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie</a></li>
+    <li>5 gouttes d'huile essentielle d'<a href=""https://olithea.fr/huilehes/ylang-ylang"">Ylang-Ylang</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/camomille-allemandematricaire"">Camomille Allemande</a></li>
   </ul>
   <p><strong>Instructions :</strong></p>
   <ol>
@@ -3113,9 +3113,9 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
   <p><strong>Objectif :</strong> Soulager rapidement les sentiments d'anxiété et favoriser un état de calme.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>4 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie</a></li>
-    <li>3 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/bergamote"">Bergamote</a></li>
-    <li>3 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/camomille-allemandematricaire"">Camomille Allemande</a></li>
+    <li>4 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie</a></li>
+    <li>3 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/bergamote"">Bergamote</a></li>
+    <li>3 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/camomille-allemandematricaire"">Camomille Allemande</a></li>
   </ul>
   <p><strong>Instructions :</strong></p>
   <ol>
@@ -3133,9 +3133,9 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
   <p><strong>Objectif :</strong> Réduire les tensions musculaires et émotionnelles grâce à un massage décontractant.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>10 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie</a></li>
-    <li>10 gouttes d'huile essentielle d'<a href=""https://aromamade.com/huilehes/ylang-ylang"">Ylang-Ylang</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/camomille-allemandematricaire"">Camomille Allemande</a></li>
+    <li>10 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie</a></li>
+    <li>10 gouttes d'huile essentielle d'<a href=""https://olithea.fr/huilehes/ylang-ylang"">Ylang-Ylang</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/camomille-allemandematricaire"">Camomille Allemande</a></li>
     <li>30 ml d'huile végétale de Amande Douce</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3151,8 +3151,8 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
   <p><strong>Objectif :</strong> Apaiser les sentiments de tristesse et améliorer l'humeur de manière naturelle.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>1 goutte d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie</a></li>
-    <li>1 goutte d'huile essentielle de <a href=""https://aromamade.com/huilehes/bergamote"">Bergamote</a></li>
+    <li>1 goutte d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie</a></li>
+    <li>1 goutte d'huile essentielle de <a href=""https://olithea.fr/huilehes/bergamote"">Bergamote</a></li>
     <li>1 cuillère à café de miel (de préférence biologique)</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3169,9 +3169,9 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
   <p><strong>Objectif :</strong> Favoriser la détente profonde et l'équilibre émotionnel grâce à un bain aromatique.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie</a></li>
-    <li>5 gouttes d'huile essentielle d'<a href=""https://aromamade.com/huilehes/ylang-ylang"">Ylang-Ylang</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/bergamote"">Bergamote</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie</a></li>
+    <li>5 gouttes d'huile essentielle d'<a href=""https://olithea.fr/huilehes/ylang-ylang"">Ylang-Ylang</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/bergamote"">Bergamote</a></li>
     <li>Un fonds de savon liquide ou de dispersant.</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3262,7 +3262,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
 .blog-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #647a0b;
+  color: #6B4A3A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -3276,7 +3276,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
 
 .section-title {
   font-size: 1.8rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
@@ -3284,7 +3284,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
 
 .highlight-title {
   font-size: 1.6rem;
-  color: #854f38;
+  color: #5F7048;
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -3301,7 +3301,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
 
 .method-title {
   font-size: 1.4rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -3309,7 +3309,7 @@ La vie moderne est souvent synonyme de stress, d'anxiété et de défis émotion
 
 .recipe-box {
   background-color: #f9f9f9;
-  border-left: 5px solid #647a0b;
+  border-left: 5px solid #6B4A3A;
   padding: 10px 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3367,7 +3367,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
 <div class=""blog-section"">
   <h2 class=""section-title"">Les huiles essentielles incontournables pour l'automne</h2>
   
-  <h3 class=""highlight-title"">1. <a href=""https://aromamade.com/huilehes/ravintsara"">Ravintsara (Cinnamomum camphora)</a></h3>
+  <h3 class=""highlight-title"">1. <a href=""https://olithea.fr/huilehes/ravintsara"">Ravintsara (Cinnamomum camphora)</a></h3>
   <p><strong>Origine :</strong> Madagascar</p>
   <p><strong>Principaux composants :</strong> 1,8 Cinéole</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3386,7 +3386,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
     <li>Lutte contre la fatigue physique et nerveuse</li>
   </ul>
   
-  <h3 class=""highlight-title"">2. <a href=""https://aromamade.com/huilehes/eucalyptus-radie"">Eucalyptus Radié (Eucalyptus radiata)</a></h3>
+  <h3 class=""highlight-title"">2. <a href=""https://olithea.fr/huilehes/eucalyptus-radie"">Eucalyptus Radié (Eucalyptus radiata)</a></h3>
   <p><strong>Origine :</strong> Australie</p>
   <p><strong>Principaux composants :</strong> 1,8 Cinéole, Alpha-terpinéol</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3403,7 +3403,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
     <li>Renforcement du système immunitaire</li>
   </ul>
   
-  <h3 class=""highlight-title"">3. <a href=""https://aromamade.com/huilehes/tea-treearbre-a-the"">Tea Tree (Melaleuca alternifolia)</a></h3>
+  <h3 class=""highlight-title"">3. <a href=""https://olithea.fr/huilehes/tea-treearbre-a-the"">Tea Tree (Melaleuca alternifolia)</a></h3>
   <p><strong>Origine :</strong> Australie</p>
   <p><strong>Principaux composants :</strong> 4-terpinéol, Gamma-terpinène</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3420,7 +3420,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
     <li>Prévention des infections cutanées et mycoses</li>
   </ul>
   
-  <h3 class=""highlight-title"">4. <a href=""https://aromamade.com/huilehes/laurier-noble"">Laurier Noble (Laurus nobilis)</a></h3>
+  <h3 class=""highlight-title"">4. <a href=""https://olithea.fr/huilehes/laurier-noble"">Laurier Noble (Laurus nobilis)</a></h3>
   <p><strong>Origine :</strong> Maroc</p>
   <p><strong>Principaux composants :</strong> 1,8 Cinéole; Acétate d'alpha-terpinyl</p>
   <p><strong>Propriétés thérapeutiques :</strong></p>
@@ -3447,9 +3447,9 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
   <p><strong>Objectif :</strong> Renforcer les défenses immunitaires et purifier l'air ambiant.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/ravintsara"">Ravintsara</a></li>
-    <li>5 gouttes d'huile essentielle d'<a href=""https://aromamade.com/huilehes/eucalyptus-radie"">Eucalyptus Radié</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/tea-treearbre-a-the"">Tea Tree</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/ravintsara"">Ravintsara</a></li>
+    <li>5 gouttes d'huile essentielle d'<a href=""https://olithea.fr/huilehes/eucalyptus-radie"">Eucalyptus Radié</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/tea-treearbre-a-the"">Tea Tree</a></li>
   </ul>
   <p><strong>Instructions :</strong></p>
   <ol>
@@ -3463,9 +3463,9 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
   <p><strong>Objectif :</strong> Stimuler le système immunitaire et améliorer la circulation sanguine.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>10 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/ravintsara"">Ravintsara</a></li>
-    <li>10 gouttes d'huile essentielle d'<a href=""https://aromamade.com/huilehes/eucalyptus-radie"">Eucalyptus Radié</a></li>
-    <li>10 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/laurier-noble"">Laurier Noble</a></li>
+    <li>10 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/ravintsara"">Ravintsara</a></li>
+    <li>10 gouttes d'huile essentielle d'<a href=""https://olithea.fr/huilehes/eucalyptus-radie"">Eucalyptus Radié</a></li>
+    <li>10 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/laurier-noble"">Laurier Noble</a></li>
     <li>30 ml d'huile végétale de Macadamia ou Amande douce</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3481,8 +3481,8 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
   <p><strong>Objectif :</strong> Apaiser la toux et renforcer les défenses respiratoires.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>1 goutte d'huile essentielle de <a href=""https://aromamade.com/huilehes/ravintsara"">Ravintsara</a></li>
-    <li>1 goutte d'huile essentielle de <a href=""https://aromamade.com/huilehes/tea-treearbre-a-the"">Tea Tree</a></li>
+    <li>1 goutte d'huile essentielle de <a href=""https://olithea.fr/huilehes/ravintsara"">Ravintsara</a></li>
+    <li>1 goutte d'huile essentielle de <a href=""https://olithea.fr/huilehes/tea-treearbre-a-the"">Tea Tree</a></li>
     <li>1 cuillère à café de miel de thym ou d'eucalyptus</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3499,9 +3499,9 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
   <p><strong>Objectif :</strong> Détendre les muscles, apaiser l'esprit et revitaliser le corps.</p>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>10 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/ravintsara"">Ravintsara</a></li>
-    <li>5 gouttes d'huile essentielle d'<a href=""https://aromamade.com/huilehes/eucalyptus-radie"">Eucalyptus Radié</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/tea-treearbre-a-the"">Tea Tree</a></li>
+    <li>10 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/ravintsara"">Ravintsara</a></li>
+    <li>5 gouttes d'huile essentielle d'<a href=""https://olithea.fr/huilehes/eucalyptus-radie"">Eucalyptus Radié</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/tea-treearbre-a-the"">Tea Tree</a></li>
     <li>Un peu de savon liquide ou de dispersant</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3587,7 +3587,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
 .blog-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #647a0b;
+  color: #6B4A3A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -3601,7 +3601,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
 
 .section-title {
   font-size: 1.8rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
@@ -3609,7 +3609,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
 
 .highlight-title {
   font-size: 1.6rem;
-  color: #854f38;
+  color: #5F7048;
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -3626,7 +3626,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
 
 .method-title {
   font-size: 1.4rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -3634,7 +3634,7 @@ Dans cet article, découvrez comment utiliser les huiles essentielles pour boost
 
 .recipe-box {
   background-color: #f9f9f9;
-  border-left: 5px solid #647a0b;
+  border-left: 5px solid #6B4A3A;
   padding: 10px 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3709,7 +3709,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
     La sauge sclarée est particulièrement efficace pour équilibrer les hormones, ce qui peut réduire les symptômes prémenstruels tels que les ballonnements et les crampes. Elle agit également comme un anti-spasmodique, apaisant les contractions utérines douloureuses.
   </p>
   
-  <h3 class=""highlight-title"">2. <a href=""https://aromamade.com/huilehes/estragon"">Estragon (Artemisia dracunculus)</a></h3>
+  <h3 class=""highlight-title"">2. <a href=""https://olithea.fr/huilehes/estragon"">Estragon (Artemisia dracunculus)</a></h3>
   <p><strong>Provenance :</strong> Europe</p>
   <p><strong>Organe Producteur :</strong> Parties aériennes</p>
   <p><strong>Composants Principaux :</strong> Méthylchavicol, Ocimène, Limonène, Coumarines</p>
@@ -3719,7 +3719,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
     L’estragon est un antispasmodique puissant qui en fait un allié de choix en période de règles.
   </p>
   
-  <h3 class=""highlight-title"">3. <a href=""https://aromamade.com/huilehes/basilic-tropical"">Basilic tropical (Ocimum basilicum)</a></h3>
+  <h3 class=""highlight-title"">3. <a href=""https://olithea.fr/huilehes/basilic-tropical"">Basilic tropical (Ocimum basilicum)</a></h3>
   <p><strong>Provenance :</strong> Vietnam</p>
   <p><strong>Organe Producteur :</strong> Parties aériennes</p>
   <p><strong>Composants Principaux :</strong> Méthylchavicol</p>
@@ -3729,7 +3729,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
     Avec ses nombreuses propriétés et indications, l’huile essentielle de basilic tropical est incontournable pour accompagner la femme durant ses règles.
   </p>
   
-  <h3 class=""highlight-title"">4. <a href=""https://aromamade.com/huilehes/camomille-nobleromaine"">Camomille Romaine (Chamaemelum nobile)</a></h3>
+  <h3 class=""highlight-title"">4. <a href=""https://olithea.fr/huilehes/camomille-nobleromaine"">Camomille Romaine (Chamaemelum nobile)</a></h3>
   <p><strong>Provenance :</strong> Europe</p>
   <p><strong>Organe Producteur :</strong> Fleurs</p>
   <p><strong>Composants Principaux :</strong> Bisabolol, Chamazulène, Flavonoïdes</p>
@@ -3740,7 +3740,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
     La camomille romaine est idéale pour apaiser l'esprit et réduire les crampes musculaires. Elle aide également à améliorer la qualité du sommeil, essentiel pour récupérer pendant les menstruations.
   </p>
   
-  <h3 class=""highlight-title"">5. <a href=""https://aromamade.com/huilehes/marjolaine-a-coquilles"">Marjolaine à coquille (Origanum majorana)</a></h3>
+  <h3 class=""highlight-title"">5. <a href=""https://olithea.fr/huilehes/marjolaine-a-coquilles"">Marjolaine à coquille (Origanum majorana)</a></h3>
   <p><strong>Provenance :</strong> France, Égypte</p>
   <p><strong>Organe Producteur :</strong> Parties aériennes fleuries</p>
   <p><strong>Composants Principaux :</strong> Monoterpènes, Monoterpénols</p>
@@ -3774,9 +3774,9 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
   <h3 class=""highlight-title"">2. Bain Relaxant</h3>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/camomille-nobleromaine"">Camomille Romaine</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/basilic-tropical"">Basilic tropical</a></li>
-    <li>5 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande vraie</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/camomille-nobleromaine"">Camomille Romaine</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/basilic-tropical"">Basilic tropical</a></li>
+    <li>5 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande vraie</a></li>
     <li>Un peu de savon liquide ou de dispersant</li>
   </ul>
   <p><strong>Instructions :</strong></p>
@@ -3791,9 +3791,9 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
   <h3 class=""highlight-title"">3. Olfaction Apaisante</h3>
   <p><strong>Ingrédients :</strong></p>
   <ul class=""highlight-list"">
-    <li>4 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/lavande-vraie"">Lavande Vraie</a></li>
+    <li>4 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/lavande-vraie"">Lavande Vraie</a></li>
     <li>3 gouttes d'huile essentielle de Mandarine rouge</li>
-    <li>3 gouttes d'huile essentielle de <a href=""https://aromamade.com/huilehes/marjolaine-a-coquilles"">Marjolaine à coquilles</a></li>
+    <li>3 gouttes d'huile essentielle de <a href=""https://olithea.fr/huilehes/marjolaine-a-coquilles"">Marjolaine à coquilles</a></li>
   </ul>
   <p><strong>Instructions :</strong></p>
   <ol>
@@ -3844,7 +3844,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #647a0b;
+  color: #6B4A3A;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -3858,7 +3858,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
   font-size: 1.8rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 30px;
   margin-bottom: 10px;
@@ -3866,7 +3866,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
   font-size: 1.6rem;
-  color: #854f38;
+  color: #5F7048;
   margin-bottom: 10px;
   font-weight: bold;
 }
@@ -3883,7 +3883,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
   font-size: 1.4rem;
-  color: #647a0b;
+  color: #6B4A3A;
   font-weight: bold;
   margin-top: 20px;
   margin-bottom: 10px;
@@ -3891,7 +3891,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
   background-color: #f9f9f9;
-  border-left: 5px solid #647a0b;
+  border-left: 5px solid #6B4A3A;
   padding: 10px 20px;
   margin-top: 10px;
   margin-bottom: 20px;
@@ -3956,7 +3956,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Anis Vert (Pimpinella anisum)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/anis-vert"" class=""highlight-link"">Anis Vert</a><br>
+        <a href=""https://olithea.fr/tisanes/anis-vert"" class=""highlight-link"">Anis Vert</a><br>
         <strong>Provenance :</strong> Méditerranée<br>
         <strong>Organe Producteur :</strong> Graines<br>
         <strong>Composants Principaux :</strong> Anéthole, flavonoïdes, limonène<br>
@@ -3970,7 +3970,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">2. Fenouil (Foeniculum vulgare)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/fenouil"" class=""highlight-link"">Fenouil</a><br>
+        <a href=""https://olithea.fr/tisanes/fenouil"" class=""highlight-link"">Fenouil</a><br>
         <strong>Provenance :</strong> Méditerranée<br>
         <strong>Organe Producteur :</strong> Graines<br>
         <strong>Composants Principaux :</strong> Anéthole, fenchone, flavonoïdes<br>
@@ -3984,7 +3984,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">3. Menthe Poivrée (Mentha piperita)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/menthe-poivree"" class=""highlight-link"">Menthe Poivrée</a><br>
+        <a href=""https://olithea.fr/tisanes/menthe-poivree"" class=""highlight-link"">Menthe Poivrée</a><br>
         <strong>Provenance :</strong> Moyen-Orient<br>
         <strong>Organe Producteur :</strong> Feuilles<br>
         <strong>Composants Principaux :</strong> Menthol, menthone, acides phénoliques<br>
@@ -3998,7 +3998,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">4. Gingembre (Zingiber officinale)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/gingembre"" class=""highlight-link"">Gingembre</a><br>
+        <a href=""https://olithea.fr/tisanes/gingembre"" class=""highlight-link"">Gingembre</a><br>
         <strong>Provenance :</strong> Asie du Sud-Est<br>
         <strong>Organe Producteur :</strong> Rhizome<br>
         <strong>Composants Principaux :</strong> Gingerol, shogaol, zingerone<br>
@@ -4012,7 +4012,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">5. Camomille (Matricaria chamomilla)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/camomille"" class=""highlight-link"">Camomille</a><br>
+        <a href=""https://olithea.fr/tisanes/camomille"" class=""highlight-link"">Camomille</a><br>
         <strong>Provenance :</strong> Europe<br>
         <strong>Organe Producteur :</strong> Fleurs<br>
         <strong>Composants Principaux :</strong> Flavonoïdes, coumarines, acides phénoliques<br>
@@ -4026,7 +4026,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">6. Mélisse (Melissa officinalis)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/melisse"" class=""highlight-link"">Mélisse</a><br>
+        <a href=""https://olithea.fr/tisanes/melisse"" class=""highlight-link"">Mélisse</a><br>
         <strong>Provenance :</strong> Europe<br>
         <strong>Organe Producteur :</strong> Feuilles<br>
         <strong>Composants Principaux :</strong> Acide rosmarinique, citral, linalol<br>
@@ -4040,7 +4040,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">7. Romarin Citronnelle (Rosmarinus citriodorus)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/romarin"" class=""highlight-link"">Romarin Citronnelle</a><br>
+        <a href=""https://olithea.fr/tisanes/romarin"" class=""highlight-link"">Romarin Citronnelle</a><br>
         <strong>Provenance :</strong> Méditerranée<br>
         <strong>Organe Producteur :</strong> Feuilles<br>
         <strong>Composants Principaux :</strong> Thymol, citral, flavonoïdes<br>
@@ -4054,7 +4054,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">8. Thé Vert (Camellia sinensis)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/the-vert"" class=""highlight-link"">Thé Vert</a><br>
+        <a href=""https://olithea.fr/tisanes/the-vert"" class=""highlight-link"">Thé Vert</a><br>
         <strong>Provenance :</strong> Asie<br>
         <strong>Organe Producteur :</strong> Feuilles<br>
         <strong>Composants Principaux :</strong> Catéchines, flavonoïdes, caféine<br>
@@ -4068,7 +4068,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">9. Curcuma (Curcuma longa)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/curcuma"" class=""highlight-link"">Curcuma</a><br>
+        <a href=""https://olithea.fr/tisanes/curcuma"" class=""highlight-link"">Curcuma</a><br>
         <strong>Provenance :</strong> Asie<br>
         <strong>Organe Producteur :</strong> Rhizome<br>
         <strong>Composants Principaux :</strong> Curcuminoïdes, flavonoïdes, huiles essentielles<br>
@@ -4082,7 +4082,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">10. Prunellier (Prunus spinosa)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/prunellier"" class=""highlight-link"">Prunellier</a><br>
+        <a href=""https://olithea.fr/tisanes/prunellier"" class=""highlight-link"">Prunellier</a><br>
         <strong>Provenance :</strong> Europe<br>
         <strong>Organe Producteur :</strong> Fleurs; Fruits<br>
         <strong>Composants Principaux :</strong> Flavonoïdes, tanins, acides phénoliques<br>
@@ -4238,7 +4238,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -4252,7 +4252,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -4260,7 +4260,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -4277,7 +4277,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -4285,7 +4285,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -4349,7 +4349,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Ravintsara (Cinnamomum camphora)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/ravintsara"" class=""highlight-link"">Ravintsara</a><br>
+        <a href=""https://olithea.fr/huilehes/ravintsara"" class=""highlight-link"">Ravintsara</a><br>
         <strong>Origine :</strong> Madagascar<br>
         <strong>Principaux composants :</strong> 1,8 cinéole<br>
         <strong>Propriétés :</strong><br>
@@ -4367,7 +4367,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">2. Eucalyptus Radié (Eucalyptus radiata)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/eucalyptus-radie"" class=""highlight-link"">Eucalyptus Radié</a><br>
+        <a href=""https://olithea.fr/huilehes/eucalyptus-radie"" class=""highlight-link"">Eucalyptus Radié</a><br>
         <strong>Origine :</strong> Australie<br>
         <strong>Principaux composants :</strong> 1,8 cinéole, alpha-terpinéol<br>
         <strong>Propriétés :</strong><br>
@@ -4383,7 +4383,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">3. Tea Tree (Melaleuca alternifolia)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/tea-treearbre-a-the"" class=""highlight-link"">Tea Tree</a><br>
+        <a href=""https://olithea.fr/huilehes/tea-treearbre-a-the"" class=""highlight-link"">Tea Tree</a><br>
         <strong>Origine :</strong> Australie<br>
         <strong>Principaux composants :</strong> 4-terpinéol, gamma-terpinène<br>
         <strong>Propriétés :</strong><br>
@@ -4526,7 +4526,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -4540,7 +4540,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -4548,7 +4548,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -4565,7 +4565,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -4642,7 +4642,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Achillée Millefeuille (Achillea millefolium)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/achillee-millefeuille"" class=""highlight-link"">Achillée Millefeuille</a><br>
+        <a href=""https://olithea.fr/tisanes/achillee-millefeuille"" class=""highlight-link"">Achillée Millefeuille</a><br>
         <strong>Provenance :</strong> Europe<br>
         <strong>Organe Producteur :</strong> Fleurs<br>
         <strong>Composants Principaux :</strong> Flavonoïdes, sesquiterpènes, tanins<br>
@@ -4656,7 +4656,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">2. Camomille (Matricaria chamomilla)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/camomille"" class=""highlight-link"">Camomille</a><br>
+        <a href=""https://olithea.fr/tisanes/camomille"" class=""highlight-link"">Camomille</a><br>
         <strong>Provenance :</strong> Europe<br>
         <strong>Organe Producteur :</strong> Fleurs<br>
         <strong>Composants Principaux :</strong> Flavonoïdes, coumarines, acides phénoliques<br>
@@ -4670,7 +4670,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">3. Tilleul (Tilia cordata)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/tilleul"" class=""highlight-link"">Tilleul</a><br>
+        <a href=""https://olithea.fr/tisanes/tilleul"" class=""highlight-link"">Tilleul</a><br>
         <strong>Provenance :</strong> Europe<br>
         <strong>Organe Producteur :</strong> Fleurs<br>
         <strong>Composants Principaux :</strong> Flavonoïdes, mucilages, tanins<br>
@@ -4684,7 +4684,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">4. Thym Citronnelle (Thymus citriodorus)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/thym-citron"" class=""highlight-link"">Thym Citronnelle</a><br>
+        <a href=""https://olithea.fr/tisanes/thym-citron"" class=""highlight-link"">Thym Citronnelle</a><br>
         <strong>Provenance :</strong> Méditerranée<br>
         <strong>Organe Producteur :</strong> Feuilles<br>
         <strong>Composants Principaux :</strong> Thymol, citral, flavonoïdes<br>
@@ -4698,7 +4698,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">5. Verveine Citronnelle (Aloysia citrodora)</h3>
     <p>
-        <a href=""https://aromamade.com/tisanes/verveine-citronnelle"" class=""highlight-link"">Verveine Citronnelle</a><br>
+        <a href=""https://olithea.fr/tisanes/verveine-citronnelle"" class=""highlight-link"">Verveine Citronnelle</a><br>
         <strong>Provenance :</strong> Amérique du Sud<br>
         <strong>Organe Producteur :</strong> Feuilles<br>
         <strong>Composants Principaux :</strong> Citral, géraniol, limonène<br>
@@ -4809,7 +4809,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -4823,7 +4823,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -4831,7 +4831,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -4848,7 +4848,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -4912,35 +4912,35 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Lavande Vraie (<em>Lavandula angustifolia</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
+        <a href=""https://olithea.fr/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
         <strong>Propriétés :</strong> Calmante, sédative, cicatrisante.<br>
         <strong>Bienfaits :</strong> Réduit l'anxiété, améliore la qualité du sommeil, apaise les irritations cutanées.
     </p>
 
     <h3 class=""highlight-title"">2. Camomille Romaine (<em>Chamaemelum nobile</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/camomille-nobleromaine"" class=""highlight-link"">Camomille Romaine</a><br>
+        <a href=""https://olithea.fr/huilehes/camomille-nobleromaine"" class=""highlight-link"">Camomille Romaine</a><br>
         <strong>Propriétés :</strong> Anti-inflammatoire, antispasmodique, relaxante.<br>
         <strong>Bienfaits :</strong> Favorise la détente, soulage les tensions musculaires, calme l'esprit.
     </p>
 
     <h3 class=""highlight-title"">3. Bergamote (<em>Citrus bergamia</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/bergamote"" class=""highlight-link"">Bergamote</a><br>
+        <a href=""https://olithea.fr/huilehes/bergamote"" class=""highlight-link"">Bergamote</a><br>
         <strong>Propriétés :</strong> Sédative, relaxante, anti-stress.<br>
         <strong>Bienfaits :</strong> Améliore l'humeur, réduit le stress, crée une atmosphère apaisante.
     </p>
 
     <h3 class=""highlight-title"">4. Ylang-Ylang (<em>Cananga odorata</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/ylang-ylang"" class=""highlight-link"">Ylang-Ylang</a><br>
+        <a href=""https://olithea.fr/huilehes/ylang-ylang"" class=""highlight-link"">Ylang-Ylang</a><br>
         <strong>Propriétés :</strong> Aphrodisiaque, relaxante, équilibrante.<br>
         <strong>Bienfaits :</strong> Favorise la relaxation, équilibre les émotions, aide à libérer les tensions.
     </p>
 
     <h3 class=""highlight-title"">5. Sauge Sclarée (<em>Salvia sclarea</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/sauge-sclaree"" class=""highlight-link"">Sauge Sclarée</a><br>
+        <a href=""https://olithea.fr/huilehes/sauge-sclaree"" class=""highlight-link"">Sauge Sclarée</a><br>
         <strong>Propriétés :</strong> Calmante, équilibrante, anti-inflammatoire.<br>
         <strong>Bienfaits :</strong> Régule les hormones, apaise les émotions, favorise un sommeil profond.
     </p>
@@ -5008,7 +5008,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -5022,7 +5022,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -5030,7 +5030,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -5047,7 +5047,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -5055,7 +5055,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -5124,31 +5124,31 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
     
     <h3 class=""highlight-title"">1. Ylang-Ylang (<em>Cananga odorata</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/ylang-ylang"" class=""highlight-link"">Ylang-Ylang</a><br>
+        <a href=""https://olithea.fr/huilehes/ylang-ylang"" class=""highlight-link"">Ylang-Ylang</a><br>
         Originaire de Madagascar, l’ylang-ylang est célèbre pour ses propriétés relaxantes et aphrodisiaques. Son parfum floral doux favorise la détente et stimule la libido, créant une atmosphère idéale pour l’intimité.
     </p>
 
     <h3 class=""highlight-title"">2. Lavande Vraie (<em>Lavandula vera/angustifolia</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
+        <a href=""https://olithea.fr/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
         La lavande est une huile incontournable pour sa capacité à apaiser le stress et l’anxiété. En plus de ses vertus relaxantes, elle aide à améliorer la qualité du sommeil, parfait pour une soirée paisible.
     </p>
 
     <h3 class=""highlight-title"">3. Rose de Damas (<em>Rosa damascena</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/rose-de-damas"" class=""highlight-link"">Rose de Damas</a><br>
+        <a href=""https://olithea.fr/huilehes/rose-de-damas"" class=""highlight-link"">Rose de Damas</a><br>
         Synonyme de romance, l’huile essentielle de rose est reconnue pour ses propriétés tonifiantes et neurotoniques. Elle améliore l’humeur et favorise les sentiments d’amour et de bien-être, rendant votre soirée encore plus spéciale.
     </p>
 
     <h3 class=""highlight-title"">4. Néroli (<em>Citrus aurantium ssp. aurantium fl.</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/neroli"" class=""highlight-link"">Néroli</a><br>
+        <a href=""https://olithea.fr/huilehes/neroli"" class=""highlight-link"">Néroli</a><br>
         Extraite des fleurs d’oranger amer, le néroli est antidépressif et rééquilibrant. Son arôme délicat et floral crée une ambiance sereine et harmonieuse, parfaite pour une soirée romantique.
     </p>
 
     <h3 class=""highlight-title"">5. Géranium Bourbon (<em>Pelargonium roseum</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/geranium-bourbon"" class=""highlight-link"">Géranium Bourbon</a><br>
+        <a href=""https://olithea.fr/huilehes/geranium-bourbon"" class=""highlight-link"">Géranium Bourbon</a><br>
         Avec ses propriétés antibactériennes et tonifiantes, le géranium purifie l’air tout en apportant une note florale agréable. Il contribue à une atmosphère fraîche et romantique.
     </p>
 
@@ -5246,7 +5246,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -5260,7 +5260,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -5268,7 +5268,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -5285,7 +5285,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -5293,7 +5293,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -5355,7 +5355,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Gingembre (<em>Zingiber officinale</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/gingembre"" class=""highlight-link"">Gingembre</a><br>
+        <a href=""https://olithea.fr/huilehes/gingembre"" class=""highlight-link"">Gingembre</a><br>
         <strong>Propriétés :</strong> Anti-nauséeuse, digestive, anti-inflammatoire.<br>
         <strong>Bienfaits :</strong> Le gingembre est reconnu pour son efficacité à soulager les nausées et les vomissements, souvent associés au mal des transports. Il aide également à apaiser l’estomac et à réduire les inflammations.
     </p>
@@ -5367,7 +5367,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">2. Menthe Poivrée (<em>Mentha piperita</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/menthe-poivree"" class=""highlight-link"">Menthe Poivrée</a><br>
+        <a href=""https://olithea.fr/huilehes/menthe-poivree"" class=""highlight-link"">Menthe Poivrée</a><br>
         <strong>Propriétés :</strong> Rafraîchissante, stimulante, analgésique.<br>
         <strong>Bienfaits :</strong> La menthe poivrée aide à soulager les maux de tête et les nausées, tout en procurant une sensation de fraîcheur qui peut réduire les sensations de malaise.
     </p>
@@ -5379,7 +5379,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">3. Lavande Vraie (<em>Lavandula angustifolia</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
+        <a href=""https://olithea.fr/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
         <strong>Propriétés :</strong> Calmante, relaxante, antiseptique.<br>
         <strong>Bienfaits :</strong> La lavande aide à réduire le stress et l’anxiété, favorisant ainsi une relaxation profonde. Elle peut également aider à soulager les tensions musculaires et améliorer la qualité du sommeil.
     </p>
@@ -5391,7 +5391,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">4. Citron (<em>Citrus limon</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/citron-jaune"" class=""highlight-link"">Citron</a><br>
+        <a href=""https://olithea.fr/huilehes/citron-jaune"" class=""highlight-link"">Citron</a><br>
         <strong>Propriétés :</strong> Rafraîchissante, énergisante, antibactérienne.<br>
         <strong>Bienfaits :</strong> Le citron revitalise l’esprit, améliore la concentration et purifie l’air, ce qui est particulièrement utile dans les espaces confinés comme les avions ou les trains.
     </p>
@@ -5404,7 +5404,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">5. Eucalyptus (<em>Eucalyptus globulus</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/eucalyptus-globuleux"" class=""highlight-link"">Eucalyptus</a><br>
+        <a href=""https://olithea.fr/huilehes/eucalyptus-globuleux"" class=""highlight-link"">Eucalyptus</a><br>
         <strong>Propriétés :</strong> Antiseptique, décongestionnant, rafraîchissant.<br>
         <strong>Bienfaits :</strong> L’eucalyptus aide à dégager les voies respiratoires, ce qui est bénéfique lors des voyages en avion où l’air est souvent sec et chargé. Il possède également des propriétés antivirales et antibactériennes.
     </p>
@@ -5504,7 +5504,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -5518,7 +5518,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -5526,7 +5526,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -5543,7 +5543,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -5551,7 +5551,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -5626,7 +5626,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Lavande Vraie (<em>Lavandula angustifolia</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
+        <a href=""https://olithea.fr/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
         <strong>Propriétés :</strong> Calmante, antiseptique, régénératrice.<br>
         <strong>Bienfaits :</strong>
         <ul class=""highlight-list"">
@@ -5638,7 +5638,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">2. Cèdre de l’Atlas (<em>Cedrus atlantica</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/cedre-de-latlas"" class=""highlight-link"">Cèdre de l’Atlas</a><br>
+        <a href=""https://olithea.fr/huilehes/cedre-de-latlas"" class=""highlight-link"">Cèdre de l’Atlas</a><br>
         <strong>Propriétés :</strong> Purifiante, relaxante, tonique.<br>
         <strong>Bienfaits :</strong>
         <ul class=""highlight-list"">
@@ -5651,7 +5651,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">3. Romarin à Verbénone (<em>Rosmarinus officinalis</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/romarin-a-verbenone"" class=""highlight-link"">Romarin à Verbénone</a><br>
+        <a href=""https://olithea.fr/huilehes/romarin-a-verbenone"" class=""highlight-link"">Romarin à Verbénone</a><br>
         <strong>Propriétés :</strong> Stimulant, antiseptique, antioxydant.<br>
         <strong>Bienfaits :</strong>
         <ul class=""highlight-list"">
@@ -5664,7 +5664,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">4. Ylang-Ylang (<em>Cananga odorata</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/ylang-ylang"" class=""highlight-link"">Ylang-Ylang</a><br>
+        <a href=""https://olithea.fr/huilehes/ylang-ylang"" class=""highlight-link"">Ylang-Ylang</a><br>
         <strong>Propriétés :</strong> Équilibrant, hydratant, nourrissant.<br>
         <strong>Bienfaits :</strong>
         <ul class=""highlight-list"">
@@ -5676,7 +5676,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">5. Citron (<em>Citrus limon</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/citron-jaune"" class=""highlight-link"">Citron</a><br>
+        <a href=""https://olithea.fr/huilehes/citron-jaune"" class=""highlight-link"">Citron</a><br>
         <strong>Propriétés :</strong> Astringent, clarifiant, stimulant.<br>
         <strong>Bienfaits :</strong>
         <ul class=""highlight-list"">
@@ -5795,7 +5795,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -5809,7 +5809,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -5817,7 +5817,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -5834,7 +5834,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -5842,7 +5842,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -5909,21 +5909,21 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">1. Lavande Vraie (<em>Lavandula angustifolia</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
+        <a href=""https://olithea.fr/huilehes/lavande-vraie"" class=""highlight-link"">Lavande Vraie</a><br>
         <strong>Propriétés :</strong> Calme l'esprit, réduit le stress, favorise le sommeil réparateur.<br>
         <strong>Utilisation en Yoga :</strong> Diffusez-la avant ou après votre séance pour une relaxation optimale ou appliquez quelques gouttes sur vos poignets pour apaiser votre esprit.
     </p>
 
     <h3 class=""highlight-title"">2. Eucalyptus globulus (<em>Eucalyptus globulus</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/eucalyptus-globuleux"" class=""highlight-link"">Eucalyptus globulus</a><br>
+        <a href=""https://olithea.fr/huilehes/eucalyptus-globuleux"" class=""highlight-link"">Eucalyptus globulus</a><br>
         <strong>Propriétés :</strong> Stimule les voies respiratoires, augmente la clarté mentale, rafraîchit l'esprit.<br>
         <strong>Utilisation en Yoga :</strong> Ajoutez-la à votre diffuseur pendant les sessions dynamiques comme le Vinyasa pour une respiration plus aisée.
     </p>
 
     <h3 class=""highlight-title"">3. Menthe Poivrée (<em>Mentha piperita</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/menthe-poivree"" class=""highlight-link"">Menthe Poivrée</a><br>
+        <a href=""https://olithea.fr/huilehes/menthe-poivree"" class=""highlight-link"">Menthe Poivrée</a><br>
         <strong>Propriétés :</strong> Revitalisante, stimule l'énergie, améliore la concentration.<br>
         <strong>Bienfaits :</strong> La menthe poivrée aide à soulager les maux de tête et les nausées, tout en procurant une sensation de fraîcheur qui peut réduire les sensations de malaise.
     </p>
@@ -5940,7 +5940,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
     <h3 class=""highlight-title"">5. Orange Douce (<em>Citrus sinensis</em>)</h3>
     <p>
-        <a href=""https://aromamade.com/huilehes/orange-douce"" class=""highlight-link"">Orange Douce</a><br>
+        <a href=""https://olithea.fr/huilehes/orange-douce"" class=""highlight-link"">Orange Douce</a><br>
         <strong>Propriétés :</strong> Énergisante, améliore l'humeur, réduit le stress.<br>
         <strong>Utilisation en Yoga :</strong> Parfait pour les séances de matinée ou de renforcement, ajoutez-la à votre diffuseur pour une ambiance joyeuse et énergisante.
     </p>
@@ -6067,7 +6067,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -6081,7 +6081,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -6089,7 +6089,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -6106,7 +6106,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -6114,7 +6114,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -6305,7 +6305,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -6319,7 +6319,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -6327,7 +6327,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -6344,7 +6344,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -6352,7 +6352,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -6499,7 +6499,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -6513,7 +6513,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -6521,7 +6521,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -6538,7 +6538,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -6546,7 +6546,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -6766,7 +6766,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -6780,7 +6780,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -6788,7 +6788,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -6805,7 +6805,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -6813,7 +6813,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -7038,7 +7038,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -7052,7 +7052,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -7060,7 +7060,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -7077,7 +7077,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -7085,7 +7085,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -7245,7 +7245,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -7259,7 +7259,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -7267,7 +7267,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -7284,7 +7284,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -7292,7 +7292,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -7471,7 +7471,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -7485,7 +7485,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -7493,7 +7493,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -7510,7 +7510,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -7518,7 +7518,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -7759,7 +7759,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -7773,7 +7773,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -7781,7 +7781,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -7798,7 +7798,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -7806,7 +7806,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -8004,7 +8004,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -8018,7 +8018,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -8026,7 +8026,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -8043,7 +8043,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -8051,7 +8051,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -8425,7 +8425,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -8439,7 +8439,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -8447,7 +8447,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -8464,7 +8464,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -8472,7 +8472,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -8719,7 +8719,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -8733,7 +8733,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -8741,7 +8741,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -8758,7 +8758,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -8915,7 +8915,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -8929,7 +8929,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -8937,7 +8937,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -8954,7 +8954,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -9132,7 +9132,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -9146,7 +9146,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -9154,7 +9154,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -9171,7 +9171,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -9339,7 +9339,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -9353,7 +9353,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -9361,7 +9361,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -9378,7 +9378,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -9556,7 +9556,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -9570,7 +9570,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -9578,7 +9578,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -9595,7 +9595,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -9768,7 +9768,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -9782,7 +9782,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -9790,7 +9790,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -9807,7 +9807,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -9974,7 +9974,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -9988,7 +9988,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -9996,7 +9996,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -10013,7 +10013,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -10230,7 +10230,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -10244,7 +10244,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -10252,7 +10252,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -10269,7 +10269,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -10277,7 +10277,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -10470,7 +10470,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -10484,7 +10484,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -10492,7 +10492,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -10509,7 +10509,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -10680,7 +10680,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -10694,7 +10694,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -10702,7 +10702,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -10719,7 +10719,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -10843,7 +10843,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -10857,7 +10857,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -10865,7 +10865,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -10882,7 +10882,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .method-title {
     font-size: 1.4rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -10890,7 +10890,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .recipe-box {
     background-color: #f9f9f9;
-    border-left: 5px solid #647a0b;
+    border-left: 5px solid #6B4A3A;
     padding: 10px 20px;
     margin-top: 10px;
     margin-bottom: 20px;
@@ -11031,7 +11031,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -11045,7 +11045,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -11053,7 +11053,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -11152,7 +11152,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -11166,7 +11166,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
@@ -11174,7 +11174,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -11429,7 +11429,7 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -11441,14 +11441,14 @@ Les menstruations sont une composante naturelle de la vie des femmes, mais elles
 }
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
 }
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -11527,7 +11527,7 @@ th, td {
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -11539,14 +11539,14 @@ th, td {
 }
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
 }
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -11641,7 +11641,7 @@ th, td {
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -11653,14 +11653,14 @@ th, td {
 }
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
 }
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -11771,7 +11771,7 @@ th, td {
 .blog-title {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #647a0b;
+    color: #6B4A3A;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -11783,14 +11783,14 @@ th, td {
 }
 .section-title {
     font-size: 1.8rem;
-    color: #647a0b;
+    color: #6B4A3A;
     font-weight: bold;
     margin-top: 30px;
     margin-bottom: 10px;
 }
 .highlight-title {
     font-size: 1.6rem;
-    color: #854f38;
+    color: #5F7048;
     margin-bottom: 10px;
     font-weight: bold;
 }
@@ -11906,10 +11906,10 @@ th, td {
 </div>
 
 <style>
-.blog-title { font-size: 2.5rem; color: #647a0b; text-align: center; }
+.blog-title { font-size: 2.5rem; color: #6B4A3A; text-align: center; }
 .blog-intro { font-size: 1.2rem; color: #333; line-height: 1.7; }
-.section-title { font-size: 1.8rem; color: #647a0b; font-weight: bold; }
-.highlight-title { font-size: 1.6rem; color: #854f38; font-weight: bold; }
+.section-title { font-size: 1.8rem; color: #6B4A3A; font-weight: bold; }
+.highlight-title { font-size: 1.6rem; color: #5F7048; font-weight: bold; }
 .highlight-list { list-style-type: disc; margin-left: 20px; }
 </style>
 ","46,47,5,16","Découvrez comment la phytothérapie peut améliorer la circulation sanguine naturellement. Explorez les plantes clés, méthodes de préparation et conseils pour soutenir votre santé vasculaire de manière holistique."
@@ -12028,12 +12028,12 @@ th, td {
 </div>
 
 <style>
-.blog-title { font-size: 2.5rem; color: #647a0b; text-align: center; }
+.blog-title { font-size: 2.5rem; color: #6B4A3A; text-align: center; }
 .blog-intro { font-size: 1.2rem; color: #333; line-height: 1.7; }
-.section-title { font-size: 1.8rem; color: #647a0b; font-weight: bold; }
-.highlight-title { font-size: 1.6rem; color: #854f38; font-weight: bold; }
+.section-title { font-size: 1.8rem; color: #6B4A3A; font-weight: bold; }
+.highlight-title { font-size: 1.6rem; color: #5F7048; font-weight: bold; }
 .highlight-list { list-style-type: disc; margin-left: 20px; }
-.recipe-box { background-color: #f9f9f9; border-left: 5px solid #647a0b; padding: 10px 20px; margin: 10px 0; }
+.recipe-box { background-color: #f9f9f9; border-left: 5px solid #6B4A3A; padding: 10px 20px; margin: 10px 0; }
 .recipe { font-size: 1rem; color: #333; font-style: italic; }
 </style>
 ","48,47,46,10,24","Découvrez comment la phytothérapie peut soutenir la santé de votre foie naturellement. Apprenez les plantes clés, les méthodes d'utilisation et des conseils pour optimiser la fonction hépatique."

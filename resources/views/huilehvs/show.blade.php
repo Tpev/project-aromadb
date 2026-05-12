@@ -5,7 +5,7 @@
 @endsection
 @section('title', 'Huile Végétale ' . $huileHV->NomHV . ' (' . $huileHV->NomLatin . ')')
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ $huileHV->NomHV }}
         </h2>
     </x-slot>
@@ -21,15 +21,15 @@
                         @csrf
                         <button type="submit" class="btn btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $huileHV->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\HuileHV'))
-                                <i class="fas fa-heart" style="color: #647a0b;"></i> <span>Retirer des Favoris</span>
+                                <i class="fas fa-heart" style="color: #6B4A3A;"></i> <span>Retirer des Favoris</span>
                             @else
-                               <i class="far fa-heart" style="color: #647a0b;"></i> <span>Ajouter aux Favoris</span>
+                               <i class="far fa-heart" style="color: #6B4A3A;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
+                        <i class="far fa-heart" style="color: #5F7048;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
@@ -51,11 +51,11 @@
 
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-leaf" style="color: #647a0b;"></i> Latin Name</label>
+                        <label class="details-label"><i class="fas fa-leaf" style="color: #6B4A3A;"></i> Latin Name</label>
                         <p class="details-value"><em>{{ $huileHV->NomLatin }}</em></p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance</label>
+                        <label class="details-label"><i class="fas fa-globe" style="color: #6B4A3A;"></i> Provenance</label>
                         <p class="details-value">
                             @php
                                 $provenances = explode(';', $huileHV->Provenance);
@@ -92,7 +92,7 @@
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés</label>
+                        <label class="details-label"><i class="fas fa-capsules" style="color: #6B4A3A;"></i> Propriétés</label>
                         @php
                             $properties = explode(';', $huileHV->Properties);
                         @endphp
@@ -103,11 +103,11 @@
                         </ul>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur</label>
+                        <label class="details-label"><i class="fas fa-seedling" style="color: #6B4A3A;"></i> Organe Producteur</label>
                         <p class="details-value">{{ $huileHV->OrganeProducteur }}</p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-vial" style="color: #647a0b;"></i> Sb (Substances)</label>
+                        <label class="details-label"><i class="fas fa-vial" style="color: #6B4A3A;"></i> Sb (Substances)</label>
                         @php
                             $substances = explode(';', $huileHV->Sb);
                         @endphp
@@ -121,7 +121,7 @@
 
                 <div class="col-md-6">
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications</label>
+                        <label class="details-label"><i class="fas fa-stethoscope" style="color: #6B4A3A;"></i> Indications</label>
                         @php
                             $indications = explode(';', $huileHV->Indications);
                         @endphp
@@ -132,24 +132,24 @@
                         </ul>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications</label>
+                        <label class="details-label"><i class="fas fa-exclamation-circle" style="color: #6B4A3A;"></i> Contre Indications</label>
                         <p class="details-value">{{ $huileHV->ContreIndications ?? 'None' }}</p>
                     </div>
                     <div class="details-box">
-                        <label class="details-label"><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note</label>
+                        <label class="details-label"><i class="fas fa-info-circle" style="color: #6B4A3A;"></i> Note</label>
                         <p class="details-value">{{ $huileHV->Note ?? 'None' }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="details-box mt-4">
-                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Description</label>
+                <label class="details-label"><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Description</label>
                 <p class="details-value">{{ $huileHV->Description ?? 'None' }}</p>
             </div>
 
 			<!-- List of Recettes where this HuileHV is used -->
 			<div class="details-box mt-4">
-				<label class="details-label"><i class="fas fa-book-open" style="color: #647a0b;"></i> Recettes avec {{ $huileHV->NomHV }}</label>
+				<label class="details-label"><i class="fas fa-book-open" style="color: #6B4A3A;"></i> Recettes avec {{ $huileHV->NomHV }}</label>
 				@if($huileHV->relatedRecettes()->isNotEmpty())
 					<ul class="details-list">
 						@foreach($huileHV->relatedRecettes() as $recette)
@@ -180,12 +180,12 @@
     <style>
 		.recette-link {
             text-decoration: none;
-            color: #647a0b;
+            color: #6B4A3A;
 		}
 
 		.recette-link:hover {
 			text-decoration: underline;
-			color: #854f38;
+			color: #5F7048;
 		}
 
         .btn-favorite {
@@ -215,7 +215,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 10px;
             text-align: center;
         }
@@ -259,13 +259,13 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
-            border-color: #647a0b;
+            background-color: #6B4A3A;
+            border-color: #6B4A3A;
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
-            border-color: #854f38;
+            background-color: #5F7048;
+            border-color: #5F7048;
         }
 
         .row {

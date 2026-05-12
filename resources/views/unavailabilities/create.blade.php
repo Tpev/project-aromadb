@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Créer une Indisponibilité') }}
         </h2>
     </x-slot>
@@ -35,7 +35,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -44,18 +44,18 @@
         }
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 5px;
         }
         .form-control {
             width: 100%;
             padding: 10px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
         }
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             padding: 10px 20px;
             border: none;
@@ -63,7 +63,7 @@
             cursor: pointer;
         }
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
         .text-red-500 {
             color: #e3342f;

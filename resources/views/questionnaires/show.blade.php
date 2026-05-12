@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Détails du Questionnaire') }} - {{ $questionnaire->title }}
         </h2>
     </x-slot>
@@ -79,7 +79,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -87,9 +87,9 @@
         .details-subtitle {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-top: 20px;
-            border-bottom: 2px solid #647a0b;
+            border-bottom: 2px solid #6B4A3A;
             padding-bottom: 5px;
         }
 
@@ -116,7 +116,7 @@
         }
 
         .table thead {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
         }
 
@@ -129,7 +129,7 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -140,7 +140,7 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-danger {
@@ -160,9 +160,9 @@
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             cursor: pointer;
@@ -170,7 +170,7 @@
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
         }
 

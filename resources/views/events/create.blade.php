@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Créer un Événement') }}
         </h2>
     </x-slot>
@@ -166,8 +166,8 @@
                         </label>
 
                         <label class="d-flex align-items-center gap-2">
-                            <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
-                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                            <input type="radio" name="visio_provider" value="olithea" {{ in_array($oldProvider, ['olithea', 'aromamade'], true) ? 'checked' : '' }}>
+                            <span>{{ __('Créer un lien Olithea') }}</span>
                         </label>
                     </div>
 
@@ -178,7 +178,7 @@
                             <p class="text-red-500">{{ $message }}</p>
                         @enderror
                         <p class="text-xs text-slate-500 mt-2">
-                            {{ __('Si vous choisissez "Créer un lien AromaMade", le lien sera généré automatiquement après création.') }}
+                            {{ __('Si vous choisissez "Créer un lien Olithea", le lien sera généré automatiquement après création.') }}
                         </p>
                     </div>
                 </div>
@@ -385,7 +385,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -396,7 +396,7 @@
 
         .details-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             display: block;
             margin-bottom: 5px;
         }
@@ -419,7 +419,7 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -430,14 +430,14 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
+            color: #5F7048;
             padding: 10px 20px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             border-radius: 5px;
             text-decoration: none;
             display: inline-block;
@@ -445,7 +445,7 @@
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
         }
 
@@ -485,7 +485,7 @@
                 visioOptions.style.display = isVisio ? '' : 'none';
                 locationHint.style.display = isVisio ? '' : 'none';
 
-                // If aromamade, URL is optional and visually less important
+                // For the managed visio provider, URL is generated automatically.
                 visioUrlWrap.style.display = (isVisio && p === 'external') ? '' : '';
                 const urlInput = document.getElementById('visio_url');
                 if (urlInput) {

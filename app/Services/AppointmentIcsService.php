@@ -11,12 +11,12 @@ class AppointmentIcsService
     {
         $eventData = $this->buildEventData($appointment);
         $nowUtc = Carbon::now('UTC');
-        $uid = sprintf('appointment-%s-%s@aromamade.com', $appointment->id ?: 'draft', $appointment->token ?: uniqid());
+        $uid = sprintf('appointment-%s-%s@olithea.fr', $appointment->id ?: 'draft', $appointment->token ?: uniqid());
 
         $lines = array_filter([
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//AromaMade//Appointments//FR',
+            'PRODID:-//Olithea//Appointments//FR',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'BEGIN:VEVENT',
@@ -47,7 +47,7 @@ class AppointmentIcsService
 
     public function fileName(Appointment $appointment): string
     {
-        return 'rendez-vous-' . ($appointment->id ?: 'aromamade') . '.ics';
+        return 'rendez-vous-' . ($appointment->id ?: 'olithea') . '.ics';
     }
 
     public function googleCalendarUrl(Appointment $appointment): string
@@ -123,7 +123,7 @@ class AppointmentIcsService
         ?string $visioUrl
     ): string {
         $lines = [
-            'Rendez-vous AromaMade',
+            'Rendez-vous Olithea',
             'Prestation : ' . $productName,
             'Praticien : ' . $practitionerName,
             'Mode : ' . $modeLabel,
@@ -210,7 +210,7 @@ class AppointmentIcsService
             'appointment' => $appointment,
         ]);
 
-        $base = rtrim(config('services.jitsi.base_url', 'https://visio.aromamade.com'), '/');
+        $base = rtrim(config('services.jitsi.base_url', 'https://visio.olithea.fr'), '/');
 
         return "{$base}/{$room}?jwt={$jwt}";
     }

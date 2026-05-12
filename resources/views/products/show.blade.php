@@ -1,7 +1,7 @@
 {{-- resources/views/products/show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Détails de la Prestation') }}
         </h2>
     </x-slot>
@@ -230,7 +230,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -250,15 +250,15 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.05);
         }
 
-        .icon { color: #647a0b; margin-top: 4px; }
+        .icon { color: #6B4A3A; margin-top: 4px; }
 
-        .product-label { font-weight: bold; color: #647a0b; margin: 0; }
+        .product-label { font-weight: bold; color: #6B4A3A; margin: 0; }
         .product-value { margin: 0; color: #333; }
 
         .action-buttons { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -290,8 +290,8 @@
         }
 
         .badge-green {
-            background: rgba(100, 122, 11, 0.12);
-            color: #647a0b;
+            background: rgba(167, 184, 138, 0.12);
+            color: #6B4A3A;
         }
     </style>
 

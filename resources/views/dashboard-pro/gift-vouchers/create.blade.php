@@ -3,11 +3,11 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     Nouveau bon cadeau
                 </h2>
                 <p class="mt-1 text-xs text-slate-600">
-                    Le paiement est encaissé en dehors d’AromaMade (espèces, virement, terminal CB). AromaMade gère le PDF + le suivi du solde.
+                    Le paiement est encaissé en dehors d’Olithea (espèces, virement, terminal CB). Olithea gère le PDF + le suivi du solde.
                 </p>
             </div>
 
@@ -20,12 +20,12 @@
     </x-slot>
 
     <style>
-        :root{ --brand:#647a0b; --brown:#6b4f2a; --cream:#f7f2ea; }
+        :root{ --brand:#6B4A3A; --brown:#6b4f2a; --cream:#f7f2ea; }
         .am-shell{
             background:
-                radial-gradient(circle at 0% 0%, rgba(100,122,11,0.10), transparent 45%),
-                radial-gradient(circle at 100% 10%, rgba(107,79,42,0.10), transparent 45%),
-                radial-gradient(circle at 20% 100%, rgba(100,122,11,0.08), transparent 55%),
+                radial-gradient(circle at 0% 0%, rgba(167, 184, 138,0.10), transparent 45%),
+                radial-gradient(circle at 100% 10%, rgba(107, 74, 58,0.10), transparent 45%),
+                radial-gradient(circle at 20% 100%, rgba(167, 184, 138,0.08), transparent 55%),
                 linear-gradient(180deg, #fbfaf7 0%, #f3f4f6 100%);
             border-radius: 1.25rem;
         }
@@ -46,8 +46,8 @@
             outline: none;
         }
         .am-input:focus{
-            border-color: rgba(100,122,11,0.55);
-            box-shadow: 0 0 0 4px rgba(100,122,11,0.12);
+            border-color: rgba(167, 184, 138,0.55);
+            box-shadow: 0 0 0 4px rgba(167, 184, 138,0.12);
         }
         .am-help{ font-size:.75rem; color:#64748b; }
         .am-error{ font-size:.8rem; color:#b91c1c; font-weight:700; margin-top:.35rem; }
@@ -62,11 +62,11 @@
             gap:.5rem;
             transition:.15s ease;
         }
-        .am-btn-brand{ background: var(--brand); color:#fff; box-shadow: 0 12px 26px rgba(100,122,11,0.18); }
+        .am-btn-brand{ background: var(--brand); color:#fff; box-shadow: 0 12px 26px rgba(167, 184, 138,0.18); }
         .am-btn-brand:hover{ opacity:.95; }
         .am-soft{
-            background: rgba(107,79,42,0.08);
-            border: 1px solid rgba(107,79,42,0.18);
+            background: rgba(107, 74, 58,0.08);
+            border: 1px solid rgba(107, 74, 58,0.18);
             color: var(--brown);
             border-radius: 1rem;
         }
@@ -109,7 +109,7 @@
                                         <div class="text-xs text-slate-600">Reçoit toujours l’email + PDF.</div>
                                     </div>
                                     <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                                         style="background: rgba(100,122,11,0.10); color: var(--brand);">✦</div>
+                                         style="background: rgba(167, 184, 138,0.10); color: var(--brand);">✦</div>
                                 </div>
 
                                 <div class="mt-4 space-y-3">
@@ -138,7 +138,7 @@
                                         <div class="text-xs text-slate-600">Optionnel (reçoit l’email + PDF).</div>
                                     </div>
                                     <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                                         style="background: rgba(107,79,42,0.10); color: var(--brown);">☰</div>
+                                         style="background: rgba(107, 74, 58,0.10); color: var(--brown);">☰</div>
                                 </div>
 
                                 <div class="mt-4 space-y-3">

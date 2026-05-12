@@ -33,7 +33,7 @@
     );
 
     // Brand
-    $brand = config('app.name', 'AromaMade');
+    $brand = config('app.name', 'Olithea');
 
     // Title (~60 chars)
     $pageTitle = \Illuminate\Support\Str::limit(
@@ -84,7 +84,7 @@
 
 
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Demander un Rendez-vous') }}
         </h2>
     </x-slot>
@@ -100,8 +100,8 @@
 
     <style>
         :root {
-            --brand: #647a0b;
-            --brown: #854f38;
+            --brand: #6B4A3A;
+            --brown: #5F7048;
             --bg: #f9f9f9;
         }
 
@@ -121,7 +121,7 @@
             color: var(--brand);
             margin-bottom: 10px;
             text-align: center;
-            letter-spacing: -0.02em;
+            letter-spacing: 0;
         }
 
         .subtle {
@@ -143,7 +143,7 @@
         .form-control {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid rgba(133,79,56,.55);
+            border: 1px solid rgba(107,74,58,.55);
             border-radius: 10px;
             box-sizing: border-box;
             background: #fff;
@@ -152,7 +152,7 @@
         .form-control:focus {
             border-color: var(--brand);
             outline: none;
-            box-shadow: 0 0 0 4px rgba(100,122,11,.14);
+            box-shadow: 0 0 0 4px rgba(167,184,138,.14);
         }
 
         .btn-primary, .btn-secondary, .btn-outline {
@@ -179,17 +179,17 @@
         .btn-secondary {
             background: #fff;
             color: var(--brand);
-            border: 1px solid rgba(100,122,11,.35);
+            border: 1px solid rgba(167,184,138,.35);
         }
-        .btn-secondary:hover { background: rgba(100,122,11,.08); color: var(--brand); }
+        .btn-secondary:hover { background: rgba(167,184,138,.08); color: var(--brand); }
 
         .btn-outline {
             background: transparent;
             color: var(--brown);
-            border: 1px solid rgba(133,79,56,.45);
+            border: 1px solid rgba(107,74,58,.45);
         }
         .btn-outline:hover {
-            background: rgba(133,79,56,.06);
+            background: rgba(107,74,58,.06);
             color: var(--brown);
         }
 
@@ -203,8 +203,8 @@
             justify-content: center;
             padding: 10px;
             border-radius: 14px;
-            background: rgba(100,122,11,.08);
-            border: 1px solid rgba(100,122,11,.14);
+            background: rgba(167,184,138,.08);
+            border: 1px solid rgba(167,184,138,.14);
             margin: 0 auto 18px;
         }
         .step-pill {
@@ -227,13 +227,13 @@
             align-items:center;
             justify-content:center;
             font-size: .9rem;
-            background: rgba(100,122,11,.12);
+            background: rgba(167,184,138,.12);
             color: var(--brand);
-            border: 1px solid rgba(100,122,11,.25);
+            border: 1px solid rgba(167,184,138,.25);
         }
         .step-pill.active {
             background: #fff;
-            border-color: rgba(100,122,11,.35);
+            border-color: rgba(167,184,138,.35);
             box-shadow: 0 10px 22px rgba(0,0,0,.06);
         }
         .step-pill.active .dot {
@@ -263,8 +263,8 @@
             gap: 10px;
             align-items:center;
             justify-content: space-between;
-            background: rgba(100,122,11,.06);
-            border: 1px dashed rgba(100,122,11,.35);
+            background: rgba(167,184,138,.06);
+            border: 1px dashed rgba(167,184,138,.35);
             border-radius: 12px;
             padding: 10px 12px;
             margin-top: 10px;
@@ -289,7 +289,7 @@
             gap: 8px;
         }
         .time-slot-btn {
-            border: 1px solid rgba(133,79,56,.55);
+            border: 1px solid rgba(107,74,58,.55);
             background: #ffffff;
             color: var(--brown);
             padding: 9px 10px;

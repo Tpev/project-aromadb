@@ -55,7 +55,7 @@
                     {{ __('Détails du rendez-vous') }}
                 @endif
             </p>
-            <h2 class="text-lg font-semibold text-[#647a0b]">
+            <h2 class="text-lg font-semibold text-[#6B4A3A]">
                 {{ $appointment->user->company_name ?? $appointment->user->name }}
             </h2>
         </div>
@@ -117,7 +117,7 @@
             {{-- Date & time --}}
             <div class="flex items-start gap-3">
                 <div class="mt-0.5">
-                    <i class="fas fa-calendar-alt text-[#647a0b] text-base"></i>
+                    <i class="fas fa-calendar-alt text-[#6B4A3A] text-base"></i>
                 </div>
                 <div>
                     <p class="text-xs uppercase tracking-wide text-gray-500">
@@ -139,7 +139,7 @@
 
                 <div class="flex items-start gap-3">
                     <div class="mt-0.5">
-                        <i class="fas fa-spa text-[#854f38] text-base"></i>
+                        <i class="fas fa-spa text-[#5F7048] text-base"></i>
                     </div>
                     <div class="flex-1">
                         <p class="text-xs uppercase tracking-wide text-gray-500">
@@ -187,7 +187,7 @@
         @if($mode === 'visio' || $mode === 'cabinet' || $mode === 'domicile')
             <x-ts-card class="space-y-2">
                 <div class="flex items-center gap-2 mb-1">
-                    <i class="fas fa-map-marker-alt text-[#647a0b] text-base"></i>
+                    <i class="fas fa-map-marker-alt text-[#6B4A3A] text-base"></i>
                     <p class="text-xs uppercase tracking-wide text-gray-500">
                         @if($mode === 'visio')
                             {{ __('Consultation en ligne') }}
@@ -271,7 +271,7 @@
             <a href="{{ url('/mobile/recherche-praticien') }}"
                class="w-full inline-flex items-center justify-center px-4 py-2 rounded-full bg-gray-100 text-gray-800 text-sm font-semibold shadow-sm active:scale-[0.98] transition-transform">
                 <i class="fas fa-home mr-2 text-xs"></i>
-                {{ __('Retour à l’accueil AromaMade') }}
+                {{ __('Retour à l’accueil Olithea') }}
             </a>
         </div>
 

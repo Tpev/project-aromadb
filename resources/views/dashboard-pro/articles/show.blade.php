@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             Aperçu
         </h2>
     </x-slot>
@@ -19,7 +19,7 @@
         .article-prose ul, .article-prose ol { margin: 12px 0 12px 22px; }
         .article-prose li { margin: 6px 0; }
         .article-prose blockquote {
-            border-left: 4px solid #8ea633;
+            border-left: 4px solid #4E5F3A;
             padding-left: 14px;
             margin: 16px 0;
             color: #374151;
@@ -43,7 +43,7 @@
             padding: 0;
         }
         .article-prose a {
-            color: #647a0b;
+            color: #6B4A3A;
             text-decoration: underline;
             font-weight: 600;
         }
@@ -67,7 +67,7 @@
             font-weight: 700;
             border: 1px solid #edf1df;
             background: #f7f9ef;
-            color: #647a0b;
+            color: #6B4A3A;
         }
         .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
     </style>
@@ -84,7 +84,7 @@
                     <div class="mt-3 flex flex-wrap items-center gap-2">
                         @if($article->status === 'published')
                             <span class="badge">
-                                <span class="dot bg-[#8ea633]"></span> Publié
+                                <span class="dot bg-[#4E5F3A]"></span> Publié
                             </span>
                         @else
                             <span class="badge" style="background:#f3f4f6;color:#374151;border-color:#e5e7eb;">
@@ -110,7 +110,7 @@
                     @if(is_array($article->tags) && count($article->tags))
                         <div class="mt-3 flex flex-wrap gap-2">
                             @foreach($article->tags as $t)
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#edf1df] text-xs font-semibold text-[#647a0b]">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#edf1df] text-xs font-semibold text-[#6B4A3A]">
                                     #{{ $t }}
                                 </span>
                             @endforeach
@@ -120,19 +120,19 @@
 
                 <div class="flex flex-wrap gap-2 justify-end">
                     <a href="{{ route('dashboardpro.articles.index') }}"
-                       class="inline-flex items-center justify-center rounded-lg border border-[#edf1df] bg-white px-4 py-2 text-sm font-semibold text-[#647a0b] hover:bg-[#f7f9ef] transition">
+                       class="inline-flex items-center justify-center rounded-lg border border-[#edf1df] bg-white px-4 py-2 text-sm font-semibold text-[#6B4A3A] hover:bg-[#f7f9ef] transition">
                         Retour
                     </a>
 
                     <a href="{{ route('dashboardpro.articles.edit', $article) }}"
-                       class="inline-flex items-center justify-center rounded-lg bg-[#8ea633] px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg transition">
+                       class="inline-flex items-center justify-center rounded-lg bg-[#4E5F3A] px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg transition">
                         Éditer
                     </a>
 
                     @if($article->status === 'published')
                         <a href="{{ route('pro.articles.show', ['therapist' => auth()->user()->slug, 'articleSlug' => $article->slug]) }}"
                            target="_blank"
-                           class="inline-flex items-center justify-center rounded-lg border border-[#edf1df] bg-white px-4 py-2 text-sm font-semibold text-[#647a0b] hover:bg-[#f7f9ef] transition">
+                           class="inline-flex items-center justify-center rounded-lg border border-[#edf1df] bg-white px-4 py-2 text-sm font-semibold text-[#6B4A3A] hover:bg-[#f7f9ef] transition">
                             Voir public
                         </a>
                     @endif
@@ -142,7 +142,7 @@
             {{-- Cover (only if exists) --}}
             @if($article->cover_path)
                 <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df]">
-                    <div class="text-sm font-semibold text-[#647a0b] mb-3">Image de couverture</div>
+                    <div class="text-sm font-semibold text-[#6B4A3A] mb-3">Image de couverture</div>
 
                     <img class="w-full rounded-2xl border border-[#edf1df] object-cover"
                          style="max-height: 380px;"
@@ -153,7 +153,7 @@
 
             {{-- Content --}}
             <div class="bg-white shadow rounded-2xl p-6 border border-[#edf1df]">
-                <div class="text-sm font-semibold text-[#647a0b] mb-3">Lecture</div>
+                <div class="text-sm font-semibold text-[#6B4A3A] mb-3">Lecture</div>
 
                 @php
                     $rawHtml = (string) ($article->content_html ?? '');

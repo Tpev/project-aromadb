@@ -316,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function mixColor(hexA, hexB, ratio = 0.5) {
         const a = hexToRgb(hexA);
         const b = hexToRgb(hexB);
-        if (!a || !b) return normalizeHexColor(hexA, '#647A0B');
+        if (!a || !b) return normalizeHexColor(hexA, '#A7B88A');
         const t = clamp(Number(ratio), 0, 1);
         return rgbToHex(
             a.r + (b.r - a.r) * t,
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getDefaultBranding() {
         const firstPreset = BRANDING_PRESETS[0] || {};
-        const firstFontKey = FONT_KEYS[0] || 'poppins';
+        const firstFontKey = FONT_KEYS[0] || 'cormorant';
         const secondFontKey = FONT_KEYS[1] || firstFontKey;
 
         return {
@@ -341,11 +341,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: firstPreset?.fonts?.body || secondFontKey,
             },
             colors: {
-                primary: normalizeHexColor(firstPreset?.colors?.primary, '#647A0B'),
-                secondary: normalizeHexColor(firstPreset?.colors?.secondary, '#854F38'),
-                accent: normalizeHexColor(firstPreset?.colors?.accent, '#D4A373'),
-                background: normalizeHexColor(firstPreset?.colors?.background, '#F8F9F5'),
-                text: normalizeHexColor(firstPreset?.colors?.text, '#1F2937'),
+                primary: normalizeHexColor(firstPreset?.colors?.primary, '#A7B88A'),
+                secondary: normalizeHexColor(firstPreset?.colors?.secondary, '#6B4A3A'),
+                accent: normalizeHexColor(firstPreset?.colors?.accent, '#E9B07A'),
+                background: normalizeHexColor(firstPreset?.colors?.background, '#F6F2EB'),
+                text: normalizeHexColor(firstPreset?.colors?.text, '#3F2B22'),
             }
         };
     }
@@ -705,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
             textarea.style.lineHeight = textNode.lineHeight?.() ? String(textNode.lineHeight()) : '1.2';
             textarea.style.color = textNode.fill() || '#111827';
             textarea.style.background = 'rgba(255,255,255,0.92)';
-            textarea.style.border = '1px solid rgba(100,122,11,0.35)';
+            textarea.style.border = '1px solid rgba(167, 184, 138,0.35)';
             textarea.style.borderRadius = '10px';
             textarea.style.padding = '8px 10px';
             textarea.style.outline = 'none';
@@ -2264,7 +2264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataURL = stage.toDataURL({ pixelRatio: 2 });
         const a = document.createElement('a');
         a.href = dataURL;
-        a.download = `aromamade-${selectedFormat.id}.png`;
+        a.download = `olithea-${selectedFormat.id}.png`;
         document.body.appendChild(a);
         a.click();
         a.remove();

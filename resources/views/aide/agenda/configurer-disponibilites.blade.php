@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Configurer ses disponibilités et horaires types | Agenda praticien | AromaMade PRO')
+    @section('title', 'Configurer ses disponibilités et horaires types | Agenda praticien | Olithea PRO')
     @section('meta_description')
-Apprenez à configurer vos disponibilités et horaires types dans AromaMade PRO : semaines types, créneaux de travail et organisation de l’agenda pour les praticiens et thérapeutes.
+Apprenez à configurer vos disponibilités et horaires types dans Olithea PRO : semaines types, créneaux de travail et organisation de l’agenda pour les praticiens et thérapeutes.
     @endsection
 
     <section class="py-16 bg-white">
@@ -23,7 +23,7 @@ Apprenez à configurer vos disponibilités et horaires types dans AromaMade PRO 
             <p class="text-lg text-gray-600 mb-8 leading-relaxed">
                 Lorsqu’on est <strong>praticien ou thérapeute</strong>, la base d’un agenda efficace repose sur
                 des <strong>horaires clairs et cohérents</strong>.
-                AromaMade PRO vous permet de définir des <strong>horaires types</strong> (semaines de référence)
+                Olithea PRO vous permet de définir des <strong>horaires types</strong> (semaines de référence)
                 sur lesquels la prise de rendez-vous en ligne s’appuie automatiquement.
             </p>
 
@@ -40,7 +40,7 @@ Apprenez à configurer vos disponibilités et horaires types dans AromaMade PRO 
 
             {{-- How --}}
             <h2 class="text-2xl font-semibold mb-4">
-                Comment configurer ses disponibilités dans AromaMade PRO
+                Comment configurer ses disponibilités dans Olithea PRO
             </h2>
 
             <ol class="list-decimal pl-6 text-gray-600 leading-relaxed mb-8">
@@ -102,7 +102,7 @@ Apprenez à configurer vos disponibilités et horaires types dans AromaMade PRO 
                     </li>
                     <li>
                         <a href="{{ url('/fonctionnalites/agenda') }}" class="text-green-700 font-semibold">
-                            Découvrir toutes les fonctionnalités de l’agenda AromaMade
+                            Découvrir toutes les fonctionnalités de l’agenda Olithea
                         </a>
                     </li>
                 </ul>

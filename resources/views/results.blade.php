@@ -1,18 +1,18 @@
 @php
     if(isset($specialty) && isset($region)) {
-        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " | AromaMade Pro";
-        $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade Pro. Des praticiens certifiés pour votre bien-être.";
+        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " | Olithea Pro";
+        $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " sur Olithea Pro. Des praticiens certifiés pour votre bien-être.";
         $canonicalUrl = url("/practicien-{$specialty}-region-{$region}");
     } elseif(isset($specialty)) {
-        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " | AromaMade Pro";
-        $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur AromaMade Pro. Consultez leurs profils et avis pour choisir le meilleur.";
+        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " | Olithea Pro";
+        $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur Olithea Pro. Consultez leurs profils et avis pour choisir le meilleur.";
         $canonicalUrl = url("/practicien-{$specialty}");
     } elseif(isset($region)) {
-        $pageTitle = "Les praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " | AromaMade Pro";
-        $pageDescription = "Recherchez des praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade Pro. Des professionnels certifiés pour vous accompagner dans votre bien-être.";
+        $pageTitle = "Les praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " | Olithea Pro";
+        $pageDescription = "Recherchez des praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " sur Olithea Pro. Des professionnels certifiés pour vous accompagner dans votre bien-être.";
         $canonicalUrl = url("/region-{$region}");
     } else {
-        $pageTitle = "Résultats de recherche de praticiens | AromaMade Pro";
+        $pageTitle = "Résultats de recherche de praticiens | Olithea Pro";
         $pageDescription = "Trouvez les meilleurs praticiens en médecines douces. Recherchez par spécialité et localisation pour consulter des professionnels certifiés du bien-être.";
         $canonicalUrl = url("/therapeutes");
     }
@@ -27,28 +27,28 @@
         <meta name="theme-color" content="#5ad4db"/>
         <link rel="manifest" href="/manifest.json"/>
         <link rel="apple-touch-icon" href="{{ asset('images/app/icon-apple.png') }}">
-        <meta name="apple-mobile-web-app-title" content="AromaMade Pro">
+        <meta name="apple-mobile-web-app-title" content="Olithea Pro">
         <meta name="apple-mobile-web-app-capable" content="yes"/>
         <meta property="og:locale" content="fr_FR" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="{{ $pageTitle }}" />
         <meta property="og:description" content="{{ $pageDescription }}" />
         <meta property="og:url" content="{{ $canonicalUrl }}" />
-        <meta property="og:site_name" content="AromaMade Pro" />
+        <meta property="og:site_name" content="Olithea Pro" />
         <meta property="og:image" content="{{ asset('images/og-image.jpg') }}" />
         <meta property="og:image:secure_url" content="{{ asset('images/og-image.jpg') }}" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:description" content="{{ $pageDescription }}" />
         <meta name="twitter:title" content="{{ $pageTitle }}" />
-        <meta name="twitter:site" content="@AromaMade Pro" />
+        <meta name="twitter:site" content="@Olithea Pro" />
         <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}" />
-        <meta name="twitter:creator" content="@AromaMade Pro" />
+        <meta name="twitter:creator" content="@Olithea Pro" />
 
-        <link 
-            rel="stylesheet" 
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-            integrity="sha512-pVgOFDHlfxgzlRfVWYW52IGgh3FQxF71+oR4U77wCQuQ0+NfjVul2Oo+5hC5R9fGhO+I3Ff9Nd36/6V6G4a2ug==" 
-            crossorigin="anonymous" 
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            integrity="sha512-pVgOFDHlfxgzlRfVWYW52IGgh3FQxF71+oR4U77wCQuQ0+NfjVul2Oo+5hC5R9fGhO+I3Ff9Nd36/6V6G4a2ug=="
+            crossorigin="anonymous"
             referrerpolicy="no-referrer"
         />
 
@@ -64,16 +64,16 @@
                 justify-content: center;
                 gap: 0.4rem;
             }
-            .btn-primary { background-color: #647a0b; color: #fff; }
-            .btn-primary:hover { background-color: #8ea633; }
+            .btn-primary { background-color: #6B4A3A; color: #fff; }
+            .btn-primary:hover { background-color: #4E5F3A; }
             .btn-secondary { background-color: #a96b56; color: #fff; }
-            .btn-secondary:hover { background-color: #854f38; }
+            .btn-secondary:hover { background-color: #5F7048; }
             [x-cloak]{ display:none !important; }
         </style>
     </x-slot>
 
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight text-center md:text-left">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight text-center md:text-left">
             Résultats de recherche
         </h2>
     </x-slot>
@@ -92,7 +92,7 @@
     @endphp
 
     <div class="py-4 px-4 sm:px-6 lg:px-8">
-        <h1 class="font-bold text-center mb-4 text-3xl md:text-5xl" style="color: #647a0b;">
+        <h1 class="font-bold text-center mb-4 text-3xl md:text-5xl" style="color: #6B4A3A;">
             <i class="fas fa-trophy mr-2"></i> {{ $h1Text }}
         </h1>
     </div>
@@ -115,7 +115,7 @@
     @endphp
 
     <div class="py-2 px-4 sm:px-6 lg:px-8">
-        <h2 class="font-semibold text-center mb-8 text-xl md:text-2xl" style="color: #854f38;">
+        <h2 class="font-semibold text-center mb-8 text-xl md:text-2xl" style="color: #5F7048;">
             <i class="fas fa-address-book mr-2"></i> {{ $h2Text }}
         </h2>
     </div>
@@ -134,20 +134,20 @@
                         name="name"
                         id="name"
                         value="{{ old('name', request('name')) }}"
-                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
+                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A] px-4 py-2"
                         placeholder="Nom du praticien (optionnel)">
                 </div>
 
                 <!-- Specialty -->
                 <div class="md:col-span-1">
                     <label for="specialty" class="sr-only">Spécialité</label>
-                    <input 
-                        type="text" 
-                        name="specialty" 
+                    <input
+                        type="text"
+                        name="specialty"
                         id="specialty"
                         value="{{ old('specialty', $specialty ?? request('specialty')) }}"
-                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2" 
-                        placeholder="Spécialité" 
+                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A] px-4 py-2"
+                        placeholder="Spécialité"
                         list="specialties">
                     <datalist id="specialties"></datalist>
                 </div>
@@ -160,7 +160,7 @@
                         name="location"
                         id="location"
                         value="{{ old('location', $region ?? request('location')) }}"
-                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-2"
+                        class="w-full rounded-full border-gray-300 shadow-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A] px-4 py-2"
                         placeholder="Lieu (ville ou région)"
                         list="regions">
                     <datalist id="regions"></datalist>
@@ -182,7 +182,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Results Count -->
             <div class="mb-8">
-                <h3 class="text-xl text-[#647a0b]">
+                <h3 class="text-xl text-[#6B4A3A]">
                     {{ $therapists->count() }} praticien(s) trouvé(s)
                 </h3>
             </div>
@@ -191,7 +191,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @forelse($therapists as $therapist)
                     <div class="flex flex-col bg-white shadow-xl rounded-xl overflow-hidden transform hover:-translate-y-1 transition-all duration-300">
-                        <div class="relative h-40 bg-[#647a0b]">
+                        <div class="relative h-40 bg-[#6B4A3A]">
                             @if($therapist->verified ?? false)
                                 <div class="absolute top-2 right-2">
                                     <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
@@ -202,7 +202,7 @@
                         </div>
 
                         <div class="relative flex justify-center -mt-16">
-                            <img 
+                            <img
                                 class="w-32 h-32 rounded-full border-4 border-white object-cover"
                                 src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/150' }}"
                                 alt="{{ $therapist->name }}"
@@ -211,7 +211,7 @@
 
                         <div class="flex flex-col flex-grow px-4 pt-2 pb-4">
                             <div class="text-center">
-                                <h4 class="text-2xl font-bold text-[#647a0b]">
+                                <h4 class="text-2xl font-bold text-[#6B4A3A]">
                                     {{ $therapist->name }}
                                     @isset($therapist->am_fuzzy_score)
                                         <span class="sr-only">score {{ $therapist->am_fuzzy_score }}</span>
@@ -219,11 +219,11 @@
                                 </h4>
 
                                 @if($therapist->company_name)
-                                    <p class="text-sm text-[#647a0b]">{{ $therapist->company_name }}</p>
+                                    <p class="text-sm text-[#6B4A3A]">{{ $therapist->company_name }}</p>
                                 @endif
 
                                 @if($therapist->city_setByAdmin)
-                                    <p class="text-sm text-[#647a0b]">
+                                    <p class="text-sm text-[#6B4A3A]">
                                         <i class="fas fa-map-marker-alt"></i> {{ $therapist->city_setByAdmin }}
                                     </p>
                                 @endif
@@ -236,7 +236,7 @@
                                     @endphp
                                     @if($services)
                                         @foreach($services as $service)
-                                            <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full m-1">
+                                            <span class="inline-block bg-[#6B4A3A] text-white text-xs px-3 py-1 rounded-full m-1">
                                                 {{ $service }}
                                             </span>
                                         @endforeach
@@ -248,14 +248,14 @@
                                 $aboutPlain = strip_tags($therapist->about ?? 'Informations à propos non disponibles.');
                             @endphp
 
-                            <p class="mt-4 text-sm text-[#647a0b] text-center">
+                            <p class="mt-4 text-sm text-[#6B4A3A] text-center">
                                 {{ \Illuminate\Support\Str::limit($aboutPlain, 100) }}
                             </p>
 
                             <div class="mt-4 flex flex-col items-center space-y-2">
                                 <div class="flex items-center space-x-1">
-                                    <i class="fas fa-comment-alt text-[#647a0b]"></i>
-                                    <span class="text-sm text-[#647a0b]">
+                                    <i class="fas fa-comment-alt text-[#6B4A3A]"></i>
+                                    <span class="text-sm text-[#6B4A3A]">
                                         {{ method_exists($therapist, 'testimonials') ? $therapist->testimonials()->count() : 0 }} témoignage(s)
                                     </span>
                                 </div>
@@ -267,7 +267,7 @@
                     </div>
                 @empty
                     <div class="col-span-full text-center">
-                        <p class="text-xl text-[#647a0b]">Aucun praticien trouvé.</p>
+                        <p class="text-xl text-[#6B4A3A]">Aucun praticien trouvé.</p>
                     </div>
                 @endforelse
             </div>
@@ -276,10 +276,10 @@
 
     <style>
         .btn { font-weight: 600; border: none; padding: 0.5rem 1.5rem; border-radius: 9999px; transition: background-color 0.3s ease; }
-        .btn-primary { background-color: #647a0b; color: #fff; }
-        .btn-primary:hover { background-color: #8ea633; }
+        .btn-primary { background-color: #6B4A3A; color: #fff; }
+        .btn-primary:hover { background-color: #4E5F3A; }
         .btn-secondary { background-color: #a96b56; color: #fff; }
-        .btn-secondary:hover { background-color: #854f38; }
+        .btn-secondary:hover { background-color: #5F7048; }
         [x-cloak] { display: none !important; }
     </style>
 

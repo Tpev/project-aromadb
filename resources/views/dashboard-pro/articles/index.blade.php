@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             Blog · Articles
         </h2>
     </x-slot>
@@ -42,7 +42,7 @@
             font-weight: 800;
             border: 1px solid #edf1df;
             background: #f7f9ef;
-            color: #647a0b;
+            color: #6B4A3A;
             white-space: nowrap;
         }
         .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
@@ -50,12 +50,12 @@
         .btn-soft {
             border: 1px solid #edf1df;
             background: white;
-            color: #647a0b;
+            color: #6B4A3A;
         }
         .btn-soft:hover { background: #f7f9ef; }
 
         .btn-primary {
-            background: #8ea633;
+            background: #4E5F3A;
             color: white;
         }
         .btn-primary:hover { filter: brightness(0.98); }
@@ -128,14 +128,14 @@
 
                             @if($status)
                                 <span class="badge">
-                                    <span class="dot bg-[#8ea633]"></span>
+                                    <span class="dot bg-[#4E5F3A]"></span>
                                     Filtre: {{ $status === 'published' ? 'Publiés' : 'Brouillons' }}
                                 </span>
                             @endif
 
                             @if($q !== '')
                                 <span class="badge">
-                                    <span class="dot bg-[#8ea633]"></span>
+                                    <span class="dot bg-[#4E5F3A]"></span>
                                     Recherche: “{{ $q }}”
                                 </span>
                             @endif
@@ -191,7 +191,7 @@
 
             @if(session('success'))
                 <div class="bg-white shadow rounded-2xl p-4 border border-[#edf1df]">
-                    <div class="text-[#647a0b] font-semibold">
+                    <div class="text-[#6B4A3A] font-semibold">
                         {{ session('success') }}
                     </div>
                 </div>
@@ -244,11 +244,11 @@
                     <table class="w-full text-sm">
                         <thead class="bg-[#f7f9ef] border-b border-[#edf1df]">
                             <tr>
-                                <th class="text-left p-4 text-[#647a0b] font-semibold">Titre</th>
-                                <th class="text-left p-4 text-[#647a0b] font-semibold">Statut</th>
-                                <th class="text-left p-4 text-[#647a0b] font-semibold">Publication</th>
-                                <th class="text-left p-4 text-[#647a0b] font-semibold">Dernière maj</th>
-                                <th class="text-right p-4 text-[#647a0b] font-semibold">Actions</th>
+                                <th class="text-left p-4 text-[#6B4A3A] font-semibold">Titre</th>
+                                <th class="text-left p-4 text-[#6B4A3A] font-semibold">Statut</th>
+                                <th class="text-left p-4 text-[#6B4A3A] font-semibold">Publication</th>
+                                <th class="text-left p-4 text-[#6B4A3A] font-semibold">Dernière maj</th>
+                                <th class="text-right p-4 text-[#6B4A3A] font-semibold">Actions</th>
                             </tr>
                         </thead>
 
@@ -268,7 +268,7 @@
                                     <td class="p-4">
                                         @if($a->status === 'published')
                                             <span class="badge">
-                                                <span class="dot bg-[#8ea633]"></span> Publié
+                                                <span class="dot bg-[#4E5F3A]"></span> Publié
                                             </span>
                                         @else
                                             <span class="badge" style="background:#f3f4f6;color:#374151;border-color:#e5e7eb;">
@@ -288,19 +288,19 @@
                                     <td class="p-4 text-right whitespace-nowrap">
                                         @if($canUseBlog)
                                             <a href="{{ route('dashboardpro.articles.edit', $a) }}"
-                                               class="text-sm font-semibold text-[#647a0b] hover:underline mr-4">
+                                               class="text-sm font-semibold text-[#6B4A3A] hover:underline mr-4">
                                                 Éditer
                                             </a>
 
                                             <a href="{{ route('dashboardpro.articles.show', $a) }}"
-                                               class="text-sm font-semibold text-[#647a0b] hover:underline mr-4">
+                                               class="text-sm font-semibold text-[#6B4A3A] hover:underline mr-4">
                                                 Aperçu
                                             </a>
 
                                             @if($a->status === 'published')
                                                 <a href="{{ route('pro.articles.show', ['therapist' => auth()->user()->slug, 'articleSlug' => $a->slug]) }}"
                                                    target="_blank"
-                                                   class="text-sm font-semibold text-[#647a0b] hover:underline mr-4">
+                                                   class="text-sm font-semibold text-[#6B4A3A] hover:underline mr-4">
                                                     Public
                                                 </a>
                                             @endif
@@ -346,7 +346,7 @@
                                     <td class="p-6 text-gray-600" colspan="5">
                                         Aucun article.
                                         @if($canUseBlog)
-                                            <a class="text-[#647a0b] font-semibold hover:underline"
+                                            <a class="text-[#6B4A3A] font-semibold hover:underline"
                                                href="{{ route('dashboardpro.articles.create') }}">Créer le premier</a>.
                                         @else
                                             <a class="font-semibold link-locked"
@@ -371,7 +371,7 @@
                                     <div class="mt-3 flex flex-wrap items-center gap-2">
                                         @if($a->status === 'published')
                                             <span class="badge">
-                                                <span class="dot bg-[#8ea633]"></span> Publié
+                                                <span class="dot bg-[#4E5F3A]"></span> Publié
                                             </span>
                                         @else
                                             <span class="badge" style="background:#f3f4f6;color:#374151;border-color:#e5e7eb;">
@@ -415,14 +415,14 @@
                             <div class="mt-3 flex flex-wrap gap-3 text-sm">
                                 @if($canUseBlog)
                                     <a href="{{ route('dashboardpro.articles.show', $a) }}"
-                                       class="font-semibold text-[#647a0b] hover:underline">
+                                       class="font-semibold text-[#6B4A3A] hover:underline">
                                         Aperçu
                                     </a>
 
                                     @if($a->status === 'published')
                                         <a href="{{ route('pro.articles.show', ['therapist' => auth()->user()->slug, 'articleSlug' => $a->slug]) }}"
                                            target="_blank"
-                                           class="font-semibold text-[#647a0b] hover:underline">
+                                           class="font-semibold text-[#6B4A3A] hover:underline">
                                             Public
                                         </a>
                                     @endif
@@ -453,7 +453,7 @@
                         <div class="p-6 text-gray-600">
                             Aucun article.
                             @if($canUseBlog)
-                                <a class="text-[#647a0b] font-semibold hover:underline"
+                                <a class="text-[#6B4A3A] font-semibold hover:underline"
                                    href="{{ route('dashboardpro.articles.create') }}">Créer le premier</a>.
                             @else
                                 <a class="font-semibold link-locked"

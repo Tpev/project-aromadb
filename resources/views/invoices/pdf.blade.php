@@ -8,7 +8,7 @@
         $user = $invoice->user;
 
         // Branding
-        $brandColor = $user?->invoice_primary_color ?: '#647a0b';
+        $brandColor = $user?->invoice_primary_color ?: '#6B4A3A';
 
         // Logo
         $logoFile = null;

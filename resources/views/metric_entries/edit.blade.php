@@ -5,7 +5,7 @@
     </x-slot>
 
     <div class="py-6 px-4 max-w-2xl mx-auto">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             Modifier l’Entrée pour : {{ $metric->name }}
         </h2>
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Listes / Audiences email') }}
         </h2>
     </x-slot>
@@ -21,7 +21,7 @@
             </div>
             <a href="{{ route('audiences.create') }}"
                class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-               style="background-color:#647a0b;">
+               style="background-color:#6B4A3A;">
                 + Nouvelle liste
             </a>
         </div>
@@ -30,7 +30,7 @@
             @if ($audiences->isEmpty())
                 <div class="p-6 text-sm text-gray-500 text-center">
                     Vous n’avez pas encore créé de liste.
-                    <a href="{{ route('audiences.create') }}" class="text-[#647a0b] font-semibold">
+                    <a href="{{ route('audiences.create') }}" class="text-[#6B4A3A] font-semibold">
                         Créer une première liste
                     </a>.
                 </div>

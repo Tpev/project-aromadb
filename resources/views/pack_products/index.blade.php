@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     Packs (Forfaits)
                 </h2>
                 <p class="mt-1 text-xs text-slate-600">
@@ -19,7 +19,7 @@
 
                 <a href="{{ route('pack-products.create') }}"
                    class="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-95 transition"
-                   style="background:#647a0b;">
+                   style="background:#6B4A3A;">
                     + Nouveau pack
                 </a>
             </div>
@@ -28,15 +28,15 @@
 
     <style>
         :root{
-            --brand: #647a0b;
+            --brand: #6B4A3A;
             --brown: #6b4f2a;
             --cream: #f7f2ea;
         }
         .am-shell{
             background:
-                radial-gradient(circle at 0% 0%, rgba(100,122,11,0.10), transparent 45%),
-                radial-gradient(circle at 100% 10%, rgba(107,79,42,0.10), transparent 45%),
-                radial-gradient(circle at 20% 100%, rgba(100,122,11,0.08), transparent 55%),
+                radial-gradient(circle at 0% 0%, rgba(167, 184, 138,0.10), transparent 45%),
+                radial-gradient(circle at 100% 10%, rgba(107, 74, 58,0.10), transparent 45%),
+                radial-gradient(circle at 20% 100%, rgba(167, 184, 138,0.08), transparent 55%),
                 linear-gradient(180deg, #fbfaf7 0%, #f3f4f6 100%);
             border-radius: 1.25rem;
         }
@@ -70,7 +70,7 @@
             text-transform: uppercase;
         }
         .am-row:hover{
-            background: rgba(100,122,11,0.06);
+            background: rgba(167, 184, 138,0.06);
         }
     </style>
 
@@ -83,7 +83,7 @@
                             <div class="text-sm font-bold">Succès</div>
                             <div class="text-sm mt-0.5">{{ session('success') }}</div>
                         </div>
-                        <div class="text-xs font-semibold opacity-70">AromaMade</div>
+                        <div class="text-xs font-semibold opacity-70">Olithea</div>
                     </div>
                 </div>
             @endif
@@ -96,7 +96,7 @@
                             <div class="mt-1 text-2xl font-extrabold text-slate-900">{{ $packs->count() }}</div>
                         </div>
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                             style="background: rgba(100,122,11,0.10); color: var(--brand);">
+                             style="background: rgba(167, 184, 138,0.10); color: var(--brand);">
                             ✦
                         </div>
                     </div>
@@ -112,7 +112,7 @@
                             <div class="mt-1 text-2xl font-extrabold text-slate-900">{{ $packs->sum('purchases_count') }}</div>
                         </div>
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
-                             style="background: rgba(107,79,42,0.10); color: var(--brown);">
+                             style="background: rgba(107, 74, 58,0.10); color: var(--brown);">
                             ☰
                         </div>
                     </div>
@@ -161,7 +161,7 @@
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm am-table">
-                        <thead style="background: linear-gradient(90deg, rgba(100,122,11,0.10), rgba(107,79,42,0.08));">
+                        <thead style="background: linear-gradient(90deg, rgba(167, 184, 138,0.10), rgba(107, 74, 58,0.08));">
                             <tr class="text-left text-slate-700">
                                 <th class="px-4 py-3 font-extrabold">Nom</th>
                                 <th class="px-4 py-3 font-extrabold">Prix</th>
@@ -224,7 +224,7 @@
 
                                 <td class="px-4 py-3">
                                     @if($pack->is_active)
-                                        <span class="am-badge" style="color: var(--brand); border-color: rgba(100,122,11,0.25); background: rgba(100,122,11,0.06);">
+                                        <span class="am-badge" style="color: var(--brand); border-color: rgba(167, 184, 138,0.25); background: rgba(167, 184, 138,0.06);">
                                             <span class="am-dot" style="background: var(--brand)"></span>
                                             Actif
                                         </span>
@@ -238,7 +238,7 @@
 
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-extrabold"
-                                          style="background: rgba(107,79,42,0.10); color: var(--brown); border: 1px solid rgba(107,79,42,0.18);">
+                                          style="background: rgba(107, 74, 58,0.10); color: var(--brown); border: 1px solid rgba(107, 74, 58,0.18);">
                                         {{ $pack->purchases_count }}
                                     </span>
                                 </td>
@@ -301,7 +301,7 @@
                             Astuce : crée un pack “Suivi” et attribue-le au client après paiement (crédits suivis automatiquement).
                         </div>
                         <div class="text-xs font-bold" style="color: var(--brown);">
-                            AromaMade PRO
+                            Olithea PRO
                         </div>
                     </div>
                 </div>

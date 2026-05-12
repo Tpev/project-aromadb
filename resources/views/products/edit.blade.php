@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Modifier la Prestation') }}
         </h2>
     </x-slot>
@@ -281,12 +281,12 @@
         }
 
         .details-title {
-            font-size: 2rem; font-weight: bold; color: #647a0b;
+            font-size: 2rem; font-weight: bold; color: #6B4A3A;
             margin-bottom: 20px; text-align: center;
         }
 
         .details-box { margin-bottom: 15px; }
-        .details-label { font-weight: bold; color: #647a0b; display: block; margin-bottom: 5px; }
+        .details-label { font-weight: bold; color: #6B4A3A; display: block; margin-bottom: 5px; }
 
         .form-control {
             width: 100%;
@@ -296,7 +296,7 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 10px 20px;
             border: none;

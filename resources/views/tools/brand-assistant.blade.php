@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     Assistant charte graphique (beta)
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -15,7 +15,7 @@
 
     <style>
         :root {
-            --brand: #647a0b;
+            --brand: #6B4A3A;
         }
 
         .brand-shell {
@@ -39,9 +39,9 @@
             border-radius: 999px;
             padding: 0.15rem 0.55rem;
             font-size: 0.7rem;
-            background: rgba(100, 122, 11, 0.06);
+            background: rgba(167, 184, 138, 0.06);
             color: #4b5563;
-            border: 1px solid rgba(100, 122, 11, 0.14);
+            border: 1px solid rgba(167, 184, 138, 0.14);
         }
 
         .color-pill {
@@ -111,7 +111,7 @@
         .input-field:focus {
             outline: none;
             border-color: var(--brand);
-            box-shadow: 0 0 0 1px var(--brand), 0 0 0 4px rgba(100, 122, 11, 0.16);
+            box-shadow: 0 0 0 1px var(--brand), 0 0 0 4px rgba(167, 184, 138, 0.16);
         }
 
         .checkbox-chip {
@@ -140,14 +140,14 @@
         }
 
         .checkbox-chip.active {
-            background: rgba(100, 122, 11, 0.08);
-            border-color: rgba(100, 122, 11, 0.7);
+            background: rgba(167, 184, 138, 0.08);
+            border-color: rgba(167, 184, 138, 0.7);
             color: #374151;
         }
 
         .checkbox-chip.active .checkbox-chip-dot {
             border-color: transparent;
-            background: radial-gradient(circle at center, #647a0b 40%, #d9f99d 100%);
+            background: radial-gradient(circle at center, #6B4A3A 40%, #d9f99d 100%);
         }
 
         .palette-card {
@@ -166,7 +166,7 @@
 
         .palette-card.selected {
             border-color: var(--brand);
-            box-shadow: 0 0 0 1px rgba(100, 122, 11, 0.7), 0 12px 30px rgba(100, 122, 11, 0.18);
+            box-shadow: 0 0 0 1px rgba(167, 184, 138, 0.7), 0 12px 30px rgba(167, 184, 138, 0.18);
         }
 
         .font-chip {
@@ -386,7 +386,7 @@
                                     <button type="button"
                                             @click="generatePalettes()"
                                             class="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white"
-                                            style="background:var(--brand); box-shadow:0 12px 25px rgba(100,122,11,0.35);">
+                                            style="background:var(--brand); box-shadow:0 12px 25px rgba(167,184,138,0.35);">
                                         <span>Générer mes palettes</span>
                                         <span class="text-[10px] opacity-75">⏎</span>
                                     </button>
@@ -768,8 +768,8 @@
                 fitScore: 0,
                 fitComment: '',
                 typography: {
-                    titles: 'Playfair Display (ou équivalent serif)',
-                    body: 'Inter / Lato / Open Sans'
+                    titles: 'Cormorant Garamond',
+                    body: 'Montserrat / Avenir Next'
                 },
                 imageStyle: 'Photos lumineuses, naturelles, avec touches végétales et ambiance douce.',
                 colorRoleLabels: {
@@ -904,7 +904,7 @@
                                 name: 'Vert feuille & mousse',
                                 typeLabel: 'Analogique',
                                 colors: {
-                                    primary: '#647A0B',
+                                    primary: '#A7B88A',
                                     secondary: '#A3B73A',
                                     accent: '#F2C879',
                                     neutral: '#F5F7EC',
@@ -1154,24 +1154,24 @@
                     if (!this.selectedPalette) return;
 
                     if (this.identity.tone === 'premium_minimaliste') {
-                        this.typography.titles = 'Playfair Display / Cormorant / Marcellus';
-                        this.typography.body = 'Inter / Source Sans / Open Sans';
+                        this.typography.titles = 'Cormorant Garamond / Montserrat';
+                        this.typography.body = 'Montserrat / Avenir Next';
                         this.imageStyle = 'Photos très épurées, beaucoup de blanc, quelques détails dorés ou gris foncé.';
                     } else if (this.identity.tone === 'dynamique_energie') {
-                        this.typography.titles = 'Poppins / Montserrat (gras)';
-                        this.typography.body = 'Inter / Raleway';
+                        this.typography.titles = 'Cormorant Garamond / Montserrat';
+                        this.typography.body = 'Montserrat / Avenir Next';
                         this.imageStyle = 'Photos lumineuses, mouvements, personnes en action, couleurs vives mais maîtrisées.';
                     } else if (this.identity.tone === 'calme_doux') {
-                        this.typography.titles = 'Cormorant / Playfair Display léger';
-                        this.typography.body = 'Nunito / Quicksand / Inter';
+                        this.typography.titles = 'Cormorant Garamond';
+                        this.typography.body = 'Montserrat / Avenir Next';
                         this.imageStyle = 'Images soft, flou léger, textures naturelles, bougies, plaids, ambiance détente.';
                     } else if (this.identity.tone === 'nature_bio') {
-                        this.typography.titles = 'Cormorant / Lora';
-                        this.typography.body = 'Nunito / Inter / Lato';
+                        this.typography.titles = 'Cormorant Garamond';
+                        this.typography.body = 'Montserrat / Avenir Next';
                         this.imageStyle = 'Macro de plantes, huiles essentielles, bois, céramique, lumière naturelle douce.';
                     } else {
-                        this.typography.titles = 'Playfair Display (ou équivalent serif)';
-                        this.typography.body = 'Inter / Lato / Open Sans';
+                        this.typography.titles = 'Cormorant Garamond';
+                        this.typography.body = 'Montserrat / Avenir Next';
                         this.imageStyle = 'Photos naturelles, lumière douce, éléments végétaux.';
                     }
                 }

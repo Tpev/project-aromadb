@@ -40,7 +40,7 @@
     $visioPublicLink = $event->visio_public_link ?? null;
 
     $visioProvider = $event->visio_provider ?? null;
-    $isAromaMadeVisio = $isVisio && $visioProvider === 'aromamade' && !empty($event->visio_token);
+    $isOlitheaVisio = $isVisio && in_array($visioProvider, ['olithea', 'aromamade'], true) && !empty($event->visio_token);
     $isExternalVisio  = $isVisio && $visioProvider === 'external' && !empty($event->visio_url);
 @endphp
 
@@ -48,18 +48,18 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <h2 class="font-semibold text-xl text-[#647a0b]">
+                <h2 class="font-semibold text-xl text-[#6B4A3A]">
                     {{ __('Détails de l\'Événement') }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
-                    {{ __('Gérez cet atelier / événement directement depuis AromaMade PRO.') }}
+                    {{ __('Gérez cet atelier / événement directement depuis Olithea PRO.') }}
                 </p>
             </div>
 
             {{-- Actions header (desktop) --}}
             <div class="hidden md:flex items-center gap-2">
                 <a href="{{ route('events.edit', $event->id) }}"
-                   class="inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                   class="inline-flex items-center gap-2 rounded-full bg-[#6B4A3A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
                     <i class="fas fa-edit text-[11px]"></i>
                     <span>{{ __('Modifier') }}</span>
                 </a>
@@ -84,7 +84,7 @@
                 </form>
 
                 <a href="{{ route('events.index') }}"
-                   class="inline-flex items-center gap-2 rounded-full border border-[#854f38]/40 bg-white px-4 py-2 text-xs font-semibold text-[#854f38] hover:bg-[#854f38] hover:text-white transition">
+                   class="inline-flex items-center gap-2 rounded-full border border-[#5F7048]/40 bg-white px-4 py-2 text-xs font-semibold text-[#5F7048] hover:bg-[#5F7048] hover:text-white transition">
                     <i class="fas fa-arrow-left text-[11px]"></i>
                     <span>{{ __('Retour') }}</span>
                 </a>
@@ -117,7 +117,7 @@
         @endif
 
         <div class="rounded-2xl border border-[#dbe3b8] bg-white shadow-md overflow-hidden">
-            <div class="px-6 py-4 sm:px-8 sm:py-5" style="background-color: #647a0b;">
+            <div class="px-6 py-4 sm:px-8 sm:py-5" style="background-color: #6B4A3A;">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between text-white">
                     <div>
                         <h1 class="text-2xl md:text-3xl font-bold">
@@ -181,8 +181,8 @@
 
 @if($desc)
     <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 sm:px-5 sm:py-4">
-        <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
-            <i class="fas fa-info-circle text-[#647a0b]"></i>
+        <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">
+            <i class="fas fa-info-circle text-[#6B4A3A]"></i>
             {{ __('Description') }}
         </h3>
 
@@ -203,8 +203,8 @@
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
-                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#854f38]">
-                                    <i class="fas fa-calendar-alt text-[#854f38]"></i>
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#5F7048]">
+                                    <i class="fas fa-calendar-alt text-[#5F7048]"></i>
                                     {{ __('Date & heure') }}
                                 </h3>
                                 <p class="mt-2 text-sm font-medium text-slate-900">
@@ -213,8 +213,8 @@
                             </div>
 
                             <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
-                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#854f38]">
-                                    <i class="fas fa-hourglass-half text-[#854f38]"></i>
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#5F7048]">
+                                    <i class="fas fa-hourglass-half text-[#5F7048]"></i>
                                     {{ __('Durée') }}
                                 </h3>
                                 <p class="mt-2 text-sm font-medium text-slate-900">
@@ -224,12 +224,12 @@
 
                             {{-- Visio / Lieu (two links) --}}
                             <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 md:col-span-2">
-                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">
                                     @if($isVisio)
-                                        <i class="fas fa-video text-[#647a0b]"></i>
+                                        <i class="fas fa-video text-[#6B4A3A]"></i>
                                         {{ __('Visio') }}
                                     @else
-                                        <i class="fas fa-map-marker-alt text-[#647a0b]"></i>
+                                        <i class="fas fa-map-marker-alt text-[#6B4A3A]"></i>
                                         {{ __('Lieu') }}
                                     @endif
                                 </h3>
@@ -246,8 +246,8 @@
                                                 {{ $displayLocation }}
                                             </p>
                                             <p class="text-xs text-slate-500 mt-1">
-                                                @if($isAromaMadeVisio)
-                                                    {{ __('Type : Visio AromaMade ') }}
+                                                @if($isOlitheaVisio)
+                                                    {{ __('Type : Visio Olithea ') }}
                                                 @elseif($isExternalVisio)
                                                     {{ __('Type : Lien externe') }}
                                                 @else
@@ -267,13 +267,13 @@
                                                     <a href="{{ $visioHostLink }}"
                                                        target="_blank"
                                                        rel="noopener noreferrer"
-                                                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#647a0b] border border-[#e2ecc3] hover:bg-[#f3f9dd] transition">
+                                                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#6B4A3A] border border-[#e2ecc3] hover:bg-[#f3f9dd] transition">
                                                         <i class="fas fa-external-link-alt text-[12px]"></i>
                                                         <span>{{ __('Ouvrir') }}</span>
                                                     </a>
 
                                                     <button type="button"
-                                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#647a0b] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
+                                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#6B4A3A] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
                                                             onclick="copyToClipboard('{{ $visioHostLink }}')">
                                                         <i class="far fa-copy text-[12px]"></i>
                                                         <span>{{ __('Copier') }}</span>
@@ -284,7 +284,7 @@
                                                     {{ $visioHostLink }}
                                                 </p>
 
-                                                @if($isAromaMadeVisio)
+                                                @if($isOlitheaVisio)
                                                     <p class="mt-1 text-[11px] text-slate-400">
                                                         {{ __(' ') }}
                                                     </p>
@@ -307,13 +307,13 @@
                                                     <a href="{{ $visioPublicLink }}"
                                                        target="_blank"
                                                        rel="noopener noreferrer"
-                                                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#647a0b] border border-[#e2ecc3] hover:bg-[#f3f9dd] transition">
+                                                       class="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#6B4A3A] border border-[#e2ecc3] hover:bg-[#f3f9dd] transition">
                                                         <i class="fas fa-external-link-alt text-[12px]"></i>
                                                         <span>{{ __('Ouvrir') }}</span>
                                                     </a>
 
                                                     <button type="button"
-                                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#647a0b] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
+                                                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#6B4A3A] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
                                                             onclick="copyToClipboard('{{ $visioPublicLink }}')">
                                                         <i class="far fa-copy text-[12px]"></i>
                                                         <span>{{ __('Copier') }}</span>
@@ -324,7 +324,7 @@
                                                     {{ $visioPublicLink }}
                                                 </p>
 
-                                                @if($isAromaMadeVisio)
+                                                @if($isOlitheaVisio)
                                                     <p class="mt-1 text-[11px] text-slate-400">
                                                         {{ __('C’est ce lien que vous envoyez aux participants.') }}
                                                     </p>
@@ -341,8 +341,8 @@
                             </div>
 
                             <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3">
-                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
-                                    <i class="fas fa-users text-[#647a0b]"></i>
+                                <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">
+                                    <i class="fas fa-users text-[#6B4A3A]"></i>
                                     {{ __('Places limitées') }}
                                 </h3>
                                 <p class="mt-2 text-sm font-medium text-slate-900">
@@ -358,8 +358,8 @@
                         <div class="rounded-xl border border-[#e2ecc3] bg-white px-4 py-4 sm:px-5 sm:py-5">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
-                                    <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
-                                        <i class="fas fa-clipboard-list text-[#647a0b]"></i>
+                                    <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">
+                                        <i class="fas fa-clipboard-list text-[#6B4A3A]"></i>
                                         {{ __('Réservations') }}
                                     </h3>
                                     <p class="mt-1 text-sm text-slate-600">
@@ -369,7 +369,7 @@
 
                                 <div class="flex md:hidden items-center gap-2">
                                     <a href="{{ route('events.edit', $event->id) }}"
-                                       class="inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
+                                       class="inline-flex items-center gap-2 rounded-full bg-[#6B4A3A] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#4f6409] transition">
                                         <i class="fas fa-edit text-[11px]"></i>
                                         <span>{{ __('Modifier') }}</span>
                                     </a>
@@ -399,7 +399,7 @@
 
         <div class="flex-1">
             <select name="client_profile_id"
-                    class="w-full rounded-lg border border-[#e2ecc3] bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#647a0b]/30">
+                    class="w-full rounded-lg border border-[#e2ecc3] bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/30">
                 <option value="">Sélectionner un client…</option>
                 @foreach($clientsForSelect as $c)
                     @php
@@ -418,7 +418,7 @@
         </div>
 
         <button type="submit"
-                class="inline-flex items-center justify-center gap-2 rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#556a0a] focus:outline-none focus:ring-2 focus:ring-[#647a0b]/30">
+                class="inline-flex items-center justify-center gap-2 rounded-full bg-[#6B4A3A] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#556a0a] focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/30">
             <i class="fas fa-user-plus text-[11px]"></i>
             Ajouter
         </button>
@@ -480,13 +480,13 @@
                                                                     {{ __('Client existant') }}
                                                                 </span>
                                                                 <a href="{{ route('client_profiles.show', $clientId) }}"
-                                                                   class="text-xs font-medium text-[#647a0b] hover:underline">
+                                                                   class="text-xs font-medium text-[#6B4A3A] hover:underline">
                                                                     {{ __('Voir le dossier') }}
                                                                 </a>
                                                             </div>
                                                         @else
 														<button type="button"
-																class="js-create-client-from-reservation inline-flex items-center gap-2 rounded-full bg-[#647a0b] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#556a0a] focus:outline-none focus:ring-2 focus:ring-[#647a0b]/30"
+																class="js-create-client-from-reservation inline-flex items-center gap-2 rounded-full bg-[#6B4A3A] px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#556a0a] focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/30"
 																data-route="{{ route('reservations.createClient', [$event->id, $reservation->id]) }}">
 															<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
 																<path d="M10 2a5 5 0 100 10 5 5 0 000-10zM3 16a7 7 0 0114 0v1H3v-1z"/>
@@ -515,8 +515,8 @@
                     {{-- Right: share / actions --}}
                     <div class="space-y-4">
                         <div class="rounded-xl border border-[#e2ecc3] bg-white px-4 py-4 shadow-sm">
-                            <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
-                                <i class="fas fa-share-alt text-[#647a0b]"></i>
+                            <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#6B4A3A]">
+                                <i class="fas fa-share-alt text-[#6B4A3A]"></i>
                                 {{ __('Partager') }}
                             </h3>
 
@@ -537,7 +537,7 @@
                                         {{ $eventPublicUrl }}
                                     </p>
                                     <button type="button"
-                                            class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#647a0b] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
+                                            class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#6B4A3A] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
                                             onclick="copyToClipboard('{{ $eventPublicUrl }}')">
                                         <i class="far fa-copy text-[12px]"></i>
                                         <span>{{ __('Copier') }}</span>
@@ -554,7 +554,7 @@
                                             {{ $visioPublicLink }}
                                         </p>
                                         <button type="button"
-                                                class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#647a0b] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
+                                                class="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#6B4A3A] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4f6409] transition"
                                                 onclick="copyToClipboard('{{ $visioPublicLink }}')">
                                             <i class="far fa-copy text-[12px]"></i>
                                             <span>{{ __('Copier le lien visio') }}</span>
@@ -565,19 +565,19 @@
                         </div>
 
                         <div class="rounded-xl border border-[#e2ecc3] bg-white px-4 py-4 shadow-sm">
-                            <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#854f38]">
-                                <i class="fas fa-bolt text-[#854f38]"></i>
+                            <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#5F7048]">
+                                <i class="fas fa-bolt text-[#5F7048]"></i>
                                 {{ __('Actions') }}
                             </h3>
 
                             <div class="mt-4 space-y-2">
                                 <a href="{{ route('events.edit', $event->id) }}"
-                                   class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4f6409] transition">
+                                   class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#6B4A3A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4f6409] transition">
                                     <i class="fas fa-edit text-sm"></i>
                                     <span>{{ __('Modifier') }}</span>
                                 </a>                                
 								<a href="{{ route('events.duplicate', $event->id) }}"
-                                   class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4f6409] transition">
+                                   class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#6B4A3A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#4f6409] transition">
                                     <i class="fas fa-edit text-sm"></i>
                                     <span>{{ __('Dupliquer') }}</span>
                                 </a>
@@ -594,7 +594,7 @@
 
 
                                 <a href="{{ route('events.index') }}"
-                                   class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#854f38]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#854f38] hover:bg-[#854f38] hover:text-white transition">
+                                   class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#5F7048]/40 bg-white px-4 py-2.5 text-sm font-semibold text-[#5F7048] hover:bg-[#5F7048] hover:text-white transition">
                                     <i class="fas fa-arrow-left text-xs"></i>
                                     <span>{{ __('Retour à la liste des événements') }}</span>
                                 </a>
@@ -678,7 +678,7 @@
                                         </span>
                                         ${data.client_profile_url
                                             ? `<a href="${data.client_profile_url}"
-                                                   class="text-xs font-medium text-[#647a0b] hover:underline">
+                                                   class="text-xs font-medium text-[#6B4A3A] hover:underline">
                                                    {{ __('Voir le dossier') }}
                                                </a>`
                                             : ''

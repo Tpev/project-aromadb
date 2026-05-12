@@ -225,15 +225,15 @@ class KonvaEditorController extends Controller
         $defaults = [
             'preset' => 'zen_olive',
             'fonts' => [
-                'heading' => 'poppins',
-                'body' => 'inter',
+                'heading' => 'cormorant',
+                'body' => 'montserrat',
             ],
             'colors' => [
-                'primary' => '#647A0B',
-                'secondary' => '#854F38',
-                'accent' => '#D4A373',
-                'background' => '#F8F9F5',
-                'text' => '#1F2937',
+                'primary' => '#A7B88A',
+                'secondary' => '#6B4A3A',
+                'accent' => '#E9B07A',
+                'background' => '#F6F2EB',
+                'text' => '#3F2B22',
             ],
         ];
 

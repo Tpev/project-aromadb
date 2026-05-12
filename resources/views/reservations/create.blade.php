@@ -352,7 +352,7 @@
         }
 
         .event-title {
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         .info-box {
@@ -365,7 +365,7 @@
 
         .info-title {
             font-weight: bold;
-            color: #854f38;
+            color: #5F7048;
             margin-bottom: 8px;
             font-size: 1.2rem;
             display: flex;
@@ -393,7 +393,7 @@
         }
 
         .form-title {
-            color: #647a0b;
+            color: #6B4A3A;
         }
 
         /* Form Group */
@@ -405,7 +405,7 @@
         /* Form Label */
         .form-label {
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 10px;
             display: block;
             font-size: 1.1rem;
@@ -421,9 +421,9 @@
         }
 
         .form-control:focus {
-            border-color: #854f38;
+            border-color: #5F7048;
             outline: none;
-            box-shadow: 0 0 5px rgba(133, 79, 56, 0.5);
+            box-shadow: 0 0 5px rgba(107, 74, 58, 0.5);
         }
 
         /* Buttons */
@@ -439,23 +439,23 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             border: none;
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #854f38;
-            border: 2px solid #854f38;
+            color: #5F7048;
+            border: 2px solid #5F7048;
         }
 
         .btn-secondary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #fff;
         }
 

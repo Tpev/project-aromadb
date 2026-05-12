@@ -28,7 +28,7 @@
 
 <hr class="my-4">
 
-<h3 class="text-lg font-semibold mb-2" style="color:#647a0b;">Adresse de facturation</h3>
+<h3 class="text-lg font-semibold mb-2" style="color:#6B4A3A;">Adresse de facturation</h3>
 
 <div class="details-box">
     <label class="details-label" for="billing_address">Adresse</label>
@@ -60,7 +60,7 @@
 
 <hr class="my-4">
 
-<h3 class="text-lg font-semibold mb-2" style="color:#647a0b;">Contact facturation</h3>
+<h3 class="text-lg font-semibold mb-2" style="color:#6B4A3A;">Contact facturation</h3>
 
 <div class="details-box">
     <label class="details-label" for="billing_email">Email facturation</label>
@@ -78,7 +78,7 @@
 
 <hr class="my-4">
 
-<h3 class="text-lg font-semibold mb-2" style="color:#647a0b;">Contact principal</h3>
+<h3 class="text-lg font-semibold mb-2" style="color:#6B4A3A;">Contact principal</h3>
 
 <div class="details-box">
     <label class="details-label" for="main_contact_first_name">Prénom</label>

@@ -20,7 +20,7 @@
 </div>
         <!-- Filter and Search Bar -->
         <div class="mb-4 text-end">
-            <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()" style="border-color: #647a0b;">
+            <select id="indicationFilter" class="form-control mb-2" onchange="filterByIndication()" style="border-color: #6B4A3A;">
                 <option value="">Filtrer par Indication</option>
                 @php
                     // Gather all unique indications, split by semicolon, and remove duplicates
@@ -34,7 +34,7 @@
                 @endforeach
             </select>
 
-            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #854f38;">
+            <input type="text" id="search" class="form-control" placeholder="Recherche par nom..." onkeyup="filterTable()" style="border-color: #5F7048;">
         </div>
 
         <div class="table-responsive mx-auto">
@@ -53,7 +53,7 @@
                                 {{ $tisane->NomTisane }} (<em>{{ $tisane->NomLatin ?? 'Unknown' }}</em>)
                                 @auth
                                     @if(auth()->user()->favorites->contains(fn($fav) => $fav->favoritable_id == $tisane->id && $fav->favoritable_type == 'App\Models\Tisane'))
-                                        <i class="fas fa-heart ms-2" style="color: #854f38;"></i> <!-- Show only when it's a favorite -->
+                                        <i class="fas fa-heart ms-2" style="color: #5F7048;"></i> <!-- Show only when it's a favorite -->
                                     @endif
                                 @endauth
                             </td>
@@ -128,7 +128,7 @@
         }
 
         .table thead {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
         }
 
@@ -138,7 +138,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #ffffff;
             transform: scale(1.02);
         }
@@ -156,7 +156,7 @@
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -173,7 +173,7 @@
         }
 
         .btn-favorite:hover i {
-            color: #854f38;
+            color: #5F7048;
         }
 
         #search {
@@ -181,12 +181,12 @@
             max-width: 300px;
             padding: 8px;
             border-radius: 5px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             margin-right: 15px;
         }
 
         select#indicationFilter {
-            border: 1px solid #647a0b;
+            border: 1px solid #6B4A3A;
             padding: 8px;
             border-radius: 5px;
         }

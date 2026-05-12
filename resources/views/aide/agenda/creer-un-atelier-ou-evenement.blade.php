@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Créer un atelier ou événement | Agenda AromaMade PRO')
+    @section('title', 'Créer un atelier ou événement | Agenda Olithea PRO')
     @section('meta_description')
-Créez ateliers et événements (présentiel ou visio), gérez places, réservations, paiement Stripe et publication sur votre Portail Pro avec AromaMade PRO.
+Créez ateliers et événements (présentiel ou visio), gérez places, réservations, paiement Stripe et publication sur votre Portail Pro avec Olithea PRO.
     @endsection
     @section('structured_data')
         <script type="application/ld+json">
@@ -63,7 +63,7 @@ Créez ateliers et événements (présentiel ou visio), gérez places, réservat
             </h1>
 
             <p class="text-lg text-gray-600 mb-8 leading-relaxed">
-                L’agenda AromaMade PRO permet de gérer vos formats collectifs :
+                L’agenda Olithea PRO permet de gérer vos formats collectifs :
                 <strong>atelier</strong>, <strong>stage</strong>, <strong>conférence</strong> ou autre événement ponctuel.
                 Vous choisissez le type, le mode (présentiel ou visio), les places disponibles et la publication.
             </p>
@@ -82,7 +82,7 @@ Créez ateliers et événements (présentiel ou visio), gérez places, réservat
                 </li>
                 <li class="mt-3">
                     <strong>Configurez la visio</strong><br>
-                    En mode visio, vous pouvez utiliser un lien externe ou générer un accès AromaMade selon le fournisseur sélectionné.
+                    En mode visio, vous pouvez utiliser un lien externe ou générer un accès Olithea selon le fournisseur sélectionné.
                 </li>
                 <li class="mt-3">
                     <strong>Activez ou non la réservation</strong><br>
@@ -107,7 +107,7 @@ Créez ateliers et événements (présentiel ou visio), gérez places, réservat
                 Bloquer l’agenda avec l’événement
             </h2>
             <p class="text-gray-600 leading-relaxed mb-8">
-                Si vous activez le blocage du calendrier lors de la création, AromaMade ajoute une indisponibilité
+                Si vous activez le blocage du calendrier lors de la création, Olithea ajoute une indisponibilité
                 sur la période de l’événement pour éviter les chevauchements avec vos rendez-vous individuels.
             </p>
 
@@ -125,7 +125,7 @@ Créez ateliers et événements (présentiel ou visio), gérez places, réservat
             </h2>
             <div class="text-gray-600 leading-relaxed mb-8">
                 <p><strong>Un événement peut-il être visible sans réservation ?</strong><br>Oui, vous pouvez publier un événement informatif sans activer la réservation en ligne.</p>
-                <p class="mt-3"><strong>Quelle solution visio choisir ?</strong><br>Vous pouvez utiliser un lien externe ou le mode AromaMade selon votre organisation.</p>
+                <p class="mt-3"><strong>Quelle solution visio choisir ?</strong><br>Vous pouvez utiliser un lien externe ou le mode Olithea selon votre organisation.</p>
                 <p class="mt-3"><strong>Pourquoi bloquer le calendrier ?</strong><br>Pour éviter qu’un rendez-vous individuel soit pris pendant votre atelier ou stage.</p>
             </div>
 

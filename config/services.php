@@ -14,11 +14,15 @@ return [
     |
     */
 	'jitsi' => [
-		'base_url' => env('JITSI_BASE_URL', 'https://visio.aromamade.com'),
+		'base_url' => env('JITSI_BASE_URL', 'https://visio.olithea.fr'),
 		'domain' => env('JITSI_DOMAIN'),
 		'app_id' => env('JITSI_APP_ID'),
         'secret' => env('JITSI_APP_SECRET'),
 	],
+    'social' => [
+        'facebook_url' => env('SOCIAL_FACEBOOK_URL', 'https://www.facebook.com/profile.php?id=100089128162095'),
+        'instagram_url' => env('SOCIAL_INSTAGRAM_URL'),
+    ],
     'stripe' => [
         'secret' => env('STRIPE_SECRET'),
 		'webhook' => env('STRIPE_WEBHOOK_SECRET'),

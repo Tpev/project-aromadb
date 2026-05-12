@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Modifier le cabinet') }}
         </h2>
     </x-slot>
@@ -32,7 +32,7 @@
                         <div>
                             <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ __('Cabinet partagé') }}</h3>
                             <p class="text-sm text-gray-600">
-                                {{ __('Invitez des thérapeutes déjà inscrits sur AromaMade pour partager ce cabinet. Une fois acceptée, la réservation d’un créneau au cabinet bloquera automatiquement ce même créneau pour tous les membres.') }}
+                                {{ __('Invitez des thérapeutes déjà inscrits sur Olithea pour partager ce cabinet. Une fois acceptée, la réservation d’un créneau au cabinet bloquera automatiquement ce même créneau pour tous les membres.') }}
                             </p>
                         </div>
 
@@ -44,7 +44,7 @@
                                         <label class="block text-sm font-medium mb-1">{{ __('Inviter un thérapeute (email du compte existant)') }}</label>
                                         <input type="email" name="email" value="{{ old('email') }}" class="w-full border rounded px-3 py-2" placeholder="therapeute@email.com" required>
                                     </div>
-                                    <button class="px-4 py-2 rounded-lg bg-[#647a0b] text-white hover:bg-[#8ea633] transition">
+                                    <button class="px-4 py-2 rounded-lg bg-[#6B4A3A] text-white hover:bg-[#4E5F3A] transition">
                                         {{ __('Envoyer l’invitation') }}
                                     </button>
                                 </form>

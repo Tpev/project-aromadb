@@ -26,7 +26,7 @@
 <p style="margin: 16px 0;">
     <a href="{{ $accessUrl }}"
        target="_blank"
-       style="display:inline-block;background:#647a0b;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:999px;font-weight:600;">
+       style="display:inline-block;background:#6B4A3A;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:999px;font-weight:600;">
         Accéder à la formation
     </a>
 </p>
@@ -38,7 +38,7 @@
 @if($practitionerEmail)
     <p style="font-size:12px;color:#6b7280;margin-top:14px;">
         Besoin d’aide ? Vous pouvez répondre à votre praticien :
-        <a href="mailto:{{ e($practitionerEmail) }}" style="color:#647a0b;text-decoration:underline;">
+        <a href="mailto:{{ e($practitionerEmail) }}" style="color:#6B4A3A;text-decoration:underline;">
             {{ e($practitionerEmail) }}
         </a>
     </p>

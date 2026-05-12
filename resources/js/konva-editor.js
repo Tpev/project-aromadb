@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 width: 160,
                 height: 100,
                 fill: '#e5f0c8',
-                stroke: '#647a0b',
+                stroke: '#6B4A3A',
                 strokeWidth: 1.5,
                 cornerRadius: 22,
                 draggable: true
@@ -772,12 +772,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            let stroke = selectedNode.stroke() || '#647a0b';
+            let stroke = selectedNode.stroke() || '#6B4A3A';
             if (shapeStrokeInput) {
                 if (typeof stroke === 'string' && /^#([0-9A-F]{3}){1,2}$/i.test(stroke)) {
                     shapeStrokeInput.value = stroke;
                 } else {
-                    shapeStrokeInput.value = '#647a0b';
+                    shapeStrokeInput.value = '#6B4A3A';
                 }
             }
 
@@ -793,9 +793,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (textFontFamily) {
                 const family = textNode.fontFamily() || '';
-                if (family.includes('Playfair')) {
+                if (family.includes('Cormorant')) {
                     textFontFamily.value = 'serif';
-                } else if (family.includes('Raleway')) {
+                } else if (family.includes('Montserrat')) {
                     textFontFamily.value = 'sans';
                 } else {
                     textFontFamily.value = 'system';
@@ -893,9 +893,9 @@ document.addEventListener('DOMContentLoaded', function () {
             withTextNode((textNode) => {
                 let font = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
                 if (textFontFamily.value === 'serif') {
-                    font = '"Playfair Display", "Times New Roman", serif';
+                    font = '"Cormorant Garamond", "Times New Roman", serif';
                 } else if (textFontFamily.value === 'sans') {
-                    font = '"Raleway", system-ui, -apple-system, sans-serif';
+                    font = '"Montserrat", system-ui, -apple-system, sans-serif';
                 }
                 textNode.fontFamily(font);
             });
@@ -1027,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x: stage.width() * 0.15,
             y: stage.height() * 0.27,
             width: stage.width() * 0.7,
-            fontFamily: '"Playfair Display", "Times New Roman", serif',
+            fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
             fontSize: 28,
             fill: '#111827',
             align: 'center',
@@ -1039,11 +1039,11 @@ document.addEventListener('DOMContentLoaded', function () {
         registerElement(quoteGroup, 'text', 'Citation');
 
         const authorText = new Konva.Text({
-            text: '— Votre nom / AromaMade',
+            text: '— Votre nom / Olithea',
             x: stage.width() * 0.2,
             y: stage.height() * 0.55,
             width: stage.width() * 0.6,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fill: '#6b7280',
             align: 'center'
@@ -1064,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', function () {
             y: 0,
             width: stage.width(),
             height: stage.height() * 0.18,
-            fill: '#647a0b'
+            fill: '#6B4A3A'
         });
         mainLayer.add(topBand);
         registerElement(topBand, 'shape-rect', 'Bande haute');
@@ -1074,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x: 0,
             y: stage.height() * 0.06,
             width: stage.width(),
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 22,
             fill: '#fefce8',
             align: 'center'
@@ -1103,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x: stage.width() * 0.12,
             y: stage.height() * 0.37,
             width: stage.width() * 0.76,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fill: '#9ca3af',
             align: 'center'
@@ -1129,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', function () {
             x: stage.width() * 0.18,
             y: stage.height() * 0.77,
             width: stage.width() * 0.64,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 18,
             fill: '#111827',
             align: 'center'
@@ -1167,7 +1167,7 @@ function addEventTemplate(eventData = null) {
         x: stage.width() * 0.08,
         y: stage.height() * 0.1,
         width: 110,
-        fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+        fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
         fontSize: 18,
         fill: '#92400e',
         align: 'center',
@@ -1183,7 +1183,7 @@ function addEventTemplate(eventData = null) {
         x: stage.width() * 0.25,
         y: stage.height() * 0.12,
         width: stage.width() * 0.65,
-        fontFamily: '"Playfair Display", "Times New Roman", serif',
+        fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
         fontSize: 24,
         fill: '#0f172a',
         align: 'left',
@@ -1205,7 +1205,7 @@ function addEventTemplate(eventData = null) {
         x: stage.width() * 0.25,
         y: stage.height() * 0.27,
         width: stage.width() * 0.65,
-        fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+        fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
         fontSize: 14,
         fill: '#4b5563',
         align: 'left',
@@ -1227,11 +1227,11 @@ function addEventTemplate(eventData = null) {
     registerElement(bottomRect, 'shape-rect', 'Bande bas');
 
     const urlText = new Konva.Text({
-        text: (eventData && eventData.url) || 'Réserver sur aromamade.com/pro/votrenom',
+        text: (eventData && eventData.url) || 'Réserver sur olithea.fr/pro/votrenom',
         x: 0,
         y: stage.height() * 0.89,
         width: stage.width(),
-        fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+        fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
         fontSize: 16,
         fill: '#f9fafb',
         align: 'center'
@@ -1310,7 +1310,7 @@ function applyEventToEventTemplate(eventData) {
             y: stage.height() * 0.23,
             radius: 36,
             fill: '#e5f0c8',
-            stroke: '#647a0b',
+            stroke: '#6B4A3A',
             strokeWidth: 1.5
         });
         mainLayer.add(avatarCircle);
@@ -1321,7 +1321,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.2,
             y: stage.height() * 0.3,
             width: stage.width() * 0.6,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 18,
             fill: '#111827',
             align: 'center'
@@ -1336,7 +1336,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.2,
             y: stage.height() * 0.34,
             width: stage.width() * 0.6,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 14,
             fill: '#6b7280',
             align: 'center'
@@ -1352,7 +1352,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.15,
             y: stage.height() * 0.43,
             width: stage.width() * 0.7,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fill: '#111827',
             align: 'left',
@@ -1386,7 +1386,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.1,
             y: stage.height() * 0.15,
             width: stage.width() * 0.8,
-            fontFamily: '"Playfair Display", "Times New Roman", serif',
+            fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
             fontSize: 24,
             fill: '#365314',
             align: 'center'
@@ -1403,7 +1403,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.12,
             y: stage.height() * 0.35,
             width: stage.width() * 0.76,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fill: '#111827',
             align: 'left',
@@ -1453,7 +1453,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.11,
             y: stage.height() * 0.16,
             width: stage.width() * 0.33,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fill: '#6b7280',
             align: 'center'
@@ -1468,7 +1468,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.56,
             y: stage.height() * 0.16,
             width: stage.width() * 0.33,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 16,
             fill: '#6b7280',
             align: 'center'
@@ -1483,7 +1483,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.1,
             y: stage.height() * 0.78,
             width: stage.width() * 0.8,
-            fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+            fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
             fontSize: 14,
             fill: '#4b5563',
             align: 'center'
@@ -1518,7 +1518,7 @@ function applyEventToEventTemplate(eventData) {
             x: stage.width() * 0.12,
             y: stage.height() * 0.16,
             width: stage.width() * 0.76,
-            fontFamily: '"Playfair Display", "Times New Roman", serif',
+            fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
             fontSize: 24,
             fill: '#111827',
             align: 'left'
@@ -1555,7 +1555,7 @@ function applyEventToEventTemplate(eventData) {
                 x: stage.width() * 0.16,
                 y: y - 2,
                 width: stage.width() * 0.7,
-                fontFamily: '"Raleway", system-ui, -apple-system, sans-serif',
+                fontFamily: '"Montserrat", system-ui, -apple-system, sans-serif',
                 fontSize: 15,
                 fill: '#111827',
                 align: 'left'
@@ -1631,7 +1631,7 @@ function applyEventToEventTemplate(eventData) {
             stage.draw();
 
             const link = document.createElement('a');
-            link.download = 'aromamade-social-post.png';
+            link.download = 'olithea-social-post.png';
             link.href = dataURL;
             document.body.appendChild(link);
             link.click();

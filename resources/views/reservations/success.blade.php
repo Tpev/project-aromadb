@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             <i class="fas fa-check-circle mr-2"></i>{{ __('Réservation Confirmée') }}
         </h2>
     </x-slot>
@@ -35,7 +35,7 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #fff;
             padding: 12px 25px;
             border: none;
@@ -49,7 +49,7 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         /* Animations */

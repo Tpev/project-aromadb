@@ -15,7 +15,7 @@
                     
                     <!-- Header -->
                     <tr>
-                        <td align="center" style="background-color: #647a0b; padding: 20px;">
+                        <td align="center" style="background-color: #6B4A3A; padding: 20px;">
                             <h1 style="color: #ffffff; margin: 0; font-size: 24px;">
                                 Nouvelle Demande d'Information
                             </h1>
@@ -28,7 +28,7 @@
                             
                             <!-- Additional Sentence -->
                             <p style="margin: 0 0 20px;">
-                                Cette demande d'information provient d'un utilisateur visitant votre page thérapeute sur <strong>AromaMade</strong>.
+                                Cette demande d'information provient d'un utilisateur visitant votre page thérapeute sur <strong>Olithea</strong>.
                             </p>
 
                             <p style="margin: 0 0 10px;">
@@ -63,7 +63,7 @@
                     <!-- Footer -->
                     <tr>
                         <td align="center" style="background-color: #f9fafb; padding: 15px;">
-                            <p style="margin: 0; font-size: 14px; color: #854f38;">
+                            <p style="margin: 0; font-size: 14px; color: #5F7048;">
                                 &copy; {{ date('Y') }}. Tous droits réservés.
                             </p>
                         </td>

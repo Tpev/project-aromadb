@@ -28,7 +28,7 @@ class TherapistInviteMail extends Mailable
             ?: $this->referrer->name
             ?: 'Un thérapeute';
 
-        return $this->subject($name . ' vous invite à rejoindre AromaMade PRO')
+        return $this->subject($name . ' vous invite à rejoindre Olithea PRO')
             ->markdown('emails.referrals.invite');
     }
 }

@@ -8,7 +8,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     {{ __('Construction du contenu') }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -19,12 +19,12 @@
             {{-- Step progress indicator --}}
             <div class="flex items-center gap-3 text-[11px] text-slate-500">
                 <div class="flex items-center gap-2">
-                    <div class="h-6 w-6 rounded-full bg-[#647a0b] text-white flex items-center justify-center text-[11px] font-semibold">1</div>
+                    <div class="h-6 w-6 rounded-full bg-[#6B4A3A] text-white flex items-center justify-center text-[11px] font-semibold">1</div>
                     <span class="font-semibold text-slate-800">{{ __('Configurer') }}</span>
                 </div>
                 <div class="h-px w-6 bg-slate-300"></div>
                 <div class="flex items-center gap-2">
-                    <div class="h-6 w-6 rounded-full bg-[#647a0b] text-white flex items-center justify-center text-[11px] font-semibold">2</div>
+                    <div class="h-6 w-6 rounded-full bg-[#6B4A3A] text-white flex items-center justify-center text-[11px] font-semibold">2</div>
                     <span class="font-semibold text-slate-800">{{ __('Construire le contenu') }}</span>
                 </div>
                 <div class="h-px w-6 bg-slate-300"></div>
@@ -72,7 +72,7 @@
                                 <img src="{{ asset('storage/'.$training->cover_image_path) }}"
                                      class="h-14 w-14 rounded-xl object-cover shadow-sm" alt="">
                             @else
-                                <div class="h-14 w-14 rounded-xl bg-[#647a0b]/10 flex items-center justify-center text-xs font-semibold text-[#647a0b]">
+                                <div class="h-14 w-14 rounded-xl bg-[#6B4A3A]/10 flex items-center justify-center text-xs font-semibold text-[#6B4A3A]">
                                     {{ __('AM') }}
                                 </div>
                             @endif
@@ -160,7 +160,7 @@
                                 💬 {{ __('Voir les commentaires') }}
                             </a>
                             <a href="{{ route('digital-trainings.preview', $training) }}"
-                               class="inline-flex items-center rounded-full bg-[#647a0b] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
+                               class="inline-flex items-center rounded-full bg-[#6B4A3A] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
                                 👀 {{ __('Prévisualiser la formation') }}
                             </a>
                         </div>
@@ -185,7 +185,7 @@
                                 </label>
                                 <input type="text" name="title"
                                        placeholder="Ex : Module 1 – Introduction"
-                                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40">
+                                       class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40">
                             </div>
                             <div>
                                 <label class="block text-[11px] text-slate-600 mb-1">
@@ -193,11 +193,11 @@
                                 </label>
                                 <textarea name="description" rows="2"
                                           placeholder="Ex : Présentation générale de la formation et objectifs."
-                                          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#647a0b]/40"></textarea>
+                                          class="w-full rounded-lg border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#6B4A3A]/40"></textarea>
                             </div>
                             <div class="flex justify-end">
                                 <button type="submit"
-                                        class="rounded-full bg-[#647a0b] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#506108]">
+                                        class="rounded-full bg-[#6B4A3A] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#506108]">
                                     + {{ __('Ajouter le module') }}
                                 </button>
                             </div>
@@ -309,10 +309,10 @@
                                                             @csrf
                                                             @method('PUT')
                                                             <input type="text" name="title" value="{{ $module->title }}"
-                                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                                    placeholder="{{ __('Titre du module') }}">
                                                             <textarea name="description" rows="2"
-                                                                      class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                                      class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                                       placeholder="{{ __('Description (facultatif)') }}">{{ $module->description }}</textarea>
                                                             <div class="flex justify-end gap-2">
                                                                 <button type="submit"
@@ -642,7 +642,7 @@
                                                     {{ __('Titre du contenu') }}
                                                 </label>
                                                 <input type="text" name="title" value="{{ $block->title }}"
-                                                       class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                       class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                        placeholder="{{ __('Ex : Vidéo d’introduction') }}">
                                             </div>
 
@@ -672,7 +672,7 @@
                                                             {{ __('URL de la vidéo (optionnel)') }}
                                                         </label>
                                                         <textarea name="content" rows="3"
-                                                                  class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                                  class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                                   placeholder="{{ __('Coller l’URL de votre vidéo (YouTube, Vimeo, etc.)') }}">{{ $block->content }}</textarea>
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Collez une URL publique (YouTube, Vimeo…).') }}
@@ -696,7 +696,7 @@
                                                         </label>
                                                         <input type="file" name="file"
                                                                accept="video/mp4,video/webm,video/quicktime,video/*"
-                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Formats conseillés : MP4 / WebM. Si un fichier est uploadé, il pourra être prioritaire à l’affichage.') }}
                                                         </p>
@@ -709,7 +709,7 @@
                                                             {{ __('URL audio (optionnel)') }}
                                                         </label>
                                                         <textarea name="content" rows="3"
-                                                                  class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                                  class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                                   placeholder="{{ __('Collez l’URL publique de votre audio si vous ne souhaitez pas uploader un fichier.') }}">{{ $block->content }}</textarea>
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Vous pouvez utiliser un simple lien audio public, ou laisser vide si vous uploadez un fichier.') }}
@@ -731,7 +731,7 @@
                                                         </label>
                                                         <input type="file" name="file"
                                                                accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/webm,audio/*"
-                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Formats conseillés : MP3, WAV, M4A, AAC, OGG. Si un fichier est uploadé, il sera prioritaire à la lecture.') }}
                                                             {{ __('Limite actuelle du serveur : :size.', ['size' => $audioUploadLimitLabel]) }}
@@ -754,7 +754,7 @@
                                                         </label>
                                                         <input type="file" name="file"
                                                                accept="application/pdf,.pdf"
-                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                               class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Le PDF sera affiché en grand dans un lecteur intégré côté client.') }}
                                                         </p>
@@ -769,7 +769,7 @@
                                                            name="comments_enabled"
                                                            value="1"
                                                            @checked($block->commentsEnabled())
-                                                           class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                           class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]">
                                                     <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
                                                 </label>
                                                 <p class="mt-1 text-[10px] text-slate-500">
@@ -785,7 +785,7 @@
                                                 </button>
                                                 <div class="flex gap-2">
                                                     <button type="submit"
-                                                            class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
+                                                            class="rounded-md bg-[#6B4A3A] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
                                                         {{ __('Enregistrer les modifications') }}
                                                     </button>
                                                 </div>
@@ -826,7 +826,7 @@
                                                 {{ __('Titre du contenu') }}
                                             </label>
                                             <input type="text" name="title"
-                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                    placeholder="{{ __('Ex : Introduction au stress') }}">
                                         </div>
 
@@ -852,7 +852,7 @@
                                                 <input type="checkbox"
                                                        name="comments_enabled"
                                                        value="1"
-                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                       class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]">
                                                 <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
                                             </label>
                                             <p class="mt-1 text-[10px] text-slate-500">
@@ -868,7 +868,7 @@
                                             </button>
                                             <div class="flex gap-2">
                                                 <button type="submit"
-                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
+                                                        class="rounded-md bg-[#6B4A3A] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
                                                     {{ __('Créer ce contenu') }}
                                                 </button>
                                             </div>
@@ -904,7 +904,7 @@
                                                 {{ __('Titre du contenu') }}
                                             </label>
                                             <input type="text" name="title"
-                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                    placeholder="{{ __('Ex : Vidéo d’introduction') }}">
                                         </div>
 
@@ -914,7 +914,7 @@
                                                 {{ __('URL de la vidéo (optionnel)') }}
                                             </label>
                                             <textarea name="content" rows="3"
-                                                      class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                      class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                       placeholder="{{ __('Coller l’URL de votre vidéo (YouTube, Vimeo, etc.)') }}"></textarea>
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Collez une URL publique (YouTube, Vimeo…). Si vous uploadez un fichier, l’URL peut rester vide.') }}
@@ -928,7 +928,7 @@
                                             </label>
                                             <input type="file" name="file"
                                                    accept="video/mp4,video/webm,video/quicktime,video/*"
-                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Formats conseillés : MP4 / WebM. Vous pouvez aussi utiliser uniquement une URL.') }}
                                                 {{ __('Limite actuelle du serveur : :size.', ['size' => $videoUploadLimitLabel]) }}
@@ -942,7 +942,7 @@
                                                 <span class="font-semibold" data-upload-percent>0%</span>
                                             </div>
                                             <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
-                                                <div class="h-2 rounded-full bg-[#647a0b]" style="width:0%" data-upload-bar></div>
+                                                <div class="h-2 rounded-full bg-[#6B4A3A]" style="width:0%" data-upload-bar></div>
                                             </div>
                                             <div class="mt-2 text-[11px] text-slate-500" data-upload-detail></div>
                                         </div>
@@ -956,7 +956,7 @@
                                                 <input type="checkbox"
                                                        name="comments_enabled"
                                                        value="1"
-                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                       class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]">
                                                 <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
                                             </label>
                                             <p class="mt-1 text-[10px] text-slate-500">
@@ -972,7 +972,7 @@
                                             </button>
                                             <div class="flex gap-2">
                                                 <button type="submit"
-                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]"
+                                                        class="rounded-md bg-[#6B4A3A] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]"
                                                         data-upload-submit>
                                                     {{ __('Créer ce contenu') }}
                                                 </button>
@@ -1009,7 +1009,7 @@
                                                 {{ __('Titre du contenu') }}
                                             </label>
                                             <input type="text" name="title"
-                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                    placeholder="{{ __('Ex : Méditation guidée') }}">
                                         </div>
 
@@ -1018,7 +1018,7 @@
                                                 {{ __('URL audio (optionnel)') }}
                                             </label>
                                             <textarea name="content" rows="3"
-                                                      class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                      class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                       placeholder="{{ __('Collez l’URL publique de votre audio si vous ne souhaitez pas uploader un fichier.') }}"></textarea>
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Vous pouvez utiliser un lien audio public, ou laisser vide si vous uploadez directement un fichier.') }}
@@ -1031,7 +1031,7 @@
                                             </label>
                                             <input type="file" name="file"
                                                    accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/webm,audio/*"
-                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Formats conseillés : MP3, WAV, M4A, AAC, OGG. Vous pouvez aussi utiliser uniquement une URL.') }}
                                                 {{ __('Limite actuelle du serveur : :size.', ['size' => $audioUploadLimitLabel]) }}
@@ -1044,7 +1044,7 @@
                                                 <span class="font-semibold" data-upload-percent>0%</span>
                                             </div>
                                             <div class="h-2 rounded-full bg-slate-200 overflow-hidden">
-                                                <div class="h-2 rounded-full bg-[#647a0b]" style="width:0%" data-upload-bar></div>
+                                                <div class="h-2 rounded-full bg-[#6B4A3A]" style="width:0%" data-upload-bar></div>
                                             </div>
                                             <div class="mt-2 text-[11px] text-slate-500" data-upload-detail></div>
                                         </div>
@@ -1057,7 +1057,7 @@
                                                 <input type="checkbox"
                                                        name="comments_enabled"
                                                        value="1"
-                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                       class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]">
                                                 <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
                                             </label>
                                             <p class="mt-1 text-[10px] text-slate-500">
@@ -1073,7 +1073,7 @@
                                             </button>
                                             <div class="flex gap-2">
                                                 <button type="submit"
-                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]"
+                                                        class="rounded-md bg-[#6B4A3A] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]"
                                                         data-upload-submit>
                                                     {{ __('Créer ce contenu') }}
                                                 </button>
@@ -1107,7 +1107,7 @@
                                                 {{ __('Titre du contenu') }}
                                             </label>
                                             <input type="text" name="title"
-                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#647a0b]/40"
+                                                   class="w-full rounded-md border border-slate-200 px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[#6B4A3A]/40"
                                                    placeholder="{{ __('Ex : Guide PDF à télécharger') }}">
                                         </div>
 
@@ -1117,7 +1117,7 @@
                                             </label>
                                             <input type="file" name="file"
                                                    accept="application/pdf,.pdf"
-                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
+                                                   class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#6B4A3A] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Le document sera consultable directement dans un lecteur PDF intégré côté client.') }}
                                             </p>
@@ -1129,7 +1129,7 @@
                                                 <input type="checkbox"
                                                        name="comments_enabled"
                                                        value="1"
-                                                       class="rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]">
+                                                       class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]">
                                                 <span>{{ __('Autoriser les commentaires sur ce contenu') }}</span>
                                             </label>
                                             <p class="mt-1 text-[10px] text-slate-500">
@@ -1145,7 +1145,7 @@
                                             </button>
                                             <div class="flex gap-2">
                                                 <button type="submit"
-                                                        class="rounded-md bg-[#647a0b] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
+                                                        class="rounded-md bg-[#6B4A3A] px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-[#506108]">
                                                     {{ __('Créer ce contenu') }}
                                                 </button>
                                             </div>

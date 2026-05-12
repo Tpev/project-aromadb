@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Questionnaires & formulaires | Pré-séance, suivi, consentements | AromaMade PRO')
+    @section('title', 'Questionnaires & formulaires | Pré-séance, suivi, consentements | Olithea PRO')
     @section('meta_description')
 Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-séance, consentements signés (SES), pièces jointes. Envoi par email, lien privé sécurisé sans compte, réponses rangées dans le dossier client, exports PDF/CSV. Données hébergées en France (HDS), conforme RGPD.
     @endsection
@@ -7,7 +7,7 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
     @push('styles')
         <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('css/feature-agenda.css') }}">
     @endpush
 
@@ -30,7 +30,7 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essai gratuit 14 jours</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea PRO</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -208,7 +208,7 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
                     <h3 style="
                         font-size:1.5rem;
                         font-weight:700;
-                        color:#647a0b;
+                        color:#6B4A3A;
                         margin-bottom:8px;
                     ">
                         Vous êtes praticien ? Découvrez la page dédiée à votre métier
@@ -219,7 +219,7 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea PRO s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>
@@ -237,16 +237,16 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🌿 Logiciel naturopathe
                     </a>
@@ -259,16 +259,16 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
                            gap:8px;
                            padding:10px 16px;
                            border-radius:999px;
-                           background:rgba(100,122,11,.08);
-                           border:1px solid rgba(100,122,11,.2);
-                           color:#647a0b;
+                           background:rgba(167, 184, 138,.08);
+                           border:1px solid rgba(167, 184, 138,.2);
+                           color:#6B4A3A;
                            font-weight:700;
                            font-size:.95rem;
                            text-decoration:none;
                            transition:all .25s ease;
                        "
-                       onmouseover="this.style.background='rgba(100,122,11,.15)'"
-                       onmouseout="this.style.background='rgba(100,122,11,.08)'"
+                       onmouseover="this.style.background='rgba(167, 184, 138,.15)'"
+                       onmouseout="this.style.background='rgba(167, 184, 138,.08)'"
                     >
                         🧘 Logiciel sophrologue
                     </a>

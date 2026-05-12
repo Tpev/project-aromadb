@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Cabinets & Lieux') }}
         </h2>
     </x-slot>
@@ -24,7 +24,7 @@
                     {{ __('Gérez vos adresses de cabinet (utilisées par les disponibilités et rendez-vous).') }}
                 </p>
                 <a href="{{ route('practice-locations.create') }}"
-                   class="inline-flex items-center px-4 py-2 rounded-lg bg-[#647a0b] text-white hover:bg-[#8ea633] transition">
+                   class="inline-flex items-center px-4 py-2 rounded-lg bg-[#6B4A3A] text-white hover:bg-[#4E5F3A] transition">
                     + {{ __('Nouveau cabinet') }}
                 </a>
             </div>

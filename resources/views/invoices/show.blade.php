@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Détails de la facture') }} – #{{ $invoice->invoice_number }}
         </h2>
     </x-slot>
@@ -650,7 +650,7 @@
         .actions-bar { display:flex; gap:8px; flex-wrap:wrap; }
 
         .details-title, .details-subtitle {
-            font-size:2rem; font-weight:700; color:#647a0b; margin:0;
+            font-size:2rem; font-weight:700; color:#6B4A3A; margin:0;
         }
         .details-subtitle { margin: 20px 0; text-align:left; }
 
@@ -667,7 +667,7 @@
             background:#fff; border-radius:10px; padding:12px 16px; box-shadow:0 2px 8px rgba(0,0,0,.05);
             min-width: 200px;
         }
-        .kpi-label{ margin:0; color:#647a0b; font-weight:600; }
+        .kpi-label{ margin:0; color:#6B4A3A; font-weight:600; }
         .kpi-value{ margin:4px 0 0; font-weight:700; font-size:1.1rem; color:#333; }
         .text-danger{ color:#c0392b !important; }
         .text-ok{ color:#1e7e34 !important; }
@@ -678,16 +678,16 @@
             padding:20px; transition:.3s; width:100%;
         }
         .invoice-box:hover{ transform: translateY(-2px); }
-        .icon{ font-size:2rem; color:#854f38; margin-right:15px; min-width:40px; text-align:center; }
+        .icon{ font-size:2rem; color:#5F7048; margin-right:15px; min-width:40px; text-align:center; }
         .invoice-details{ text-align:left; flex:1; }
-        .invoice-label{ font-weight:700; color:#647a0b; margin:0; }
+        .invoice-label{ font-weight:700; color:#6B4A3A; margin:0; }
         .invoice-value{ color:#333; font-size:1rem; margin:5px 0 0 0; }
 
         .table-responsive{ background:#fff; border-radius:8px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-top:20px; }
 
         .am-table{ width:100%; border-collapse:collapse; }
         .am-table th, .am-table td{ padding:12px 15px; text-align:left; border-bottom:1px solid #eee; }
-        .am-table thead{ background:#647a0b; color:#fff; }
+        .am-table thead{ background:#6B4A3A; color:#fff; }
         .am-table tbody tr:hover{ background:#f9faf5; }
         .text-right{ text-align:right; }
 
@@ -703,16 +703,16 @@
             padding:10px 16px; border-radius:8px; text-decoration:none; display:inline-flex; gap:8px; align-items:center;
             cursor:pointer; margin:5px; transition: all .25s ease; font-weight:600;
         }
-        .btn-primary{ background:#647a0b; color:#fff; border:none; }
+        .btn-primary{ background:#6B4A3A; color:#fff; border:none; }
         .btn-primary:hover{ background:#566f09; }
-        .btn-secondary{ background:transparent; color:#854f38; border:1px solid #854f38; }
-        .btn-secondary:hover{ background:#854f38; color:#fff; }
+        .btn-secondary{ background:transparent; color:#5F7048; border:1px solid #5F7048; }
+        .btn-secondary:hover{ background:#5F7048; color:#fff; }
         .btn-xs{ padding:6px 10px; font-size:.9rem; border-radius:6px; }
 
         .email-sent-indicator{ font-size:1rem; color:#28a745; display:inline-flex; align-items:center; gap:6px; }
 
         .link-toggle{
-            background:transparent; border:none; color:#647a0b; font-weight:600; cursor:pointer; display:inline-flex; gap:8px; align-items:center;
+            background:transparent; border:none; color:#6B4A3A; font-weight:600; cursor:pointer; display:inline-flex; gap:8px; align-items:center;
             padding:6px 0;
         }
 
@@ -742,7 +742,7 @@
         .form-control{
             border:1px solid #ddd; border-radius:8px; padding:10px 12px; background:#fff; outline:none;
         }
-        .form-control:focus{ border-color:#647a0b; box-shadow:0 0 0 3px rgba(100,122,11,.15); }
+        .form-control:focus{ border-color:#6B4A3A; box-shadow:0 0 0 3px rgba(167, 184, 138,.15); }
 
         @media (max-width: 992px){
             .invoice-info-boxes .col-md-4{ flex:0 0 100%; max-width:100%; }

@@ -1,7 +1,7 @@
 {{-- resources/views/events/index.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Liste des Événements') }}
         </h2>
     </x-slot>
@@ -48,7 +48,7 @@
         class="form-control"
         placeholder="{{ __('Recherche par nom...') }}"
         onkeyup="filterTable()"
-        style="border-color: #854f38; max-width: 300px; margin-bottom: 10px;"
+        style="border-color: #5F7048; max-width: 300px; margin-bottom: 10px;"
     >
 
     {{-- Button + pill wrapper --}}
@@ -88,7 +88,7 @@
                 padding: 2px 8px;
                 font-size: 9px;
                 font-weight: 600;
-                color: #854f38;
+                color: #5F7048;
                 display: inline-flex;
                 align-items: center;
                 gap: 4px;
@@ -188,8 +188,8 @@
         }
 
         .btn-primary {
-            background-color: #647a0b;
-            border-color: #647a0b;
+            background-color: #6B4A3A;
+            border-color: #6B4A3A;
             color: #ffffff;
             padding: 10px 20px;
             border-radius: 5px;
@@ -199,8 +199,8 @@
         }
 
         .btn-primary:hover {
-            background-color: #854f38;
-            border-color: #854f38;
+            background-color: #5F7048;
+            border-color: #5F7048;
         }
 
         .table-responsive {
@@ -217,7 +217,7 @@
         }
 
         .table thead {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             cursor: pointer;
         }
@@ -238,7 +238,7 @@
         }
 
         .table tbody tr:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
             color: #ffffff;
             transform: scale(1.02);
         }
@@ -252,14 +252,14 @@
         .page-title {
             font-size: 2rem;
             font-weight: 600;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
         }
 
         .table-title {
             font-size: 1.5rem;
             font-weight: 600;
-            color: #854f38;
+            color: #5F7048;
             margin-bottom: 15px;
             text-align: left;
         }
@@ -267,7 +267,7 @@
         #search {
             padding: 10px;
             border-radius: 5px;
-            border: 1px solid #854f38;
+            border: 1px solid #5F7048;
             margin-right: 15px;
             max-width: 100%;
         }

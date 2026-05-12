@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     Studio Social Media (beta)
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -15,7 +15,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Playfair+Display:wght@600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     @include('tools.konva.partials.styles')
 
@@ -24,7 +24,7 @@
             <div class="editor-toolbar mb-4">
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p class="editor-meta-label">AromaMade - Outil creatif</p>
+                        <p class="editor-meta-label">Olithea - Outil creatif</p>
                         <h1 class="mt-1 text-2xl font-semibold text-slate-900 md:text-3xl">
                             Studio visuel
                         </h1>

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ $recette->NomRecette }}
         </h2>
 		@section('title', 'Recette ' . $recette->NomRecette . ' (' .  $recette->TypeApplication  . ')')
@@ -22,15 +22,15 @@
                         @csrf
                         <button type="submit" class="btn btn-favorite" id="favorite-btn">
                             @if(auth()->user()->favorites->contains('favoritable_id', $recette->id) && auth()->user()->favorites->contains('favoritable_type', 'App\Models\Recette'))
-                                <i class="fas fa-heart" style="color: #854f38;"></i> <span>Retirer des Favoris</span>
+                                <i class="fas fa-heart" style="color: #5F7048;"></i> <span>Retirer des Favoris</span>
                             @else
-                                <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
+                                <i class="far fa-heart" style="color: #5F7048;"></i> <span>Ajouter aux Favoris</span>
                             @endif
                         </button>
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-favorite" id="favorite-btn">
-                        <i class="far fa-heart" style="color: #854f38;"></i> <span>Ajouter aux Favoris</span>
+                        <i class="far fa-heart" style="color: #5F7048;"></i> <span>Ajouter aux Favoris</span>
                     </a>
                 @endauth
             </div>
@@ -57,9 +57,9 @@
                 .then(data => {
                     if (data.success) {
                         if (data.action === 'added') {
-                            favoriteBtn.innerHTML = '<i class="fas fa-heart" style="color: #854f38;"></i> <span>Remove from Favorites</span>';
+                            favoriteBtn.innerHTML = '<i class="fas fa-heart" style="color: #5F7048;"></i> <span>Remove from Favorites</span>';
                         } else if (data.action === 'removed') {
-                            favoriteBtn.innerHTML = '<i class="far fa-heart" style="color: #854f38;"></i> <span>Add to Favorites</span>';
+                            favoriteBtn.innerHTML = '<i class="far fa-heart" style="color: #5F7048;"></i> <span>Add to Favorites</span>';
                         }
                     }
                 })
@@ -71,14 +71,14 @@
             <!-- Recipe General Information -->
             <div class="col-md-6">
                 <div class="details-box">
-                    <label class="details-label"><i class="fas fa-syringe" style="color: #647a0b;"></i> Type Application</label>
+                    <label class="details-label"><i class="fas fa-syringe" style="color: #6B4A3A;"></i> Type Application</label>
                     <p class="details-value">{{ $recette->TypeApplication }}</p>
                 </div>
             </div>
 
             <!-- Ingredients Section with Accordion for HuileHE, HuileHV, and Tisane -->
             <div class="details-box">
-                <label class="details-label"><i class="fas fa-vial" style="color: #647a0b;"></i> Ingredients</label>
+                <label class="details-label"><i class="fas fa-vial" style="color: #6B4A3A;"></i> Ingredients</label>
 
                 @if(count($parsed_ingredients_he) > 0)
                     <h2 class="section-title">Huile Essentielle (HE)</h2>
@@ -95,14 +95,14 @@
 
                             <div class="custom-accordion">
 								<div class="accordion-content">
-									<p><strong><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
-									<p><strong><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
-									<p><strong><i class="fas fa-vial" style="color: #647a0b;"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
-									<p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
-									<p><strong><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
-									<p><strong><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
-									<p><strong><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
-									<p><strong><i class="fas fa-align-left" style="color: #647a0b;"></i> Description:</strong> {{ $ingredient['huile']->Description ?? 'None' }}</p>
+									<p><strong><i class="fas fa-globe" style="color: #6B4A3A;"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
+									<p><strong><i class="fas fa-seedling" style="color: #6B4A3A;"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
+									<p><strong><i class="fas fa-vial" style="color: #6B4A3A;"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
+									<p><strong><i class="fas fa-capsules" style="color: #6B4A3A;"></i> Propriétés:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
+									<p><strong><i class="fas fa-stethoscope" style="color: #6B4A3A;"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
+									<p><strong><i class="fas fa-exclamation-circle" style="color: #6B4A3A;"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
+									<p><strong><i class="fas fa-info-circle" style="color: #6B4A3A;"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
+									<p><strong><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Description:</strong> {{ $ingredient['huile']->Description ?? 'None' }}</p>
 
 									<!-- Redirect Button to HuileHE Page -->
 									<a href="{{ route('huilehes.show', $ingredient['huile']->slug) }}" class="btn btn-theme mt-3">Voir plus sur {{ $ingredient['huile']->NomHE }}</a>
@@ -128,14 +128,14 @@
 
                             <div class="custom-accordion">
                                 <div class="accordion-content">
-                                    <p><strong><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-vial" style="color: #647a0b;"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
-                                    <p><strong><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
-                                    <p><strong><i class="fas fa-align-left" style="color: #647a0b;"></i> Description:</strong> {{ $ingredient['huile']->Description ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-globe" style="color: #6B4A3A;"></i> Provenance:</strong> {{ $ingredient['huile']->Provenance ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-seedling" style="color: #6B4A3A;"></i> Organe Producteur:</strong> {{ $ingredient['huile']->OrganeProducteur ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-vial" style="color: #6B4A3A;"></i> Substances (Sb):</strong> {{ $ingredient['huile']->Sb ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules" style="color: #6B4A3A;"></i> Propriétés:</strong> {{ $ingredient['huile']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-stethoscope" style="color: #6B4A3A;"></i> Indications:</strong> {{ $ingredient['huile']->Indications ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-exclamation-circle" style="color: #6B4A3A;"></i> Contre Indications:</strong> {{ $ingredient['huile']->ContreIndications ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-info-circle" style="color: #6B4A3A;"></i> Note:</strong> {{ $ingredient['huile']->Note ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Description:</strong> {{ $ingredient['huile']->Description ?? 'None' }}</p>
                                 <!-- Redirect Button to HuileHV Page -->
 									<a href="{{ route('huilehvs.show', $ingredient['huile']->slug) }}" class="btn btn-theme mt-3">Voir plus sur {{ $ingredient['huile']->NomHV }}</a>
 								</div>
@@ -159,14 +159,14 @@
 
                             <div class="custom-accordion">
                                 <div class="accordion-content">
-                                    <p><strong><i class="fas fa-globe" style="color: #647a0b;"></i> Provenance:</strong> {{ $ingredient['tisane']->Provenance ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-seedling" style="color: #647a0b;"></i> Organe Producteur:</strong> {{ $ingredient['tisane']->OrganeProducteur ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-vial" style="color: #647a0b;"></i> Substances (Sb):</strong> {{ $ingredient['tisane']->Sb ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-capsules" style="color: #647a0b;"></i> Propriétés:</strong> {{ $ingredient['tisane']->Properties ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-stethoscope" style="color: #647a0b;"></i> Indications:</strong> {{ $ingredient['tisane']->Indications ?? 'Unknown' }}</p>
-                                    <p><strong><i class="fas fa-exclamation-circle" style="color: #647a0b;"></i> Contre Indications:</strong> {{ $ingredient['tisane']->ContreIndications ?? 'None' }}</p>
-                                    <p><strong><i class="fas fa-info-circle" style="color: #647a0b;"></i> Note:</strong> {{ $ingredient['tisane']->Note ?? 'None' }}</p>
-                                    <p><strong><i class="fas fa-align-left" style="color: #647a0b;"></i> Description:</strong> {{ $ingredient['tisane']->Description ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-globe" style="color: #6B4A3A;"></i> Provenance:</strong> {{ $ingredient['tisane']->Provenance ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-seedling" style="color: #6B4A3A;"></i> Organe Producteur:</strong> {{ $ingredient['tisane']->OrganeProducteur ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-vial" style="color: #6B4A3A;"></i> Substances (Sb):</strong> {{ $ingredient['tisane']->Sb ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-capsules" style="color: #6B4A3A;"></i> Propriétés:</strong> {{ $ingredient['tisane']->Properties ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-stethoscope" style="color: #6B4A3A;"></i> Indications:</strong> {{ $ingredient['tisane']->Indications ?? 'Unknown' }}</p>
+                                    <p><strong><i class="fas fa-exclamation-circle" style="color: #6B4A3A;"></i> Contre Indications:</strong> {{ $ingredient['tisane']->ContreIndications ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-info-circle" style="color: #6B4A3A;"></i> Note:</strong> {{ $ingredient['tisane']->Note ?? 'None' }}</p>
+                                    <p><strong><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Description:</strong> {{ $ingredient['tisane']->Description ?? 'None' }}</p>
                                   <!-- Redirect Button to Tisane Page -->
 									<a href="{{ route('tisane.show', $ingredient['tisane']->slug) }}" class="btn btn-theme mt-3">Voir plus sur {{ $ingredient['tisane']->NomTisane }}</a>
 								
@@ -180,7 +180,7 @@
             <!-- Contre Indications Summary -->
             @if(count($all_contre_indications) > 0)
                 <div class="details-box">
-                    <label class="details-label"><i class="fas fa-exclamation-triangle" style="color: #647a0b;"></i> Contre Indications</label>
+                    <label class="details-label"><i class="fas fa-exclamation-triangle" style="color: #6B4A3A;"></i> Contre Indications</label>
                     <ul class="details-list">
                         @foreach($all_contre_indications as $contreIndication)
                             <li>{{ $contreIndication }}</li>
@@ -191,13 +191,13 @@
 
             <!-- Explication section after ingredients and contre indications -->
             <div class="details-box">
-                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Explication</label>
+                <label class="details-label"><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Explication</label>
                 <p class="details-value">{{ $recette->Explication }}</p>
             </div>            
 			
 			<!-- Explication section after ingredients and contre indications -->
             <div class="details-box">
-                <label class="details-label"><i class="fas fa-align-left" style="color: #647a0b;"></i> Note</label>
+                <label class="details-label"><i class="fas fa-align-left" style="color: #6B4A3A;"></i> Note</label>
                 <p class="details-value">{{ $recette->note }}</p>
             </div>
 
@@ -220,9 +220,9 @@
 }
 
 .btn-theme {
-    background-color: #647a0b; /* Green theme color */
+    background-color: #6B4A3A; /* Green theme color */
     color: #ffffff; /* White text */
-    border: 1px solid #647a0b; /* Matching border color */
+    border: 1px solid #6B4A3A; /* Matching border color */
     padding: 5px 10px; /* Add padding for better appearance */
     border-radius: 5px; /* Slightly rounded corners */
     font-size: 0.875rem; /* Slightly smaller font for the button */
@@ -230,8 +230,8 @@
 }
 
 .btn-theme:hover {
-    background-color: #854f38; /* Brown hover color */
-    border-color: #854f38; /* Match the border to hover color */
+    background-color: #5F7048; /* Brown hover color */
+    border-color: #5F7048; /* Match the border to hover color */
     color: #ffffff; /* White text on hover */
 }
 
@@ -262,7 +262,7 @@
         .details-title {
             font-size: 2rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 30px;
             text-align: center;
         }
@@ -292,7 +292,7 @@
         .section-title {
             font-size: 1.5rem;
             font-weight: bold;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 10px;
         }
 

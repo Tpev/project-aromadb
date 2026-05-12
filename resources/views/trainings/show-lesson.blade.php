@@ -1,7 +1,7 @@
 <!-- resources/views/trainings/show-lesson.blade.php -->
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-3xl font-bold text-[#647a0b] leading-tight">
+        <h2 class="text-3xl font-bold text-[#6B4A3A] leading-tight">
             {{ $training->title }}
         </h2>
     </x-slot>
@@ -11,7 +11,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <!-- LEFT SIDEBAR (Chapters & Lessons Menu) -->
             <nav class="col-span-1 bg-white shadow-lg rounded-lg p-4">
-                <h3 class="text-xl font-bold mb-4 text-[#854f38]">Chapitres</h3>
+                <h3 class="text-xl font-bold mb-4 text-[#5F7048]">Chapitres</h3>
                 @foreach($training->chapters as $c)
                     <div class="mb-4">
                         <!-- Chapter Title -->
@@ -26,9 +26,9 @@
                                         href="{{ route('trainings.show-lesson', [$training, $l]) }}"
                                         class="block px-2 py-1 rounded
                                             @if($l->id === $lesson->id)
-                                                bg-[#854f38] text-white
+                                                bg-[#5F7048] text-white
                                             @else
-                                                text-gray-700 hover:bg-[#854f38] hover:text-white
+                                                text-gray-700 hover:bg-[#5F7048] hover:text-white
                                             @endif
                                         "
                                     >
@@ -45,7 +45,7 @@
             <div class="col-span-1 md:col-span-3">
                 <!-- Card container for the lesson content -->
                 <article class="bg-white shadow-lg rounded-lg p-6 mb-6">
-                    <h3 class="text-2xl font-bold mb-4 text-[#647a0b]">
+                    <h3 class="text-2xl font-bold mb-4 text-[#6B4A3A]">
                         {{ $lesson->title }}
                     </h3>
                     <div class="prose leading-relaxed text-gray-700">
@@ -99,11 +99,11 @@
             text-decoration: none;
         }
         .btn-primary {
-            background-color: #647a0b; /* Primary brand color */
+            background-color: #6B4A3A; /* Primary brand color */
             color: #ffffff;
         }
         .btn-primary:hover {
-            background-color: #8ea633;
+            background-color: #4E5F3A;
         }
         .opacity-50.pointer-events-none {
             cursor: not-allowed;

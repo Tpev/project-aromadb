@@ -1,7 +1,7 @@
-ï»¿@php
+@php
     $a = $appointment;
     $clientName = trim(($a->clientProfile?->first_name ?? '').' '.($a->clientProfile?->last_name ?? ''));
-    $therapistName = $a->user?->company_name ?? $a->user?->name ?? 'Votre thÃ©rapeute';
+    $therapistName = $a->user?->company_name ?? $a->user?->name ?? 'Votre thérapeute';
     $dateStr = $a->appointment_date ? $a->appointment_date->format('d/m/Y') : '';
     $timeStr = $a->appointment_date ? $a->appointment_date->format('H:i') : '';
     $product = $a->product?->name;
@@ -10,13 +10,13 @@
 <p>Bonjour {{ $therapistName }},</p>
 
 <p>
-    Un client vient dâ€™annuler un rendez-vous depuis son lien de confirmation.
+    Un client vient d’annuler un rendez-vous depuis son lien de confirmation.
 </p>
 
 <ul>
-    <li><strong>Client :</strong> {{ $clientName ?: 'â€”' }}</li>
-    <li><strong>Date :</strong> {{ $dateStr }} Ã  {{ $timeStr }}</li>
-    <li><strong>DurÃ©e :</strong> {{ $a->duration }} min</li>
+    <li><strong>Client :</strong> {{ $clientName ?: '—' }}</li>
+    <li><strong>Date :</strong> {{ $dateStr }} à {{ $timeStr }}</li>
+    <li><strong>Durée :</strong> {{ $a->duration }} min</li>
     @if($product)
         <li><strong>Prestation :</strong> {{ $product }}</li>
     @endif
@@ -29,12 +29,12 @@
 @if(!empty($appointmentUrl))
 <p style="margin: 18px 0;">
     <a href="{{ $appointmentUrl }}"
-       style="display:inline-block;background:#647a0b;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;">
-        Voir le rendez-vous dans lâ€™agenda
+       style="display:inline-block;background:#6B4A3A;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;">
+        Voir le rendez-vous dans l’agenda
     </a>
 </p>
 @endif
 
 <p style="margin-top: 16px;">
-    â€” AromaMade PRO
+    — Olithea PRO
 </p>

@@ -3,8 +3,8 @@
 
         <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
-                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#854f38]">
-                    <span class="rounded-full border border-[#d8dfc7] bg-[#f7faef] px-4 py-1.5 text-[#647a0b]">Communauté privée</span>
+                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#5F7048]">
+                    <span class="rounded-full border border-[#d8dfc7] bg-[#f7faef] px-4 py-1.5 text-[#6B4A3A]">Communauté privée</span>
                     <span>{{ $community->channels->count() }} salons</span>
                     <span>{{ $community->members->where('status', \App\Models\CommunityMember::STATUS_ACTIVE)->count() }} membres actifs</span>
                 </div>
@@ -14,10 +14,10 @@
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('communities.manage', $community) }}" class="inline-flex items-center rounded-full bg-[#647a0b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#55670a]">
+                <a href="{{ route('communities.manage', $community) }}" class="inline-flex items-center rounded-full bg-[#6B4A3A] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#55670a]">
                     Gérer la communauté
                 </a>
-                <a href="{{ route('communities.edit', $community) }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                <a href="{{ route('communities.edit', $community) }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-[#6B4A3A] hover:text-[#6B4A3A]">
                     Réglages
                 </a>
                 <a href="{{ route('communities.index') }}" class="inline-flex items-center rounded-full bg-[#f4f5ef] px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-[#ebede4] hover:text-gray-800">
@@ -48,7 +48,7 @@
                     <div class="px-5 py-5">
                         <div class="flex items-center justify-between">
                             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Salons</p>
-                            <span class="rounded-full bg-[#f7faef] px-3 py-1 text-xs font-semibold text-[#647a0b]">{{ $community->channels->count() }}</span>
+                            <span class="rounded-full bg-[#f7faef] px-3 py-1 text-xs font-semibold text-[#6B4A3A]">{{ $community->channels->count() }}</span>
                         </div>
                         <div class="mt-4 space-y-3">
                             @foreach($community->channels as $channel)
@@ -65,7 +65,7 @@
                                                 <div class="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold text-amber-700">1 ressource épinglée</div>
                                             @endif
                                         </div>
-                                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl {{ $channel->channel_type === 'annonces' ? 'bg-[#854f38] text-white' : 'bg-white text-[#647a0b]' }} shadow-sm">
+                                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl {{ $channel->channel_type === 'annonces' ? 'bg-[#5F7048] text-white' : 'bg-white text-[#6B4A3A]' }} shadow-sm">
                                             {{ $channel->channel_type === 'annonces' ? '!' : '#' }}
                                         </span>
                                     </div>
@@ -81,7 +81,7 @@
                     <div class="border-b border-[#f0f1ea] px-6 py-5">
                         <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                             <div class="flex items-start gap-4">
-                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl {{ $selectedChannel->channel_type === 'annonces' ? 'bg-[#854f38] text-white' : 'bg-[#f7faef] text-[#647a0b]' }} shadow-sm">
+                                <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl {{ $selectedChannel->channel_type === 'annonces' ? 'bg-[#5F7048] text-white' : 'bg-[#f7faef] text-[#6B4A3A]' }} shadow-sm">
                                     {{ $selectedChannel->channel_type === 'annonces' ? '!' : '#' }}
                                 </span>
                                 <div>
@@ -147,7 +147,7 @@
                                 ])
                             @empty
                                 <div class="rounded-[1.8rem] border border-dashed border-[#d7dccb] bg-white/85 px-8 py-14 text-center shadow-sm">
-                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-[#f7faef] text-xl font-semibold text-[#647a0b]">#</div>
+                                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-3xl bg-[#f7faef] text-xl font-semibold text-[#6B4A3A]">#</div>
                                     <p class="mt-5 text-base font-semibold text-gray-900">Aucun message dans ce salon</p>
                                     <p class="mt-2 text-sm leading-7 text-gray-500">Ouvrez la conversation, partagez une ressource ou publiez la première annonce qui donnera le ton du groupe.</p>
                                 </div>
@@ -169,10 +169,10 @@
                                         <label class="text-sm font-semibold text-gray-700">Publier dans # {{ $selectedChannel->name }}</label>
                                         <p class="mt-1 text-xs text-gray-500">Visible par tous les membres actifs. Vous pouvez joindre jusqu’à 4 fichiers, limite {{ $attachmentLimitLabel }} par fichier.</p>
                                     </div>
-                                    <a href="{{ route('communities.manage', $community) }}#invite" class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-500 ring-1 ring-[#eceee5] transition hover:text-[#647a0b]">Inviter des membres</a>
+                                    <a href="{{ route('communities.manage', $community) }}#invite" class="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-500 ring-1 ring-[#eceee5] transition hover:text-[#6B4A3A]">Inviter des membres</a>
                                 </div>
 
-                                <textarea name="content" rows="4" class="mt-4 w-full rounded-[1.4rem] border-gray-300 bg-white focus:border-[#647a0b] focus:ring-[#647a0b]" placeholder="Partagez une annonce, une ressource utile, un rappel de cadre ou ouvrez une discussion du groupe.">{{ old('content') }}</textarea>
+                                <textarea name="content" rows="4" class="mt-4 w-full rounded-[1.4rem] border-gray-300 bg-white focus:border-[#6B4A3A] focus:ring-[#6B4A3A]" placeholder="Partagez une annonce, une ressource utile, un rappel de cadre ou ouvrez une discussion du groupe.">{{ old('content') }}</textarea>
                                 <x-input-error :messages="$errors->get('content')" class="mt-2" />
 
                                 <div class="mt-4 rounded-[1.4rem] border border-dashed border-[#dfe5cf] bg-white px-4 py-4">
@@ -181,7 +181,7 @@
                                             <p class="text-sm font-semibold text-gray-800">Partager des fichiers</p>
                                             <p class="mt-1 text-xs leading-6 text-gray-500">PDF, images, documents bureautiques et audio acceptés.</p>
                                         </div>
-                                        <label class="inline-flex cursor-pointer items-center rounded-full border border-[#d7ddc8] px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                                        <label class="inline-flex cursor-pointer items-center rounded-full border border-[#d7ddc8] px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-[#6B4A3A] hover:text-[#6B4A3A]">
                                             <input type="file" name="attachments[]" multiple class="hidden">
                                             Ajouter des fichiers
                                         </label>
@@ -192,7 +192,7 @@
 
                                 <div class="mt-4 flex items-center justify-between gap-3">
                                     <p class="text-xs text-gray-500">{{ $selectedChannel->channel_type === 'annonces' ? 'Ce salon donne plus de poids à vos informations importantes.' : 'Ce salon favorise les échanges entre vous et vos invités.' }}</p>
-                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#647a0b] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
+                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#6B4A3A] px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
                                         Envoyer
                                     </button>
                                 </div>
@@ -209,19 +209,19 @@
                         <p class="mt-2 text-sm leading-6 text-gray-500">La gestion détaillée a été déplacée pour garder ici une vraie vue de discussion.</p>
                     </div>
                     <div class="space-y-3 px-5 py-5">
-                        <a href="{{ route('communities.manage', $community) }}#invite" class="flex items-center justify-between rounded-[1.5rem] border border-[#eceee5] bg-[#fafbf7] px-4 py-4 transition hover:border-[#647a0b]">
+                        <a href="{{ route('communities.manage', $community) }}#invite" class="flex items-center justify-between rounded-[1.5rem] border border-[#eceee5] bg-[#fafbf7] px-4 py-4 transition hover:border-[#6B4A3A]">
                             <div>
                                 <p class="text-sm font-semibold text-gray-900">Inviter un client</p>
                                 <p class="mt-1 text-xs text-gray-500">Ajoutez un membre ou relancez une invitation.</p>
                             </div>
-                            <span class="text-[#647a0b]">→</span>
+                            <span class="text-[#6B4A3A]">→</span>
                         </a>
-                        <a href="{{ route('communities.manage', $community) }}#salons" class="flex items-center justify-between rounded-[1.5rem] border border-[#eceee5] bg-[#fafbf7] px-4 py-4 transition hover:border-[#647a0b]">
+                        <a href="{{ route('communities.manage', $community) }}#salons" class="flex items-center justify-between rounded-[1.5rem] border border-[#eceee5] bg-[#fafbf7] px-4 py-4 transition hover:border-[#6B4A3A]">
                             <div>
                                 <p class="text-sm font-semibold text-gray-900">Créer un salon</p>
                                 <p class="mt-1 text-xs text-gray-500">Séparez les thèmes et les ressources du groupe.</p>
                             </div>
-                            <span class="text-[#647a0b]">→</span>
+                            <span class="text-[#6B4A3A]">→</span>
                         </a>
                     </div>
                 </section>
@@ -233,7 +233,7 @@
                                 <h3 class="text-base font-semibold text-gray-900">Membres</h3>
                                 <p class="mt-2 text-sm leading-6 text-gray-500">Suivi rapide de la communauté sans surcharger la conversation.</p>
                             </div>
-                            <span class="rounded-full bg-[#f7faef] px-3 py-1 text-xs font-semibold text-[#647a0b]">{{ $activeMembers->count() }} actifs</span>
+                            <span class="rounded-full bg-[#f7faef] px-3 py-1 text-xs font-semibold text-[#6B4A3A]">{{ $activeMembers->count() }} actifs</span>
                         </div>
                     </div>
                     <div class="space-y-3 px-5 py-5">
@@ -257,7 +257,7 @@
                             </div>
                         @endforeach
 
-                        <a href="{{ route('communities.manage', $community) }}#members" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                        <a href="{{ route('communities.manage', $community) }}#members" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#6B4A3A] hover:text-[#6B4A3A]">
                             Voir tous les membres
                         </a>
                     </div>

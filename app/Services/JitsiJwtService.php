@@ -61,7 +61,7 @@ class JitsiJwtService
             'room' => $room,
 
             // optional but common in examples:
-            'sub' => config('services.jitsi.domain', 'visio.aromamade.com'),
+            'sub' => config('services.jitsi.domain', 'visio.olithea.fr'),
 
             'context' => [
                 'user' => [
@@ -98,7 +98,7 @@ class JitsiJwtService
             'room' => $room,
 
             // optional but common in examples:
-            'sub' => config('services.jitsi.domain', 'visio.aromamade.com'),
+            'sub' => config('services.jitsi.domain', 'visio.olithea.fr'),
 
             'context' => [
                 'user' => [

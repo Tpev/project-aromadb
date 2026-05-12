@@ -1,7 +1,7 @@
 @component('mail::message')
 # Bonjour,
 
-{{ $referrer->name ?? 'Un thérapeute' }} vous invite à rejoindre **AromaMade PRO**.
+{{ $referrer->name ?? 'Un thérapeute' }} vous invite à rejoindre **Olithea PRO**.
 
 @if(!empty($invite->message))
 > {{ $invite->message }}
@@ -14,5 +14,5 @@ Créer mon compte
 Ce lien est valable jusqu’au **{{ optional($invite->expires_at)->format('d/m/Y') }}**.
 
 À très vite,  
-L’équipe AromaMade PRO
+L’équipe Olithea PRO
 @endcomponent

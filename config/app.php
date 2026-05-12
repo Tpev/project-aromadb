@@ -1,5 +1,8 @@
 <?php
 
+$appName = env('APP_NAME', 'Olithea');
+$appName = $appName === 'Laravel' ? 'Olithea' : $appName;
+
 return [
 
     /*
@@ -13,7 +16,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => $appName,
 
 
     /*

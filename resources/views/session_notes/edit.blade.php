@@ -1,7 +1,7 @@
 {{-- resources/views/session_notes/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Modifier la note de séance') }}
         </h2>
     </x-slot>
@@ -121,26 +121,26 @@
     </script>
 
     <style>
-        .am-card{background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);border:1px solid rgba(100,122,11,.15);overflow:hidden;}
+        .am-card{background:#fff;border-radius:14px;box-shadow:0 6px 20px rgba(15,23,42,.08);border:1px solid rgba(167, 184, 138,.15);overflow:hidden;}
         .am-head{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;padding:18px;border-bottom:1px solid rgba(15,23,42,.08);flex-wrap:wrap;}
         .am-title{font-size:22px;font-weight:900;color:#0f172a;margin:0;}
         .am-sub{margin:6px 0 0;color:#6b7280;font-size:13px;}
         .am-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
         .am-body{padding:18px;}
 
-        .am-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:rgba(100,122,11,.12);color:#0f172a;font-weight:900;}
+        .am-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;background:rgba(167, 184, 138,.12);color:#0f172a;font-weight:900;}
 
         .am-field{background:#f8fafc;border:1px solid rgba(15,23,42,.08);border-radius:14px;padding:14px;}
         .am-label{display:block;font-weight:900;color:#0f172a;margin-bottom:8px;}
         .am-error{margin-top:8px;color:#dc2626;font-size:12px;font-weight:700;}
 
-        .am-textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(133,79,56,.35);outline:none;background:#fff;}
+        .am-textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(107, 74, 58,.35);outline:none;background:#fff;}
 
         .am-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:10px;text-decoration:none;border:1px solid transparent;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;}
-        .am-btn-primary{background:#647a0b;color:#fff;}
-        .am-btn-primary:hover{background:#854f38;}
+        .am-btn-primary{background:#6B4A3A;color:#fff;}
+        .am-btn-primary:hover{background:#5F7048;}
         .am-btn-soft{background:#fff;color:#0f172a;border-color:rgba(15,23,42,.12);border-width:1px;border-style:solid;}
-        .am-btn-soft:hover{border-color:rgba(133,79,56,.55);}
+        .am-btn-soft:hover{border-color:rgba(107, 74, 58,.55);}
 
         .am-footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;}
 

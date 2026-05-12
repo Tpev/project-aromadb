@@ -15,7 +15,7 @@
                 </ul>
             </div>
         @endif
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             Ajouter une Entrée pour : {{ $metric->name }}
         </h2>
         <!-- Form Container -->

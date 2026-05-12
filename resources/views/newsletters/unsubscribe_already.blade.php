@@ -17,7 +17,7 @@
         <div class="mt-6">
             <a href="{{ config('app.url') }}"
                class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-               style="background-color:#647a0b;">
+               style="background-color:#6B4A3A;">
                 Retour au site
             </a>
         </div>

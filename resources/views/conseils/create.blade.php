@@ -1,7 +1,7 @@
 {{-- resources/views/conseils/create.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Créer un Nouveau Conseil') }}
         </h2>
     </x-slot>
@@ -9,7 +9,7 @@
     <div class="py-8">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <!-- Titre de la Page -->
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Créer un Nouveau Conseil') }}
             </h1>
 
@@ -30,23 +30,23 @@
 
                     <!-- Nom -->
                     <div class="mb-4">
-                        <label class="block text-[#647a0b] font-semibold mb-2" for="name">{{ __('Nom du Conseil') }}</label>
-                        <input type="text" name="name" id="name" 
-                               class="border border-[#854f38] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#854f38]" 
+                        <label class="block text-[#6B4A3A] font-semibold mb-2" for="name">{{ __('Nom du Conseil') }}</label>
+                        <input type="text" name="name" id="name"
+                               class="border border-[#5F7048] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
                                value="{{ old('name') }}" required>
                     </div>
 
                     <!-- Tag -->
                     <div class="mb-4">
-                        <label class="block text-[#647a0b] font-semibold mb-2" for="tag">{{ __('Tag (facultatif)') }}</label>
-                        <input type="text" name="tag" id="tag" 
-                               class="border border-[#854f38] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#854f38]" 
+                        <label class="block text-[#6B4A3A] font-semibold mb-2" for="tag">{{ __('Tag (facultatif)') }}</label>
+                        <input type="text" name="tag" id="tag"
+                               class="border border-[#5F7048] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
                                value="{{ old('tag') }}">
                     </div>
 
                     <!-- Contenu (Rich Text) -->
                     <div class="mb-4">
-                        <label class="block text-[#647a0b] font-semibold mb-2" for="content">{{ __('Contenu du Conseil') }}</label>
+                        <label class="block text-[#6B4A3A] font-semibold mb-2" for="content">{{ __('Contenu du Conseil') }}</label>
                         <p class="text-gray-600 text-sm mb-2">
                             {{ __('Rédigez votre conseil ci-dessous. Vous pouvez mettre en forme le texte, insérer des images ou des liens, et organiser votre contenu pour le rendre plus clair.') }}
                         </p>
@@ -54,22 +54,22 @@
                         <input type="hidden" name="content" id="content-input">
 
                         <!-- Quill Editor Container -->
-                        <div id="quill-editor" class="border border-[#854f38] rounded-md" style="min-height: 200px;"></div>
+                        <div id="quill-editor" class="border border-[#5F7048] rounded-md" style="min-height: 200px;"></div>
                     </div>
 
                     <!-- Image -->
                     <div class="mb-4">
-                        <label class="block text-[#647a0b] font-semibold mb-2" for="image">{{ __('Image (facultatif)') }}</label>
-                        <input type="file" name="image" id="image" 
-                               class="border border-[#854f38] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#854f38]" 
+                        <label class="block text-[#6B4A3A] font-semibold mb-2" for="image">{{ __('Image (facultatif)') }}</label>
+                        <input type="file" name="image" id="image"
+                               class="border border-[#5F7048] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
                                accept="image/*">
                     </div>
 
                     <!-- Pièce Jointe (PDF) -->
                     <div class="mb-4">
-                        <label class="block text-[#647a0b] font-semibold mb-2" for="attachment">{{ __('Pièce Jointe (PDF, facultatif)') }}</label>
-                        <input type="file" name="attachment" id="attachment" 
-                               class="border border-[#854f38] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#854f38]" 
+                        <label class="block text-[#6B4A3A] font-semibold mb-2" for="attachment">{{ __('Pièce Jointe (PDF, facultatif)') }}</label>
+                        <input type="file" name="attachment" id="attachment"
+                               class="border border-[#5F7048] rounded-md w-full py-2 px-3 focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
                                accept="application/pdf">
                     </div>
 
@@ -78,7 +78,7 @@
                         <a href="{{ route('conseils.index') }}" class="inline-block bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition duration-200">
                             {{ __('Annuler') }}
                         </a>
-                        <button type="submit" class="bg-[#647a0b] text-white py-2 px-4 rounded-md hover:bg-[#854f38] transition duration-200">
+                        <button type="submit" class="bg-[#6B4A3A] text-white py-2 px-4 rounded-md hover:bg-[#5F7048] transition duration-200">
                             {{ __('Enregistrer') }}
                         </button>
                     </div>

@@ -1,7 +1,7 @@
 {{-- resources/views/formation/Utilisateur-Aromatherapie1.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-center" style="color: #854f38;">
+        <h2 class="font-semibold text-xl text-center" style="color: #5F7048;">
             {{ __('Formation en Aromathérapie') }}
         </h2>
     </x-slot>
@@ -19,7 +19,7 @@
 
         .slide-title {
             font-size: 2rem;
-            color: #647a0b;
+            color: #6B4A3A;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -38,7 +38,7 @@
         }
 
         .btn-slide {
-            background-color: #647a0b;
+            background-color: #6B4A3A;
             color: #ffffff;
             padding: 10px 20px;
             border-radius: 5px;
@@ -48,7 +48,7 @@
         }
 
         .btn-slide:hover {
-            background-color: #854f38;
+            background-color: #5F7048;
         }
 
         .btn-disabled {
@@ -67,7 +67,7 @@
     @endphp
 
     <div class="progress-container" style="margin-bottom: 20px;">
-        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #647a0b; height: 20px;">
+        <div class="progress-bar" style="width: {{ $progressPercent }}%; background-color: #6B4A3A; height: 20px;">
             <span style="color: white; padding-left: 10px;">{{ round($progressPercent) }}%</span>
         </div>
     </div>

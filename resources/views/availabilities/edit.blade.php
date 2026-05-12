@@ -1,7 +1,7 @@
 {{-- resources/views/availabilities/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             {{ __('Modifier une Disponibilité') }}
         </h2>
     </x-slot>
@@ -201,14 +201,14 @@
         }
 
         .details-title {
-            font-size: 2rem; font-weight: bold; color: #647a0b; margin-bottom: 20px; text-align: center;
+            font-size: 2rem; font-weight: bold; color: #6B4A3A; margin-bottom: 20px; text-align: center;
         }
 
         .details-box { margin-bottom: 20px; text-align: left; }
-        .details-label { font-weight: 600; color: #647a0b; display: block; margin-bottom: 5px; }
+        .details-label { font-weight: 600; color: #6B4A3A; display: block; margin-bottom: 5px; }
 
         .form-control {
-            width: 100%; padding: 10px; border: 1px solid #854f38; border-radius: 5px; box-sizing: border-box;
+            width: 100%; padding: 10px; border: 1px solid #5F7048; border-radius: 5px; box-sizing: border-box;
         }
 
         .form-check-input { margin-right: 10px; }
@@ -218,11 +218,11 @@
             display: inline-flex; align-items: center; cursor: pointer; transition: background-color 0.3s; margin: 5px;
         }
 
-        .btn-primary { background-color: #647a0b; color: #ffffff; border: none; }
-        .btn-primary:hover { background-color: #854f38; }
+        .btn-primary { background-color: #6B4A3A; color: #ffffff; border: none; }
+        .btn-primary:hover { background-color: #5F7048; }
 
-        .btn-secondary { background-color: transparent; color: #854f38; border: 1px solid #854f38; }
-        .btn-secondary:hover { background-color: #854f38; color: #ffffff; }
+        .btn-secondary { background-color: transparent; color: #5F7048; border: 1px solid #5F7048; }
+        .btn-secondary:hover { background-color: #5F7048; color: #ffffff; }
 
         .text-red-500 { color: #e3342f; font-size: 0.875rem; margin-top: 5px; }
 
@@ -235,16 +235,16 @@
         /* Select2 custom styles */
         .select2-container--default .select2-selection--single,
         .select2-container--default .select2-selection--multiple {
-            border: 1px solid #854f38; border-radius: 5px; min-height: 38px;
+            border: 1px solid #5F7048; border-radius: 5px; min-height: 38px;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__rendered { padding: 4px; }
         .select2-container--default .select2-selection--multiple .select2-selection__choice {
-            background-color: #647a0b; border: 1px solid #647a0b; color: #ffffff; padding: 5px 10px; border-radius: 4px; margin-top: 5px;
+            background-color: #6B4A3A; border: 1px solid #6B4A3A; color: #ffffff; padding: 5px 10px; border-radius: 4px; margin-top: 5px;
         }
         .select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: #ffffff; margin-right: 5px; }
-        .select2-container--default .select2-selection--multiple .select2-selection__choice:hover { background-color: #854f38; border-color: #854f38; }
-        .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #647a0b; color: #ffffff; }
-        .select2-container--default .select2-selection--multiple .select2-selection__placeholder { color: #854f38; }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice:hover { background-color: #5F7048; border-color: #5F7048; }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] { background-color: #6B4A3A; color: #ffffff; }
+        .select2-container--default .select2-selection--multiple .select2-selection__placeholder { color: #5F7048; }
         .select2-container--default .select2-results__options { max-height: 200px; overflow-y: auto; }
 
         @media (max-width: 768px) {

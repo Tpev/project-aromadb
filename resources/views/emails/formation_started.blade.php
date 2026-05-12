@@ -5,7 +5,7 @@
     <title>Nouveau départ dans la formation !</title>
 </head>
 <body>
-    <h1 style="color: #647a0b;">📢 Un utilisateur vient de commencer la formation !</h1>
+    <h1 style="color: #6B4A3A;">📢 Un utilisateur vient de commencer la formation !</h1>
     <p style="font-size: 1.1rem;">
         Bonjour les Lapiz,
     </p>

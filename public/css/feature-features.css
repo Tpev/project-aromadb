@@ -1,9 +1,9 @@
 /* Buttons */
 .btn-primary-am{
-  @apply inline-flex items-center justify-center px-5 py-3 rounded-2xl font-semibold text-white bg-[#647a0b] hover:bg-[#506207] transition shadow-sm;
+  @apply inline-flex items-center justify-center px-5 py-3 rounded-2xl font-semibold text-white bg-[#6B4A3A] hover:bg-[#506207] transition shadow-sm;
 }
 .btn-ghost-am{
-  @apply inline-flex items-center justify-center px-5 py-3 rounded-2xl font-semibold text-[#647a0b] bg-white hover:bg-gray-50 border border-[#ccd7a3] transition;
+  @apply inline-flex items-center justify-center px-5 py-3 rounded-2xl font-semibold text-[#6B4A3A] bg-white hover:bg-gray-50 border border-[#ccd7a3] transition;
 }
 
 /* Pills */
@@ -19,17 +19,17 @@
   content:"";
   position:absolute; inset:-1px;
   border-radius:1rem;
-  background: linear-gradient(180deg, rgba(100,122,11,.15), rgba(0,0,0,0));
+  background: linear-gradient(180deg, rgba(167, 184, 138,.15), rgba(0,0,0,0));
   z-index:-1;
 }
 .icon-wrap{
-  @apply w-12 h-12 rounded-2xl grid place-items-center text-white bg-[#647a0b];
+  @apply w-12 h-12 rounded-2xl grid place-items-center text-white bg-[#6B4A3A];
 }
 .icon-wrap i{ font-size:1.2rem; }
 .card-title{ @apply text-lg font-semibold text-gray-900; }
 .card-text{ @apply text-gray-600 leading-relaxed; }
 .card-cta{
-  @apply mt-2 inline-flex items-center gap-2 text-[#647a0b] font-semibold;
+  @apply mt-2 inline-flex items-center gap-2 text-[#6B4A3A] font-semibold;
 }
 .card-cta::after{
   content:"→"; @apply transition;

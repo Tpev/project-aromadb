@@ -15,7 +15,7 @@ class TestTherapistSeeder extends Seeder
     {
         User::updateOrCreate(
             [
-                'email' => 'therapist@test.aromamade.local', // login used in Playwright
+                'email' => 'therapist@test.olithea.local', // login used in Playwright
             ],
             [
                 'name'           => 'Test Therapist',

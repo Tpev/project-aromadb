@@ -6,11 +6,11 @@
         <!-- Font Awesome pour les icônes -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
         <!-- Polices personnalisées -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @endpush
 
     @section('meta_description')
-        Affichez votre certificat de complétion après avoir terminé la formation sur AromaMade PRO.
+        Affichez votre certificat de complétion après avoir terminé la formation sur Olithea PRO.
     @endsection
 
     <!-- Section du Certificat -->
@@ -57,16 +57,16 @@
 
         /* Définir les couleurs directement */
         .text-primary {
-            color: #647a0b; /* Couleur primaire */
+            color: #6B4A3A; /* Couleur primaire */
         }
 
         .text-secondary {
-            color: #854f38; /* Couleur secondaire */
+            color: #5F7048; /* Couleur secondaire */
         }
 
         /* Bouton personnalisé */
         .btn-primary {
-            background: linear-gradient(90deg, #647a0b 0%, #854f38 100%);
+            background: linear-gradient(90deg, #6B4A3A 0%, #5F7048 100%);
             color: white;
             padding: 14px 28px;
             border-radius: 5px;

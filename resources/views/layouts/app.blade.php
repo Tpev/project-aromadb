@@ -15,15 +15,15 @@
     <meta name="description" content="@yield('meta_description', 'Informations fiables et vérifiées sur les huiles essentielles, les huiles végétales, les tisanes, et bien plus encore!')">
 
     <!-- Dynamic Page Title -->
-    <title>@yield('title', config('app.name', 'AromaMade'))</title>
+    <title>@yield('title', config('app.name', 'Olithea'))</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/brand/olithea-mark-cropped.png') }}">
 	
 
     @yield('structured_data')
 	@yield('meta_og')
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -60,7 +60,7 @@
       }
     </style>
 </head>
-<body class="font-sans antialiased bg-[#f5f5f5]">
+<body class="font-sans antialiased bg-brand-background text-brand-text">
     <div class="min-h-screen">
         @if(! request()->is('*webrtc*'))
             @if(auth()->check() && auth()->user()->is_therapist)

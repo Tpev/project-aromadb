@@ -90,9 +90,9 @@
     <style>
         /* Theme Colors - Update these variables to match your site's theme */
         :root {
-            --primary-color: #647a0b; /* Example: Dark Green */
-            --secondary-color: #854f38; /* Example: Brownish */
-            --card-hover-shadow: rgba(133, 79, 56, 0.2); /* Using secondary color with transparency */
+            --primary-color: #6B4A3A; /* Example: Dark Green */
+            --secondary-color: #5F7048; /* Example: Brownish */
+            --card-hover-shadow: rgba(107, 74, 58, 0.2); /* Using secondary color with transparency */
             --description-bg: #f9f9f9;
             --description-hover-bg: #ffffff;
             --text-color: #333;
@@ -100,7 +100,7 @@
             --favorite-color: var(--secondary-color);
             --card-text-color: var(--secondary-color); /* New variable for card text */
             --input-border-color: var(--secondary-color);
-            --input-focus-shadow: rgba(133, 79, 56, 0.5);
+            --input-focus-shadow: rgba(107, 74, 58, 0.5);
         }
 
         body {

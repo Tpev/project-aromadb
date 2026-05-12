@@ -8,11 +8,11 @@
         <!-- Bootstrap Icons -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
         <!-- Custom Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @endpush
 
     @section('meta_description')
-        Gérez votre compte Stripe directement depuis AromaMade PRO. Connectez votre compte pour accepter les paiements et accédez à votre tableau de bord Stripe en un clic.
+        Gérez votre compte Stripe directement depuis Olithea PRO. Connectez votre compte pour accepter les paiements et accédez à votre tableau de bord Stripe en un clic.
     @endsection
 
     <!-- Hero Section -->
@@ -105,16 +105,16 @@
     <style>
         /* Custom Colors */
         :root {
-            --primary-color: #647a0b;
-            --secondary-color: #854f38;
+            --primary-color: #6B4A3A;
+            --secondary-color: #5F7048;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: Montserrat, "Avenir Next", sans-serif;
         }
 
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'Poppins', sans-serif;
+            font-family: "Cormorant Garamond", Georgia, serif;
         }
 
         .text-primary {

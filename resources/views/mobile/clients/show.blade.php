@@ -49,9 +49,9 @@
         {{-- =======================
              HEADER / IDENTITÉ
              ======================= --}}
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm">
             <div class="flex items-start gap-3">
-                <div class="w-12 h-12 rounded-full bg-[#647a0b]/10 flex items-center justify-center text-[15px] font-semibold text-[#647a0b]">
+                <div class="w-12 h-12 rounded-full bg-[#6B4A3A]/10 flex items-center justify-center text-[15px] font-semibold text-[#6B4A3A]">
                     {{ $initials ?: 'C' }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -60,8 +60,8 @@
                     </p>
 
                     @if($companyName)
-                        <p class="mt-0.5 text-[11px] text-[#647a0b] flex items-center gap-1.5">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#647a0b]/10 text-[#647a0b]">
+                        <p class="mt-0.5 text-[11px] text-[#6B4A3A] flex items-center gap-1.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#6B4A3A]/10 text-[#6B4A3A]">
                                 👔 {{ $companyName }}
                             </span>
                         </p>
@@ -91,7 +91,7 @@
         {{-- =======================
              COORDONNÉES
              ======================= --}}
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm space-y-3">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm space-y-3">
             <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 {{ __('Coordonnées') }}
             </h2>
@@ -129,7 +129,7 @@
             <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
                 @if($client->email)
                     <a href="mailto:{{ $client->email }}"
-                       class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#647a0b]/10 text-[#647a0b] font-medium active:scale-[0.99]">
+                       class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#6B4A3A]/10 text-[#6B4A3A] font-medium active:scale-[0.99]">
                         <i class="fas fa-paper-plane text-[10px] mr-1.5"></i>
                         {{ __('Envoyer un email') }}
                     </a>
@@ -137,7 +137,7 @@
 
                 @if($client->phone)
                     <a href="tel:{{ $client->phone }}"
-                       class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
+                       class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-gray-800 font-medium active:scale-[0.99]">
                         <i class="fas fa-phone-alt text-[10px] mr-1.5"></i>
                         {{ __('Appeler') }}
                     </a>
@@ -148,7 +148,7 @@
         {{-- =======================
              COMPTE & INVITATION
              ======================= --}}
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm space-y-3">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm space-y-3">
             <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 {{ __('Espace client & invitation') }}
             </h2>
@@ -172,7 +172,7 @@
                 <form action="{{ route('client.invite', $client) }}" method="POST" class="mt-2">
                     @csrf
                     <button type="submit"
-                            class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[11px] font-medium text-gray-800 active:scale-[0.99] w-full">
+                            class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-[11px] font-medium text-gray-800 active:scale-[0.99] w-full">
                         <i class="fas fa-sync text-[10px] mr-1.5"></i>
                         {{ __('Renvoyer une invitation') }}
                     </button>
@@ -186,7 +186,7 @@
                     <form action="{{ route('client.invite', $client) }}" method="POST" class="mt-2">
                         @csrf
                         <button type="submit"
-                                class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#647a0b] text-white text-[11px] font-medium active:scale-[0.99] w-full">
+                                class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#6B4A3A] text-white text-[11px] font-medium active:scale-[0.99] w-full">
                             <i class="fas fa-envelope-open-text text-[10px] mr-1.5"></i>
                             {{ __('Envoyer une invitation') }}
                         </button>
@@ -207,7 +207,7 @@
                                   method="POST" class="flex-shrink-0">
                                 @csrf
                                 <button type="submit"
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#e4e8d5] text-[10px] text-gray-800">
+                                        class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#D8CFBF] text-[10px] text-gray-800">
                                     {{ __('Demander un témoignage') }}
                                 </button>
                             </form>
@@ -228,14 +228,14 @@
         {{-- =======================
              RENDEZ-VOUS RÉCENTS
              ======================= --}}
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
                 <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     {{ __('Rendez-vous récents') }}
                 </h2>
 
                 <a href="{{ route('client_profiles.show', $client->id) }}#Rendez-vous"
-                   class="text-[11px] text-[#647a0b] inline-flex items-center gap-1">
+                   class="text-[11px] text-[#6B4A3A] inline-flex items-center gap-1">
                     {{ __('Ouvrir sur le web') }}
                     <i class="fas fa-external-link-alt text-[9px]"></i>
                 </a>
@@ -259,7 +259,7 @@
                         @endphp
 
                         <a href="{{ route('mobile.appointments.show', $appt->id) }}"
-                           class="block rounded-xl border border-[#e4e8d5] bg-white px-3 py-2.5 text-[11px] active:scale-[0.99]">
+                           class="block rounded-xl border border-[#D8CFBF] bg-white px-3 py-2.5 text-[11px] active:scale-[0.99]">
                             <div class="flex items-start justify-between gap-2">
                                 <div>
                                     <p class="text-[10px] text-gray-400 flex items-center gap-1.5">
@@ -267,7 +267,7 @@
                                         {{ $date?->format('d/m/Y') ?? '—' }}
                                     </p>
                                     <p class="mt-0.5 text-[11px] text-gray-800 flex items-center gap-1.5">
-                                        <i class="fas fa-clock text-[9px] text-[#647a0b]"></i>
+                                        <i class="fas fa-clock text-[9px] text-[#6B4A3A]"></i>
                                         {{ $date?->format('H:i') ?? '—' }}
                                         @if($appt->duration)
                                             <span class="mx-1 text-gray-300">•</span>
@@ -290,13 +290,13 @@
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
                 <a href="{{ route('appointments.create', $client->id) }}"
-                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#647a0b] text-white font-medium active:scale-[0.99]">
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#6B4A3A] text-white font-medium active:scale-[0.99]">
                     <i class="fas fa-plus text-[10px] mr-1.5"></i>
                     {{ __('Nouveau rendez-vous') }}
                 </a>
 
                 <a href="{{ route('client_profiles.show', $client->id) }}#Rendez-vous"
-                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-gray-800 font-medium active:scale-[0.99]">
                     <i class="fas fa-table text-[10px] mr-1.5"></i>
                     {{ __('Voir tous les RDV ') }}
                 </a>
@@ -306,14 +306,14 @@
         {{-- =======================
              MESSAGERIE (APERÇU)
              ======================= --}}
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
                 <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     {{ __('Messagerie') }}
                 </h2>
 
                 <a href="{{ route('client_profiles.show', $client->id) }}#Messagerie"
-                   class="text-[11px] text-[#647a0b] inline-flex items-center gap-1">
+                   class="text-[11px] text-[#6B4A3A] inline-flex items-center gap-1">
                     {{ __('Voir sur le web') }}
                     <i class="fas fa-external-link-alt text-[9px]"></i>
                 </a>
@@ -343,7 +343,7 @@
                 <textarea name="content"
                           id="mobileTherapistMessageContent"
                           rows="2"
-                          class="w-full border border-[#e4e8d5] rounded-xl px-3 py-2 text-[12px]"
+                          class="w-full border border-[#D8CFBF] rounded-xl px-3 py-2 text-[12px]"
                           placeholder="Écrivez un message..."></textarea>
                 <button type="submit"
                         class="mt-2 inline-flex items-center justify-center w-full px-3 py-2 rounded-xl bg-indigo-600 text-white text-[12px] font-medium active:scale-[0.99]">
@@ -401,7 +401,7 @@
         {{-- =======================
              FICHIERS & DOCUMENTS (SYNTHÈSE)
              ======================= --}}
-        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm space-y-3">
+        <div class="rounded-2xl border border-[#D8CFBF] bg-white p-4 shadow-sm space-y-3">
             <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 {{ __('Fichiers & documents') }}
             </h2>
@@ -428,13 +428,13 @@
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
                 <a href="{{ route('client_profiles.show', $client->id) }}#Fichiers-&-Documents"
-                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-gray-800 font-medium active:scale-[0.99]">
                     <i class="fas fa-folder-open text-[10px] mr-1.5"></i>
                     {{ __('Gérer sur le web') }}
                 </a>
 
                 <a href="{{ route('client_profiles.show', $client->id) }}#documents-signing"
-                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-gray-800 font-medium active:scale-[0.99]">
                     <i class="fas fa-file-signature text-[10px] mr-1.5"></i>
                     {{ __('Signatures ') }}
                 </a>
@@ -446,13 +446,13 @@
              ======================= --}}
         <div class="space-y-2">
             <a href="{{ route('mobile.clients.index') }}"
-               class="inline-flex items-center justify-center w-full px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99]">
+               class="inline-flex items-center justify-center w-full px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-[12px] font-medium text-gray-800 active:scale-[0.99]">
                 <i class="fas fa-arrow-left text-[11px] mr-1.5"></i>
                 {{ __('Retour à la liste des clients') }}
             </a>
 
             <a href="{{ route('client_profiles.edit', $client->id) }}"
-               class="inline-flex items-center justify-center w-full px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99]">
+               class="inline-flex items-center justify-center w-full px-3 py-2 rounded-xl bg-white border border-[#D8CFBF] text-[12px] font-medium text-gray-800 active:scale-[0.99]">
                 <i class="fas fa-edit text-[11px] mr-1.5"></i>
                 {{ __('Modifier le profil ') }}
             </a>

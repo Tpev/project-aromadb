@@ -1,7 +1,7 @@
 {{-- resources/views/newsletters/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color:#647a0b;">
+        <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
             {{ __('Modifier la newsletter') }} – {{ $newsletter->title }}
         </h2>
     </x-slot>
@@ -48,12 +48,12 @@
                            name="test_email"
                            type="email"
                            value="{{ old('test_email', auth()->user()->email) }}"
-                           class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#647a0b] focus:border-[#647a0b]">
+                           class="w-full rounded-lg border-gray-300 text-sm focus:ring-[#6B4A3A] focus:border-[#6B4A3A]">
                 </div>
                 <div class="mt-2 sm:mt-6">
                     <button type="submit"
                             class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                            style="background-color:#647a0b;">
+                            style="background-color:#6B4A3A;">
                         Envoyer un test
                     </button>
                 </div>
@@ -75,7 +75,7 @@
         @csrf
         <button type="submit"
                 class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white shadow-sm"
-                style="background-color:#854f38;">
+                style="background-color:#5F7048;">
             Envoyer maintenant
         </button>
     </form>

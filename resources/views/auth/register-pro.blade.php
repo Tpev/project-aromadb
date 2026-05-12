@@ -1,8 +1,8 @@
 <x-guest-layout>
     @section('meta_description')
-Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédiée aux thérapeutes. Boostez votre visibilité, gérez facilement vos rendez-vous et dossiers clients, et profitez d’un essai gratuit de 14 jours pour découvrir toutes nos fonctionnalités.
+Créez votre compte Practicien sur Olithea PRO, la plateforme gratuite dédiée aux thérapeutes. Boostez votre visibilité, gérez facilement vos rendez-vous et dossiers clients, et profitez d’un essai gratuit de 14 jours pour découvrir toutes nos fonctionnalités.
     @endsection
-    @section('title', 'AromaMade PRO : Annuaire Thérapeute et Logiciel de Gestion en Ligne')
+    @section('title', 'Olithea PRO : Annuaire Thérapeute et Logiciel de Gestion en Ligne')
 
     
     @php
@@ -21,11 +21,11 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 
     <!-- Registration Form Container -->
     <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
-        <h1 class="text-3xl font-extrabold text-center text-[#647a0b] mb-3">
+        <h1 class="text-3xl font-extrabold text-center text-[#6B4A3A] mb-3">
             Créez votre compte Praticien
         </h1>
         <p class="text-center text-gray-600 mb-6">
-            Rejoignez AromaMade PRO et boostez votre visibilité auprès de nouveaux clients.
+            Rejoignez Olithea PRO et boostez votre visibilité auprès de nouveaux clients.
         </p>
 
         {{-- Global error summary (server-side validation) --}}
@@ -51,7 +51,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
             <div class="flex items-center justify-between text-xs font-semibold">
                 <div class="flex-1 text-left">
                     <span id="pill1" class="inline-flex items-center gap-2 rounded-full px-3 py-1 border">
-                        <span class="h-5 w-5 inline-flex items-center justify-center rounded-full bg-[#f3f9dd] text-[#647a0b]">1</span>
+                        <span class="h-5 w-5 inline-flex items-center justify-center rounded-full bg-[#f3f9dd] text-[#6B4A3A]">1</span>
                         Profil
                     </span>
                 </div>
@@ -69,7 +69,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                 </div>
             </div>
             <div class="mt-3 h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                <div id="progressBar" class="h-full w-1/3 bg-gradient-to-r from-[#647a0b] to-[#854f38] transition-all"></div>
+                <div id="progressBar" class="h-full w-1/3 bg-gradient-to-r from-[#6B4A3A] to-[#5F7048] transition-all"></div>
             </div>
         </div>
 
@@ -89,7 +89,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                         name="company_name"
                         type="text"
                         autocomplete="organization"
-                        placeholder="Ex: AromaMade Inc."
+                        placeholder="Ex: Olithea Inc."
                         :value="old('company_name')"
                         class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2"
                     />
@@ -127,7 +127,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 
                 <!-- Navigation: Next -->
                 <div class="flex items-center justify-end mt-6">
-                    <button type="button" id="next1" class="bg-gradient-to-r from-[#647a0b] to-[#854f38] hover:from-[#8ea633] hover:to-[#8ea633] text-white py-2 px-4 rounded">
+                    <button type="button" id="next1" class="bg-gradient-to-r from-[#6B4A3A] to-[#5F7048] hover:from-[#4E5F3A] hover:to-[#4E5F3A] text-white py-2 px-4 rounded">
                         Suivant
                     </button>
                 </div>
@@ -222,7 +222,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                     <button type="button" id="prev1" class="bg-gray-300 text-gray-700 py-2 px-4 rounded">
                         Précédent
                     </button>
-                    <button type="button" id="next2" class="bg-gradient-to-r from-[#647a0b] to-[#854f38] hover:from-[#8ea633] hover:to-[#8ea633] text-white py-2 px-4 rounded">
+                    <button type="button" id="next2" class="bg-gradient-to-r from-[#6B4A3A] to-[#5F7048] hover:from-[#4E5F3A] hover:to-[#4E5F3A] text-white py-2 px-4 rounded">
                         Suivant
                     </button>
                 </div>
@@ -234,7 +234,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                     Votre compte est presque prêt ✅
                 </h2>
                 <p class="text-center text-gray-600 mb-6">
-                    Comment souhaitez-vous démarrer sur AromaMade PRO ?
+                    Comment souhaitez-vous démarrer sur Olithea PRO ?
                 </p>
 
                 <div class="space-y-3">
@@ -242,7 +242,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                     <button type="button" class="onboarding-choice w-full text-left border rounded-lg p-4 hover:bg-gray-50 transition"
                             data-value="self">
                         <div class="flex items-start gap-3">
-                            <div class="mt-0.5 h-9 w-9 flex items-center justify-center rounded-full bg-[#f3f9dd] text-[#647a0b] font-bold">
+                            <div class="mt-0.5 h-9 w-9 flex items-center justify-center rounded-full bg-[#f3f9dd] text-[#6B4A3A] font-bold">
                                 🧭
                             </div>
                             <div>
@@ -258,7 +258,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                     <button type="button" class="onboarding-choice w-full text-left border rounded-lg p-4 hover:bg-gray-50 transition"
                             data-value="assisted">
                         <div class="flex items-start gap-3">
-                            <div class="mt-0.5 h-9 w-9 flex items-center justify-center rounded-full bg-[#fef3c7] text-[#854f38] font-bold">
+                            <div class="mt-0.5 h-9 w-9 flex items-center justify-center rounded-full bg-[#fef3c7] text-[#5F7048] font-bold">
                                 🤝
                             </div>
                             <div>
@@ -281,7 +281,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                     </button>
 
                     <x-primary-button id="finalSubmit"
-                        class="bg-gradient-to-r from-[#647a0b] to-[#854f38] hover:from-[#8ea633] hover:to-[#8ea633]"
+                        class="bg-gradient-to-r from-[#6B4A3A] to-[#5F7048] hover:from-[#4E5F3A] hover:to-[#4E5F3A]"
                         disabled>
                         Créer mon compte
                     </x-primary-button>
@@ -296,8 +296,8 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 
     <!-- Benefits Section -->
     <div class="max-w-md mx-auto my-10 p-6 bg-gray-50 rounded-lg shadow-sm">
-        <h2 class="text-xl font-semibold text-center text-[#647a0b] mb-4">
-            Pourquoi rejoindre AromaMade PRO ?
+        <h2 class="text-xl font-semibold text-center text-[#6B4A3A] mb-4">
+            Pourquoi rejoindre Olithea PRO ?
         </h2>
         <ul class="list-disc pl-5 text-gray-700 space-y-2">
             <li><strong>Visibilité accrue :</strong> Soyez trouvé par de nouveaux clients recherchant des thérapeutes qualifiés.</li>
@@ -309,22 +309,22 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 
     <!-- Testimonials Section -->
     <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold text-center text-[#647a0b] mb-4">
-            Ils utilisent AromaMade PRO
+        <h2 class="text-xl font-semibold text-center text-[#6B4A3A] mb-4">
+            Ils utilisent Olithea PRO
         </h2>
 
         <div class="space-y-4">
-            <blockquote class="border-l-4 border-[#647a0b] pl-4 italic text-gray-700">
+            <blockquote class="border-l-4 border-[#6B4A3A] pl-4 italic text-gray-700">
                 “J’ai gagné un temps fou sur la gestion des rendez-vous. Mes clients adorent !”
                 <footer class="mt-2 text-sm font-semibold text-gray-600">— Sophie, Naturopathe</footer>
             </blockquote>
 
-            <blockquote class="border-l-4 border-[#647a0b] pl-4 italic text-gray-700">
+            <blockquote class="border-l-4 border-[#6B4A3A] pl-4 italic text-gray-700">
                 “La facturation est simple et tout est centralisé. Je recommande.”
                 <footer class="mt-2 text-sm font-semibold text-gray-600">— Marc, Réflexologue</footer>
             </blockquote>
 
-            <blockquote class="border-l-4 border-[#647a0b] pl-4 italic text-gray-700">
+            <blockquote class="border-l-4 border-[#6B4A3A] pl-4 italic text-gray-700">
                 “J’ai rempli mon planning grâce à la visibilité dans l’annuaire. Très efficace.”
                 <footer class="mt-2 text-sm font-semibold text-gray-600">— Claire, Thérapeute</footer>
             </blockquote>
@@ -346,13 +346,13 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
             $("#progressBar").css("width", pct + "%");
 
             // reset
-            $("#pill1,#pill2,#pill3").removeClass("border-[#647a0b] text-[#647a0b] bg-[#f3f9dd]/30")
+            $("#pill1,#pill2,#pill3").removeClass("border-[#6B4A3A] text-[#6B4A3A] bg-[#f3f9dd]/30")
                                    .addClass("border-gray-200 text-gray-600 bg-white");
 
             // active
-            if (stepId === "step1") $("#pill1").addClass("border-[#647a0b] text-[#647a0b] bg-[#f3f9dd]/30");
-            if (stepId === "step2") $("#pill2").addClass("border-[#647a0b] text-[#647a0b] bg-[#f3f9dd]/30");
-            if (stepId === "step3") $("#pill3").addClass("border-[#647a0b] text-[#647a0b] bg-[#f3f9dd]/30");
+            if (stepId === "step1") $("#pill1").addClass("border-[#6B4A3A] text-[#6B4A3A] bg-[#f3f9dd]/30");
+            if (stepId === "step2") $("#pill2").addClass("border-[#6B4A3A] text-[#6B4A3A] bg-[#f3f9dd]/30");
+            if (stepId === "step3") $("#pill3").addClass("border-[#6B4A3A] text-[#6B4A3A] bg-[#f3f9dd]/30");
         }
 
         function showStep(stepId) {
@@ -433,8 +433,8 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
             clearClientError();
 
             // UI feedback (selected state)
-            $(".onboarding-choice").removeClass("border-[#647a0b] ring-2 ring-[#647a0b] bg-[#f3f9dd]/30");
-            $(this).addClass("border-[#647a0b] ring-2 ring-[#647a0b] bg-[#f3f9dd]/30");
+            $(".onboarding-choice").removeClass("border-[#6B4A3A] ring-2 ring-[#6B4A3A] bg-[#f3f9dd]/30");
+            $(this).addClass("border-[#6B4A3A] ring-2 ring-[#6B4A3A] bg-[#f3f9dd]/30");
 
             // Enable submit
             $("#finalSubmit").prop("disabled", false);
@@ -461,7 +461,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
 
         // Restore onboarding selection if validation error
         @if(old('onboarding_mode'))
-            $('.onboarding-choice[data-value="{{ old('onboarding_mode') }}"]').addClass("border-[#647a0b] ring-2 ring-[#647a0b] bg-[#f3f9dd]/30");
+            $('.onboarding-choice[data-value="{{ old('onboarding_mode') }}"]').addClass("border-[#6B4A3A] ring-2 ring-[#6B4A3A] bg-[#f3f9dd]/30");
             $("#finalSubmit").prop("disabled", false);
             @if(old('onboarding_mode') === 'assisted')
                 $("#onboardingHint").removeClass("hidden");

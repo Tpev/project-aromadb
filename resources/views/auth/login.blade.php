@@ -10,7 +10,7 @@
 
         .pro-login-eyebrow {
             margin: 0;
-            color: #854f38;
+            color: #5F7048;
             font-size: 0.72rem;
             font-weight: 800;
             letter-spacing: 0.2em;
@@ -21,7 +21,7 @@
             margin: 0.45rem 0 0;
             font-size: clamp(1.8rem, 8vw, 2.6rem);
             line-height: 1;
-            letter-spacing: -0.055em;
+            letter-spacing: 0;
         }
 
         .pro-login-form {
@@ -47,8 +47,8 @@
         }
 
         .pro-login-field input:focus {
-            border-color: #647a0b;
-            box-shadow: 0 0 0 4px rgba(100, 122, 11, 0.14);
+            border-color: #6B4A3A;
+            box-shadow: 0 0 0 4px rgba(167, 184, 138, 0.14);
         }
 
         .pro-login-row {
@@ -62,12 +62,12 @@
         .pro-login-remember input {
             width: 1rem;
             height: 1rem;
-            color: #647a0b;
+            color: #6B4A3A;
             border-color: #cbd6a8;
         }
 
         .pro-login-link {
-            color: #647a0b;
+            color: #6B4A3A;
             font-size: 0.9rem;
             font-weight: 800;
             text-decoration: underline;
@@ -82,7 +82,7 @@
             justify-content: center;
             margin-top: 1.35rem;
             border-radius: 999px;
-            background: #647a0b;
+            background: #6B4A3A;
             color: #ffffff;
             font-weight: 800;
             transition: background-color 160ms ease, transform 160ms ease;
@@ -106,7 +106,7 @@
         }
 
         .pro-login-footer a {
-            color: #647a0b;
+            color: #6B4A3A;
             font-weight: 800;
             text-decoration: underline;
             text-underline-offset: 0.18em;
@@ -172,7 +172,7 @@
 
             <div class="pro-login-row">
                 <label for="remember_me" class="pro-login-remember inline-flex items-center">
-                    <input id="remember_me" type="checkbox" class="rounded shadow-sm focus:ring-[#647a0b]" name="remember">
+                    <input id="remember_me" type="checkbox" class="rounded shadow-sm focus:ring-[#6B4A3A]" name="remember">
                     <span class="ms-2 text-sm text-gray-600">{{ __('Se souvenir de moi') }}</span>
                 </label>
 

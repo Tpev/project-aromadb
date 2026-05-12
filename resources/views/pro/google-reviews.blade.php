@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl" style="color: #647a0b;">
+        <h2 class="font-semibold text-xl" style="color: #6B4A3A;">
             Avis Google & Témoignages
         </h2>
     </x-slot>
@@ -22,19 +22,19 @@
 
             {{-- Carte connexion Google --}}
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-2xl font-semibold text-[#647a0b] mb-4 flex items-center gap-2">
-                    <i class="fab fa-google text-[#854f38]"></i>
+                <h3 class="text-2xl font-semibold text-[#6B4A3A] mb-4 flex items-center gap-2">
+                    <i class="fab fa-google text-[#5F7048]"></i>
                     Connexion à Google Business Profile
                 </h3>
 
                 @if (! $account)
                     <p class="text-gray-700 mb-4">
                         Connectez votre compte Google Business Profile pour importer automatiquement
-                        vos avis Google et les afficher sur votre page publique AromaMade.
+                        vos avis Google et les afficher sur votre page publique Olithea.
                     </p>
 
                     <a href="{{ route('pro.google-reviews.connect') }}"
-                       class="inline-flex items-center px-4 py-2 rounded-full bg-[#647a0b] text-white font-semibold hover:bg-[#8ea633] transition">
+                       class="inline-flex items-center px-4 py-2 rounded-full bg-[#6B4A3A] text-white font-semibold hover:bg-[#4E5F3A] transition">
                         <i class="fab fa-google mr-2"></i>
                         Connecter mon compte Google
                     </a>
@@ -66,7 +66,7 @@
 
                                     <select id="google_location_id"
                                             name="location_selection"
-                                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-[#647a0b] focus:ring focus:ring-[#8ea633]/30">
+                                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-[#6B4A3A] focus:ring focus:ring-[#4E5F3A]/30">
                                         @foreach ($availableLocations as $location)
                                             @php
                                                 $currentSelection = old('location_selection', ($account->account_id && $account->location_id)
@@ -87,7 +87,7 @@
                             @endif
 
                             <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 rounded-full bg-[#647a0b] text-white font-semibold hover:bg-[#8ea633] transition">
+                                    class="inline-flex items-center px-4 py-2 rounded-full bg-[#6B4A3A] text-white font-semibold hover:bg-[#4E5F3A] transition">
                                 <i class="fas fa-sync-alt mr-2"></i>
                                 Synchroniser mes avis Google
                             </button>
@@ -108,8 +108,8 @@
 
             {{-- Liste des avis Google importés --}}
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-2xl font-semibold text-[#647a0b] mb-4 flex items-center gap-2">
-                    <i class="fas fa-comments text-[#854f38]"></i>
+                <h3 class="text-2xl font-semibold text-[#6B4A3A] mb-4 flex items-center gap-2">
+                    <i class="fas fa-comments text-[#5F7048]"></i>
                     Avis Google importés
                 </h3>
 
@@ -122,13 +122,13 @@
                 @else
                     <div class="space-y-4">
                         @foreach ($googleTestimonials as $testimonial)
-                            <div class="border-l-4 border-[#8ea633] bg-[#f9fafb] rounded-md p-4 flex gap-3">
+                            <div class="border-l-4 border-[#4E5F3A] bg-[#f9fafb] rounded-md p-4 flex gap-3">
                                 @if ($testimonial->reviewer_profile_photo_url)
                                     <img src="{{ $testimonial->reviewer_profile_photo_url }}"
                                          alt="{{ $testimonial->reviewer_name }}"
                                          class="w-10 h-10 rounded-full object-cover flex-shrink-0">
                                 @else
-                                    <div class="w-10 h-10 rounded-full bg-[#8ea633] text-white flex items-center justify-center flex-shrink-0">
+                                    <div class="w-10 h-10 rounded-full bg-[#4E5F3A] text-white flex items-center justify-center flex-shrink-0">
                                         <span class="text-sm font-bold">
                                             {{ strtoupper(substr($testimonial->reviewer_name ?? 'G', 0, 1)) }}
                                         </span>
@@ -141,7 +141,7 @@
                                             <span class="font-semibold text-gray-800">
                                                 {{ $testimonial->reviewer_name ?? 'Client Google' }}
                                             </span>
-                                            <span class="text-xs bg-[#e5f0c8] text-[#647a0b] px-2 py-0.5 rounded-full">
+                                            <span class="text-xs bg-[#e5f0c8] text-[#6B4A3A] px-2 py-0.5 rounded-full">
                                                 Avis Google
                                             </span>
                                         </div>
@@ -167,7 +167,7 @@
                                     @if ($testimonial->owner_reply)
                                         <div class="mt-3 pl-3 border-l border-gray-300">
                                             <p class="text-xs uppercase text-gray-500 mb-1">
-                                                Réponse AromaMade
+                                                Réponse Olithea
                                             </p>
                                             <p class="text-sm text-gray-700 whitespace-pre-line">
                                                 {{ $testimonial->owner_reply }}

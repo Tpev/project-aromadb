@@ -2,11 +2,11 @@
     <x-slot name="header">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#854f38]">Communautés privées</p>
-                <h2 class="mt-2 text-2xl font-semibold text-[#647a0b]">Animez vos groupes d’échange</h2>
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#5F7048]">Communautés privées</p>
+                <h2 class="mt-2 text-2xl font-semibold text-[#6B4A3A]">Animez vos groupes d’échange</h2>
                 <p class="mt-2 max-w-2xl text-sm text-gray-600">Créez des espaces privés sur invitation, mettez en avant vos annonces et partagez des ressources dans un cadre plus chaleureux qu’une simple messagerie.</p>
             </div>
-            <a href="{{ route('communities.create') }}" class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
+            <a href="{{ route('communities.create') }}" class="inline-flex items-center justify-center rounded-full bg-[#6B4A3A] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
                 Créer une communauté
             </a>
         </div>
@@ -16,8 +16,8 @@
         <section class="overflow-hidden rounded-[2rem] border border-[#dfe7c7] bg-[radial-gradient(circle_at_top_left,_rgba(216,230,181,0.55),_rgba(255,255,255,0.95)_48%,_rgba(245,241,231,0.95)_100%)] p-8 shadow-sm">
             <div class="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] lg:items-center">
                 <div>
-                    <div class="inline-flex items-center rounded-full border border-[#d6dfbc] bg-white/75 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#647a0b]">
-                        Communautés AromaMade
+                    <div class="inline-flex items-center rounded-full border border-[#d6dfbc] bg-white/75 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#6B4A3A]">
+                        Communautés Olithea
                     </div>
                     <h3 class="mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-gray-900">Faites vivre vos accompagnements dans un espace plus structuré et plus premium.</h3>
                     <p class="mt-4 max-w-2xl text-sm leading-7 text-gray-600">Chaque communauté reste fermée, réservée à vos invités, avec des salons pour distinguer annonces, discussion et ressources clés du groupe.</p>
@@ -50,7 +50,7 @@
                         <div class="flex items-start justify-between gap-4">
                             <div class="min-w-0">
                                 <div class="flex items-center gap-3">
-                                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#647a0b] text-sm font-semibold text-white shadow-sm shadow-lime-900/15">
+                                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#6B4A3A] text-sm font-semibold text-white shadow-sm shadow-lime-900/15">
                                         {{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($community->name, 0, 2)) }}
                                     </div>
                                     <div class="min-w-0">
@@ -87,10 +87,10 @@
                         </dl>
 
                         <div class="mt-6 flex flex-wrap items-center gap-3">
-                            <a href="{{ route('communities.show', $community) }}" class="inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#55670a]">
+                            <a href="{{ route('communities.show', $community) }}" class="inline-flex items-center rounded-full bg-[#6B4A3A] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#55670a]">
                                 Ouvrir la communauté
                             </a>
-                            <a href="{{ route('communities.manage', $community) }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#647a0b] hover:text-[#647a0b]">
+                            <a href="{{ route('communities.manage', $community) }}" class="inline-flex items-center rounded-full border border-[#d7ddc8] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[#6B4A3A] hover:text-[#6B4A3A]">
                                 Gérer
                             </a>
                         </div>
@@ -99,9 +99,9 @@
             @empty
                 <div class="md:col-span-2 xl:col-span-3 overflow-hidden rounded-[2rem] border border-dashed border-[#cfd8b5] bg-[linear-gradient(135deg,_rgba(247,250,239,1),_rgba(255,255,255,1))] p-12 text-center">
                     <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-2xl shadow-sm shadow-lime-900/10">#</div>
-                    <h3 class="mt-6 text-xl font-semibold text-[#647a0b]">Aucune communauté pour le moment</h3>
+                    <h3 class="mt-6 text-xl font-semibold text-[#6B4A3A]">Aucune communauté pour le moment</h3>
                     <p class="mx-auto mt-3 max-w-2xl text-sm leading-7 text-gray-600">Créez un premier espace privé pour rassembler vos clients autour d’un accompagnement, d’un programme ou d’un groupe de discussion encadré.</p>
-                    <a href="{{ route('communities.create') }}" class="mt-6 inline-flex items-center rounded-full bg-[#647a0b] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
+                    <a href="{{ route('communities.create') }}" class="mt-6 inline-flex items-center rounded-full bg-[#6B4A3A] px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-lime-900/10 transition hover:-translate-y-0.5 hover:bg-[#55670a]">
                         Créer ma première communauté
                     </a>
                 </div>

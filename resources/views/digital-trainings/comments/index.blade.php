@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
             <div>
-                <h2 class="font-semibold text-xl" style="color:#647a0b;">
+                <h2 class="font-semibold text-xl" style="color:#6B4A3A;">
                     {{ __('Commentaires de la formation') }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
@@ -15,7 +15,7 @@
                     ✏️ {{ __('Retour au builder') }}
                 </a>
                 <a href="{{ route('digital-trainings.preview', $training) }}"
-                   class="inline-flex items-center rounded-full bg-[#647a0b] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#506108]">
+                   class="inline-flex items-center rounded-full bg-[#6B4A3A] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#506108]">
                     👀 {{ __('Aperçu') }}
                 </a>
             </div>
@@ -109,7 +109,7 @@
                                     name="comment"
                                     rows="4"
                                     maxlength="2000"
-                                    class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-[#647a0b] focus:ring-[#647a0b]"
+                                    class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-[#6B4A3A] focus:ring-[#6B4A3A]"
                                     placeholder="{{ __('Écrivez votre réponse ici...') }}"
                                 >{{ old('comment') }}</textarea>
 
@@ -118,7 +118,7 @@
                                 @enderror
 
                                 <div class="flex justify-end">
-                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white hover:bg-[#506108]">
+                                    <button type="submit" class="inline-flex items-center rounded-full bg-[#6B4A3A] px-4 py-2 text-xs font-semibold text-white hover:bg-[#506108]">
                                         {{ __('Envoyer la réponse') }}
                                     </button>
                                 </div>

@@ -12,5 +12,5 @@ Télécharger le document signé (PDF)
 Nous joignons également le PDF en pièce jointe lorsque possible.
 
 Merci,  
-L’équipe AromaMade PRO
+L’équipe Olithea PRO
 @endcomponent

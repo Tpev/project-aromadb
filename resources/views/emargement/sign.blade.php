@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <button class="bg-[#647a0b] text-white px-4 py-2 rounded">Signer</button>
+            <button class="bg-[#6B4A3A] text-white px-4 py-2 rounded">Signer</button>
         </form>
     </div>
 

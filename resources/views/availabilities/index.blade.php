@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-[#647a0b] leading-tight">
+        <h2 class="font-semibold text-2xl text-[#6B4A3A] leading-tight">
             {{ __('Vos Disponibilités') }}
         </h2>
     </x-slot>
@@ -10,7 +10,7 @@
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <h1 class="text-3xl font-bold text-[#647a0b] text-center">
+            <h1 class="text-3xl font-bold text-[#6B4A3A] text-center">
                 {{ __('Liste des Disponibilités') }}
             </h1>
 
@@ -55,7 +55,7 @@
         <input
             type="text"
             id="search"
-            class="border border-[#854f38] rounded-md py-2 px-4 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-[#854f38]"
+            class="border border-[#5F7048] rounded-md py-2 px-4 w-full md:w-96 focus:outline-none focus:ring-2 focus:ring-[#5F7048]"
             placeholder="{{ __('Recherche par jour, prestation ou lieu...') }}"
             onkeyup="filterTable()"
         >
@@ -69,7 +69,7 @@
             <a
                 href="{{ route('availabilities.create') }}"
                 class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
-                       bg-[#647a0b] text-white hover:bg-[#4f6108] transition duration-200 shadow-sm"
+                       bg-[#6B4A3A] text-white hover:bg-[#4f6108] transition duration-200 shadow-sm"
             >
                 <i class="fas fa-calendar-plus mr-2"></i>
                 {{ __('Ajouter une Disponibilité') }}
@@ -79,7 +79,7 @@
             <a
                 href="{{ route('unavailabilities.index') }}"
                 class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
-                       bg-[#854f38] text-white hover:bg-[#6a3f2c] transition duration-200 shadow-sm"
+                       bg-[#5F7048] text-white hover:bg-[#4E5F3A] transition duration-200 shadow-sm"
             >
                 <i class="fas fa-ban mr-2"></i>
                 {{ __('Ajouter une Indisponibilité temporaire') }}
@@ -89,8 +89,8 @@
             <a
                 href="{{ route('special-availabilities.index') }}"
                 class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium
-                       border border-[#647a0b] text-[#647a0b] bg-white
-                       hover:bg-[#647a0b] hover:text-white transition duration-200 shadow-sm"
+                       border border-[#6B4A3A] text-[#6B4A3A] bg-white
+                       hover:bg-[#6B4A3A] hover:text-white transition duration-200 shadow-sm"
             >
                 <i class="fas fa-star mr-2"></i>
                 {{ __('Ajouter des Disponibilités ponctuelles') }}
@@ -129,7 +129,7 @@
 
             {{-- Small pill for the whole group --}}
             <div class="absolute -top-2 -right-2 bg-[#fff1d6] border border-[#facc15]/40 
-                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#854f38]
+                        px-2 py-0.5 text-[10px] rounded-full font-semibold text-[#5F7048]
                         shadow-sm flex items-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
@@ -155,7 +155,7 @@
             <div class="bg-white shadow overflow-hidden rounded-lg">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200" id="availabilityTable">
-                        <thead class="bg-[#647a0b] text-white">
+                        <thead class="bg-[#6B4A3A] text-white">
                             <tr>
                                 <th onclick="sortTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer whitespace-nowrap">
                                     {{ __('Jour') }} <i class="fas fa-sort ml-1"></i>
@@ -204,7 +204,7 @@
                                     <!-- Lieu -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($availability->practiceLocation)
-                                            <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-[#f5f5f5] text-[#647a0b] border border-[#647a0b]">
+                                            <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-[#f5f5f5] text-[#6B4A3A] border border-[#6B4A3A]">
                                                 {{ $availability->practiceLocation->label }}
                                                 @if($availability->practiceLocation->is_primary)
                                                     &nbsp;· {{ __('Principal') }}
@@ -217,7 +217,7 @@
                                                 @endif
                                             </div>
                                         @else
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Sans lieu') }}
                                             </span>
                                         @endif
@@ -226,11 +226,11 @@
                                     <!-- Applique à toutes -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($availability->applies_to_all)
-                                            <span class="bg-[#647a0b] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#6B4A3A] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Oui') }}
                                             </span>
                                         @else
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Non') }}
                                             </span>
                                         @endif
@@ -239,17 +239,17 @@
                                     <!-- Produits -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($availability->applies_to_all)
-                                            <span class="bg-[#647a0b] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#6B4A3A] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Toutes les Prestations') }}
                                             </span>
                                         @elseif($availability->products->isEmpty())
-                                            <span class="bg-[#854f38] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            <span class="bg-[#5F7048] text-white px-2 py-1 rounded-full text-xs font-semibold">
                                                 {{ __('Aucune Prestation associée') }}
                                             </span>
                                         @else
                                             <div class="flex flex-wrap">
                                                 @foreach($availability->products as $product)
-                                                    <span class="bg-[#647a0b] text-white px-2 py-1 rounded-full text-xs font-semibold inline-block mb-1 mr-1">
+                                                    <span class="bg-[#6B4A3A] text-white px-2 py-1 rounded-full text-xs font-semibold inline-block mb-1 mr-1">
                                                         {{ $product->name }}
                                                     </span>
                                                 @endforeach

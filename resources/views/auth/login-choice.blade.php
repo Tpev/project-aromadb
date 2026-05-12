@@ -5,19 +5,19 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Connexion - {{ config('app.name', 'AromaMade') }}</title>
+        <title>Connexion - {{ config('app.name', 'Olithea') }}</title>
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
             :root {
-                --olive: #647a0b;
-                --olive-dark: #485c04;
-                --brown: #854f38;
-                --cream: #f7f3ea;
+                --olive: #6B4A3A;
+                --olive-dark: #3F2B22;
+                --brown: #5F7048;
+                --cream: #F6F2EB;
                 --paper: #fffdf8;
                 --ink: #171c2b;
                 --muted: #667085;
@@ -38,11 +38,11 @@
                 min-height: 100vh;
                 min-height: 100dvh;
                 color: var(--ink);
-                font-family: Figtree, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                font-family: Montserrat, "Avenir Next", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
                 background:
-                    radial-gradient(circle at 18% 16%, rgba(100, 122, 11, 0.18), transparent 21rem),
-                    radial-gradient(circle at 80% 86%, rgba(133, 79, 56, 0.14), transparent 24rem),
-                    linear-gradient(135deg, #f9f6ef 0%, #f1eadc 100%);
+                    radial-gradient(circle at 18% 16%, rgba(167, 184, 138, 0.24), transparent 21rem),
+                    radial-gradient(circle at 80% 86%, rgba(233, 176, 122, 0.18), transparent 24rem),
+                    linear-gradient(135deg, #F6F2EB 0%, #EDE7DB 100%);
             }
 
             .login-choice {
@@ -104,7 +104,7 @@
                 max-width: 12ch;
                 font-size: clamp(2.45rem, 10vw, 4.4rem);
                 line-height: 0.95;
-                letter-spacing: -0.06em;
+                letter-spacing: 0;
             }
 
             .hero p {
@@ -142,7 +142,7 @@
             }
 
             .choice:focus-visible {
-                outline: 3px solid rgba(100, 122, 11, 0.28);
+                outline: 3px solid rgba(167, 184, 138, 0.28);
                 outline-offset: 4px;
             }
 
@@ -174,19 +174,19 @@
                 height: 0.7rem;
                 border-radius: 999px;
                 background: var(--olive);
-                box-shadow: 0 0 0 8px rgba(100, 122, 11, 0.12);
+                box-shadow: 0 0 0 8px rgba(167, 184, 138, 0.12);
             }
 
             .choice.pro .choice-dot {
                 background: var(--brown);
-                box-shadow: 0 0 0 8px rgba(133, 79, 56, 0.12);
+                box-shadow: 0 0 0 8px rgba(107, 74, 58, 0.12);
             }
 
             .choice h2 {
                 margin: 1.6rem 0 0;
                 font-size: clamp(1.45rem, 4vw, 1.85rem);
                 line-height: 1.08;
-                letter-spacing: -0.04em;
+                letter-spacing: 0;
             }
 
             .choice-cta {
@@ -270,8 +270,8 @@
             <section class="login-card">
                 <div class="login-card-inner">
                     <div class="brand">
-                        <a href="{{ url('/') }}" aria-label="Retour à l'accueil AromaMade">
-                            <img src="{{ asset('images/png-01.webp') }}" width="256" height="64" alt="{{ config('app.name', 'AromaMade') }}">
+                        <a href="{{ url('/') }}" aria-label="Retour à l'accueil Olithea">
+                            <img src="{{ asset('images/brand/olithea-logo-horizontal-green-cropped.png') }}" width="941" height="294" alt="{{ config('app.name', 'Olithea') }}">
                         </a>
                     </div>
 

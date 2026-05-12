@@ -2,7 +2,7 @@
 # Bonjour les Lapiz 🐰
 
 
-Un nouvel utilisateur vient de s'inscrire sur **AromaMade PRO**.
+Un nouvel utilisateur vient de s'inscrire sur **Olithea PRO**.
 
 **Détails de l'utilisateur :**
 

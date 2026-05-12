@@ -26,8 +26,8 @@
         : ($isExternal
             ? 'border-slate-200 bg-slate-50/60'
             : ($isPast
-                ? 'border-[#854f38]/20 bg-white'
-                : 'border-[#647a0b]/15 bg-white'));
+                ? 'border-[#5F7048]/20 bg-white'
+                : 'border-[#6B4A3A]/15 bg-white'));
 
     $textMuted = ($isPast || $isCancelled) ? 'text-gray-400' : 'text-gray-500';
 @endphp
@@ -46,7 +46,7 @@
                 {{ $date->translatedFormat('d M Y') }}
             </p>
             <p class="mt-0.5 text-sm font-semibold {{ $isCancelled ? 'text-gray-500' : 'text-gray-900' }} flex items-center gap-1.5">
-                <i class="fas fa-clock text-[11px] {{ $isCancelled ? 'text-slate-400' : 'text-[#647a0b]' }}"></i>
+                <i class="fas fa-clock text-[11px] {{ $isCancelled ? 'text-slate-400' : 'text-[#6B4A3A]' }}"></i>
                 {{ $date->format('H:i') }}
                 <span class="mx-1 text-gray-300">•</span>
                 <span class="text-xs text-gray-500">{{ $appointment->duration }} min</span>
@@ -60,7 +60,7 @@
 
     <div class="mt-3 space-y-1.5">
         <p class="text-sm font-medium {{ $isCancelled ? 'text-gray-500' : 'text-gray-900' }} flex items-center gap-2">
-            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full {{ $isExternal ? 'bg-slate-200 text-slate-600' : ($isCancelled ? 'bg-slate-200 text-slate-500' : 'bg-[#647a0b]/10 text-[#647a0b]') }}">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full {{ $isExternal ? 'bg-slate-200 text-slate-600' : ($isCancelled ? 'bg-slate-200 text-slate-500' : 'bg-[#6B4A3A]/10 text-[#6B4A3A]') }}">
                 <i class="fas {{ $isExternal ? 'fa-lock' : 'fa-user' }} text-[11px]"></i>
             </span>
             <span>{{ $clientName }}</span>
@@ -90,7 +90,7 @@
         </div>
 
         @unless($isExternal)
-            <span class="inline-flex items-center gap-1 text-[11px] {{ $isCancelled ? 'text-slate-400' : 'text-[#647a0b]' }}">
+            <span class="inline-flex items-center gap-1 text-[11px] {{ $isCancelled ? 'text-slate-400' : 'text-[#6B4A3A]' }}">
                 Voir le détail
                 <i class="fas fa-chevron-right text-[9px]"></i>
             </span>
