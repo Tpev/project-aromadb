@@ -236,7 +236,7 @@
                                                 <input type="text"
                                                     name="items[{{ $i }}][label]"
                                                     class="am-input custom-name"
-                                                    value="{{ old("items.$i.custom_name", trim($cName)) }}"
+                                                    value="{{ old("items.$i.label", trim($cName)) }}"
                                                     placeholder="Ex: Consultation, Atelier…"
                                                     oninput="recomputeAllTotals()">
                                             @endif

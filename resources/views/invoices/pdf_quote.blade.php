@@ -238,15 +238,33 @@
         <tbody>
         @foreach($invoice->items as $item)
             @php
-                $name = $item->description;
-                if($item->type === 'product' && $item->product) $name = $item->product->name;
-                if($item->type === 'inventory' && $item->inventoryItem) $name = $item->inventoryItem->name;
+                $name = trim((string) ($item->label ?? ''));
+                $description = trim((string) ($item->description ?? ''));
+
+                if($item->type === 'product' && $item->product) {
+                    $name = $item->product->name;
+                } elseif($item->type === 'inventory' && $item->inventoryItem) {
+                    $name = $item->inventoryItem->name;
+                } elseif($name === '' && $description !== '') {
+                    if (str_contains($description, ' — ')) {
+                        [$left, $right] = array_map('trim', explode(' — ', $description, 2));
+                        $name = $left;
+                        $description = $right;
+                    } elseif (str_contains($description, ' - ')) {
+                        [$left, $right] = array_map('trim', explode(' - ', $description, 2));
+                        $name = $left;
+                        $description = $right;
+                    } else {
+                        $name = $description;
+                        $description = '';
+                    }
+                }
 
                 $remiseHt = (float)($item->line_discount_amount_ht ?? 0) + (float)($item->global_discount_amount_ht ?? 0);
             @endphp
             <tr>
-                <td>{{ $name }}</td>
-                <td>{{ $item->description }}</td>
+                <td>{{ $name !== '' ? $name : '—' }}</td>
+                <td>{{ $description !== '' ? $description : '—' }}</td>
                 <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
                 <td class="num">{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
                 <td class="num">{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>

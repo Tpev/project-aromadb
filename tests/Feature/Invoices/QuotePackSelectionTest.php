@@ -56,4 +56,9 @@ test('therapist can create a quote line from a pack selection payload', function
     expect((float) $quote->total_amount)->toBe(120.0);
     expect((float) $quote->total_tax_amount)->toBe(24.0);
     expect((float) $quote->total_amount_with_tax)->toBe(144.0);
+
+    $this->actingAs($therapist)
+        ->get(route('invoices.showQuote', $quote))
+        ->assertOk()
+        ->assertSee('Pack : Pack confort');
 });
