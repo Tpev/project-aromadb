@@ -412,7 +412,7 @@ class PublicCheckoutController extends Controller
             if ($purchase && Schema::hasColumn('pack_purchases', 'installments_total')) {
                 $purchase->installments_total = (int) $selectedPlan['count'];
                 $purchase->installments_paid = 0;
-                $purchase->installment_amount_cents = (int) $selectedPlan['base_cents'];
+                $purchase->installment_amount_cents = (int) $selectedPlan['installment_cents'];
                 $purchase->save();
             }
         }
@@ -452,7 +452,7 @@ class PublicCheckoutController extends Controller
                                 'product_data' => [
                                     'name' => $lineLabel . ' (paiement en plusieurs fois)',
                                 ],
-                                'unit_amount' => (int) $selectedPlan['base_cents'],
+                                'unit_amount' => (int) $selectedPlan['installment_cents'],
                                 'recurring' => [
                                     'interval' => 'month',
                                     'interval_count' => 1,
@@ -467,19 +467,6 @@ class PublicCheckoutController extends Controller
                         'success_url' => route('packs.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
                         'cancel_url' => route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
                     ];
-
-                    if ((int) $selectedPlan['remainder_cents'] > 0) {
-                        $sessionData['subscription_data']['add_invoice_items'] = [[
-                            'price_data' => [
-                                'currency' => 'eur',
-                                'product_data' => [
-                                    'name' => $lineLabel . ' (ajustement 1ère échéance)',
-                                ],
-                                'unit_amount' => (int) $selectedPlan['remainder_cents'],
-                            ],
-                            'quantity' => 1,
-                        ]];
-                    }
 
                     $session = $stripe->checkout->sessions->create($sessionData, [
                         'stripe_account' => $therapist->stripe_account_id,

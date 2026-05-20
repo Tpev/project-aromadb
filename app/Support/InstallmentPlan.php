@@ -41,20 +41,23 @@ class InstallmentPlan
             return null;
         }
 
-        $base = intdiv($totalCents, $count);
-        $remainder = $totalCents - ($base * $count);
-        $first = $base + $remainder;
+        $installment = intdiv($totalCents, $count);
+        $adjustedTotal = $installment * $count;
+        $adjustment = $adjustedTotal - $totalCents;
 
-        if ($base < self::MIN_STRIPE_CENTS || $first < self::MIN_STRIPE_CENTS) {
+        if ($installment < self::MIN_STRIPE_CENTS) {
             return null;
         }
 
         return [
             'count' => $count,
             'total_cents' => $totalCents,
-            'base_cents' => $base,
-            'first_cents' => $first,
-            'remainder_cents' => $remainder,
+            'installment_cents' => $installment,
+            'base_cents' => $installment,
+            'first_cents' => $installment,
+            'remainder_cents' => 0,
+            'adjusted_total_cents' => $adjustedTotal,
+            'adjustment_cents' => $adjustment,
         ];
     }
 
@@ -74,4 +77,3 @@ class InstallmentPlan
         return $plans;
     }
 }
-

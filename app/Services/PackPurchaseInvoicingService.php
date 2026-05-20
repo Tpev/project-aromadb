@@ -179,10 +179,11 @@ class PackPurchaseInvoicingService
     private function resolvePricingSnapshot(PackPurchase $purchase): array
     {
         $type = (string) ($purchase->purchase_type ?? 'pack');
+        $installmentTtc = $this->installmentChargedTotalTtc($purchase);
 
         if ($type === 'training' && $purchase->digitalTraining) {
             $training = $purchase->digitalTraining;
-            $ttc = max(0, ((int) ($training->price_cents ?? 0)) / 100);
+            $ttc = $installmentTtc ?? max(0, ((int) ($training->price_cents ?? 0)) / 100);
             $taxRate = (float) ($training->tax_rate ?? 0);
             $ht = $taxRate > 0 ? ($ttc / (1 + ($taxRate / 100))) : $ttc;
             $tax = max(0, $ttc - $ht);
@@ -198,10 +199,7 @@ class PackPurchaseInvoicingService
 
         $pack = $purchase->pack;
         if (!$pack) {
-            $fallbackTtc = 0.0;
-            if (!is_null($purchase->installment_amount_cents) && !is_null($purchase->installments_total)) {
-                $fallbackTtc = ((int) $purchase->installment_amount_cents * (int) $purchase->installments_total) / 100;
-            }
+            $fallbackTtc = $installmentTtc ?? 0.0;
 
             return [
                 $fallbackTtc,
@@ -213,9 +211,15 @@ class PackPurchaseInvoicingService
         }
 
         $taxRate = (float) ($pack->tax_rate ?? 0);
-        $ht = (float) ($pack->price ?? 0);
-        $tax = $ht * ($taxRate / 100);
-        $ttc = $ht + $tax;
+        if (!is_null($installmentTtc)) {
+            $ttc = $installmentTtc;
+            $ht = $taxRate > 0 ? ($ttc / (1 + ($taxRate / 100))) : $ttc;
+            $tax = max(0, $ttc - $ht);
+        } else {
+            $ht = (float) ($pack->price ?? 0);
+            $tax = $ht * ($taxRate / 100);
+            $ttc = $ht + $tax;
+        }
 
         return [
             $ht,
@@ -224,5 +228,20 @@ class PackPurchaseInvoicingService
             $ttc,
             'Pack : ' . ($pack->name ?? ('#' . $purchase->pack_product_id)),
         ];
+    }
+
+    private function installmentChargedTotalTtc(PackPurchase $purchase): ?float
+    {
+        if (($purchase->payment_mode ?? null) !== 'installments') {
+            return null;
+        }
+
+        if (is_null($purchase->installment_amount_cents) || is_null($purchase->installments_total)) {
+            return null;
+        }
+
+        $totalCents = (int) $purchase->installment_amount_cents * (int) $purchase->installments_total;
+
+        return $totalCents > 0 ? ($totalCents / 100) : null;
     }
 }
