@@ -958,8 +958,9 @@ public function createQuote(Request $request)
     $corporateClients = CorporateClient::where('user_id', auth()->id())->get();
     $products       = Product::where('user_id', auth()->id())->get();
     $inventoryItems = InventoryItem::where('user_id', auth()->id())->get();
+    $packProducts   = PackProduct::where('user_id', auth()->id())->get();
 
-    return view('invoices.create-quote', compact('clients','corporateClients','products','inventoryItems'));
+    return view('invoices.create-quote', compact('clients','corporateClients','products','inventoryItems','packProducts'));
 }
 
 public function storeQuote(Request $request)
@@ -976,8 +977,10 @@ public function storeQuote(Request $request)
         'items.*.type'                 => ['required', Rule::in(['product','inventory','custom'])],
         'items.*.product_id'           => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
         'items.*.inventory_item_id'    => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.label'                => ['nullable', 'string', 'max:255'],
         'items.*.quantity'             => ['required', 'numeric', 'min:0.01'],
         'items.*.unit_price'           => ['nullable', 'numeric', 'min:0'], // used for custom
+        'items.*.tax_rate'             => ['nullable', 'numeric', 'min:0'],
         'items.*.description'          => ['nullable', 'string'],
         'items.*.line_discount_type'   => ['nullable', Rule::in(['percent','amount'])],
         'items.*.line_discount_value'  => ['nullable', 'numeric', 'min:0'],
@@ -1059,8 +1062,9 @@ public function editQuote(Invoice $quote)
     $corporateClients = CorporateClient::where('user_id', Auth::id())->get();
     $products       = Product::where('user_id', Auth::id())->get();
     $inventoryItems = InventoryItem::where('user_id', Auth::id())->get();
+    $packProducts   = PackProduct::where('user_id', Auth::id())->get();
 
-    return view('invoices.edit-quote', compact('quote', 'clients', 'corporateClients', 'products', 'inventoryItems'));
+    return view('invoices.edit-quote', compact('quote', 'clients', 'corporateClients', 'products', 'inventoryItems', 'packProducts'));
 }
 public function updateQuote(Request $request, Invoice $quote)
 {
@@ -1078,8 +1082,10 @@ public function updateQuote(Request $request, Invoice $quote)
         'items.*.type'                 => ['required', Rule::in(['product','inventory','custom'])],
         'items.*.product_id'           => ['nullable', Rule::exists('products', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
         'items.*.inventory_item_id'    => ['nullable', Rule::exists('inventory_items', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
+        'items.*.label'                => ['nullable', 'string', 'max:255'],
         'items.*.quantity'             => ['required', 'numeric', 'min:0.01'],
         'items.*.unit_price'           => ['nullable', 'numeric', 'min:0'], // used for custom
+        'items.*.tax_rate'             => ['nullable', 'numeric', 'min:0'],
         'items.*.description'          => ['nullable', 'string'],
         'items.*.line_discount_type'   => ['nullable', Rule::in(['percent','amount'])],
         'items.*.line_discount_value'  => ['nullable', 'numeric', 'min:0'],
@@ -1402,7 +1408,7 @@ private function recomputeInvoiceTotalsWithDiscounts(
             'label' => ($label !== '' ? $label : null),
 
             // ✅ Keep description clean and optional
-            'description' => ($desc !== '' ? $desc : null),
+            'description' => ($desc !== '' ? $desc : ''),
 
             'quantity' => $quantity,
             'unit_price' => round($unitPriceHt, 6),
