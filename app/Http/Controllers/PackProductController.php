@@ -11,6 +11,7 @@ use App\Models\ClientProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class PackProductController extends Controller
 {
@@ -326,6 +327,31 @@ class PackProductController extends Controller
 
         return redirect()->route('client_profiles.show', $clientProfile)
             ->with('success', 'Forfait attribué au client avec succès.');
+    }
+
+    public function revokePurchase(PackPurchase $packPurchase)
+    {
+        if ((int) $packPurchase->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if ($packPurchase->status === 'cancelled') {
+            return back()->with('success', 'Ce pack client est deja revoque.');
+        }
+
+        $data = ['status' => 'cancelled'];
+
+        if (Schema::hasColumn('pack_purchases', 'canceled_requested_at')) {
+            $data['canceled_requested_at'] = $packPurchase->canceled_requested_at ?? now();
+        }
+
+        if (Schema::hasColumn('pack_purchases', 'canceled_effective_at')) {
+            $data['canceled_effective_at'] = now();
+        }
+
+        $packPurchase->update($data);
+
+        return back()->with('success', 'Pack client revoque avec succes.');
     }
 
     private function ensureOwner(PackProduct $pack): void

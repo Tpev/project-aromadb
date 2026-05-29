@@ -548,30 +548,43 @@
         </td>
 
         <td class="px-3 py-2">
-            @if(($p->payment_mode ?? 'one_time') === 'installments' && !empty($p->stripe_subscription_id))
-                @if(in_array((string) ($p->payment_state ?? ''), ['active', 'past_due', 'cancel_scheduled'], true))
-                    <form action="{{ route('pack-purchases.subscription.cancel', $p->id) }}" method="POST" class="mb-1">
-                        @csrf
-                        <input type="hidden" name="cancel_mode" value="end_of_period">
-                        <button class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                            Annuler fin période
-                        </button>
-                    </form>
+            <div class="space-y-1">
+                @if(($p->payment_mode ?? 'one_time') === 'installments' && !empty($p->stripe_subscription_id))
+                    @if(in_array((string) ($p->payment_state ?? ''), ['active', 'past_due', 'cancel_scheduled'], true))
+                        <form action="{{ route('pack-purchases.subscription.cancel', $p->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="cancel_mode" value="end_of_period">
+                            <button class="rounded-lg border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                                Annuler fin periode
+                            </button>
+                        </form>
 
-                    <form action="{{ route('pack-purchases.subscription.cancel', $p->id) }}" method="POST">
+                        <form action="{{ route('pack-purchases.subscription.cancel', $p->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="cancel_mode" value="immediate">
+                            <button class="rounded-lg border border-red-300 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                    onclick="return confirm('Annuler immediatement cet abonnement ?');">
+                                Annuler immediat
+                            </button>
+                        </form>
+                    @else
+                        <span class="text-xs text-slate-500">Aucune action abonnement</span>
+                    @endif
+                @endif
+
+                @if($p->status === 'active')
+                    <form action="{{ route('pack-purchases.revoke', $p->id) }}" method="POST">
                         @csrf
-                        <input type="hidden" name="cancel_mode" value="immediate">
-                        <button class="rounded-lg border border-red-300 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
-                                onclick="return confirm('Annuler immédiatement cet abonnement ?');">
-                            Annuler immédiat
+                        @method('DELETE')
+                        <button class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                onclick="return confirm('Revoquer ce pack client ? Il ne sera plus utilisable.');">
+                            Revoquer
                         </button>
                     </form>
-                @else
-                    <span class="text-xs text-slate-500">Aucune action</span>
+                @elseif(!(($p->payment_mode ?? 'one_time') === 'installments' && !empty($p->stripe_subscription_id)))
+                    <span class="text-xs text-slate-500">-</span>
                 @endif
-            @else
-                <span class="text-xs text-slate-500">—</span>
-            @endif
+            </div>
         </td>
 
         {{-- Details row --}}

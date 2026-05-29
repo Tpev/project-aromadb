@@ -186,6 +186,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pack-purchases/{packPurchase}/subscription/cancel', [PackPurchaseSubscriptionController::class, 'cancel'])
         ->name('pack-purchases.subscription.cancel');
 
+    Route::delete('pack-purchases/{packPurchase}/revoke', [PackProductController::class, 'revokePurchase'])
+        ->name('pack-purchases.revoke');
+
 });
 
 
@@ -1431,4 +1434,3 @@ Route::middleware(['auth'])->prefix('dashboard-pro')->group(function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/mobile.php';
-
