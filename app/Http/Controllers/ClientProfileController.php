@@ -35,7 +35,7 @@ class ClientProfileController extends Controller
         }
 
         $request->validate([
-            'document' => 'required|file|max:5120', // 5MB max
+            'document' => 'required|file|max:204800', // 200MB max
         ]);
 
         $file = $request->file('document');
