@@ -89,6 +89,8 @@ use App\Http\Controllers\CommunityMemberController;
 use App\Http\Controllers\CommunityMessageController;
 use App\Http\Controllers\CommunityAttachmentController;
 use App\Http\Controllers\ClientCommunityController;
+use App\Http\Controllers\SuperPdpController;
+use App\Http\Controllers\SuperPdpReceivedInvoiceController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -900,6 +902,15 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(fu
 	 Route::get('/profile/license', [ProfileController::class, 'license'])->name('profile.license');
     Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
     Route::put('/profile/company-info', [ProfileController::class, 'updateCompanyInfo'])->name('profile.updateCompanyInfo');
+
+    Route::prefix('super-pdp')->name('super-pdp.')->group(function () {
+        Route::post('/connect', [SuperPdpController::class, 'connect'])->name('connect');
+        Route::get('/oauth/callback', [SuperPdpController::class, 'callback'])->name('oauth.callback');
+        Route::patch('/preferences', [SuperPdpController::class, 'updatePreferences'])->name('preferences.update');
+        Route::delete('/disconnect', [SuperPdpController::class, 'disconnect'])->name('disconnect');
+        Route::get('/received-invoices', [SuperPdpReceivedInvoiceController::class, 'index'])->name('received-invoices.index');
+        Route::get('/received-invoices/{receivedInvoice}/download', [SuperPdpReceivedInvoiceController::class, 'download'])->name('received-invoices.download');
+    });
 });
 Route::middleware(['auth', \App\Http\Middleware\TrackPageViews::class])->group(function () {
 

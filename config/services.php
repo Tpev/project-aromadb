@@ -54,5 +54,20 @@ return [
         'scopes'        => explode(',', env('GOOGLE_BUSINESS_SCOPES', 'https://www.googleapis.com/auth/business.manage')),
     ],
 
+    'super_pdp' => [
+        'environment' => env('SUPER_PDP_ENV', 'sandbox'),
+        'base_url' => env('SUPER_PDP_BASE_URL', 'https://api.superpdp.tech'),
+        'authorize_url' => env('SUPER_PDP_AUTHORIZE_URL', 'https://api.superpdp.tech/oauth2/authorize'),
+        'token_url' => env('SUPER_PDP_TOKEN_URL', 'https://api.superpdp.tech/oauth2/token'),
+        'revoke_url' => env('SUPER_PDP_REVOKE_URL', 'https://api.superpdp.tech/oauth2/revoke'),
+        'client_id' => env('SUPER_PDP_CLIENT_ID'),
+        'client_secret' => env('SUPER_PDP_CLIENT_SECRET'),
+        'redirect_uri' => env('SUPER_PDP_REDIRECT_URI'),
+        'allowed_emails' => array_values(array_filter(array_map(
+            static fn ($email) => strtolower(trim($email)),
+            explode(',', env('SUPER_PDP_ALLOWED_EMAILS', 'john.satch00@gmail.com'))
+        ))),
+    ],
+
 
 ];

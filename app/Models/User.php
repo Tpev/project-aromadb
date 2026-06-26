@@ -141,6 +141,16 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
+    public function superPdpConnection()
+    {
+        return $this->hasOne(SuperPdpConnection::class);
+    }
+
+    public function superPdpReceivedInvoices()
+    {
+        return $this->hasMany(SuperPdpReceivedInvoice::class);
+    }
+
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
