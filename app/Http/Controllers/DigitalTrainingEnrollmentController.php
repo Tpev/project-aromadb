@@ -75,17 +75,34 @@ class DigitalTrainingEnrollmentController extends Controller
 
         $participantName = trim($data['first_name'] . ' ' . $data['last_name']);
 
-        $enrollment = $this->enrollments->create(
-            training: $digitalTraining,
-            clientProfile: null,
-            participantName: $participantName,
-            participantEmail: $data['email'],
-            source: DigitalTrainingEnrollment::SOURCE_FREE_GATE,
-            sendAccessEmail: false,
-            emailCommunicationConsent: $request->boolean('email_communication_consent'),
-        );
+        $enrollment = $this->enrollments->findReusableFreeAccessEnrollment($digitalTraining, $data['email']);
 
-        return redirect()->route('digital-trainings.access.show', $enrollment->access_token);
+        if ($enrollment) {
+            $consentGiven = $request->boolean('email_communication_consent');
+
+            if (blank($enrollment->participant_name)) {
+                $enrollment->participant_name = $participantName;
+            }
+
+            if ($consentGiven && ! $enrollment->email_communication_consent) {
+                $enrollment->email_communication_consent = true;
+                $enrollment->email_communication_consent_at = now();
+            }
+
+            $enrollment->save();
+        } else {
+            $enrollment = $this->enrollments->create(
+                training: $digitalTraining,
+                clientProfile: null,
+                participantName: $participantName,
+                participantEmail: $data['email'],
+                source: DigitalTrainingEnrollment::SOURCE_FREE_GATE,
+                sendAccessEmail: false,
+                emailCommunicationConsent: $request->boolean('email_communication_consent'),
+            );
+        }
+
+        return $this->redirectToEnrollmentWithCookie($request, $digitalTraining, $enrollment);
     }
 
     public function storeOpenFreeAccess(Request $request, DigitalTraining $digitalTraining)
@@ -103,7 +120,7 @@ class DigitalTrainingEnrollmentController extends Controller
             sendAccessEmail: false,
         );
 
-        return redirect()->route('digital-trainings.access.show', $enrollment->access_token);
+        return $this->redirectToEnrollmentWithCookie($request, $digitalTraining, $enrollment);
     }
 
     public function destroy(DigitalTraining $digitalTraining, DigitalTrainingEnrollment $enrollment)
@@ -126,5 +143,25 @@ class DigitalTrainingEnrollmentController extends Controller
         if ($training->user_id !== Auth::id()) {
             abort(403);
         }
+    }
+
+    protected function redirectToEnrollmentWithCookie(
+        Request $request,
+        DigitalTraining $training,
+        DigitalTrainingEnrollment $enrollment
+    ) {
+        return redirect()
+            ->route('digital-trainings.access.show', $enrollment->access_token)
+            ->withCookie(cookie(
+                $training->freeAccessCookieName(),
+                $enrollment->access_token,
+                60 * 24 * 180,
+                '/',
+                null,
+                $request->isSecure(),
+                true,
+                false,
+                'lax'
+            ));
     }
 }

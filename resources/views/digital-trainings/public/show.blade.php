@@ -63,6 +63,8 @@ if ($therapist) {
     $canClaimFree = $isFree && !$canOpenFree && ($training->free_access_requires_identity ?? false);
     $openAccessUrl = $canOpenFree ? route('digital-trainings.public.open-access.store', $training) : null;
     $freeAccessUrl = $canClaimFree ? route('digital-trainings.public.free-access.store', $training) : null;
+    $resumeEnrollment = $resumeEnrollment ?? null;
+    $resumeAccessUrl = $resumeAccessUrl ?? null;
 @endphp
 
 <x-app-layout>
@@ -154,7 +156,14 @@ if ($therapist) {
 
                         {{-- CTA --}}
                         <div class="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
-                            @if($canOpenFree)
+                            @if($resumeAccessUrl)
+                                <a href="{{ $resumeAccessUrl }}"
+                                   class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
+                                          text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
+                                          transition-colors duration-200">
+                                    ↪ {{ __('Continuer ma formation') }}
+                                </a>
+                            @elseif($canOpenFree)
                                 <form action="{{ $openAccessUrl }}" method="POST" class="inline-flex">
                                     @csrf
                                     <button type="submit"
@@ -166,7 +175,7 @@ if ($therapist) {
                                 </form>
                             @endif
 
-                            @if($canClaimFree)
+                            @if(!$resumeAccessUrl && $canClaimFree)
                                 <a href="#free-access-gate"
                                    class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
                                           text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
@@ -253,7 +262,18 @@ if ($therapist) {
                     </div>
                 @endif
 
-                @if($canOpenFree)
+                @if($resumeAccessUrl)
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="{{ $resumeAccessUrl }}"
+                           class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
+                                  px-6 py-2.5 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                            ↪ {{ __('Continuer ma formation') }}
+                        </a>
+                        <p class="text-xs md:text-sm text-gray-500 self-center">
+                            {{ __('Votre accès a été retrouvé sur cet appareil.') }}
+                        </p>
+                    </div>
+                @elseif($canOpenFree)
                     <div class="mt-6 flex flex-wrap gap-3">
                         <form action="{{ $openAccessUrl }}" method="POST" class="inline-flex">
                             @csrf
@@ -269,7 +289,7 @@ if ($therapist) {
                     </div>
                 @endif
 
-                @if($canClaimFree)
+                @if(!$resumeAccessUrl && $canClaimFree)
                     <div class="mt-6 flex flex-wrap gap-3">
                         <a href="#free-access-gate"
                            class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
@@ -288,8 +308,29 @@ if ($therapist) {
                     </h2>
 
                     <p class="mt-3 text-sm md:text-base text-gray-600 max-w-3xl">
-                        {{ __('Renseignez simplement votre prénom, votre nom et votre email pour accéder immédiatement à ce contenu gratuit.') }}
+                        {{ $resumeAccessUrl
+                            ? __('Nous avons retrouvé un accès déjà débloqué sur cet appareil. Vous pouvez reprendre directement, ou utiliser une autre adresse email si besoin.')
+                            : __('Renseignez simplement votre prénom, votre nom et votre email pour accéder immédiatement à ce contenu gratuit.') }}
                     </p>
+
+                    @if($resumeAccessUrl)
+                        <div class="mt-5 rounded-2xl border border-[#dbe7b5] bg-[#f8fbef] p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-[#647a0b]">
+                                    {{ __('Accès déjà disponible') }}
+                                </p>
+                                <p class="mt-1 text-xs text-slate-600">
+                                    {{ __('Votre progression et votre lien d’accès sont conservés sur ce navigateur.') }}
+                                </p>
+                            </div>
+
+                            <a href="{{ $resumeAccessUrl }}"
+                               class="inline-flex items-center justify-center whitespace-nowrap bg-[#647a0b] text-white font-extrabold
+                                      text-sm px-5 py-2.5 rounded-full hover:bg-[#8ea633] transition-colors duration-200">
+                                ↪ {{ __('Continuer ma formation') }}
+                            </a>
+                        </div>
+                    @endif
 
                     @if($errors->any())
                         <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -299,6 +340,13 @@ if ($therapist) {
                                 @endforeach
                             </ul>
                         </div>
+                    @endif
+
+                    @if($resumeAccessUrl)
+                        <details class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4" {{ $errors->any() ? 'open' : '' }}>
+                            <summary class="cursor-pointer text-sm font-semibold text-slate-700">
+                                {{ __('Utiliser une autre adresse email') }}
+                            </summary>
                     @endif
 
                     <form action="{{ $freeAccessUrl }}" method="POST" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -365,6 +413,10 @@ if ($therapist) {
                             </p>
                         </div>
                     </form>
+
+                    @if($resumeAccessUrl)
+                        </details>
+                    @endif
                 </section>
             @endif
 

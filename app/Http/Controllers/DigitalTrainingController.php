@@ -642,7 +642,7 @@ class DigitalTrainingController extends Controller
      * PUBLIC SHOW PAGE
      * ======================================================= */
 
-    public function publicShow(DigitalTraining $digitalTraining)
+    public function publicShow(Request $request, DigitalTraining $digitalTraining)
     {
         if ($digitalTraining->status !== 'published') {
             abort(404);
@@ -650,6 +650,18 @@ class DigitalTrainingController extends Controller
 
         $training  = $digitalTraining->load('user', 'modules.blocks');
         $therapist = $training->user;
+        $resumeEnrollment = null;
+        $resumeAccessUrl = null;
+
+        if ($training->hasPublicFreeAccessGate() || $training->hasPublicOpenFreeAccess()) {
+            $resumeEnrollment = $training->validEnrollmentForAccessToken(
+                $request->cookie($training->freeAccessCookieName())
+            );
+
+            if ($resumeEnrollment) {
+                $resumeAccessUrl = route('digital-trainings.access.show', $resumeEnrollment->access_token);
+            }
+        }
 
         $therapistPublicUrl = null;
         if ($therapist) {
@@ -662,7 +674,9 @@ class DigitalTrainingController extends Controller
         return view('digital-trainings.public.show', compact(
             'training',
             'therapist',
-            'therapistPublicUrl'
+            'therapistPublicUrl',
+            'resumeEnrollment',
+            'resumeAccessUrl'
         ));
     }
 

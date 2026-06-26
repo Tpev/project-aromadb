@@ -11,6 +11,27 @@ use Illuminate\Support\Str;
 
 class DigitalTrainingEnrollmentService
 {
+    public function findReusableFreeAccessEnrollment(
+        DigitalTraining $training,
+        string $participantEmail
+    ): ?DigitalTrainingEnrollment {
+        $email = Str::lower(trim($participantEmail));
+
+        if ($email === '') {
+            return null;
+        }
+
+        return $training->enrollments()
+            ->whereRaw('LOWER(participant_email) = ?', [$email])
+            ->where(function ($query) {
+                $query->whereNull('token_expires_at')
+                    ->orWhere('token_expires_at', '>', now());
+            })
+            ->orderByDesc('last_accessed_at')
+            ->orderByDesc('id')
+            ->first();
+    }
+
     public function create(
         DigitalTraining $training,
         ?ClientProfile $clientProfile = null,

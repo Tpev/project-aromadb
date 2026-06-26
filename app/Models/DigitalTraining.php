@@ -106,4 +106,26 @@ class DigitalTraining extends Model
     {
         return (bool) $this->is_free && (bool) $this->free_access_is_open;
     }
+
+    public function freeAccessCookieName(): string
+    {
+        return 'digital_training_access_' . $this->id;
+    }
+
+    public function validEnrollmentForAccessToken(?string $token): ?DigitalTrainingEnrollment
+    {
+        $token = trim((string) $token);
+
+        if ($token === '') {
+            return null;
+        }
+
+        return $this->enrollments()
+            ->where('access_token', $token)
+            ->where(function ($query) {
+                $query->whereNull('token_expires_at')
+                    ->orWhere('token_expires_at', '>', now());
+            })
+            ->first();
+    }
 }

@@ -5,9 +5,9 @@ use App\Models\DigitalTrainingEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
-use Tests\TestCase;
+use Illuminate\Support\Str;
 
-uses(TestCase::class, RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 function makeTherapistForFreeAccessGate(): User
 {
@@ -126,6 +126,7 @@ test('visitor can unlock a free gated training and store email communication con
         ->and($enrollment->email_communication_consent_at)->not->toBeNull();
 
     $response->assertRedirect(route('digital-trainings.access.show', $enrollment->access_token));
+    $response->assertCookie($training->freeAccessCookieName());
     Mail::assertNothingSent();
 });
 
@@ -139,13 +140,75 @@ test('visitor can unlock a free gated training without giving email communicatio
         'first_name' => 'Lucie',
         'last_name' => 'Bernard',
         'email' => 'lucie@example.test',
-    ])->assertRedirect();
+    ])
+        ->assertRedirect()
+        ->assertCookie($training->freeAccessCookieName());
 
     $enrollment = DigitalTrainingEnrollment::query()->latest('id')->first();
 
     expect($enrollment)->not->toBeNull()
         ->and($enrollment->email_communication_consent)->toBeFalse()
         ->and($enrollment->email_communication_consent_at)->toBeNull();
+});
+
+test('visitor reuses an existing gated free access enrollment when submitting the same email', function () {
+    Mail::fake();
+
+    $therapist = makeTherapistForFreeAccessGate();
+    $training = makePublishedFreeTraining($therapist);
+
+    $existing = DigitalTrainingEnrollment::create([
+        'digital_training_id' => $training->id,
+        'participant_name' => 'Sophie Martin',
+        'participant_email' => 'sophie@example.test',
+        'access_token' => (string) Str::uuid(),
+        'token_expires_at' => now()->addMonths(6),
+        'source' => DigitalTrainingEnrollment::SOURCE_FREE_GATE,
+        'email_communication_consent' => false,
+    ]);
+
+    $response = $this->post(route('digital-trainings.public.free-access.store', $training), [
+        'first_name' => 'Sophie',
+        'last_name' => 'Martin',
+        'email' => 'SOPHIE@example.test',
+        'email_communication_consent' => 1,
+    ]);
+
+    expect(DigitalTrainingEnrollment::count())->toBe(1);
+
+    $existing->refresh();
+
+    expect($existing->email_communication_consent)->toBeTrue()
+        ->and($existing->email_communication_consent_at)->not->toBeNull();
+
+    $response
+        ->assertRedirect(route('digital-trainings.access.show', $existing->access_token))
+        ->assertCookie($training->freeAccessCookieName());
+
+    Mail::assertNothingSent();
+});
+
+test('public landing page lets a returning gated visitor continue from the access cookie', function () {
+    $therapist = makeTherapistForFreeAccessGate();
+    $training = makePublishedFreeTraining($therapist);
+
+    $enrollment = DigitalTrainingEnrollment::create([
+        'digital_training_id' => $training->id,
+        'participant_name' => 'Sophie Martin',
+        'participant_email' => 'sophie@example.test',
+        'access_token' => (string) Str::uuid(),
+        'token_expires_at' => now()->addMonths(6),
+        'source' => DigitalTrainingEnrollment::SOURCE_FREE_GATE,
+    ]);
+
+    $cookieName = $training->freeAccessCookieName();
+
+    $this->withCookie($cookieName, $enrollment->access_token)
+        ->get(route('digital-trainings.public.show', $training))
+        ->assertOk()
+        ->assertSee('Accès déjà disponible')
+        ->assertSee('Continuer ma formation')
+        ->assertSee(route('digital-trainings.access.show', $enrollment->access_token));
 });
 
 test('visitor can open an open free training without identity or login', function () {
@@ -170,6 +233,7 @@ test('visitor can open an open free training without identity or login', functio
         ->and($enrollment->email_communication_consent_at)->toBeNull();
 
     $response->assertRedirect(route('digital-trainings.access.show', $enrollment->access_token));
+    $response->assertCookie($training->freeAccessCookieName());
     Mail::assertNothingSent();
 });
 
