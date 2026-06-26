@@ -88,6 +88,24 @@ class DigitalTrainingEnrollmentController extends Controller
         return redirect()->route('digital-trainings.access.show', $enrollment->access_token);
     }
 
+    public function storeOpenFreeAccess(Request $request, DigitalTraining $digitalTraining)
+    {
+        if ($digitalTraining->status !== 'published' || ! $digitalTraining->hasPublicOpenFreeAccess()) {
+            abort(404);
+        }
+
+        $enrollment = $this->enrollments->create(
+            training: $digitalTraining,
+            clientProfile: null,
+            participantName: null,
+            participantEmail: null,
+            source: DigitalTrainingEnrollment::SOURCE_OPEN_FREE_ACCESS,
+            sendAccessEmail: false,
+        );
+
+        return redirect()->route('digital-trainings.access.show', $enrollment->access_token);
+    }
+
     public function destroy(DigitalTraining $digitalTraining, DigitalTrainingEnrollment $enrollment)
     {
         $this->authorizeOwner($digitalTraining);

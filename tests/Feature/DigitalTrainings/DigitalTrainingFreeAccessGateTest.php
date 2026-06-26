@@ -5,8 +5,9 @@ use App\Models\DigitalTrainingEnrollment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+uses(TestCase::class, RefreshDatabase::class);
 
 function makeTherapistForFreeAccessGate(): User
 {
@@ -51,6 +52,29 @@ test('therapist can enable gated free access on training creation', function () 
         ->and($training->free_access_requires_identity)->toBeTrue();
 });
 
+test('therapist can enable open free access on training creation', function () {
+    $therapist = makeTherapistForFreeAccessGate();
+
+    $this->actingAs($therapist)
+        ->post(route('digital-trainings.store'), [
+            'title' => 'Ressource libre',
+            'description' => 'Contenu ouvert',
+            'is_free' => 1,
+            'free_access_is_open' => 1,
+            'free_access_requires_identity' => 1,
+            'access_type' => 'public',
+            'status' => 'draft',
+        ])
+        ->assertRedirect();
+
+    $training = DigitalTraining::query()->latest('id')->first();
+
+    expect($training)->not->toBeNull()
+        ->and($training->is_free)->toBeTrue()
+        ->and($training->free_access_is_open)->toBeTrue()
+        ->and($training->free_access_requires_identity)->toBeFalse();
+});
+
 test('public landing page shows the free access gate when enabled', function () {
     $therapist = makeTherapistForFreeAccessGate();
     $training = makePublishedFreeTraining($therapist);
@@ -61,6 +85,21 @@ test('public landing page shows the free access gate when enabled', function () 
         ->assertSee('Nom')
         ->assertSee('Email')
         ->assertSee($therapist->name);
+});
+
+test('public landing page shows open free access without the identity form when enabled', function () {
+    $therapist = makeTherapistForFreeAccessGate();
+    $training = makePublishedFreeTraining($therapist, [
+        'free_access_requires_identity' => false,
+        'free_access_is_open' => true,
+    ]);
+
+    $this->get(route('digital-trainings.public.show', $training))
+        ->assertOk()
+        ->assertSee('Accès libre gratuit')
+        ->assertSee('Accéder librement')
+        ->assertDontSee('communications par email')
+        ->assertDontSee('prenom.nom@email.com');
 });
 
 test('visitor can unlock a free gated training and store email communication consent', function () {
@@ -109,6 +148,31 @@ test('visitor can unlock a free gated training without giving email communicatio
         ->and($enrollment->email_communication_consent_at)->toBeNull();
 });
 
+test('visitor can open an open free training without identity or login', function () {
+    Mail::fake();
+
+    $therapist = makeTherapistForFreeAccessGate();
+    $training = makePublishedFreeTraining($therapist, [
+        'free_access_requires_identity' => false,
+        'free_access_is_open' => true,
+    ]);
+
+    $response = $this->post(route('digital-trainings.public.open-access.store', $training));
+
+    $enrollment = DigitalTrainingEnrollment::query()->latest('id')->first();
+
+    expect($enrollment)->not->toBeNull()
+        ->and($enrollment->digital_training_id)->toBe($training->id)
+        ->and($enrollment->participant_name)->toBeNull()
+        ->and($enrollment->participant_email)->toBeNull()
+        ->and($enrollment->source)->toBe(DigitalTrainingEnrollment::SOURCE_OPEN_FREE_ACCESS)
+        ->and($enrollment->email_communication_consent)->toBeFalse()
+        ->and($enrollment->email_communication_consent_at)->toBeNull();
+
+    $response->assertRedirect(route('digital-trainings.access.show', $enrollment->access_token));
+    Mail::assertNothingSent();
+});
+
 test('free gated access route is not available when the gate is disabled', function () {
     $therapist = makeTherapistForFreeAccessGate();
     $training = makePublishedFreeTraining($therapist, [
@@ -120,6 +184,19 @@ test('free gated access route is not available when the gate is disabled', funct
         'last_name' => 'Martin',
         'email' => 'sophie@example.test',
     ])->assertNotFound();
+
+    expect(DigitalTrainingEnrollment::count())->toBe(0);
+});
+
+test('open free access route is not available when open access is disabled', function () {
+    $therapist = makeTherapistForFreeAccessGate();
+    $training = makePublishedFreeTraining($therapist, [
+        'free_access_requires_identity' => false,
+        'free_access_is_open' => false,
+    ]);
+
+    $this->post(route('digital-trainings.public.open-access.store', $training))
+        ->assertNotFound();
 
     expect(DigitalTrainingEnrollment::count())->toBe(0);
 });

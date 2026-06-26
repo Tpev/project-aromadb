@@ -20,6 +20,7 @@ class DigitalTraining extends Model
         // Pricing
         'is_free',
         'free_access_requires_identity',
+        'free_access_is_open',
         'price_cents',
         'tax_rate',
         'installments_enabled',
@@ -40,6 +41,7 @@ class DigitalTraining extends Model
         'tags'        => 'array',
         'is_free'     => 'boolean',
         'free_access_requires_identity' => 'boolean',
+        'free_access_is_open' => 'boolean',
         'price_cents' => 'integer',
         'tax_rate'    => 'float',
         'installments_enabled' => 'boolean',
@@ -95,6 +97,13 @@ class DigitalTraining extends Model
 
     public function hasPublicFreeAccessGate(): bool
     {
-        return (bool) $this->is_free && (bool) $this->free_access_requires_identity;
+        return (bool) $this->is_free
+            && (bool) $this->free_access_requires_identity
+            && ! (bool) $this->free_access_is_open;
+    }
+
+    public function hasPublicOpenFreeAccess(): bool
+    {
+        return (bool) $this->is_free && (bool) $this->free_access_is_open;
     }
 }

@@ -23,7 +23,7 @@ return new class extends Migration {
 
             // Snapshot of participant identity (even if client profile changes later)
             $table->string('participant_name')->nullable();
-            $table->string('participant_email');
+            $table->string('participant_email')->nullable();
 
             // Access / magic link
             $table->string('access_token')->unique();

@@ -24,6 +24,7 @@ class DigitalTrainingEnrollmentService
             ? $this->normalizeName(trim(($clientProfile->last_name ?? '') . ' ' . ($clientProfile->first_name ?? '')))
             : $this->normalizeName($participantName);
         $email = $clientProfile?->email ?? trim((string) $participantEmail);
+        $email = $email !== '' ? $email : null;
 
         $enrollment = DigitalTrainingEnrollment::create([
             'digital_training_id' => $training->id,
@@ -37,7 +38,7 @@ class DigitalTrainingEnrollmentService
             'email_communication_consent_at' => $emailCommunicationConsent ? now() : null,
         ]);
 
-        if ($sendAccessEmail && $email !== '') {
+        if ($sendAccessEmail && $email) {
             Mail::to($email)->send(new DigitalTrainingAccessMail($enrollment->load('training.user')));
         }
 

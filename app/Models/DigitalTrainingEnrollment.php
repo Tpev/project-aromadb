@@ -13,6 +13,7 @@ class DigitalTrainingEnrollment extends Model
 
     public const SOURCE_MANUAL = 'manual';
     public const SOURCE_FREE_GATE = 'free_gate';
+    public const SOURCE_OPEN_FREE_ACCESS = 'free_open';
 
     protected $fillable = [
         'digital_training_id',
@@ -61,6 +62,7 @@ class DigitalTrainingEnrollment extends Model
     {
         return match ((string) $this->source) {
             self::SOURCE_FREE_GATE => 'Accès gratuit',
+            self::SOURCE_OPEN_FREE_ACCESS => 'Accès libre',
             self::SOURCE_MANUAL => 'Manuel',
             default => ucfirst(str_replace('_', ' ', (string) $this->source)),
         };

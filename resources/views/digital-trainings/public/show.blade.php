@@ -59,7 +59,9 @@ if ($therapist) {
 
     // Can we show a buy button?
     $canBuy = (!$isFree && !is_null($priceCts) && !empty($buyUrl));
-    $canClaimFree = $isFree && ($training->free_access_requires_identity ?? false);
+    $canOpenFree = $isFree && ($training->free_access_is_open ?? false);
+    $canClaimFree = $isFree && !$canOpenFree && ($training->free_access_requires_identity ?? false);
+    $openAccessUrl = $canOpenFree ? route('digital-trainings.public.open-access.store', $training) : null;
     $freeAccessUrl = $canClaimFree ? route('digital-trainings.public.free-access.store', $training) : null;
 @endphp
 
@@ -126,7 +128,7 @@ if ($therapist) {
 
                             @if($isFree)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
-                                    💚 {{ $canClaimFree ? __('Accès gratuit après formulaire') : __('Accès offert à certains clients (voir avec le thérapeute).') }}
+                                    💚 {{ $canOpenFree ? __('Accès libre gratuit') : ($canClaimFree ? __('Accès gratuit après formulaire') : __('Accès offert à certains clients (voir avec le thérapeute).')) }}
                                 </span>
                             @elseif($priceStr)
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-white/10 border border-white/40">
@@ -152,6 +154,18 @@ if ($therapist) {
 
                         {{-- CTA --}}
                         <div class="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
+                            @if($canOpenFree)
+                                <form action="{{ $openAccessUrl }}" method="POST" class="inline-flex">
+                                    @csrf
+                                    <button type="submit"
+                                            class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
+                                                   text-sm md:text-base px-6 md:px-8 py-2.5 rounded-full hover:bg-[#e8f0d8]
+                                                   transition-colors duration-200">
+                                        ✨ {{ __('Accéder librement') }}
+                                    </button>
+                                </form>
+                            @endif
+
                             @if($canClaimFree)
                                 <a href="#free-access-gate"
                                    class="inline-flex items-center justify-center whitespace-nowrap bg-white text-[#647a0b] font-extrabold
@@ -236,6 +250,22 @@ if ($therapist) {
                                 🌿 {{ __('Voir le thérapeute') }}
                             </a>
                         @endif
+                    </div>
+                @endif
+
+                @if($canOpenFree)
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <form action="{{ $openAccessUrl }}" method="POST" class="inline-flex">
+                            @csrf
+                            <button type="submit"
+                                    class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
+                                           px-6 py-2.5 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                                ✨ {{ __('Accéder librement') }}
+                            </button>
+                        </form>
+                        <p class="text-xs md:text-sm text-gray-500 self-center">
+                            {{ __('Aucun compte, formulaire ou paiement nécessaire pour ce contenu gratuit.') }}
+                        </p>
                     </div>
                 @endif
 
@@ -479,6 +509,17 @@ if ($therapist) {
                             @endif
 
                             <div class="pt-3 flex flex-wrap gap-3">
+                                @if($canOpenFree)
+                                    <form action="{{ $openAccessUrl }}" method="POST" class="inline-flex">
+                                        @csrf
+                                        <button type="submit"
+                                                class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
+                                                       px-5 py-2 rounded-full text-sm hover:bg-[#8ea633] transition-colors duration-200">
+                                            ✨ {{ __('Accéder librement') }}
+                                        </button>
+                                    </form>
+                                @endif
+
                                 @if($canBuy)
                                     <a href="{{ $buyUrl }}"
                                        class="inline-flex items-center bg-[#647a0b] text-white font-extrabold
@@ -499,9 +540,11 @@ if ($therapist) {
                     </div>
 
                     <p class="mt-6 text-xs md:text-sm text-gray-500">
-                        {{ $canClaimFree
-                            ? __('L’accès gratuit se débloque immédiatement après le formulaire de contact.')
-                            : __('L’accès à la formation se fait via un lien sécurisé envoyé par email une fois la commande confirmée.') }}
+                        {{ $canOpenFree
+                            ? __('L’accès libre ouvre le contenu immédiatement, sans compte, formulaire ni paiement.')
+                            : ($canClaimFree
+                                ? __('L’accès gratuit se débloque immédiatement après le formulaire de contact.')
+                                : __('L’accès à la formation se fait via un lien sécurisé envoyé par email une fois la commande confirmée.')) }}
                     </p>
                 </section>
             @endif
