@@ -77,6 +77,7 @@ use App\Http\Controllers\PublicPackCheckoutController;
 use App\Http\Controllers\GiftVoucherController;
 use App\Http\Controllers\Pro\ReferralController;
 use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateController;
+use App\Http\Controllers\Admin\CrmController;
 use App\Models\DesignTemplate;
 use App\Http\Controllers\TherapistArticleController;
 use App\Http\Controllers\SessionNoteTemplateController;
@@ -1220,6 +1221,20 @@ Route::middleware(['auth'])->group(function () {
 		
 	    Route::get('/admin/usage/weekly', [AdminController::class, 'weeklyUsage'])
         ->name('admin.usage.weekly');
+});
+
+Route::middleware(['auth'])->prefix('admin/crm')->name('admin.crm.')->group(function () {
+    Route::get('/', [CrmController::class, 'index'])->name('index');
+    Route::post('/leads', [CrmController::class, 'storeLead'])->name('leads.store');
+    Route::get('/leads/{lead}', [CrmController::class, 'showLead'])->name('leads.show');
+    Route::patch('/leads/{lead}', [CrmController::class, 'updateLead'])->name('leads.update');
+    Route::patch('/leads/{lead}/stage', [CrmController::class, 'moveLead'])->name('leads.stage');
+    Route::delete('/leads/{lead}', [CrmController::class, 'destroyLead'])->name('leads.destroy');
+    Route::post('/leads/{lead}/activities', [CrmController::class, 'storeActivity'])->name('activities.store');
+    Route::delete('/leads/{lead}/activities/{activity}', [CrmController::class, 'destroyActivity'])->name('activities.destroy');
+    Route::get('/export', [CrmController::class, 'export'])->name('export');
+    Route::post('/import', [CrmController::class, 'import'])->name('import');
+    Route::get('/import-template', [CrmController::class, 'importTemplate'])->name('import-template');
 });
 
 

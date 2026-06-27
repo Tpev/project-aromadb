@@ -247,6 +247,13 @@
                     <h3>Marketing Management</h3>
                 </div>
             </a>
+            <a href="{{ route('admin.crm.index') }}" class="option-card">
+                <div class="card-content">
+                    <div class="card-bg"></div>
+                    <i class="icon fas fa-handshake"></i>
+                    <h3>Lead CRM</h3>
+                </div>
+            </a>
         </div>
     </div>
 
