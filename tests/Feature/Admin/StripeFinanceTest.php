@@ -328,7 +328,8 @@ test('admin can inspect failures payouts and forecast screens', function () {
         ->assertSee('Prévisualisations des prochaines factures')
         ->assertSee('factures Stripe déjà connues')
         ->assertSee('abonnements actifs projetés')
-        ->assertSee('Annuel inclus')
+        ->assertSee('Renouv. annuels')
+        ->assertSee('Nouveaux annuels')
         ->assertSee('Paiement prévu')
         ->assertSee('Ops Cabinet');
 });
@@ -395,9 +396,9 @@ test('forecast surfaces annual renewal spikes separately without double counting
     expect($forecast['preview_cents'])->toBe(0);
     expect($forecast['renewal_cents'])->toBe(120000);
     expect($forecast['annual_existing_cents'])->toBe(120000);
-    expect($forecast['annual_conservative_cents'])->toBe(120000);
-    expect($forecast['annual_expected_cents'])->toBe(120000);
-    expect($forecast['annual_optimistic_cents'])->toBe(120000);
+    expect($forecast['annual_new_conservative_cents'])->toBe(0);
+    expect($forecast['annual_new_expected_cents'])->toBe(0);
+    expect($forecast['annual_new_optimistic_cents'])->toBe(0);
 
     Carbon::setTestNow();
 });
@@ -439,14 +440,14 @@ test('forecast counts annual upcoming previews in the annual breakdown', functio
     expect($forecast['preview_cents'])->toBe(90000);
     expect($forecast['renewal_cents'])->toBe(0);
     expect($forecast['annual_existing_cents'])->toBe(90000);
-    expect($forecast['annual_conservative_cents'])->toBe(90000);
-    expect($forecast['annual_expected_cents'])->toBe(90000);
-    expect($forecast['annual_optimistic_cents'])->toBe(90000);
+    expect($forecast['annual_new_conservative_cents'])->toBe(0);
+    expect($forecast['annual_new_expected_cents'])->toBe(0);
+    expect($forecast['annual_new_optimistic_cents'])->toBe(0);
 
     Carbon::setTestNow();
 });
 
-test('forecast includes annual new license cohorts in the annual scenario column', function () {
+test('forecast includes annual new license cohorts in the new annual scenario column', function () {
     Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
 
     $admin = financeAdmin();
@@ -480,9 +481,9 @@ test('forecast includes annual new license cohorts in the annual scenario column
         ->first(fn (array $row) => $row['start']->format('Y-m') === $monthKey);
 
     expect($forecast['annual_existing_cents'])->toBe(0);
-    expect($forecast['annual_conservative_cents'])->toBe(240000);
-    expect($forecast['annual_expected_cents'])->toBe(360000);
-    expect($forecast['annual_optimistic_cents'])->toBe(480000);
+    expect($forecast['annual_new_conservative_cents'])->toBe(240000);
+    expect($forecast['annual_new_expected_cents'])->toBe(360000);
+    expect($forecast['annual_new_optimistic_cents'])->toBe(480000);
 
     Carbon::setTestNow();
 });

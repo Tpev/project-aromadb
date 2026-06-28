@@ -411,7 +411,7 @@
         }
 
         table.assumption-table { min-width: 520px; }
-        table.forecast-table { min-width: 980px; }
+        table.forecast-table { min-width: 1120px; }
 
         .scenario-line {
             display: grid;
