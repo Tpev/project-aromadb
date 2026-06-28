@@ -27,6 +27,15 @@
     <section class="board-scroll">
         <div class="board">
             @foreach($columns as $column)
+                @php
+                    $columnEmails = $column['items']
+                        ->map(fn ($subscription) => $subscription->customer?->email ?: $subscription->customer?->user?->email)
+                        ->filter()
+                        ->map(fn ($email) => strtolower(trim((string) $email)))
+                        ->unique()
+                        ->values();
+                    $columnEmailList = $columnEmails->implode(', ');
+                @endphp
                 <div class="board-column" style="--accent: {{ $column['accent'] }};">
                     <div class="column-title">
                         <div>
@@ -38,6 +47,20 @@
                     <div class="mini-line" style="margin-bottom:10px;">
                         <span>MRR colonne</span>
                         <b>{{ $money($column['mrr_cents']) }}</b>
+                    </div>
+                    <div class="button-row" style="margin-bottom:12px;">
+                        <button
+                            type="button"
+                            class="btn btn-small"
+                            data-copy-column-emails="{{ $columnEmailList }}"
+                            data-copy-count="{{ $columnEmails->count() }}"
+                            @disabled($columnEmails->isEmpty())
+                            title="{{ $columnEmails->isEmpty() ? 'Aucun email dans cette colonne' : 'Copier les emails de cette colonne' }}"
+                        >
+                            <i class="fas fa-copy"></i>
+                            Copier emails
+                            <span class="status-pill">{{ $columnEmails->count() }}</span>
+                        </button>
                     </div>
 
                     @forelse($column['items'] as $subscription)
@@ -85,4 +108,50 @@
             @endforeach
         </div>
     </section>
+
+    <script>
+        (() => {
+            const fallbackCopy = (value) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = value;
+                textarea.setAttribute('readonly', 'readonly');
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                textarea.remove();
+            };
+
+            document.querySelectorAll('[data-copy-column-emails]').forEach((button) => {
+                const originalHtml = button.innerHTML;
+
+                button.addEventListener('click', async () => {
+                    const emails = button.dataset.copyColumnEmails || '';
+                    if (!emails) {
+                        return;
+                    }
+
+                    try {
+                        if (navigator.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(emails);
+                        } else {
+                            fallbackCopy(emails);
+                        }
+
+                        button.innerHTML = `<i class="fas fa-check"></i>Copie (${button.dataset.copyCount || 0})`;
+                        setTimeout(() => {
+                            button.innerHTML = originalHtml;
+                        }, 1800);
+                    } catch (error) {
+                        fallbackCopy(emails);
+                        button.innerHTML = `<i class="fas fa-check"></i>Copie (${button.dataset.copyCount || 0})`;
+                        setTimeout(() => {
+                            button.innerHTML = originalHtml;
+                        }, 1800);
+                    }
+                });
+            });
+        })();
+    </script>
 @endsection
