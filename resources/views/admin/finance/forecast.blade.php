@@ -20,16 +20,31 @@
         </article>
     </section>
 
-    <section class="content-grid" style="margin-top:14px;">
-        <div class="panel">
-            <div class="panel-header">
+    <section class="forecast-toolbar">
+        <div>
+            <h2 class="panel-title">Prévision mensuelle</h2>
+            <div class="toolbar-summary">
+                <span>Mix actuel <strong>{{ $money($licenseMix['average_amount_cents'], $licenseMix['currency']) }}</strong></span>
+                <span>{{ $licenseMix['total_customers'] }} licences actives</span>
+                <span>Cons. / Att. / Opt.</span>
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary" data-dialog-open="forecast-assumptions-modal">
+            <i class="fas fa-bullseye"></i>Objectifs
+        </button>
+    </section>
+
+    <dialog class="finance-modal" id="forecast-assumptions-modal" data-open-on-load="{{ old('assumptions') ? 'true' : 'false' }}">
+        <form method="POST" action="{{ route('admin.finance.forecast.assumptions.update') }}" class="modal-shell">
+            @csrf
+            <div class="modal-header">
                 <div>
-                    <h2 class="panel-title">Hypothèses nouvelles licences</h2>
+                    <h2 class="panel-title">Objectifs nouvelles licences</h2>
                     <p class="panel-subtitle">Objectifs mensuels, avec renouvellement des cohortes sur les mois suivants.</p>
                 </div>
+                <button type="button" class="btn icon-btn" data-dialog-close aria-label="Fermer"><i class="fas fa-times"></i></button>
             </div>
-            <form method="POST" action="{{ route('admin.finance.forecast.assumptions.update') }}">
-                @csrf
+            <div class="modal-body">
                 <div class="table-wrap">
                     <table class="assumption-table">
                         <thead>
@@ -61,9 +76,7 @@
                                             placeholder="8"
                                         >
                                     </td>
-                                    <td>
-                                        <strong>{{ $customerCount($expectedTarget) }}</strong>
-                                    </td>
+                                    <td><strong>{{ $customerCount($expectedTarget) }}</strong></td>
                                     <td>
                                         <input
                                             type="number"
@@ -80,31 +93,31 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="button-row" style="margin-top:12px;">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Enregistrer</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">
-                <div>
-                    <h2 class="panel-title">Mix licences utilisé</h2>
-                    <p class="panel-subtitle">Valeur moyenne {{ $money($licenseMix['average_amount_cents'], $licenseMix['currency']) }} sur {{ $licenseMix['total_customers'] }} licences actives.</p>
-                </div>
-            </div>
-            <div class="chart-list">
-                @forelse($licenseMix['items']->take(6) as $item)
-                    <div class="mini-line">
-                        <span>{{ $item['label'] }} · {{ $item['term'] }}</span>
-                        <b>{{ $percent($item['share']) }} · {{ $money($item['amount_cents'], $item['currency']) }}</b>
+                <div class="panel" style="margin-top:14px;">
+                    <div class="panel-header">
+                        <div>
+                            <h2 class="panel-title">Mix licences utilisé</h2>
+                            <p class="panel-subtitle">Valeur moyenne {{ $money($licenseMix['average_amount_cents'], $licenseMix['currency']) }} sur {{ $licenseMix['total_customers'] }} licences actives.</p>
+                        </div>
                     </div>
-                @empty
-                    <div class="empty-state">Aucune licence active pour calculer le mix.</div>
-                @endforelse
+                    <div class="chart-list">
+                        @forelse($licenseMix['items']->take(6) as $item)
+                            <div class="mini-line">
+                                <span>{{ $item['label'] }} · {{ $item['term'] }}</span>
+                                <b>{{ $percent($item['share']) }} · {{ $money($item['amount_cents'], $item['currency']) }}</b>
+                            </div>
+                        @empty
+                            <div class="empty-state">Aucune licence active pour calculer le mix.</div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
-        </div>
-    </section>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dialog-close>Annuler</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Enregistrer</button>
+            </div>
+        </form>
+    </dialog>
 
     <section class="table-panel">
         <div class="panel-header">
@@ -138,9 +151,9 @@
                             <td>{{ $money($forecast['preview_cents']) }}</td>
                             <td>{{ $money($forecast['renewal_cents']) }}</td>
                             <td>
-                                <span class="mini-line">C <b>{{ $customerCount($forecast['new_customers_conservative']) }} · {{ $money($forecast['new_business_conservative_cents']) }}</b></span>
-                                <span class="mini-line">A <b>{{ $customerCount($forecast['new_customers_expected']) }} · {{ $money($forecast['new_business_expected_cents']) }}</b></span>
-                                <span class="mini-line">O <b>{{ $customerCount($forecast['new_customers_optimistic']) }} · {{ $money($forecast['new_business_optimistic_cents']) }}</b></span>
+                                <span class="scenario-line"><span class="scenario-tag" title="Conservateur">Cons.</span><b>{{ $customerCount($forecast['new_customers_conservative']) }} · {{ $money($forecast['new_business_conservative_cents']) }}</b></span>
+                                <span class="scenario-line"><span class="scenario-tag" title="Attendu">Att.</span><b>{{ $customerCount($forecast['new_customers_expected']) }} · {{ $money($forecast['new_business_expected_cents']) }}</b></span>
+                                <span class="scenario-line"><span class="scenario-tag" title="Optimiste">Opt.</span><b>{{ $customerCount($forecast['new_customers_optimistic']) }} · {{ $money($forecast['new_business_optimistic_cents']) }}</b></span>
                             </td>
                             <td>{{ $money($forecast['trial_potential_cents']) }}</td>
                             <td>{{ $money($forecast['past_due_risk_cents']) }}</td>

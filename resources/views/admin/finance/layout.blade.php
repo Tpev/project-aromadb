@@ -143,6 +143,30 @@
         .flash { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
         .error-box { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
+        .forecast-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+            padding: 14px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        .toolbar-summary {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .toolbar-summary strong { color: var(--ink); }
+
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
@@ -368,6 +392,82 @@
         table.assumption-table { min-width: 520px; }
         table.forecast-table { min-width: 980px; }
 
+        .scenario-line {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr);
+            align-items: center;
+            gap: 8px;
+            min-height: 22px;
+        }
+
+        .scenario-line b {
+            color: #273444;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .scenario-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            min-height: 20px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .finance-modal {
+            width: min(920px, calc(100% - 28px));
+            max-height: min(82vh, 900px);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 0;
+            color: var(--ink);
+            background: var(--surface);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+        }
+
+        .finance-modal::backdrop {
+            background: rgba(15, 23, 42, 0.42);
+        }
+
+        .modal-shell {
+            display: grid;
+            max-height: min(82vh, 900px);
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+
+        .modal-header,
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--line);
+            border-bottom: 0;
+        }
+
+        .modal-body {
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .icon-btn {
+            width: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            padding: 0;
+        }
+
         th,
         td {
             padding: 11px 10px;
@@ -461,6 +561,7 @@
         @media (max-width: 980px) {
             .finance-shell { width: min(100% - 20px, 1540px); padding-top: 16px; }
             .finance-header,
+            .forecast-toolbar,
             .content-grid,
             .detail-header {
                 grid-template-columns: 1fr;
@@ -556,5 +657,33 @@
 
         @yield('content')
     </main>
+    <script>
+        document.querySelectorAll('[data-dialog-open]').forEach((trigger) => {
+            trigger.addEventListener('click', () => {
+                const dialog = document.getElementById(trigger.dataset.dialogOpen);
+                if (!dialog) {
+                    return;
+                }
+
+                if (typeof dialog.showModal === 'function') {
+                    dialog.showModal();
+                } else {
+                    dialog.setAttribute('open', 'open');
+                }
+            });
+        });
+
+        document.querySelectorAll('[data-dialog-close]').forEach((trigger) => {
+            trigger.addEventListener('click', () => {
+                trigger.closest('dialog')?.close();
+            });
+        });
+
+        document.querySelectorAll('dialog[data-open-on-load="true"]').forEach((dialog) => {
+            if (typeof dialog.showModal === 'function' && !dialog.open) {
+                dialog.showModal();
+            }
+        });
+    </script>
 </body>
 </html>
