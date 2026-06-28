@@ -167,6 +167,27 @@
 
         .toolbar-summary strong { color: var(--ink); }
 
+        .forecast-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .forecast-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 9px;
+            border-radius: var(--radius);
+            background: var(--surface-soft);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .forecast-legend b { color: var(--ink); }
+
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
@@ -418,6 +439,25 @@
             color: #334155;
             font-size: 11px;
             font-weight: 900;
+        }
+
+        .forecast-amount {
+            display: block;
+            font-weight: 900;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+
+        .forecast-percent {
+            display: inline-flex;
+            margin-top: 4px;
+            padding: 3px 7px;
+            border-radius: 999px;
+            background: #eef2f7;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
         }
 
         .finance-modal {

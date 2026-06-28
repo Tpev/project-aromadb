@@ -246,6 +246,7 @@ class StripeFinanceController extends Controller
         $forecastMonths = $this->forecastMonths();
         $forecastAssumptions = $this->forecastAssumptionMap($forecastMonths);
         $licenseMix = $this->paidLicenseMix();
+        $currentBookedCents = $this->currentBookedRevenueCents();
         $windows = collect([30, 60, 90])->mapWithKeys(fn (int $days) => [
             $days => $this->forecastForPeriod(now(), now()->addDays($days), $feeRate, $forecastAssumptions, $licenseMix),
         ]);
@@ -292,6 +293,7 @@ class StripeFinanceController extends Controller
             'forecastAssumptions' => $forecastAssumptions,
             'forecastMonths' => $forecastMonths,
             'licenseMix' => $licenseMix,
+            'currentBookedCents' => $currentBookedCents,
             'upcomingPreviews' => $upcomingPreviews,
             'trials' => $trials,
             'cancellations' => $cancellations,
@@ -368,6 +370,7 @@ class StripeFinanceController extends Controller
         return array_merge([
             'money' => fn (int|float|null $cents, ?string $currency = 'eur') => $this->money($cents, $currency),
             'percent' => fn (float|int|null $value) => number_format(((float) $value) * 100, 1, ',', ' ') . ' %',
+            'bookedPercent' => fn (int|float|null $value, int|float|null $baseline) => $this->bookedPercent($value, $baseline),
             'customerCount' => fn (float|int|null $value) => $this->customerCount($value),
             'boardColumns' => self::BOARD_COLUMNS,
         ], $data);
@@ -765,6 +768,13 @@ class StripeFinanceController extends Controller
         });
     }
 
+    private function currentBookedRevenueCents(): int
+    {
+        return (int) StripeFinanceInvoice::query()
+            ->whereBetween('stripe_created_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->sum('total_cents');
+    }
+
     private function forecastAssumptionMap(?Collection $months = null): Collection
     {
         $months ??= $this->forecastMonths();
@@ -1009,5 +1019,15 @@ class StripeFinanceController extends Controller
         $decimals = abs($number - round($number)) < 0.05 ? 0 : 1;
 
         return number_format($number, $decimals, ',', ' ');
+    }
+
+    private function bookedPercent(int|float|null $value, int|float|null $baseline): string
+    {
+        $baseline = (float) ($baseline ?? 0);
+        if ($baseline <= 0) {
+            return '-';
+        }
+
+        return number_format((((float) ($value ?? 0)) / $baseline) * 100, 0, ',', ' ') . ' %';
     }
 }

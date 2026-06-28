@@ -26,6 +26,7 @@
             <div class="toolbar-summary">
                 <span>Mix actuel <strong>{{ $money($licenseMix['average_amount_cents'], $licenseMix['currency']) }}</strong></span>
                 <span>{{ $licenseMix['total_customers'] }} licences actives</span>
+                <span>Book actuel <strong>{{ $money($currentBookedCents) }}</strong></span>
                 <span>Cons. / Att. / Opt.</span>
             </div>
         </div>
@@ -123,7 +124,11 @@
         <div class="panel-header">
             <div>
                 <h2 class="panel-title">Prévision mensuelle</h2>
-                <p class="panel-subtitle">Trois scénarios nets après frais moyens Stripe.</p>
+                <p class="panel-subtitle">Trois scénarios nets après frais moyens Stripe, comparés au book actuel.</p>
+                <div class="forecast-legend">
+                    <span><b>Prévisualisations</b> factures Stripe déjà connues pour les prochains paiements.</span>
+                    <span><b>Renouvellements</b> abonnements actifs projetés, hors factures déjà prévisualisées.</span>
+                </div>
             </div>
         </div>
         <div class="table-wrap">
@@ -145,9 +150,18 @@
                     @foreach($monthlyForecast as $forecast)
                         <tr>
                             <td><strong>{{ $forecast['label'] }}</strong></td>
-                            <td>{{ $money($forecast['conservative_net_cents']) }}</td>
-                            <td>{{ $money($forecast['expected_net_cents']) }}</td>
-                            <td>{{ $money($forecast['optimistic_net_cents']) }}</td>
+                            <td>
+                                <span class="forecast-amount">{{ $money($forecast['conservative_net_cents']) }}</span>
+                                <span class="forecast-percent">{{ $bookedPercent($forecast['conservative_net_cents'], $currentBookedCents) }} du book</span>
+                            </td>
+                            <td>
+                                <span class="forecast-amount">{{ $money($forecast['expected_net_cents']) }}</span>
+                                <span class="forecast-percent">{{ $bookedPercent($forecast['expected_net_cents'], $currentBookedCents) }} du book</span>
+                            </td>
+                            <td>
+                                <span class="forecast-amount">{{ $money($forecast['optimistic_net_cents']) }}</span>
+                                <span class="forecast-percent">{{ $bookedPercent($forecast['optimistic_net_cents'], $currentBookedCents) }} du book</span>
+                            </td>
                             <td>{{ $money($forecast['preview_cents']) }}</td>
                             <td>{{ $money($forecast['renewal_cents']) }}</td>
                             <td>

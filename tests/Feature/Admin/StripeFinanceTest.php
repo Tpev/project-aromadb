@@ -323,7 +323,11 @@ test('admin can inspect failures payouts and forecast screens', function () {
         ->assertSee('Objectifs nouvelles licences')
         ->assertSee('Cohortes nouvelles licences')
         ->assertSee('Mix licences utilisé')
+        ->assertSee('Book actuel')
+        ->assertSee('du book')
         ->assertSee('Prévisualisations des prochaines factures')
+        ->assertSee('factures Stripe déjà connues')
+        ->assertSee('abonnements actifs projetés')
         ->assertSee('Paiement prévu')
         ->assertSee('Ops Cabinet');
 });
