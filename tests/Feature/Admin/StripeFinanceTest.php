@@ -14,6 +14,7 @@ use App\Models\StripeFinanceSubscription;
 use App\Models\StripeFinanceUpcomingInvoice;
 use App\Models\User;
 use App\Services\StripeFinanceSyncService;
+use Carbon\Carbon;
 
 function financeAdmin(): User
 {
@@ -134,7 +135,10 @@ test('admin can view the finance overview with cashflow metrics', function () {
     $response->assertSee('Vue finance Stripe');
     $response->assertSee('MRR');
     $response->assertSee('ARR');
+    $response->assertSee('Reste à encaisser');
+    $response->assertSee('Fin de mois estimée');
     $response->assertSee('Cash encaissé');
+    $response->assertDontSee('Cash attendu');
     $response->assertSee('INV-FAILED');
     $response->assertSee('Cabinet Martin');
 });
@@ -316,7 +320,47 @@ test('admin can inspect failures payouts and forecast screens', function () {
         ->assertOk()
         ->assertSee('Prévisions cashflow')
         ->assertSee('Prévisualisations des prochaines factures')
+        ->assertSee('Paiement prévu')
         ->assertSee('Ops Cabinet');
+});
+
+test('forecast projects recurring monthly renewals after the synced preview', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
+
+    $admin = financeAdmin();
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_forecast_123']);
+    $subscription = financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_forecast_123',
+        'amount_cents' => 1000,
+        'interval' => 'month',
+        'interval_count' => 1,
+        'current_period_end' => now()->addDays(5),
+    ]);
+
+    StripeFinanceUpcomingInvoice::create([
+        'stripe_subscription_id' => $subscription->stripe_subscription_id,
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $subscription->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'currency' => 'eur',
+        'amount_due_cents' => 1000,
+        'total_cents' => 1000,
+        'period_start' => now()->addDays(5),
+        'period_end' => now()->addDays(5)->addMonth(),
+        'next_payment_attempt' => now()->addDays(5),
+        'previewed_at' => now(),
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('admin.finance.forecast'));
+
+    $response->assertOk();
+    $windows = $response->viewData('windows');
+
+    expect($windows->get(30)['base_gross_cents'])->toBe(1000);
+    expect($windows->get(60)['base_gross_cents'])->toBe(2000);
+    expect($windows->get(90)['base_gross_cents'])->toBe(3000);
+
+    Carbon::setTestNow();
 });
 
 test('stripe finance sync service stores catalog promotion and payment snapshots', function () {
@@ -446,4 +490,30 @@ test('stripe finance sync service stores catalog promotion and payment snapshots
     expect(StripeFinancePromotionCode::where('stripe_promotion_code_id', 'promo_sync_123')->value('code'))->toBe('PROMO20');
     expect(StripeFinancePayment::where('stripe_charge_id', 'ch_sync_123')->value('payment_method_label'))->toBe('VISA **** 4242');
     expect(StripeFinanceSubscription::where('stripe_subscription_id', 'sub_sync_catalog')->value('product_name'))->toBe('AromaDB Pro');
+});
+
+test('upcoming invoice previews fall back to the subscription renewal date for cash timing', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
+
+    $service = app(StripeFinanceSyncService::class);
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_preview_123']);
+    $subscription = financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_preview_123',
+        'current_period_end' => Carbon::parse('2026-07-03 09:30:00'),
+    ]);
+
+    $service->upsertUpcomingInvoicePreview($subscription, (object) [
+        'currency' => 'eur',
+        'subtotal' => 2990,
+        'total' => 2990,
+        'amount_due' => 2990,
+        'period_start' => Carbon::parse('2026-07-03 09:30:00')->timestamp,
+        'period_end' => Carbon::parse('2026-08-03 09:30:00')->timestamp,
+    ]);
+
+    $preview = StripeFinanceUpcomingInvoice::where('stripe_subscription_id', 'sub_preview_123')->firstOrFail();
+
+    expect($preview->next_payment_attempt?->format('Y-m-d H:i:s'))->toBe('2026-07-03 09:30:00');
+
+    Carbon::setTestNow();
 });

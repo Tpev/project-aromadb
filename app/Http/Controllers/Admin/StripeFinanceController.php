@@ -251,7 +251,7 @@ class StripeFinanceController extends Controller
 
         $upcomingPreviews = $this->upcomingPreviewQuery(now(), now()->addDays(45))
             ->with('subscription.customer.user')
-            ->orderByRaw('COALESCE(next_payment_attempt, due_date, period_end) ASC')
+            ->orderByRaw('COALESCE(next_payment_attempt, due_date, period_start, period_end) ASC')
             ->limit(30)
             ->get();
 
@@ -327,6 +327,11 @@ class StripeFinanceController extends Controller
     {
         $monthStart = now()->startOfMonth();
         $monthEnd = now()->endOfMonth();
+        $feeRate = $this->averageFeeRate();
+        $remainingMonthForecast = $this->forecastForPeriod(now(), $monthEnd, $feeRate);
+        $forecast30 = $this->forecastForPeriod(now(), now()->addDays(30), $feeRate);
+        $forecast60 = $this->forecastForPeriod(now(), now()->addDays(60), $feeRate);
+        $forecast90 = $this->forecastForPeriod(now(), now()->addDays(90), $feeRate);
         $activeSubscriptions = StripeFinanceSubscription::query()->revenueActive()->get();
         $monthPaidInvoices = StripeFinanceInvoice::query()
             ->where('status', 'paid')
@@ -347,8 +352,9 @@ class StripeFinanceController extends Controller
             'mrr_cents' => $activeSubscriptions->sum(fn (StripeFinanceSubscription $subscription) => $subscription->mrr_cents),
             'arr_cents' => $activeSubscriptions->sum(fn (StripeFinanceSubscription $subscription) => $subscription->arr_cents),
             'booked_revenue_month_cents' => $bookedInvoices->sum('total_cents'),
-            'expected_cash_month_cents' => $this->forecastForPeriod($monthStart, $monthEnd, $this->averageFeeRate())['expected_gross_cents'],
+            'remaining_cash_month_cents' => $remainingMonthForecast['expected_gross_cents'],
             'actual_collected_month_cents' => $monthPaidInvoices->sum('amount_paid_cents'),
+            'estimated_month_end_cash_cents' => $monthPaidInvoices->sum('amount_paid_cents') + $remainingMonthForecast['expected_gross_cents'],
             'stripe_fees_month_cents' => $monthTransactions->sum('fee_cents'),
             'net_payout_month_cents' => $monthPayouts->sum('amount_cents'),
             'failed_payments' => $this->failedInvoicesQuery()->count(),
@@ -356,9 +362,9 @@ class StripeFinanceController extends Controller
                 ->where('status', 'trialing')
                 ->whereBetween('trial_end', [now(), now()->addDays(14)])
                 ->count(),
-            'forecast_30_cents' => $this->forecastForPeriod(now(), now()->addDays(30), $this->averageFeeRate())['expected_net_cents'],
-            'forecast_60_cents' => $this->forecastForPeriod(now(), now()->addDays(60), $this->averageFeeRate())['expected_net_cents'],
-            'forecast_90_cents' => $this->forecastForPeriod(now(), now()->addDays(90), $this->averageFeeRate())['expected_net_cents'],
+            'forecast_30_cents' => $forecast30['expected_net_cents'],
+            'forecast_60_cents' => $forecast60['expected_net_cents'],
+            'forecast_90_cents' => $forecast90['expected_net_cents'],
         ];
     }
 
@@ -548,39 +554,24 @@ class StripeFinanceController extends Controller
             ->filter()
             ->all();
 
-        $renewalQuery = StripeFinanceSubscription::query()
-            ->revenueActive()
-            ->where('cancel_at_period_end', false)
-            ->whereBetween('current_period_end', [$start, $end]);
-
-        if (!empty($previewSubscriptionIds)) {
-            $renewalQuery->whereNotIn('id', $previewSubscriptionIds);
-        }
-
-        $renewalAmount = (int) $renewalQuery->sum('amount_cents');
+        $renewalAmount = $this->projectedRenewalCents($start, $end, $previewSubscriptionIds);
         $baseGross = $previewAmount + $renewalAmount;
 
         $trialPotential = (int) StripeFinanceSubscription::query()
             ->where('status', 'trialing')
             ->whereBetween('trial_end', [$start, $end])
             ->sum('amount_cents');
-        $pastDueRisk = (int) StripeFinanceSubscription::query()
-            ->whereIn('status', ['past_due', 'unpaid', 'incomplete'])
-            ->sum('amount_cents');
+        $pastDueRisk = (int) $this->failedInvoicesForPeriod($start, $end)
+            ->sum('amount_remaining_cents');
         $cancelLoss = (int) StripeFinanceSubscription::query()
             ->where('cancel_at_period_end', true)
             ->whereBetween('current_period_end', [$start, $end])
             ->sum('amount_cents');
-        $openInvoiceRecovery = (int) $this->failedInvoicesQuery()
-            ->where(function (Builder $query) use ($start, $end) {
-                $query->whereBetween('next_payment_attempt', [$start, $end])
-                    ->orWhereBetween('due_date', [$start, $end])
-                    ->orWhereBetween('stripe_created_at', [$start, $end]);
-            })
+        $openInvoiceRecovery = (int) $this->failedInvoicesForPeriod($start, $end)
             ->sum('amount_remaining_cents');
 
-        $conservativeGross = max(0, (int) round($baseGross - $cancelLoss - $pastDueRisk + ($openInvoiceRecovery * 0.2)));
-        $expectedGross = max(0, (int) round($baseGross - ($cancelLoss * 0.5) + ($trialPotential * 0.5) + ($openInvoiceRecovery * 0.35) - ($pastDueRisk * 0.3)));
+        $conservativeGross = max(0, (int) round($baseGross + ($trialPotential * 0.15) + ($openInvoiceRecovery * 0.2)));
+        $expectedGross = max(0, (int) round($baseGross + ($trialPotential * 0.5) + ($openInvoiceRecovery * 0.35)));
         $optimisticGross = max(0, (int) round($baseGross + ($trialPotential * 0.85) + ($openInvoiceRecovery * 0.65)));
 
         return [
@@ -607,9 +598,89 @@ class StripeFinanceController extends Controller
         return StripeFinanceUpcomingInvoice::query()
             ->where(function (Builder $query) use ($start, $end) {
                 $query->whereBetween('next_payment_attempt', [$start, $end])
-                    ->orWhereBetween('due_date', [$start, $end])
-                    ->orWhereBetween('period_end', [$start, $end]);
+                    ->orWhere(function (Builder $inner) use ($start, $end) {
+                        $inner->whereNull('next_payment_attempt')
+                            ->whereBetween('due_date', [$start, $end]);
+                    })
+                    ->orWhere(function (Builder $inner) use ($start, $end) {
+                        $inner->whereNull('next_payment_attempt')
+                            ->whereNull('due_date')
+                            ->whereBetween('period_start', [$start, $end]);
+                    })
+                    ->orWhere(function (Builder $inner) use ($start, $end) {
+                        $inner->whereNull('next_payment_attempt')
+                            ->whereNull('due_date')
+                            ->whereNull('period_start')
+                            ->whereBetween('period_end', [$start, $end]);
+                    });
             });
+    }
+
+    private function failedInvoicesForPeriod(Carbon $start, Carbon $end): Builder
+    {
+        return $this->failedInvoicesQuery()
+            ->where(function (Builder $query) use ($start, $end) {
+                $query->whereBetween('next_payment_attempt', [$start, $end])
+                    ->orWhere(function (Builder $inner) use ($start, $end) {
+                        $inner->whereNull('next_payment_attempt')
+                            ->whereBetween('due_date', [$start, $end]);
+                    })
+                    ->orWhere(function (Builder $inner) use ($start, $end) {
+                        $inner->whereNull('next_payment_attempt')
+                            ->whereNull('due_date')
+                            ->whereBetween('stripe_created_at', [$start, $end]);
+                    });
+            });
+    }
+
+    private function projectedRenewalCents(Carbon $start, Carbon $end, array $previewSubscriptionIds): int
+    {
+        $previewSubscriptionIds = array_flip(array_map('intval', $previewSubscriptionIds));
+        $subscriptions = StripeFinanceSubscription::query()
+            ->where('status', 'active')
+            ->where('cancel_at_period_end', false)
+            ->where('amount_cents', '>', 0)
+            ->whereNotNull('current_period_end')
+            ->get();
+        $total = 0;
+
+        foreach ($subscriptions as $subscription) {
+            $date = $subscription->current_period_end?->copy();
+            if (!$date) {
+                continue;
+            }
+
+            while ($date->lt($start)) {
+                $date = $this->advanceBillingDate($date, $subscription->interval, $subscription->interval_count);
+            }
+
+            $skipFirstKnownPreview = isset($previewSubscriptionIds[(int) $subscription->id]);
+
+            while ($date->lte($end)) {
+                if ($skipFirstKnownPreview) {
+                    $skipFirstKnownPreview = false;
+                } else {
+                    $total += (int) $subscription->amount_cents;
+                }
+
+                $date = $this->advanceBillingDate($date, $subscription->interval, $subscription->interval_count);
+            }
+        }
+
+        return $total;
+    }
+
+    private function advanceBillingDate(Carbon $date, ?string $interval, ?int $intervalCount): Carbon
+    {
+        $count = max(1, (int) $intervalCount);
+        $next = $date->copy();
+
+        return match ($interval) {
+            'day' => $next->addDays($count),
+            'week' => $next->addWeeks($count),
+            'year' => $next->addYearsNoOverflow($count),
+            default => $next->addMonthsNoOverflow($count),
+        };
     }
 
     private function averageFeeRate(): float

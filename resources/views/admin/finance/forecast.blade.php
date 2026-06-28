@@ -38,7 +38,7 @@
                         <th>Prévisualisations</th>
                         <th>Renouvellements</th>
                         <th>Essais</th>
-                        <th>Risque past_due</th>
+                        <th>Impayés à récupérer</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,6 +68,12 @@
                 </div>
             </div>
             @forelse($upcomingPreviews as $preview)
+                @php
+                    $paymentDate = $preview->next_payment_attempt ?? $preview->due_date ?? $preview->period_start ?? $preview->period_end;
+                    $coveredPeriod = $preview->period_start && $preview->period_end
+                        ? $preview->period_start->format('d/m/Y') . ' - ' . $preview->period_end->format('d/m/Y')
+                        : null;
+                @endphp
                 <article class="sub-card">
                     <div class="sub-title">
                         <strong>{{ $preview->subscription?->customer?->display_name ?? $preview->stripe_customer_id }}</strong>
@@ -75,7 +81,8 @@
                     </div>
                     <div class="sub-meta">
                         <span>Licence <b>{{ $preview->subscription?->license_display ?? 'Non liée' }}</b></span>
-                        <span>Période <b>{{ $preview->period_end?->format('d/m/Y') ?? 'Non définie' }}</b></span>
+                        <span>Paiement prévu <b>{{ $paymentDate?->format('d/m/Y') ?? 'Non défini' }}</b></span>
+                        <span>Période couverte <b>{{ $coveredPeriod ?? 'Non définie' }}</b></span>
                         <span>Promo <b>{{ $preview->promotion_code ?: ($preview->coupon_name ?: 'Aucune') }}</b></span>
                         <span>Prévisualisée <b>{{ $preview->previewed_at?->format('d/m/Y H:i') }}</b></span>
                     </div>

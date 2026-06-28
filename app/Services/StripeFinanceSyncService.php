@@ -770,6 +770,9 @@ class StripeFinanceSyncService
     public function upsertUpcomingInvoicePreview(StripeFinanceSubscription $subscription, mixed $invoice): StripeFinanceUpcomingInvoice
     {
         [$couponId, $couponName, $promotionCode] = array_slice($this->discountFields($invoice), 0, 3);
+        $nextPaymentAttempt = $this->timestamp(data_get($invoice, 'next_payment_attempt'))
+            ?: $this->timestamp(data_get($invoice, 'due_date'))
+            ?: $subscription->current_period_end;
 
         return StripeFinanceUpcomingInvoice::updateOrCreate(
             ['stripe_subscription_id' => $subscription->stripe_subscription_id],
@@ -784,7 +787,7 @@ class StripeFinanceSyncService
                 'discount_cents' => $this->invoiceDiscountCents($invoice),
                 'period_start' => $this->timestamp(data_get($invoice, 'period_start')),
                 'period_end' => $this->timestamp(data_get($invoice, 'period_end')),
-                'next_payment_attempt' => $this->timestamp(data_get($invoice, 'next_payment_attempt')),
+                'next_payment_attempt' => $nextPaymentAttempt,
                 'due_date' => $this->timestamp(data_get($invoice, 'due_date')),
                 'coupon_id' => $couponId,
                 'coupon_name' => $couponName,

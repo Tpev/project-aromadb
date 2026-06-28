@@ -22,14 +22,19 @@
             <div class="metric-note">Factures Stripe créées ce mois-ci.</div>
         </article>
         <article class="metric-card">
-            <div class="metric-label"><i class="fas fa-file-invoice-dollar"></i>Cash attendu</div>
-            <div class="metric-value">{{ $money($metrics['expected_cash_month_cents']) }}</div>
-            <div class="metric-note">Prévision brute du mois courant.</div>
+            <div class="metric-label"><i class="fas fa-file-invoice-dollar"></i>Reste à encaisser</div>
+            <div class="metric-value">{{ $money($metrics['remaining_cash_month_cents']) }}</div>
+            <div class="metric-note">Prévision brute restante d’ici fin de mois.</div>
         </article>
         <article class="metric-card">
             <div class="metric-label"><i class="fas fa-check-circle"></i>Cash encaissé</div>
             <div class="metric-value">{{ $money($metrics['actual_collected_month_cents']) }}</div>
             <div class="metric-note">Factures payées ce mois-ci.</div>
+        </article>
+        <article class="metric-card">
+            <div class="metric-label"><i class="fas fa-calendar-day"></i>Fin de mois estimée</div>
+            <div class="metric-value">{{ $money($metrics['estimated_month_end_cash_cents']) }}</div>
+            <div class="metric-note">Cash encaissé + reste probable.</div>
         </article>
         <article class="metric-card">
             <div class="metric-label"><i class="fas fa-percentage"></i>Frais Stripe</div>
