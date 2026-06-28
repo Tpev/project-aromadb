@@ -180,7 +180,7 @@ class StripeFinanceSyncService
                 'data.default_payment_method',
                 'data.latest_invoice',
                 'data.discount.coupon',
-                'data.items.data.price.product',
+                'data.items.data.price',
             ],
         ]);
 
@@ -840,7 +840,9 @@ class StripeFinanceSyncService
 
         $product = data_get($firstPrice, 'product');
         $productId = $this->expandableId($product);
-        $productName = is_string($product) ? null : data_get($product, 'name');
+        $productName = is_string($product)
+            ? StripeFinanceProduct::where('stripe_product_id', $product)->value('name')
+            : data_get($product, 'name');
 
         return [
             $amountCents,

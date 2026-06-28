@@ -412,9 +412,38 @@ test('stripe finance sync service stores catalog promotion and payment snapshots
         'created' => now()->timestamp,
     ]);
 
+    $service->upsertSubscriptionFromStripe((object) [
+        'id' => 'sub_sync_catalog',
+        'customer' => 'cus_sync_123',
+        'status' => 'active',
+        'cancel_at_period_end' => false,
+        'items' => (object) [
+            'data' => [
+                (object) [
+                    'quantity' => 1,
+                    'price' => (object) [
+                        'id' => 'price_sync_123',
+                        'unit_amount' => 2990,
+                        'currency' => 'eur',
+                        'product' => 'prod_sync_123',
+                        'nickname' => 'Pro mensuel',
+                        'recurring' => (object) [
+                            'interval' => 'month',
+                            'interval_count' => 1,
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        'current_period_start' => now()->subDay()->timestamp,
+        'current_period_end' => now()->addMonth()->timestamp,
+        'created' => now()->timestamp,
+    ]);
+
     expect(StripeFinanceProduct::where('stripe_product_id', 'prod_sync_123')->exists())->toBeTrue();
     expect(StripeFinancePrice::where('stripe_price_id', 'price_sync_123')->value('unit_amount_cents'))->toBe(2990);
     expect(StripeFinanceCoupon::where('stripe_coupon_id', 'coupon_sync_123')->exists())->toBeTrue();
     expect(StripeFinancePromotionCode::where('stripe_promotion_code_id', 'promo_sync_123')->value('code'))->toBe('PROMO20');
     expect(StripeFinancePayment::where('stripe_charge_id', 'ch_sync_123')->value('payment_method_label'))->toBe('VISA **** 4242');
+    expect(StripeFinanceSubscription::where('stripe_subscription_id', 'sub_sync_catalog')->value('product_name'))->toBe('AromaDB Pro');
 });
