@@ -25,7 +25,7 @@
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title">Hypothèses nouvelles licences</h2>
-                    <p class="panel-subtitle">Objectifs mensuels ajoutés aux scénarios conservateur et optimiste.</p>
+                    <p class="panel-subtitle">Objectifs mensuels, avec renouvellement des cohortes sur les mois suivants.</p>
                 </div>
             </div>
             <form method="POST" action="{{ route('admin.finance.forecast.assumptions.update') }}">
@@ -123,7 +123,7 @@
                         <th>Optimiste</th>
                         <th>Prévisualisations</th>
                         <th>Renouvellements</th>
-                        <th>Nouvelles licences</th>
+                        <th>Cohortes nouvelles licences</th>
                         <th>Essais</th>
                         <th>Impayés à récupérer</th>
                     </tr>

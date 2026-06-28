@@ -751,7 +751,7 @@ class StripeFinanceController extends Controller
         };
     }
 
-    private function forecastMonths(int $months = 6): Collection
+    private function forecastMonths(int $months = 13): Collection
     {
         return collect(range(0, $months - 1))->map(function (int $offset) {
             $start = now()->startOfMonth()->addMonths($offset);
@@ -830,6 +830,8 @@ class StripeFinanceController extends Controller
                 return [
                     'label' => $first->license_display,
                     'term' => $first->interval_label,
+                    'interval' => $first->interval ?: 'month',
+                    'interval_count' => max(1, (int) $first->interval_count),
                     'amount_cents' => (int) $first->amount_cents,
                     'currency' => $first->currency ?: 'eur',
                     'count' => $group->count(),
@@ -849,34 +851,78 @@ class StripeFinanceController extends Controller
 
     private function newBusinessProjectionForPeriod(Carbon $start, Carbon $end, Collection $forecastAssumptions, array $licenseMix): array
     {
-        $averageAmount = (int) ($licenseMix['average_amount_cents'] ?? 0);
+        $items = $licenseMix['items'] ?? collect();
         $conservativeCustomers = 0.0;
         $optimisticCustomers = 0.0;
+        $conservativeCents = 0.0;
+        $optimisticCents = 0.0;
 
-        if ($averageAmount <= 0) {
+        if (! $items instanceof Collection || $items->isEmpty()) {
             return $this->emptyNewBusinessProjection();
         }
 
         foreach ($forecastAssumptions as $assumption) {
-            $factor = $this->monthOverlapFactor($assumption['start'], $assumption['end'], $start, $end);
-            if ($factor <= 0) {
-                continue;
-            }
+            foreach ($items as $item) {
+                $paymentWeight = $this->projectedCohortPaymentWeight(
+                    $assumption['start'],
+                    $item['interval'] ?? 'month',
+                    (int) ($item['interval_count'] ?? 1),
+                    $start,
+                    $end
+                );
 
-            $conservativeCustomers += ((float) $assumption['conservative_new_customers']) * $factor;
-            $optimisticCustomers += ((float) $assumption['optimistic_new_customers']) * $factor;
+                if ($paymentWeight <= 0) {
+                    continue;
+                }
+
+                $share = (float) ($item['share'] ?? 0);
+                $amountCents = (int) ($item['amount_cents'] ?? 0);
+                $conservativeCohortCustomers = ((float) $assumption['conservative_new_customers']) * $share * $paymentWeight;
+                $optimisticCohortCustomers = ((float) $assumption['optimistic_new_customers']) * $share * $paymentWeight;
+
+                $conservativeCustomers += $conservativeCohortCustomers;
+                $optimisticCustomers += $optimisticCohortCustomers;
+                $conservativeCents += $conservativeCohortCustomers * $amountCents;
+                $optimisticCents += $optimisticCohortCustomers * $amountCents;
+            }
         }
 
         $expectedCustomers = ($conservativeCustomers + $optimisticCustomers) / 2;
+        $expectedCents = ($conservativeCents + $optimisticCents) / 2;
 
         return [
             'conservative_customers' => $conservativeCustomers,
             'expected_customers' => $expectedCustomers,
             'optimistic_customers' => $optimisticCustomers,
-            'conservative_cents' => (int) round($conservativeCustomers * $averageAmount),
-            'expected_cents' => (int) round($expectedCustomers * $averageAmount),
-            'optimistic_cents' => (int) round($optimisticCustomers * $averageAmount),
+            'conservative_cents' => (int) round($conservativeCents),
+            'expected_cents' => (int) round($expectedCents),
+            'optimistic_cents' => (int) round($optimisticCents),
         ];
+    }
+
+    private function projectedCohortPaymentWeight(
+        Carbon $cohortStart,
+        ?string $interval,
+        ?int $intervalCount,
+        Carbon $periodStart,
+        Carbon $periodEnd
+    ): float {
+        $paymentDate = $cohortStart->copy();
+        $weight = 0.0;
+        $iterations = 0;
+
+        while ($paymentDate->lte($periodEnd) && $iterations < 120) {
+            if ($iterations === 0) {
+                $weight += $this->monthOverlapFactor($cohortStart, $cohortStart->copy()->endOfMonth(), $periodStart, $periodEnd);
+            } elseif ($paymentDate->betweenIncluded($periodStart, $periodEnd)) {
+                $weight += 1.0;
+            }
+
+            $paymentDate = $this->advanceBillingDate($paymentDate, $interval, $intervalCount);
+            $iterations++;
+        }
+
+        return $weight;
     }
 
     private function emptyNewBusinessProjection(): array

@@ -385,11 +385,17 @@ test('admin can set monthly new license assumptions using the current payer mix'
     ]);
 
     $monthKey = now()->startOfMonth()->addMonth()->format('Y-m');
+    $secondMonthKey = now()->startOfMonth()->addMonths(2)->format('Y-m');
+    $thirdMonthKey = now()->startOfMonth()->addMonths(3)->format('Y-m');
 
     $this->actingAs($admin)
         ->post(route('admin.finance.forecast.assumptions.update'), [
             'assumptions' => [
                 $monthKey => [
+                    'conservative_new_customers' => 6,
+                    'optimistic_new_customers' => 10,
+                ],
+                $secondMonthKey => [
                     'conservative_new_customers' => 6,
                     'optimistic_new_customers' => 10,
                 ],
@@ -406,6 +412,10 @@ test('admin can set monthly new license assumptions using the current payer mix'
     $response->assertOk();
     $forecast = $response->viewData('monthlyForecast')
         ->first(fn (array $row) => $row['start']->format('Y-m') === $monthKey);
+    $secondForecast = $response->viewData('monthlyForecast')
+        ->first(fn (array $row) => $row['start']->format('Y-m') === $secondMonthKey);
+    $thirdForecast = $response->viewData('monthlyForecast')
+        ->first(fn (array $row) => $row['start']->format('Y-m') === $thirdMonthKey);
 
     expect($forecast['new_business_conservative_cents'])->toBe(12000);
     expect($forecast['new_business_expected_cents'])->toBe(16000);
@@ -413,6 +423,12 @@ test('admin can set monthly new license assumptions using the current payer mix'
     expect($forecast['conservative_gross_cents'])->toBe(12000);
     expect($forecast['expected_gross_cents'])->toBe(16000);
     expect($forecast['optimistic_gross_cents'])->toBe(20000);
+    expect($secondForecast['new_business_conservative_cents'])->toBe(24000);
+    expect($secondForecast['new_business_expected_cents'])->toBe(32000);
+    expect($secondForecast['new_business_optimistic_cents'])->toBe(40000);
+    expect($thirdForecast['new_business_conservative_cents'])->toBe(24000);
+    expect($thirdForecast['new_business_expected_cents'])->toBe(32000);
+    expect($thirdForecast['new_business_optimistic_cents'])->toBe(40000);
 
     Carbon::setTestNow();
 });
