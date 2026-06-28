@@ -1247,6 +1247,7 @@ Route::middleware(['auth'])->prefix('admin/finance')->name('admin.finance.')->gr
     Route::get('/paiements-echoues', [StripeFinanceController::class, 'failures'])->name('failures');
     Route::get('/payouts', [StripeFinanceController::class, 'payouts'])->name('payouts');
     Route::get('/forecast', [StripeFinanceController::class, 'forecast'])->name('forecast');
+    Route::post('/forecast/assumptions', [StripeFinanceController::class, 'updateForecastAssumptions'])->name('forecast.assumptions.update');
     Route::post('/sync', [StripeFinanceController::class, 'sync'])->name('sync');
 });
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\StripeFinanceBalanceTransaction;
 use App\Models\StripeFinanceCustomer;
+use App\Models\StripeFinanceForecastAssumption;
 use App\Models\StripeFinanceInvoice;
 use App\Models\StripeFinanceNote;
 use App\Models\StripeFinancePayout;
@@ -16,6 +17,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class StripeFinanceController extends Controller
 {
@@ -241,13 +243,16 @@ class StripeFinanceController extends Controller
         $this->authorizeAdmin();
 
         $feeRate = $this->averageFeeRate();
+        $forecastMonths = $this->forecastMonths();
+        $forecastAssumptions = $this->forecastAssumptionMap($forecastMonths);
+        $licenseMix = $this->paidLicenseMix();
         $windows = collect([30, 60, 90])->mapWithKeys(fn (int $days) => [
-            $days => $this->forecastForPeriod(now(), now()->addDays($days), $feeRate),
+            $days => $this->forecastForPeriod(now(), now()->addDays($days), $feeRate, $forecastAssumptions, $licenseMix),
         ]);
 
         $nextMonthStart = now()->startOfMonth()->addMonth();
         $nextMonthEnd = $nextMonthStart->copy()->endOfMonth();
-        $nextMonth = $this->forecastForPeriod($nextMonthStart, $nextMonthEnd, $feeRate);
+        $nextMonth = $this->forecastForPeriod($nextMonthStart, $nextMonthEnd, $feeRate, $forecastAssumptions, $licenseMix);
 
         $upcomingPreviews = $this->upcomingPreviewQuery(now(), now()->addDays(45))
             ->with('subscription.customer.user')
@@ -271,11 +276,10 @@ class StripeFinanceController extends Controller
             ->limit(30)
             ->get();
 
-        $monthlyForecast = collect(range(0, 5))->map(function (int $offset) use ($feeRate) {
-            $start = now()->startOfMonth()->addMonths($offset);
-            $end = $start->copy()->endOfMonth();
-            $forecast = $this->forecastForPeriod($start, $end, $feeRate);
-            $forecast['label'] = $start->translatedFormat('M Y');
+        $monthlyForecast = $forecastMonths->map(function (array $month) use ($feeRate, $forecastAssumptions, $licenseMix) {
+            $forecast = $this->forecastForPeriod($month['start'], $month['end'], $feeRate, $forecastAssumptions, $licenseMix);
+            $forecast['label'] = $month['label'];
+            $forecast['assumption'] = $forecastAssumptions->get($month['key']);
 
             return $forecast;
         });
@@ -285,10 +289,55 @@ class StripeFinanceController extends Controller
             'windows' => $windows,
             'nextMonth' => $nextMonth,
             'monthlyForecast' => $monthlyForecast,
+            'forecastAssumptions' => $forecastAssumptions,
+            'forecastMonths' => $forecastMonths,
+            'licenseMix' => $licenseMix,
             'upcomingPreviews' => $upcomingPreviews,
             'trials' => $trials,
             'cancellations' => $cancellations,
         ]));
+    }
+
+    public function updateForecastAssumptions(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate([
+            'assumptions' => ['required', 'array'],
+            'assumptions.*.conservative_new_customers' => ['required', 'integer', 'min:0', 'max:500'],
+            'assumptions.*.optimistic_new_customers' => ['required', 'integer', 'min:0', 'max:500'],
+        ]);
+
+        $allowedMonths = $this->forecastMonths()->pluck('key')->all();
+
+        foreach ($allowedMonths as $monthKey) {
+            $values = $validated['assumptions'][$monthKey] ?? [
+                'conservative_new_customers' => 0,
+                'optimistic_new_customers' => 0,
+            ];
+            $conservative = (int) $values['conservative_new_customers'];
+            $optimistic = (int) $values['optimistic_new_customers'];
+
+            if ($optimistic < $conservative) {
+                return back()
+                    ->withErrors(['assumptions' => 'Le scénario optimiste doit être supérieur ou égal au conservateur.'])
+                    ->withInput();
+            }
+
+            $monthDate = Carbon::createFromFormat('Y-m', $monthKey)->startOfMonth()->toDateString();
+            $assumption = StripeFinanceForecastAssumption::query()
+                ->whereDate('month', $monthDate)
+                ->firstOrNew(['month' => $monthDate]);
+
+            $assumption->fill([
+                'conservative_new_customers' => $conservative,
+                'optimistic_new_customers' => $optimistic,
+            ])->save();
+        }
+
+        return redirect()
+            ->route('admin.finance.forecast')
+            ->with('success', 'Hypothèses de nouvelles licences mises à jour.');
     }
 
     public function sync(Request $request, StripeFinanceSyncService $sync): RedirectResponse
@@ -319,6 +368,7 @@ class StripeFinanceController extends Controller
         return array_merge([
             'money' => fn (int|float|null $cents, ?string $currency = 'eur') => $this->money($cents, $currency),
             'percent' => fn (float|int|null $value) => number_format(((float) $value) * 100, 1, ',', ' ') . ' %',
+            'customerCount' => fn (float|int|null $value) => $this->customerCount($value),
             'boardColumns' => self::BOARD_COLUMNS,
         ], $data);
     }
@@ -328,10 +378,12 @@ class StripeFinanceController extends Controller
         $monthStart = now()->startOfMonth();
         $monthEnd = now()->endOfMonth();
         $feeRate = $this->averageFeeRate();
-        $remainingMonthForecast = $this->forecastForPeriod(now(), $monthEnd, $feeRate);
-        $forecast30 = $this->forecastForPeriod(now(), now()->addDays(30), $feeRate);
-        $forecast60 = $this->forecastForPeriod(now(), now()->addDays(60), $feeRate);
-        $forecast90 = $this->forecastForPeriod(now(), now()->addDays(90), $feeRate);
+        $forecastAssumptions = $this->forecastAssumptionMap();
+        $licenseMix = $this->paidLicenseMix();
+        $remainingMonthForecast = $this->forecastForPeriod(now(), $monthEnd, $feeRate, $forecastAssumptions, $licenseMix);
+        $forecast30 = $this->forecastForPeriod(now(), now()->addDays(30), $feeRate, $forecastAssumptions, $licenseMix);
+        $forecast60 = $this->forecastForPeriod(now(), now()->addDays(60), $feeRate, $forecastAssumptions, $licenseMix);
+        $forecast90 = $this->forecastForPeriod(now(), now()->addDays(90), $feeRate, $forecastAssumptions, $licenseMix);
         $activeSubscriptions = StripeFinanceSubscription::query()->revenueActive()->get();
         $monthPaidInvoices = StripeFinanceInvoice::query()
             ->where('status', 'paid')
@@ -545,8 +597,17 @@ class StripeFinanceController extends Controller
         return $months;
     }
 
-    private function forecastForPeriod(Carbon $start, Carbon $end, float $feeRate): array
+    private function forecastForPeriod(
+        Carbon $start,
+        Carbon $end,
+        float $feeRate,
+        ?Collection $forecastAssumptions = null,
+        ?array $licenseMix = null
+    ): array
     {
+        $forecastAssumptions ??= $this->forecastAssumptionMap();
+        $licenseMix ??= $this->paidLicenseMix();
+
         $previewQuery = $this->upcomingPreviewQuery($start, $end);
         $previewAmount = (int) (clone $previewQuery)->sum('amount_due_cents');
         $previewSubscriptionIds = (clone $previewQuery)
@@ -569,10 +630,11 @@ class StripeFinanceController extends Controller
             ->sum('amount_cents');
         $openInvoiceRecovery = (int) $this->failedInvoicesForPeriod($start, $end)
             ->sum('amount_remaining_cents');
+        $newBusiness = $this->newBusinessProjectionForPeriod($start, $end, $forecastAssumptions, $licenseMix);
 
-        $conservativeGross = max(0, (int) round($baseGross + ($trialPotential * 0.15) + ($openInvoiceRecovery * 0.2)));
-        $expectedGross = max(0, (int) round($baseGross + ($trialPotential * 0.5) + ($openInvoiceRecovery * 0.35)));
-        $optimisticGross = max(0, (int) round($baseGross + ($trialPotential * 0.85) + ($openInvoiceRecovery * 0.65)));
+        $conservativeGross = max(0, (int) round($baseGross + $newBusiness['conservative_cents'] + ($trialPotential * 0.15) + ($openInvoiceRecovery * 0.2)));
+        $expectedGross = max(0, (int) round($baseGross + $newBusiness['expected_cents'] + ($trialPotential * 0.5) + ($openInvoiceRecovery * 0.35)));
+        $optimisticGross = max(0, (int) round($baseGross + $newBusiness['optimistic_cents'] + ($trialPotential * 0.85) + ($openInvoiceRecovery * 0.65)));
 
         return [
             'start' => $start,
@@ -584,6 +646,12 @@ class StripeFinanceController extends Controller
             'open_invoice_recovery_cents' => $openInvoiceRecovery,
             'past_due_risk_cents' => $pastDueRisk,
             'cancel_loss_cents' => $cancelLoss,
+            'new_business_conservative_cents' => $newBusiness['conservative_cents'],
+            'new_business_expected_cents' => $newBusiness['expected_cents'],
+            'new_business_optimistic_cents' => $newBusiness['optimistic_cents'],
+            'new_customers_conservative' => $newBusiness['conservative_customers'],
+            'new_customers_expected' => $newBusiness['expected_customers'],
+            'new_customers_optimistic' => $newBusiness['optimistic_customers'],
             'conservative_gross_cents' => $conservativeGross,
             'expected_gross_cents' => $expectedGross,
             'optimistic_gross_cents' => $optimisticGross,
@@ -683,6 +751,160 @@ class StripeFinanceController extends Controller
         };
     }
 
+    private function forecastMonths(int $months = 6): Collection
+    {
+        return collect(range(0, $months - 1))->map(function (int $offset) {
+            $start = now()->startOfMonth()->addMonths($offset);
+
+            return [
+                'key' => $start->format('Y-m'),
+                'label' => $start->translatedFormat('M Y'),
+                'start' => $start->copy(),
+                'end' => $start->copy()->endOfMonth(),
+            ];
+        });
+    }
+
+    private function forecastAssumptionMap(?Collection $months = null): Collection
+    {
+        $months ??= $this->forecastMonths();
+        $monthDates = $months->map(fn (array $month) => $month['start']->toDateString())->all();
+        $rows = StripeFinanceForecastAssumption::query()
+            ->where(function (Builder $query) use ($monthDates) {
+                foreach ($monthDates as $date) {
+                    $query->orWhereDate('month', $date);
+                }
+            })
+            ->get()
+            ->keyBy(fn (StripeFinanceForecastAssumption $assumption) => $assumption->month?->format('Y-m'));
+
+        return $months->mapWithKeys(function (array $month) use ($rows) {
+            $row = $rows->get($month['key']);
+            $conservative = (int) ($row?->conservative_new_customers ?? 0);
+            $optimistic = (int) ($row?->optimistic_new_customers ?? 0);
+
+            return [
+                $month['key'] => [
+                    'key' => $month['key'],
+                    'label' => $month['label'],
+                    'start' => $month['start']->copy(),
+                    'end' => $month['end']->copy(),
+                    'conservative_new_customers' => $conservative,
+                    'expected_new_customers' => ($conservative + $optimistic) / 2,
+                    'optimistic_new_customers' => $optimistic,
+                ],
+            ];
+        });
+    }
+
+    private function paidLicenseMix(): array
+    {
+        $subscriptions = StripeFinanceSubscription::query()
+            ->where('status', 'active')
+            ->where('cancel_at_period_end', false)
+            ->where('amount_cents', '>', 0)
+            ->get();
+        $total = $subscriptions->count();
+
+        if ($total === 0) {
+            return [
+                'average_amount_cents' => 0,
+                'currency' => 'eur',
+                'items' => collect(),
+                'total_customers' => 0,
+            ];
+        }
+
+        $items = $subscriptions
+            ->groupBy(fn (StripeFinanceSubscription $subscription) => implode('|', [
+                $subscription->license_display,
+                $subscription->interval ?: 'month',
+                (string) $subscription->interval_count,
+                (string) $subscription->amount_cents,
+                $subscription->currency ?: 'eur',
+            ]))
+            ->map(function (Collection $group) use ($total) {
+                /** @var StripeFinanceSubscription $first */
+                $first = $group->first();
+
+                return [
+                    'label' => $first->license_display,
+                    'term' => $first->interval_label,
+                    'amount_cents' => (int) $first->amount_cents,
+                    'currency' => $first->currency ?: 'eur',
+                    'count' => $group->count(),
+                    'share' => $group->count() / $total,
+                ];
+            })
+            ->sortByDesc('count')
+            ->values();
+
+        return [
+            'average_amount_cents' => (int) round($subscriptions->sum('amount_cents') / $total),
+            'currency' => $subscriptions->first()?->currency ?: 'eur',
+            'items' => $items,
+            'total_customers' => $total,
+        ];
+    }
+
+    private function newBusinessProjectionForPeriod(Carbon $start, Carbon $end, Collection $forecastAssumptions, array $licenseMix): array
+    {
+        $averageAmount = (int) ($licenseMix['average_amount_cents'] ?? 0);
+        $conservativeCustomers = 0.0;
+        $optimisticCustomers = 0.0;
+
+        if ($averageAmount <= 0) {
+            return $this->emptyNewBusinessProjection();
+        }
+
+        foreach ($forecastAssumptions as $assumption) {
+            $factor = $this->monthOverlapFactor($assumption['start'], $assumption['end'], $start, $end);
+            if ($factor <= 0) {
+                continue;
+            }
+
+            $conservativeCustomers += ((float) $assumption['conservative_new_customers']) * $factor;
+            $optimisticCustomers += ((float) $assumption['optimistic_new_customers']) * $factor;
+        }
+
+        $expectedCustomers = ($conservativeCustomers + $optimisticCustomers) / 2;
+
+        return [
+            'conservative_customers' => $conservativeCustomers,
+            'expected_customers' => $expectedCustomers,
+            'optimistic_customers' => $optimisticCustomers,
+            'conservative_cents' => (int) round($conservativeCustomers * $averageAmount),
+            'expected_cents' => (int) round($expectedCustomers * $averageAmount),
+            'optimistic_cents' => (int) round($optimisticCustomers * $averageAmount),
+        ];
+    }
+
+    private function emptyNewBusinessProjection(): array
+    {
+        return [
+            'conservative_customers' => 0.0,
+            'expected_customers' => 0.0,
+            'optimistic_customers' => 0.0,
+            'conservative_cents' => 0,
+            'expected_cents' => 0,
+            'optimistic_cents' => 0,
+        ];
+    }
+
+    private function monthOverlapFactor(Carbon $monthStart, Carbon $monthEnd, Carbon $periodStart, Carbon $periodEnd): float
+    {
+        $overlapStart = $periodStart->gt($monthStart) ? $periodStart->copy() : $monthStart->copy();
+        $overlapEnd = $periodEnd->lt($monthEnd) ? $periodEnd->copy() : $monthEnd->copy();
+
+        if ($overlapEnd->lt($overlapStart)) {
+            return 0.0;
+        }
+
+        $overlapDays = $overlapStart->copy()->startOfDay()->diffInDays($overlapEnd->copy()->endOfDay()) + 1;
+
+        return min(1.0, max(0.0, $overlapDays / max(1, $monthStart->daysInMonth)));
+    }
+
     private function averageFeeRate(): float
     {
         $transactions = StripeFinanceBalanceTransaction::query()
@@ -733,5 +955,13 @@ class StripeFinanceController extends Controller
         }
 
         return number_format($amount, 2, ',', ' ') . ' ' . $suffix;
+    }
+
+    private function customerCount(float|int|null $value): string
+    {
+        $number = (float) ($value ?? 0);
+        $decimals = abs($number - round($number)) < 0.05 ? 0 : 1;
+
+        return number_format($number, $decimals, ',', ' ');
     }
 }

@@ -3,6 +3,7 @@
 use App\Models\StripeFinanceBalanceTransaction;
 use App\Models\StripeFinanceCoupon;
 use App\Models\StripeFinanceCustomer;
+use App\Models\StripeFinanceForecastAssumption;
 use App\Models\StripeFinanceInvoice;
 use App\Models\StripeFinanceNote;
 use App\Models\StripeFinancePayment;
@@ -319,6 +320,8 @@ test('admin can inspect failures payouts and forecast screens', function () {
         ->get(route('admin.finance.forecast'))
         ->assertOk()
         ->assertSee('Prévisions cashflow')
+        ->assertSee('Hypothèses nouvelles licences')
+        ->assertSee('Mix licences utilisé')
         ->assertSee('Prévisualisations des prochaines factures')
         ->assertSee('Paiement prévu')
         ->assertSee('Ops Cabinet');
@@ -359,6 +362,57 @@ test('forecast projects recurring monthly renewals after the synced preview', fu
     expect($windows->get(30)['base_gross_cents'])->toBe(1000);
     expect($windows->get(60)['base_gross_cents'])->toBe(2000);
     expect($windows->get(90)['base_gross_cents'])->toBe(3000);
+
+    Carbon::setTestNow();
+});
+
+test('admin can set monthly new license assumptions using the current payer mix', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
+
+    $admin = financeAdmin();
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_mix_123']);
+    financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_mix_starter',
+        'amount_cents' => 1000,
+        'license_label' => 'Starter mensuel',
+        'current_period_end' => now()->addMonths(2),
+    ]);
+    financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_mix_premium',
+        'amount_cents' => 3000,
+        'license_label' => 'Premium mensuel',
+        'current_period_end' => now()->addMonths(2),
+    ]);
+
+    $monthKey = now()->startOfMonth()->addMonth()->format('Y-m');
+
+    $this->actingAs($admin)
+        ->post(route('admin.finance.forecast.assumptions.update'), [
+            'assumptions' => [
+                $monthKey => [
+                    'conservative_new_customers' => 6,
+                    'optimistic_new_customers' => 10,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('admin.finance.forecast'));
+
+    $assumption = StripeFinanceForecastAssumption::whereDate('month', now()->startOfMonth()->addMonth()->toDateString())->firstOrFail();
+    expect($assumption->conservative_new_customers)->toBe(6);
+    expect($assumption->optimistic_new_customers)->toBe(10);
+
+    $response = $this->actingAs($admin)->get(route('admin.finance.forecast'));
+
+    $response->assertOk();
+    $forecast = $response->viewData('monthlyForecast')
+        ->first(fn (array $row) => $row['start']->format('Y-m') === $monthKey);
+
+    expect($forecast['new_business_conservative_cents'])->toBe(12000);
+    expect($forecast['new_business_expected_cents'])->toBe(16000);
+    expect($forecast['new_business_optimistic_cents'])->toBe(20000);
+    expect($forecast['conservative_gross_cents'])->toBe(12000);
+    expect($forecast['expected_gross_cents'])->toBe(16000);
+    expect($forecast['optimistic_gross_cents'])->toBe(20000);
 
     Carbon::setTestNow();
 });

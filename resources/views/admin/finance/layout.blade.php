@@ -365,6 +365,9 @@
             border-collapse: collapse;
         }
 
+        table.assumption-table { min-width: 520px; }
+        table.forecast-table { min-width: 980px; }
+
         th,
         td {
             padding: 11px 10px;

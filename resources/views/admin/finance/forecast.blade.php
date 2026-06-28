@@ -20,6 +20,92 @@
         </article>
     </section>
 
+    <section class="content-grid" style="margin-top:14px;">
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Hypothèses nouvelles licences</h2>
+                    <p class="panel-subtitle">Objectifs mensuels ajoutés aux scénarios conservateur et optimiste.</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('admin.finance.forecast.assumptions.update') }}">
+                @csrf
+                <div class="table-wrap">
+                    <table class="assumption-table">
+                        <thead>
+                            <tr>
+                                <th>Mois</th>
+                                <th>Conservateur</th>
+                                <th>Attendu</th>
+                                <th>Optimiste</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($forecastMonths as $month)
+                                @php
+                                    $assumption = $forecastAssumptions->get($month['key']);
+                                    $conservativeTarget = old("assumptions.{$month['key']}.conservative_new_customers", $assumption['conservative_new_customers']);
+                                    $optimisticTarget = old("assumptions.{$month['key']}.optimistic_new_customers", $assumption['optimistic_new_customers']);
+                                    $expectedTarget = (((int) $conservativeTarget) + ((int) $optimisticTarget)) / 2;
+                                @endphp
+                                <tr>
+                                    <td><strong>{{ $month['label'] }}</strong></td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="500"
+                                            step="1"
+                                            name="assumptions[{{ $month['key'] }}][conservative_new_customers]"
+                                            value="{{ $conservativeTarget }}"
+                                            placeholder="8"
+                                        >
+                                    </td>
+                                    <td>
+                                        <strong>{{ $customerCount($expectedTarget) }}</strong>
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="500"
+                                            step="1"
+                                            name="assumptions[{{ $month['key'] }}][optimistic_new_customers]"
+                                            value="{{ $optimisticTarget }}"
+                                            placeholder="8"
+                                        >
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="button-row" style="margin-top:12px;">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>Enregistrer</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Mix licences utilisé</h2>
+                    <p class="panel-subtitle">Valeur moyenne {{ $money($licenseMix['average_amount_cents'], $licenseMix['currency']) }} sur {{ $licenseMix['total_customers'] }} licences actives.</p>
+                </div>
+            </div>
+            <div class="chart-list">
+                @forelse($licenseMix['items']->take(6) as $item)
+                    <div class="mini-line">
+                        <span>{{ $item['label'] }} · {{ $item['term'] }}</span>
+                        <b>{{ $percent($item['share']) }} · {{ $money($item['amount_cents'], $item['currency']) }}</b>
+                    </div>
+                @empty
+                    <div class="empty-state">Aucune licence active pour calculer le mix.</div>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
     <section class="table-panel">
         <div class="panel-header">
             <div>
@@ -28,7 +114,7 @@
             </div>
         </div>
         <div class="table-wrap">
-            <table>
+            <table class="forecast-table">
                 <thead>
                     <tr>
                         <th>Mois</th>
@@ -37,6 +123,7 @@
                         <th>Optimiste</th>
                         <th>Prévisualisations</th>
                         <th>Renouvellements</th>
+                        <th>Nouvelles licences</th>
                         <th>Essais</th>
                         <th>Impayés à récupérer</th>
                     </tr>
@@ -50,6 +137,11 @@
                             <td>{{ $money($forecast['optimistic_net_cents']) }}</td>
                             <td>{{ $money($forecast['preview_cents']) }}</td>
                             <td>{{ $money($forecast['renewal_cents']) }}</td>
+                            <td>
+                                <span class="mini-line">C <b>{{ $customerCount($forecast['new_customers_conservative']) }} · {{ $money($forecast['new_business_conservative_cents']) }}</b></span>
+                                <span class="mini-line">A <b>{{ $customerCount($forecast['new_customers_expected']) }} · {{ $money($forecast['new_business_expected_cents']) }}</b></span>
+                                <span class="mini-line">O <b>{{ $customerCount($forecast['new_customers_optimistic']) }} · {{ $money($forecast['new_business_optimistic_cents']) }}</b></span>
+                            </td>
                             <td>{{ $money($forecast['trial_potential_cents']) }}</td>
                             <td>{{ $money($forecast['past_due_risk_cents']) }}</td>
                         </tr>
