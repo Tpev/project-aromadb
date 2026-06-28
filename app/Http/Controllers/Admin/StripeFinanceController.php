@@ -613,12 +613,16 @@ class StripeFinanceController extends Controller
 
         $previewQuery = $this->upcomingPreviewQuery($start, $end);
         $previewAmount = (int) (clone $previewQuery)->sum('amount_due_cents');
+        $annualPreviewAmount = (int) (clone $previewQuery)
+            ->whereHas('subscription', fn (Builder $query) => $query->where('interval', 'year'))
+            ->sum('amount_due_cents');
         $previewSubscriptionIds = (clone $previewQuery)
             ->pluck('stripe_finance_subscription_id')
             ->filter()
             ->all();
 
-        $renewalAmount = $this->projectedRenewalCents($start, $end, $previewSubscriptionIds);
+        $renewalProjection = $this->projectedRenewalBreakdown($start, $end, $previewSubscriptionIds);
+        $renewalAmount = $renewalProjection['total_cents'];
         $baseGross = $previewAmount + $renewalAmount;
 
         $trialPotential = (int) StripeFinanceSubscription::query()
@@ -645,6 +649,7 @@ class StripeFinanceController extends Controller
             'base_gross_cents' => $baseGross,
             'preview_cents' => $previewAmount,
             'renewal_cents' => $renewalAmount,
+            'annual_renewal_cents' => $annualPreviewAmount + $renewalProjection['annual_cents'],
             'trial_potential_cents' => $trialPotential,
             'open_invoice_recovery_cents' => $openInvoiceRecovery,
             'past_due_risk_cents' => $pastDueRisk,
@@ -704,7 +709,7 @@ class StripeFinanceController extends Controller
             });
     }
 
-    private function projectedRenewalCents(Carbon $start, Carbon $end, array $previewSubscriptionIds): int
+    private function projectedRenewalBreakdown(Carbon $start, Carbon $end, array $previewSubscriptionIds): array
     {
         $previewSubscriptionIds = array_flip(array_map('intval', $previewSubscriptionIds));
         $subscriptions = StripeFinanceSubscription::query()
@@ -714,6 +719,7 @@ class StripeFinanceController extends Controller
             ->whereNotNull('current_period_end')
             ->get();
         $total = 0;
+        $annual = 0;
 
         foreach ($subscriptions as $subscription) {
             $date = $subscription->current_period_end?->copy();
@@ -731,14 +737,22 @@ class StripeFinanceController extends Controller
                 if ($skipFirstKnownPreview) {
                     $skipFirstKnownPreview = false;
                 } else {
-                    $total += (int) $subscription->amount_cents;
+                    $amountCents = (int) $subscription->amount_cents;
+                    $total += $amountCents;
+
+                    if ($subscription->interval === 'year') {
+                        $annual += $amountCents;
+                    }
                 }
 
                 $date = $this->advanceBillingDate($date, $subscription->interval, $subscription->interval_count);
             }
         }
 
-        return $total;
+        return [
+            'total_cents' => $total,
+            'annual_cents' => $annual,
+        ];
     }
 
     private function advanceBillingDate(Carbon $date, ?string $interval, ?int $intervalCount): Carbon

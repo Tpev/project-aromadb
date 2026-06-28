@@ -128,6 +128,7 @@
                 <div class="forecast-legend">
                     <span><b>Prévisualisations</b> factures Stripe déjà connues pour les prochains paiements.</span>
                     <span><b>Renouvellements</b> abonnements actifs projetés, hors factures déjà prévisualisées.</span>
+                    <span><b>Dont annuels</b> part annuelle déjà incluse dans prévisualisations ou renouvellements.</span>
                 </div>
             </div>
         </div>
@@ -141,6 +142,7 @@
                         <th>Optimiste</th>
                         <th>Prévisualisations</th>
                         <th>Renouvellements</th>
+                        <th>Dont annuels</th>
                         <th>Cohortes nouvelles licences</th>
                         <th>Essais</th>
                         <th>Impayés à récupérer</th>
@@ -164,6 +166,7 @@
                             </td>
                             <td>{{ $money($forecast['preview_cents']) }}</td>
                             <td>{{ $money($forecast['renewal_cents']) }}</td>
+                            <td>{{ $money($forecast['annual_renewal_cents']) }}</td>
                             <td>
                                 <span class="scenario-line"><span class="scenario-tag" title="Conservateur">Cons.</span><b>{{ $customerCount($forecast['new_customers_conservative']) }} · {{ $money($forecast['new_business_conservative_cents']) }}</b></span>
                                 <span class="scenario-line"><span class="scenario-tag" title="Attendu">Att.</span><b>{{ $customerCount($forecast['new_customers_expected']) }} · {{ $money($forecast['new_business_expected_cents']) }}</b></span>

@@ -328,6 +328,7 @@ test('admin can inspect failures payouts and forecast screens', function () {
         ->assertSee('Prévisualisations des prochaines factures')
         ->assertSee('factures Stripe déjà connues')
         ->assertSee('abonnements actifs projetés')
+        ->assertSee('Dont annuels')
         ->assertSee('Paiement prévu')
         ->assertSee('Ops Cabinet');
 });
@@ -367,6 +368,74 @@ test('forecast projects recurring monthly renewals after the synced preview', fu
     expect($windows->get(30)['base_gross_cents'])->toBe(1000);
     expect($windows->get(60)['base_gross_cents'])->toBe(2000);
     expect($windows->get(90)['base_gross_cents'])->toBe(3000);
+
+    Carbon::setTestNow();
+});
+
+test('forecast surfaces annual renewal spikes separately without double counting', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
+
+    $admin = financeAdmin();
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_annual_123']);
+    financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_annual_123',
+        'amount_cents' => 120000,
+        'interval' => 'year',
+        'interval_count' => 1,
+        'license_label' => 'Premium annuel',
+        'current_period_end' => Carbon::parse('2026-09-15 10:00:00'),
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('admin.finance.forecast'));
+
+    $response->assertOk();
+    $forecast = $response->viewData('monthlyForecast')
+        ->first(fn (array $row) => $row['start']->format('Y-m') === '2026-09');
+
+    expect($forecast['preview_cents'])->toBe(0);
+    expect($forecast['renewal_cents'])->toBe(120000);
+    expect($forecast['annual_renewal_cents'])->toBe(120000);
+
+    Carbon::setTestNow();
+});
+
+test('forecast counts annual upcoming previews in the annual breakdown', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
+
+    $admin = financeAdmin();
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_annual_preview_123']);
+    $subscription = financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_annual_preview_123',
+        'amount_cents' => 90000,
+        'interval' => 'year',
+        'interval_count' => 1,
+        'license_label' => 'Pro annuel',
+        'current_period_end' => Carbon::parse('2026-08-20 10:00:00'),
+    ]);
+
+    StripeFinanceUpcomingInvoice::create([
+        'stripe_subscription_id' => $subscription->stripe_subscription_id,
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $subscription->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'currency' => 'eur',
+        'amount_due_cents' => 90000,
+        'total_cents' => 90000,
+        'next_payment_attempt' => Carbon::parse('2026-08-20 10:00:00'),
+        'period_start' => Carbon::parse('2026-08-20 10:00:00'),
+        'period_end' => Carbon::parse('2027-08-20 10:00:00'),
+        'previewed_at' => now(),
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('admin.finance.forecast'));
+
+    $response->assertOk();
+    $forecast = $response->viewData('monthlyForecast')
+        ->first(fn (array $row) => $row['start']->format('Y-m') === '2026-08');
+
+    expect($forecast['preview_cents'])->toBe(90000);
+    expect($forecast['renewal_cents'])->toBe(0);
+    expect($forecast['annual_renewal_cents'])->toBe(90000);
 
     Carbon::setTestNow();
 });
