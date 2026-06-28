@@ -78,6 +78,7 @@ use App\Http\Controllers\GiftVoucherController;
 use App\Http\Controllers\Pro\ReferralController;
 use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateController;
 use App\Http\Controllers\Admin\CrmController;
+use App\Http\Controllers\Admin\StripeFinanceController;
 use App\Models\DesignTemplate;
 use App\Http\Controllers\TherapistArticleController;
 use App\Http\Controllers\SessionNoteTemplateController;
@@ -1235,6 +1236,18 @@ Route::middleware(['auth'])->prefix('admin/crm')->name('admin.crm.')->group(func
     Route::get('/export', [CrmController::class, 'export'])->name('export');
     Route::post('/import', [CrmController::class, 'import'])->name('import');
     Route::get('/import-template', [CrmController::class, 'importTemplate'])->name('import-template');
+});
+
+Route::middleware(['auth'])->prefix('admin/finance')->name('admin.finance.')->group(function () {
+    Route::get('/', [StripeFinanceController::class, 'overview'])->name('overview');
+    Route::get('/clients', [StripeFinanceController::class, 'customers'])->name('customers');
+    Route::get('/clients/{customer}', [StripeFinanceController::class, 'showCustomer'])->name('customers.show');
+    Route::post('/clients/{customer}/notes', [StripeFinanceController::class, 'storeCustomerNote'])->name('customers.notes.store');
+    Route::delete('/clients/{customer}/notes/{note}', [StripeFinanceController::class, 'destroyCustomerNote'])->name('customers.notes.destroy');
+    Route::get('/paiements-echoues', [StripeFinanceController::class, 'failures'])->name('failures');
+    Route::get('/payouts', [StripeFinanceController::class, 'payouts'])->name('payouts');
+    Route::get('/forecast', [StripeFinanceController::class, 'forecast'])->name('forecast');
+    Route::post('/sync', [StripeFinanceController::class, 'sync'])->name('sync');
 });
 
 

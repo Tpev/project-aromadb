@@ -254,6 +254,13 @@
                     <h3>Lead CRM</h3>
                 </div>
             </a>
+            <a href="{{ route('admin.finance.overview') }}" class="option-card">
+                <div class="card-content">
+                    <div class="card-bg"></div>
+                    <i class="icon fas fa-euro-sign"></i>
+                    <h3>Finance Stripe</h3>
+                </div>
+            </a>
         </div>
     </div>
 

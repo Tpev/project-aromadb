@@ -11,6 +11,7 @@ use App\Console\Commands\SendOneHourReminder;
 use App\Console\Commands\FetchFacebookMetrics;
 use App\Console\Commands\UpdateLicenseStatus;
 use App\Console\Commands\ReleaseStaleGiftVoucherBookingReservations;
+use App\Console\Commands\SyncStripeFinance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Console\Commands\ImportGoogleEvents; 
@@ -46,6 +47,11 @@ Schedule::command(ImportGoogleEvents::class)
 Schedule::command(ReleaseStaleGiftVoucherBookingReservations::class)
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+// Finance Stripe: réconciliation cashflow/frais/payouts.
+Schedule::command(SyncStripeFinance::class)
+    ->dailyAt('03:10')
+    ->withoutOverlapping(120);
 
 // Rebuild public sitemap every night
 Schedule::command('sitemap:generate')

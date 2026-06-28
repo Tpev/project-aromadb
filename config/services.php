@@ -21,6 +21,7 @@ return [
 	],
     'stripe' => [
         'secret' => env('STRIPE_SECRET'),
+        'finance_secret' => env('STRIPE_FINANCE_SECRET', env('STRIPE_SECRET')),
 		'webhook' => env('STRIPE_WEBHOOK_SECRET'),
     ],
     'postmark' => [

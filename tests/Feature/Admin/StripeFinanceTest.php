@@ -1,0 +1,420 @@
+<?php
+
+use App\Models\StripeFinanceBalanceTransaction;
+use App\Models\StripeFinanceCoupon;
+use App\Models\StripeFinanceCustomer;
+use App\Models\StripeFinanceInvoice;
+use App\Models\StripeFinanceNote;
+use App\Models\StripeFinancePayment;
+use App\Models\StripeFinancePayout;
+use App\Models\StripeFinancePrice;
+use App\Models\StripeFinanceProduct;
+use App\Models\StripeFinancePromotionCode;
+use App\Models\StripeFinanceSubscription;
+use App\Models\StripeFinanceUpcomingInvoice;
+use App\Models\User;
+use App\Services\StripeFinanceSyncService;
+
+function financeAdmin(): User
+{
+    return User::factory()->create(['is_admin' => true]);
+}
+
+function financeCustomer(array $overrides = []): StripeFinanceCustomer
+{
+    return StripeFinanceCustomer::create(array_merge([
+        'stripe_customer_id' => 'cus_test_123',
+        'name' => 'Cabinet Martin',
+        'email' => 'martin@example.test',
+        'phone' => '+33123456789',
+        'currency' => 'eur',
+        'delinquent' => false,
+        'balance_cents' => 0,
+        'stripe_created_at' => now()->subMonths(3),
+        'last_synced_at' => now(),
+    ], $overrides));
+}
+
+function financeSubscription(StripeFinanceCustomer $customer, array $overrides = []): StripeFinanceSubscription
+{
+    return StripeFinanceSubscription::create(array_merge([
+        'stripe_subscription_id' => 'sub_test_123',
+        'stripe_finance_customer_id' => $customer->id,
+        'user_id' => $customer->user_id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'status' => 'active',
+        'amount_cents' => 2990,
+        'currency' => 'eur',
+        'interval' => 'month',
+        'interval_count' => 1,
+        'product_name' => 'AromaDB Pro',
+        'license_label' => 'AromaDB Pro mensuel',
+        'current_period_start' => now()->subDays(12),
+        'current_period_end' => now()->addDays(18),
+        'last_synced_at' => now(),
+    ], $overrides));
+}
+
+test('admin can view the finance overview with cashflow metrics', function () {
+    $admin = financeAdmin();
+    $customer = financeCustomer();
+    $subscription = financeSubscription($customer, [
+        'amount_cents' => 5900,
+        'product_name' => 'AromaDB Premium',
+        'license_label' => 'AromaDB Premium mensuel',
+    ]);
+
+    StripeFinanceInvoice::create([
+        'stripe_invoice_id' => 'in_paid_123',
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $subscription->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'stripe_subscription_id' => $subscription->stripe_subscription_id,
+        'status' => 'paid',
+        'currency' => 'eur',
+        'total_cents' => 5900,
+        'amount_paid_cents' => 5900,
+        'amount_remaining_cents' => 0,
+        'paid_at' => now(),
+        'stripe_created_at' => now(),
+    ]);
+
+    StripeFinanceInvoice::create([
+        'stripe_invoice_id' => 'in_failed_123',
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $subscription->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'stripe_subscription_id' => $subscription->stripe_subscription_id,
+        'number' => 'INV-FAILED',
+        'status' => 'open',
+        'currency' => 'eur',
+        'total_cents' => 5900,
+        'amount_due_cents' => 5900,
+        'amount_remaining_cents' => 5900,
+        'attempted' => true,
+        'attempt_count' => 2,
+        'next_payment_attempt' => now()->addDay(),
+        'stripe_created_at' => now(),
+    ]);
+
+    StripeFinanceBalanceTransaction::create([
+        'stripe_balance_transaction_id' => 'txn_charge_123',
+        'stripe_source_id' => 'ch_123',
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'type' => 'charge',
+        'reporting_category' => 'charge',
+        'status' => 'available',
+        'currency' => 'eur',
+        'amount_cents' => 5900,
+        'fee_cents' => 180,
+        'net_cents' => 5720,
+        'stripe_created_at' => now(),
+    ]);
+
+    StripeFinancePayout::create([
+        'stripe_payout_id' => 'po_123',
+        'status' => 'paid',
+        'currency' => 'eur',
+        'amount_cents' => 5720,
+        'arrival_date' => now(),
+        'stripe_created_at' => now(),
+        'reconciliation_status' => 'rapproche',
+    ]);
+
+    financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_trial_123',
+        'status' => 'trialing',
+        'amount_cents' => 2990,
+        'trial_end' => now()->addDays(5),
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('admin.finance.overview'));
+
+    $response->assertOk();
+    $response->assertSee('Vue finance Stripe');
+    $response->assertSee('MRR');
+    $response->assertSee('ARR');
+    $response->assertSee('Cash encaissé');
+    $response->assertSee('INV-FAILED');
+    $response->assertSee('Cabinet Martin');
+});
+
+test('non admins cannot access finance screens', function () {
+    $user = User::factory()->create(['is_admin' => false]);
+
+    $this->actingAs($user)
+        ->get(route('admin.finance.overview'))
+        ->assertForbidden();
+});
+
+test('admin can use the customer board and add finance notes', function () {
+    $admin = financeAdmin();
+    $aromaUser = User::factory()->create([
+        'name' => 'Claire Aromadb',
+        'email' => 'claire@example.test',
+        'stripe_customer_id' => 'cus_board_123',
+        'license_product' => 'new_pro_annuelle',
+        'license_status' => 'active',
+    ]);
+    $customer = financeCustomer([
+        'stripe_customer_id' => 'cus_board_123',
+        'user_id' => $aromaUser->id,
+        'name' => 'Claire Cabinet',
+        'email' => 'claire@example.test',
+    ]);
+    $subscription = financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_board_123',
+        'amount_cents' => 32890,
+        'interval' => 'year',
+        'product_name' => 'AromaDB Pro annuel',
+        'license_label' => 'AromaDB Pro annuel',
+        'coupon_name' => 'Lancement',
+        'promotion_code' => 'PROMO20',
+    ]);
+
+    StripeFinanceInvoice::create([
+        'stripe_invoice_id' => 'in_board_paid',
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $subscription->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'stripe_subscription_id' => $subscription->stripe_subscription_id,
+        'status' => 'paid',
+        'currency' => 'eur',
+        'total_cents' => 32890,
+        'amount_paid_cents' => 32890,
+        'paid_at' => now()->subDay(),
+        'stripe_created_at' => now()->subDay(),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.finance.customers'))
+        ->assertOk()
+        ->assertSee('Clients &amp; licences', false)
+        ->assertSee('Claire Cabinet')
+        ->assertSee('PROMO20')
+        ->assertSee('Payée');
+
+    $this->actingAs($admin)
+        ->get(route('admin.finance.customers.show', $customer))
+        ->assertOk()
+        ->assertSee('Fiche client finance')
+        ->assertSee('AromaDB Pro annuel')
+        ->assertSee('Claire Aromadb');
+
+    $this->actingAs($admin)
+        ->post(route('admin.finance.customers.notes.store', $customer), [
+            'type' => 'relance',
+            'body' => 'Vérifier la reconduction annuelle avant renouvellement.',
+            'due_at' => now()->addWeek()->format('Y-m-d H:i:s'),
+        ])
+        ->assertRedirect(route('admin.finance.customers.show', $customer));
+
+    expect(StripeFinanceNote::where('stripe_finance_customer_id', $customer->id)->count())->toBe(1);
+});
+
+test('admin can inspect failures payouts and forecast screens', function () {
+    $admin = financeAdmin();
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_ops_123', 'name' => 'Ops Cabinet']);
+    $subscription = financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_ops_123',
+        'status' => 'past_due',
+        'amount_cents' => 11900,
+        'current_period_end' => now()->addDays(10),
+    ]);
+    $trial = financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_trial_ops',
+        'status' => 'trialing',
+        'amount_cents' => 3590,
+        'trial_end' => now()->addDays(12),
+    ]);
+
+    StripeFinanceInvoice::create([
+        'stripe_invoice_id' => 'in_ops_failed',
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $subscription->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'stripe_subscription_id' => $subscription->stripe_subscription_id,
+        'number' => 'INV-OPS-FAILED',
+        'status' => 'open',
+        'currency' => 'eur',
+        'total_cents' => 11900,
+        'amount_due_cents' => 11900,
+        'amount_remaining_cents' => 11900,
+        'attempted' => true,
+        'attempt_count' => 1,
+        'last_payment_error_message' => 'Carte refusée',
+        'next_payment_attempt' => now()->addDays(2),
+        'stripe_created_at' => now(),
+    ]);
+
+    StripeFinanceUpcomingInvoice::create([
+        'stripe_subscription_id' => $trial->stripe_subscription_id,
+        'stripe_finance_customer_id' => $customer->id,
+        'stripe_finance_subscription_id' => $trial->id,
+        'stripe_customer_id' => $customer->stripe_customer_id,
+        'currency' => 'eur',
+        'amount_due_cents' => 3590,
+        'total_cents' => 3590,
+        'period_end' => now()->addDays(12),
+        'previewed_at' => now(),
+    ]);
+
+    StripeFinanceBalanceTransaction::create([
+        'stripe_balance_transaction_id' => 'txn_ops_charge',
+        'stripe_source_id' => 'ch_ops',
+        'type' => 'charge',
+        'reporting_category' => 'charge',
+        'status' => 'available',
+        'currency' => 'eur',
+        'amount_cents' => 11900,
+        'fee_cents' => 420,
+        'net_cents' => 11480,
+        'stripe_created_at' => now(),
+    ]);
+
+    StripeFinanceBalanceTransaction::create([
+        'stripe_balance_transaction_id' => 'txn_ops_dispute',
+        'stripe_source_id' => 'dp_ops',
+        'type' => 'issuing_dispute',
+        'reporting_category' => 'dispute',
+        'status' => 'available',
+        'currency' => 'eur',
+        'amount_cents' => -2000,
+        'fee_cents' => 0,
+        'net_cents' => -2000,
+        'stripe_created_at' => now(),
+    ]);
+
+    StripeFinancePayout::create([
+        'stripe_payout_id' => 'po_ops',
+        'status' => 'paid',
+        'currency' => 'eur',
+        'amount_cents' => 11480,
+        'arrival_date' => now(),
+        'stripe_created_at' => now(),
+        'reconciliation_status' => 'rapproche',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.finance.failures'))
+        ->assertOk()
+        ->assertSee('Centre paiements échoués')
+        ->assertSee('INV-OPS-FAILED')
+        ->assertSee('Carte refusée');
+
+    $this->actingAs($admin)
+        ->get(route('admin.finance.payouts'))
+        ->assertOk()
+        ->assertSee('Payouts &amp; frais', false)
+        ->assertSee('po_ops')
+        ->assertSee('Litiges')
+        ->assertSee('20,00 €')
+        ->assertSee('114,80 €');
+
+    $this->actingAs($admin)
+        ->get(route('admin.finance.forecast'))
+        ->assertOk()
+        ->assertSee('Prévisions cashflow')
+        ->assertSee('Prévisualisations des prochaines factures')
+        ->assertSee('Ops Cabinet');
+});
+
+test('stripe finance sync service stores catalog promotion and payment snapshots', function () {
+    $service = app(StripeFinanceSyncService::class);
+
+    $service->upsertProductFromStripe((object) [
+        'id' => 'prod_sync_123',
+        'name' => 'AromaDB Pro',
+        'active' => true,
+        'type' => 'service',
+        'description' => 'Licence pro',
+        'metadata' => (object) ['license' => 'pro'],
+        'created' => now()->timestamp,
+    ]);
+
+    $service->upsertPriceFromStripe((object) [
+        'id' => 'price_sync_123',
+        'product' => (object) [
+            'id' => 'prod_sync_123',
+            'name' => 'AromaDB Pro',
+            'active' => true,
+            'created' => now()->timestamp,
+        ],
+        'nickname' => 'Pro mensuel',
+        'active' => true,
+        'currency' => 'eur',
+        'unit_amount' => 2990,
+        'billing_scheme' => 'per_unit',
+        'type' => 'recurring',
+        'recurring' => (object) ['interval' => 'month', 'interval_count' => 1],
+        'lookup_key' => 'pro_monthly',
+        'created' => now()->timestamp,
+    ]);
+
+    $service->upsertCouponFromStripe((object) [
+        'id' => 'coupon_sync_123',
+        'name' => 'Lancement',
+        'valid' => true,
+        'duration' => 'repeating',
+        'duration_in_months' => 3,
+        'percent_off' => 20,
+        'times_redeemed' => 4,
+        'created' => now()->timestamp,
+    ]);
+
+    $service->upsertPromotionCodeFromStripe((object) [
+        'id' => 'promo_sync_123',
+        'code' => 'PROMO20',
+        'coupon' => (object) [
+            'id' => 'coupon_sync_123',
+            'name' => 'Lancement',
+            'valid' => true,
+            'duration' => 'repeating',
+            'created' => now()->timestamp,
+        ],
+        'active' => true,
+        'times_redeemed' => 2,
+        'created' => now()->timestamp,
+    ]);
+
+    $service->upsertPaymentFromCharge((object) [
+        'id' => 'ch_sync_123',
+        'customer' => (object) [
+            'id' => 'cus_sync_123',
+            'name' => 'Cabinet Sync',
+            'email' => 'sync@example.test',
+            'created' => now()->timestamp,
+        ],
+        'invoice' => (object) [
+            'id' => 'in_sync_123',
+            'subscription' => 'sub_sync_123',
+        ],
+        'payment_intent' => 'pi_sync_123',
+        'balance_transaction' => (object) [
+            'id' => 'txn_sync_123',
+            'fee' => 120,
+            'net' => 2870,
+        ],
+        'status' => 'succeeded',
+        'paid' => true,
+        'captured' => true,
+        'refunded' => false,
+        'disputed' => false,
+        'currency' => 'eur',
+        'amount' => 2990,
+        'amount_captured' => 2990,
+        'amount_refunded' => 0,
+        'payment_method_details' => (object) [
+            'type' => 'card',
+            'card' => (object) ['brand' => 'visa', 'last4' => '4242'],
+        ],
+        'receipt_url' => 'https://pay.stripe.com/receipt/test',
+        'created' => now()->timestamp,
+    ]);
+
+    expect(StripeFinanceProduct::where('stripe_product_id', 'prod_sync_123')->exists())->toBeTrue();
+    expect(StripeFinancePrice::where('stripe_price_id', 'price_sync_123')->value('unit_amount_cents'))->toBe(2990);
+    expect(StripeFinanceCoupon::where('stripe_coupon_id', 'coupon_sync_123')->exists())->toBeTrue();
+    expect(StripeFinancePromotionCode::where('stripe_promotion_code_id', 'promo_sync_123')->value('code'))->toBe('PROMO20');
+    expect(StripeFinancePayment::where('stripe_charge_id', 'ch_sync_123')->value('payment_method_label'))->toBe('VISA **** 4242');
+});
