@@ -638,6 +638,7 @@ class StripeFinanceController extends Controller
         $openInvoiceRecovery = (int) $this->failedInvoicesForPeriod($start, $end)
             ->sum('amount_remaining_cents');
         $newBusiness = $this->newBusinessProjectionForPeriod($start, $end, $forecastAssumptions, $licenseMix);
+        $annualExistingCents = $annualPreviewAmount + $renewalProjection['annual_cents'];
 
         $conservativeGross = max(0, (int) round($baseGross + $newBusiness['conservative_cents'] + ($trialPotential * 0.15) + ($openInvoiceRecovery * 0.2)));
         $expectedGross = max(0, (int) round($baseGross + $newBusiness['expected_cents'] + ($trialPotential * 0.5) + ($openInvoiceRecovery * 0.35)));
@@ -649,7 +650,10 @@ class StripeFinanceController extends Controller
             'base_gross_cents' => $baseGross,
             'preview_cents' => $previewAmount,
             'renewal_cents' => $renewalAmount,
-            'annual_renewal_cents' => $annualPreviewAmount + $renewalProjection['annual_cents'],
+            'annual_existing_cents' => $annualExistingCents,
+            'annual_conservative_cents' => $annualExistingCents + $newBusiness['annual_conservative_cents'],
+            'annual_expected_cents' => $annualExistingCents + $newBusiness['annual_expected_cents'],
+            'annual_optimistic_cents' => $annualExistingCents + $newBusiness['annual_optimistic_cents'],
             'trial_potential_cents' => $trialPotential,
             'open_invoice_recovery_cents' => $openInvoiceRecovery,
             'past_due_risk_cents' => $pastDueRisk,
@@ -880,6 +884,8 @@ class StripeFinanceController extends Controller
         $optimisticCustomers = 0.0;
         $conservativeCents = 0.0;
         $optimisticCents = 0.0;
+        $annualConservativeCents = 0.0;
+        $annualOptimisticCents = 0.0;
 
         if (! $items instanceof Collection || $items->isEmpty()) {
             return $this->emptyNewBusinessProjection();
@@ -908,11 +914,17 @@ class StripeFinanceController extends Controller
                 $optimisticCustomers += $optimisticCohortCustomers;
                 $conservativeCents += $conservativeCohortCustomers * $amountCents;
                 $optimisticCents += $optimisticCohortCustomers * $amountCents;
+
+                if (($item['interval'] ?? 'month') === 'year') {
+                    $annualConservativeCents += $conservativeCohortCustomers * $amountCents;
+                    $annualOptimisticCents += $optimisticCohortCustomers * $amountCents;
+                }
             }
         }
 
         $expectedCustomers = ($conservativeCustomers + $optimisticCustomers) / 2;
         $expectedCents = ($conservativeCents + $optimisticCents) / 2;
+        $annualExpectedCents = ($annualConservativeCents + $annualOptimisticCents) / 2;
 
         return [
             'conservative_customers' => $conservativeCustomers,
@@ -921,6 +933,9 @@ class StripeFinanceController extends Controller
             'conservative_cents' => (int) round($conservativeCents),
             'expected_cents' => (int) round($expectedCents),
             'optimistic_cents' => (int) round($optimisticCents),
+            'annual_conservative_cents' => (int) round($annualConservativeCents),
+            'annual_expected_cents' => (int) round($annualExpectedCents),
+            'annual_optimistic_cents' => (int) round($annualOptimisticCents),
         ];
     }
 
@@ -958,6 +973,9 @@ class StripeFinanceController extends Controller
             'conservative_cents' => 0,
             'expected_cents' => 0,
             'optimistic_cents' => 0,
+            'annual_conservative_cents' => 0,
+            'annual_expected_cents' => 0,
+            'annual_optimistic_cents' => 0,
         ];
     }
 
@@ -1037,11 +1055,11 @@ class StripeFinanceController extends Controller
 
     private function bookedPercent(int|float|null $value, int|float|null $baseline): string
     {
-        $baseline = (float) ($baseline ?? 0);
-        if ($baseline <= 0) {
+        $target = (float) ($value ?? 0);
+        if ($target <= 0) {
             return '-';
         }
 
-        return number_format((((float) ($value ?? 0)) / $baseline) * 100, 0, ',', ' ') . ' %';
+        return number_format((((float) ($baseline ?? 0)) / $target) * 100, 0, ',', ' ') . ' %';
     }
 }

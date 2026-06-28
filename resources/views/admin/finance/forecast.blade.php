@@ -124,11 +124,11 @@
         <div class="panel-header">
             <div>
                 <h2 class="panel-title">Prévision mensuelle</h2>
-                <p class="panel-subtitle">Trois scénarios nets après frais moyens Stripe, comparés au book actuel.</p>
+                <p class="panel-subtitle">Trois scénarios nets après frais moyens Stripe. Le book actuel est affiché comme progression vers chaque scénario.</p>
                 <div class="forecast-legend">
                     <span><b>Prévisualisations</b> factures Stripe déjà connues pour les prochains paiements.</span>
                     <span><b>Renouvellements</b> abonnements actifs projetés, hors factures déjà prévisualisées.</span>
-                    <span><b>Dont annuels</b> part annuelle déjà incluse dans prévisualisations ou renouvellements.</span>
+                    <span><b>Annuel inclus</b> cash annuel déjà inclus dans prévisualisations, renouvellements ou cohortes.</span>
                 </div>
             </div>
         </div>
@@ -142,7 +142,7 @@
                         <th>Optimiste</th>
                         <th>Prévisualisations</th>
                         <th>Renouvellements</th>
-                        <th>Dont annuels</th>
+                        <th>Annuel inclus</th>
                         <th>Cohortes nouvelles licences</th>
                         <th>Essais</th>
                         <th>Impayés à récupérer</th>
@@ -154,19 +154,23 @@
                             <td><strong>{{ $forecast['label'] }}</strong></td>
                             <td>
                                 <span class="forecast-amount">{{ $money($forecast['conservative_net_cents']) }}</span>
-                                <span class="forecast-percent">{{ $bookedPercent($forecast['conservative_net_cents'], $currentBookedCents) }} du book</span>
+                                <span class="forecast-percent">{{ $bookedPercent($forecast['conservative_net_cents'], $currentBookedCents) }} atteint</span>
                             </td>
                             <td>
                                 <span class="forecast-amount">{{ $money($forecast['expected_net_cents']) }}</span>
-                                <span class="forecast-percent">{{ $bookedPercent($forecast['expected_net_cents'], $currentBookedCents) }} du book</span>
+                                <span class="forecast-percent">{{ $bookedPercent($forecast['expected_net_cents'], $currentBookedCents) }} atteint</span>
                             </td>
                             <td>
                                 <span class="forecast-amount">{{ $money($forecast['optimistic_net_cents']) }}</span>
-                                <span class="forecast-percent">{{ $bookedPercent($forecast['optimistic_net_cents'], $currentBookedCents) }} du book</span>
+                                <span class="forecast-percent">{{ $bookedPercent($forecast['optimistic_net_cents'], $currentBookedCents) }} atteint</span>
                             </td>
                             <td>{{ $money($forecast['preview_cents']) }}</td>
                             <td>{{ $money($forecast['renewal_cents']) }}</td>
-                            <td>{{ $money($forecast['annual_renewal_cents']) }}</td>
+                            <td>
+                                <span class="scenario-line"><span class="scenario-tag" title="Conservateur">Cons.</span><b>{{ $money($forecast['annual_conservative_cents']) }}</b></span>
+                                <span class="scenario-line"><span class="scenario-tag" title="Attendu">Att.</span><b>{{ $money($forecast['annual_expected_cents']) }}</b></span>
+                                <span class="scenario-line"><span class="scenario-tag" title="Optimiste">Opt.</span><b>{{ $money($forecast['annual_optimistic_cents']) }}</b></span>
+                            </td>
                             <td>
                                 <span class="scenario-line"><span class="scenario-tag" title="Conservateur">Cons.</span><b>{{ $customerCount($forecast['new_customers_conservative']) }} · {{ $money($forecast['new_business_conservative_cents']) }}</b></span>
                                 <span class="scenario-line"><span class="scenario-tag" title="Attendu">Att.</span><b>{{ $customerCount($forecast['new_customers_expected']) }} · {{ $money($forecast['new_business_expected_cents']) }}</b></span>

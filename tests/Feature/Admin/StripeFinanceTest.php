@@ -324,11 +324,11 @@ test('admin can inspect failures payouts and forecast screens', function () {
         ->assertSee('Cohortes nouvelles licences')
         ->assertSee('Mix licences utilisé')
         ->assertSee('Book actuel')
-        ->assertSee('du book')
+        ->assertSee('atteint')
         ->assertSee('Prévisualisations des prochaines factures')
         ->assertSee('factures Stripe déjà connues')
         ->assertSee('abonnements actifs projetés')
-        ->assertSee('Dont annuels')
+        ->assertSee('Annuel inclus')
         ->assertSee('Paiement prévu')
         ->assertSee('Ops Cabinet');
 });
@@ -394,7 +394,10 @@ test('forecast surfaces annual renewal spikes separately without double counting
 
     expect($forecast['preview_cents'])->toBe(0);
     expect($forecast['renewal_cents'])->toBe(120000);
-    expect($forecast['annual_renewal_cents'])->toBe(120000);
+    expect($forecast['annual_existing_cents'])->toBe(120000);
+    expect($forecast['annual_conservative_cents'])->toBe(120000);
+    expect($forecast['annual_expected_cents'])->toBe(120000);
+    expect($forecast['annual_optimistic_cents'])->toBe(120000);
 
     Carbon::setTestNow();
 });
@@ -435,7 +438,51 @@ test('forecast counts annual upcoming previews in the annual breakdown', functio
 
     expect($forecast['preview_cents'])->toBe(90000);
     expect($forecast['renewal_cents'])->toBe(0);
-    expect($forecast['annual_renewal_cents'])->toBe(90000);
+    expect($forecast['annual_existing_cents'])->toBe(90000);
+    expect($forecast['annual_conservative_cents'])->toBe(90000);
+    expect($forecast['annual_expected_cents'])->toBe(90000);
+    expect($forecast['annual_optimistic_cents'])->toBe(90000);
+
+    Carbon::setTestNow();
+});
+
+test('forecast includes annual new license cohorts in the annual scenario column', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-28 12:00:00'));
+
+    $admin = financeAdmin();
+    $customer = financeCustomer(['stripe_customer_id' => 'cus_annual_cohort_123']);
+    financeSubscription($customer, [
+        'stripe_subscription_id' => 'sub_annual_cohort_123',
+        'amount_cents' => 120000,
+        'interval' => 'year',
+        'interval_count' => 1,
+        'license_label' => 'Premium annuel',
+        'current_period_end' => Carbon::parse('2026-12-15 10:00:00'),
+    ]);
+
+    $monthKey = now()->startOfMonth()->addMonth()->format('Y-m');
+
+    $this->actingAs($admin)
+        ->post(route('admin.finance.forecast.assumptions.update'), [
+            'assumptions' => [
+                $monthKey => [
+                    'conservative_new_customers' => 2,
+                    'optimistic_new_customers' => 4,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('admin.finance.forecast'));
+
+    $response = $this->actingAs($admin)->get(route('admin.finance.forecast'));
+
+    $response->assertOk();
+    $forecast = $response->viewData('monthlyForecast')
+        ->first(fn (array $row) => $row['start']->format('Y-m') === $monthKey);
+
+    expect($forecast['annual_existing_cents'])->toBe(0);
+    expect($forecast['annual_conservative_cents'])->toBe(240000);
+    expect($forecast['annual_expected_cents'])->toBe(360000);
+    expect($forecast['annual_optimistic_cents'])->toBe(480000);
 
     Carbon::setTestNow();
 });
