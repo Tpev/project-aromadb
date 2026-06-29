@@ -9,6 +9,10 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
+            <div class="px-4 sm:px-0">
+                @include('partials.e-invoicing-banner')
+            </div>
+
 {{-- ===================================================== --}}
 {{--                 ONBOARDING SEQUENTIEL                --}}
 {{-- ===================================================== --}}

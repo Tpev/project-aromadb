@@ -41,6 +41,6 @@
         </div>
 
         <!-- Copyright Notice -->
-        <p class="text-gray-400">© 2025 AromaMade. Tous droits réservés.</p>
+        <p class="text-gray-400">© {{ date('Y') }} AromaMade. Tous droits réservés.</p>
     </div>
 </footer>
