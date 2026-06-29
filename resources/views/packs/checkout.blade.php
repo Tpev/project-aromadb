@@ -215,16 +215,16 @@
                                 <select id="installment_count" name="installment_count" class="form-control">
                                     @foreach($availableInstallmentPlans as $count => $plan)
                                         <option value="{{ $count }}" {{ (int) $oldInstallmentCount === (int) $count ? 'selected' : '' }}>
-                                            {{ $count }}x —
-                                            {{ number_format($plan['base_cents'] / 100, 2, ',', ' ') }} €/mois
-                                            @if(($plan['first_cents'] ?? $plan['base_cents']) > $plan['base_cents'])
-                                                (1ère échéance: {{ number_format($plan['first_cents'] / 100, 2, ',', ' ') }} €)
+                                            {{ $count }}x -
+                                            {{ number_format(($plan['installment_cents'] ?? $plan['base_cents']) / 100, 2, ',', ' ') }} &euro;/mois
+                                            @if(($plan['adjustment_cents'] ?? 0) !== 0)
+                                                (total arrondi: {{ number_format($plan['adjusted_total_cents'] / 100, 2, ',', ' ') }} &euro;)
                                             @endif
                                         </option>
                                     @endforeach
                                 </select>
                                 <p class="hint mt-2">
-                                    {{ __('Le total reste identique: vous choisissez simplement la répartition des mensualités.') }}
+                                    {{ __("Chaque mensualité est identique pour que Stripe accepte le paiement. Si le montant ne tombe pas juste, le total est légèrement inférieur de quelques centimes.") }}
                                 </p>
                             </div>
 

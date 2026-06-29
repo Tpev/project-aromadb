@@ -9,7 +9,7 @@
                         \Illuminate\Support\Str::substr($authorName, 0, 1)
                    );
 
-    $participantName  = $enrollment->participant_name ?: $enrollment->participant_email;
+    $participantName  = $enrollment->participant_name ?: ($enrollment->participant_email ?: __('Participant'));
     $participantEmail = $enrollment->participant_email;
 
     $progress = (int) ($enrollment->progress_percent ?? 0);

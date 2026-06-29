@@ -77,6 +77,8 @@ use App\Http\Controllers\PublicPackCheckoutController;
 use App\Http\Controllers\GiftVoucherController;
 use App\Http\Controllers\Pro\ReferralController;
 use App\Http\Controllers\Admin\DesignTemplateController as AdminDesignTemplateController;
+use App\Http\Controllers\Admin\CrmController;
+use App\Http\Controllers\Admin\StripeFinanceController;
 use App\Models\DesignTemplate;
 use App\Http\Controllers\TherapistArticleController;
 use App\Http\Controllers\SessionNoteTemplateController;
@@ -89,6 +91,8 @@ use App\Http\Controllers\CommunityMemberController;
 use App\Http\Controllers\CommunityMessageController;
 use App\Http\Controllers\CommunityAttachmentController;
 use App\Http\Controllers\ClientCommunityController;
+use App\Http\Controllers\SuperPdpController;
+use App\Http\Controllers\SuperPdpReceivedInvoiceController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
@@ -186,6 +190,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('pack-purchases/{packPurchase}/subscription/cancel', [PackPurchaseSubscriptionController::class, 'cancel'])
         ->name('pack-purchases.subscription.cancel');
 
+    Route::delete('pack-purchases/{packPurchase}/revoke', [PackProductController::class, 'revokePurchase'])
+        ->name('pack-purchases.revoke');
+
 });
 
 
@@ -205,6 +212,8 @@ Route::get('/formations/{digitalTraining:slug}', [DigitalTrainingController::cla
     ->name('digital-trainings.public.show');
 Route::post('/formations/{digitalTraining:slug}/acces-gratuit', [DigitalTrainingEnrollmentController::class, 'storeFreeAccess'])
     ->name('digital-trainings.public.free-access.store');
+Route::post('/formations/{digitalTraining:slug}/acces-libre', [DigitalTrainingEnrollmentController::class, 'storeOpenFreeAccess'])
+    ->name('digital-trainings.public.open-access.store');
 // === Public training access via magic token ===
 Route::get('/training-access/{token}', [PublicTrainingAccessController::class, 'show'])
     ->name('digital-trainings.access.show');
@@ -895,6 +904,15 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(fu
 	 Route::get('/profile/license', [ProfileController::class, 'license'])->name('profile.license');
     Route::get('/profile/company-info', [ProfileController::class, 'editCompanyInfo'])->name('profile.editCompanyInfo');
     Route::put('/profile/company-info', [ProfileController::class, 'updateCompanyInfo'])->name('profile.updateCompanyInfo');
+
+    Route::prefix('super-pdp')->name('super-pdp.')->group(function () {
+        Route::post('/connect', [SuperPdpController::class, 'connect'])->name('connect');
+        Route::get('/oauth/callback', [SuperPdpController::class, 'callback'])->name('oauth.callback');
+        Route::patch('/preferences', [SuperPdpController::class, 'updatePreferences'])->name('preferences.update');
+        Route::delete('/disconnect', [SuperPdpController::class, 'disconnect'])->name('disconnect');
+        Route::get('/received-invoices', [SuperPdpReceivedInvoiceController::class, 'index'])->name('received-invoices.index');
+        Route::get('/received-invoices/{receivedInvoice}/download', [SuperPdpReceivedInvoiceController::class, 'download'])->name('received-invoices.download');
+    });
 });
 Route::middleware(['auth', \App\Http\Middleware\TrackPageViews::class])->group(function () {
 
@@ -1202,6 +1220,33 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.usage.weekly');
 });
 
+Route::middleware(['auth'])->prefix('admin/crm')->name('admin.crm.')->group(function () {
+    Route::get('/', [CrmController::class, 'index'])->name('index');
+    Route::post('/leads', [CrmController::class, 'storeLead'])->name('leads.store');
+    Route::get('/leads/{lead}', [CrmController::class, 'showLead'])->name('leads.show');
+    Route::patch('/leads/{lead}', [CrmController::class, 'updateLead'])->name('leads.update');
+    Route::patch('/leads/{lead}/stage', [CrmController::class, 'moveLead'])->name('leads.stage');
+    Route::delete('/leads/{lead}', [CrmController::class, 'destroyLead'])->name('leads.destroy');
+    Route::post('/leads/{lead}/activities', [CrmController::class, 'storeActivity'])->name('activities.store');
+    Route::delete('/leads/{lead}/activities/{activity}', [CrmController::class, 'destroyActivity'])->name('activities.destroy');
+    Route::get('/export', [CrmController::class, 'export'])->name('export');
+    Route::post('/import', [CrmController::class, 'import'])->name('import');
+    Route::get('/import-template', [CrmController::class, 'importTemplate'])->name('import-template');
+});
+
+Route::middleware(['auth'])->prefix('admin/finance')->name('admin.finance.')->group(function () {
+    Route::get('/', [StripeFinanceController::class, 'overview'])->name('overview');
+    Route::get('/clients', [StripeFinanceController::class, 'customers'])->name('customers');
+    Route::get('/clients/{customer}', [StripeFinanceController::class, 'showCustomer'])->name('customers.show');
+    Route::post('/clients/{customer}/notes', [StripeFinanceController::class, 'storeCustomerNote'])->name('customers.notes.store');
+    Route::delete('/clients/{customer}/notes/{note}', [StripeFinanceController::class, 'destroyCustomerNote'])->name('customers.notes.destroy');
+    Route::get('/paiements-echoues', [StripeFinanceController::class, 'failures'])->name('failures');
+    Route::get('/payouts', [StripeFinanceController::class, 'payouts'])->name('payouts');
+    Route::get('/forecast', [StripeFinanceController::class, 'forecast'])->name('forecast');
+    Route::post('/forecast/assumptions', [StripeFinanceController::class, 'updateForecastAssumptions'])->name('forecast.assumptions.update');
+    Route::post('/sync', [StripeFinanceController::class, 'sync'])->name('sync');
+});
+
 
 // Admin License routes
 Route::get('/admin', [AdminController::class, 'welcome'])->name('admin.welcome');
@@ -1427,4 +1472,3 @@ Route::middleware(['auth'])->prefix('dashboard-pro')->group(function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/mobile.php';
-

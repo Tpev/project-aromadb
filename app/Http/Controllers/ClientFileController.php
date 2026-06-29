@@ -19,7 +19,7 @@ public function clientUpload(Request $request)
     $clientProfile = auth('client')->user(); // ClientProfile is the user model
 
     $data = $request->validate([
-        'document' => 'required|file|max:20480', // 20MB
+        'document' => 'required|file|max:204800', // 200MB
     ]);
 
     $uploadedFile = $data['document'];
@@ -62,7 +62,7 @@ public function store(Request $request, ClientProfile $clientProfile)
     }
 
     $data = $request->validate([
-        'file' => 'required|file|max:20480', // 20MB
+        'file' => 'required|file|max:204800', // 200MB
     ]);
 
     $uploadedFile = $data['file'];

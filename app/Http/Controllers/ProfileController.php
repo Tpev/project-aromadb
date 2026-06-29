@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\ProfileAvatarService;
 use App\Services\PortalLogoService;
+use App\Services\SuperPdp\SuperPdpOAuthService;
+use App\Support\SuperPdpFeature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -76,7 +78,16 @@ class ProfileController extends Controller
         }
 
         $user = auth()->user();
-        return view('profile.edit-company-info', compact('user'));
+        $superPdpAvailable = SuperPdpFeature::enabledFor($user);
+        $superPdpConnection = $superPdpAvailable ? $user->superPdpConnection : null;
+        $superPdpConfigured = $superPdpAvailable ? app(SuperPdpOAuthService::class)->isConfigured() : false;
+
+        return view('profile.edit-company-info', compact(
+            'user',
+            'superPdpAvailable',
+            'superPdpConnection',
+            'superPdpConfigured'
+        ));
     }
 
     public function license()

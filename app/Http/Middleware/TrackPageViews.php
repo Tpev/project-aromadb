@@ -6,6 +6,7 @@ use Closure;
 use App\Models\PageViewLog;
 use Carbon\Carbon;
 use App\Services\IpInfoService;
+use Illuminate\Support\Facades\Log;
 
 class TrackPageViews
 {
@@ -18,25 +19,31 @@ class TrackPageViews
 
     public function handle($request, Closure $next)
     {
-        $ipAddress = $request->ip(); // Get the user's IP address
-        $country = $this->ipInfoService->getCountryByIp($ipAddress); // Get country
+        try {
+            $ipAddress = $request->ip(); // Get the user's IP address
+            $country = $this->ipInfoService->getCountryByIp($ipAddress); // Get country
 
-        // Only log the page view if the country is France ('FR')
-        if ($country === 'FR') {
-            // Get the user agent and truncate it to fit into the database column
-            $userAgent = $request->header('User-Agent');
-            $maxLength = 255; // Adjust this value based on your database column size
-            $userAgent = substr($userAgent, 0, $maxLength);
-
-            PageViewLog::create([
-                'url' => $request->path(),
-                'session_id' => $request->session()->getId(),
-                'ip_address' => $ipAddress,
-                'referrer' => $request->headers->get('referer'),
-                'viewed_at' => Carbon::now(),
-                'user_agent' => $userAgent,
-                'country' => $country, // Store the country
-            ]);
+            // Only log the page view if the country is France ('FR')
+            if ($country === 'FR') {
+                PageViewLog::create([
+                    'url' => substr((string) $request->path(), 0, 255),
+                    'session_id' => substr((string) $request->session()->getId(), 0, 255),
+                    'ip_address' => substr((string) $ipAddress, 0, 255),
+                    'referrer' => substr((string) $request->headers->get('referer'), 0, 4096),
+                    'viewed_at' => Carbon::now(),
+                    'user_agent' => substr((string) $request->header('User-Agent'), 0, 4096),
+                    'country' => $country, // Store the country
+                ]);
+            }
+        } catch (\Throwable $exception) {
+            try {
+                Log::warning('Page view tracking skipped.', [
+                    'url' => $request->path(),
+                    'error' => $exception->getMessage(),
+                ]);
+            } catch (\Throwable) {
+                // Tracking must never break a user-facing page.
+            }
         }
 
         return $next($request);

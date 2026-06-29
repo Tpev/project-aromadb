@@ -152,6 +152,9 @@
                             <button type="button" class="am-btn am-btn-primary" onclick="openInventoryModal()">
                                 {{ __('Ajouter depuis l\'inventaire') }}
                             </button>
+                            <button type="button" class="am-btn am-btn-primary" onclick="openPackModal()">
+                                {{ __('Ajouter un pack') }}
+                            </button>
                             <button type="button" class="am-btn am-btn-primary" onclick="addCustomItem()">
                                 {{ __('Ajouter une ligne libre') }}
                             </button>
@@ -250,6 +253,44 @@
         </div>
     </div>
 
+    {{-- Modal packs --}}
+    <div id="packModal" class="am-modal hidden" aria-hidden="true">
+        <div class="am-modal-backdrop" onclick="closePackModal()"></div>
+        <div class="am-modal-panel" role="dialog" aria-modal="true" aria-labelledby="amPackTitle">
+            <div class="am-modal-head">
+                <h2 id="amPackTitle" class="am-modal-title">{{ __('Ajouter un pack') }}</h2>
+                <button type="button" class="am-x" onclick="closePackModal()" aria-label="{{ __('Fermer') }}">x</button>
+            </div>
+
+            <div class="am-modal-body">
+                <div class="am-field">
+                    <label class="am-label">{{ __('Pack') }}</label>
+                    <select id="pack_product_id" class="am-input">
+                        <option value="">{{ __('Selectionnez un pack') }}</option>
+                        @foreach($packProducts ?? [] as $pack)
+                            <option
+                                value="{{ $pack->id }}"
+                                data-name="{{ $pack->name }}"
+                                data-price="{{ $pack->price ?? 0 }}"
+                                data-tax="{{ $pack->tax_rate ?? 0 }}"
+                            >
+                                {{ $pack->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="am-muted" style="margin-top:6px;">
+                        {{ __('Le pack sera ajoute comme une ligne du devis.') }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="am-modal-foot">
+                <button type="button" class="am-btn am-btn-secondary" onclick="closePackModal()">{{ __('Annuler') }}</button>
+                <button type="button" class="am-btn am-btn-primary" onclick="addPackItem()">{{ __('Ajouter') }}</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let itemIndex = 0;
 
@@ -263,6 +304,11 @@
             return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
         }
 
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[s]));
+        }
         function computeLineDiscountHt(baseHt, type, value) {
             if (!type || value === null || value === undefined || value === '') return 0;
             const v = Math.max(0, _num(value, 0));
@@ -311,6 +357,16 @@
         }
         function closeInventoryModal() {
             const m = document.getElementById('inventoryModal');
+            m.classList.add('hidden');
+            m.setAttribute('aria-hidden', 'true');
+        }
+        function openPackModal() {
+            const m = document.getElementById('packModal');
+            m.classList.remove('hidden');
+            m.setAttribute('aria-hidden', 'false');
+        }
+        function closePackModal() {
+            const m = document.getElementById('packModal');
             m.classList.add('hidden');
             m.setAttribute('aria-hidden', 'true');
         }
@@ -385,7 +441,7 @@
                 </td>
 
                 <td class="am-td am-td--act">
-                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">x</button>
                 </td>
             `;
 
@@ -404,7 +460,7 @@
                     <input type="hidden" name="items[${idx}][type]" value="custom">
                     <input type="hidden" name="items[${idx}][product_id]" value="">
                     <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
-                    <input type="text" class="am-input custom-name" placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
+                    <input type="text" name="items[${idx}][label]" class="am-input custom-name" placeholder="Ex: Consultation, Atelier…" oninput="recomputeAllTotals()">
                 </td>
                 <td class="am-td am-td--desc">
                     <input type="text" class="am-input custom-details" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
@@ -453,7 +509,7 @@
                 </td>
 
                 <td class="am-td am-td--act">
-                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">x</button>
                 </td>
             `;
 
@@ -553,7 +609,7 @@
                 </td>
 
                 <td class="am-td am-td--act">
-                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">×</button>
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">x</button>
                 </td>
             `;
 
@@ -562,6 +618,74 @@
             recomputeAllTotals();
         }
 
+        function addPackItem() {
+            const sel = document.getElementById('pack_product_id');
+            const opt = sel.options[sel.selectedIndex];
+
+            if (!opt.value) return;
+
+            const name = opt.dataset.name || 'Pack';
+            const unitHt = _num(opt.dataset.price, 0);
+            const taxRate = _num(opt.dataset.tax, 0);
+
+            const tbody = document.querySelector('#quote-items-table tbody');
+            const idx = itemIndex++;
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td class="am-td am-td--type"><span class="am-pill am-pill--alt">Pack</span></td>
+                <td class="am-td am-td--product">
+                    <input type="hidden" name="items[${idx}][type]" value="custom">
+                    <input type="hidden" name="items[${idx}][product_id]" value="">
+                    <input type="hidden" name="items[${idx}][inventory_item_id]" value="">
+                    <input type="text" name="items[${idx}][label]" class="am-input" value="Pack : ${escapeHtml(name)}" oninput="recomputeAllTotals()">
+                </td>
+                <td class="am-td am-td--desc">
+                    <input type="text" name="items[${idx}][description]" class="am-input" placeholder="{{ __('Details (optionnel)') }}" oninput="recomputeAllTotals()">
+                </td>
+                <td class="am-td am-td--qty">
+                    <input type="number" name="items[${idx}][quantity]" class="am-input quantity-input am-num" value="1" min="0.01" step="0.01" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+                <td class="am-td am-td--unit">
+                    <input type="number" name="items[${idx}][unit_price]" class="am-input unit-price-input am-num" step="0.01" value="${unitHt.toFixed(2)}" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+                <td class="am-td am-td--tax">
+                    <input type="number" name="items[${idx}][tax_rate]" class="am-input tax-rate-input am-num" step="0.01" value="${taxRate.toFixed(2)}" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+
+                <td class="am-td am-td--discType">
+                    <select name="items[${idx}][line_discount_type]" class="am-input line-discount-type" onchange="recomputeAllTotals()">
+                        <option value="">-</option>
+                        <option value="percent">%</option>
+                        <option value="amount">EUR</option>
+                    </select>
+                </td>
+                <td class="am-td am-td--discVal">
+                    <input type="number" name="items[${idx}][line_discount_value]" class="am-input line-discount-value am-num" step="0.01" min="0" value="" inputmode="decimal" oninput="recomputeAllTotals()">
+                </td>
+                <td class="am-td am-td--discAmt">
+                    <input type="number" class="am-input line-discount-amt am-num am-readonly" step="0.01" readonly>
+                </td>
+
+                <td class="am-td am-td--totalHt">
+                    <input type="number" name="items[${idx}][total_price]" class="am-input total-ht am-num am-readonly" step="0.01" readonly>
+                </td>
+                <td class="am-td am-td--taxAmt">
+                    <input type="number" name="items[${idx}][tax_amount]" class="am-input tax-amt am-num am-readonly" step="0.01" readonly>
+                </td>
+                <td class="am-td am-td--totalTtc">
+                    <input type="number" name="items[${idx}][total_price_with_tax]" class="am-input total-ttc am-num am-readonly" step="0.01" readonly>
+                </td>
+
+                <td class="am-td am-td--act">
+                    <button type="button" class="am-btn am-btn-danger am-icon" onclick="removeRow(this)" aria-label="{{ __('Supprimer') }}">x</button>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+            closePackModal();
+            recomputeAllTotals();
+        }
         function recomputeAllTotals() {
             syncCustomDescriptions();
 

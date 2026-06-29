@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Appointment;
 use App\Models\GiftVoucherOrder;
+use App\Services\StripeFinanceSyncService;
 use App\Services\StripePurchaseWebhookService;
 
 class StripeController extends Controller
@@ -303,6 +304,15 @@ public function success(Request $request)
         } catch(\Stripe\Exception\SignatureVerificationException $e) {
             // Invalid signature
             return response('Invalid signature', 400);
+        }
+
+        try {
+            app(StripeFinanceSyncService::class)->ingestWebhookEvent($event);
+        } catch (\Throwable $e) {
+            Log::warning('Stripe finance webhook sync failed: ' . $e->getMessage(), [
+                'event_type' => $event->type ?? null,
+                'event_id' => $event->id ?? null,
+            ]);
         }
 
         if (app(StripePurchaseWebhookService::class)->handleEvent($event, $connectedAccountId)) {

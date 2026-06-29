@@ -917,6 +917,10 @@
                                 @enderror
                             </div>
                         @endif
+
+                        @if($superPdpAvailable ?? false)
+                            @include('profile.partials.super-pdp-card')
+                        @endif
                     </div>
 
                     {{-- Form actions (always visible) --}}
@@ -934,6 +938,22 @@
                 @if($canUseIntegration && $user->google_access_token)
                     <form id="disconnectGoogleForm" method="POST" action="{{ route('google.disconnect') }}" class="hidden">
                         @csrf
+                    </form>
+                @endif
+
+                @if($superPdpAvailable ?? false)
+                    <form id="superPdpConnectForm" method="POST" action="{{ route('super-pdp.connect') }}" class="hidden">
+                        @csrf
+                    </form>
+
+                    <form id="superPdpPreferenceForm" method="POST" action="{{ route('super-pdp.preferences.update') }}" class="hidden">
+                        @csrf
+                        @method('PATCH')
+                    </form>
+
+                    <form id="superPdpDisconnectForm" method="POST" action="{{ route('super-pdp.disconnect') }}" class="hidden">
+                        @csrf
+                        @method('DELETE')
                     </form>
                 @endif
             </div> {{-- /x-data --}}

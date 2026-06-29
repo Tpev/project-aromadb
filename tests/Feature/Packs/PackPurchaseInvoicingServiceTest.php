@@ -120,7 +120,7 @@ test('service creates invoice for training purchase snapshot', function () {
 
     expect($invoice)->not->toBeNull();
     expect($invoice->pack_purchase_id)->toBe($purchase->id);
-    expect((float) $invoice->total_amount_with_tax)->toBe(29.9);
+    expect((float) $invoice->total_amount_with_tax)->toBe(29.88);
     expect($invoice->items()->where('label', 'like', 'Formation :%')->exists())->toBeTrue();
 });
 

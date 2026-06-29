@@ -8,14 +8,28 @@ test('sanitizeAllowed keeps only unique values between 2 and 12', function () {
     expect($allowed)->toBe([2, 3, 12]);
 });
 
-test('build splits remainder on first installment', function () {
+test('build rounds down to one identical installment amount', function () {
     $plan = InstallmentPlan::build(1000, 3);
 
     expect($plan)->not->toBeNull();
     expect($plan['count'])->toBe(3);
+    expect($plan['installment_cents'])->toBe(333);
     expect($plan['base_cents'])->toBe(333);
-    expect($plan['first_cents'])->toBe(334);
-    expect($plan['remainder_cents'])->toBe(1);
+    expect($plan['first_cents'])->toBe(333);
+    expect($plan['remainder_cents'])->toBe(0);
+    expect($plan['adjusted_total_cents'])->toBe(999);
+    expect($plan['adjustment_cents'])->toBe(-1);
+});
+
+test('build never charges more than the original total', function () {
+    $plan = InstallmentPlan::build(1001, 3);
+
+    expect($plan)->not->toBeNull();
+    expect($plan['installment_cents'])->toBe(333);
+    expect($plan['first_cents'])->toBe(333);
+    expect($plan['remainder_cents'])->toBe(0);
+    expect($plan['adjusted_total_cents'])->toBe(999);
+    expect($plan['adjustment_cents'])->toBe(-2);
 });
 
 test('build returns null when amount is below Stripe minimum per installment', function () {

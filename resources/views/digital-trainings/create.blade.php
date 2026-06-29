@@ -17,9 +17,10 @@
     @php
         $oldIsFree = (bool) old('is_free', false);
         $oldFreeAccessRequiresIdentity = (bool) old('free_access_requires_identity', false);
+        $oldFreeAccessIsOpen = (bool) old('free_access_is_open', false);
     @endphp
 
-    <div class="container mt-6" x-data="{ isFree: {{ $oldIsFree ? 'true' : 'false' }} }">
+    <div class="container mt-6" x-data="{ isFree: {{ $oldIsFree ? 'true' : 'false' }}, freeAccessIsOpen: {{ $oldFreeAccessIsOpen ? 'true' : 'false' }} }">
         <div class="mx-auto max-w-4xl bg-white shadow-sm rounded-2xl border border-slate-100 p-6">
             <form action="{{ route('digital-trainings.store') }}"
                   method="POST"
@@ -110,6 +111,10 @@
                                    x-model="isFree"
                                    class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
                             {{ __('Formation gratuite') }}
+                            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-500 cursor-help"
+                                  title="{{ __('Si cette case est cochée, aucun paiement ne sera demandé. Vous pourrez ensuite choisir si l’accès reste manuel, avec formulaire de contact, ou libre.') }}">
+                                ?
+                            </span>
                         </label>
                     </div>
 
@@ -190,28 +195,65 @@
                 </div>
 
 
-                <div x-show="isFree" x-cloak class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="text-sm font-semibold text-slate-800">{{ __('Accès gratuit avec collecte de contact') }}</p>
-                            <p class="text-[11px] text-slate-500">
-                                {{ __('Optionnel : sur la page publique de cette formation, demander prénom, nom et email avant de laisser accéder gratuitement au contenu.') }}
-                            </p>
+                <div x-show="isFree" x-cloak class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+                    <div class="rounded-xl border border-slate-200 bg-white p-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">{{ __('Accès libre') }}</p>
+                                <p class="text-[11px] text-slate-500">
+                                    {{ __('Optionnel : rendre cette formation gratuite accessible immédiatement depuis sa page publique.') }}
+                                </p>
+                            </div>
+
+                            <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
+                                <input type="hidden" name="free_access_is_open" value="0">
+                                <input type="checkbox"
+                                       name="free_access_is_open"
+                                       value="1"
+                                       x-model="freeAccessIsOpen"
+                                       class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
+                                {{ __('Activer') }}
+                                <span class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-500 cursor-help"
+                                      title="{{ __('Si activé, tout visiteur peut cliquer sur Accéder librement et ouvrir le contenu sans compte, sans formulaire et sans paiement. Un accès anonyme est créé pour le suivi de progression.') }}">
+                                    ?
+                                </span>
+                            </label>
                         </div>
 
-                        <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
-                            <input type="hidden" name="free_access_requires_identity" value="0">
-                            <input type="checkbox"
-                                   name="free_access_requires_identity"
-                                   value="1"
-                                   {{ $oldFreeAccessRequiresIdentity ? 'checked' : '' }}
-                                   class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
-                            {{ __('Activer le formulaire avant accès') }}
-                        </label>
+                        <p class="mt-3 text-xs text-slate-600">
+                            {{ __('Idéal pour un contenu cadeau, un lead magnet sans collecte, ou une ressource que vous voulez partager très facilement.') }}
+                        </p>
                     </div>
 
-                    <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
-                        {{ __('Les visiteurs verront un bouton "Accéder gratuitement", puis un formulaire avec prénom, nom et email. Une fois validé, un accès sera créé dans vos enrollments et le contenu s’ouvrira immédiatement.') }}
+                    <div class="rounded-xl border border-slate-200 bg-white p-3" :class="freeAccessIsOpen ? 'opacity-60' : ''">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-slate-800">{{ __('Accès gratuit avec collecte de contact') }}</p>
+                                <p class="text-[11px] text-slate-500">
+                                    {{ __('Optionnel : demander prénom, nom et email avant de laisser accéder gratuitement au contenu.') }}
+                                </p>
+                            </div>
+
+                            <label class="inline-flex items-center gap-2 text-sm font-medium text-slate-800 select-none">
+                                <input type="hidden" name="free_access_requires_identity" value="0">
+                                <input type="checkbox"
+                                       name="free_access_requires_identity"
+                                       value="1"
+                                       {{ $oldFreeAccessRequiresIdentity ? 'checked' : '' }}
+                                       :disabled="freeAccessIsOpen"
+                                       class="rounded border-slate-300 text-[#6B4A3A] focus:ring-[#6B4A3A]/40">
+                                {{ __('Activer le formulaire avant accès') }}
+                            </label>
+                        </div>
+
+                        <div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                            <span x-show="!freeAccessIsOpen">
+                                {{ __('Les visiteurs verront un bouton "Accéder gratuitement", puis un formulaire avec prénom, nom et email. Une fois validé, un accès sera créé dans vos enrollments et le contenu s’ouvrira immédiatement.') }}
+                            </span>
+                            <span x-show="freeAccessIsOpen">
+                                {{ __('Désactivé automatiquement quand Accès libre est actif, car aucun formulaire ne sera demandé.') }}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 {{-- Accès, statut, durée --}}

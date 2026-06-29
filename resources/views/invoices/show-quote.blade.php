@@ -135,6 +135,27 @@
                                 @foreach($quote->items as $item)
                                     @php
                                         $remiseHt = (float)($item->line_discount_amount_ht ?? 0) + (float)($item->global_discount_amount_ht ?? 0);
+                                        $itemName = trim((string) ($item->label ?? ''));
+                                        $itemDescription = trim((string) ($item->description ?? ''));
+
+                                        if ($item->type === 'product' && $item->product) {
+                                            $itemName = $item->product->name;
+                                        } elseif ($item->type === 'inventory' && $item->inventoryItem) {
+                                            $itemName = $item->inventoryItem->name;
+                                        } elseif ($itemName === '' && $itemDescription !== '') {
+                                            if (str_contains($itemDescription, ' — ')) {
+                                                [$left, $right] = array_map('trim', explode(' — ', $itemDescription, 2));
+                                                $itemName = $left;
+                                                $itemDescription = $right;
+                                            } elseif (str_contains($itemDescription, ' - ')) {
+                                                [$left, $right] = array_map('trim', explode(' - ', $itemDescription, 2));
+                                                $itemName = $left;
+                                                $itemDescription = $right;
+                                            } else {
+                                                $itemName = $itemDescription;
+                                                $itemDescription = '';
+                                            }
+                                        }
                                     @endphp
                                     <tr>
                                         <td>
@@ -143,15 +164,9 @@
                                             @else Autre @endif
                                         </td>
                                         <td>
-                                            @if($item->type === 'product' && $item->product)
-                                                {{ $item->product->name }}
-                                            @elseif($item->type === 'inventory' && $item->inventoryItem)
-                                                {{ $item->inventoryItem->name }}
-                                            @else
-                                                {{ $item->description }}
-                                            @endif
+                                            {{ $itemName !== '' ? $itemName : '—' }}
                                         </td>
-                                        <td>{{ $item->description }}</td>
+                                        <td>{{ $itemDescription !== '' ? $itemDescription : '—' }}</td>
                                         <td>{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
                                         <td>{{ number_format((float)$item->unit_price, 2, ',', ' ') }} €</td>
                                         <td>{{ number_format((float)$item->tax_rate, 2, ',', ' ') }}%</td>

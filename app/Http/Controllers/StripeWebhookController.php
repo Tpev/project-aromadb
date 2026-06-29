@@ -11,6 +11,7 @@ use Stripe\StripeClient;
 use App\Models\User;
 use App\Models\Invoice;
 use App\Notifications\InvoicePaid;
+use App\Services\StripeFinanceSyncService;
 use App\Services\StripePurchaseWebhookService;
 
 class StripeWebhookController extends Controller
@@ -38,6 +39,15 @@ class StripeWebhookController extends Controller
             // Invalid payload
             Log::error('Stripe Webhook Invalid Payload: ' . $e->getMessage());
             return response()->json(['error' => 'Invalid payload'], 400);
+        }
+
+        try {
+            app(StripeFinanceSyncService::class)->ingestWebhookEvent($event);
+        } catch (\Throwable $e) {
+            Log::warning('Stripe finance webhook sync failed: ' . $e->getMessage(), [
+                'event_type' => $event->type ?? null,
+                'event_id' => $event->id ?? null,
+            ]);
         }
 
         if (app(StripePurchaseWebhookService::class)->handleEvent($event, $connectedAccountId)) {
