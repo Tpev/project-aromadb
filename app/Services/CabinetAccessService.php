@@ -8,12 +8,14 @@ use App\Models\PracticeLocationMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class CabinetAccessService
 {
     public function enabled(): bool
     {
-        return (bool) config('features.shared_cabinets_v1', false);
+        return (bool) config('features.shared_cabinets_v1', false)
+            && $this->sharedCabinetTablesExist();
     }
 
     public function accessibleLocationsQuery(User $user): Builder
@@ -37,8 +39,15 @@ class CabinetAccessService
 
     public function accessibleLocations(User $user): Collection
     {
+        $relations = ['owner'];
+
+        if ($this->enabled()) {
+            $relations[] = 'memberships.user';
+            $relations[] = 'pendingInvites.invitedUser';
+        }
+
         return $this->accessibleLocationsQuery($user)
-            ->with(['owner', 'memberships.user', 'pendingInvites.invitedUser'])
+            ->with($relations)
             ->orderByDesc('is_primary')
             ->orderBy('label')
             ->get();
@@ -111,9 +120,22 @@ class CabinetAccessService
 
     public function cancelPendingInvites(PracticeLocation $location): void
     {
+        if (!$this->enabled()) {
+            return;
+        }
+
         PracticeLocationInvite::query()
             ->where('practice_location_id', $location->id)
             ->where('status', PracticeLocationInvite::STATUS_PENDING)
             ->update(['status' => PracticeLocationInvite::STATUS_CANCELLED]);
+    }
+
+    private function sharedCabinetTablesExist(): bool
+    {
+        return Schema::hasTable('practice_locations')
+            && Schema::hasColumn('practice_locations', 'is_shared')
+            && Schema::hasColumn('practice_locations', 'shared_enabled_at')
+            && Schema::hasTable('practice_location_members')
+            && Schema::hasTable('practice_location_invites');
     }
 }

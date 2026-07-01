@@ -8,6 +8,7 @@ use App\Models\PracticeLocationMember;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\CabinetAccessService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -83,7 +84,15 @@ function addSharedMember(PracticeLocation $location, User $owner, User $member):
     ]);
 }
 
+function sharedSchedulingFutureMonday(): Carbon
+{
+    return now()->addWeeks(2)->startOfWeek();
+}
+
 test('shared cabinet booking hides an already occupied slot on the public web endpoint', function () {
+    $bookingDate = sharedSchedulingFutureMonday();
+    $dayOfWeek = $bookingDate->dayOfWeekIso - 1;
+
     $owner = sharedSchedulingTherapist(['email' => 'owner-slots@example.test']);
     $member = sharedSchedulingTherapist(['email' => 'member-slots@example.test']);
     $location = sharedSchedulingLocation($owner);
@@ -95,7 +104,7 @@ test('shared cabinet booking hides an already occupied slot on the public web en
     Availability::create([
         'user_id' => $member->id,
         'practice_location_id' => $location->id,
-        'day_of_week' => 0,
+        'day_of_week' => $dayOfWeek,
         'start_time' => '09:00:00',
         'end_time' => '12:00:00',
         'applies_to_all' => true,
@@ -108,7 +117,7 @@ test('shared cabinet booking hides an already occupied slot on the public web en
         'user_id' => $owner->id,
         'product_id' => $ownerProduct->id,
         'practice_location_id' => $location->id,
-        'appointment_date' => '2026-04-06 09:00:00',
+        'appointment_date' => $bookingDate->copy()->setTime(9, 0),
         'status' => 'confirmed',
         'duration' => 60,
         'type' => 'cabinet',
@@ -117,7 +126,7 @@ test('shared cabinet booking hides an already occupied slot on the public web en
     $response = $this->post(route('appointments.available-slots-patient'), [
         'therapist_id' => $member->id,
         'product_id' => $memberProduct->id,
-        'date' => '2026-04-06',
+        'date' => $bookingDate->format('Y-m-d'),
         'mode' => 'cabinet',
         'location_id' => $location->id,
     ]);
@@ -131,6 +140,9 @@ test('shared cabinet booking hides an already occupied slot on the public web en
 });
 
 test('shared cabinet conflict does not block another cabinet or a non cabinet mode', function () {
+    $bookingDate = sharedSchedulingFutureMonday();
+    $dayOfWeek = $bookingDate->dayOfWeekIso - 1;
+
     $owner = sharedSchedulingTherapist(['email' => 'owner-other@example.test']);
     $member = sharedSchedulingTherapist(['email' => 'member-other@example.test']);
     $sharedLocation = sharedSchedulingLocation($owner, ['label' => 'Cabinet partagé']);
@@ -153,7 +165,7 @@ test('shared cabinet conflict does not block another cabinet or a non cabinet mo
     Availability::create([
         'user_id' => $member->id,
         'practice_location_id' => $sharedLocation->id,
-        'day_of_week' => 0,
+        'day_of_week' => $dayOfWeek,
         'start_time' => '09:00:00',
         'end_time' => '12:00:00',
         'applies_to_all' => true,
@@ -162,7 +174,7 @@ test('shared cabinet conflict does not block another cabinet or a non cabinet mo
     Availability::create([
         'user_id' => $member->id,
         'practice_location_id' => $otherLocation->id,
-        'day_of_week' => 0,
+        'day_of_week' => $dayOfWeek,
         'start_time' => '09:00:00',
         'end_time' => '12:00:00',
         'applies_to_all' => true,
@@ -175,7 +187,7 @@ test('shared cabinet conflict does not block another cabinet or a non cabinet mo
         'user_id' => $owner->id,
         'product_id' => $ownerProduct->id,
         'practice_location_id' => $sharedLocation->id,
-        'appointment_date' => '2026-04-06 09:00:00',
+        'appointment_date' => $bookingDate->copy()->setTime(9, 0),
         'status' => 'confirmed',
         'duration' => 60,
         'type' => 'cabinet',
@@ -184,7 +196,7 @@ test('shared cabinet conflict does not block another cabinet or a non cabinet mo
     $otherCabinetResponse = $this->post(route('appointments.available-slots-patient'), [
         'therapist_id' => $member->id,
         'product_id' => $cabinetProduct->id,
-        'date' => '2026-04-06',
+        'date' => $bookingDate->format('Y-m-d'),
         'mode' => 'cabinet',
         'location_id' => $otherLocation->id,
     ]);
@@ -195,7 +207,7 @@ test('shared cabinet conflict does not block another cabinet or a non cabinet mo
     $visioResponse = $this->post(route('appointments.available-slots-patient'), [
         'therapist_id' => $member->id,
         'product_id' => $visioProduct->id,
-        'date' => '2026-04-06',
+        'date' => $bookingDate->format('Y-m-d'),
         'mode' => 'visio',
     ]);
 
@@ -204,6 +216,9 @@ test('shared cabinet conflict does not block another cabinet or a non cabinet mo
 });
 
 test('mobile slots endpoint applies the same shared cabinet constraint', function () {
+    $bookingDate = sharedSchedulingFutureMonday();
+    $dayOfWeek = $bookingDate->dayOfWeekIso - 1;
+
     $owner = sharedSchedulingTherapist(['email' => 'owner-mobile@example.test', 'slug' => 'owner-mobile']);
     $member = sharedSchedulingTherapist(['email' => 'member-mobile@example.test', 'slug' => 'member-mobile']);
     $location = sharedSchedulingLocation($owner);
@@ -215,7 +230,7 @@ test('mobile slots endpoint applies the same shared cabinet constraint', functio
     Availability::create([
         'user_id' => $member->id,
         'practice_location_id' => $location->id,
-        'day_of_week' => 0,
+        'day_of_week' => $dayOfWeek,
         'start_time' => '09:00:00',
         'end_time' => '12:00:00',
         'applies_to_all' => true,
@@ -228,7 +243,7 @@ test('mobile slots endpoint applies the same shared cabinet constraint', functio
         'user_id' => $owner->id,
         'product_id' => $ownerProduct->id,
         'practice_location_id' => $location->id,
-        'appointment_date' => '2026-04-06 09:00:00',
+        'appointment_date' => $bookingDate->copy()->setTime(9, 0),
         'status' => 'confirmed',
         'duration' => 60,
         'type' => 'cabinet',
@@ -237,7 +252,7 @@ test('mobile slots endpoint applies the same shared cabinet constraint', functio
     $response = $this->get(route('mobile.appointments.slots', [
         'therapist_id' => $member->id,
         'product_id' => $memberProduct->id,
-        'date' => '2026-04-06',
+        'date' => $bookingDate->format('Y-m-d'),
         'mode' => 'cabinet',
         'location_id' => $location->id,
     ]));

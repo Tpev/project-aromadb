@@ -163,6 +163,24 @@ class AppointmentController extends Controller
         $products = Product::where('user_id', Auth::id())->get();
         $practiceLocations = app(CabinetAccessService::class)->accessibleLocations(Auth::user());
 
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.appointments.form', [
+                'title' => 'Nouveau rendez-vous',
+                'appointment' => new Appointment([
+                    'appointment_date' => now()->addHour(),
+                    'status' => 'Programme',
+                    'duration' => 60,
+                ]),
+                'clientProfiles' => $clientProfiles,
+                'products' => $products,
+                'practiceLocations' => $practiceLocations,
+                'selectedClientId' => request('client_profile_id') ?? request('client_id'),
+                'action' => route('mobile.appointments.store_practitioner'),
+                'method' => 'POST',
+                'submitLabel' => 'Creer',
+            ]);
+        }
+
         return view('appointments.create', compact('clientProfiles', 'products', 'practiceLocations'));
     }
 
@@ -378,6 +396,12 @@ public function store(Request $request)
         }
     }
 
+    if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+        return redirect()
+            ->route('mobile.appointments.show', $appointment)
+            ->with('success', 'Rendez-vous cree avec succes.');
+    }
+
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous créé avec succès.');
 }
 
@@ -473,6 +497,20 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         $productId = $appointment->product_id;
         $availableSlots = $this->getAvailableSlotsForEdit($date, $duration, $therapistId, $productId, $appointment->id);
 
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.appointments.form', [
+                'title' => 'Modifier le rendez-vous',
+                'appointment' => $appointment,
+                'clientProfiles' => $clientProfiles,
+                'products' => $products,
+                'practiceLocations' => $practiceLocations,
+                'selectedClientId' => $appointment->client_profile_id,
+                'action' => route('mobile.appointments.update', $appointment),
+                'method' => 'PUT',
+                'submitLabel' => 'Enregistrer',
+            ]);
+        }
+
         return view('appointments.edit', compact('appointment', 'clientProfiles', 'products', 'availableSlots', 'practiceLocations'));
     }
 
@@ -567,6 +605,12 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
     // Email de mise à jour au client si email présent
     if ($appointment->clientProfile && $appointment->clientProfile->email) {
         Mail::to($appointment->clientProfile->email)->queue(new AppointmentEditedClientMail($appointment));
+    }
+
+    if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+        return redirect()
+            ->route('mobile.appointments.show', $appointment)
+            ->with('success', 'Rendez-vous mis a jour.');
     }
 
     return redirect()->route('appointments.index')->with('success', 'Rendez-vous mis à jour avec succès.');

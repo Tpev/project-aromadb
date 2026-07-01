@@ -115,15 +115,15 @@
                                     {{ __('Ajoutez un lieu de pratique, configurez vos disponibilités et au moins une prestation réservable en ligne.') }}
                                 </p>
                                 <div class="flex flex-wrap gap-2 mt-1">
-                                    <a href="{{ route('practice_locations.index') }}"
+                                    <a href="{{ route('mobile.practice-locations.index') }}"
                                        class="text-[11px] px-3 py-1.5 rounded-full bg-white border text-gray-800">
                                         {{ __('Mes lieux') }}
                                     </a>
-                                    <a href="{{ route('availabilities.index') }}"
+                                    <a href="{{ route('mobile.availabilities.index') }}"
                                        class="text-[11px] px-3 py-1.5 rounded-full bg-white border text-gray-800">
                                         {{ __('Mes disponibilités') }}
                                     </a>
-                                    <a href="{{ route('products.index') }}"
+                                    <a href="{{ route('mobile.products.index') }}"
                                        class="text-[11px] px-3 py-1.5 rounded-full bg-white border text-gray-800">
                                         {{ __('Mes prestations') }}
                                     </a>
@@ -143,7 +143,7 @@
                                     {{ __('Explorez la facturation, les questionnaires et les téléconsultations pour aller plus loin avec AromaMade PRO.') }}
                                 </p>
                                 <div class="flex flex-wrap gap-2 mt-1">
-                                    <a href="{{ route('invoices.index') }}"
+                                    <a href="{{ route('mobile.invoices.index') }}"
                                        class="text-[11px] px-3 py-1.5 rounded-full bg-white border text-gray-800">
                                         {{ __('Facturation') }}
                                     </a>
@@ -263,7 +263,7 @@
                 {{-- RDV à venir --}}
                 <x-ts-card class="rounded-3xl shadow-md border border-[#d9dfc0] bg-[#647a0b] text-white px-4 py-4">
                     <button class="w-full text-left"
-                            onclick="window.location='{{ route('appointments.index', ['filter' => 'upcoming']) }}'">
+                            onclick="window.location='{{ route('mobile.appointments.index', ['filter' => 'upcoming']) }}'">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white text-[#647a0b] flex items-center justify-center text-xl">
                                 📅
@@ -300,7 +300,7 @@
                 {{-- Factures émises --}}
                 <x-ts-card class="rounded-3xl shadow-md border border-[#e5d0c7] bg-[#a96b56] text-white px-4 py-4">
                     <button class="w-full text-left"
-                            onclick="window.location='{{ route('invoices.index') }}'">
+                            onclick="window.location='{{ route('mobile.invoices.index') }}'">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white text-[#a96b56] flex items-center justify-center text-xl">
                                 🧾
@@ -320,7 +320,7 @@
                 {{-- Factures en attente --}}
                 <x-ts-card class="rounded-3xl shadow-md border border-[#e0c7be] bg-[#854f38] text-white px-4 py-4">
                     <button class="w-full text-left"
-                            onclick="window.location='{{ route('invoices.index', ['filter' => 'pending']) }}'">
+                            onclick="window.location='{{ route('mobile.invoices.index', ['filter' => 'pending']) }}'">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white text-[#854f38] flex items-center justify-center text-xl">
                                 ⏳
@@ -340,7 +340,7 @@
                 {{-- Revenus du mois --}}
                 <x-ts-card class="rounded-3xl shadow-md border border-[#d6c2ba] bg-[#6a3f2c] text-white px-4 py-4">
                     <button class="w-full text-left"
-                            onclick="window.location='{{ route('invoices.index', ['filter' => 'current_month']) }}'">
+                            onclick="window.location='{{ route('mobile.invoices.index', ['filter' => 'current_month']) }}'">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-white text-[#6a3f2c] flex items-center justify-center text-xl">
                                 💶
@@ -398,7 +398,7 @@
                         @foreach($recentAppointments as $appointment)
                             <button
                                 class="w-full text-left px-3 py-2 rounded-2xl border bg-[#f8fbf2] hover:bg-[#f0f8e8] transition flex flex-col gap-1"
-                                onclick="window.location='{{ route('appointments.show', $appointment->id) }}'"
+                                onclick="window.location='{{ route('mobile.appointments.show', $appointment) }}'"
                             >
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="text-sm font-semibold text-gray-800 break-words">
@@ -436,7 +436,7 @@
                         @foreach($recentInvoices as $invoice)
                             <button
                                 class="w-full text-left px-3 py-2 rounded-2xl border bg-[#fef8f5] hover:bg-[#fdece6] transition flex flex-col gap-1"
-                                onclick="window.location='{{ route('invoices.show', $invoice->id) }}'"
+                                onclick="window.location='{{ route('mobile.invoices.show', $invoice) }}'"
                             >
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="text-sm font-semibold text-gray-800 break-words">

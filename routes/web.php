@@ -516,12 +516,6 @@ Route::middleware('auth:client')->group(function () {
         ->name('client_files.download');
 });
 
-// Therapist-only (protected by auth middleware)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/client_profiles/{clientProfile}/files/{file}/download', [ClientFileController::class, 'downloadForTherapist'])
-        ->name('client_profiles.files.download');
-});
-
 Route::get('/dashboard/client-profiles/{clientProfile}/messages/fetch', [ClientMessageController::class, 'fetchLatestTherapist'])
     ->name('therapist.messages.fetch')
     ->middleware('auth'); // or a more specific therapist guard

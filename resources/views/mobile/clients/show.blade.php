@@ -41,6 +41,11 @@
     // Files / documents counts
     $filesCount = $client->clientFiles()->count();
     $documentsCount = \App\Models\Document::where('client_profile_id', $client->id)->count();
+    $sessionNotesCount = \App\Models\SessionNote::where('client_profile_id', $client->id)
+        ->where('user_id', auth()->id())
+        ->count();
+    $metricsCount = \App\Models\Metric::where('client_profile_id', $client->id)->count();
+    $metricEntriesCount = \App\Models\MetricEntry::whereHas('metric', fn ($query) => $query->where('client_profile_id', $client->id))->count();
 @endphp
 
 <x-mobile-layout :title="$fullName ?: __('Client')">
@@ -289,7 +294,7 @@
             @endif
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                <a href="{{ route('appointments.create', $client->id) }}"
+                <a href="{{ route('mobile.appointments.create', ['client_profile_id' => $client->id]) }}"
                    class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#647a0b] text-white font-medium active:scale-[0.99]">
                     <i class="fas fa-plus text-[10px] mr-1.5"></i>
                     {{ __('Nouveau rendez-vous') }}
@@ -399,6 +404,72 @@
         </div>
 
         {{-- =======================
+             SUIVI DES MESURES
+             ======================= --}}
+        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        {{ __('Suivi des mesures') }}
+                    </h2>
+                    <p class="mt-1 text-xs leading-snug text-gray-600">
+                        {{ $metricsCount }} {{ __('mesure(s)') }} · {{ $metricEntriesCount }} {{ __('valeur(s)') }}
+                    </p>
+                </div>
+                <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#647a0b]/10 text-[#647a0b]">
+                    <i class="fas fa-chart-line text-[12px]"></i>
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                <a href="{{ route('mobile.metrics.index', $client) }}"
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
+                    <i class="fas fa-chart-line text-[10px] mr-1.5"></i>
+                    {{ __('Voir') }}
+                </a>
+
+                <a href="{{ route('mobile.metrics.create', $client) }}"
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#647a0b] text-white font-medium active:scale-[0.99]">
+                    <i class="fas fa-plus text-[10px] mr-1.5"></i>
+                    {{ __('Ajouter') }}
+                </a>
+            </div>
+        </div>
+
+        {{-- =======================
+             NOTES DE SEANCE
+             ======================= --}}
+        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm space-y-3">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        {{ __('Notes de seance') }}
+                    </h2>
+                    <p class="mt-1 text-xs leading-snug text-gray-600">
+                        {{ $sessionNotesCount }} {{ __('note(s) rattachee(s) a ce client') }}
+                    </p>
+                </div>
+                <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#647a0b]/10 text-[#647a0b]">
+                    <i class="fas fa-notes-medical text-[12px]"></i>
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                <a href="{{ route('mobile.session-notes.index', $client) }}"
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
+                    <i class="fas fa-list text-[10px] mr-1.5"></i>
+                    {{ __('Voir') }}
+                </a>
+
+                <a href="{{ route('mobile.session-notes.create', $client) }}"
+                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#647a0b] text-white font-medium active:scale-[0.99]">
+                    <i class="fas fa-plus text-[10px] mr-1.5"></i>
+                    {{ __('Ajouter') }}
+                </a>
+            </div>
+        </div>
+
+        {{-- =======================
              FICHIERS & DOCUMENTS (SYNTHÈSE)
              ======================= --}}
         <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm space-y-3">
@@ -427,16 +498,16 @@
             </div>
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-[11px]">
-                <a href="{{ route('client_profiles.show', $client->id) }}#Fichiers-&-Documents"
+                <a href="{{ route('mobile.documents.client', $client) }}"
                    class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
                     <i class="fas fa-folder-open text-[10px] mr-1.5"></i>
-                    {{ __('Gérer sur le web') }}
+                    {{ __('Gerer') }}
                 </a>
 
-                <a href="{{ route('client_profiles.show', $client->id) }}#documents-signing"
+                <a href="{{ route('mobile.documents.client', $client) }}#documents-signing"
                    class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-gray-800 font-medium active:scale-[0.99]">
                     <i class="fas fa-file-signature text-[10px] mr-1.5"></i>
-                    {{ __('Signatures ') }}
+                    {{ __('Signatures') }}
                 </a>
             </div>
         </div>
@@ -451,7 +522,7 @@
                 {{ __('Retour à la liste des clients') }}
             </a>
 
-            <a href="{{ route('client_profiles.edit', $client->id) }}"
+            <a href="{{ route('mobile.clients.edit', $client->id) }}"
                class="inline-flex items-center justify-center w-full px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99]">
                 <i class="fas fa-edit text-[11px] mr-1.5"></i>
                 {{ __('Modifier le profil ') }}

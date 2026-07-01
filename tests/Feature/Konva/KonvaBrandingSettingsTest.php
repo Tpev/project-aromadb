@@ -42,8 +42,7 @@ test('authenticated user can open konva editor', function () {
         ->get(route('konva.editor'))
         ->assertOk()
         ->assertSee('Studio visuel', false)
-        ->assertSee('Branding auto', false)
-        ->assertSee('Sources intelligentes', false);
+        ->assertSee('Votre style est applique automatiquement aux templates.', false);
 });
 
 test('guest cannot save konva branding settings', function () {

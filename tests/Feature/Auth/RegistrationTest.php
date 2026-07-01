@@ -7,11 +7,20 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    $captcha = Mockery::mock();
+    $captcha->shouldReceive('verifyResponse')
+        ->once()
+        ->with('valid-test-token', Mockery::any())
+        ->andReturnTrue();
+
+    app()->instance('captcha', $captcha);
+
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
+        'g-recaptcha-response' => 'valid-test-token',
     ]);
 
     $this->assertAuthenticated();

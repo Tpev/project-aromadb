@@ -17,6 +17,15 @@
     $past = $appointments->filter(function ($a) use ($todayStart) {
         return $a->appointment_date->lessThan($todayStart);
     });
+
+    $requestedTab = request('filter');
+    $defaultTab = in_array($requestedTab, ['today', 'upcoming', 'past'], true)
+        ? $requestedTab
+        : ($today->isNotEmpty()
+            ? 'today'
+            : ($upcoming->isNotEmpty()
+                ? 'upcoming'
+                : ($past->isNotEmpty() ? 'past' : 'today')));
 @endphp
 
 <x-mobile-layout title="Mes rendez-vous">
@@ -31,7 +40,7 @@
                 </p>
             </div>
 
-            <a href="{{ route('appointments.create') }}"
+            <a href="{{ route('mobile.appointments.create') }}"
                class="inline-flex items-center px-3 py-2 rounded-full text-xs font-medium bg-[#647a0b] text-white shadow-sm">
                 <i class="fas fa-plus mr-1.5 text-[11px]"></i>
                 Nouveau
@@ -55,7 +64,7 @@
         </div>
 
         {{-- Filters + list --}}
-        <div x-data="{ tab: 'today' }" class="space-y-4">
+        <div x-data="{ tab: @js($defaultTab) }" class="space-y-4">
             {{-- Tabs --}}
             <div class="flex items-center gap-2 text-xs bg-white rounded-full p-1 border border-[#e4e8d5]">
                 <button

@@ -214,7 +214,7 @@
         <div class="space-y-3">
             {{-- Primary actions --}}
             <div class="grid grid-cols-2 gap-2">
-                <a href="{{ route('appointments.edit', $appointment->id) }}"
+                <a href="{{ route('mobile.appointments.edit', $appointment) }}"
                    class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99] transition">
                     <i class="fas fa-edit text-[11px] mr-1.5"></i>
                     Modifier
@@ -266,7 +266,7 @@
                 {{-- Emargement --}}
                 @can('update', $appointment)
                     @if($appointment->product?->requires_emargement && !$appointment->emargement_sent)
-                        <form action="{{ route('emargement.send', $appointment->id) }}"
+                        <form action="{{ route('mobile.emargements.send', $appointment) }}"
                               method="POST"
                               class="mt-1.5">
                             @csrf

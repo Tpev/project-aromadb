@@ -181,7 +181,7 @@
                             $sent = !is_null($invoice->sent_at);
                         @endphp
 
-                        <a href="{{ route('invoices.show', $invoice->id) }}"
+                        <a href="{{ route('mobile.invoices.show', $invoice) }}"
                            class="block rounded-2xl border border-[#e4e8d5] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
                            data-type="invoice"
                            data-client="{{ strtolower($invoice->clientProfile->first_name . ' ' . $invoice->clientProfile->last_name) }}"
@@ -272,7 +272,7 @@
                             $sent = !is_null($quote->sent_at);
                         @endphp
 
-                        <a href="{{ route('invoices.showQuote', $quote->id) }}"
+                        <a href="{{ route('mobile.quotes.show', $quote) }}"
                            class="block rounded-2xl border border-[#e4e8d5] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
                            data-type="quote"
                            data-client="{{ strtolower($quote->clientProfile->first_name . ' ' . $quote->clientProfile->last_name) }}"

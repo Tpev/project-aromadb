@@ -31,7 +31,13 @@ class AvailabilityController extends Controller
 
         $availabilities = Availability::where('user_id', Auth::id())
             ->with(['products', 'practiceLocation'])
+            ->orderBy('day_of_week')
+            ->orderBy('start_time')
             ->get();
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.availabilities.index', compact('availabilities'));
+        }
 
         return view('availabilities.index', compact('availabilities'));
     }
@@ -46,6 +52,24 @@ class AvailabilityController extends Controller
         // Produits + Lieux de l'utilisateur
         $products  = Product::where('user_id', Auth::id())->get();
         $locations = $this->cabinetAccessService->accessibleLocations(Auth::user());
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.availabilities.form', [
+                'title' => 'Nouvelle disponibilite',
+                'availability' => new Availability([
+                    'day_of_week' => 0,
+                    'start_time' => '09:00:00',
+                    'end_time' => '17:00:00',
+                    'applies_to_all' => true,
+                ]),
+                'products' => $products,
+                'locations' => $locations,
+                'selectedProducts' => [],
+                'action' => route('mobile.availabilities.store'),
+                'method' => 'POST',
+                'submitLabel' => 'Creer',
+            ]);
+        }
 
         return view('availabilities.create', compact('products', 'locations'));
     }
@@ -126,11 +150,17 @@ class AvailabilityController extends Controller
             'day_of_week'          => $request->day_of_week,
             'start_time'           => $start,
             'end_time'             => $end,
-            'applies_to_all'       => $request->has('applies_to_all'),
+            'applies_to_all'       => $request->boolean('applies_to_all'),
         ]);
 
         if (!$availability->applies_to_all) {
             $availability->products()->sync($request->products ?? []);
+        }
+
+        if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+            return redirect()
+                ->route('mobile.availabilities.index')
+                ->with('success', 'Disponibilite ajoutee avec succes.');
         }
 
         return redirect()->route('availabilities.index')->with('success', 'Disponibilité ajoutée avec succès.');
@@ -150,6 +180,19 @@ class AvailabilityController extends Controller
         $selectedProducts = $availability->applies_to_all
             ? []
             : $availability->products->pluck('id')->toArray();
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.availabilities.form', [
+                'title' => 'Modifier la disponibilite',
+                'availability' => $availability,
+                'products' => $products,
+                'locations' => $locations,
+                'selectedProducts' => $selectedProducts,
+                'action' => route('mobile.availabilities.update', $availability),
+                'method' => 'PUT',
+                'submitLabel' => 'Enregistrer',
+            ]);
+        }
 
         return view('availabilities.edit', compact('availability', 'products', 'selectedProducts', 'locations'));
     }
@@ -219,13 +262,19 @@ class AvailabilityController extends Controller
             'day_of_week'          => $request->day_of_week,
             'start_time'           => $start,
             'end_time'             => $end,
-            'applies_to_all'       => $request->has('applies_to_all'),
+            'applies_to_all'       => $request->boolean('applies_to_all'),
         ]);
 
         if (!$availability->applies_to_all) {
             $availability->products()->sync($request->products ?? []);
         } else {
             $availability->products()->detach();
+        }
+
+        if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+            return redirect()
+                ->route('mobile.availabilities.index')
+                ->with('success', 'Disponibilite mise a jour avec succes.');
         }
 
         return redirect()->route('availabilities.index')->with('success', 'Disponibilité mise à jour avec succès.');
@@ -239,6 +288,12 @@ class AvailabilityController extends Controller
         $this->authorize('delete', $availability);
 
         $availability->delete();
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return redirect()
+                ->route('mobile.availabilities.index')
+                ->with('success', 'Disponibilite supprimee avec succes.');
+        }
 
         return redirect()->route('availabilities.index')->with('success', 'Disponibilité supprimée avec succès.');
     }

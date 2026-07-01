@@ -20,7 +20,13 @@ class InventoryItemController extends Controller
 
 
         // Retrieve inventory items for the authenticated user
-        $inventoryItems = InventoryItem::where('user_id', Auth::id())->get();
+        $inventoryItems = InventoryItem::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.inventory.index', compact('inventoryItems'));
+        }
 
         return view('inventory_items.index', compact('inventoryItems'));
     }
@@ -29,6 +35,21 @@ class InventoryItemController extends Controller
     public function create()
     {
 
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.inventory.form', [
+                'title' => 'Nouvel article',
+                'inventoryItem' => new InventoryItem([
+                    'unit_type' => 'unit',
+                    'quantity_in_stock' => 0,
+                    'drop_to_ml_ratio' => 20,
+                    'vat_rate_purchase' => 0,
+                    'vat_rate_sale' => 0,
+                ]),
+                'action' => route('mobile.inventory.store'),
+                'method' => 'POST',
+                'submitLabel' => 'Creer',
+            ]);
+        }
 
         return view('inventory_items.create');
     }
@@ -68,6 +89,10 @@ public function store(Request $request)
 
     InventoryItem::create($validatedData);
 
+    if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+        return redirect()->route('mobile.inventory.index')->with('success', 'Article ajoute avec succes.');
+    }
+
     return redirect()->route('inventory_items.index')->with('success', 'Article ajouté avec succès.');
 }
 
@@ -93,6 +118,16 @@ public function store(Request $request)
  		if ($inventoryItem->user_id !== auth()->id()) {
     abort(403, 'Unauthorized action.');
 }
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.inventory.form', [
+                'title' => 'Modifier l article',
+                'inventoryItem' => $inventoryItem,
+                'action' => route('mobile.inventory.update', $inventoryItem),
+                'method' => 'PUT',
+                'submitLabel' => 'Enregistrer',
+            ]);
+        }
 
         return view('inventory_items.edit', compact('inventoryItem'));
     }
@@ -123,7 +158,15 @@ public function update(Request $request, InventoryItem $inventoryItem)
 
 
 
+    if ($request->unit_type !== 'unit') {
+        $validatedData['quantity_in_stock'] = $validatedData['quantity_in_stock'] ?? 1;
+    }
+
     $inventoryItem->update($validatedData);
+
+    if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+        return redirect()->route('mobile.inventory.index')->with('success', 'Article mis a jour avec succes.');
+    }
 
     return redirect()->route('inventory_items.index')->with('success', 'Item updated successfully.');
 }
@@ -175,6 +218,11 @@ public function consume(Request $request, InventoryItem $inventoryItem)
 
     $unitLabel = $inventoryItem->unit_type === 'gramme' ? 'g' : 'ml';
 
+    if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+        return redirect()->route('mobile.inventory.index')
+            ->with('success', 'Consommation enregistree : ' . number_format($totalToConsume, 2) . ' ' . $unitLabel);
+    }
+
     return back()->with('success', 'Consommation enregistrée : ' . number_format($totalToConsume, 2) . ' ' . $unitLabel);
 }
 
@@ -195,6 +243,10 @@ public function consumeUnit(InventoryItem $inventoryItem)
     $inventoryItem->quantity_in_stock -= 1;
     $inventoryItem->save();
 
+    if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+        return redirect()->route('mobile.inventory.index')->with('success', '1 unite consommee.');
+    }
+
     return redirect()->route('inventory_items.index')->with('success', '1 unité consommée.');
 }
 public function destroy($id)
@@ -207,6 +259,11 @@ public function destroy($id)
     }
 
     $item->delete();
+
+    if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+        return redirect()->route('mobile.inventory.index')
+            ->with('success', 'Article supprime avec succes.');
+    }
 
     return redirect()->route('inventory_items.index')
         ->with('success', 'Article supprimé avec succès.');

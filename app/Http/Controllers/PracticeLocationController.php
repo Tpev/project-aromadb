@@ -7,6 +7,7 @@ use App\Services\CabinetAccessService;
 use App\Services\FrenchAddressGeocodingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class PracticeLocationController extends Controller
 {
@@ -22,6 +23,12 @@ class PracticeLocationController extends Controller
     {
         $locations = $this->cabinetAccessService->accessibleLocations(Auth::user());
 
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            $locations->loadCount(['appointments', 'availabilities']);
+
+            return view('mobile.practice-locations.index', compact('locations'));
+        }
+
         return view('practice_locations.index', compact('locations'));
     }
 
@@ -30,6 +37,20 @@ class PracticeLocationController extends Controller
      */
     public function create()
     {
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.practice-locations.form', [
+                'title' => 'Nouveau lieu',
+                'location' => new PracticeLocation([
+                    'country' => 'FR',
+                    'is_primary' => ! PracticeLocation::where('user_id', Auth::id())->exists(),
+                ]),
+                'action' => route('mobile.practice-locations.store'),
+                'method' => 'POST',
+                'submitLabel' => 'Creer',
+                'sharedCabinetsEnabled' => $this->cabinetAccessService->enabled(),
+            ]);
+        }
+
         return view('practice_locations.create');
     }
 
@@ -51,8 +72,16 @@ class PracticeLocationController extends Controller
 
         $data['user_id'] = Auth::id();
         $data['is_primary'] = (bool)($data['is_primary'] ?? false);
-        $data['is_shared'] = $this->cabinetAccessService->enabled() && (bool) ($data['is_shared'] ?? false);
-        $data['shared_enabled_at'] = $data['is_shared'] ? now() : null;
+
+        if (Schema::hasColumn('practice_locations', 'is_shared')) {
+            $data['is_shared'] = $this->cabinetAccessService->enabled() && (bool) ($data['is_shared'] ?? false);
+
+            if (Schema::hasColumn('practice_locations', 'shared_enabled_at')) {
+                $data['shared_enabled_at'] = $data['is_shared'] ? now() : null;
+            }
+        } else {
+            unset($data['is_shared']);
+        }
 
         // Si défini comme principal → mettre les autres à false
         if ($data['is_primary']) {
@@ -66,13 +95,23 @@ class PracticeLocationController extends Controller
             $data['country'] ?? null,
         ], false);
 
-        $data['latitude'] = $coordinates['latitude'] ?? null;
-        $data['longitude'] = $coordinates['longitude'] ?? null;
+        if (Schema::hasColumn('practice_locations', 'latitude')) {
+            $data['latitude'] = $coordinates['latitude'] ?? null;
+        }
+
+        if (Schema::hasColumn('practice_locations', 'longitude')) {
+            $data['longitude'] = $coordinates['longitude'] ?? null;
+        }
 
         $location = PracticeLocation::create($data);
 
-        if ($data['is_shared']) {
+        if ($data['is_shared'] ?? false) {
             $this->cabinetAccessService->ensureOwnerMembership($location);
+        }
+
+        if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+            return redirect()->route('mobile.practice-locations.index')
+                ->with('success', 'Lieu cree avec succes.');
         }
 
         return redirect()->route('practice-locations.index')
@@ -86,11 +125,25 @@ class PracticeLocationController extends Controller
     {
         $this->authorizeLocation($practice_location);
 
-        $location = $practice_location->load([
-            'owner',
-            'memberships.user',
-            'pendingInvites.invitedUser',
-        ]);
+        $relations = ['owner'];
+
+        if ($this->cabinetAccessService->enabled()) {
+            $relations[] = 'memberships.user';
+            $relations[] = 'pendingInvites.invitedUser';
+        }
+
+        $location = $practice_location->load($relations);
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return view('mobile.practice-locations.form', [
+                'title' => 'Modifier le lieu',
+                'location' => $location,
+                'action' => route('mobile.practice-locations.update', $location),
+                'method' => 'PUT',
+                'submitLabel' => 'Enregistrer',
+                'sharedCabinetsEnabled' => $this->cabinetAccessService->enabled(),
+            ]);
+        }
 
         return view('practice_locations.edit', compact('location'));
     }
@@ -114,10 +167,18 @@ class PracticeLocationController extends Controller
         ]);
 
         $data['is_primary'] = (bool)($data['is_primary'] ?? false);
-        $data['is_shared'] = $this->cabinetAccessService->enabled() && (bool) ($data['is_shared'] ?? false);
-        $data['shared_enabled_at'] = $data['is_shared']
-            ? ($practice_location->shared_enabled_at ?? now())
-            : null;
+
+        if (Schema::hasColumn('practice_locations', 'is_shared')) {
+            $data['is_shared'] = $this->cabinetAccessService->enabled() && (bool) ($data['is_shared'] ?? false);
+
+            if (Schema::hasColumn('practice_locations', 'shared_enabled_at')) {
+                $data['shared_enabled_at'] = $data['is_shared']
+                    ? ($practice_location->shared_enabled_at ?? now())
+                    : null;
+            }
+        } else {
+            unset($data['is_shared']);
+        }
 
         if ($data['is_primary']) {
             PracticeLocation::where('user_id', Auth::id())
@@ -132,15 +193,25 @@ class PracticeLocationController extends Controller
             $data['country'] ?? null,
         ], false);
 
-        $data['latitude'] = $coordinates['latitude'] ?? null;
-        $data['longitude'] = $coordinates['longitude'] ?? null;
+        if (Schema::hasColumn('practice_locations', 'latitude')) {
+            $data['latitude'] = $coordinates['latitude'] ?? null;
+        }
+
+        if (Schema::hasColumn('practice_locations', 'longitude')) {
+            $data['longitude'] = $coordinates['longitude'] ?? null;
+        }
 
         $practice_location->update($data);
 
-        if ($practice_location->is_shared) {
+        if ($data['is_shared'] ?? false) {
             $this->cabinetAccessService->ensureOwnerMembership($practice_location);
         } else {
             $this->cabinetAccessService->cancelPendingInvites($practice_location);
+        }
+
+        if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
+            return redirect()->route('mobile.practice-locations.index')
+                ->with('success', 'Lieu mis a jour avec succes.');
         }
 
         return redirect()->route('practice-locations.index')
@@ -155,6 +226,11 @@ class PracticeLocationController extends Controller
         $this->authorizeLocation($practice_location);
 
         $practice_location->delete();
+
+        if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
+            return redirect()->route('mobile.practice-locations.index')
+                ->with('success', 'Lieu supprime avec succes.');
+        }
 
         return redirect()->route('practice-locations.index')
             ->with('success', 'Cabinet supprimé avec succès.');

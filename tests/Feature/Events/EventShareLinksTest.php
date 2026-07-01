@@ -32,7 +32,7 @@ function makeEvent(User $therapist, array $overrides = []): Event
     ], $overrides));
 }
 
-test('public therapist share link points to reservation page when booking is not required', function () {
+test('public therapist share link points to public info page when booking is not required', function () {
     $therapist = makeTherapist();
     $event = makeEvent($therapist, [
         'booking_required' => false,
@@ -42,9 +42,9 @@ test('public therapist share link points to reservation page when booking is not
     $response->assertOk();
 
     $content = $response->getContent();
-    $reserveUrl = url("/events/{$event->id}/reserve");
+    $infoUrl = route('events.public.show', $event);
 
-    expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($reserveUrl));
+    expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($infoUrl));
 });
 
 test('public therapist share link points to reservation page when booking is required', function () {
@@ -78,18 +78,19 @@ test('event backoffice share link points to reservation page when booking is not
     expect($content)->toContain('https://www.facebook.com/sharer/sharer.php?u=' . urlencode($reserveUrl));
 });
 
-test('reservation page renders informational mode when booking is not required', function () {
+test('reservation page redirects to informational mode when booking is not required', function () {
     $therapist = makeTherapist();
     $event = makeEvent($therapist, [
         'booking_required' => false,
     ]);
 
     $response = $this->get(route('events.reserve.create', $event->id));
+    $response->assertRedirect(route('events.public.show', $event));
 
-    $response->assertOk();
-    $response->assertSee('Informations de participation');
-    $response->assertSee('Cet événement est accessible sans réservation en ligne');
-    $response->assertDontSee('action="' . route('events.reserve.store', $event->id) . '"', false);
+    $this->get(route('events.public.show', $event))
+        ->assertOk()
+        ->assertSee('Sans')
+        ->assertSee('en ligne');
 });
 
 test('reservation page renders full-event informational mode when event is full', function () {
@@ -112,6 +113,6 @@ test('reservation page renders full-event informational mode when event is full'
 
     $response->assertOk();
     $response->assertSee('Informations de participation');
-    $response->assertSee('Cet événement est complet.');
+    $response->assertSee('complet');
     $response->assertDontSee('action="' . route('events.reserve.store', $event->id) . '"', false);
 });

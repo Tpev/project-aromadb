@@ -92,6 +92,16 @@ protected function cleanGoogleComment(?string $raw): ?string
         }
     }
 
+    protected function googleReviewsIndexRoute(): string
+    {
+        return 'pro.google-reviews.index';
+    }
+
+    protected function googleReviewsRedirectRoute(): string
+    {
+        return session()->pull('google_reviews_return_route', $this->googleReviewsIndexRoute());
+    }
+
     protected function fetchBusinessLocations(string $accountId, string $accessToken): array
     {
         $locationsResp = $this->httpClient()
@@ -330,14 +340,14 @@ protected function cleanGoogleComment(?string $raw): ?string
 
         if ($request->has('error')) {
             return redirect()
-                ->route('pro.google-reviews.index')
+                ->route($this->googleReviewsRedirectRoute())
                 ->with('error', 'Connexion à Google annulée ou refusée.');
         }
 
         $code = $request->query('code');
         if (! $code) {
             return redirect()
-                ->route('pro.google-reviews.index')
+                ->route($this->googleReviewsRedirectRoute())
                 ->with('error', 'Code d’autorisation Google manquant.');
         }
 
@@ -358,7 +368,7 @@ protected function cleanGoogleComment(?string $raw): ?string
             ]);
 
             return redirect()
-                ->route('pro.google-reviews.index')
+                ->route($this->googleReviewsRedirectRoute())
                 ->with('error', 'Impossible de récupérer les informations Google (token).');
         }
 
@@ -373,7 +383,7 @@ protected function cleanGoogleComment(?string $raw): ?string
         $availableLocations = $this->fetchAllBusinessLocations($accessToken);
         if (count($availableLocations) === 0) {
             return redirect()
-                ->route('pro.google-reviews.index')
+                ->route($this->googleReviewsRedirectRoute())
                 ->with('error', 'Aucun établissement Business Profile trouvé pour ce compte Google.');
         }
 
@@ -399,7 +409,7 @@ protected function cleanGoogleComment(?string $raw): ?string
         );
 
         return redirect()
-            ->route('pro.google-reviews.index')
+            ->route($this->googleReviewsRedirectRoute())
             ->with('success', 'Compte Google Business connecté avec succès. Vous pouvez maintenant synchroniser vos avis.');
     }
 
@@ -415,7 +425,7 @@ protected function cleanGoogleComment(?string $raw): ?string
         GoogleBusinessAccount::where('user_id', $user->id)->delete();
 
         return redirect()
-            ->route('pro.google-reviews.index')
+            ->route($this->googleReviewsIndexRoute())
             ->with('success', 'Connexion Google Business supprimée. Les avis déjà importés restent visibles.');
     }
 
@@ -484,7 +494,7 @@ protected function cleanGoogleComment(?string $raw): ?string
 
         if (! $account) {
             return redirect()
-                ->route('pro.google-reviews.index')
+                ->route($this->googleReviewsIndexRoute())
                 ->with('error', 'Aucun compte Google Business connecté.');
         }
 
@@ -492,7 +502,7 @@ protected function cleanGoogleComment(?string $raw): ?string
         $accessToken = $this->getValidAccessToken($account);
         if (! $accessToken) {
             return redirect()
-                ->route('pro.google-reviews.index')
+                ->route($this->googleReviewsIndexRoute())
                 ->with('error', 'Le token Google est invalide ou expiré. Merci de reconnecter votre compte.');
         }
 
@@ -539,7 +549,7 @@ protected function cleanGoogleComment(?string $raw): ?string
 
             if (! $resolvedSelectionValue || ! isset($locationsBySelection[$resolvedSelectionValue])) {
                 return redirect()
-                    ->route('pro.google-reviews.index')
+                    ->route($this->googleReviewsIndexRoute())
                     ->with('error', 'Veuillez sélectionner un établissement Google valide avant la synchronisation.');
             }
 
@@ -552,13 +562,13 @@ protected function cleanGoogleComment(?string $raw): ?string
             // Backward-safe fallback: existing connected users can still sync with stored account/location.
             if ($request->filled('location_selection') || $request->filled('location_id')) {
                 return redirect()
-                    ->route('pro.google-reviews.index')
+                    ->route($this->googleReviewsIndexRoute())
                     ->with('error', 'Impossible de vérifier la liste des établissements Google. Réessayez dans quelques instants.');
             }
 
             if (! $selectedAccountId || ! $selectedLocationId) {
                 return redirect()
-                    ->route('pro.google-reviews.index')
+                    ->route($this->googleReviewsIndexRoute())
                     ->with('error', 'Les informations d’établissement Google sont incomplètes.');
             }
         }
@@ -650,7 +660,7 @@ protected function cleanGoogleComment(?string $raw): ?string
         $account->update(['last_synced_at' => now()]);
 
         return redirect()
-            ->route('pro.google-reviews.index')
+            ->route($this->googleReviewsIndexRoute())
             ->with('success', "Synchronisation terminée. {$imported} avis Google importés ou mis à jour.");
     }
 }

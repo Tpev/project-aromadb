@@ -61,7 +61,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-			'is_therapist' => $data['is_therapist'] ?? false,  // Default to false if not provided
+			'is_therapist' => $request->boolean('is_therapist'),
         ]);
 
         event(new Registered($user));
@@ -183,7 +183,7 @@ public function storepro(Request $request): RedirectResponse
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-			'is_therapist' => $data['is_therapist'] ?? false,  // Default to false if not provided
+			'is_therapist' => $request->boolean('is_therapist'),
         ]);
 
         event(new Registered($user));
