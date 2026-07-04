@@ -176,52 +176,69 @@
               $servicesRaw = $therapist->services ?? [];
               $services = is_array($servicesRaw) ? $servicesRaw : (json_decode($servicesRaw, true) ?: []);
               $aboutPlain = trim(strip_tags($therapist->about ?? ''));
+              $testimonialCount = $therapist->testimonials()->count();
             @endphp
 
-            <article class="rounded-lg border border-[#e5e8d8] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
-              <div class="flex items-start gap-4">
-                <img
-                  class="h-20 w-20 flex-none rounded-lg object-cover"
-                  src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/160' }}"
-                  alt="{{ $therapist->name }}"
-                  loading="lazy">
+            <article class="group flex min-h-full flex-col overflow-hidden rounded-lg border border-[#e2e7d4] bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-[#cdd8ad] hover:shadow-xl">
+              <div class="h-2 bg-[#647a0b]"></div>
 
-                <div class="min-w-0">
-                  <h3 class="text-lg font-bold leading-snug text-[#2f3825]">{{ $therapist->name }}</h3>
+              <div class="flex flex-1 flex-col p-5">
+                <div class="flex items-start gap-4">
+                  <img
+                    class="h-20 w-20 flex-none rounded-full border-4 border-[#f4f7ea] object-cover shadow-sm"
+                    src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/160' }}"
+                    alt="{{ $therapist->name }}"
+                    loading="lazy">
 
-                  @if($therapist->company_name)
-                    <p class="mt-1 text-sm font-semibold text-[#647a0b]">{{ $therapist->company_name }}</p>
-                  @endif
+                  <div class="min-w-0 flex-1">
+                    <h3 class="text-xl font-bold leading-tight text-[#2f3825] line-clamp-2">{{ $therapist->name }}</h3>
 
-                  @if($therapist->city_setByAdmin)
-                    <p class="mt-1 text-sm text-gray-500">{{ $therapist->city_setByAdmin }}</p>
+                    @if($therapist->company_name)
+                      <p class="mt-1 text-sm font-semibold text-[#647a0b] line-clamp-1">{{ $therapist->company_name }}</p>
+                    @endif
+
+                    @if($therapist->city_setByAdmin)
+                      <p class="mt-2 inline-flex items-center rounded-full bg-[#f7f8f1] px-2.5 py-1 text-xs font-semibold text-gray-600">
+                        {{ $therapist->city_setByAdmin }}
+                      </p>
+                    @endif
+                  </div>
+                </div>
+
+                @if(!empty($services))
+                  <div class="mt-5 flex flex-wrap gap-2">
+                    @foreach(array_slice($services, 0, 3) as $service)
+                      <span class="rounded-full bg-[#eef3de] px-3 py-1.5 text-xs font-semibold leading-snug text-[#566a09]">
+                        {{ $service }}
+                      </span>
+                    @endforeach
+
+                    @if(count($services) > 3)
+                      <span class="rounded-full border border-[#dfe6c8] px-3 py-1.5 text-xs font-semibold text-[#647a0b]">
+                        +{{ count($services) - 3 }}
+                      </span>
+                    @endif
+                  </div>
+                @endif
+
+                <div class="mt-5 min-h-[5rem] rounded-lg bg-[#fbfcf7] p-4">
+                  @if($aboutPlain !== '')
+                    <p class="text-sm leading-6 text-gray-700 line-clamp-3">{{ $aboutPlain }}</p>
+                  @else
+                    <p class="text-sm leading-6 text-gray-500">Découvrez les disponibilités, les prestations et les informations du praticien sur son profil.</p>
                   @endif
                 </div>
-              </div>
 
-              @if(!empty($services))
-                <div class="mt-4 flex flex-wrap gap-2">
-                  @foreach(array_slice($services, 0, 4) as $service)
-                    <span class="rounded-full bg-[#eef3de] px-3 py-1 text-xs font-semibold text-[#566a09]">
-                      {{ $service }}
-                    </span>
-                  @endforeach
+                <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#edf0e4] pt-4">
+                  <div class="text-xs font-semibold text-gray-500">
+                    <span class="block text-[#2f3825]">{{ $testimonialCount }}</span>
+                    <span>{{ Str::plural('témoignage', $testimonialCount) }}</span>
+                  </div>
+
+                  <a href="{{ route('therapist.show', $therapist->slug) }}" class="inline-flex items-center justify-center rounded-lg bg-[#2f3825] px-4 py-2.5 text-sm font-bold text-white transition group-hover:bg-[#647a0b]">
+                    Voir le profil
+                  </a>
                 </div>
-              @endif
-
-              @if($aboutPlain !== '')
-                <p class="mt-4 min-h-[3.75rem] text-sm leading-6 text-gray-600 line-clamp-3">
-                  {{ $aboutPlain }}
-                </p>
-              @endif
-
-              <div class="mt-5 flex items-center justify-between border-t border-[#edf0e4] pt-4">
-                <span class="text-xs font-semibold text-gray-500">
-                  {{ $therapist->testimonials()->count() }} témoignage(s)
-                </span>
-                <a href="{{ route('therapist.show', $therapist->slug) }}" class="rounded-lg bg-[#2f3825] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#647a0b]">
-                  Voir le profil
-                </a>
               </div>
             </article>
           @endforeach
