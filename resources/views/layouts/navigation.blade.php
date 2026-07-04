@@ -15,13 +15,13 @@
         <div class="hidden sm:ml-6 sm:flex sm:space-x-8 items-center">
 
           <!-- Ressources Dropdown -->
-          <div x-data="{ dropdown: false, subDropdown: false }"
+          <div x-data="{ dropdown: false }"
                class="relative"
                x-cloak
-               @keydown.escape.window="dropdown=false; subDropdown=false">
+               @keydown.escape.window="dropdown=false">
 
             <button
-              @click="dropdown = !dropdown; if(!dropdown) subDropdown=false"
+              @click="dropdown = !dropdown"
               type="button"
               class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-[#647a0b] focus:outline-none"
               aria-haspopup="true"
@@ -40,59 +40,14 @@
               x-transition:leave="transition ease-in duration-150"
               x-transition:leave-start="opacity-100 translate-y-0"
               x-transition:leave-end="opacity-0 translate-y-1"
-              @click.outside="dropdown=false; subDropdown=false"
+              @click.outside="dropdown=false"
               @click.stop
               id="resources-menu"
               class="absolute left-0 mt-2 w-64 bg-white shadow-lg rounded-md py-2 z-50 pointer-events-auto">
 
-              <a href="{{ route('recettes.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Recettes</a>
-              <a href="{{ route('blog.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Articles</a>
-
-              <div class="border-t border-gray-200 my-2"></div>
-
-              <!-- Apprendre -->
-              <a href="{{ route('formation1') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                Apprendre
+              <a href="{{ route('formation3') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                Développer votre activité de praticien
               </a>
-              <div class="pl-6">
-                <a href="{{ route('formation1') }}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">
-                  Introduction à l'aromathérapie
-                </a>
-                <a href="{{ route('formation3') }}" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">
-                  Lancer et développer votre activité de thérapeute
-                </a>
-              </div>
-
-              <div class="border-t border-gray-200 my-2"></div>
-
-              <!-- Huiles Essentielles Nested Dropdown -->
-              <div class="relative" x-data>
-                <button
-                  @click.stop="subDropdown = !subDropdown"
-                  type="button"
-                  class="w-full text-left block px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center justify-between">
-                  Huiles Essentielles
-                  <i class="fas fa-chevron-right ml-1"></i>
-                </button>
-
-                <div
-                  x-show="subDropdown"
-                  x-transition:enter="transition ease-out duration-200"
-                  x-transition:enter-start="opacity-0 translate-x-1"
-                  x-transition:enter-end="opacity-100 translate-x-0"
-                  x-transition:leave="transition ease-in duration-150"
-                  x-transition:leave-start="opacity-100 translate-x-0"
-                  x-transition:leave-end="opacity-0 translate-x-1"
-                  @click.outside="subDropdown=false"
-                  @click.stop
-                  class="absolute left-full top-0 mt-0 w-56 bg-white shadow-lg rounded-md py-2 z-[60] pointer-events-auto">
-                  <a href="{{ route('huilehes.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Par nom</a>
-                  <a href="{{ route('huilehes.showhuilehepropriete') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Par propriétés</a>
-                </div>
-              </div>
-
-              <a href="{{ route('huilehvs.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Huiles Végétales</a>
-              <a href="{{ route('tisanes.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Tisanes</a>
             </div>
           </div>
 
@@ -204,26 +159,7 @@
        class="sm:hidden relative z-30 bg-white">
     <div class="pt-2 pb-3 space-y-1">
 
-      <a href="{{ route('recettes.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Recettes</a>
-      <a href="{{ route('blog.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Articles</a>
-
-      <!-- Apprendre -->
-      <a href="{{ route('formation1') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Apprendre</a>
-      <div class="pl-6">
-        <a href="{{ route('formation1') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-[#647a0b] hover:bg-gray-50">Introduction à l'aromathérapie</a>
-        <a href="{{ route('formation3') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-500 hover:text-[#647a0b] hover:bg-gray-50">Lancer et développer votre activité de thérapeute</a>
-      </div>
-
-      <div class="border-t border-gray-200 my-2"></div>
-
-      <a href="{{ route('huilehes.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Huiles Essentielles</a>
-      <div class="pl-8">
-        <a href="{{ route('huilehes.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Par nom</a>
-        <a href="{{ route('huilehes.showhuilehepropriete') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Par propriétés</a>
-      </div>
-
-      <a href="{{ route('huilehvs.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Huiles Végétales</a>
-      <a href="{{ route('tisanes.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Tisanes</a>
+      <a href="{{ route('formation3') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Développer votre activité de praticien</a>
 
       <!-- Olithea (mobile collapsible) -->
       <div x-data="{ proMobileOpen:false }" class="border-t border-gray-200 pt-2">
