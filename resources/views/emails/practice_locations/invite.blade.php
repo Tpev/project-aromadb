@@ -1,7 +1,7 @@
 @component('mail::message')
 # Invitation à rejoindre un cabinet partagé
 
-{{ $inviter->company_name ?: trim(($inviter->first_name ?? '').' '.($inviter->last_name ?? '')) ?: $inviter->name }} vous invite à rejoindre le cabinet **{{ $invite->practiceLocation->label }}** sur AromaMade.
+{{ $inviter->company_name ?: trim(($inviter->first_name ?? '').' '.($inviter->last_name ?? '')) ?: $inviter->name }} vous invite à rejoindre le cabinet **{{ $invite->practiceLocation->label }}** sur Olithea.
 
 @component('mail::panel')
 Adresse : {{ $invite->practiceLocation->address_line1 }}@if($invite->practiceLocation->postal_code || $invite->practiceLocation->city), {{ trim(($invite->practiceLocation->postal_code ?? '').' '.($invite->practiceLocation->city ?? '')) }}@endif

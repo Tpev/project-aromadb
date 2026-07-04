@@ -271,7 +271,7 @@
             <a href="{{ url('/mobile/recherche-praticien') }}"
                class="w-full inline-flex items-center justify-center px-4 py-2 rounded-full bg-gray-100 text-gray-800 text-sm font-semibold shadow-sm active:scale-[0.98] transition-transform">
                 <i class="fas fa-home mr-2 text-xs"></i>
-                {{ __('Retour à l’accueil AromaMade') }}
+                {{ __('Retour à l’accueil Olithea') }}
             </a>
         </div>
 
@@ -295,7 +295,7 @@
                 calendarLink.href = googleCalendarUrl;
                 calendarLink.setAttribute('target', '_blank');
                 calendarLink.setAttribute('rel', 'noopener noreferrer');
-                calendarLink.innerHTML = '<i class="fas fa-calendar-plus mr-2 text-xs"></i> {{ __('Ajouter � Google Agenda') }}';
+                calendarLink.innerHTML = '<i class="fas fa-calendar-plus mr-2 text-xs"></i> {{ __('Ajouter � Google Agenda') }}';
             }
         });
     </script>

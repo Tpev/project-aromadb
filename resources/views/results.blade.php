@@ -1,18 +1,18 @@
 @php
     if(isset($specialty) && isset($region)) {
-        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " | AromaMade Pro";
-        $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade Pro. Des praticiens certifiés pour votre bien-être.";
+        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " | Olithea";
+        $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) . " dans la région " . ucfirst(str_replace('-', ' ', $region)) . " sur Olithea. Des praticiens certifiés pour votre bien-être.";
         $canonicalUrl = url("/practicien-{$specialty}-region-{$region}");
     } elseif(isset($specialty)) {
-        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " | AromaMade Pro";
-        $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur AromaMade Pro. Consultez leurs profils et avis pour choisir le meilleur.";
+        $pageTitle = "Les meilleurs " . ucfirst(str_replace('-', ' ', $specialty)) . " | Olithea";
+        $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . " sur Olithea. Consultez leurs profils et avis pour choisir le meilleur.";
         $canonicalUrl = url("/practicien-{$specialty}");
     } elseif(isset($region)) {
-        $pageTitle = "Les praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " | AromaMade Pro";
-        $pageDescription = "Recherchez des praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade Pro. Des professionnels certifiés pour vous accompagner dans votre bien-être.";
+        $pageTitle = "Les praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " | Olithea";
+        $pageDescription = "Recherchez des praticiens en région " . ucfirst(str_replace('-', ' ', $region)) . " sur Olithea. Des professionnels certifiés pour vous accompagner dans votre bien-être.";
         $canonicalUrl = url("/region-{$region}");
     } else {
-        $pageTitle = "Résultats de recherche de praticiens | AromaMade Pro";
+        $pageTitle = "Résultats de recherche de praticiens | Olithea";
         $pageDescription = "Trouvez les meilleurs praticiens en médecines douces. Recherchez par spécialité et localisation pour consulter des professionnels certifiés du bien-être.";
         $canonicalUrl = url("/therapeutes");
     }
@@ -27,22 +27,22 @@
         <meta name="theme-color" content="#5ad4db"/>
         <link rel="manifest" href="/manifest.json"/>
         <link rel="apple-touch-icon" href="{{ asset('images/app/icon-apple.png') }}">
-        <meta name="apple-mobile-web-app-title" content="AromaMade Pro">
+        <meta name="apple-mobile-web-app-title" content="Olithea">
         <meta name="apple-mobile-web-app-capable" content="yes"/>
         <meta property="og:locale" content="fr_FR" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="{{ $pageTitle }}" />
         <meta property="og:description" content="{{ $pageDescription }}" />
         <meta property="og:url" content="{{ $canonicalUrl }}" />
-        <meta property="og:site_name" content="AromaMade Pro" />
+        <meta property="og:site_name" content="Olithea" />
         <meta property="og:image" content="{{ asset('images/og-image.jpg') }}" />
         <meta property="og:image:secure_url" content="{{ asset('images/og-image.jpg') }}" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:description" content="{{ $pageDescription }}" />
         <meta name="twitter:title" content="{{ $pageTitle }}" />
-        <meta name="twitter:site" content="@AromaMade Pro" />
+        <meta name="twitter:site" content="@Olithea" />
         <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}" />
-        <meta name="twitter:creator" content="@AromaMade Pro" />
+        <meta name="twitter:creator" content="@Olithea" />
 
         <link 
             rel="stylesheet" 

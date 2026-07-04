@@ -30,7 +30,7 @@
                 @if (! $account)
                     <p class="text-gray-700 mb-4">
                         Connectez votre compte Google Business Profile pour importer automatiquement
-                        vos avis Google et les afficher sur votre page publique AromaMade.
+                        vos avis Google et les afficher sur votre page publique Olithea.
                     </p>
 
                     <a href="{{ route('pro.google-reviews.connect') }}"
@@ -167,7 +167,7 @@
                                     @if ($testimonial->owner_reply)
                                         <div class="mt-3 pl-3 border-l border-gray-300">
                                             <p class="text-xs uppercase text-gray-500 mb-1">
-                                                Réponse AromaMade
+                                                Réponse Olithea
                                             </p>
                                             <p class="text-sm text-gray-700 whitespace-pre-line">
                                                 {{ $testimonial->owner_reply }}

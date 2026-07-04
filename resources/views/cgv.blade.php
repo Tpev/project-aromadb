@@ -2,13 +2,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @section('meta_description')
-        Conditions Générales de Vente d’AromaMade PRO : accès, sécurité, abonnements mensuels et annuels pour les professionnels du bien-être. Conformité RGPD, stockage en France.
+        Conditions Générales de Vente d’Olithea : accès, sécurité, abonnements mensuels et annuels pour les professionnels du bien-être. Conformité RGPD, stockage en France.
     @endsection
 
     <section class="py-12 bg-white">
         <div class="container mx-auto text-center">
             <h1 class="font-bold text-center mb-8 animate-fade-in" style="color: #647a0b; font-size: 2.5rem;">
-                Conditions Générales de Vente – AromaMade PRO
+                Conditions Générales de Vente – Olithea
             </h1>
         </div>
     </section>
@@ -19,17 +19,17 @@
 
                 <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">1. Objet</h3>
                 <p class="text-gray-700 mb-4">
-                    Les présentes Conditions Générales de Vente (CGV) régissent l’accès et l’utilisation de la plateforme AromaMade PRO, proposée par <strong>AromaMade</strong>, auto-entrepreneur enregistré au Registre du Commerce et des Sociétés sous le numéro <strong>931 297 816 00015</strong>, dont le siège social est situé <strong>22a rue du Pfoeller, 67100 Barr</strong>, représenté par <strong>Madame Olivia Burgard</strong>.
+                    Les présentes Conditions Générales de Vente (CGV) régissent l’accès et l’utilisation de la plateforme Olithea, proposée par <strong>Olithea</strong>, auto-entrepreneur enregistré au Registre du Commerce et des Sociétés sous le numéro <strong>931 297 816 00015</strong>, dont le siège social est situé <strong>22a rue du Pfoeller, 67100 Barr</strong>, représenté par <strong>Madame Olivia Burgard</strong>.
                 </p>
                 <p class="text-gray-700 mb-4">
-                    Dans le cadre de ses activités, AromaMade met à disposition une plateforme en ligne dédiée aux approches de médecine douce, permettant aux professionnels du bien-être de gérer leur activité en ligne. Les présentes CGV encadrent les relations contractuelles entre AromaMade et les utilisateurs professionnels de la plateforme.
+                    Dans le cadre de ses activités, Olithea met à disposition une plateforme en ligne dédiée aux approches de médecine douce, permettant aux professionnels du bien-être de gérer leur activité en ligne. Les présentes CGV encadrent les relations contractuelles entre Olithea et les utilisateurs professionnels de la plateforme.
                 </p>
 
                 <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">2. Acceptation des CGV</h3>
                 <p class="text-gray-700 mb-4">L’inscription à la Plateforme et l’utilisation des services impliquent l’acceptation pleine, entière et sans réserve des présentes CGV. Le Client reconnaît être un professionnel au sens du Code de la consommation et disposer de la capacité juridique pour contracter.</p>
 
                 <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">3. Description des Services</h3>
-                <p class="text-gray-700 mb-2">AromaMade PRO est une solution logicielle accessible en ligne, proposant notamment les fonctionnalités suivantes :</p>
+                <p class="text-gray-700 mb-2">Olithea est une solution logicielle accessible en ligne, proposant notamment les fonctionnalités suivantes :</p>
                 <ul class="list-disc list-inside text-gray-700 mb-4">
                     <li>Prise de rendez-vous (présentiel et visio)</li>
                     <li>Gestion des dossiers clients</li>
@@ -60,7 +60,7 @@
                     <li>Abonnement mensuel : paiement mensuel renouvelé automatiquement.</li>
                     <li>Abonnement annuel : paiement unique valable 12 mois, reconduit automatiquement à échéance.</li>
                 </ul>
-                <p class="text-gray-700 mb-4">Les tarifs sont affichés en euros TTC sur <a href="https://www.aromamade.com" class="text-blue-500">www.aromamade.com</a> et peuvent être modifiés à tout moment. Le tarif applicable est celui en vigueur à la date de souscription.</p>
+                <p class="text-gray-700 mb-4">Les tarifs sont affichés en euros TTC sur <a href="https://www.olithea.fr" class="text-blue-500">www.olithea.fr</a> et peuvent être modifiés à tout moment. Le tarif applicable est celui en vigueur à la date de souscription.</p>
                 <h4 class="text-md font-semibold mt-4" style="color: #647a0b;">5.2 Paiement</h4>
                 <p class="text-gray-700 mb-4">Le paiement est effectué en ligne par carte bancaire via Stripe. En cas de défaut ou refus de paiement, l’accès aux services pourra être suspendu ou résilié sans préavis.</p>
 
@@ -87,7 +87,7 @@
 </p>
 <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">8. Données personnelles et sécurité</h3>
 <p class="text-gray-700 mb-4">
-    AromaMade PRO s’engage à respecter la législation en vigueur, notamment le Règlement Général sur la Protection des Données (RGPD).
+    Olithea s’engage à respecter la législation en vigueur, notamment le Règlement Général sur la Protection des Données (RGPD).
 </p>
 <p class="text-gray-700 mb-4">
     Les données sont stockées en France sur des serveurs sécurisés. Toutes les informations sont chiffrées en transit et au repos.
@@ -123,7 +123,7 @@
 
                 <h3 class="text-lg font-semibold mt-6" style="color: #854f38;">14. Acceptabilité du contenu et éthique professionnelle</h3>
                 <p class="text-gray-700">
-                    AromaMade PRO est une plateforme réservée à des professionnels engagés dans une pratique responsable, respectueuse de la réglementation, de la santé publique et des usagers.
+                    Olithea est une plateforme réservée à des professionnels engagés dans une pratique responsable, respectueuse de la réglementation, de la santé publique et des usagers.
                 </p>
                 <p class="text-gray-700">
                     L’Éditeur se réserve le droit de suspendre ou supprimer, sans préavis, tout compte :
@@ -133,7 +133,7 @@
                     <li>publiant des contenus mensongers, discriminants, sectaires ou nuisibles à la réputation de la Plateforme ;</li>
                     <li>ou faisant l’objet de signalements ou d’alertes d’autres utilisateurs ou autorités.</li>
                 </ul>
-                <p class="text-gray-700">Cette clause vise à protéger l’intégrité de la communauté et l’image d’AromaMade PRO.</p>
+                <p class="text-gray-700">Cette clause vise à protéger l’intégrité de la communauté et l’image d’Olithea.</p>
 
             </article>
         </div>

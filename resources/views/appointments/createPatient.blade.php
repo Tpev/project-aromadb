@@ -33,7 +33,7 @@
     );
 
     // Brand
-    $brand = config('app.name', 'AromaMade');
+    $brand = config('app.name', 'Olithea');
 
     // Title (~60 chars)
     $pageTitle = \Illuminate\Support\Str::limit(

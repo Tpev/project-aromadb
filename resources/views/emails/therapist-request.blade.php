@@ -28,7 +28,7 @@
                             
                             <!-- Additional Sentence -->
                             <p style="margin: 0 0 20px;">
-                                Cette demande d'information provient d'un utilisateur visitant votre page thérapeute sur <strong>AromaMade</strong>.
+                                Cette demande d'information provient d'un utilisateur visitant votre page thérapeute sur <strong>Olithea</strong>.
                             </p>
 
                             <p style="margin: 0 0 10px;">

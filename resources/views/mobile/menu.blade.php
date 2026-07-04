@@ -52,7 +52,7 @@
         <div class="mb-4 flex items-end justify-between gap-3">
             <div>
                 <h1 class="text-xl font-semibold text-gray-900">Menu</h1>
-                <p class="text-xs text-gray-500">Tous les modules AromaMade PRO</p>
+                <p class="text-xs text-gray-500">Tous les modules Olithea</p>
             </div>
 
             <a href="{{ route('mobile.dashboard') }}"

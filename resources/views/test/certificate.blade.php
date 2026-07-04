@@ -10,7 +10,7 @@
     @endpush
 
     @section('meta_description')
-        Affichez votre certificat de complétion après avoir terminé la formation sur AromaMade PRO.
+        Affichez votre certificat de complétion après avoir terminé la formation sur Olithea.
     @endsection
 
     <!-- Section du Certificat -->

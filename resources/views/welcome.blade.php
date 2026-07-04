@@ -1,6 +1,6 @@
 <x-app-layout>
   {{-- ========================  SEO  ======================== --}}
-  @section('title', 'Trouvez un thérapeute près de chez vous | AromaMade')
+  @section('title', 'Trouvez un thérapeute près de chez vous | Olithea')
   @section('meta_description')
     Réservez en ligne avec des thérapeutes certifiés (naturopathie, sophrologie, ostéopathie…). Profils vérifiés, avis, tarifs, prise de RDV simple. Espace Client pour partager vos documents en toute sécurité. Événements & ateliers organisés par nos membres.
   @endsection
@@ -11,14 +11,14 @@
     <meta name="robots" content="index,follow">
 
     {{-- Social --}}
-    <meta property="og:site_name" content="AromaMade">
+    <meta property="og:site_name" content="Olithea">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Trouvez un thérapeute près de chez vous | AromaMade">
+    <meta property="og:title" content="Trouvez un thérapeute près de chez vous | Olithea">
     <meta property="og:description" content="Réservez avec des praticiens vérifiés. Avis, tarifs, Espace Client sécurisé.">
     <meta property="og:image" content="{{ asset('images/og-home.webp') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Trouvez un thérapeute près de chez vous | AromaMade">
+    <meta name="twitter:title" content="Trouvez un thérapeute près de chez vous | Olithea">
     <meta name="twitter:description" content="Prise de RDV simple, profils vérifiés, Espace Client sécurisé.">
     <meta name="twitter:image" content="{{ asset('images/og-home.webp') }}">
 
@@ -33,7 +33,7 @@
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "AromaMade",
+      "name": "Olithea",
       "url": "{{ url('/') }}",
       "potentialAction": {
         "@type": "SearchAction",
@@ -51,7 +51,7 @@
   <section class="relative bg-cover bg-center" style="background-image:url('{{ asset('images/hero-background.webp') }}')">
     <div class="absolute inset-0 bg-black/45"></div>
     <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 text-center">
-      <img src="{{ asset('images/white-logo.png') }}" alt="AromaMade - Plateforme de prise de rendez-vous bien-être"
+      <img src="{{ asset('images/brand/olithea-logo-horizontal-accent-cropped.png') }}" alt="Olithea - Plateforme de prise de rendez-vous bien-être"
            class="mx-auto w-[200px] sm:w-[260px] md:w-[320px] mb-5 md:mb-7" loading="lazy">
 
       <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
@@ -529,7 +529,7 @@
   {{-- ========================  PRO CTA (Therapists only)  ======================== --}}
   <section class="bg-gradient-to-r from-[#854f38] to-[#6a3f2c] py-12 text-white text-center">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl md:text-3xl font-bold">Vous êtes thérapeute ? Rejoignez AromaMade PRO</h2>
+      <h2 class="text-2xl md:text-3xl font-bold">Vous êtes thérapeute ? Rejoignez Olithea</h2>
       <p class="mt-3 text-white/90">
         Agenda en ligne, téléconsultation, dossiers clients, facturation, questionnaires, rappels — <strong>sans commission</strong>.
       </p>
@@ -544,7 +544,7 @@
   <section class="py-12 bg-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
       <div>
-        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">AromaMade, votre guide bien-être</h2>
+        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Olithea, votre guide bien-être</h2>
         <p class="mt-3 text-gray-700">
           Notre mission : rendre l’accès aux médecines douces simple, fiable et transparent. Nous centralisons un
           annuaire de praticiens vérifiés et des contenus pédagogiques (huiles essentielles, végétales, tisanes,

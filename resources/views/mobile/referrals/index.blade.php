@@ -128,7 +128,7 @@
                     <span class="text-sm font-medium text-gray-700">Message</span>
                     <textarea name="message"
                               rows="3"
-                              placeholder="Je te recommande AromaMade PRO pour gerer tes RDV, dossiers clients et factures."
+                              placeholder="Je te recommande Olithea pour gerer tes RDV, dossiers clients et factures."
                               class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ old('message') }}</textarea>
                 </label>
 
@@ -249,8 +249,8 @@
 
             if (navigator.share) {
                 await navigator.share({
-                    title: 'AromaMade PRO',
-                    text: 'Je te recommande AromaMade PRO pour ton activite.',
+                    title: 'Olithea',
+                    text: 'Je te recommande Olithea pour ton activite.',
                     url: value,
                 });
             } else {

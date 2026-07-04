@@ -313,7 +313,7 @@
                     {{ $therapistName }}
                 </div>
                 <div>
-                    {{ __('Paiement sécurisé — AromaMade') }}
+                    {{ __('Paiement sécurisé — Olithea') }}
                 </div>
             </div>
 

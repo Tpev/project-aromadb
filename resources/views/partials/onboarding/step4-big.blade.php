@@ -9,7 +9,7 @@
                     Étape 4 — Parrainer un confrère / une consœur (bonus)
                 </h4>
                 <p class="text-xs text-gray-500 mt-1">
-                    Invitez un autre praticien à découvrir AromaMade PRO. Lorsqu’il s’abonne, vous gagnez 1 mois de licence PRO offert.
+                    Invitez un autre praticien à découvrir Olithea. Lorsqu’il s’abonne, vous gagnez 1 mois de licence PRO offert.
                 </p>
             </div>
         </div>

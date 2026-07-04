@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#647a0b">
 
-    <title>{{ $title ? $title . ' | AromaMade PRO' : 'AromaMade PRO' }}</title>
+    <title>{{ $title ? $title . ' | Olithea' : 'Olithea' }}</title>
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -34,7 +34,7 @@
                         A
                     </span>
                     <span class="min-w-0 leading-tight">
-                        <span class="block truncate text-sm font-semibold text-gray-900">AromaMade PRO</span>
+                        <span class="block truncate text-sm font-semibold text-gray-900">Olithea</span>
                         <span class="block truncate text-[11px] text-gray-500">Espace mobile</span>
                     </span>
                 </a>

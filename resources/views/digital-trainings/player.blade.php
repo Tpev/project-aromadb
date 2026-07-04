@@ -510,7 +510,7 @@
         <header class="training-player-header">
             <div class="training-header-left">
                 <div class="training-title">{{ $training->title }}</div>
-                <div class="training-subtitle">{{ __('Accès direct à votre formation – AromaMade') }}</div>
+                <div class="training-subtitle">{{ __('Accès direct à votre formation – Olithea') }}</div>
             </div>
 
             <div class="training-header-right">

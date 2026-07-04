@@ -1039,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', function () {
         registerElement(quoteGroup, 'text', 'Citation');
 
         const authorText = new Konva.Text({
-            text: '— Votre nom / AromaMade',
+            text: '— Votre nom / Olithea',
             x: stage.width() * 0.2,
             y: stage.height() * 0.55,
             width: stage.width() * 0.6,
@@ -1227,7 +1227,7 @@ function addEventTemplate(eventData = null) {
     registerElement(bottomRect, 'shape-rect', 'Bande bas');
 
     const urlText = new Konva.Text({
-        text: (eventData && eventData.url) || 'Réserver sur aromamade.com/pro/votrenom',
+        text: (eventData && eventData.url) || 'Réserver sur olithea.fr/pro/votrenom',
         x: 0,
         y: stage.height() * 0.89,
         width: stage.width(),

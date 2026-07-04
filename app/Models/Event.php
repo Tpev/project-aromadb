@@ -138,7 +138,7 @@ protected $fillable = [
     /**
      * Participant/public link:
      * - external url if provided
-     * - otherwise AromaMade visio URL (Jitsi + JWT non-moderator)
+     * - otherwise Olithea visio URL (Jitsi + JWT non-moderator)
      *
      * Example:
      * https://visio.aromamade.com/{room}?jwt=...
@@ -162,7 +162,7 @@ protected $fillable = [
     /**
      * Therapist/host link:
      * - external url if provided (same link)
-     * - otherwise AromaMade visio URL (Jitsi + JWT moderator)
+     * - otherwise Olithea visio URL (Jitsi + JWT moderator)
      */
     public function getVisioHostLinkAttribute(): ?string
     {

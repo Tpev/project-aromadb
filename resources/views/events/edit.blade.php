@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <label class="d-flex align-items-center gap-2">
                             <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
-                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                            <span>{{ __('Créer un lien Olithea') }}</span>
                         </label>
                     </div>
 
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         @endif
 
                         <p class="text-xs text-slate-500 mt-2">
-                            {{ __('Si vous choisissez "Créer un lien AromaMade", le lien (token) est géré automatiquement.') }}
+                            {{ __('Si vous choisissez "Créer un lien Olithea", le lien (token) est géré automatiquement.') }}
                         </p>
                     </div>
                 </div>

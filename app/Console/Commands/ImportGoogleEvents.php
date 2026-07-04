@@ -56,8 +56,9 @@ class ImportGoogleEvents extends Command
             // Toujours noter l'ID comme "présent côté Google"
             $stillThere[] = $ev->id;
 
-            // a) écarter nos propres slots poussés ([AromaMade])
-            if (str_contains($ev->description ?? '', '[AromaMade]')) {
+            // a) écarter nos propres slots poussés, before and after the rebrand.
+            $description = $ev->description ?? '';
+            if (str_contains($description, '[AromaMade]') || str_contains($description, '[Olithea]')) {
                 continue;
             }
 

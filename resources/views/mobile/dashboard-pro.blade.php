@@ -1,7 +1,7 @@
 {{-- resources/views/mobile/dashboard-pro.blade.php --}}
 @php
     $pageTitle       = 'Tableau de bord PRO';
-    $pageDescription = "Suivez vos rendez-vous, factures et progression d'onboarding sur AromaMade PRO.";
+    $pageDescription = "Suivez vos rendez-vous, factures et progression d'onboarding sur Olithea.";
 @endphp
 
 <x-mobile-layout :title="$pageTitle">
@@ -63,7 +63,7 @@
                     {{-- Bandeau titre + progression globale --}}
                     <div class="space-y-2">
                         <h2 class="text-base font-semibold text-[#647a0b] leading-snug break-words">
-                            👋 {{ __('Bienvenue sur AromaMade PRO') }}
+                            👋 {{ __('Bienvenue sur Olithea') }}
                         </h2>
                         <p class="text-xs text-gray-600 leading-relaxed break-words">
                             {{ __('Complétez ces étapes pour être prêt à recevoir des réservations en ligne et utiliser toutes les fonctionnalités.') }}
@@ -140,7 +140,7 @@
                                     </span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed break-words">
-                                    {{ __('Explorez la facturation, les questionnaires et les téléconsultations pour aller plus loin avec AromaMade PRO.') }}
+                                    {{ __('Explorez la facturation, les questionnaires et les téléconsultations pour aller plus loin avec Olithea.') }}
                                 </p>
                                 <div class="flex flex-wrap gap-2 mt-1">
                                     <a href="{{ route('mobile.invoices.index') }}"
@@ -174,7 +174,7 @@
                                     </span>
                                 </div>
                                 <p class="text-xs text-gray-600 leading-relaxed break-words">
-                                    {{ __('Invitez un(e) collègue thérapeute à découvrir AromaMade PRO et profitez de mois offerts.') }}
+                                    {{ __('Invitez un(e) collègue thérapeute à découvrir Olithea et profitez de mois offerts.') }}
                                 </p>
 
                                 @if(($step4Checks['referral'] ?? false) !== true)

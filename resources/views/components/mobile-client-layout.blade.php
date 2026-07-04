@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#647a0b">
 
-    <title>{{ $title ? $title . ' | Espace client AromaMade' : 'Espace client AromaMade' }}</title>
+    <title>{{ $title ? $title . ' | Espace client Olithea' : 'Espace client Olithea' }}</title>
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -35,7 +35,7 @@
                     </span>
                     <span class="min-w-0 leading-tight">
                         <span class="block truncate text-sm font-semibold text-gray-900">Espace client</span>
-                        <span class="block truncate text-[11px] text-gray-500">AromaMade mobile</span>
+                        <span class="block truncate text-[11px] text-gray-500">Olithea mobile</span>
                     </span>
                 </a>
 

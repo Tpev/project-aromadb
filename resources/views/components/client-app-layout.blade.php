@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Espace Client - AromaMade Pro' }}</title>
-    <meta name="description" content="Espace sécurisé pour les clients AromaMade Pro : messagerie, documents, rendez-vous, factures et communautés privées.">
+    <title>{{ $title ?? 'Espace Client - Olithea' }}</title>
+    <meta name="description" content="Espace sécurisé pour les clients Olithea : messagerie, documents, rendez-vous, factures et communautés privées.">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 antialiased">
 
     <header class="bg-lime-700 text-white shadow">
         <div class="container mx-auto flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 class="text-lg font-semibold tracking-wide">AromaMade Pro - Espace Client</h1>
+            <h1 class="text-lg font-semibold tracking-wide">Olithea - Espace Client</h1>
 
             @auth('client')
                 <div class="flex items-center gap-5">
@@ -46,7 +46,7 @@
     </main>
 
     <footer class="bg-gray-100 text-center py-4 text-sm text-gray-500 mt-10 border-t">
-        &copy; {{ date('Y') }} AromaMade Pro - Espace Client sécurisé
+        &copy; {{ date('Y') }} Olithea - Espace Client sécurisé
     </footer>
 
 </body>

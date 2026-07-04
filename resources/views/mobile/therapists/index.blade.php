@@ -1,9 +1,9 @@
 {{-- resources/views/mobile/therapists/index.blade.php --}}
 <x-mobile-layout title="Rechercher un praticien">
     {{-- SEO --}}
-    @section('title', 'Trouver un praticien | AromaMade')
+    @section('title', 'Trouver un praticien | Olithea')
     @section('meta_description')
-Trouvez rapidement un praticien en médecines douces depuis l’app AromaMade : recherchez par nom, spécialité ou lieu et prenez rendez-vous en quelques taps.
+Trouvez rapidement un praticien en médecines douces depuis l’app Olithea : recherchez par nom, spécialité ou lieu et prenez rendez-vous en quelques taps.
     @endsection
 
     <div
@@ -99,7 +99,7 @@ Trouvez rapidement un praticien en médecines douces depuis l’app AromaMade : 
                         <i class="fas fa-shield-heart text-[11px] text-primary-700"></i>
                     </div>
                     <p class="text-[12px] font-semibold text-gray-800">
-                        {{ __('Avec AromaMade, vous restez entre de bonnes mains 🤍') }}
+                        {{ __('Avec Olithea, vous restez entre de bonnes mains 🤍') }}
                     </p>
                 </div>
 

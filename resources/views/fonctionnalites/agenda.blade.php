@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Agenda praticien | Prise de rendez-vous en ligne | AromaMade PRO')
+    @section('title', 'Agenda praticien | Prise de rendez-vous en ligne | Olithea')
     @section('meta_description')
-Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente des disponibilités, réservations en ligne 24h/24, rappels automatiques par email et synchronisation avec vos calendriers Google, Apple ou Outlook.
+Simplifiez votre agenda de praticien avec Olithea : gestion intelligente des disponibilités, réservations en ligne 24h/24, rappels automatiques par email et synchronisation avec vos calendriers Google, Apple ou Outlook.
     @endsection
 
   @push('styles')
@@ -33,7 +33,7 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
         </p>
         <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
             <a href="{{ route('register-pro') }}" class="btn-primary">Essayer gratuitement</a>
-            <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+            <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
         </div>
     </div>
     <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -93,7 +93,7 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
             <div class="feature-tile" data-aos="fade-up" data-aos-delay="100">
                 <i class="fas fa-id-badge tile-icon"></i>
                 <h3>Portail Pro de réservation en ligne</h3>
-                <p>Un <strong>lien unique</strong> vers votre profil AromaMade PRO. Vos clients réservent directement depuis votre Portail Pro — simple et efficace.</p>
+                <p>Un <strong>lien unique</strong> vers votre profil Olithea. Vos clients réservent directement depuis votre Portail Pro — simple et efficace.</p>
             </div>
 
             <!-- UPDATED: Ateliers & événements (replaces recurrent/shared) -->
@@ -179,7 +179,7 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
         <div class="max-w-5xl mx-auto mt-6" data-aos="fade-up" data-aos-delay="80">
             <h3 class="text-xl md:text-2xl font-semibold mb-3" style="color:#1f2937;">Workflow de prise de rendez-vous pour un cabinet</h3>
             <p class="muted" style="color:#6b7280;line-height:1.7;">
-                L’agenda AromaMade PRO suit un flux simple : vous paramétrez vos services et vos horaires, vous activez la réservation en ligne via le Portail Pro,
+                L’agenda Olithea suit un flux simple : vous paramétrez vos services et vos horaires, vous activez la réservation en ligne via le Portail Pro,
                 puis l’outil gère les confirmations, rappels et la synchronisation avec vos calendriers externes.
                 L’objectif est de réduire la coordination manuelle tout en gardant le contrôle (validation manuelle ou automatique).
             </p>
@@ -250,14 +250,14 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
 <!-- TESTIMONIALS -->
 <section class="py-16 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="section-title text-center" data-aos="fade-up">Ils ont simplifié leur agenda avec AromaMade</h2>
+        <h2 class="section-title text-center" data-aos="fade-up">Ils ont simplifié leur agenda avec Olithea</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
             <div class="testimonial-card" data-aos="fade-up">
                 <p class="quote">« Depuis que mes clients réservent en ligne, j’ai beaucoup moins d’échanges pour fixer les rendez-vous. Mon planning est toujours clair et à jour. »</p>
                 <h4 class="author">— Claire, Sophrologue</h4>
             </div>
             <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
-                <p class="quote">« L’agenda connecté d’AromaMade est un vrai confort. Les rappels automatiques évitent les oublis et tout reste synchronisé avec mon calendrier Google. »</p>
+                <p class="quote">« L’agenda connecté d’Olithea est un vrai confort. Les rappels automatiques évitent les oublis et tout reste synchronisé avec mon calendrier Google. »</p>
                 <h4 class="author">— Jérôme, Naturopathe</h4>
             </div>
         </div>
@@ -346,7 +346,7 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>
@@ -542,7 +542,7 @@ Simplifiez votre agenda de praticien avec AromaMade PRO : gestion intelligente d
     <div class="container mx-auto px-4">
         <h2 class="section-title text-center" data-aos="fade-up">Guides pratiques</h2>
         <p class="muted max-w-3xl mx-auto text-center" data-aos="fade-up" data-aos-delay="100">
-            Ces ressources expliquent pas à pas l’utilisation de l’agenda AromaMade PRO, afin de vous aider
+            Ces ressources expliquent pas à pas l’utilisation de l’agenda Olithea, afin de vous aider
             à organiser vos rendez-vous et permettre à Google de relier clairement l’aide à la fonctionnalité.
         </p>
 

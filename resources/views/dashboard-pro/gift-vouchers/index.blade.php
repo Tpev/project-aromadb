@@ -231,7 +231,7 @@
                             <div class="text-sm font-extrabold">Succès</div>
                             <div class="text-sm mt-0.5">{{ session('success') }}</div>
                         </div>
-                        <div class="text-xs font-bold opacity-70">AromaMade PRO</div>
+                        <div class="text-xs font-bold opacity-70">Olithea</div>
                     </div>
                 </div>
             @endif

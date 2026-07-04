@@ -14,7 +14,7 @@
         <meta name="description" content="@yield('meta_description', ' Informations fiables et vérifiées sur les huiles essentielles, les huiles végétales, les tisanes, et bien plus encore!')">
         
         <!-- Dynamic Page Title -->
-        <title>@yield('title', config('app.name', 'AromaMade'))</title>
+        <title>@yield('title', config('app.name', 'Olithea'))</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

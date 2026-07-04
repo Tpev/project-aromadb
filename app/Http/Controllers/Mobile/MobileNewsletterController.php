@@ -50,7 +50,7 @@ class MobileNewsletterController extends Controller
 
         $newsletter = new Newsletter([
             'from_name' => $user->name ?? $user->company_name ?? config('app.name'),
-            'from_email' => 'contact@aromamade.com',
+            'from_email' => 'contact@olithea.fr',
             'background_color' => '#ffffff',
         ]);
 
@@ -78,7 +78,7 @@ class MobileNewsletterController extends Controller
             'subject' => $validated['subject'],
             'preheader' => $validated['preheader'] ?? null,
             'from_name' => $validated['from_name'],
-            'from_email' => 'contact@aromamade.com',
+            'from_email' => 'contact@olithea.fr',
             'background_color' => $validated['background_color'],
             'content_json' => json_encode($this->blocksFromPayload($validated)),
             'status' => 'draft',
@@ -139,7 +139,7 @@ class MobileNewsletterController extends Controller
             'subject' => $validated['subject'],
             'preheader' => $validated['preheader'] ?? null,
             'from_name' => $validated['from_name'],
-            'from_email' => 'contact@aromamade.com',
+            'from_email' => 'contact@olithea.fr',
             'background_color' => $validated['background_color'],
             'content_json' => json_encode($this->blocksFromPayload($validated)),
             'audience_id' => $validated['audience_id'] ?? null,

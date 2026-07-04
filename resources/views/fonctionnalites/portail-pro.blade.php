@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Portail Pro | Vitrine en ligne & prise de rendez-vous | AromaMade PRO')
+    @section('title', 'Portail Pro | Vitrine en ligne & prise de rendez-vous | Olithea')
     @section('meta_description')
 Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients et prise de rendez-vous. Lien unique à partager, QR code, SEO local, annuaire des praticiens et événements avec paiement à l’inscription.
     @endsection
@@ -33,7 +33,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Créer mon Portail Pro</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -96,7 +96,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="200">
                     <i class="fas fa-qrcode tile-icon"></i>
                     <h3>QR code</h3>
-                    <p>Générez un <strong>QR code</strong> vers <code>aromamade.com/pro/{{ '{slug}' }}</code> pour cartes de visite, affiches, salons.</p>
+                    <p>Générez un <strong>QR code</strong> vers <code>olithea.fr/pro/{{ '{slug}' }}</code> pour cartes de visite, affiches, salons.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="250">
@@ -238,7 +238,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>Depuis votre tableau de bord, bouton <strong>“Générer le QR code”</strong> qui pointe vers <code>aromamade.com/pro/{{ '{slug}' }}</code>.</p>
+                        <p>Depuis votre tableau de bord, bouton <strong>“Générer le QR code”</strong> qui pointe vers <code>olithea.fr/pro/{{ '{slug}' }}</code>.</p>
                     </div>
                 </div>
 
@@ -298,7 +298,7 @@ Créez votre vitrine en ligne : services, tarifs, disponibilités, avis clients 
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>

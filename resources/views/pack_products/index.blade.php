@@ -83,7 +83,7 @@
                             <div class="text-sm font-bold">Succès</div>
                             <div class="text-sm mt-0.5">{{ session('success') }}</div>
                         </div>
-                        <div class="text-xs font-semibold opacity-70">AromaMade</div>
+                        <div class="text-xs font-semibold opacity-70">Olithea</div>
                     </div>
                 </div>
             @endif
@@ -301,7 +301,7 @@
                             Astuce : crée un pack “Suivi” et attribue-le au client après paiement (crédits suivis automatiquement).
                         </div>
                         <div class="text-xs font-bold" style="color: var(--brown);">
-                            AromaMade PRO
+                            Olithea
                         </div>
                     </div>
                 </div>

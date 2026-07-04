@@ -1,4 +1,4 @@
-﻿@php
+@php
     $a = $appointment;
     $clientName = trim(($a->clientProfile?->first_name ?? '').' '.($a->clientProfile?->last_name ?? ''));
     $therapistName = $a->user?->company_name ?? $a->user?->name ?? 'Votre thérapeute';
@@ -36,5 +36,5 @@
 @endif
 
 <p style="margin-top: 16px;">
-    — AromaMade PRO
+    — Olithea
 </p>

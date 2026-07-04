@@ -85,7 +85,7 @@
                         </label>
                     </div>
 
-                    <input type="hidden" name="from_email" value="contact@aromamade.com">
+                    <input type="hidden" name="from_email" value="contact@olithea.fr">
                 </div>
             </section>
 

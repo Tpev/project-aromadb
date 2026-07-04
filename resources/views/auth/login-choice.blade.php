@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Connexion - {{ config('app.name', 'AromaMade') }}</title>
+        <title>Connexion - {{ config('app.name', 'Olithea') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -270,8 +270,8 @@
             <section class="login-card">
                 <div class="login-card-inner">
                     <div class="brand">
-                        <a href="{{ url('/') }}" aria-label="Retour à l'accueil AromaMade">
-                            <img src="{{ asset('images/png-01.webp') }}" width="256" height="64" alt="{{ config('app.name', 'AromaMade') }}">
+                        <a href="{{ url('/') }}" aria-label="Retour à l'accueil Olithea">
+                            <img src="{{ asset('images/png-01.webp') }}" width="256" height="64" alt="{{ config('app.name', 'Olithea') }}">
                         </a>
                     </div>
 

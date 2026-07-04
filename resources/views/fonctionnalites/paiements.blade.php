@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Paiements en ligne | Acomptes, soldes, remboursements | AromaMade PRO')
+    @section('title', 'Paiements en ligne | Acomptes, soldes, remboursements | Olithea')
     @section('meta_description')
 Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur facture, acomptes, soldes, reçus automatiques, relances email, remboursements partiels. SCA (3D Secure) via Stripe & cadre PSD2. Compatible CB, Apple Pay, Google Pay, SEPA.
     @endsection
@@ -33,7 +33,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Activer les paiements</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -120,7 +120,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
                     <i class="fas fa-plug tile-icon"></i>
                     <h3>Intégration Stripe</h3>
-                    <p>Encaissements sécurisés via Stripe. Activation rapide et suivi centralisé dans AromaMade PRO.</p>
+                    <p>Encaissements sécurisés via Stripe. Activation rapide et suivi centralisé dans Olithea.</p>
                 </div>
             </div>
 
@@ -307,7 +307,7 @@ Encaissez vos séances en ligne de façon sécurisée : lien de paiement sur fac
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>

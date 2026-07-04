@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Fonctionnalités | Agenda, Dossiers, Facturation, Questionnaires | AromaMade PRO')
+    @section('title', 'Fonctionnalités | Agenda, Dossiers, Facturation, Questionnaires | Olithea')
     @section('meta_description')
-Découvrez toutes les fonctionnalités d’AromaMade PRO : agenda en ligne, dossiers clients, facturation (devis, factures, livre de recettes), questionnaires, Portail Pro et paiements sécurisés. Données hébergées en France (HDS), conforme RGPD.
+Découvrez toutes les fonctionnalités d’Olithea : agenda en ligne, dossiers clients, facturation (devis, factures, livre de recettes), questionnaires, Portail Pro et paiements sécurisés. Données hébergées en France (HDS), conforme RGPD.
     @endsection
 
     @push('styles')
@@ -25,14 +25,14 @@ Découvrez toutes les fonctionnalités d’AromaMade PRO : agenda en ligne, doss
                 <span class="current">Fonctionnalités</span>
             </nav>
             <h1 class="text-white text-5xl md:text-6xl font-bold mb-6" data-aos="fade-up">
-                Toutes les fonctionnalités AromaMade PRO
+                Toutes les fonctionnalités Olithea
             </h1>
             <p class="text-white text-xl md:text-2xl mb-8 max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="100">
                 Agenda & réservation, dossiers clients, facturation, questionnaires, Portail Pro et paiements tout ce qu’il faut pour gérer et développer votre activité.
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essayer gratuitement 14 jours</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -41,7 +41,7 @@ Découvrez toutes les fonctionnalités d’AromaMade PRO : agenda en ligne, doss
     <!-- FEATURE GRID (uses same .feature-tile style as other pages) -->
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="section-title text-center" data-aos="fade-up">Ce que vous pouvez faire avec AromaMade PRO</h2>
+            <h2 class="section-title text-center" data-aos="fade-up">Ce que vous pouvez faire avec Olithea</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
 
@@ -163,11 +163,11 @@ Découvrez toutes les fonctionnalités d’AromaMade PRO : agenda en ligne, doss
 
                 <div class="accordion-item">
                     <button class="accordion-header">
-                        <span>À qui s’adresse AromaMade PRO ?</span>
+                        <span>À qui s’adresse Olithea ?</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="accordion-content">
-                        <p>AromaMade PRO s’adresse aux praticiens du bien-être (naturopathes, sophrologues, réflexologues, etc.). L’outil n’est pas destiné à la pratique médicale.</p>
+                        <p>Olithea s’adresse aux praticiens du bien-être (naturopathes, sophrologues, réflexologues, etc.). L’outil n’est pas destiné à la pratique médicale.</p>
                     </div>
                 </div>
 

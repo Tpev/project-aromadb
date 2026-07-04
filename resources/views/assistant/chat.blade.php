@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color:#647a0b;">
-            Assistant AromaMade
+            Assistant Olithea
         </h2>
     </x-slot>
 
@@ -14,7 +14,7 @@
 
         <div style="padding:12px 14px; border-bottom:1px solid #eee; display:flex; align-items:center; gap:8px;">
             <div style="width:10px; height:10px; background:#8bc34a; border-radius:999px;"></div>
-            <div style="font-weight:700;">Assistant AromaMade</div>
+            <div style="font-weight:700;">Assistant Olithea</div>
         </div>
 
         <div id="am-messages" style="flex:1; padding:12px; overflow:auto; background:#fafafa;">

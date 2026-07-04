@@ -24,7 +24,7 @@
             <div class="editor-toolbar mb-4">
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p class="editor-meta-label">AromaMade - Outil creatif</p>
+                        <p class="editor-meta-label">Olithea - Outil creatif</p>
                         <h1 class="mt-1 text-2xl font-semibold text-slate-900 md:text-3xl">
                             Studio visuel
                         </h1>

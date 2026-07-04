@@ -1,8 +1,8 @@
 <x-guest-layout>
     @section('meta_description')
-Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédiée aux thérapeutes. Boostez votre visibilité, gérez facilement vos rendez-vous et dossiers clients, et profitez d’un essai gratuit de 14 jours pour découvrir toutes nos fonctionnalités.
+Créez votre compte Practicien sur Olithea, la plateforme gratuite dédiée aux thérapeutes. Boostez votre visibilité, gérez facilement vos rendez-vous et dossiers clients, et profitez d’un essai gratuit de 14 jours pour découvrir toutes nos fonctionnalités.
     @endsection
-    @section('title', 'AromaMade PRO : Annuaire Thérapeute et Logiciel de Gestion en Ligne')
+    @section('title', 'Olithea : Annuaire Thérapeute et Logiciel de Gestion en Ligne')
 
     
     @php
@@ -25,7 +25,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
             Créez votre compte Praticien
         </h1>
         <p class="text-center text-gray-600 mb-6">
-            Rejoignez AromaMade PRO et boostez votre visibilité auprès de nouveaux clients.
+            Rejoignez Olithea et boostez votre visibilité auprès de nouveaux clients.
         </p>
 
         {{-- Global error summary (server-side validation) --}}
@@ -89,7 +89,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                         name="company_name"
                         type="text"
                         autocomplete="organization"
-                        placeholder="Ex: AromaMade Inc."
+                        placeholder="Ex: Olithea Inc."
                         :value="old('company_name')"
                         class="block mt-1 w-full border border-gray-300 rounded-md px-3 py-2"
                     />
@@ -234,7 +234,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
                     Votre compte est presque prêt ✅
                 </h2>
                 <p class="text-center text-gray-600 mb-6">
-                    Comment souhaitez-vous démarrer sur AromaMade PRO ?
+                    Comment souhaitez-vous démarrer sur Olithea ?
                 </p>
 
                 <div class="space-y-3">
@@ -297,7 +297,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
     <!-- Benefits Section -->
     <div class="max-w-md mx-auto my-10 p-6 bg-gray-50 rounded-lg shadow-sm">
         <h2 class="text-xl font-semibold text-center text-[#647a0b] mb-4">
-            Pourquoi rejoindre AromaMade PRO ?
+            Pourquoi rejoindre Olithea ?
         </h2>
         <ul class="list-disc pl-5 text-gray-700 space-y-2">
             <li><strong>Visibilité accrue :</strong> Soyez trouvé par de nouveaux clients recherchant des thérapeutes qualifiés.</li>
@@ -310,7 +310,7 @@ Créez votre compte Practicien sur AromaMade PRO, la plateforme gratuite dédié
     <!-- Testimonials Section -->
     <div class="max-w-md mx-auto my-10 p-6 bg-white rounded-lg shadow-md">
         <h2 class="text-xl font-semibold text-center text-[#647a0b] mb-4">
-            Ils utilisent AromaMade PRO
+            Ils utilisent Olithea
         </h2>
 
         <div class="space-y-4">

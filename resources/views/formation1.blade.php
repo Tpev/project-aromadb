@@ -15,7 +15,7 @@
                 Mini-Formation - Introduction à l'aromathérapie pour utilisateurs non thérapeutes
             </h1>
             <!-- Centered and Smaller Image -->
-            <img src="{{ asset('images/FormationAromatherapie.webp') }}" alt="AromaMade Logo" class="mx-auto my-6 max-w-md shadow-lg rounded-lg">
+            <img src="{{ asset('images/FormationAromatherapie.webp') }}" alt="Olithea Logo" class="mx-auto my-6 max-w-md shadow-lg rounded-lg">
         </div>
     </section>
     <!-- Appel à l'Action en Haut de la Page -->

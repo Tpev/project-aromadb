@@ -16,7 +16,7 @@ class SuperPdpController extends Controller
         SuperPdpFeature::abortUnlessEnabledFor($user);
 
         if (! $oauthService->isConfigured()) {
-            return back()->with('error', 'La connexion SUPER PDP sandbox n\'est pas encore configurée côté AromaMade.');
+            return back()->with('error', 'La connexion SUPER PDP sandbox n\'est pas encore configurée côté Olithea.');
         }
 
         $receiveInApp = $request->boolean('receive_in_app');

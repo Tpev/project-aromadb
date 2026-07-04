@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Questionnaires & formulaires | Pré-séance, suivi, consentements | AromaMade PRO')
+    @section('title', 'Questionnaires & formulaires | Pré-séance, suivi, consentements | Olithea')
     @section('meta_description')
 Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-séance, consentements signés (SES), pièces jointes. Envoi par email, lien privé sécurisé sans compte, réponses rangées dans le dossier client, exports PDF/CSV. Données hébergées en France (HDS), conforme RGPD.
     @endsection
@@ -30,7 +30,7 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essai gratuit 14 jours</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -219,7 +219,7 @@ Créez des questionnaires pros pour vos clients : anamnèse, bilans pré/post-s�
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>

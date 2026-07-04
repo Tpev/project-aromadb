@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Facturation thérapeute | Devis, factures, livre de recettes | AromaMade PRO')
+    @section('title', 'Facturation thérapeute | Devis, factures, livre de recettes | Olithea')
     @section('meta_description')
 Créez devis et factures propres, suivez les paiements (espèces, virement, CB), gérez acomptes/avoirs et exportez votre livre de recettes (micro-entreprise). Numérotation séquentielle, mentions légales 🇫🇷 et tableau de chiffre d’affaires mensuel.
     @endsection
@@ -30,7 +30,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essai gratuit 14 jours</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -117,7 +117,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="400">
                     <i class="fas fa-envelope-open-text tile-icon"></i>
                     <h3>Envoi & relances email</h3>
-                    <p>Envoyez devis/factures depuis AromaMade, relancez automatiquement en cas d’échéance dépassée. Pièces jointes propres.</p>
+                    <p>Envoyez devis/factures depuis Olithea, relancez automatiquement en cas d’échéance dépassée. Pièces jointes propres.</p>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="450">
@@ -205,7 +205,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
     <section class="py-8 bg-white">
         <div class="container mx-auto px-4">
             <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-sm" data-aos="fade-up">
-                <strong>À savoir :</strong> AromaMade PRO facilite l’édition de devis/factures et le suivi des encaissements. 
+                <strong>À savoir :</strong> Olithea facilite l’édition de devis/factures et le suivi des encaissements.
                 La solution n’est pas un <em>logiciel de caisse certifié (NF525)</em>. 
                 Si votre activité est soumise à l’usage d’un logiciel de caisse certifié, utilisez un système conforme en complément.
             </div>
@@ -310,7 +310,7 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>

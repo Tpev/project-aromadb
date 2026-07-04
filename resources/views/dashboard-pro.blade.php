@@ -24,7 +24,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
                 <h3 class="text-lg font-semibold text-[#647a0b]">
-                    👋 Bienvenue sur AromaMade PRO
+                    👋 Bienvenue sur Olithea
                 </h3>
                 <p class="text-sm text-gray-600">
                     Suivez ces étapes pour être prêt à recevoir des réservations en ligne et profiter de toutes les fonctionnalités.

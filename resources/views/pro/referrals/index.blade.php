@@ -79,7 +79,7 @@
 
                 <div class="mt-5 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-emerald-900">
                     <p class="text-sm leading-relaxed">
-                        💚 <span class="font-semibold">En partageant AromaMade PRO</span>, vous gagnez un avantage,
+                        💚 <span class="font-semibold">En partageant Olithea</span>, vous gagnez un avantage,
                         mais vous aidez aussi directement à faire grandir la plateforme.
                         Chaque recommandation nous permet d’investir davantage dans le produit,
                         d’améliorer les outils, d’ajouter de nouvelles fonctionnalités et de renforcer l’écosystème
@@ -163,7 +163,7 @@
                         name="message"
                         value="{{ old('message') }}"
                         class="w-full rounded-xl border-gray-300 focus:border-gray-400 focus:ring-gray-200"
-                        placeholder="Ex : Je te recommande AromaMade PRO pour gérer tes RDV, dossiers clients, factures..."
+                        placeholder="Ex : Je te recommande Olithea pour gérer tes RDV, dossiers clients, factures..."
                     >
                 </div>
 

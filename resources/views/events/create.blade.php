@@ -167,7 +167,7 @@
 
                         <label class="d-flex align-items-center gap-2">
                             <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
-                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                            <span>{{ __('Créer un lien Olithea') }}</span>
                         </label>
                     </div>
 
@@ -178,7 +178,7 @@
                             <p class="text-red-500">{{ $message }}</p>
                         @enderror
                         <p class="text-xs text-slate-500 mt-2">
-                            {{ __('Si vous choisissez "Créer un lien AromaMade", le lien sera généré automatiquement après création.') }}
+                            {{ __('Si vous choisissez "Créer un lien Olithea", le lien sera généré automatiquement après création.') }}
                         </p>
                     </div>
                 </div>

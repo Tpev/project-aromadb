@@ -148,7 +148,7 @@ class EventController extends Controller
             $data['visio_token'] = null;
 
         } else {
-            // AromaMade WebRTC room
+            // Olithea WebRTC room
             $data['visio_url'] = null;
 
             do {

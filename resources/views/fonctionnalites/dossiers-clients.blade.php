@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Dossiers clients | Suivi & documents | AromaMade PRO')
+    @section('title', 'Dossiers clients | Suivi & documents | Olithea')
     @section('meta_description')
 Centralisez l’historique, les notes de séance et objectifs de vos clients. Consentements signés (SES), documents, photos, questionnaires et exports PDF. Stockage en France chez un hébergeur certifié HDS, conforme RGPD.
     @endsection
@@ -30,7 +30,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Commencer l’essai gratuit</a>
-                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir AromaMade PRO</a>
+                <a href="{{ url('/pro') }}" class="btn-secondary">Découvrir Olithea</a>
             </div>
         </div>
         <div class="overlay absolute inset-0 bg-black opacity-50"></div>
@@ -205,7 +205,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
     <section class="py-8 bg-white">
         <div class="container mx-auto px-4">
             <div class="p-4 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-sm" data-aos="fade-up">
-                <strong>Important :</strong> AromaMade PRO s’adresse à des praticiens du bien-être. La plateforme n’est pas un service de télémédecine ni un Dossier Médical Partagé. 
+                <strong>Important :</strong> Olithea s’adresse à des praticiens du bien-être. La plateforme n’est pas un service de télémédecine ni un Dossier Médical Partagé.
                 Les informations saisies ne constituent ni un diagnostic, ni une prescription médicale et ne remplacent pas l’avis d’un professionnel de santé.
             </div>
         </div>
@@ -217,7 +217,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
             <h2 class="section-title text-center" data-aos="fade-up">Pensé avec des praticiens</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
                 <div class="testimonial-card" data-aos="fade-up">
-                    <p class="quote">« Le dossier client d’AromaMade me fait gagner un temps fou. Les notes et objectifs sont bien rangés et je retrouve tout en 2 secondes. »</p>
+                    <p class="quote">« Le dossier client d’Olithea me fait gagner un temps fou. Les notes et objectifs sont bien rangés et je retrouve tout en 2 secondes. »</p>
                     <h4 class="author">— Élodie, Réflexologue</h4>
                 </div>
                 <div class="testimonial-card" data-aos="fade-up" data-aos-delay="100">
@@ -319,7 +319,7 @@ Centralisez l’historique, les notes de séance et objectifs de vos clients. Co
                         line-height:1.7;
                         font-size:1.05rem;
                     ">
-                        Ces pages expliquent comment AromaMade PRO s’adapte à votre pratique :
+                        Ces pages expliquent comment Olithea s’adapte à votre pratique :
                         organisation du cabinet, suivi client, prise de rendez-vous en ligne et facturation.
                     </p>
                 </div>

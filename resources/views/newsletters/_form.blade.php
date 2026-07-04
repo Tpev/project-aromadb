@@ -106,10 +106,10 @@
 
 			</div>
 
-            {{-- Email d’envoi caché, forcé à contact@aromamade.com --}}
+            {{-- Email d’envoi caché, forcé à contact@olithea.fr --}}
             <input type="hidden"
                    name="from_email"
-                   value="contact@aromamade.com">
+                   value="contact@olithea.fr">
         </div>
 
         {{-- Couleur de fond --}}

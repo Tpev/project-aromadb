@@ -58,7 +58,7 @@
     $label = $services ?: 'Thérapeute';
 
     // 4) Assemble final title (max ~60 chars)
-    $brand = config('app.name', 'AromaMade');
+    $brand = config('app.name', 'Olithea');
     $title = \Illuminate\Support\Str::limit(
                 trim(sprintf('%s • %s | %s', $label, $loc ?: __('près de chez vous'), $brand)),
                 60,

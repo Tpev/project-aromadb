@@ -21,7 +21,7 @@
 
     <!-- Feature overview -->
     <div class="text-xs text-gray-600 leading-relaxed mb-4">
-        Voici un aperçu de tout ce que vous pouvez faire dans AromaMade PRO. 
+        Voici un aperçu de tout ce que vous pouvez faire dans Olithea.
         Prenez quelques minutes pour explorer — cela vous montrera le véritable potentiel de la plateforme.
 
         <div class="mt-3 space-y-3">

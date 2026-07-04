@@ -40,7 +40,7 @@
     $visioPublicLink = $event->visio_public_link ?? null;
 
     $visioProvider = $event->visio_provider ?? null;
-    $isAromaMadeVisio = $isVisio && $visioProvider === 'aromamade' && !empty($event->visio_token);
+    $isOlitheaVisio = $isVisio && $visioProvider === 'aromamade' && !empty($event->visio_token);
     $isExternalVisio  = $isVisio && $visioProvider === 'external' && !empty($event->visio_url);
 @endphp
 
@@ -52,7 +52,7 @@
                     {{ __('Détails de l\'Événement') }}
                 </h2>
                 <p class="mt-1 text-xs text-slate-500">
-                    {{ __('Gérez cet atelier / événement directement depuis AromaMade PRO.') }}
+                    {{ __('Gérez cet atelier / événement directement depuis Olithea.') }}
                 </p>
             </div>
 
@@ -246,8 +246,8 @@
                                                 {{ $displayLocation }}
                                             </p>
                                             <p class="text-xs text-slate-500 mt-1">
-                                                @if($isAromaMadeVisio)
-                                                    {{ __('Type : Visio AromaMade ') }}
+                                                @if($isOlitheaVisio)
+                                                    {{ __('Type : Visio Olithea ') }}
                                                 @elseif($isExternalVisio)
                                                     {{ __('Type : Lien externe') }}
                                                 @else
@@ -284,7 +284,7 @@
                                                     {{ $visioHostLink }}
                                                 </p>
 
-                                                @if($isAromaMadeVisio)
+                                                @if($isOlitheaVisio)
                                                     <p class="mt-1 text-[11px] text-slate-400">
                                                         {{ __(' ') }}
                                                     </p>
@@ -324,7 +324,7 @@
                                                     {{ $visioPublicLink }}
                                                 </p>
 
-                                                @if($isAromaMadeVisio)
+                                                @if($isOlitheaVisio)
                                                     <p class="mt-1 text-[11px] text-slate-400">
                                                         {{ __('C’est ce lien que vous envoyez aux participants.') }}
                                                     </p>

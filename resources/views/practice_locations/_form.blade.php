@@ -46,7 +46,7 @@
                     <span>
                         <span class="block font-medium text-gray-900">{{ __('Cabinet partagé') }}</span>
                         <span class="block text-sm text-gray-600">
-                            {{ __('Permet d’inviter d’autres thérapeutes déjà inscrits sur AromaMade. Lorsqu’un créneau est réservé au cabinet, il devient indisponible pour tous les membres de ce cabinet partagé.') }}
+                            {{ __('Permet d’inviter d’autres thérapeutes déjà inscrits sur Olithea. Lorsqu’un créneau est réservé au cabinet, il devient indisponible pour tous les membres de ce cabinet partagé.') }}
                         </span>
                     </span>
                 </label>

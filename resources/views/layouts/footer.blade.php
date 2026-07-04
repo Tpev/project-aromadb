@@ -37,10 +37,10 @@
         <!-- Social Media Links -->
         <div class="flex justify-center space-x-4 mb-4">
             <a href="https://www.facebook.com/profile.php?id=100089128162095" class="text-blue-600 hover:text-blue-400"><i class="fab fa-facebook-f"></i></a>
-            <a href="https://www.instagram.com/aroma.made/" class="text-pink-600 hover:text-pink-400"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.instagram.com/olithea/" class="text-pink-600 hover:text-pink-400"><i class="fab fa-instagram"></i></a>
         </div>
 
         <!-- Copyright Notice -->
-        <p class="text-gray-400">© {{ date('Y') }} AromaMade. Tous droits réservés.</p>
+        <p class="text-gray-400">© {{ date('Y') }} Olithea. Tous droits réservés.</p>
     </div>
 </footer>

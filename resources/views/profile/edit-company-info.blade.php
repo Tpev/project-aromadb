@@ -454,7 +454,7 @@
 
                             <!-- Helper text -->
                             <small class="text-gray-500">
-                                {{ __('Si vous souhaitez que vos clients puissent prendre rendez-vous en ligne de manière autonome via votre portail pro sur aromamade.com') }}
+                                {{ __('Si vous souhaitez que vos clients puissent prendre rendez-vous en ligne de manière autonome via votre portail pro sur olithea.fr') }}
                             </small>
 
                             @error('accept_online_appointments')
@@ -798,7 +798,7 @@
 
                             <h3 class="details-label mb-2">{{ __('Connexion avec Google') }}</h3>
                             <p class="text-gray-500 text-sm mb-3">
-                                {{ __('Connectez votre compte AromaMade à Google pour automatiser encore plus votre organisation.') }}
+                                {{ __('Connectez votre compte Olithea à Google pour automatiser encore plus votre organisation.') }}
                             </p>
 
                             <div class="flex flex-wrap items-center gap-3">
@@ -852,7 +852,7 @@
                             </div>
 
                             <small class="text-gray-500 block mt-3">
-                                {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous AromaMade y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
+                                {{ __('Cliquez sur ce bouton pour lier votre Google Agenda : vos rendez-vous Olithea y seront ajoutés automatiquement et vos créneaux déjà occupés seront bloqués.') }}
                             </small>
                         </div>
 
@@ -881,7 +881,7 @@
                             <div class="details-box mt-5"
                                  x-data="{ selected: '{{ $currentGoogleColorId }}' }">
                                 <label class="details-label mb-2">
-                                    {{ __('Couleur des rendez-vous AromaMade dans Google Agenda') }}
+                                    {{ __('Couleur des rendez-vous Olithea dans Google Agenda') }}
                                 </label>
 
                                 <p class="text-gray-500 text-sm mb-3">

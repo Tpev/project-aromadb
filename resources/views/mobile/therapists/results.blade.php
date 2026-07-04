@@ -4,7 +4,7 @@
     if (isset($specialty) && isset($region)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty)) . " en " . ucfirst(str_replace('-', ' ', $region));
         $pageDescription = "Trouvez un(e) " . ucfirst(str_replace('-', ' ', $specialty)) .
-            " en " . ucfirst(str_replace('-', ' ', $region)) . " sur AromaMade.";
+            " en " . ucfirst(str_replace('-', ' ', $region)) . " sur Olithea.";
     } elseif (isset($specialty)) {
         $pageTitle = "Résultats : " . ucfirst(str_replace('-', ' ', $specialty));
         $pageDescription = "Découvrez les praticiens spécialisés en " . ucfirst(str_replace('-', ' ', $specialty)) . ".";
@@ -12,8 +12,8 @@
         $pageTitle = "Résultats en " . ucfirst(str_replace('-', ' ', $region));
         $pageDescription = "Recherchez des praticiens en " . ucfirst(str_replace('-', ' ', $region)) . ".";
     } else {
-        $pageTitle = "Résultats de recherche | AromaMade";
-        $pageDescription = "Trouvez des praticiens en médecines douces sur AromaMade.";
+        $pageTitle = "Résultats de recherche | Olithea";
+        $pageDescription = "Trouvez des praticiens en médecines douces sur Olithea.";
     }
 
     // === HEADING ===

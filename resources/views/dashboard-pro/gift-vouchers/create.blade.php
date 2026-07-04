@@ -7,7 +7,7 @@
                     Nouveau bon cadeau
                 </h2>
                 <p class="mt-1 text-xs text-slate-600">
-                    Le paiement est encaissé en dehors d’AromaMade (espèces, virement, terminal CB). AromaMade gère le PDF + le suivi du solde.
+                    Le paiement est encaissé en dehors d’Olithea (espèces, virement, terminal CB). Olithea gère le PDF + le suivi du solde.
                 </p>
             </div>
 

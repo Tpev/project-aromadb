@@ -215,7 +215,7 @@ public function syncToGoogle(): void
 
         $mode        = $this->getResolvedMode();
         $location    = $this->getResolvedLocationString();
-        $description = rtrim(($this->notes ?? '') . "\n\n[AromaMade]");
+        $description = rtrim(($this->notes ?? '') . "\n\n[Olithea]");
 
         $eventData = [
             'name'          => $clientName ? "Rdv $productName – $clientName" : $productName,

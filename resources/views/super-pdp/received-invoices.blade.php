@@ -55,7 +55,7 @@
 
             @if(!$connection->receiving_invoices_enabled)
                 <div class="m-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                    {{ __('La réception dans AromaMade est désactivée. Activez-la depuis Informations de l’entreprise pour synchroniser les factures entrantes.') }}
+                    {{ __('La réception dans Olithea est désactivée. Activez-la depuis Informations de l’entreprise pour synchroniser les factures entrantes.') }}
                 </div>
             @endif
 

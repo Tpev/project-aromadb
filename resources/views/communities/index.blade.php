@@ -17,7 +17,7 @@
             <div class="grid gap-6 lg:grid-cols-[1.4fr_0.9fr] lg:items-center">
                 <div>
                     <div class="inline-flex items-center rounded-full border border-[#d6dfbc] bg-white/75 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-[#647a0b]">
-                        Communautés AromaMade
+                        Communautés Olithea
                     </div>
                     <h3 class="mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-gray-900">Faites vivre vos accompagnements dans un espace plus structuré et plus premium.</h3>
                     <p class="mt-4 max-w-2xl text-sm leading-7 text-gray-600">Chaque communauté reste fermée, réservée à vos invités, avec des salons pour distinguer annonces, discussion et ressources clés du groupe.</p>

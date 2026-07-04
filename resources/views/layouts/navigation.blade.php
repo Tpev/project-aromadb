@@ -96,7 +96,7 @@
             </div>
           </div>
 
-          <!-- AromaMade PRO (Fonctionnalités) Dropdown -->
+          <!-- Olithea (Fonctionnalités) Dropdown -->
           <div x-data="{ proOpen:false }"
                class="relative"
                x-cloak
@@ -108,7 +108,7 @@
               aria-haspopup="true"
               :aria-expanded="proOpen.toString()"
               aria-controls="pro-menu">
-              AromaMade PRO
+              Olithea
               <i class="fas fa-chevron-down ml-1 align-middle"></i>
             </button>
 
@@ -225,12 +225,12 @@
       <a href="{{ route('huilehvs.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Huiles Végétales</a>
       <a href="{{ route('tisanes.index') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Tisanes</a>
 
-      <!-- AromaMade PRO (mobile collapsible) -->
+      <!-- Olithea (mobile collapsible) -->
       <div x-data="{ proMobileOpen:false }" class="border-t border-gray-200 pt-2">
         <button
           @click="proMobileOpen = !proMobileOpen"
           class="w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-700 hover:text-[#647a0b] hover:bg-gray-50 flex items-center justify-between">
-          AromaMade PRO
+          Olithea
           <i class="fas fa-chevron-down ml-2" :class="{'rotate-180': proMobileOpen}"></i>
         </button>
         <div x-show="proMobileOpen" x-collapse>

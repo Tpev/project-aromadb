@@ -28,7 +28,7 @@
                 {{ __('Facturation électronique avec SUPER PDP') }}
             </h3>
             <p class="text-sm text-gray-600 mt-2 max-w-2xl">
-                {{ __('Testez l’onboarding OAuth 2.1 SUPER PDP, puis choisissez si AromaMade doit aussi afficher les factures d’achat reçues dans l’application.') }}
+                {{ __('Testez l’onboarding OAuth 2.1 SUPER PDP, puis choisissez si Olithea doit aussi afficher les factures d’achat reçues dans l’application.') }}
             </p>
         </div>
 
@@ -59,7 +59,7 @@
         <div class="rounded-xl border border-lime-100 bg-white/80 p-4">
             <div class="text-xs uppercase tracking-wide text-gray-500">{{ __('Réception') }}</div>
             <div class="font-semibold text-gray-900 mt-1">
-                {{ $connection?->receiving_invoices_enabled ? __('Activée dans AromaMade') : __('Non activée') }}
+                {{ $connection?->receiving_invoices_enabled ? __('Activée dans Olithea') : __('Non activée') }}
             </div>
             <p class="text-xs text-gray-500 mt-1">
                 {{ $connection?->last_synced_at ? __('Dernière synchro : ') . $connection->last_synced_at->format('d/m/Y H:i') : __('Aucune synchro pour l’instant.') }}
@@ -90,9 +90,9 @@
                        class="mt-1 form-checkbox h-5 w-5 text-green-500"
                     {{ $receiveInApp ? 'checked' : '' }}>
                 <span>
-                    <span class="font-semibold text-gray-900">{{ __('Recevoir aussi les factures d’achat dans AromaMade') }}</span>
+                    <span class="font-semibold text-gray-900">{{ __('Recevoir aussi les factures d’achat dans Olithea') }}</span>
                     <span class="block text-sm text-gray-500 mt-1">
-                        {{ __('Si cette option est cochée, le tunnel SUPER PDP demandera l’inscription à l’annuaire pour la réception, puis AromaMade pourra synchroniser les factures reçues.') }}
+                        {{ __('Si cette option est cochée, le tunnel SUPER PDP demandera l’inscription à l’annuaire pour la réception, puis Olithea pourra synchroniser les factures reçues.') }}
                     </span>
                 </span>
             </label>
@@ -122,9 +122,9 @@
                        class="mt-1 form-checkbox h-5 w-5 text-green-500"
                     {{ $connection->receiving_invoices_enabled ? 'checked' : '' }}>
                 <span>
-                    <span class="font-semibold text-gray-900">{{ __('Afficher les factures reçues dans AromaMade') }}</span>
+                    <span class="font-semibold text-gray-900">{{ __('Afficher les factures reçues dans Olithea') }}</span>
                     <span class="block text-sm text-gray-500 mt-1">
-                        {{ __('Vous pouvez couper l’affichage côté AromaMade sans révoquer l’accès SUPER PDP.') }}
+                        {{ __('Vous pouvez couper l’affichage côté Olithea sans révoquer l’accès SUPER PDP.') }}
                     </span>
                 </span>
             </label>

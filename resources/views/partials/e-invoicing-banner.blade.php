@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between gap-3 px-4 py-3">
         <div class="min-w-0">
             <p class="text-sm font-semibold text-[#0f2fb8] sm:text-base">
-                Facture electronique 2026 : AromaMade prepare votre activation.
+                Facture electronique 2026 : Olithea prepare votre activation.
             </p>
             <p class="mt-1 text-xs leading-relaxed text-gray-600 sm:text-sm">
                 Vous pourrez rester dans votre outil habituel. Mise en service tres bientot.

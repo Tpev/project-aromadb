@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <label class="d-flex align-items-center gap-2">
                             <input type="radio" name="visio_provider" value="aromamade" {{ $oldProvider === 'aromamade' ? 'checked' : '' }}>
-                            <span>{{ __('Créer un lien AromaMade') }}</span>
+                            <span>{{ __('Créer un lien Olithea') }}</span>
                         </label>
                     </div>
 
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span>{{ __('Info') }}</span>
                             </div>
                             <p class="callout-text">
-                                {{ __('Si vous choisissez "Créer un lien AromaMade", un NOUVEAU lien sera généré pour le duplicata (même si l\'événement d\'origine en avait déjà un).') }}
+                                {{ __('Si vous choisissez "Créer un lien Olithea", un NOUVEAU lien sera généré pour le duplicata (même si l\'événement d\'origine en avait déjà un).') }}
                             </p>
                         </div>
                     </div>

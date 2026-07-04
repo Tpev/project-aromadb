@@ -32,7 +32,7 @@
                         <div>
                             <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ __('Cabinet partagé') }}</h3>
                             <p class="text-sm text-gray-600">
-                                {{ __('Invitez des thérapeutes déjà inscrits sur AromaMade pour partager ce cabinet. Une fois acceptée, la réservation d’un créneau au cabinet bloquera automatiquement ce même créneau pour tous les membres.') }}
+                                {{ __('Invitez des thérapeutes déjà inscrits sur Olithea pour partager ce cabinet. Une fois acceptée, la réservation d’un créneau au cabinet bloquera automatiquement ce même créneau pour tous les membres.') }}
                             </p>
                         </div>
 

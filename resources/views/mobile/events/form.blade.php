@@ -125,7 +125,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             @foreach([
                                 'external' => 'Lien externe',
-                                'aromamade' => 'AromaMade',
+                                'aromamade' => 'Olithea',
                             ] as $value => $label)
                                 <label class="flex min-h-11 items-center gap-2 rounded-lg border border-[#e4e8d5] bg-white px-3 text-xs font-semibold text-gray-700 has-[:checked]:border-[#647a0b] has-[:checked]:text-[#647a0b]">
                                     <input type="radio"

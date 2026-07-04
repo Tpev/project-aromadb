@@ -12,7 +12,7 @@
     @endpush
 
     @section('meta_description')
-        Gérez votre compte Stripe directement depuis AromaMade PRO. Connectez votre compte pour accepter les paiements et accédez à votre tableau de bord Stripe en un clic.
+        Gérez votre compte Stripe directement depuis Olithea. Connectez votre compte pour accepter les paiements et accédez à votre tableau de bord Stripe en un clic.
     @endsection
 
     <!-- Hero Section -->

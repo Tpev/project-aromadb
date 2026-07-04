@@ -5,9 +5,9 @@
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     @endpush
 
-    @section('title', 'Logiciel naturopathe – Agenda, dossiers clients & facturation | AromaMade PRO')
+    @section('title', 'Logiciel naturopathe – Agenda, dossiers clients & facturation | Olithea')
     @section('meta_description')
-AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agenda et réservation en ligne, dossiers clients, questionnaires d’anamnèse, facturation simple et visibilité pour développer votre cabinet de naturopathie.
+Olithea est un logiciel conçu pour les naturopathes indépendants : agenda et réservation en ligne, dossiers clients, questionnaires d’anamnèse, facturation simple et visibilité pour développer votre cabinet de naturopathie.
     @endsection
 
     <style>
@@ -166,7 +166,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
                 </h1>
 
                 <p class="text-white text-lg md:text-xl opacity-90 leading-relaxed mb-8" data-aos="fade-up" data-aos-delay="100">
-                    AromaMade PRO vous aide à gérer votre activité de naturopathe de manière simple et professionnelle :
+                    Olithea vous aide à gérer votre activité de naturopathe de manière simple et professionnelle :
                     <b>agenda</b>, <b>prise de rendez-vous en ligne</b>, <b>dossiers clients</b>, <b>questionnaires d’anamnèse</b> et <b>facturation</b>.
                     Un seul outil, pensé pour votre quotidien.
                 </p>
@@ -189,7 +189,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
 
 
                 <p class="text-white opacity-80 mt-6 text-sm" data-aos="fade-up" data-aos-delay="350">
-                    Vous êtes naturopathe, praticien bien-être ou en cours d’installation ? AromaMade PRO est fait pour une pratique moderne, simple et structurée.
+                    Vous êtes naturopathe, praticien bien-être ou en cours d’installation ? Olithea est fait pour une pratique moderne, simple et structurée.
                 </p>
             </div>
         </div>
@@ -245,7 +245,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
 
             <div class="mt-12 text-center" data-aos="fade-up">
                 <a href="{{ route('register-pro') }}" class="btn-primary">
-                    Tester AromaMade PRO <i class="fas fa-arrow-right"></i>
+                    Tester Olithea <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -335,11 +335,11 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
             <div class="max-w-5xl mx-auto seo-text">
                 <div class="text-center mb-10">
                     <h2 class="text-3xl md:text-4xl font-bold text-primary" data-aos="fade-up">
-                        AromaMade PRO : un logiciel de naturopathie pensé pour le terrain
+                        Olithea : un logiciel de naturopathie pensé pour le terrain
                     </h2>
                     <p class="text-lg text-gray-600 leading-relaxed mt-4" data-aos="fade-up" data-aos-delay="100">
                         Que vous exerciez en cabinet, en visio, à domicile, ou en mixte, un bon logiciel doit vous aider à rester
-                        organisé sans alourdir vos journées. AromaMade PRO est conçu pour structurer votre pratique et vous faire gagner du temps.
+                        organisé sans alourdir vos journées. Olithea est conçu pour structurer votre pratique et vous faire gagner du temps.
                     </p>
                 </div>
 
@@ -348,7 +348,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
                         <h3 class="text-2xl font-bold text-primary">Gérer votre cabinet de naturopathie au quotidien</h3>
                         <p class="mt-3">
                             La naturopathie implique souvent un suivi dans la durée : bilans, objectifs, routines, ajustements.
-                            AromaMade PRO vous permet de regrouper l’ensemble des informations au même endroit :
+                            Olithea vous permet de regrouper l’ensemble des informations au même endroit :
                             dossier client, notes, documents, réponses aux questionnaires et historique des rendez-vous.
                         </p>
                         <ul class="mt-4">
@@ -378,7 +378,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
                         <h3 class="text-2xl font-bold text-primary">Facturation naturopathe : devis & factures plus simples</h3>
                         <p class="mt-3">
                             Si vous êtes naturopathe en micro-entreprise, vous avez besoin d’une facturation simple,
-                            claire, et présentable. AromaMade PRO vous aide à produire des devis et factures rapidement,
+                            claire, et présentable. Olithea vous aide à produire des devis et factures rapidement,
                             et à garder un suivi propre de votre activité.
                         </p>
                         <ul class="mt-4">
@@ -406,7 +406,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
                 <div class="mt-12 text-center" data-aos="fade-up">
                     <p class="text-gray-600 mb-6">
                         Vous cherchez un <b>logiciel de naturopathie</b> pour gagner du temps et professionnaliser votre cabinet ?
-                        Testez AromaMade PRO gratuitement.
+                        Testez Olithea gratuitement.
                     </p>
                     <a href="{{ route('register-pro') }}" class="btn-primary">
                         Créer mon compte <i class="fas fa-arrow-right"></i>
@@ -482,13 +482,13 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
                     </div>
                     <div class="accordion-content">
                         L’idéal est d’avoir un outil qui centralise agenda, dossiers clients, questionnaires et facturation,
-                        sans complexité. AromaMade PRO a été conçu pour un usage quotidien, avec des documents pro et une gestion simple.
+                        sans complexité. Olithea a été conçu pour un usage quotidien, avec des documents pro et une gestion simple.
                     </div>
                 </div>
 
                 <div class="accordion-item">
                     <div class="accordion-header">
-                        <span>Est-ce que AromaMade PRO convient aux consultations en visio ou à domicile ?</span>
+                        <span>Est-ce que Olithea convient aux consultations en visio ou à domicile ?</span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="accordion-content">
@@ -525,7 +525,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
                         <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="accordion-content">
-                        Oui. Vous pouvez tester AromaMade PRO gratuitement pendant 14 jours, sans engagement.
+                        Oui. Vous pouvez tester Olithea gratuitement pendant 14 jours, sans engagement.
                     </div>
                 </div>
             </div>
@@ -542,12 +542,12 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
               "name": "Quel logiciel choisir pour une naturopathe en micro-entreprise ?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "L’idéal est un outil qui centralise agenda, dossiers clients, questionnaires et facturation. AromaMade PRO a été conçu pour un usage quotidien simple et professionnel."
+                "text": "L’idéal est un outil qui centralise agenda, dossiers clients, questionnaires et facturation. Olithea a été conçu pour un usage quotidien simple et professionnel."
               }
             },
             {
               "@type": "Question",
-              "name": "Est-ce que AromaMade PRO convient aux consultations en visio ou à domicile ?",
+              "name": "Est-ce que Olithea convient aux consultations en visio ou à domicile ?",
               "acceptedAnswer": {
                 "@type": "Answer",
                 "text": "Oui. Vous pouvez organiser votre activité en cabinet, en visio, à domicile, ou en mixte tout en gardant une gestion centralisée."
@@ -574,7 +574,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
               "name": "Y a-t-il un essai gratuit du logiciel naturopathe ?",
               "acceptedAnswer": {
                 "@type": "Answer",
-                "text": "Oui, AromaMade PRO propose un essai gratuit de 14 jours, sans engagement."
+                "text": "Oui, Olithea propose un essai gratuit de 14 jours, sans engagement."
               }
             }
           ]
@@ -587,7 +587,7 @@ AromaMade PRO est un logiciel conçu pour les naturopathes indépendants : agend
         <div class="container mx-auto px-6">
             <div class="max-w-4xl mx-auto text-center feature-card p-10" data-aos="zoom-in">
                 <h2 class="text-3xl md:text-4xl font-bold mb-4 text-primary">
-                    Essayez le logiciel naturopathe AromaMade PRO
+                    Essayez le logiciel naturopathe Olithea
                 </h2>
                 <p class="text-lg text-gray-600 leading-relaxed mb-8">
                     Centralisez votre agenda, votre prise de rendez-vous en ligne, vos dossiers clients,

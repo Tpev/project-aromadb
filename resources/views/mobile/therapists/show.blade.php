@@ -15,7 +15,7 @@
     $servicesSeo = collect($servicesArr)->unique()->take(3)->implode(', ');
 
     // === PAGE TITLE / META ===
-    $brand     = config('app.name', 'AromaMade');
+    $brand     = config('app.name', 'Olithea');
     $nameLabel = $therapist->company_name ?? $therapist->name;
     $labelSeo  = $servicesSeo ?: 'Thérapeute';
 

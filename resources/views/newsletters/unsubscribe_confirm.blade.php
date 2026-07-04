@@ -10,7 +10,7 @@
         </p>
 
         <p class="text-sm text-gray-600 mb-4">
-            Vous ne recevrez plus de newsletters ni d’informations marketing envoyées via AromaMade par ce thérapeute.
+            Vous ne recevrez plus de newsletters ni d’informations marketing envoyées via Olithea par ce thérapeute.
             Vous continuerez toutefois à recevoir les emails strictement nécessaires à la gestion de vos rendez-vous (confirmations, rappels, etc.), le cas échéant.
         </p>
 
