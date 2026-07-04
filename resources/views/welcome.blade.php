@@ -284,9 +284,7 @@
                 @if($event->image)
                   <img src="{{ asset('storage/'.$event->image) }}" alt="{{ $event->name }}" class="h-full w-full object-cover" loading="lazy">
                 @else
-                  <div class="flex h-full items-center justify-center px-6 text-center">
-                    <span class="text-sm font-bold uppercase tracking-normal text-[#647a0b]">Atelier Olithea</span>
-                  </div>
+                  <div class="h-full bg-[#eef3de]"></div>
                 @endif
               </div>
 
