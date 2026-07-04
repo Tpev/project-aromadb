@@ -81,7 +81,7 @@
 
             .brand img {
                 display: block;
-                width: clamp(96px, 24vw, 132px);
+                width: clamp(132px, 26vw, 180px);
                 height: auto;
             }
 
@@ -271,7 +271,7 @@
                 <div class="login-card-inner">
                     <div class="brand">
                         <a href="{{ url('/') }}" aria-label="Retour à l'accueil Olithea">
-                            <img src="{{ asset('images/png-01.webp') }}" width="256" height="64" alt="{{ config('app.name', 'Olithea') }}">
+                            <img src="{{ asset('images/brand/olithea-logo-horizontal-green-cropped.png') }}" width="941" height="294" alt="{{ config('app.name', 'Olithea') }}">
                         </a>
                     </div>
 
