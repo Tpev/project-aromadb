@@ -1,34 +1,55 @@
 <x-app-layout>
-  {{-- ========================  SEO  ======================== --}}
-  @section('title', 'Trouvez un thérapeute près de chez vous | Olithea')
+  @section('title', 'Trouvez un praticien près de chez vous | Olithea')
   @section('meta_description')
-    Réservez en ligne avec des thérapeutes certifiés (naturopathie, sophrologie, ostéopathie…). Profils vérifiés, avis, tarifs, prise de RDV simple. Espace Client pour partager vos documents en toute sécurité. Événements & ateliers organisés par nos membres.
+    Réservez en ligne avec des praticiens vérifiés : naturopathie, sophrologie, ostéopathie, hypnose, massage bien-être et accompagnements. Profils, avis, tarifs, agenda en ligne et espace client sécurisé.
   @endsection
 
-  {{-- Head extras: Canonical, Social --}}
-  <x-slot name="head">
-    <link rel="canonical" href="{{ url()->current() }}">
-    <meta name="robots" content="index,follow">
-
-    {{-- Social --}}
+  @section('meta_og')
     <meta property="og:site_name" content="Olithea">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Trouvez un thérapeute près de chez vous | Olithea">
-    <meta property="og:description" content="Réservez avec des praticiens vérifiés. Avis, tarifs, Espace Client sécurisé.">
+    <meta property="og:title" content="Trouvez un praticien près de chez vous | Olithea">
+    <meta property="og:description" content="Comparez les profils, consultez les avis et réservez un rendez-vous avec un praticien vérifié.">
     <meta property="og:image" content="{{ asset('images/og-home.webp') }}">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Trouvez un thérapeute près de chez vous | Olithea">
-    <meta name="twitter:description" content="Prise de RDV simple, profils vérifiés, Espace Client sécurisé.">
+    <meta name="twitter:title" content="Trouvez un praticien près de chez vous | Olithea">
+    <meta name="twitter:description" content="Prise de rendez-vous simple, profils vérifiés et espace client sécurisé.">
     <meta name="twitter:image" content="{{ asset('images/og-home.webp') }}">
+  @endsection
 
+  @push('styles')
     <style>
-      /* Utility clamps for titles/excerpts */
-      .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-      .line-clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-    </style>
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
 
-    {{-- JSON-LD: WebSite + SearchAction (therapists) --}}
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .ol-hero {
+        background-image:
+          linear-gradient(90deg, rgba(24, 30, 20, .82), rgba(24, 30, 20, .54), rgba(24, 30, 20, .25)),
+          url('{{ asset('images/hero-background.webp') }}');
+      }
+
+      @media (max-width: 767px) {
+        .ol-hero {
+          background-image:
+            linear-gradient(180deg, rgba(24, 30, 20, .82), rgba(24, 30, 20, .58)),
+            url('{{ asset('images/hero-background.webp') }}');
+        }
+      }
+    </style>
+  @endpush
+
+  @section('structured_data')
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -45,560 +66,339 @@
       }
     }
     </script>
-  </x-slot>
+  @endsection
 
-  {{-- ========================  HERO + PRIMARY SEARCH  ======================== --}}
-  <section class="relative bg-cover bg-center" style="background-image:url('{{ asset('images/hero-background.webp') }}')">
-    <div class="absolute inset-0 bg-black/45"></div>
-    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20 text-center">
-      <img src="{{ asset('images/brand/olithea-logo-horizontal-accent-cropped.png') }}" alt="Olithea - Plateforme de prise de rendez-vous bien-être"
-           class="mx-auto w-[200px] sm:w-[260px] md:w-[320px] mb-5 md:mb-7" loading="lazy">
+  <section class="ol-hero bg-cover bg-center">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
+      <div class="max-w-3xl text-white">
+        <p class="inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-normal text-white/90">
+          Annuaire et agenda des praticiens
+        </p>
 
-      <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
-        Trouvez votre thérapeute et réservez en quelques clics
-      </h1>
-      <p class="text-white/90 text-base sm:text-lg md:text-xl mt-3 md:mt-4">
-        Naturopathe, sophrologue, ostéopathe… Profils vérifiés, avis et tarifs. <span class="font-semibold">Espace Client</span> pour partager vos documents en toute sécurité.
-      </p>
+        <h1 class="mt-5 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+          Trouvez le praticien qui vous correspond.
+        </h1>
 
-      {{-- Search Card (now includes Name like results page; posts to therapists.search) --}}
-      <div class="mt-6 md:mt-8 max-w-5xl mx-auto bg-white/95 backdrop-blur rounded-2xl shadow-2xl p-4 sm:p-5">
-        <form action="{{ route('therapists.search') }}" method="POST"
-              class="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
-          @csrf
+        <p class="mt-5 max-w-2xl text-base leading-7 text-white/88 sm:text-lg">
+          Naturopathie, sophrologie, ostéopathie, hypnose, massage bien-être ou accompagnement : comparez les profils, choisissez un créneau et réservez en quelques clics.
+        </p>
+      </div>
 
-          {{-- Name (fuzzy across name & company_name) --}}
+      <div class="mt-8 max-w-5xl rounded-lg bg-white p-4 shadow-2xl shadow-black/20 sm:p-5">
+        <form action="{{ route('therapists.search') }}" method="GET" class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
           <div>
-            <label for="name" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
-              Nom (optionnel)
-            </label>
-            <input type="text" id="name" name="name"
-                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
-                   placeholder="Ex. Marie Dupont ou Cabinet Harmonie" value="{{ old('name', request('name')) }}">
+            <label for="name" class="mb-1 block text-xs font-semibold text-[#4f6208]">Nom ou cabinet</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              class="h-12 w-full rounded-lg border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"
+              placeholder="Ex. Cabinet Harmonie"
+              value="{{ old('name', request('name')) }}">
           </div>
 
-          {{-- Specialty --}}
           <div>
-            <label for="specialty" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
-              Spécialité
-            </label>
-            <input type="text" id="specialty" name="specialty" list="specialties"
-                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
-                   placeholder="Ex. naturopathie, sophrologie" value="{{ old('specialty', request('specialty')) }}">
+            <label for="specialty" class="mb-1 block text-xs font-semibold text-[#4f6208]">Spécialité</label>
+            <input
+              type="text"
+              id="specialty"
+              name="specialty"
+              list="specialties"
+              class="h-12 w-full rounded-lg border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"
+              placeholder="Ex. sophrologie"
+              value="{{ old('specialty', request('specialty')) }}">
             <datalist id="specialties"></datalist>
           </div>
 
-          {{-- Location --}}
           <div>
-            <label for="location" class="block text-xs sm:text-sm font-semibold text-[#647a0b] mb-1">
-              Lieu
-            </label>
-            <input type="text" id="location" name="location" list="regions"
-                   class="w-full rounded-xl border-gray-300 focus:ring-[#647a0b] focus:border-[#647a0b] px-4 py-3"
-                   placeholder="Ville, code postal ou région" value="{{ old('location', request('location')) }}">
+            <label for="location" class="mb-1 block text-xs font-semibold text-[#4f6208]">Lieu</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              list="regions"
+              class="h-12 w-full rounded-lg border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"
+              placeholder="Ville, code postal ou région"
+              value="{{ old('location', request('location')) }}">
             <datalist id="regions"></datalist>
           </div>
 
-          {{-- Submit --}}
           <div class="flex items-end">
-            <button type="submit"
-                    class="w-full inline-flex items-center justify-center bg-[#647a0b] hover:bg-[#576a0a] text-white font-semibold rounded-xl px-6 py-3 shadow-lg transition active:scale-[0.99]">
+            <button type="submit" class="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#647a0b] px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#536708] md:w-auto">
               Rechercher
             </button>
           </div>
         </form>
 
-        {{-- Quick chips --}}
-        <div class="mt-3 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-          <span class="text-gray-600">Populaires :</span>
-          @php $popular = ['Naturopathie', 'Sophrologie', 'Ostéopathie', 'Hypnose', 'Massage bien-être']; @endphp
-          @foreach($popular as $label)
-            <a href="{{ route('therapists.search') }}?specialty={{ urlencode($label) }}"
-               class="px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition">{{ $label }}</a>
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+          <span class="font-semibold text-gray-500">Recherches fréquentes</span>
+          @foreach(['Naturopathie', 'Sophrologie', 'Ostéopathie', 'Hypnose', 'Massage bien-être'] as $label)
+            <a href="{{ route('therapists.search', ['specialty' => $label]) }}" class="rounded-full border border-[#dfe6c8] px-3 py-1 font-semibold text-[#647a0b] transition hover:border-[#647a0b] hover:bg-[#f4f7ea]">
+              {{ $label }}
+            </a>
           @endforeach
         </div>
       </div>
     </div>
   </section>
 
-  {{-- ========================  TRUST STRIP  ======================== --}}
-  <section class="bg-[#f8f8f8] py-6">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold text-[#647a0b]">Praticiens vérifiés</p>
-        <p class="text-sm text-gray-600">Diplômes & profils revus par notre équipe.</p>
+  <section class="border-b border-[#e6e8dd] bg-[#f7f8f1]">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 gap-px px-4 py-6 sm:grid-cols-3 sm:px-6 lg:px-8">
+      <div class="px-0 py-3 sm:px-5">
+        <p class="text-sm font-bold text-[#647a0b]">Profils vérifiés</p>
+        <p class="mt-1 text-sm text-gray-600">Diplômes, spécialités et informations clés sont relus par notre équipe.</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold text-[#647a0b]">Réservation rapide</p>
-        <p class="text-sm text-gray-600">Créneaux en cabinet, à domicile ou en visio.</p>
+      <div class="border-t border-[#e1e5d6] px-0 py-3 sm:border-l sm:border-t-0 sm:px-5">
+        <p class="text-sm font-bold text-[#647a0b]">Réservation claire</p>
+        <p class="mt-1 text-sm text-gray-600">Créneaux en cabinet, à domicile ou en visio, avec confirmation par email.</p>
       </div>
-      <div class="bg-white rounded-xl p-4 shadow">
-        <p class="font-semibold text-[#647a0b]">Données sécurisées</p>
-        <p class="text-sm text-gray-600">Confidentialité & chiffrement renforcés.</p>
+      <div class="border-t border-[#e1e5d6] px-0 py-3 sm:border-l sm:border-t-0 sm:px-5">
+        <p class="text-sm font-bold text-[#647a0b]">Espace client sécurisé</p>
+        <p class="mt-1 text-sm text-gray-600">Documents, questionnaires et rendez-vous réunis dans un espace privé.</p>
       </div>
     </div>
   </section>
 
- {{-- ========================  FEATURED THERAPISTS  ======================== --}}
-@if(isset($featuredTherapists) && $featuredTherapists->count())
-  <section class="py-12">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Praticiens à la une</h2>
-        <a href="{{ route('nos-practiciens') }}" class="text-[#854f38] hover:underline font-semibold">Voir tout</a>
-      </div>
+  @if(isset($featuredTherapists) && $featuredTherapists->count())
+    <section class="bg-white py-14">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-normal text-[#8b5a42]">Sélection Olithea</p>
+            <h2 class="mt-2 text-3xl font-bold text-[#2f3825]">Praticiens à la une</h2>
+          </div>
+          <a href="{{ route('nos-practiciens') }}" class="text-sm font-bold text-[#647a0b] hover:underline">Voir tous les praticiens</a>
+        </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        @foreach($featuredTherapists as $therapist)
-          <div class="flex flex-col bg-white shadow-xl rounded-xl overflow-hidden transform hover:-translate-y-1 transition-all duration-300">
+        <div class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          @foreach($featuredTherapists as $therapist)
+            @php
+              $servicesRaw = $therapist->services ?? [];
+              $services = is_array($servicesRaw) ? $servicesRaw : (json_decode($servicesRaw, true) ?: []);
+              $aboutPlain = trim(strip_tags($therapist->about ?? ''));
+            @endphp
 
-            <!-- Header Banner -->
-            <div class="relative h-40 bg-[#647a0b]">
-              @if($therapist->verified ?? false)
-                <div class="absolute top-2 right-2">
-                  <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    Vérifié
-                  </span>
+            <article class="rounded-lg border border-[#e5e8d8] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+              <div class="flex items-start gap-4">
+                <img
+                  class="h-20 w-20 flex-none rounded-lg object-cover"
+                  src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/160' }}"
+                  alt="{{ $therapist->name }}"
+                  loading="lazy">
+
+                <div class="min-w-0">
+                  <h3 class="text-lg font-bold leading-snug text-[#2f3825]">{{ $therapist->name }}</h3>
+
+                  @if($therapist->company_name)
+                    <p class="mt-1 text-sm font-semibold text-[#647a0b]">{{ $therapist->company_name }}</p>
+                  @endif
+
+                  @if($therapist->city_setByAdmin)
+                    <p class="mt-1 text-sm text-gray-500">{{ $therapist->city_setByAdmin }}</p>
+                  @endif
                 </div>
-              @endif
-            </div>
-
-            <!-- Profile Image (overlapping the banner) -->
-            <div class="relative flex justify-center -mt-16">
-              <img
-                class="w-32 h-32 rounded-full border-4 border-white object-cover"
-                src="{{ $therapist->profile_picture ? asset('storage/' . $therapist->profile_picture) : 'https://via.placeholder.com/150' }}"
-                alt="{{ $therapist->name }}"
-              >
-            </div>
-
-            <!-- Card Details -->
-            <div class="flex flex-col flex-grow px-4 pt-2 pb-4">
-              <div class="text-center">
-                <h4 class="text-2xl font-bold text-[#647a0b]">{{ $therapist->name }}</h4>
-
-                @if($therapist->company_name)
-                  <p class="text-sm text-[#647a0b]">{{ $therapist->company_name }}</p>
-                @endif
-
-                @if($therapist->city_setByAdmin)
-                  <p class="text-sm text-[#647a0b]">
-                    <i class="fas fa-map-marker-alt"></i> {{ $therapist->city_setByAdmin }}
-                  </p>
-                @endif
               </div>
 
-              <!-- Specialty Badges -->
-              <div class="mt-2 text-center">
-                @php
-                  // services can be JSON or array; normalize to array
-                  $servicesRaw = $therapist->services ?? [];
-                  $services = is_array($servicesRaw) ? $servicesRaw : (json_decode($servicesRaw, true) ?: []);
-                @endphp
-                @if(!empty($services))
-                  @foreach($services as $service)
-                    <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full m-1">
+              @if(!empty($services))
+                <div class="mt-4 flex flex-wrap gap-2">
+                  @foreach(array_slice($services, 0, 4) as $service)
+                    <span class="rounded-full bg-[#eef3de] px-3 py-1 text-xs font-semibold text-[#566a09]">
                       {{ $service }}
                     </span>
                   @endforeach
-                @endif
-              </div>
-
-              @php
-                $aboutPlain = strip_tags($therapist->about ?? 'Informations à propos non disponibles.');
-              @endphp
-
-              <p class="mt-4 text-sm text-[#647a0b] text-center">
-                {{ Str::limit($aboutPlain, 100) }}
-              </p>
-
-              <!-- Rating / Testimonials and CTA -->
-              <div class="mt-4 flex flex-col items-center space-y-2">
-                <div class="flex items-center space-x-2 text-[#647a0b] text-sm">
-                  <i class="fas fa-comment-alt"></i>
-                  <span>{{ $therapist->testimonials()->count() }} témoignage(s)</span>
-
-                  @if(!is_null($therapist->average_rating))
-                    <span class="inline-flex items-center gap-1">
-                      • <strong>{{ number_format($therapist->average_rating, 1) }}</strong>★
-                    </span>
-                  @endif
                 </div>
+              @endif
 
-                <a href="{{ route('therapist.show', $therapist->slug) }}" class="btn btn-primary text-xs w-full md:w-auto">
-                  Voir profil
+              @if($aboutPlain !== '')
+                <p class="mt-4 min-h-[3.75rem] text-sm leading-6 text-gray-600 line-clamp-3">
+                  {{ $aboutPlain }}
+                </p>
+              @endif
+
+              <div class="mt-5 flex items-center justify-between border-t border-[#edf0e4] pt-4">
+                <span class="text-xs font-semibold text-gray-500">
+                  {{ $therapist->testimonials()->count() }} témoignage(s)
+                </span>
+                <a href="{{ route('therapist.show', $therapist->slug) }}" class="rounded-lg bg-[#2f3825] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#647a0b]">
+                  Voir le profil
                 </a>
-              </div>
-            </div>
-          </div>
-        @endforeach
-      </div>
-    </div>
-  </section>
-@endif
-
-
-  {{-- ========================  HOW IT WORKS + ESPACE CLIENT  ======================== --}}
-  <section class="bg-[#f9fafb] py-12">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl md:text-3xl font-bold text-center text-[#647a0b]">Comment ça marche ?</h2>
-      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl shadow p-6">
-          <h3 class="font-semibold text-lg text-[#647a0b]">1. Recherchez</h3>
-          <p class="text-gray-600">Saisissez une spécialité et un lieu pour afficher les praticiens disponibles.</p>
-        </div>
-        <div class="bg-white rounded-2xl shadow p-6">
-          <h3 class="font-semibold text-lg text-[#647a0b]">2. Comparez</h3>
-          <p class="text-gray-600">Lisez les profils, avis et tarifs pour choisir le bon accompagnement.</p>
-        </div>
-        <div class="bg-white rounded-2xl shadow p-6">
-          <h3 class="font-semibold text-lg text-[#647a0b]">3. Réservez</h3>
-          <p class="text-gray-600">
-            Confirmez votre créneau. Votre <strong>Espace Client</strong> est créé pour partager documents, formulaires et notes en toute confidentialité.
-          </p>
-        </div>
-      </div>
-    </div>
-  </section>
-@once
-  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-  <style>
-    /* Quill display mode (no toolbar / no border / tight spacing) */
-    .am-quill-view .ql-toolbar { display:none !important; }
-    .am-quill-view.ql-snow { border:none !important; }
-    .am-quill-view .ql-editor { padding:0 !important; }
-    .am-quill-view .ql-editor p { margin:.35rem 0; }
-    .am-quill-view .ql-editor ul,
-    .am-quill-view .ql-editor ol { padding-left:1.25rem; margin:.35rem 0; }
-    .am-quill-view .ql-editor h1,
-    .am-quill-view .ql-editor h2,
-    .am-quill-view .ql-editor h3 { margin:.55rem 0 .35rem; }
-
-    /* Nice clamp for description block (works with Quill HTML) */
-    .am-clamp {
-      position: relative;
-      max-height: 4.8rem; /* ~3 lines */
-      overflow: hidden;
-    }
-    .am-clamp::after{
-      content:"";
-      position:absolute;
-      left:0; right:0; bottom:0;
-      height: 2.2rem;
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
-      pointer-events:none;
-    }
-    .am-clamp-open{
-      max-height:none;
-    }
-    .am-clamp-open::after{ display:none; }
-  </style>
-@endonce
-{{-- ========================  EVENTS / WORKSHOPS (Members organized)  ======================== --}}
-@once
-  {{-- Quill viewer styling (safe even if descriptions are legacy plain text) --}}
-  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
-  <style>
-    /* Quill display mode (no toolbar / no border / tight spacing) */
-    .am-quill-view .ql-toolbar { display:none !important; }
-    .am-quill-view.ql-snow { border:none !important; }
-    .am-quill-view .ql-editor { padding:0 !important; }
-    .am-quill-view .ql-editor p { margin:.35rem 0; }
-    .am-quill-view .ql-editor ul,
-    .am-quill-view .ql-editor ol { padding-left:1.25rem; margin:.35rem 0; }
-    .am-quill-view .ql-editor h1,
-    .am-quill-view .ql-editor h2,
-    .am-quill-view .ql-editor h3 { margin:.55rem 0 .35rem; }
-
-    /* Clamp (works for Quill HTML too) */
-    .am-clamp {
-      position: relative;
-      max-height: 4.8rem; /* ~3 lines */
-      overflow: hidden;
-    }
-    .am-clamp::after{
-      content:"";
-      position:absolute;
-      left:0; right:0; bottom:0;
-      height: 2.2rem;
-      background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));
-      pointer-events:none;
-    }
-    .am-clamp-open{ max-height:none; }
-    .am-clamp-open::after{ display:none; }
-
-    /* Nice horizontal scrollbar */
-    .am-scroll::-webkit-scrollbar { height: 7px; }
-    .am-scroll::-webkit-scrollbar-thumb { background:#d8d8d8; border-radius:999px; }
-    .am-scroll::-webkit-scrollbar-track { background:transparent; }
-  </style>
-@endonce
-
-<section class="py-12 bg-white">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    {{-- Header --}}
-    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h2 class="text-2xl md:text-3xl font-bold text-[#854f38]">
-          Événements & Ateliers des membres
-        </h2>
-      </div>
-      <p class="text-gray-600 sm:max-w-2xl">
-        Découvrez les prochains <strong>événements, ateliers et stages</strong> organisés par nos praticiens membres : conférences, initiations, découvertes de pratiques…
-      </p>
-    </div>
-
-    @if(isset($events) && $events->count())
-
-      {{-- Carousel wrapper --}}
-      <div class="relative mt-7">
-
-        {{-- Desktop arrows (real carousel feel) --}}
-        <button type="button"
-                class="hidden lg:flex items-center justify-center absolute -left-4 top-1/2 -translate-y-1/2 z-10
-                       w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition"
-                onclick="document.getElementById('am-events-scroll').scrollBy({ left: -520, behavior: 'smooth' })"
-                aria-label="Précédent">
-          <span class="text-2xl leading-none text-gray-700">‹</span>
-        </button>
-
-        <button type="button"
-                class="hidden lg:flex items-center justify-center absolute -right-4 top-1/2 -translate-y-1/2 z-10
-                       w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition"
-                onclick="document.getElementById('am-events-scroll').scrollBy({ left: 520, behavior: 'smooth' })"
-                aria-label="Suivant">
-          <span class="text-2xl leading-none text-gray-700">›</span>
-        </button>
-
-        {{-- Track --}}
-        <div id="am-events-scroll"
-             class="am-scroll flex gap-5 overflow-x-auto scroll-smooth pb-4
-                    snap-x snap-mandatory">
-
-          @foreach($events as $event)
-            @php
-              $spotsLeft = $event->limited_spot
-                ? max($event->number_of_spot - $event->reservations->count(), 0)
-                : null;
-
-              $desc = (string)($event->description ?? '');
-              $descPlain = trim(strip_tags($desc));
-              $looksHtml = $desc !== '' && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
-              $isLong = mb_strlen($descPlain) > 140;
-            @endphp
-
-            {{-- Card (IMPORTANT: only standard Tailwind widths -> works even if your Tailwind build doesn't support arbitrary classes) --}}
-            <article class="snap-start flex-shrink-0 w-80 sm:w-96 bg-white rounded-2xl border border-gray-100
-                            shadow-sm hover:shadow-lg transition overflow-hidden">
-
-              {{-- Image --}}
-              <div class="h-44 bg-gray-100">
-                @if($event->image)
-                  <img src="{{ asset('storage/'.$event->image) }}"
-                       alt="{{ $event->name }}"
-                       class="w-full h-full object-cover"
-                       loading="lazy">
-                @endif
-              </div>
-
-              {{-- Body --}}
-              <div class="p-5 flex flex-col h-80">
-                <h3 class="text-lg font-bold text-[#854f38] line-clamp-2">
-                  {{ $event->name }}
-                </h3>
-
-                <div class="mt-2 text-sm text-gray-600 space-y-1">
-                  <div>
-                    {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
-                  </div>
-                  <div>{{ $event->location }}</div>
-
-                  @if($event->user)
-                    <div>
-                      Organisé par
-                      <a href="{{ route('therapist.show', $event->user->slug) }}"
-                         class="text-[#647a0b] underline font-semibold">
-                        {{ $event->user->name }}
-                      </a>
-                    </div>
-                  @endif
-
-                  @if($event->limited_spot)
-                    <div>Places restantes : <strong>{{ $spotsLeft }}</strong></div>
-                  @endif
-
-                  @if($event->associatedProduct && $event->associatedProduct->price > 0)
-                    <div>Prix : {{ number_format($event->associatedProduct->price_incl_tax, 2, ',', ' ') }} €</div>
-                  @endif
-                </div>
-
-                {{-- Description (Quill HTML OR plain text) --}}
-                @if($descPlain !== '')
-                  <div x-data="{ open:false }" class="mt-3 text-sm text-gray-700">
-                    <div :class="open ? 'am-clamp-open' : 'am-clamp'" class="leading-relaxed">
-                      @if($looksHtml)
-                        <div class="ql-snow am-quill-view">
-                          <div class="ql-editor">
-                            {!! $desc !!}
-                          </div>
-                        </div>
-                      @else
-                        {!! nl2br(e($desc)) !!}
-                      @endif
-                    </div>
-
-                    @if($isLong)
-                      <button type="button"
-                              @click="open = !open"
-                              class="mt-2 inline-flex items-center gap-2 text-[#854f38] font-semibold hover:underline">
-                        <span x-text="open ? 'Réduire' : 'Lire plus'"></span>
-                        <span class="text-[10px]" :class="open ? 'rotate-180' : ''">▼</span>
-                      </button>
-                    @endif
-                  </div>
-                @endif
-
-                {{-- CTA pinned bottom --}}
-                <div class="mt-auto pt-4">
-                  @if($event->booking_required)
-                    @if(!$event->limited_spot || ($spotsLeft > 0))
-                      <a href="{{ route('events.reserve.create', $event->id) }}"
-                         class="inline-flex items-center justify-center w-full bg-[#854f38] hover:bg-[#6a3f2c]
-                                text-white font-semibold text-sm px-5 py-2.5 rounded-full transition">
-                        S’inscrire
-                      </a>
-                    @else
-                      <div class="text-center text-red-500 font-semibold text-sm">
-                        Complet
-                      </div>
-                    @endif
-                  @else
-                    <div class="text-center text-gray-400 text-sm">
-                      Inscription non requise
-                    </div>
-                  @endif
-                </div>
               </div>
             </article>
           @endforeach
-
-        </div>
-      </div>
-
-    @else
-      <p class="mt-4 text-gray-600">Aucun événement à venir pour le moment.</p>
-    @endif
-
-  </div>
-</section>
-
-
-  {{-- ========================  CONTENT HUB (BLOG)  ======================== --}}
-  @if(isset($blogPosts))
-    <section class="py-12 bg-[#f9fafb]">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl md:text-3xl font-bold text-[#6a3f2c]">Conseils & Articles</h2>
-          <a href="{{ route('blog.index') }}" class="text-[#854f38] hover:underline font-semibold">Tous les articles</a>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          @forelse($blogPosts as $post)
-            <a href="{{ route('blog.show', $post->slug) }}"
-               class="bg-white rounded-2xl border border-gray-100 shadow hover:shadow-lg transition overflow-hidden">
-              <img src="{{ asset('images/'.$post->slug.'.webp') }}" alt="{{ $post->Title }}" class="w-full h-44 object-cover" loading="lazy">
-              <div class="p-5">
-                @if($post->Tags)
-                  <span class="inline-block bg-[#647a0b] text-white text-xs px-3 py-1 rounded-full">{{ $post->Tags }}</span>
-                @endif
-                <h3 class="mt-2 text-lg sm:text-xl font-semibold text-[#854f38] line-clamp-2">{{ $post->Title }}</h3>
-                <p class="mt-1 text-gray-600 line-clamp-3">{{ Str::limit(strip_tags($post->Contents), 110) }}</p>
-                <span class="mt-3 inline-flex items-center text-[#647a0b] font-semibold">
-                  Lire l’article →
-                </span>
-              </div>
-            </a>
-          @empty
-            <p class="text-gray-600">Aucun article disponible.</p>
-          @endforelse
         </div>
       </div>
     </section>
   @endif
 
-  {{-- ========================  PRO CTA (Therapists only)  ======================== --}}
-  <section class="bg-gradient-to-r from-[#854f38] to-[#6a3f2c] py-12 text-white text-center">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl md:text-3xl font-bold">Vous êtes thérapeute ? Rejoignez Olithea</h2>
-      <p class="mt-3 text-white/90">
-        Agenda en ligne, téléconsultation, dossiers clients, facturation, questionnaires, rappels — <strong>sans commission</strong>.
-      </p>
-      <a href="{{ route('prolanding') }}"
-         class="inline-block mt-6 bg-white text-[#6a3f2c] font-semibold px-6 py-3 rounded-full shadow hover:shadow-lg transition">
-        Découvrir l’Espace PRO
+  <section class="bg-[#f7f8f1] py-14">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center">
+        <p class="text-xs font-bold uppercase tracking-normal text-[#8b5a42]">Simple et direct</p>
+        <h2 class="mt-2 text-3xl font-bold text-[#2f3825]">Comment ça marche ?</h2>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div class="rounded-lg border border-[#e1e5d6] bg-white p-6">
+          <span class="text-sm font-bold text-[#8b5a42]">01</span>
+          <h3 class="mt-3 text-lg font-bold text-[#2f3825]">Recherchez</h3>
+          <p class="mt-2 text-sm leading-6 text-gray-600">Filtrez par nom, spécialité ou lieu pour trouver un praticien disponible.</p>
+        </div>
+        <div class="rounded-lg border border-[#e1e5d6] bg-white p-6">
+          <span class="text-sm font-bold text-[#8b5a42]">02</span>
+          <h3 class="mt-3 text-lg font-bold text-[#2f3825]">Comparez</h3>
+          <p class="mt-2 text-sm leading-6 text-gray-600">Consultez les profils, les avis, les pratiques proposées et les modalités de rendez-vous.</p>
+        </div>
+        <div class="rounded-lg border border-[#e1e5d6] bg-white p-6">
+          <span class="text-sm font-bold text-[#8b5a42]">03</span>
+          <h3 class="mt-3 text-lg font-bold text-[#2f3825]">Réservez</h3>
+          <p class="mt-2 text-sm leading-6 text-gray-600">Choisissez un créneau et recevez toutes les informations utiles dans votre espace client.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-white py-14">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-normal text-[#8b5a42]">À découvrir</p>
+          <h2 class="mt-2 text-3xl font-bold text-[#2f3825]">Événements et ateliers</h2>
+        </div>
+        <p class="max-w-2xl text-sm leading-6 text-gray-600">
+          Conférences, initiations, stages ou ateliers en ligne : découvrez les rendez-vous proposés par les praticiens membres.
+        </p>
+      </div>
+
+      @if(isset($events) && $events->count())
+        <div class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+          @foreach($events as $event)
+            @php
+              $spotsLeft = $event->limited_spot
+                ? max($event->number_of_spot - $event->reservations->count(), 0)
+                : null;
+              $descPlain = trim(strip_tags((string) ($event->description ?? '')));
+            @endphp
+
+            <article class="flex min-h-full flex-col overflow-hidden rounded-lg border border-[#e5e8d8] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+              <div class="h-44 bg-[#eef3de]">
+                @if($event->image)
+                  <img src="{{ asset('storage/'.$event->image) }}" alt="{{ $event->name }}" class="h-full w-full object-cover" loading="lazy">
+                @else
+                  <div class="flex h-full items-center justify-center px-6 text-center">
+                    <span class="text-sm font-bold uppercase tracking-normal text-[#647a0b]">Atelier Olithea</span>
+                  </div>
+                @endif
+              </div>
+
+              <div class="flex flex-1 flex-col p-5">
+                <h3 class="text-lg font-bold leading-snug text-[#2f3825] line-clamp-2">{{ $event->name }}</h3>
+
+                <div class="mt-3 space-y-1 text-sm text-gray-600">
+                  <p>{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}</p>
+                  <p>{{ $event->location }}</p>
+
+                  @if($event->user)
+                    <p>
+                      Par
+                      <a href="{{ route('therapist.show', $event->user->slug) }}" class="font-semibold text-[#647a0b] hover:underline">
+                        {{ $event->user->name }}
+                      </a>
+                    </p>
+                  @endif
+
+                  @if($event->limited_spot)
+                    <p>Places restantes : <strong>{{ $spotsLeft }}</strong></p>
+                  @endif
+                </div>
+
+                @if($descPlain !== '')
+                  <p class="mt-4 text-sm leading-6 text-gray-600 line-clamp-3">{{ $descPlain }}</p>
+                @endif
+
+                <div class="mt-auto pt-5">
+                  @if($event->booking_required)
+                    @if(!$event->limited_spot || ($spotsLeft > 0))
+                      <a href="{{ route('events.reserve.create', $event->id) }}" class="inline-flex w-full items-center justify-center rounded-lg bg-[#8b5a42] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#734832]">
+                        S'inscrire
+                      </a>
+                    @else
+                      <p class="rounded-lg bg-red-50 px-5 py-3 text-center text-sm font-bold text-red-600">Complet</p>
+                    @endif
+                  @else
+                    <p class="rounded-lg bg-gray-50 px-5 py-3 text-center text-sm font-semibold text-gray-500">Inscription non requise</p>
+                  @endif
+                </div>
+              </div>
+            </article>
+          @endforeach
+        </div>
+      @else
+        <p class="mt-6 rounded-lg border border-[#e5e8d8] bg-[#f7f8f1] p-5 text-sm text-gray-600">Aucun événement à venir pour le moment.</p>
+      @endif
+    </div>
+  </section>
+
+  <section class="bg-[#2f3825] py-14 text-white">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+      <div>
+        <p class="text-sm font-semibold text-[#d8dfbd]">Pour les praticiens, coachs et accompagnants</p>
+        <h2 class="mt-2 text-3xl font-bold">Développez votre activité avec Olithea.</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-white/78">
+          Agenda en ligne, dossiers clients, questionnaires, visio, facturation et visibilité en ligne réunis dans un seul espace.
+        </p>
+      </div>
+      <a href="{{ route('prolanding') }}" class="inline-flex shrink-0 items-center justify-center rounded-lg bg-white px-6 py-3 text-sm font-bold text-[#2f3825] transition hover:bg-[#f0f3e5]">
+        Découvrir l'espace pro
       </a>
     </div>
   </section>
 
-  {{-- ========================  SEO / ABOUT + FAQ  ======================== --}}
-  <section class="py-12 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+  <section class="bg-white py-14">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 sm:px-6 md:grid-cols-2 lg:px-8">
       <div>
-        <h2 class="text-2xl md:text-3xl font-bold text-[#647a0b]">Olithea, votre guide bien-être</h2>
-        <p class="mt-3 text-gray-700">
-          Notre mission : rendre l’accès aux médecines douces simple, fiable et transparent. Nous centralisons un
-          annuaire de praticiens vérifiés et des contenus pédagogiques (huiles essentielles, végétales, tisanes,
-          recettes, articles) pour vous aider à faire des choix éclairés.
+        <p class="text-xs font-bold uppercase tracking-normal text-[#8b5a42]">Notre intention</p>
+        <h2 class="mt-2 text-3xl font-bold text-[#2f3825]">Une recherche plus lisible, un parcours plus serein.</h2>
+        <p class="mt-4 text-sm leading-7 text-gray-700">
+          Olithea rassemble des praticiens aux approches complémentaires pour rendre la prise de rendez-vous plus simple, plus claire et plus fiable. Chaque profil vous aide à comprendre la pratique, les modalités et les informations utiles avant de réserver.
         </p>
-        <p class="mt-3 text-gray-700">
-          Réservez votre rendez-vous en toute sérénité, comparez les profils, découvrez les avis, et utilisez votre
-          <strong>Espace Client</strong> pour partager vos informations avec votre thérapeute en toute confidentialité.
+        <p class="mt-3 text-sm leading-7 text-gray-700">
+          Après la réservation, l'espace client permet de retrouver les détails du rendez-vous, les documents partagés et les échanges importants avec le praticien.
         </p>
-        <a href="{{ route('welcome') }}" class="mt-4 inline-flex items-center text-[#854f38] font-semibold hover:underline">
-          En savoir plus →
-        </a>
       </div>
 
-      <div class="bg-[#f9fafb] rounded-2xl shadow p-6">
-        <h3 class="text-xl font-semibold text-[#647a0b]">Questions fréquentes</h3>
-        <div class="mt-4 divide-y">
+      <div class="rounded-lg border border-[#e5e8d8] bg-[#f7f8f1] p-6">
+        <h3 class="text-xl font-bold text-[#2f3825]">Questions fréquentes</h3>
+        <div class="mt-4 divide-y divide-[#dfe4d2]">
           <details class="py-3">
-            <summary class="cursor-pointer font-medium text-[#647a0b]">
-              Comment vérifiez-vous les praticiens ?
-            </summary>
-            <p class="mt-2 text-gray-600">Contrôle manuel des diplômes/certifications et revues régulières des profils.</p>
+            <summary class="cursor-pointer text-sm font-bold text-[#647a0b]">Comment les praticiens sont-ils vérifiés ?</summary>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Notre équipe relit les informations clés du profil et les justificatifs transmis afin de garder un annuaire lisible et fiable.</p>
           </details>
           <details class="py-3">
-            <summary class="cursor-pointer font-medium text-[#647a0b]">
-              L’Espace Client est-il inclus ?
-            </summary>
-            <p class="mt-2 text-gray-600">Oui, il est créé automatiquement après votre première réservation.</p>
+            <summary class="cursor-pointer text-sm font-bold text-[#647a0b]">L'espace client est-il inclus ?</summary>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Oui. Il est créé automatiquement après une réservation afin de centraliser rendez-vous, documents et questionnaires.</p>
           </details>
           <details class="py-3">
-            <summary class="cursor-pointer font-medium text-[#647a0b]">
-              Mes données sont-elles protégées ?
-            </summary>
-            <p class="mt-2 text-gray-600">Oui. Nous appliquons des mesures strictes de sécurité et ne revendons jamais vos informations.</p>
+            <summary class="cursor-pointer text-sm font-bold text-[#647a0b]">Puis-je réserver une séance en visio ?</summary>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Oui, lorsque le praticien propose ce mode de consultation. L'information apparaît directement sur son profil et dans le parcours de réservation.</p>
           </details>
         </div>
 
-        {{-- FAQ JSON-LD --}}
         <script type="application/ld+json">
         {
           "@context": "https://schema.org",
           "@type": "FAQPage",
           "mainEntity": [{
             "@type": "Question",
-            "name": "Comment vérifiez-vous les praticiens ?",
-            "acceptedAnswer": {"@type":"Answer","text":"Contrôle manuel des diplômes et certifications, avec revues régulières des profils."}
+            "name": "Comment les praticiens sont-ils vérifiés ?",
+            "acceptedAnswer": {"@type":"Answer","text":"Notre équipe relit les informations clés du profil et les justificatifs transmis afin de garder un annuaire lisible et fiable."}
           },{
             "@type": "Question",
-            "name": "L’Espace Client est-il inclus ?",
-            "acceptedAnswer": {"@type":"Answer","text":"Oui. Il est créé automatiquement après votre première réservation pour partager documents et formulaires."}
+            "name": "L'espace client est-il inclus ?",
+            "acceptedAnswer": {"@type":"Answer","text":"Oui. Il est créé automatiquement après une réservation afin de centraliser rendez-vous, documents et questionnaires."}
           },{
             "@type": "Question",
-            "name": "Mes données sont-elles protégées ?",
-            "acceptedAnswer": {"@type":"Answer","text":"Oui, nous appliquons des mesures strictes de sécurité et ne revendons jamais vos informations."}
+            "name": "Puis-je réserver une séance en visio ?",
+            "acceptedAnswer": {"@type":"Answer","text":"Oui, lorsque le praticien propose ce mode de consultation. L'information apparaît directement sur son profil et dans le parcours de réservation."}
           }]
         }
         </script>
@@ -606,48 +406,52 @@
     </div>
   </section>
 
-  {{-- ========================  FOOTER SLOT  ======================== --}}
-  <x-slot name="footer">
-    @include('layouts.footer')
-  </x-slot>
-
-  {{-- ========================  AUTOCOMPLETE ONLY (no global search)  ======================== --}}
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      // Specialties autocomplete
       const specialtyInput = document.getElementById('specialty');
       const specialtiesList = document.getElementById('specialties');
+
       specialtyInput?.addEventListener('input', function () {
         const term = this.value.trim();
-        if (!term) { specialtiesList.innerHTML = ''; return; }
+        if (!term) {
+          specialtiesList.innerHTML = '';
+          return;
+        }
+
         fetch('{{ route('autocomplete.specialties') }}?term=' + encodeURIComponent(term))
-          .then(r => r.json())
+          .then(response => response.json())
           .then(data => {
             specialtiesList.innerHTML = '';
             data.forEach(item => {
-              const opt = document.createElement('option');
-              opt.value = item;
-              specialtiesList.appendChild(opt);
+              const option = document.createElement('option');
+              option.value = item;
+              specialtiesList.appendChild(option);
             });
-          }).catch(()=>{});
+          })
+          .catch(() => {});
       });
 
-      // Regions autocomplete
       const regionInput = document.getElementById('location');
       const regionsList = document.getElementById('regions');
+
       regionInput?.addEventListener('input', function () {
         const term = this.value.trim();
-        if (!term) { regionsList.innerHTML = ''; return; }
+        if (!term) {
+          regionsList.innerHTML = '';
+          return;
+        }
+
         fetch('{{ route('autocomplete.regions') }}?term=' + encodeURIComponent(term))
-          .then(r => r.json())
+          .then(response => response.json())
           .then(data => {
             regionsList.innerHTML = '';
             data.forEach(item => {
-              const opt = document.createElement('option');
-              opt.value = item;
-              regionsList.appendChild(opt);
+              const option = document.createElement('option');
+              option.value = item;
+              regionsList.appendChild(option);
             });
-          }).catch(()=>{});
+          })
+          .catch(() => {});
       });
     });
   </script>
