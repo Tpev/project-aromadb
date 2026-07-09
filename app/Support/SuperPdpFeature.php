@@ -12,13 +12,19 @@ class SuperPdpFeature
             return false;
         }
 
-        if (config('services.super_pdp.environment', 'sandbox') !== 'sandbox') {
-            return false;
+        $environment = strtolower((string) config('services.super_pdp.environment', 'sandbox'));
+
+        if (in_array($environment, ['production', 'prod', 'live'], true)) {
+            return true;
         }
 
-        $allowedEmails = config('services.super_pdp.allowed_emails', []);
+        if ($environment === 'sandbox') {
+            $allowedEmails = config('services.super_pdp.allowed_emails', []);
 
-        return in_array(strtolower((string) $user->email), $allowedEmails, true);
+            return in_array(strtolower((string) $user->email), $allowedEmails, true);
+        }
+
+        return false;
     }
 
     public static function abortUnlessEnabledFor(?User $user): void

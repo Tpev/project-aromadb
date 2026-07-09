@@ -1,4 +1,15 @@
 <x-app-layout>
+    @php
+        $superPdpEnvironment = match (strtolower((string) config('services.super_pdp.environment', 'sandbox'))) {
+            'production', 'prod', 'live' => 'production',
+            default => 'sandbox',
+        };
+        $superPdpModeLabel = $superPdpEnvironment === 'production' ? __('SUPER PDP production') : __('SUPER PDP bac à sable');
+        $superPdpIntro = $superPdpEnvironment === 'production'
+            ? __('Synchronisez les factures entrantes depuis SUPER PDP.')
+            : __('Synchronisez les factures entrantes depuis SUPER PDP. Cette page est réservée aux comptes de test autorisés en bac à sable.');
+    @endphp
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Factures reçues SUPER PDP') }}
@@ -11,13 +22,13 @@
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <div class="text-xs uppercase tracking-[0.18em] font-bold" style="color:#854f38;">
-                            {{ __('SUPER PDP sandbox') }}
+                            {{ $superPdpModeLabel }}
                         </div>
                         <h1 class="text-2xl font-bold text-gray-900 mt-1">
                             {{ __('Inbox des factures d’achat') }}
                         </h1>
                         <p class="text-sm text-gray-600 mt-2 max-w-2xl">
-                            {{ __('Synchronisez les factures entrantes depuis SUPER PDP. Pour l’instant, cette page est réservée au compte de test.') }}
+                            {{ $superPdpIntro }}
                         </p>
                     </div>
 

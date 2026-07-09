@@ -19,6 +19,16 @@ class SuperPdpOAuthService
             && filled(config('services.super_pdp.client_secret'));
     }
 
+    public function environment(): string
+    {
+        $environment = strtolower((string) config('services.super_pdp.environment', 'sandbox'));
+
+        return match ($environment) {
+            'production', 'prod', 'live' => 'production',
+            default => 'sandbox',
+        };
+    }
+
     public function redirectUri(): string
     {
         return config('services.super_pdp.redirect_uri') ?: route('super-pdp.oauth.callback');
@@ -27,7 +37,7 @@ class SuperPdpOAuthService
     public function authorizationUrl(User $user, bool $receiveInApp): string
     {
         if (! $this->isConfigured()) {
-            throw new RuntimeException('SUPER PDP sandbox OAuth credentials are missing.');
+            throw new RuntimeException('SUPER PDP OAuth credentials are missing.');
         }
 
         $state = Str::random(48);
@@ -135,7 +145,7 @@ class SuperPdpOAuthService
     {
         return SuperPdpConnection::firstOrCreate([
             'user_id' => $user->id,
-            'environment' => 'sandbox',
+            'environment' => $this->environment(),
         ], [
             'status' => SuperPdpConnection::STATUS_NOT_STARTED,
         ]);

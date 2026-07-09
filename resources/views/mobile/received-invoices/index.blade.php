@@ -47,9 +47,9 @@
                         <i class="fas fa-lock text-sm"></i>
                     </div>
                     <div class="min-w-0">
-                        <h2 class="font-semibold">SUPER PDP sandbox non active</h2>
+                        <h2 class="font-semibold">SUPER PDP non disponible</h2>
                         <p class="mt-1 leading-snug">
-                            Cette inbox est reservee aux comptes de test autorises pour la facturation electronique.
+                            Cette inbox est disponible pour les comptes praticiens autorises a utiliser la facturation electronique.
                         </p>
                     </div>
                 </div>

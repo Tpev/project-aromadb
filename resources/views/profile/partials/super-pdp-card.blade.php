@@ -3,6 +3,14 @@
     $isConnected = $connection?->isConnected() ?? false;
     $receiveInApp = old('receive_in_app', $connection?->receiving_invoices_enabled ?? true);
     $status = $connection?->status ?? 'not_started';
+    $superPdpEnvironment = match (strtolower((string) config('services.super_pdp.environment', 'sandbox'))) {
+        'production', 'prod', 'live' => 'production',
+        default => 'sandbox',
+    };
+    $superPdpModeLabel = $superPdpEnvironment === 'production' ? __('Production') : __('Bac à sable');
+    $superPdpModeDescription = $superPdpEnvironment === 'production'
+        ? __('Disponible pour les comptes praticiens.')
+        : __('Visible uniquement pour les comptes de test autorisés.');
     $statusLabel = match ($status) {
         'connected' => __('Connecté'),
         'authorization_started' => __('Onboarding démarré'),
@@ -22,7 +30,7 @@
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <div class="text-xs uppercase tracking-[0.18em] font-bold" style="color:#854f38;">
-                {{ __('Bac à sable') }}
+                {{ $superPdpModeLabel }}
             </div>
             <h3 class="text-xl font-bold mt-1" style="color:#334155;">
                 {{ __('Facturation électronique avec SUPER PDP') }}
@@ -40,8 +48,8 @@
     <div class="grid md:grid-cols-3 gap-3 mt-5">
         <div class="rounded-xl border border-lime-100 bg-white/80 p-4">
             <div class="text-xs uppercase tracking-wide text-gray-500">{{ __('Mode') }}</div>
-            <div class="font-semibold text-gray-900 mt-1">{{ __('Sandbox uniquement') }}</div>
-            <p class="text-xs text-gray-500 mt-1">{{ __('Invisible pour les autres comptes pour le moment.') }}</p>
+            <div class="font-semibold text-gray-900 mt-1">{{ $superPdpModeLabel }}</div>
+            <p class="text-xs text-gray-500 mt-1">{{ $superPdpModeDescription }}</p>
         </div>
         <div class="rounded-xl border border-lime-100 bg-white/80 p-4">
             <div class="text-xs uppercase tracking-wide text-gray-500">{{ __('Entreprise SUPER PDP') }}</div>
@@ -76,7 +84,7 @@
     @if(!$superPdpConfigured)
         <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
             <strong>{{ __('Configuration requise :') }}</strong>
-            {{ __('ajoutez le client_id, client_secret et l’URL de redirection sandbox dans le fichier .env avant de lancer l’onboarding.') }}
+            {{ __('ajoutez le client_id, client_secret et l’URL de redirection SUPER PDP dans le fichier .env avant de lancer l’onboarding.') }}
         </div>
     @endif
 
@@ -139,7 +147,7 @@
                 <button type="submit"
                         form="superPdpDisconnectForm"
                         class="btn btn-danger"
-                        onclick="return confirm('{{ __('Déconnecter SUPER PDP sandbox ?') }}')">
+                        onclick="return confirm('{{ __('Déconnecter SUPER PDP ?') }}')">
                     {{ __('Déconnecter SUPER PDP') }}
                 </button>
             </div>

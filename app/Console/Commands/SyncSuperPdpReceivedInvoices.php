@@ -11,13 +11,18 @@ class SyncSuperPdpReceivedInvoices extends Command
 {
     protected $signature = 'super-pdp:sync-received-invoices {--user= : User id or email} {--dry-run}';
 
-    protected $description = 'Synchronize incoming invoices from SUPER PDP sandbox for enabled test users.';
+    protected $description = 'Synchronize incoming invoices from SUPER PDP for enabled users.';
 
     public function handle(SuperPdpReceivedInvoiceSyncService $syncService): int
     {
+        $environment = match (strtolower((string) config('services.super_pdp.environment', 'sandbox'))) {
+            'production', 'prod', 'live' => 'production',
+            default => 'sandbox',
+        };
+
         $query = SuperPdpConnection::query()
             ->with('user')
-            ->where('environment', 'sandbox')
+            ->where('environment', $environment)
             ->where('status', SuperPdpConnection::STATUS_CONNECTED)
             ->where('receiving_invoices_enabled', true);
 

@@ -53,6 +53,11 @@ Schedule::command(SyncStripeFinance::class)
     ->dailyAt('03:10')
     ->withoutOverlapping(120);
 
+// SUPER PDP: réception des factures d'achat.
+Schedule::command('super-pdp:sync-received-invoices')
+    ->hourly()
+    ->withoutOverlapping(30);
+
 // Rebuild public sitemap every night
 Schedule::command('sitemap:generate')
     ->dailyAt('02:00')
