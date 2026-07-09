@@ -85,6 +85,17 @@
                             @click="activeTab = 'google'">
                         {{ __('Connexions & Google') }}
                     </button>
+
+                    @if($superPdpAvailable ?? false)
+                        <button type="button"
+                                class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
+                                :class="activeTab === 'eInvoicing'
+                                    ? 'border-[#647a0b] text-[#647a0b]'
+                                    : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                                @click="activeTab = 'eInvoicing'">
+                            {{ __('Facturation électronique') }}
+                        </button>
+                    @endif
                 </div>
 
                 {{-- Main form (all company/profile/booking/legal/google fields) --}}
@@ -918,13 +929,17 @@
                             </div>
                         @endif
 
-                        @if($superPdpAvailable ?? false)
-                            @include('profile.partials.super-pdp-card')
-                        @endif
                     </div>
 
+                    @if($superPdpAvailable ?? false)
+                        {{-- TAB 6: Facturation electronique --}}
+                        <div x-show="activeTab === 'eInvoicing'" x-cloak class="mt-2">
+                            @include('profile.partials.super-pdp-card')
+                        </div>
+                    @endif
+
                     {{-- Form actions (always visible) --}}
-                    <div class="mt-6 flex items-center gap-3">
+                    <div class="mt-6 flex items-center gap-3" x-show="activeTab !== 'eInvoicing'" x-cloak>
                         <button type="submit" class="btn-primary">
                             {{ __('Enregistrer les Modifications') }}
                         </button>

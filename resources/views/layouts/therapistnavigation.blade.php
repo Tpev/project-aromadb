@@ -1,8 +1,20 @@
 <!-- resources/views/layouts/therapistnavigation.blade.php -->
 
 @php
-    $canUseGiftVouchers = auth()->check() && auth()->user()->canUseFeature('gift_vouchers');
+    $navUser = auth()->user();
+    $canUseGiftVouchers = $navUser?->canUseFeature('gift_vouchers') ?? false;
     $giftVoucherNavUrl = route('pro.gift-vouchers.index');
+    $showReceivedInvoicesNav = false;
+
+    if ($navUser?->isTherapist() && \App\Support\SuperPdpFeature::enabledFor($navUser)) {
+        $superPdpEnvironment = app(\App\Services\SuperPdp\SuperPdpOAuthService::class)->environment();
+        $superPdpNavConnection = $navUser->superPdpConnection()
+            ->where('environment', $superPdpEnvironment)
+            ->first();
+
+        $showReceivedInvoicesNav = ($superPdpNavConnection?->isConnected() ?? false)
+            && (bool) ($superPdpNavConnection?->receiving_invoices_enabled ?? false);
+    }
 @endphp
 
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
@@ -88,7 +100,7 @@
                         <x-nav-link href="#"
                                     class="text-[#647a0b] hover:text-[#854f38] flex items-center"
                                     @click.prevent="openAccounting = !openAccounting"
-                                    :active="request()->routeIs('invoices.*') || request()->routeIs('receipts.*')"
+                                    :active="request()->routeIs('invoices.*') || request()->routeIs('receipts.*') || request()->routeIs('super-pdp.received-invoices.*')"
                                     x-bind:aria-expanded="openAccounting.toString()" aria-haspopup="true">
                             {{ __('Comptabilité') }}
                             <svg class="ml-1 h-4 w-4 fill-current" viewBox="0 0 20 20">
@@ -117,6 +129,13 @@
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('receipts.index') ? 'bg-gray-50 font-medium' : '' }}">
                                 {{ __('Livre de recettes') }}
                             </a>
+
+                            @if($showReceivedInvoicesNav)
+                                <a href="{{ route('super-pdp.received-invoices.index') }}"
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('super-pdp.received-invoices.*') ? 'bg-gray-50 font-medium' : '' }}">
+                                    {{ __('Factures reçues') }}
+                                </a>
+                            @endif
 
                             <a href="{{ route('receipts.caMonthly') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('receipts.caMonthly') ? 'bg-gray-50 font-medium' : '' }}">
@@ -359,6 +378,11 @@
             <x-responsive-nav-link :href="route('receipts.index')" :active="request()->routeIs('receipts.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Livre de recettes') }}
             </x-responsive-nav-link>
+            @if($showReceivedInvoicesNav)
+                <x-responsive-nav-link :href="route('super-pdp.received-invoices.index')" :active="request()->routeIs('super-pdp.received-invoices.*')" class="text-[#647a0b] hover:text-[#854f38]">
+                    {{ __('Factures reçues') }}
+                </x-responsive-nav-link>
+            @endif
             <x-responsive-nav-link :href="route('receipts.caMonthly')" :active="request()->routeIs('receipts.caMonthly')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Statistiques (CA mensuel)') }}
             </x-responsive-nav-link>

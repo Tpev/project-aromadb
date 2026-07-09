@@ -79,8 +79,13 @@ class ProfileController extends Controller
 
         $user = auth()->user();
         $superPdpAvailable = SuperPdpFeature::enabledFor($user);
-        $superPdpConnection = $superPdpAvailable ? $user->superPdpConnection : null;
-        $superPdpConfigured = $superPdpAvailable ? app(SuperPdpOAuthService::class)->isConfigured() : false;
+        $superPdpOAuthService = app(SuperPdpOAuthService::class);
+        $superPdpConnection = $superPdpAvailable
+            ? $user->superPdpConnection()
+                ->where('environment', $superPdpOAuthService->environment())
+                ->first()
+            : null;
+        $superPdpConfigured = $superPdpAvailable ? $superPdpOAuthService->isConfigured() : false;
 
         return view('profile.edit-company-info', compact(
             'user',
