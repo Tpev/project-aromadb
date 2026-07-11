@@ -37,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'mobile.app' => \App\Http\Middleware\EnsureMobileApp::class,
+            'offer-journeys.available' => \App\Http\Middleware\EnsureOfferJourneysAvailable::class,
+            'offer-journeys.public' => \App\Http\Middleware\EnsureOfferJourneysPublic::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

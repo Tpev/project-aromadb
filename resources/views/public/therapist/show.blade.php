@@ -452,6 +452,20 @@
 
 
 
+@if(($offerJourneys ?? collect())->isNotEmpty())
+<section class="bg-white shadow rounded-lg p-8">
+    <h3 class="text-3xl font-semibold text-[#647a0b]">{{ __('À découvrir') }}</h3>
+    <div class="mt-6 grid gap-4 md:grid-cols-2">
+        @foreach($offerJourneys as $offerJourney)
+            <a href="{{ route('offer-journeys.public.show', ['therapist' => $therapist, 'journeySlug' => $offerJourney->slug]) }}" class="block rounded-lg border border-[#dfe6c7] p-5 transition hover:border-[#647a0b] hover:bg-[#f7f9ec]">
+                <p class="font-semibold text-gray-900">{{ $offerJourney->name }}</p>
+                <p class="mt-2 text-sm font-medium text-[#647a0b]">{{ __('Découvrir cette offre') }}</p>
+            </a>
+        @endforeach
+    </div>
+</section>
+@endif
+
 {{-- Section Prestations --}}
 <div class="bg-white shadow rounded-lg p-8">
     <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">

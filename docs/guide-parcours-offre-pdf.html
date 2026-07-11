@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Guide complet des parcours d’offre Olithea</title>
+    <style>
+        @page { margin: 16mm 14mm 18mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; color: #20251d; font-family: DejaVu Sans, sans-serif; font-size: 10.2pt; line-height: 1.5; }
+        h1, h2, h3, h4 { margin: 0; color: #28331f; line-height: 1.2; }
+        h1 { font-size: 28pt; }
+        h2 { margin-bottom: 8px; font-size: 19pt; color: #647a0b; page-break-after: avoid; }
+        h3 { margin-top: 15px; margin-bottom: 6px; font-size: 13pt; }
+        h4 { margin-top: 11px; margin-bottom: 4px; font-size: 10.5pt; color: #854f38; }
+        p { margin: 5px 0 9px; }
+        ul, ol { margin: 5px 0 10px; padding-left: 19px; }
+        li { margin-bottom: 4px; }
+        a { color: #647a0b; }
+        table { width: 100%; margin: 9px 0 14px; border-collapse: collapse; font-size: 9pt; }
+        th, td { padding: 7px 8px; border: 1px solid #dfe4d4; vertical-align: top; }
+        th { color: #354120; background: #f0f4df; text-align: left; }
+        code { color: #70402e; font-family: DejaVu Sans Mono, monospace; font-size: 8.7pt; }
+        .cover { height: 245mm; padding: 25mm 13mm; background: #f7f8f3; page-break-after: always; }
+        .cover-logo { width: 210px; margin-bottom: 38mm; }
+        .cover-kicker { margin-bottom: 8px; color: #854f38; font-size: 10pt; font-weight: bold; letter-spacing: .4px; text-transform: uppercase; }
+        .cover-subtitle { max-width: 155mm; margin-top: 15px; color: #566050; font-size: 14pt; line-height: 1.55; }
+        .cover-meta { margin-top: 34mm; color: #6b7166; font-size: 9pt; }
+        section { page-break-inside: auto; }
+        .page { margin-top: 13mm; page-break-before: always; }
+        .keep { page-break-inside: avoid; }
+        .lead { color: #4f5849; font-size: 11.5pt; }
+        .rule { height: 3px; margin: 8px 0 15px; background: #647a0b; }
+        .screenshot { width: 100%; margin: 9px 0 5px; border: 1px solid #d8ddd0; page-break-inside: avoid; }
+        .screenshot-mobile { display: block; width: 74mm; margin: 10px auto 7px; border: 1px solid #d8ddd0; page-break-inside: avoid; }
+        .caption { margin: 0 0 12px; color: #697064; font-size: 8.4pt; text-align: center; }
+        .callout { margin: 10px 0 13px; padding: 10px 12px; border-left: 4px solid #647a0b; background: #f5f7ec; page-break-inside: avoid; }
+        .callout.warning { border-left-color: #a45c38; background: #fbf4ef; }
+        .callout strong { color: #354120; }
+        .steps { margin: 12px 0; padding: 0; list-style: none; counter-reset: setup; }
+        .steps li { position: relative; min-height: 29px; margin: 0 0 9px; padding: 3px 0 4px 37px; counter-increment: setup; }
+        .steps li:before { position: absolute; left: 0; top: 0; width: 25px; height: 25px; border-radius: 50%; color: white; background: #647a0b; content: counter(setup); font-weight: bold; line-height: 25px; text-align: center; }
+        .checklist { padding-left: 0; list-style: none; }
+        .checklist li { position: relative; padding-left: 23px; }
+        .checklist li:before { position: absolute; left: 0; content: "□"; color: #647a0b; font-size: 14pt; line-height: 12pt; }
+        .two-cols { width: 100%; }
+        .two-cols td { width: 50%; border: 0; padding: 0 7px 0 0; }
+        .two-cols td + td { padding: 0 0 0 7px; }
+        .toc { padding: 0; list-style: none; }
+        .toc li { padding: 5px 0; border-bottom: 1px solid #e5e8df; }
+        .badge { display: inline-block; margin-right: 5px; padding: 2px 7px; border-radius: 10px; color: #506107; background: #edf2d9; font-size: 8pt; font-weight: bold; }
+        .example { margin: 10px 0; padding: 11px 13px; border: 1px solid #dfe4d4; background: white; page-break-inside: avoid; }
+        .footer { position: fixed; right: 0; bottom: -12mm; left: 0; color: #7b8177; font-size: 7.5pt; text-align: center; }
+        .footer .page-number:after { content: counter(page); }
+    </style>
+</head>
+<body>
+    <div class="footer">Guide Parcours d’offre Olithea · page <span class="page-number"></span></div>
+
+    <section class="cover">
+        <img class="cover-logo" data-local-src="public/images/brand/olithea-logo-horizontal-green-cropped.png" alt="Olithea">
+        <div class="cover-kicker">Guide praticien</div>
+        <h1>Créer et piloter un parcours d’offre</h1>
+        <p class="cover-subtitle">Le manuel complet pour présenter une offre, recueillir des demandes, automatiser les bons messages et guider chaque personne vers une réservation, une inscription ou un achat.</p>
+        <p class="cover-meta">Version pilote enrichie · 11 juillet 2026<br>Public: praticiens, coachs et accompagnants utilisant Olithea Premium</p>
+    </section>
+
+    <section>
+        <h2>Comment utiliser ce guide</h2><div class="rule"></div>
+        <p class="lead">Ce document suit l’ordre réel de configuration dans Olithea. Vous pouvez réaliser votre premier parcours en avançant page par page.</p>
+        <div class="callout"><strong>Objectif conseillé pour un premier essai:</strong> proposer une ressource gratuite, puis inviter les personnes intéressées à réserver une séance découverte.</div>
+        <h3>Sommaire</h3>
+        <ol class="toc">
+            <li>1. Comprendre le rôle d’un parcours d’offre</li>
+            <li>2. Préparer son offre avant de commencer</li>
+            <li>3. Choisir l’objectif et l’élément Olithea associé</li>
+            <li>4. Rédiger la première page</li>
+            <li>5. Configurer les pages, le formulaire et les transitions</li>
+            <li>6. Prévisualiser, publier et revenir à une version antérieure</li>
+            <li>7. Préparer les messages et automatisations</li>
+            <li>8. Partager et mesurer les campagnes</li>
+            <li>9. Lire les résultats et suivre les personnes intéressées</li>
+            <li>10. Cas d’usage prêts à reproduire</li>
+            <li>11. Bonnes pratiques, checklist et dépannage</li>
+            <li>12. Éditeur enrichi et questions personnalisées</li>
+            <li>13. Prévisualisation et test des emails</li>
+            <li>14. Campagnes planifiées et fréquence de contact</li>
+            <li>15. Vue contact, pipeline et objectifs</li>
+            <li>16. Import CSV encadré</li>
+        </ol>
+        <h3>Démarrage rapide en 10 minutes</h3>
+        <ol class="steps">
+            <li>Choisissez un seul objectif.</li>
+            <li>Associez la prestation, l’événement ou la formation concernée.</li>
+            <li>Rédigez un titre, une courte présentation et un bouton précis.</li>
+            <li>Retirez les champs de formulaire inutiles.</li>
+            <li>Prévisualisez sur téléphone.</li>
+            <li>Testez les messages sans les envoyer.</li>
+            <li>Publiez, puis créez un lien par canal de communication.</li>
+        </ol>
+    </section>
+
+    <section class="page">
+        <h2>1. Le rôle d’un parcours d’offre</h2><div class="rule"></div>
+        <p>Un lien direct vers un agenda ou une page de paiement suppose que le visiteur connaît déjà votre offre. Le parcours ajoute les explications et les étapes qui l’aident à prendre une décision sereinement.</p>
+        <table>
+            <tr><th>Sans parcours</th><th>Avec un parcours</th></tr>
+            <tr><td>Lien isolé vers un agenda, un événement ou un paiement.</td><td>Une présentation claire avant l’action.</td></tr>
+            <tr><td>Le visiteur doit deviner si l’offre lui correspond.</td><td>Le public concerné, le résultat et le déroulement sont expliqués.</td></tr>
+            <tr><td>Origine des demandes difficile à mesurer.</td><td>Un lien distinct peut être créé pour chaque canal.</td></tr>
+            <tr><td>Relances manuelles ou oubliées.</td><td>Messages utiles et bornés, avec consentement.</td></tr>
+        </table>
+        <div class="callout warning"><strong>Le parcours ne remplace rien:</strong> l’agenda, les prestations, événements, formations, paiements, dossiers clients et factures restent gérés par leurs fonctions Olithea habituelles.</div>
+        <h3>Tableau de bord</h3>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/01-tableau-de-bord.png" alt="Tableau de bord">
+        <p class="caption">Le tableau de bord regroupe les parcours en ligne et les principaux indicateurs.</p>
+        <p><strong>Parcours en ligne:</strong> nombre de parcours actuellement publiés. <strong>Nouveaux contacts:</strong> formulaires validés sur les 30 derniers jours. <strong>Actions réalisées:</strong> réservations, inscriptions ou achats confirmés et attribués.</p>
+    </section>
+
+    <section class="page">
+        <h2>2. Préparer son offre</h2><div class="rule"></div>
+        <p>Avant d’ouvrir l’assistant, formulez votre offre en une phrase:</p>
+        <div class="example"><strong>J’aide [un public précis] à [obtenir un résultat compréhensible] grâce à [une offre ou un format précis].</strong><br><br>Exemple: « J’aide les personnes qui ont du mal à préparer leur sommeil à tester cinq habitudes simples grâce à un guide gratuit. »</div>
+        <h3>Les quatre éléments nécessaires</h3>
+        <ul>
+            <li><strong>Un public:</strong> évitez « tout le monde ».</li>
+            <li><strong>Un besoin:</strong> une situation que la personne reconnaît.</li>
+            <li><strong>Une proposition:</strong> séance, atelier, guide, formation, bon cadeau ou échange.</li>
+            <li><strong>Une action finale:</strong> réserver, s’inscrire, recevoir, acheter ou être recontacté.</li>
+        </ul>
+        <h3>Choisir le bon objectif</h3>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/02-assistant-creation.png" alt="Choix de l’objectif">
+        <p class="caption">L’objectif détermine les étapes proposées et l’action finale.</p>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/21-bibliotheque-modeles.png" alt="Bibliothèque de modèles métier">
+        <p class="caption">Après l’objectif, choisissez un exemple métier. Il crée seulement un brouillon modifiable.</p>
+        <table>
+            <tr><th>Objectif</th><th>Utilisation</th><th>Destination</th></tr>
+            <tr><td>Obtenir des réservations</td><td>Présenter une séance ou une prestation.</td><td>Agenda Olithea</td></tr>
+            <tr><td>Remplir un atelier</td><td>Promouvoir un événement daté.</td><td>Inscription événement</td></tr>
+            <tr><td>Offrir une ressource</td><td>Guide, audio, vidéo ou document.</td><td>Ressource privée ou lien</td></tr>
+            <tr><td>Proposer une formation</td><td>Expliquer une formation digitale.</td><td>Page de formation</td></tr>
+            <tr><td>Vendre un bon cadeau</td><td>Présenter l’usage et la valeur du cadeau.</td><td>Page d’achat existante</td></tr>
+            <tr><td>Recevoir une demande qualifiée</td><td>Échanger avant de proposer une solution.</td><td>Formulaire court</td></tr>
+        </table>
+    </section>
+
+    <section class="page">
+        <h2>3. Associer la source et rédiger la première page</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/07-assistant-source-contenu.png" alt="Source et première page">
+        <p class="caption">Étapes 2 et 3 de l’assistant de création.</p>
+        <h3>Champ « Élément associé »</h3>
+        <p>Choisissez l’objet Olithea que la personne ouvrira à la fin du parcours. Il doit appartenir à votre compte et rester disponible.</p>
+        <ul>
+            <li><strong>Réservation:</strong> sélectionnez la prestation réservée en ligne.</li>
+            <li><strong>Atelier:</strong> sélectionnez l’événement correspondant.</li>
+            <li><strong>Formation:</strong> sélectionnez la formation digitale.</li>
+            <li><strong>Bon cadeau:</strong> la page d’achat est associée automatiquement.</li>
+            <li><strong>Ressource ou demande:</strong> aucun élément n’est nécessaire à cette étape.</li>
+        </ul>
+        <h3>Les quatre champs de départ</h3>
+        <table>
+            <tr><th>Champ</th><th>Ce qu’il faut écrire</th><th>Exemple</th></tr>
+            <tr><td>Nom du parcours</td><td>Un repère interne clair, éventuellement avec le canal ou la période.</td><td>Guide sommeil - été 2026</td></tr>
+            <tr><td>Titre visiteurs</td><td>Le résultat ou la situation, sans jargon métier.</td><td>Retrouvez des repères simples pour préparer votre sommeil</td></tr>
+            <tr><td>Offre en quelques mots</td><td>Deux phrases: ce que la personne reçoit et comment.</td><td>Un guide court avec cinq habitudes à tester progressivement.</td></tr>
+            <tr><td>Action du bouton</td><td>Un verbe qui décrit précisément la suite.</td><td>Recevoir le guide</td></tr>
+        </table>
+        <div class="callout"><strong>Bon réflexe:</strong> faites lire le titre et la présentation à une personne qui ne connaît pas votre activité. Elle doit pouvoir expliquer l’offre sans aide.</div>
+    </section>
+
+    <section class="page">
+        <h2>4. Organiser et rédiger les étapes</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/03-gestion-parcours.png" alt="Gestion du parcours">
+        <p class="caption">Vue d’ensemble, pages, historique et actions du parcours.</p>
+        <p>Le modèle crée plusieurs étapes adaptées à l’objectif. Vous pouvez les modifier, les réordonner ou en ajouter. Les changements restent privés tant que vous ne republiez pas.</p>
+        <h3>Rôle des actions</h3>
+        <ul>
+            <li><strong>Résultats:</strong> consulter les visites et les actions réalisées.</li>
+            <li><strong>Messages et automatisations:</strong> préparer les messages et règles.</li>
+            <li><strong>Contacts:</strong> afficher les personnes ayant rempli un formulaire.</li>
+            <li><strong>Partager:</strong> copier le lien, créer une campagne ou ouvrir le QR code.</li>
+            <li><strong>Paramètres:</strong> changer le nom, l’adresse et l’affichage sur le profil.</li>
+            <li><strong>Mettre en pause:</strong> retirer temporairement le parcours public sans supprimer son historique.</li>
+        </ul>
+        <h3>Historique des publications</h3>
+        <p>Chaque publication crée une version indépendante. Modifier le brouillon ne change pas la version en ligne. Le bouton <strong>Restaurer</strong> permet de remettre une ancienne version en ligne.</p>
+    </section>
+
+    <section class="page">
+        <h2>5. Configurer le contenu de la page</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/08-editeur-contenu.png" alt="Éditeur de contenu">
+        <p class="caption">Partie haute de l’éditeur: contenu public, référencement et formulaire.</p>
+        <table>
+            <tr><th>Zone</th><th>Recommandation</th></tr>
+            <tr><td>Nom interne</td><td>Décrivez le rôle de l’étape: Présentation, Ressource, Réservation, Confirmation.</td></tr>
+            <tr><td>Adresse de l’étape</td><td>Utilisez un mot court et stable: offre, guide, reservation, merci.</td></tr>
+            <tr><td>Titre public</td><td>Une phrase centrée sur la personne, généralement moins de 12 mots.</td></tr>
+            <tr><td>Présentation</td><td>Expliquez l’offre en deux à quatre phrases, sans promesse excessive.</td></tr>
+            <tr><td>À qui s’adresse cette offre</td><td>Décrivez une situation observable, pas un diagnostic.</td></tr>
+            <tr><td>Ce que la personne obtient</td><td>Une ligne par bénéfice concret ou élément livré.</td></tr>
+            <tr><td>Déroulé</td><td>Trois à cinq étapes simples, dans l’ordre réel.</td></tr>
+            <tr><td>Référencement</td><td>Activez l’indexation seulement si la page doit apparaître dans Google.</td></tr>
+        </table>
+        <div class="callout warning"><strong>À éviter:</strong> diagnostic, promesse de guérison, résultat garanti, urgence artificielle, faux témoignage ou compte à rebours trompeur.</div>
+    </section>
+
+    <section class="page">
+        <h2>6. Formulaire, ressource et étape suivante</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/09-formulaire-et-transition.png" alt="Formulaire et transition">
+        <p class="caption">Partie basse de l’éditeur: ressource, FAQ, consentement et destination.</p>
+        <h3>Formulaire minimal</h3>
+        <p>L’adresse email est toujours conservée pour répondre à la demande. Ajoutez uniquement les champs indispensables.</p>
+        <table>
+            <tr><th>Cas</th><th>Champs conseillés</th></tr>
+            <tr><td>Ressource gratuite</td><td>Prénom + adresse email</td></tr>
+            <tr><td>Demande de rappel</td><td>Prénom + email + téléphone facultatif + préférence de contact</td></tr>
+            <tr><td>Offre locale</td><td>Ville ou code postal seulement si la zone est déterminante</td></tr>
+        </table>
+        <h3>Ressource gratuite</h3>
+        <p>Choisissez soit un lien HTTPS, soit un fichier privé. Les fichiers privés utilisent un lien temporaire et ne sont pas exposés dans le dossier public du site.</p>
+        <h3>Étape suivante</h3>
+        <ul>
+            <li><strong>Terminer le parcours:</strong> aucune autre action.</li>
+            <li><strong>Ouvrir une autre étape:</strong> continuer vers une page du parcours.</li>
+            <li><strong>Ouvrir la réservation ou le paiement lié:</strong> utiliser la destination Olithea associée.</li>
+            <li><strong>Condition:</strong> créer un chemin différent si la personne a accepté les relances facultatives.</li>
+            <li><strong>Sinon, ouvrir:</strong> définir le chemin de secours lorsque la condition n’est pas remplie.</li>
+        </ul>
+        <div class="callout"><strong>Important:</strong> les informations de santé et notes cliniques ne doivent pas être demandées dans ce formulaire marketing.</div>
+    </section>
+
+    <section class="page">
+        <h2>7. Prévisualiser et publier</h2><div class="rule"></div>
+        <h3>Prévisualisation</h3>
+        <p>Le bouton <strong>Prévisualiser</strong> ouvre une copie temporaire du brouillon. Elle n’est pas indexée et son formulaire est désactivé.</p>
+        <ol class="steps">
+            <li>Lisez la page comme si vous ne connaissiez pas le praticien.</li>
+            <li>Vérifiez le titre, le bouton et le formulaire sur téléphone.</li>
+            <li>Suivez chaque bouton et contrôlez la destination.</li>
+            <li>Relisez les informations pratiques et la FAQ.</li>
+            <li>Vérifiez que l’offre Olithea associée est disponible.</li>
+        </ol>
+        <h3>Publication</h3>
+        <p>Cliquez sur <strong>Publier</strong> depuis la vue d’ensemble. Une version immuable est créée. Vous pourrez ensuite préparer d’autres modifications dans le brouillon sans modifier immédiatement la page en ligne.</p>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/22-checklist-publication.png" alt="Checklist avant publication">
+        <p class="caption">Les erreurs bloquent la publication; les recommandations restent facultatives.</p>
+        <h3>Mise en pause</h3>
+        <p>Utilisez <strong>Mettre en pause</strong> si l’offre devient temporairement indisponible. Le parcours et ses résultats restent enregistrés.</p>
+        <div class="callout warning"><strong>Avant de partager:</strong> effectuez une vraie réservation, inscription ou ouverture de ressource avec une adresse test. Ne vous limitez pas à l’aperçu visuel.</div>
+        <h3>Ce que voit le visiteur sur téléphone</h3>
+        <img class="screenshot-mobile" data-local-src="docs/offer-journeys-guide-assets/06-page-publique-mobile.png" alt="Page publique mobile">
+        <p class="caption">Le visiteur comprend l’offre et agit sans créer de compte Olithea.</p>
+    </section>
+
+    <section class="page">
+        <h2>8. Messages et automatisations</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/04-messages-automatisations.png" alt="Automatisations">
+        <p class="caption">Test du déroulement, état d’activation et limites mensuelles.</p>
+        <h3>Tester le déroulement</h3>
+        <p>La simulation indique les étapes qui seraient exécutées selon le consentement, la conversion ou l’inactivité. Elle ne crée ni contact, ni tâche, ni message.</p>
+        <h3>Trois protections distinctes</h3>
+        <ul>
+            <li><strong>Message demandé:</strong> confirmation ou ressource explicitement demandée.</li>
+            <li><strong>Relance facultative:</strong> envoyée uniquement avec consentement marketing.</li>
+            <li><strong>Arrêt automatique:</strong> conversion, désinscription, source supprimée, parcours en pause ou limite atteinte.</li>
+        </ul>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/10-messages-configuration.png" alt="Configuration des messages">
+        <p class="caption">Chaque message possède un délai, un objet, un contenu et un état actif/inactif.</p>
+        <h3>Séquence recommandée pour un guide</h3>
+        <table>
+            <tr><th>Moment</th><th>Rôle</th><th>Contenu</th></tr>
+            <tr><td>Immédiatement</td><td>Répondre à la demande</td><td>Lien vers le guide et rappel de l’expéditeur.</td></tr>
+            <tr><td>J+2</td><td>Apporter de la valeur</td><td>Un conseil complémentaire lié au guide.</td></tr>
+            <tr><td>J+5 à J+7</td><td>Proposer la suite</td><td>Une invitation claire vers une séance ou un atelier.</td></tr>
+        </table>
+        <div class="callout"><strong>Variables disponibles:</strong> prénom, nom de l’offre, nom du praticien, lien de l’offre et lien de la ressource. Testez toujours le rendu avant activation.</div>
+    </section>
+
+    <section class="page">
+        <h2>9. Partager et mesurer les campagnes</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/05-partage.png" alt="Partage et QR code">
+        <p class="caption">Lien principal, liens de campagne et QR code.</p>
+        <h3>Quel lien utiliser?</h3>
+        <ul>
+            <li><strong>Lien principal:</strong> site internet, signature générale ou profil.</li>
+            <li><strong>Lien de campagne:</strong> une publication, une newsletter, un partenaire ou un support précis.</li>
+            <li><strong>QR code:</strong> affiche, carte, salle d’attente ou événement physique.</li>
+        </ul>
+        <h3>Convention de nommage</h3>
+        <p>Utilisez <strong>Canal - offre - période ou emplacement</strong>.</p>
+        <div class="example">Instagram - guide sommeil - juillet<br>Newsletter - atelier respiration - septembre<br>Partenaire - cabinet Dupont<br>Affiche - salle d’attente</div>
+        <p>Ne modifiez pas manuellement les paramètres techniques du lien. Olithea ajoute le suivi automatiquement.</p>
+    </section>
+
+    <section class="page">
+        <h2>10. Lire les résultats</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/11-resultats.png" alt="Résultats">
+        <p class="caption">Visites, pages, actions, contacts, conversions et progression par étape.</p>
+        <table>
+            <tr><th>Indicateur</th><th>Définition</th></tr>
+            <tr><td>Visiteurs</td><td>Personnes uniques estimées sur la période.</td></tr>
+            <tr><td>Vues</td><td>Nombre total de pages consultées.</td></tr>
+            <tr><td>Actions</td><td>Clics sur l’action principale.</td></tr>
+            <tr><td>Contacts</td><td>Formulaires validés.</td></tr>
+            <tr><td>Conversions</td><td>Réservations, inscriptions ou achats confirmés.</td></tr>
+            <tr><td>Taux</td><td>Conversions confirmées rapportées aux visiteurs estimés.</td></tr>
+            <tr><td>Progression par étape</td><td>Comparaison des consultations et actions pour repérer les sorties.</td></tr>
+        </table>
+        <h3>Comment interpréter les résultats</h3>
+        <ul>
+            <li><strong>Des vues mais peu d’actions:</strong> clarifiez le titre, la valeur ou le bouton.</li>
+            <li><strong>Des actions mais peu de formulaires:</strong> réduisez les champs demandés.</li>
+            <li><strong>Des contacts mais peu de conversions:</strong> améliorez la prochaine étape et le suivi humain.</li>
+            <li><strong>Un canal performant:</strong> réutilisez-le avec un nouveau lien de campagne, sans écraser l’ancien.</li>
+        </ul>
+        <div class="callout warning"><strong>Attention aux petits volumes:</strong> ne tirez pas de conclusion définitive après quelques visites. Observez aussi la qualité réelle des demandes.</div>
+    </section>
+
+    <section class="page">
+        <h2>11. Suivre les personnes intéressées</h2><div class="rule"></div>
+        <p>L’écran <strong>Personnes intéressées</strong> regroupe les demandes issues des parcours. Il ne remplace pas le dossier client ni les notes de séance.</p>
+        <h3>Actions disponibles</h3>
+        <ul>
+            <li>rechercher par nom ou adresse email;</li>
+            <li>déplacer la personne dans le pipeline;</li>
+            <li>ajouter une étiquette ou un groupe dynamique;</li>
+            <li>créer une tâche de rappel;</li>
+            <li>consulter les consentements et les messages;</li>
+            <li>exporter les données;</li>
+            <li>anonymiser les données marketing sans supprimer rendez-vous ou factures.</li>
+        </ul>
+        <h3>Pipeline recommandé</h3>
+        <table>
+            <tr><th>Étape</th><th>Utilisation</th></tr>
+            <tr><td>Nouveau</td><td>Demande reçue, pas encore examinée.</td></tr>
+            <tr><td>À qualifier</td><td>Vérifier le besoin et la prochaine action.</td></tr>
+            <tr><td>Échange en cours</td><td>Contact humain commencé.</td></tr>
+            <tr><td>Converti</td><td>Réservation, inscription ou achat confirmé.</td></tr>
+            <tr><td>Pas maintenant</td><td>La personne ne souhaite pas poursuivre actuellement.</td></tr>
+        </table>
+        <div class="callout"><strong>Confidentialité:</strong> utilisez les notes de ce module uniquement pour le suivi relationnel ou commercial. Conservez les informations cliniques dans les espaces prévus à cet effet.</div>
+    </section>
+
+    <section class="page">
+        <h2>12. Cas d’usage prêts à reproduire</h2><div class="rule"></div>
+        <h3>Cas A - Guide gratuit vers séance découverte</h3>
+        <p><span class="badge">Objectif</span> Offrir une ressource</p>
+        <ul>
+            <li>Page 1: problème reconnu, contenu du guide, formulaire prénom + email.</li>
+            <li>Page 2: remise du fichier et invitation à consulter l’offre.</li>
+            <li>Messages: remise immédiate, conseil J+2, invitation J+6.</li>
+            <li>Partage: site, Instagram, newsletter et partenaires avec liens distincts.</li>
+        </ul>
+        <h3>Cas B - Remplir un atelier</h3>
+        <p><span class="badge">Objectif</span> Remplir un atelier</p>
+        <ul>
+            <li>Associez l’événement déjà créé dans Olithea.</li>
+            <li>Affichez date, durée, lieu, public, contenu et nombre de places.</li>
+            <li>Répondez aux objections dans la FAQ.</li>
+            <li>Le bouton final ouvre l’inscription existante.</li>
+        </ul>
+        <h3>Cas C - Séance découverte</h3>
+        <p><span class="badge">Objectif</span> Obtenir des réservations</p>
+        <ul>
+            <li>Associez une prestation disponible à la réservation en ligne.</li>
+            <li>Expliquez pour qui la séance est adaptée, sa durée et son déroulement.</li>
+            <li>Utilisez le bouton « Voir les disponibilités ».</li>
+            <li>L’agenda Olithea reste la source de vérité des créneaux.</li>
+        </ul>
+        <h3>Cas D - Demande qualifiée</h3>
+        <p><span class="badge">Objectif</span> Recevoir une demande qualifiée</p>
+        <ul>
+            <li>Demandez uniquement les coordonnées utiles.</li>
+            <li>Annoncez votre délai de réponse habituel.</li>
+            <li>Créez une tâche automatique de rappel.</li>
+            <li>Ne demandez aucune donnée de santé dans le formulaire.</li>
+        </ul>
+    </section>
+
+    <section class="page">
+        <h2>13. Checklist avant diffusion</h2><div class="rule"></div>
+        <ul class="checklist">
+            <li>L’offre répond à un besoin unique et compréhensible.</li>
+            <li>Le titre décrit un résultat ou une situation concrète.</li>
+            <li>Le bouton annonce clairement l’action suivante.</li>
+            <li>Les champs demandés sont strictement nécessaires.</li>
+            <li>La case de relance facultative est séparée et non cochée.</li>
+            <li>Chaque bouton ouvre la bonne étape.</li>
+            <li>La prestation, l’événement, la formation ou le fichier est disponible.</li>
+            <li>La page a été relue sur téléphone et ordinateur.</li>
+            <li>Les messages ont été relus et simulés.</li>
+            <li>Une vraie action test a été réalisée de bout en bout.</li>
+            <li>Un lien distinct existe pour chaque campagne importante.</li>
+            <li>La personne chargée du suivi sait où retrouver les demandes.</li>
+        </ul>
+        <h3>Dépannage rapide</h3>
+        <table>
+            <tr><th>Problème</th><th>Vérification</th></tr>
+            <tr><td>Le parcours n’est pas visible.</td><td>Il doit être publié et ne pas être en pause.</td></tr>
+            <tr><td>Une modification n’apparaît pas.</td><td>Publiez le brouillon pour créer une nouvelle version.</td></tr>
+            <tr><td>Le bouton ne fonctionne plus.</td><td>Vérifiez que la destination Olithea existe et est disponible.</td></tr>
+            <tr><td>Le fichier ne se télécharge pas.</td><td>Remplacez-le dans le brouillon et republiez.</td></tr>
+            <tr><td>Les messages ne partent pas.</td><td>Vérifiez activation, consentement, heures silencieuses et limite.</td></tr>
+            <tr><td>Les statistiques restent à zéro.</td><td>Vérifiez que la mesure est activée pour le pilote.</td></tr>
+        </table>
+        <div class="callout"><strong>Règle simple:</strong> commencez avec un parcours, une offre et un canal. Observez les vraies demandes avant d’ajouter davantage d’automatisations.</div>
+    </section>
+
+    <section class="page">
+        <h2>14. Éditeur enrichi et assistant de rédaction</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/18-editeur-enrichi.png" alt="Éditeur enrichi">
+        <p class="caption">Contenu public, assistant de rédaction, référencement, style et formulaire restent réunis sur le brouillon.</p>
+        <h3>Configuration recommandée</h3>
+        <ol class="steps">
+            <li>Rédigez d’abord le titre et la présentation avec vos propres mots.</li>
+            <li>Cliquez sur <strong>Analyser le texte</strong> pour obtenir des suggestions et alertes.</li>
+            <li>Choisissez explicitement une suggestion; aucune modification n’est automatique.</li>
+            <li>Limitez la page aux sections qui aident réellement à comprendre ou agir.</li>
+            <li>Prévisualisez sur ordinateur et téléphone avant de publier.</li>
+        </ol>
+        <div class="callout warning"><strong>Promesses sensibles:</strong> l’assistant signale certaines formulations médicales ou garanties de résultat. Il ne remplace pas votre validation professionnelle et juridique.</div>
+        <h3>Organisation visuelle</h3>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/19-blocs-formulaire.png" alt="Organisation des blocs">
+        <p class="caption">Activez une section, renseignez son contenu, puis faites-la glisser pour choisir son ordre.</p>
+        <table>
+            <tr><th>Bloc</th><th>Bon usage</th></tr>
+            <tr><td>Image principale</td><td>Montrer l’offre, le lieu, le support ou l’intervenant réel.</td></tr>
+            <tr><td>Galerie</td><td>Quelques images utiles, chacune avec une description.</td></tr>
+            <tr><td>Vidéo</td><td>Une présentation courte hébergée sur YouTube ou Vimeo.</td></tr>
+            <tr><td>Témoignages</td><td>Uniquement des témoignages réels et autorisés.</td></tr>
+            <tr><td>Tarif et pratique</td><td>Afficher clairement ce qui est inclus et les modalités.</td></tr>
+        </table>
+        <h3>Questions personnalisées</h3>
+        <p>Trois questions maximum sont autorisées: texte court, choix unique ou choix multiple. Indiquez la finalité de chaque champ et ne demandez aucune donnée médicale ou clinique.</p>
+    </section>
+
+    <section class="page">
+        <h2>15. Prévisualiser et tester les emails</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/12-apercu-message-test.png" alt="Estimation des destinataires">
+        <p class="caption">L’estimation retire les personnes désinscrites, supprimées ou contactées trop récemment.</p>
+        <h3>Procédure avant activation</h3>
+        <ol class="steps">
+            <li>Vérifiez le type du message: réponse demandée ou relance facultative.</li>
+            <li>Choisissez éventuellement un modèle sobre et adaptez-le.</li>
+            <li>Contrôlez l’objet, le lien, le délai et l’unique appel à l’action.</li>
+            <li>Cliquez sur <strong>Actualiser l’aperçu</strong>.</li>
+            <li>Corrigez chaque avertissement affiché.</li>
+            <li>Cliquez sur <strong>M’envoyer un test</strong> et vérifiez votre boîte email.</li>
+            <li>Enregistrez le brouillon, puis testez le déroulement complet.</li>
+        </ol>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/13-email-test-apercu.png" alt="Aperçu de l’email et test">
+        <p class="caption">Les variables sont remplacées par des données d’exemple lisibles avant tout envoi réel.</p>
+        <div class="callout"><strong>Garantie du test:</strong> le message part uniquement vers l’adresse du praticien connecté. Il n’avance aucune automatisation et n’est pas compté comme une campagne envoyée.</div>
+    </section>
+
+    <section class="page">
+        <h2>16. Programmer une campagne</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/14-campagnes-programmees.png" alt="Campagnes programmées">
+        <p class="caption">La semaine en cours, l’historique et la programmation sont visibles sur le même écran.</p>
+        <ol class="steps">
+            <li>Donnez un nom interne précis, non visible par les destinataires.</li>
+            <li>Rédigez un objet et un message sobres.</li>
+            <li>Sélectionnez un ou plusieurs parcours publiés.</li>
+            <li>Choisissez une date et une heure futures.</li>
+            <li>Relisez la campagne dans le calendrier de la semaine.</li>
+            <li>Annulez-la avant traitement si l’offre change.</li>
+        </ol>
+        <h3>Protections appliquées au moment de l’envoi</h3>
+        <ul>
+            <li>un même email n’est compté qu’une fois entre les parcours sélectionnés;</li>
+            <li>le consentement et la désinscription sont revérifiés;</li>
+            <li>les bounces, plaintes et suppressions sont exclus;</li>
+            <li>les limites du compte et la réputation sont contrôlées;</li>
+            <li>un contact ayant reçu un message marketing récemment est exclu.</li>
+        </ul>
+        <div class="callout warning"><strong>Relance d’abandon:</strong> elle ne peut être créée que pour une réservation ou un paiement réellement commencé. Une visite de page ne suffit pas. Une seule relance est possible et elle s’arrête après achat, réservation, annulation, remboursement ou désinscription.</div>
+    </section>
+
+    <section class="page">
+        <h2>17. Vue contact unifiée</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/15-contacts-filtres-actions.png" alt="Vue contacts">
+        <p class="caption">Recherche, filtres enregistrés et actions groupées sans envoi de message.</p>
+        <h3>Actions groupées prudentes</h3>
+        <ol class="steps">
+            <li>Filtrez la liste avant de sélectionner.</li>
+            <li>Vérifiez le nombre de contacts sélectionnés.</li>
+            <li>Choisissez une seule action: déplacer, étiqueter ou changer le statut.</li>
+            <li>Cliquez sur <strong>Appliquer sans envoyer</strong>.</li>
+        </ol>
+        <p>Une action groupée est limitée à 100 contacts et n’envoie jamais d’email. Les filtres utiles peuvent être enregistrés pour les retrouver plus tard.</p>
+        <h3>Fiche contact</h3>
+        <ul>
+            <li>origine complète des parcours et campagnes;</li>
+            <li>messages et consentements;</li>
+            <li>rendez-vous, achats et inscriptions liés;</li>
+            <li>prochaine action recommandée et tâches;</li>
+            <li>suggestion de doublon à vérifier manuellement.</li>
+        </ul>
+        <div class="callout"><strong>Séparation des données:</strong> les notes de consultation et informations cliniques ne sont jamais reprises dans cette vue marketing.</div>
+    </section>
+
+    <section class="page">
+        <h2>18. Pipeline, reports et objectifs</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/16-pipeline-objectifs.png" alt="Pipeline et objectifs">
+        <p class="caption">Les fiches peuvent être déplacées par glisser-déposer ou avec le sélecteur.</p>
+        <h3>Motif et date de reprise</h3>
+        <p>Lorsque vous classez une personne dans <strong>Pas maintenant</strong>, indiquez le motif du report. Ajoutez une date de reprise uniquement lorsque la personne a demandé ou accepté ce futur contact.</p>
+        <h3>Objectifs</h3>
+        <p>Un objectif peut concerner tous les parcours ou un parcours précis pour un mois donné. Il sert de repère d’activité. Les réservations, achats et inscriptions confirmés restent la source de vérité.</p>
+        <div class="callout warning"><strong>Après un glisser-déposer:</strong> si l’étape exige un motif, Olithea refuse le déplacement rapide et vous demande de compléter le suivi.</div>
+    </section>
+
+    <section class="page">
+        <h2>19. Import CSV encadré</h2><div class="rule"></div>
+        <img class="screenshot" data-local-src="docs/offer-journeys-guide-assets/17-import-csv.png" alt="Import CSV">
+        <p class="caption">Le fichier est analysé avant toute création de contact.</p>
+        <h3>Colonnes reconnues</h3>
+        <table>
+            <tr><th>Colonne</th><th>Obligatoire</th><th>Exemple</th></tr>
+            <tr><td><code>email</code></td><td>Oui</td><td>camille@exemple.fr</td></tr>
+            <tr><td><code>prenom</code>, <code>nom</code></td><td>Non</td><td>Camille, Martin</td></tr>
+            <tr><td><code>telephone</code></td><td>Non</td><td>06 12 34 56 78</td></tr>
+            <tr><td><code>consentement_marketing</code></td><td>Non</td><td>oui</td></tr>
+        </table>
+        <ol class="steps">
+            <li>Préparez un CSV de 2 Mo et 2 000 lignes maximum.</li>
+            <li>Indiquez une preuve vérifiable si des relances sont autorisées.</li>
+            <li>Analysez le fichier et consultez chaque ligne ignorée.</li>
+            <li>Confirmez seulement lorsque l’aperçu est correct.</li>
+            <li>Annulez l’import avant envoi si une erreur est détectée.</li>
+        </ol>
+        <p>Les adresses invalides, doublons du fichier et contacts déjà présents sont ignorés. L’annulation globale est bloquée dès qu’un message a été envoyé à un contact créé par cet import.</p>
+        <img class="screenshot-mobile" data-local-src="docs/offer-journeys-guide-assets/20-contacts-mobile.png" alt="Vue contacts sur téléphone">
+        <p class="caption">Les fonctions principales restent accessibles sur téléphone; le tableau détaillé peut défiler horizontalement.</p>
+    </section>
+</body>
+</html>

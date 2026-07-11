@@ -1067,7 +1067,7 @@ $existingAppointments = $existingAppointmentsQuery->get();
 /**
  * Show the form for creating a new appointment for a patient.
  */
-public function createPatient($therapistId)
+public function createPatient(Request $request, $therapistId)
 {
     // Validate that the therapist exists and accepts online appointments
     $therapistExists = User::where('id', $therapistId)
@@ -1088,9 +1088,14 @@ public function createPatient($therapistId)
                        ->orderBy('display_order', 'asc') // Change to 'desc' for descending order
                        ->get();
     $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
+    $preferredProduct = null;
+    if ($request->filled('product_id')) {
+        $preferredProduct = $products->first(fn ($product) => (int) $product->id === (int) $request->query('product_id')
+            && (bool) $product->can_be_booked_online);
+    }
 
     // Return the view with the therapist and ordered products
-    return view('appointments.createPatient', compact('therapist', 'products', 'practiceLocations'));
+    return view('appointments.createPatient', compact('therapist', 'products', 'practiceLocations', 'preferredProduct'));
 }
 
 

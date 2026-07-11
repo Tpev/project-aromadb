@@ -70,6 +70,17 @@
             @endif
         @endif
 
+        @if(isset($header) && request()->routeIs('offer-journeys.*'))
+            <header class="border-b border-gray-200 bg-white">
+                <div class="mx-auto flex max-w-7xl items-start gap-4 px-4 py-5 sm:px-6 lg:px-8">
+                    <div class="min-w-0 flex-1">{{ $header }}</div>
+                    <a href="{{ route('offer-journeys.guide') }}" target="_blank" rel="noopener" class="inline-flex shrink-0 items-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                        Guide PDF
+                    </a>
+                </div>
+            </header>
+        @endif
+
         <!-- Page Content -->
         <main>
             {{ $slot }}

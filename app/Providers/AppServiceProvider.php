@@ -9,6 +9,15 @@ use App\Models\ClientProfile;
 use App\Policies\ClientProfilePolicy;
 use Carbon\Carbon;
 use App\Services\IpInfoService;
+use App\Domain\OfferJourneys\Models\OfferJourney;
+use App\Domain\OfferJourneys\Models\OfferJourneyContact;
+use App\Domain\OfferJourneys\Policies\OfferJourneyPolicy;
+use App\Domain\OfferJourneys\Policies\OfferJourneyContactPolicy;
+use App\Domain\OfferJourneys\Services\OfferJourneyConversionAttributor;
+use App\Models\Appointment;
+use App\Models\Reservation;
+use App\Models\DigitalTrainingEnrollment;
+use App\Models\GiftVoucherOrder;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +38,16 @@ class AppServiceProvider extends ServiceProvider
     {
 		 Carbon::setLocale('fr');
 		  \Illuminate\Support\Facades\Gate::policy(ClientProfile::class, ClientProfilePolicy::class);
+          \Illuminate\Support\Facades\Gate::policy(OfferJourney::class, OfferJourneyPolicy::class);
+          \Illuminate\Support\Facades\Gate::policy(OfferJourneyContact::class, OfferJourneyContactPolicy::class);
+          Appointment::saved(fn (Appointment $appointment) => config('offer_journeys.enabled')
+              ? app(OfferJourneyConversionAttributor::class)->appointment($appointment) : null);
+          Reservation::saved(fn (Reservation $reservation) => config('offer_journeys.enabled')
+              ? app(OfferJourneyConversionAttributor::class)->reservation($reservation) : null);
+          DigitalTrainingEnrollment::created(fn (DigitalTrainingEnrollment $enrollment) => config('offer_journeys.enabled')
+              ? app(OfferJourneyConversionAttributor::class)->training($enrollment) : null);
+          GiftVoucherOrder::saved(fn (GiftVoucherOrder $order) => config('offer_journeys.enabled')
+              ? app(OfferJourneyConversionAttributor::class)->giftVoucher($order) : null);
         // Listen for login event and update login count and last login time
         Event::listen(Login::class, function ($event) {
             $user = $event->user;

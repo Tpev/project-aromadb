@@ -66,6 +66,7 @@ return [
 						'inventory',
 						'blog',
 						'newsletter',
+						'sales_funnels',
         ],
 		        'trial' => [
 
@@ -86,6 +87,7 @@ return [
 						'inventory',
 						'blog',
 						'newsletter',
+						'sales_funnels',
         ],
     ],
 ];

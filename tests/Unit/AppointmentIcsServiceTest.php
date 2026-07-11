@@ -171,7 +171,7 @@ test('google calendar url reuses appointment details with mode-specific data', f
 
     expect($url)->toStartWith('https://calendar.google.com/calendar/render?action=TEMPLATE');
     expect($decodedUrl)->toContain('text=Consultation Aroma avec Cabinet Aroma');
-    expect($decodedUrl)->toContain('details=Rendez-vous AromaMade');
+    expect($decodedUrl)->toContain('details=Rendez-vous Olithea');
     expect($decodedUrl)->toContain('Domicile');
     expect($decodedUrl)->toContain('Adresse du domicile : 22 Rue de la Paix, 75002 Paris');
     expect($decodedUrl)->toContain('location=');

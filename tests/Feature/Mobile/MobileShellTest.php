@@ -65,7 +65,7 @@ use Illuminate\Http\UploadedFile;
 test('mobile entry and practitioner login render', function () {
     $this->get('/mobile')
         ->assertOk()
-        ->assertSee('Application mobile AromaMade PRO');
+        ->assertSee('Application mobile Olithea');
 
     $this->get('/mobile/login')
         ->assertOk()
@@ -104,7 +104,7 @@ test('authenticated practitioners can open the mobile menu', function () {
     $this->actingAs($user)
         ->get('/mobile/menu')
         ->assertOk()
-        ->assertSee('Tous les modules AromaMade PRO')
+        ->assertSee('Tous les modules Olithea')
         ->assertSee('Factures &amp; devis', false)
         ->assertSee('Bons cadeaux');
 });
@@ -2346,7 +2346,7 @@ test('authenticated practitioners can create a newsletter from mobile', function
         'id' => $newsletter->id,
         'user_id' => $user->id,
         'subject' => 'Les nouvelles du cabinet',
-        'from_email' => 'contact@aromamade.com',
+        'from_email' => 'contact@olithea.fr',
         'audience_id' => $audience->id,
         'status' => 'draft',
     ]);
@@ -4586,7 +4586,7 @@ test('mobile received invoices show a disabled sandbox state for ordinary practi
         ->get('/mobile/factures-recues')
         ->assertOk()
         ->assertSee('Factures recues')
-        ->assertSee('SUPER PDP sandbox non active');
+        ->assertSee('SUPER PDP non disponible');
 
     $this->assertDatabaseMissing('super_pdp_connections', [
         'user_id' => $user->id,

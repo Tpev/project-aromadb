@@ -94,6 +94,8 @@ use App\Http\Controllers\ClientCommunityController;
 use App\Http\Controllers\SuperPdpController;
 use App\Http\Controllers\SuperPdpReceivedInvoiceController;
 
+require __DIR__.'/offer-journeys.php';
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/pro/referrals', [ReferralController::class, 'index'])->name('pro.referrals.index');
     Route::post('/pro/referrals/invite', [ReferralController::class, 'invite'])->name('pro.referrals.invite');

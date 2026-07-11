@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\InformationRequestMail;
 use App\Models\InformationRequest;
 use App\Models\DigitalTraining;
+use App\Domain\OfferJourneys\Models\OfferJourney;
+use App\Support\OfferJourneys\OfferJourneyAccess;
 
 class PublicTherapistController extends Controller
 {
@@ -81,13 +83,24 @@ public function show($slug)
         ->with('associatedProduct')
         ->get();
 
+    $offerJourneys = collect();
+    if (app(OfferJourneyAccess::class)->publicPagesAvailableFor($therapist)) {
+        $offerJourneys = OfferJourney::query()
+            ->where('user_id', $therapist->id)
+            ->where('show_on_profile', true)
+            ->published()
+            ->orderByDesc('published_at')
+            ->get();
+    }
+
     return view('public.therapist.show', compact(
         'therapist',
         'testimonials',
         'prestations',
         'packProducts',
         'events',
-		'trainings'
+		'trainings',
+        'offerJourneys'
     ));
 }
 

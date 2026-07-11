@@ -5,6 +5,7 @@
     $canUseGiftVouchers = $navUser?->canUseFeature('gift_vouchers') ?? false;
     $giftVoucherNavUrl = route('pro.gift-vouchers.index');
     $showReceivedInvoicesNav = false;
+    $showOfferJourneysNav = app(\App\Support\OfferJourneys\OfferJourneyAccess::class)->availableFor($navUser);
 
     if ($navUser?->isTherapist() && \App\Support\SuperPdpFeature::enabledFor($navUser)) {
         $superPdpEnvironment = app(\App\Services\SuperPdp\SuperPdpOAuthService::class)->environment();
@@ -33,7 +34,7 @@
                 </div>
 
                 <!-- Liens de Navigation -->
-                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                <div class="hidden space-x-8 lg:-my-px lg:ml-10 lg:flex">
                     <!-- Tableau de bord -->
                     <x-nav-link :href="route('dashboard-pro')"
                                 :active="request()->routeIs('dashboard-pro')"
@@ -160,6 +161,7 @@
                                               || request()->routeIs('events.*')
                                               || request()->routeIs('pro.gift-vouchers.*')
                                               || request()->routeIs('questionnaires.*')
+                                              || request()->routeIs('offer-journeys.*')
                                               || request()->routeIs('profile.editCompanyInfo')
                                               || request()->routeIs('therapist.stripe')
                                               || request()->routeIs('conseils.*')
@@ -221,6 +223,11 @@
 							<a href="{{ route('newsletters.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Newsletter') }}
                             </a>								
+							@if($showOfferJourneysNav)
+								<a href="{{ route('offer-journeys.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('offer-journeys.*') ? 'bg-gray-50 font-medium' : '' }}">
+									{{ __('Parcours d’offre') }}
+								</a>
+							@endif
 							<a href="{{ route('dashboardpro.articles.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 {{ __('Article & Blog') }}
                             </a>							
@@ -240,7 +247,7 @@
             </div>
 
             <!-- Dropdown des Paramètres et Notifications -->
-            <div class="hidden sm:flex sm:items-center sm:ml-6 space-x-4">
+            <div class="hidden lg:flex lg:items-center lg:ml-6 space-x-4">
                 <!-- Notification Bell Icon -->
                 <div class="relative">
                     <button id="notificationButton" class="relative text-gray-700 hover:text-[#854f38] focus:outline-none">
@@ -327,7 +334,7 @@
             </div>
 
             <!-- Menu Hamburger (Responsive) -->
-            <div class="-mr-2 flex items-center sm:hidden">
+            <div class="-mr-2 flex items-center lg:hidden">
                 <button @click="open = ! open"
                         class="inline-flex items-center justify-center p-2 rounded-md text-[#647a0b] hover:text-[#854f38] hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -346,7 +353,7 @@
     </div>
 
     <!-- Menu de Navigation Réactif -->
-    <div :class="{ 'block': open, 'hidden': ! open }" class="hidden sm:hidden">
+    <div :class="{ 'block': open, 'hidden': ! open }" class="hidden lg:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard-pro')" :active="request()->routeIs('dashboard-pro')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Tableau de Bord') }}
@@ -428,6 +435,11 @@
 			<x-responsive-nav-link :href="route('newsletters.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Newsletter') }}
             </x-responsive-nav-link>			
+			@if($showOfferJourneysNav)
+				<x-responsive-nav-link :href="route('offer-journeys.index')" :active="request()->routeIs('offer-journeys.*')" class="text-[#647a0b] hover:text-[#854f38]">
+					{{ __('Parcours d’offre') }}
+				</x-responsive-nav-link>
+			@endif
 			<x-responsive-nav-link :href="route('dashboardpro.articles.index')" class="text-[#647a0b] hover:text-[#854f38]">
                 {{ __('Article & Blog') }}
             </x-responsive-nav-link>			

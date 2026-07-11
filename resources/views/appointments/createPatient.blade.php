@@ -501,7 +501,7 @@
                                             $minPrice = $data['min_price'] ?? '0';
                                             $hasMulti = !empty($data['has_multiple_prices']);
                                         @endphp
-                                        <option value="{{ $productName }}" {{ old('product_name') == $productName ? 'selected' : '' }}>
+                                        <option value="{{ $productName }}" {{ old('product_name', $preferredProduct?->name) == $productName ? 'selected' : '' }}>
                                             {{ $productName }} - {{ $hasMulti ? __('à partir de') . ' ' . $minPrice . '€' : $minPrice . '€' }}
                                         </option>
                                     @endforeach
@@ -1259,6 +1259,34 @@
                         @endif
                     }, 350);
                 @endif
+            @elseif($preferredProduct)
+                setTimeout(function () {
+                    const productId = @json((string) $preferredProduct->id);
+                    const productName = @json($preferredProduct->name);
+                    let modeSlug = null;
+                    $('#product_name').val(productName).trigger('change');
+                    if (PRODUCT_CATALOG[productName] && PRODUCT_CATALOG[productName].modes) {
+                        Object.keys(PRODUCT_CATALOG[productName].modes).some(function (slug) {
+                            const variants = PRODUCT_CATALOG[productName].modes[slug].products || [];
+                            if (variants.some(v => String(v.id) === productId)) {
+                                modeSlug = slug;
+                                return true;
+                            }
+                            return false;
+                        });
+                    }
+                    if (modeSlug) {
+                        $('#consultation_mode').val(modeSlug).trigger('change');
+                        setTimeout(function () {
+                            if ($('#format-section').is(':visible')) {
+                                $('#product_variant').val(productId).trigger('change');
+                            } else {
+                                $('#product_id').val(productId);
+                            }
+                            updateSummary();
+                        }, 30);
+                    }
+                }, 100);
             @endif
 
             // Initial summary state

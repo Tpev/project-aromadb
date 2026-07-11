@@ -62,3 +62,24 @@ Schedule::command('super-pdp:sync-received-invoices')
 Schedule::command('sitemap:generate')
     ->dailyAt('02:00')
     ->withoutOverlapping();
+
+// Parcours d'offre: la commande reste sans effet tant que les flags du pilote sont coupés.
+Schedule::command('offer-journeys:dispatch-due')
+    ->everyMinute()
+    ->withoutOverlapping();
+
+Schedule::command('offer-journeys:reconcile-conversions --days=35')
+    ->dailyAt('04:20')
+    ->withoutOverlapping(120);
+
+Schedule::command('offer-journeys:apply-retention --limit=1000')
+    ->dailyAt('04:50')
+    ->withoutOverlapping(120);
+
+Schedule::command('offer-journeys:dispatch-campaigns --limit=20')
+    ->everyMinute()
+    ->withoutOverlapping();
+
+Schedule::command('offer-journeys:dispatch-abandonments --limit=100')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
