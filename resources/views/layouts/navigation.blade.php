@@ -48,6 +48,12 @@
               <a href="{{ route('formation3') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                 Développer votre activité de praticien
               </a>
+              <a href="{{ route('guides.sales-funnel-practitioner') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                Comprendre le tunnel de vente
+              </a>
+              <a href="{{ route('guides.lead-magnet-practitioner') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                Idées de ressources gratuites
+              </a>
             </div>
           </div>
 
@@ -162,6 +168,8 @@
     <div class="pt-2 pb-3 space-y-1">
 
       <a href="{{ route('formation3') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Développer votre activité de praticien</a>
+      <a href="{{ route('guides.sales-funnel-practitioner') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Comprendre le tunnel de vente</a>
+      <a href="{{ route('guides.lead-magnet-practitioner') }}" class="block pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Idées de ressources gratuites</a>
 
       <!-- Olithea (mobile collapsible) -->
       <div x-data="{ proMobileOpen:false }" class="border-t border-gray-200 pt-2">

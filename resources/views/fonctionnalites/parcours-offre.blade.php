@@ -165,6 +165,11 @@
                     @endforeach
                 </div>
                 <div class="fm-scope-note"><i class="fas fa-info-circle" aria-hidden="true"></i><div><h3>Une ouverture progressive</h3><p>Les Parcours d’offre et leurs pages publiques sont activés progressivement pour les comptes éligibles. Les campagnes et relances email peuvent être disponibles séparément ; un parcours peut fonctionner sans suivi marketing automatique.</p></div></div>
+                <div class="fm-related-links" aria-label="Ressources associées">
+                    <a href="{{ route('features.capture-page') }}"><strong>Page de capture</strong><span>Formulaire, consentement et prochaine étape.</span></a>
+                    <a href="{{ route('guides.sales-funnel-practitioner') }}"><strong>Guide du tunnel de vente</strong><span>Définition, étapes et approche éthique.</span></a>
+                    <a href="{{ route('guides.lead-magnet-practitioner') }}"><strong>Guide du lead magnet</strong><span>PDF, audio, checklist et mini-programme.</span></a>
+                </div>
             </div>
         </section>
 

@@ -428,6 +428,15 @@ Route::view('/fonctionnalites/paiements', 'fonctionnalites.paiements')
 Route::view('/fonctionnalites/parcours-offre', 'fonctionnalites.parcours-offre')
     ->name('features.offer-journeys');
 
+Route::view('/fonctionnalites/page-de-capture', 'fonctionnalites.page-de-capture')
+    ->name('features.capture-page');
+
+Route::view('/guides/tunnel-de-vente-praticien', 'guides.tunnel-de-vente-praticien')
+    ->name('guides.sales-funnel-practitioner');
+
+Route::view('/guides/lead-magnet-praticien', 'guides.lead-magnet-praticien')
+    ->name('guides.lead-magnet-practitioner');
+
 Route::view('/fonctionnalites/facturation-electronique', 'fonctionnalites.facturation-electronique')
     ->name('features.e-invoicing');
 	

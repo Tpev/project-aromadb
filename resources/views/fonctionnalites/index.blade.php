@@ -103,7 +103,7 @@ Découvrez les fonctionnalités d’Olithea : agenda, dossiers clients, pages de
                     <i class="fas fa-route tile-icon"></i>
                     <h3>Parcours d’offre</h3>
                     <p>Créez une <strong>page de capture</strong>, recueillez une demande et guidez chaque personne vers une réservation, un atelier, une ressource ou une offre.</p>
-                    <div class="mt-3"><a href="{{ route('features.offer-journeys') }}" class="text-link">Découvrir les parcours →</a></div>
+                    <div class="mt-3 flex flex-wrap gap-x-4 gap-y-2"><a href="{{ route('features.offer-journeys') }}" class="text-link">Découvrir les parcours →</a><a href="{{ route('features.capture-page') }}" class="text-link">Voir la page de capture →</a><a href="{{ route('guides.sales-funnel-practitioner') }}" class="text-link">Lire le guide →</a></div>
                 </div>
 
                 <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">

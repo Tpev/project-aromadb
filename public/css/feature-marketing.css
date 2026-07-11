@@ -194,6 +194,12 @@
 .fm-legal-source { margin-top: 18px; color: var(--fm-muted); font-size: 13px; }
 .fm-legal-source a { color: var(--fm-olive-dark); font-weight: 700; }
 
+.fm-related-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 28px auto 0; }
+.fm-related-links a { min-height: 118px; padding: 20px; border: 1px solid var(--fm-line); border-radius: 8px; color: var(--fm-ink); background: #fff; text-decoration: none; }
+.fm-related-links strong, .fm-related-links span { display: block; }
+.fm-related-links strong { margin-bottom: 7px; }
+.fm-related-links span { color: var(--fm-muted); font-size: 13px; line-height: 1.55; }
+
 @media (max-width: 900px) {
     .fm-hero { min-height: 620px; background-position: 60% center; }
     .fm-hero h1 { font-size: 43px; }
@@ -236,6 +242,7 @@
     .fm-heading h2, .fm-copy h2 { font-size: 29px; }
     .fm-heading p { font-size: 16px; }
     .fm-grid-3, .fm-comparison, .fm-integrations, .fm-integrations-three { grid-template-columns: 1fr; }
+    .fm-related-links { grid-template-columns: 1fr; }
     .fm-integration { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.14); }
     .fm-integration:last-child { border-bottom: 0; }
     .fm-use-case { min-height: 0; }
