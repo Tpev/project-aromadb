@@ -120,7 +120,49 @@ it('renders the page editor for a form step', function () {
     $this->actingAs($this->therapist)
         ->get(route('offer-journeys.pages.edit', [$this->journey, $page]))
         ->assertOk()
-        ->assertSee('Contenu de la page')
-        ->assertSee('Formulaire')
+        ->assertSee('Contenu de l’étape formulaire')
+        ->assertSee('Champs du formulaire')
         ->assertSee('Étape suivante');
+});
+
+it('creates a real form when a practitioner adds a form step', function () {
+    $this->actingAs($this->therapist)
+        ->post(route('offer-journeys.pages.store', $this->journey), [
+            'name' => 'Recevoir les coordonnées',
+            'type' => 'opt_in',
+        ])
+        ->assertRedirect();
+
+    $page = $this->journey->pages()->where('name', 'Recevoir les coordonnées')->firstOrFail();
+
+    expect($page->form)->not->toBeNull()
+        ->and($page->form->fields()->pluck('name')->all())->toBe(['first_name', 'email', 'phone']);
+
+    $this->actingAs($this->therapist)
+        ->get(route('offer-journeys.pages.edit', [$this->journey, $page]))
+        ->assertOk()
+        ->assertSee('Contenu de l’étape formulaire')
+        ->assertSee('Champs du formulaire')
+        ->assertSee('Adresse email');
+});
+
+it('repairs a form step created without its form configuration', function () {
+    $page = $this->journey->pages()->create([
+        'name' => 'Ancienne étape formulaire',
+        'slug' => 'ancienne-etape-formulaire',
+        'type' => 'opt_in',
+        'position' => 10,
+        'draft_content_json' => ['title' => 'Restons en contact', 'cta_label' => 'Envoyer'],
+        'validation_state' => 'incomplete',
+    ]);
+
+    expect($page->form()->exists())->toBeFalse();
+
+    $this->actingAs($this->therapist)
+        ->get(route('offer-journeys.pages.edit', [$this->journey, $page]))
+        ->assertOk()
+        ->assertSee('Champs du formulaire');
+
+    expect($page->fresh()->form)->not->toBeNull()
+        ->and($page->fresh()->form->fields()->pluck('name')->all())->toBe(['first_name', 'email', 'phone']);
 });

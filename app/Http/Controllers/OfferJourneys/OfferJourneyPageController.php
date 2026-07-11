@@ -54,6 +54,7 @@ class OfferJourneyPageController extends Controller
             ],
             'validation_state' => 'incomplete',
         ]);
+        $this->ensureFormForPage($journey, $page);
 
         return redirect()->route('offer-journeys.pages.edit', [$journey, $page])
             ->with('success', 'La nouvelle étape a été ajoutée.');
@@ -62,6 +63,7 @@ class OfferJourneyPageController extends Controller
     public function edit(OfferJourney $journey, OfferJourneyPage $page): View
     {
         $this->authorizePage($journey, $page);
+        $this->ensureFormForPage($journey, $page);
 
         $journey->load(['pages.form.fields', 'transitions']);
         $page->load('form.fields');
@@ -84,6 +86,7 @@ class OfferJourneyPageController extends Controller
     public function update(Request $request, OfferJourney $journey, OfferJourneyPage $page, OfferJourneyTransitionEditor $transitionEditor, OfferJourneyResourceStorage $resourceStorage): RedirectResponse
     {
         $this->authorizePage($journey, $page);
+        $this->ensureFormForPage($journey, $page);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
@@ -272,6 +275,30 @@ class OfferJourneyPageController extends Controller
         }
 
         return back()->with('success', 'Le brouillon de la page a été enregistré.');
+    }
+
+    private function ensureFormForPage(OfferJourney $journey, OfferJourneyPage $page): void
+    {
+        if (! in_array($page->type, ['opt_in', 'qualification'], true)) {
+            return;
+        }
+
+        $form = $page->form()->firstOrCreate([], [
+            'offer_journey_id' => $journey->id,
+            'submit_label' => ($page->draft_content_json ?? [])['cta_label'] ?? 'Envoyer',
+            'privacy_text' => 'Vos informations sont utilisées uniquement pour répondre à cette demande.',
+            'marketing_consent_mode' => 'optional',
+        ]);
+
+        if ($form->fields()->exists()) {
+            return;
+        }
+
+        $form->fields()->createMany([
+            ['name' => 'first_name', 'label' => 'Prénom', 'type' => 'text', 'is_required' => true, 'position' => 0, 'purpose' => 'identifier le contact'],
+            ['name' => 'email', 'label' => 'Adresse email', 'type' => 'email', 'is_required' => true, 'position' => 1, 'purpose' => 'répondre à la demande'],
+            ['name' => 'phone', 'label' => 'Téléphone', 'type' => 'tel', 'is_required' => false, 'position' => 2, 'purpose' => 'recontacter si demandé'],
+        ]);
     }
 
     public function destroy(OfferJourney $journey, OfferJourneyPage $page): RedirectResponse

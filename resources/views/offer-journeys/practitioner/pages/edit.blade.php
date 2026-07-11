@@ -28,7 +28,8 @@
                   }">
                 @csrf @method('PUT')
                 <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-                    <h2 class="font-semibold text-gray-900">Contenu de la page</h2>
+                    <h2 class="font-semibold text-gray-900">{{ $form ? 'Contenu de l’étape formulaire' : 'Contenu de la page' }}</h2>
+                    @if($form)<p class="mt-1 text-sm text-gray-600">Ce contenu présente votre proposition avant d’afficher les champs configurés dans le panneau « Champs du formulaire ».</p>@endif
                     <div class="mt-4 space-y-4">
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div><label for="name" class="block text-sm font-medium text-gray-700">Nom interne</label><input id="name" name="name" value="{{ old('name', $page->name) }}" required class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
@@ -110,8 +111,9 @@
                         </div>
                     </section>
                     @if($form)
-                        <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-                            <h2 class="font-semibold text-gray-900">Formulaire</h2>
+                        <section class="rounded-lg border border-[#cbd5a5] bg-[#f7f9ec] p-5 shadow-sm">
+                            <h2 class="font-semibold text-gray-900">Champs du formulaire</h2>
+                            <p class="mt-1 text-xs text-gray-600">Les réponses créeront ou mettront à jour un contact du parcours après publication.</p>
                             @php
                                 $selectedFormFields = $form->fields->pluck('name');
                             @endphp
