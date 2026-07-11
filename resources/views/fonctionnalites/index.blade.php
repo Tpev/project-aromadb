@@ -1,7 +1,7 @@
 <x-app-layout>
-    @section('title', 'Fonctionnalités | Agenda, Dossiers, Facturation, Questionnaires | Olithea')
+    @section('title', 'Fonctionnalités | Agenda, Parcours d’offre, Facturation | Olithea')
     @section('meta_description')
-Découvrez toutes les fonctionnalités d’Olithea : agenda en ligne, dossiers clients, facturation (devis, factures, livre de recettes), questionnaires, Portail Pro et paiements sécurisés. Données hébergées en France (HDS), conforme RGPD.
+Découvrez les fonctionnalités d’Olithea : agenda, dossiers clients, pages de capture et parcours d’offre, facturation, réception des factures électroniques, paiements et Portail Pro.
     @endsection
 
     @push('styles')
@@ -28,7 +28,7 @@ Découvrez toutes les fonctionnalités d’Olithea : agenda en ligne, dossiers c
                 Toutes les fonctionnalités Olithea
             </h1>
             <p class="text-white text-xl md:text-2xl mb-8 max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="100">
-                Agenda & réservation, dossiers clients, facturation, questionnaires, Portail Pro et paiements tout ce qu’il faut pour gérer et développer votre activité.
+                Agenda, dossiers clients, pages de capture, facturation et paiements: un espace cohérent pour gérer votre activité et donner une suite claire aux demandes.
             </p>
             <div class="cta-group" data-aos="fade-up" data-aos-delay="200">
                 <a href="{{ route('register-pro') }}" class="btn-primary">Essayer gratuitement 14 jours</a>
@@ -97,6 +97,20 @@ Découvrez toutes les fonctionnalités d’Olithea : agenda en ligne, dossiers c
                     <div class="mt-3">
                         <a href="{{ url('/fonctionnalites/paiements') }}" class="text-link">En savoir plus →</a>
                     </div>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="300">
+                    <i class="fas fa-route tile-icon"></i>
+                    <h3>Parcours d’offre</h3>
+                    <p>Créez une <strong>page de capture</strong>, recueillez une demande et guidez chaque personne vers une réservation, un atelier, une ressource ou une offre.</p>
+                    <div class="mt-3"><a href="{{ route('features.offer-journeys') }}" class="text-link">Découvrir les parcours →</a></div>
+                </div>
+
+                <div class="feature-tile" data-aos="fade-up" data-aos-delay="350">
+                    <i class="fas fa-file-import tile-icon"></i>
+                    <h3>Facturation électronique</h3>
+                    <p>Préparez l’obligation de réception de septembre 2026 et retrouvez dans Olithea les <strong>factures électroniques d’achat</strong> reçues par votre entreprise.</p>
+                    <div class="mt-3"><a href="{{ route('features.e-invoicing') }}" class="text-link">Découvrir la réception →</a></div>
                 </div>
 
             </div>

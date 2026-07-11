@@ -424,6 +424,12 @@ Route::view('/fonctionnalites/portail-pro', 'fonctionnalites.portail-pro')
 // Paiements
 Route::view('/fonctionnalites/paiements', 'fonctionnalites.paiements')
     ->name('features.paiements');
+
+Route::view('/fonctionnalites/parcours-offre', 'fonctionnalites.parcours-offre')
+    ->name('features.offer-journeys');
+
+Route::view('/fonctionnalites/facturation-electronique', 'fonctionnalites.facturation-electronique')
+    ->name('features.e-invoicing');
 	
 Route::middleware(['auth'])->group(function () {
     Route::get('/assistant', [AssistantController::class, 'view'])->name('assistant.view');

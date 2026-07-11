@@ -190,6 +190,16 @@
                     <p>Avis, newsletters et suivi relationnel.</p>
                     <a href="{{ route('features.index') }}">Découvrir</a>
                 </article>
+                <article class="pro-card">
+                    <h3>Pages de capture et parcours d’offre</h3>
+                    <p>Présentez une offre, recueillez une demande et guidez le contact vers la bonne action.</p>
+                    <a href="{{ route('features.offer-journeys') }}">Découvrir</a>
+                </article>
+                <article class="pro-card">
+                    <h3>Facturation électronique</h3>
+                    <p>Connectez votre entreprise et recevez vos factures d’achat dans Olithea.</p>
+                    <a href="{{ route('features.e-invoicing') }}">Découvrir</a>
+                </article>
             </div>
         </div>
     </section>

@@ -89,9 +89,11 @@
               <a href="{{ url('/fonctionnalites/agenda') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Agenda & réservation</a>
               <a href="{{ url('/fonctionnalites/dossiers-clients') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Dossiers clients</a>
               <a href="{{ url('/fonctionnalites/facturation') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Facturation</a>
+              <a href="{{ route('features.e-invoicing') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Facturation électronique</a>
               <a href="{{ url('/fonctionnalites/questionnaires') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Questionnaires</a>
               <a href="{{ url('/fonctionnalites/portail-pro') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Portail Pro</a>
               <a href="{{ url('/fonctionnalites/paiements') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Paiements</a>
+              <a href="{{ route('features.offer-journeys') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Parcours d’offre</a>
             </div>
           </div>
 
@@ -174,9 +176,11 @@
           <a href="{{ url('/fonctionnalites/agenda') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Agenda & réservation</a>
           <a href="{{ url('/fonctionnalites/dossiers-clients') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Dossiers clients</a>
           <a href="{{ url('/fonctionnalites/facturation') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Facturation</a>
+          <a href="{{ route('features.e-invoicing') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Facturation électronique</a>
           <a href="{{ url('/fonctionnalites/questionnaires') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Questionnaires</a>
           <a href="{{ url('/fonctionnalites/portail-pro') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Portail Pro</a>
           <a href="{{ url('/fonctionnalites/paiements') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Paiements</a>
+          <a href="{{ route('features.offer-journeys') }}" class="block pl-6 pr-4 py-2 text-base font-medium text-gray-600 hover:text-[#647a0b] hover:bg-gray-50">Parcours d’offre</a>
         </div>
       </div>
 

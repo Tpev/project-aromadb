@@ -212,6 +212,19 @@ Créez devis et factures propres, suivez les paiements (espèces, virement, CB),
         </div>
     </section>
 
+    <section class="py-12 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="grid gap-6 md:grid-cols-[1fr_auto] md:items-center rounded-lg border border-gray-200 bg-white p-6">
+                <div>
+                    <p class="text-sm font-semibold uppercase text-[#854f38]">Un autre besoin</p>
+                    <h2 class="mt-2 text-2xl font-semibold text-gray-900">Vous cherchez à recevoir les factures électroniques de vos fournisseurs ?</h2>
+                    <p class="mt-2 max-w-3xl text-gray-600">La facturation ci-dessus concerne les documents adressés à vos clients. Olithea permet aussi d’activer la réception obligatoire des factures électroniques d’achat via une plateforme agréée partenaire.</p>
+                </div>
+                <a href="{{ route('features.e-invoicing') }}" class="btn-secondary whitespace-nowrap">Découvrir la réception électronique</a>
+            </div>
+        </div>
+    </section>
+
     <!-- TESTIMONIALS -->
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
