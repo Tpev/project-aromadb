@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('offer_journey_message_campaigns', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id');
+            $table->foreignId('created_by_user_id')->nullable();
             $table->string('name');
             $table->string('subject', 180);
             $table->text('body');
@@ -28,19 +28,23 @@ return new class extends Migration
 
             $table->index(['status', 'scheduled_at'], 'oj_campaigns_due_idx');
             $table->index(['user_id', 'created_at'], 'oj_campaigns_user_idx');
+            $table->foreign('user_id', 'oj_campaigns_user_fk')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('created_by_user_id', 'oj_campaigns_creator_fk')->references('id')->on('users')->nullOnDelete();
         });
 
         Schema::create('offer_journey_message_campaign_journey', function (Blueprint $table) {
-            $table->foreignId('offer_journey_message_campaign_id')->constrained('offer_journey_message_campaigns')->cascadeOnDelete();
-            $table->foreignId('offer_journey_id')->constrained('offer_journeys')->cascadeOnDelete();
+            $table->foreignId('offer_journey_message_campaign_id');
+            $table->foreignId('offer_journey_id');
             $table->timestamps();
             $table->primary(['offer_journey_message_campaign_id', 'offer_journey_id'], 'oj_campaign_journey_pk');
+            $table->foreign('offer_journey_message_campaign_id', 'oj_campaign_journey_campaign_fk')->references('id')->on('offer_journey_message_campaigns')->cascadeOnDelete();
+            $table->foreign('offer_journey_id', 'oj_campaign_journey_journey_fk')->references('id')->on('offer_journeys')->cascadeOnDelete();
         });
 
         Schema::create('offer_journey_abandonment_candidates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('offer_journey_id')->constrained('offer_journeys')->cascadeOnDelete();
+            $table->foreignId('user_id');
+            $table->foreignId('offer_journey_id');
             $table->unsignedBigInteger('offer_journey_contact_id');
             $table->unsignedBigInteger('offer_journey_entry_id')->nullable();
             $table->string('source_type', 80);
@@ -56,33 +60,38 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['state', 'reminder_due_at'], 'oj_abandonment_due_idx');
+            $table->foreign('user_id', 'oj_abandonment_user_fk')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('offer_journey_id', 'oj_abandonment_journey_fk')->references('id')->on('offer_journeys')->cascadeOnDelete();
             $table->foreign('offer_journey_contact_id', 'oj_abandonment_contact_fk')->references('id')->on('offer_journey_contacts')->cascadeOnDelete();
             $table->foreign('offer_journey_entry_id', 'oj_abandonment_entry_fk')->references('id')->on('offer_journey_entries')->nullOnDelete();
         });
 
         Schema::create('offer_journey_saved_filters', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id');
             $table->string('name');
             $table->json('filters_json');
             $table->timestamps();
             $table->unique(['user_id', 'name'], 'oj_saved_filters_user_name_unique');
+            $table->foreign('user_id', 'oj_saved_filters_user_fk')->references('id')->on('users')->cascadeOnDelete();
         });
 
         Schema::create('offer_journey_pipeline_goals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('offer_journey_id')->nullable()->constrained('offer_journeys')->cascadeOnDelete();
+            $table->foreignId('user_id');
+            $table->foreignId('offer_journey_id')->nullable();
             $table->string('period', 7);
             $table->unsignedInteger('target_count');
             $table->timestamps();
             $table->unique(['user_id', 'offer_journey_id', 'period'], 'oj_pipeline_goals_unique');
+            $table->foreign('user_id', 'oj_pipeline_goals_user_fk')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('offer_journey_id', 'oj_pipeline_goals_journey_fk')->references('id')->on('offer_journeys')->cascadeOnDelete();
         });
 
         Schema::create('offer_journey_contact_imports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('user_id');
+            $table->foreignId('created_by_user_id')->nullable();
             $table->string('original_filename');
             $table->string('status', 24)->default('preview');
             $table->string('consent_proof')->nullable();
@@ -92,6 +101,8 @@ return new class extends Migration
             $table->timestamp('committed_at')->nullable();
             $table->timestamp('rolled_back_at')->nullable();
             $table->timestamps();
+            $table->foreign('user_id', 'oj_contact_imports_user_fk')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('created_by_user_id', 'oj_contact_imports_creator_fk')->references('id')->on('users')->nullOnDelete();
         });
 
         Schema::table('offer_journey_contacts', function (Blueprint $table) {
