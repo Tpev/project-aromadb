@@ -84,7 +84,7 @@ it('keeps contact organization scoped to the practitioner and supports dynamic s
     ]);
 
     $this->actingAs($this->owner)->get(route('offer-journeys.contacts.segments'))
-        ->assertOk()->assertSee('Intéressés atelier')->assertSee('1 contact(s)');
+        ->assertOk()->assertSee('Intéressés atelier')->assertSee('1 personne');
     expect($contact->fresh()->tags)->toHaveCount(1);
 });
 

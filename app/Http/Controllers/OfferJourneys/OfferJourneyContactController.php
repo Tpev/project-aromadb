@@ -81,7 +81,7 @@ class OfferJourneyContactController extends Controller
     public function show(OfferJourneyContact $contact): View
     {
         $this->authorize('view', $contact);
-        $contact->load([
+        $relations = [
             'pipelineStage',
             'tags',
             'entries.journey',
@@ -89,7 +89,11 @@ class OfferJourneyContactController extends Controller
             'tasks' => fn ($query) => $query->latest('due_at'),
             'activities',
             'messageDeliveries' => fn ($query) => $query->latest()->limit(25),
-        ]);
+        ];
+        if (config('offer_journeys.client_tags_enabled', false)) {
+            $relations[] = 'clientProfile.marketingTags';
+        }
+        $contact->load($relations);
 
         $stages = \App\Domain\OfferJourneys\Models\OfferJourneyPipelineStage::query()
             ->where('user_id', $contact->user_id)

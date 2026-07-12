@@ -225,7 +225,7 @@
                             </a>								
 							@if($showOfferJourneysNav)
 								<a href="{{ route('offer-journeys.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 {{ request()->routeIs('offer-journeys.*') ? 'bg-gray-50 font-medium' : '' }}">
-									{{ __('Parcours d’offre') }}
+									{{ __('Développer mon activité') }}
 								</a>
 							@endif
 							<a href="{{ route('dashboardpro.articles.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -437,7 +437,7 @@
             </x-responsive-nav-link>			
 			@if($showOfferJourneysNav)
 				<x-responsive-nav-link :href="route('offer-journeys.index')" :active="request()->routeIs('offer-journeys.*')" class="text-[#647a0b] hover:text-[#854f38]">
-					{{ __('Parcours d’offre') }}
+					{{ __('Développer mon activité') }}
 				</x-responsive-nav-link>
 			@endif
 			<x-responsive-nav-link :href="route('dashboardpro.articles.index')" class="text-[#647a0b] hover:text-[#854f38]">

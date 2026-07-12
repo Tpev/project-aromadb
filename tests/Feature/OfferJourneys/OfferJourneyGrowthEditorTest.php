@@ -44,7 +44,8 @@ it('creates an editable journey from a profession-oriented template', function (
 
     $this->get(route('offer-journeys.create'))
         ->assertOk()
-        ->assertSee("Partez d'un exemple métier", false)
+        ->assertSeeInOrder(['Résultat', 'Offre', 'Exemple', 'Préparation', 'Vérification'])
+        ->assertSee('Choisissez un exemple adapté')
         ->assertSee('Mini-programme email');
 });
 

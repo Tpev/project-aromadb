@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div><a href="{{ route('offer-journeys.show', $journey) }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">{{ $journey->name }}</a><h1 class="mt-1 text-2xl font-semibold text-gray-900">Messages et automatisations</h1></div>
+            <div><a href="{{ route('offer-journeys.show', $journey) }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">{{ $journey->name }}</a><h1 class="mt-1 text-2xl font-semibold text-gray-900">Messages de suivi</h1></div>
             <span class="w-fit rounded-full px-2 py-1 text-xs font-medium {{ $automation->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">{{ $automation->status === 'active' ? 'Actif' : ($automation->status === 'paused' ? 'En pause' : 'Brouillon') }}</span>
         </div>
     </x-slot>
@@ -92,7 +92,7 @@
         </section>
 
         <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 class="font-semibold text-gray-900">Déroulement de l’automatisation</h2><p class="mt-1 text-sm text-gray-500">Organisez les délais, vérifications et actions dans leur ordre d’exécution. Une étape ne peut pas revenir en arrière.</p></div>@if($version->status !== 'draft')<form method="POST" action="{{ route('offer-journeys.automation.draft', [$journey, $automation]) }}">@csrf<button class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b]">Créer une version brouillon</button></form>@endif</div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 class="font-semibold text-gray-900">Déroulement du suivi</h2><p class="mt-1 text-sm text-gray-500">Organisez les délais, vérifications et actions dans leur ordre d’exécution. Une étape ne peut pas revenir en arrière.</p></div>@if($version->status !== 'draft')<form method="POST" action="{{ route('offer-journeys.automation.draft', [$journey, $automation]) }}">@csrf<button class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b]">Créer une version brouillon</button></form>@endif</div>
             <ol class="mt-5 space-y-3">
                 @foreach($version->nodes as $node)
                     @php($config = $node->config_json ?? [])

@@ -18,6 +18,8 @@ use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\PackProduct;
 use App\Models\PackPurchase;
+use App\Domain\OfferJourneys\Models\OfferJourneyTag;
+use App\Support\OfferJourneys\OfferJourneyAccess;
 
 class ClientProfileController extends Controller
 {
@@ -60,19 +62,29 @@ class ClientProfileController extends Controller
         $userId = Auth::id();
 
         // Get all client profiles for the logged-in therapist
-        $clientProfiles = ClientProfile::where('user_id', $userId)
-            ->with('company')
+        $clientProfilesQuery = ClientProfile::where('user_id', $userId)->with('company');
+        $clientTagsEnabled = config('offer_journeys.client_tags_enabled', false)
+            && app(OfferJourneyAccess::class)->canPublish(Auth::user());
+
+        if ($clientTagsEnabled) {
+            $clientProfilesQuery->with('marketingTags');
+        }
+
+        $clientProfiles = $clientProfilesQuery
             ->orderBy('last_name')
             ->orderBy('first_name')
             ->get();
+        $marketingTags = $clientTagsEnabled
+            ? OfferJourneyTag::query()->where('user_id', $userId)->orderBy('name')->get()
+            : collect();
 
         // If request comes from /mobile/... → use mobile view
         if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
-            return view('mobile.clients.index', compact('clientProfiles'));
+            return view('mobile.clients.index', compact('clientProfiles', 'clientTagsEnabled', 'marketingTags'));
         }
 
         // Default: desktop/web view
-        return view('client_profiles.index', compact('clientProfiles'));
+        return view('client_profiles.index', compact('clientProfiles', 'clientTagsEnabled', 'marketingTags'));
     }
 
     /**
@@ -170,7 +182,16 @@ class ClientProfileController extends Controller
     // Reload client with messages + company (keep your existing behavior)
     // -----------------------------
     $clientProfile = ClientProfile::findOrFail($clientProfile->id);
-    $clientProfile->load(['messages', 'company']);
+    $clientTagsEnabled = config('offer_journeys.client_tags_enabled', false)
+        && app(OfferJourneyAccess::class)->canPublish(auth()->user());
+    $clientProfile->load(array_filter([
+        'messages',
+        'company',
+        $clientTagsEnabled ? 'marketingTags' : null,
+    ]));
+    $marketingTags = $clientTagsEnabled
+        ? OfferJourneyTag::query()->where('user_id', auth()->id())->orderBy('name')->get()
+        : collect();
 
     // -----------------------------
     // Testimonial
@@ -215,6 +236,8 @@ class ClientProfileController extends Controller
         'testimonialRequest',
         'packPurchases',
         'availablePacks',
+        'clientTagsEnabled',
+        'marketingTags',
     ))->with([
         // keep compatibility with existing blade expecting `$appointments`
         'appointments' => $allAppointments,

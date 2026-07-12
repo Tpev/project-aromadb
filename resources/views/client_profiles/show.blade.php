@@ -36,6 +36,38 @@
                 </div>
             @endif
 
+            @if($clientTagsEnabled)
+                <section class="mb-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm" aria-labelledby="client-marketing-tags-title">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h2 id="client-marketing-tags-title" class="font-semibold text-gray-900">Étiquettes internes</h2>
+                            <p class="mt-1 text-xs text-gray-500">Utilisez des repères commerciaux simples. Ne saisissez aucune information médicale ou sensible.</p>
+                        </div>
+                        <a href="{{ route('offer-journeys.contacts.segments') }}" class="text-sm font-semibold text-[#647a0b]">Gérer les étiquettes et segments</a>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @forelse($clientProfile->marketingTags as $tag)
+                            <form method="POST" action="{{ route('offer-journeys.client-tags.detach', [$clientProfile, $tag]) }}">
+                                @csrf @method('DELETE')
+                                <button class="rounded-full bg-[#f0f4df] px-2.5 py-1 text-xs font-medium text-[#526509]" title="Retirer l’étiquette">{{ $tag->name }} ×</button>
+                            </form>
+                        @empty
+                            <span class="text-sm text-gray-500">Aucune étiquette.</span>
+                        @endforelse
+                    </div>
+                    <form method="POST" action="{{ route('offer-journeys.client-tags.attach', $clientProfile) }}" class="mt-4 flex flex-col gap-2 sm:flex-row">
+                        @csrf
+                        <label for="client-marketing-tag" class="sr-only">Ajouter une étiquette</label>
+                        <select id="client-marketing-tag" name="tag_id" required class="min-w-0 flex-1 rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]">
+                            <option value="">Choisir une étiquette</option>
+                            @foreach($marketingTags->whereNotIn('id', $clientProfile->marketingTags->pluck('id')) as $tag)<option value="{{ $tag->id }}">{{ $tag->name }}</option>@endforeach
+                        </select>
+                        <button class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b]">Ajouter</button>
+                    </form>
+                    <p class="mt-3 text-xs font-medium text-amber-800">Une étiquette aide à créer un segment, mais ne donne jamais automatiquement le droit d’envoyer un email marketing.</p>
+                </section>
+            @endif
+
             <hr class="my-6">
 
 @php

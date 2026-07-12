@@ -21,4 +21,9 @@ class OfferJourneySegment extends Model
     {
         return $this->hasMany(OfferJourneySegmentRule::class)->orderBy('position');
     }
+
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(OfferJourneyMessageCampaign::class, 'offer_journey_segment_id');
+    }
 }

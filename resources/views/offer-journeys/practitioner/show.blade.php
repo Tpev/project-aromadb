@@ -2,15 +2,16 @@
     <x-slot name="header">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-                <a href="{{ route('offer-journeys.index') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">Parcours d’offre</a>
+                <a href="{{ route('offer-journeys.index') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">Pages et campagnes</a>
                 <div class="mt-1 flex flex-wrap items-center gap-2">
                     <h1 class="text-2xl font-semibold text-gray-900">{{ $journey->name }}</h1>
                     <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{{ config('offer_journeys.status_labels.'.$journey->status, $journey->status) }}</span>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2">
+                <a href="{{ route('offer-journeys.preview', $journey) }}" target="_blank" rel="noopener" class="inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Prévisualiser</a>
                 <a href="{{ route('offer-journeys.analytics', $journey) }}" class="inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Résultats</a>
-                <a href="{{ route('offer-journeys.automation', $journey) }}" class="inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Messages et automatisations</a>
+                <a href="{{ route('offer-journeys.automation', $journey) }}" class="inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Messages de suivi</a>
                 <a href="{{ route('offer-journeys.contacts.index', ['journey_id' => $journey->id]) }}" class="inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Contacts</a>
                 <a href="{{ route('offer-journeys.share', $journey) }}" class="inline-flex rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b] hover:bg-[#f7f9ec]">Partager</a>
                 <a href="{{ route('offer-journeys.edit', $journey) }}" class="inline-flex rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Paramètres</a>
@@ -35,21 +36,44 @@
                 </div>
             @endif
 
+            @php
+                $firstPage = $journey->pages->sortBy('position')->first();
+                $hasForm = $journey->pages->contains(fn ($page) => $page->form !== null);
+                $destination = match($journey->objective) {
+                    'appointment' => 'la réservation d’un rendez-vous',
+                    'event' => 'l’inscription à votre événement',
+                    'lead_magnet' => 'l’accès à la ressource proposée',
+                    'training' => 'l’accès à votre formation',
+                    'gift_voucher' => 'l’achat d’un bon cadeau',
+                    default => 'la prise de contact avec vous',
+                };
+            @endphp
+            <section class="rounded-lg border border-[#dfe6c7] bg-[#f7f9ec] p-5" aria-labelledby="journey-summary-title">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase text-[#526509]">Ce qui se passera après publication</p>
+                        <h2 id="journey-summary-title" class="mt-1 font-semibold text-gray-900">Le visiteur découvrira « {{ data_get($firstPage?->draft_content_json, 'title', $journey->name) }} »</h2>
+                        <p class="mt-2 text-sm leading-6 text-gray-700">Il {{ $hasForm ? 'remplira le formulaire prévu, puis ' : '' }}sera guidé vers {{ $destination }}. Une confirmation lui indiquera clairement la suite. Les messages facultatifs ne partiront que si leur consentement le permet.</p>
+                    </div>
+                    <a href="{{ route('offer-journeys.preview', $journey) }}" target="_blank" rel="noopener" class="inline-flex shrink-0 justify-center rounded-md border border-[#647a0b] bg-white px-3 py-2 text-sm font-semibold text-[#647a0b]">Tester le parcours</a>
+                </div>
+            </section>
+
             @if($preflight)
                 <section class="border border-gray-200 bg-white" aria-labelledby="preflight-title">
                     <div class="flex flex-col gap-3 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 id="preflight-title" class="font-semibold text-gray-900">Controle avant publication</h2>
+                            <h2 id="preflight-title" class="font-semibold text-gray-900">Contrôle avant publication</h2>
                             <p class="mt-1 text-sm text-gray-500">Les erreurs bloquent la publication. Les recommandations restent facultatives.</p>
                         </div>
                         <span class="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold {{ $preflight['ready'] ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800' }}">
                             <span class="h-2 w-2 rounded-full {{ $preflight['ready'] ? 'bg-green-600' : 'bg-red-600' }}"></span>
-                            {{ $preflight['ready'] ? 'Pret a publier' : count($preflight['errors']).' correction(s) requise(s)' }}
+                            {{ $preflight['ready'] ? 'Prêt à publier' : count($preflight['errors']).' '.(count($preflight['errors']) > 1 ? 'corrections requises' : 'correction requise') }}
                         </span>
                     </div>
                     <div class="grid gap-5 px-5 py-4 lg:grid-cols-2">
                         <div>
-                            <h3 class="text-sm font-semibold text-gray-900">A corriger</h3>
+                            <h3 class="text-sm font-semibold text-gray-900">À corriger</h3>
                             <ul class="mt-2 space-y-2 text-sm">
                                 @forelse($preflight['errors'] as $message)
                                     <li class="flex gap-2 text-red-800"><span aria-hidden="true">●</span><span>{{ $message }}</span></li>
@@ -64,7 +88,7 @@
                                 @forelse($preflight['warnings'] as $message)
                                     <li class="flex gap-2 text-amber-800"><span aria-hidden="true">●</span><span>{{ $message }}</span></li>
                                 @empty
-                                    <li class="text-gray-500">Aucune recommandation supplementaire.</li>
+                                    <li class="text-gray-500">Aucune recommandation supplémentaire.</li>
                                 @endforelse
                             </ul>
                         </div>

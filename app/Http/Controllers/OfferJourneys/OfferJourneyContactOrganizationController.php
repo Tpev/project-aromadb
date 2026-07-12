@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\OfferJourneys;
 
+use App\Domain\OfferJourneys\Models\OfferJourney;
 use App\Domain\OfferJourneys\Models\OfferJourneyContact;
 use App\Domain\OfferJourneys\Models\OfferJourneySegment;
 use App\Domain\OfferJourneys\Models\OfferJourneySuppression;
@@ -34,7 +35,7 @@ class OfferJourneyContactOrganizationController extends Controller
         return view('offer-journeys.practitioner.contacts.segments', [
             'segments' => $segments,
             'tags' => OfferJourneyTag::query()->where('user_id', $request->user()->id)->orderBy('name')->get(),
-            'journeys' => \App\Domain\OfferJourneys\Models\OfferJourney::query()->ownedBy($request->user())->orderBy('name')->get(),
+            'journeys' => OfferJourney::query()->ownedBy($request->user())->orderBy('name')->get(),
         ]);
     }
 
@@ -44,28 +45,67 @@ class OfferJourneyContactOrganizationController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:500'],
-            'field' => ['required', Rule::in(['status', 'tag', 'journey', 'inactive_days', 'marketing_consent'])],
+            'match_type' => ['nullable', Rule::in(['all', 'any'])],
+            'rules' => ['nullable', 'array', 'min:1', 'max:10'],
+            'rules.*.field' => ['required_with:rules', Rule::in(['status', 'tag', 'journey', 'inactive_days', 'marketing_consent'])],
+            'rules.*.operator' => ['nullable', Rule::in(['equals', 'not_equals', 'has', 'missing', 'older_than_days'])],
+            'rules.*.value' => ['nullable', 'string', 'max:180'],
+            // Backward compatibility for the original one-rule form.
+            'field' => ['nullable', Rule::in(['status', 'tag', 'journey', 'inactive_days', 'marketing_consent'])],
             'value' => ['nullable', 'string', 'max:180'],
         ]);
 
-        DB::transaction(function () use ($request, $validated) {
+        $rules = collect($validated['rules'] ?? [
+            ['field' => $validated['field'] ?? null, 'value' => $validated['value'] ?? null],
+        ])->filter(fn (array $rule) => filled($rule['field'] ?? null))->values();
+
+        if ($rules->isEmpty()) {
+            return back()->withErrors(['rules' => 'Ajoutez au moins une règle au segment.'])->withInput();
+        }
+
+        foreach ($rules as $position => $rule) {
+            $field = $rule['field'];
+            $value = $rule['value'] ?? null;
+            $operator = $this->normalizedOperator($field, $rule['operator'] ?? null);
+
+            if ($field === 'tag') {
+                abort_unless(
+                    OfferJourneyTag::query()->where('user_id', $request->user()->id)->whereKey((int) $value)->exists(),
+                    422,
+                    'Étiquette invalide.'
+                );
+            }
+            if ($field === 'journey') {
+                abort_unless(
+                    OfferJourney::query()->where('user_id', $request->user()->id)->whereKey((int) $value)->exists(),
+                    422,
+                    'Parcours invalide.'
+                );
+            }
+            if ($field === 'inactive_days' && ((int) $value < 1 || (int) $value > 3650)) {
+                return back()->withErrors(["rules.$position.value" => 'Le nombre de jours doit être compris entre 1 et 3650.'])->withInput();
+            }
+
+            $rules[$position] = compact('field', 'operator', 'value');
+        }
+
+        DB::transaction(function () use ($request, $validated, $rules) {
             $segment = OfferJourneySegment::query()->create([
                 'user_id' => $request->user()->id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
-                'match_type' => 'all',
+                'match_type' => $validated['match_type'] ?? 'all',
                 'is_active' => true,
             ]);
-            $segment->rules()->create([
-                'field' => $validated['field'],
-                'operator' => match ($validated['field']) {
-                    'tag', 'journey', 'marketing_consent' => 'has',
-                    'inactive_days' => 'older_than_days',
-                    default => 'equals',
-                },
-                'value_json' => ['value' => $validated['value'] ?? true],
-                'position' => 0,
-            ]);
+
+            foreach ($rules as $position => $rule) {
+                $segment->rules()->create([
+                    'field' => $rule['field'],
+                    'operator' => $rule['operator'],
+                    'value_json' => ['value' => $rule['value'] ?? true],
+                    'position' => $position,
+                ]);
+            }
         });
 
         return back()->with('success', 'Le segment a été créé.');
@@ -137,5 +177,16 @@ class OfferJourneyContactOrganizationController extends Controller
         });
 
         return redirect()->route('offer-journeys.contacts.index')->with('success', 'Le contact a été anonymisé. Les données métier existantes n’ont pas été modifiées.');
+    }
+
+    private function normalizedOperator(string $field, ?string $operator): string
+    {
+        return match ($field) {
+            'tag' => in_array($operator, ['has', 'missing'], true) ? $operator : 'has',
+            'status' => $operator === 'not_equals' ? 'not_equals' : 'equals',
+            'inactive_days' => 'older_than_days',
+            'journey', 'marketing_consent' => 'has',
+            default => 'equals',
+        };
     }
 }

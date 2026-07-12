@@ -8,6 +8,9 @@ return [
     'tracking_enabled' => env('OFFER_JOURNEYS_TRACKING_ENABLED', false),
     'pause_all_marketing_emails' => env('OFFER_JOURNEYS_PAUSE_ALL_MARKETING_EMAILS', true),
     'allow_all_eligible_users' => env('OFFER_JOURNEYS_ALLOW_ALL', false),
+    'client_tags_enabled' => env('OFFER_JOURNEYS_CLIENT_TAGS_ENABLED', false),
+    'segment_campaigns_enabled' => env('OFFER_JOURNEYS_SEGMENT_CAMPAIGNS_ENABLED', false),
+    'email_editor_enabled' => env('OFFER_JOURNEYS_EMAIL_EDITOR_ENABLED', false),
 
     'deliverability' => [
         'enabled' => env('OFFER_JOURNEYS_SES_EVENTS_ENABLED', false),

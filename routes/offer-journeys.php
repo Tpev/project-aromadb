@@ -23,6 +23,8 @@ use App\Http\Controllers\OfferJourneys\OfferJourneyMessageToolController;
 use App\Http\Controllers\OfferJourneys\OfferJourneyMessageCampaignController;
 use App\Http\Controllers\OfferJourneys\OfferJourneyCommercialController;
 use App\Http\Controllers\OfferJourneys\OfferJourneyContactImportController;
+use App\Http\Controllers\OfferJourneys\OfferJourneyClientTagController;
+use App\Http\Controllers\OfferJourneys\OfferJourneyEmailEditorController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')
@@ -34,6 +36,15 @@ Route::middleware('auth')
         Route::post('/journeys/{journey}/pause', [OfferJourneySupportController::class, 'pauseJourney'])->name('journeys.pause');
         Route::post('/runs/{run}/retry', [OfferJourneySupportController::class, 'retryRun'])->name('runs.retry');
         Route::post('/reconcile', [OfferJourneySupportController::class, 'reconcile'])->name('reconcile');
+    });
+
+Route::middleware(['auth', 'offer-journeys.available'])
+    ->prefix('dashboard-pro/etiquettes-clients')
+    ->name('offer-journeys.client-tags.')
+    ->group(function () {
+        Route::post('/actions-groupees', [OfferJourneyClientTagController::class, 'bulk'])->name('bulk');
+        Route::post('/{clientProfile}', [OfferJourneyClientTagController::class, 'attach'])->name('attach');
+        Route::delete('/{clientProfile}/{tag}', [OfferJourneyClientTagController::class, 'detach'])->name('detach');
     });
 
 Route::middleware(['auth', 'offer-journeys.available'])
@@ -74,7 +85,20 @@ Route::middleware(['auth', 'offer-journeys.available'])
         Route::get('/', [OfferJourneyController::class, 'index'])->name('index');
         Route::get('/campagnes-messages', [OfferJourneyMessageCampaignController::class, 'index'])->name('message-campaigns.index');
         Route::post('/campagnes-messages', [OfferJourneyMessageCampaignController::class, 'store'])->name('message-campaigns.store');
+        Route::post('/campagnes-messages/estimation', [OfferJourneyMessageCampaignController::class, 'estimate'])->name('message-campaigns.estimate');
+        Route::put('/campagnes-messages/{campaign}', [OfferJourneyMessageCampaignController::class, 'update'])->name('message-campaigns.update');
+        Route::post('/campagnes-messages/{campaign}/programmer', [OfferJourneyMessageCampaignController::class, 'schedule'])->name('message-campaigns.schedule');
+        Route::post('/campagnes-messages/{campaign}/test', [OfferJourneyMessageCampaignController::class, 'sendTest'])->name('message-campaigns.test');
         Route::post('/campagnes-messages/{campaign}/annuler', [OfferJourneyMessageCampaignController::class, 'cancel'])->name('message-campaigns.cancel');
+        Route::post('/campagnes-messages/{campaign}/envoyer-maintenant', [OfferJourneyMessageCampaignController::class, 'sendNow'])->name('message-campaigns.send-now');
+        Route::post('/campagnes-messages/{campaign}/repasser-en-brouillon', [OfferJourneyMessageCampaignController::class, 'returnToDraft'])->name('message-campaigns.return-to-draft');
+        Route::post('/editeur-email/nouveau', [OfferJourneyEmailEditorController::class, 'start'])->name('email-editor.start');
+        Route::get('/editeur-email/{campaign}', [OfferJourneyEmailEditorController::class, 'edit'])->name('email-editor.edit');
+        Route::put('/editeur-email/{campaign}/sauvegarde', [OfferJourneyEmailEditorController::class, 'autosave'])->name('email-editor.autosave');
+        Route::post('/editeur-email/{campaign}/apercu', [OfferJourneyEmailEditorController::class, 'preview'])->name('email-editor.preview');
+        Route::post('/editeur-email/{campaign}/convertir', [OfferJourneyEmailEditorController::class, 'convert'])->name('email-editor.convert');
+        Route::post('/editeur-email/{campaign}/images', [OfferJourneyEmailEditorController::class, 'upload'])->name('email-editor.assets.store');
+        Route::delete('/editeur-email/{campaign}/images/{asset}', [OfferJourneyEmailEditorController::class, 'destroyAsset'])->name('email-editor.assets.destroy');
         Route::get('/create', [OfferJourneyController::class, 'create'])->name('create');
         Route::get('/guide', OfferJourneyGuideController::class)->name('guide');
         Route::get('/utilisation', OfferJourneyUsageController::class)->name('usage');

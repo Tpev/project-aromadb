@@ -76,6 +76,17 @@ class OfferJourneyAnalyticsController extends Controller
             ->orderByDesc('views')
             ->get();
 
-        return view('offer-journeys.practitioner.analytics', compact('journey', 'days', 'metrics', 'bySource', 'byPage', 'stepPerformance', 'byCampaign'));
+        $recommendations = collect();
+        if ($metrics['visitors'] === 0) {
+            $recommendations->push(['title' => 'Commencez par diffuser la page', 'body' => 'Créez un lien distinct pour le premier canal utilisé afin de mesurer son efficacité.', 'route' => route('offer-journeys.share', $journey), 'label' => 'Préparer le partage']);
+        } elseif ($metrics['visitors'] >= 20 && $metrics['leads'] === 0) {
+            $recommendations->push(['title' => 'Les visites ne deviennent pas encore des demandes', 'body' => 'Relisez le titre, la promesse, le nombre de champs et le texte du bouton. Modifiez un seul élément à la fois.', 'route' => route('offer-journeys.show', $journey), 'label' => 'Vérifier la page']);
+        } elseif ($metrics['leads'] > 0 && $metrics['conversions'] === 0) {
+            $recommendations->push(['title' => 'Des personnes sont intéressées, sans action confirmée', 'body' => 'Consultez leurs demandes et définissez une prochaine action avant de modifier la page.', 'route' => route('offer-journeys.contacts.index', ['journey_id' => $journey->id]), 'label' => 'Voir les personnes']);
+        } else {
+            $recommendations->push(['title' => 'Identifiez le canal le plus utile', 'body' => 'Comparez les liens de campagne et continuez à mesurer avant de changer la page.', 'route' => route('offer-journeys.share', $journey), 'label' => 'Voir les liens']);
+        }
+
+        return view('offer-journeys.practitioner.analytics', compact('journey', 'days', 'metrics', 'bySource', 'byPage', 'stepPerformance', 'byCampaign', 'recommendations'));
     }
 }

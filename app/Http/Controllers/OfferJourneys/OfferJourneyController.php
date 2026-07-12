@@ -41,9 +41,13 @@ class OfferJourneyController extends Controller
                 'events as views_count' => fn ($query) => $query->where('event_name', 'page_viewed'),
                 'events as leads_count' => fn ($query) => $query->where('event_name', 'lead_captured'),
                 'conversions as conversions_count' => fn ($query) => $query->where('status', 'confirmed'),
+                'campaignLinks as campaign_links_count',
             ])
             ->latest('updated_at')
             ->paginate(15);
+
+        $firstJourney = $journeys->first();
+        $newContacts = OfferJourneyContact::query()->ownedBy($request->user())->where('status', 'new')->count();
 
         return view('offer-journeys.practitioner.index', [
             'journeys' => $journeys,
@@ -55,6 +59,7 @@ class OfferJourneyController extends Controller
                 'revenue_cents' => (int) OfferJourneyConversion::query()->whereHas('journey', fn ($query) => $query->ownedBy($request->user()))->where('status', 'confirmed')->where('occurred_at', '>=', now()->subDays(30))->sum('amount_cents'),
                 'inactive' => OfferJourneyContact::query()->ownedBy($request->user())->where('status', '!=', 'converted')->where('last_activity_at', '<=', now()->subDays(30))->count(),
             ],
+            'activation' => $this->activationState($firstJourney, $newContacts),
         ]);
     }
 
@@ -71,6 +76,38 @@ class OfferJourneyController extends Controller
             'trainings' => DigitalTraining::query()->where('user_id', $userId)->orderBy('title')->get(),
             'templates' => (bool) config('offer_journeys.template_library_enabled', false) ? $templates->all() : collect(),
         ]);
+    }
+
+    private function activationState(?OfferJourney $journey, int $newContacts): array
+    {
+        if (! $journey) {
+            return [
+                'next' => ['title' => 'Créez votre première page', 'body' => 'Choisissez un objectif. Olithea préparera le formulaire, la confirmation et le suivi adaptés.', 'label' => 'Commencer', 'url' => route('offer-journeys.create')],
+                'checks' => [['label' => 'Créer une page', 'done' => false], ['label' => 'Vérifier le parcours', 'done' => false], ['label' => 'Publier', 'done' => false], ['label' => 'Partager', 'done' => false], ['label' => 'Recevoir un premier contact', 'done' => false]],
+            ];
+        }
+
+        $published = $journey->status === 'published';
+        $shared = $journey->campaign_links_count > 0 || $journey->views_count > 0;
+        $hasContact = $journey->leads_count > 0;
+        $next = match (true) {
+            ! $published => ['title' => 'Vérifiez puis publiez votre page', 'body' => 'Contrôlez les textes, le formulaire et la destination avant de la rendre visible.', 'label' => 'Vérifier le parcours', 'url' => route('offer-journeys.show', $journey)],
+            $newContacts > 0 => ['title' => $newContacts.' nouvelle(s) personne(s) attendent votre suivi', 'body' => 'Consultez leur demande et choisissez une prochaine action.', 'label' => 'Voir les personnes', 'url' => route('offer-journeys.contacts.index', ['status' => 'new'])],
+            ! $shared => ['title' => 'Partagez votre page', 'body' => 'Préparez un lien pour Instagram, votre newsletter, un email ou un support imprimé.', 'label' => 'Préparer le partage', 'url' => route('offer-journeys.share', $journey)],
+            $journey->views_count >= 20 && $journey->leads_count === 0 => ['title' => 'Votre page est consultée sans générer de demande', 'body' => 'Regardez où les visiteurs s’arrêtent avant de modifier le titre, le formulaire ou le bouton.', 'label' => 'Comprendre les résultats', 'url' => route('offer-journeys.analytics', $journey)],
+            default => ['title' => 'Consultez les résultats', 'body' => 'Suivez les visites, contacts et actions confirmées pour décider de la prochaine amélioration.', 'label' => 'Voir les résultats', 'url' => route('offer-journeys.analytics', $journey)],
+        };
+
+        return [
+            'next' => $next,
+            'checks' => [
+                ['label' => 'Créer une page', 'done' => true],
+                ['label' => 'Vérifier le parcours', 'done' => $published],
+                ['label' => 'Publier', 'done' => $published],
+                ['label' => 'Partager', 'done' => $shared],
+                ['label' => 'Recevoir un premier contact', 'done' => $hasContact],
+            ],
+        ];
     }
 
     public function store(Request $request, OfferJourneyPipeline $pipeline, OfferJourneyAutomationBuilder $automationBuilder, OfferJourneyResourceStorage $resourceStorage, OfferJourneyTemplateLibrary $templates): RedirectResponse

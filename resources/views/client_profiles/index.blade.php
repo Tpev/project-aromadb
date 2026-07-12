@@ -122,8 +122,29 @@
     </div>
 </div>
 
-
-
+            @if($clientTagsEnabled)
+                <form method="POST" action="{{ route('offer-journeys.client-tags.bulk') }}" class="space-y-3">
+                    @csrf
+                    <div class="flex flex-col gap-3 rounded-lg border border-[#dfe6c7] bg-[#f7f9ec] p-4 md:flex-row md:items-end">
+                        <div class="flex-1">
+                            <label for="bulk-tag" class="block text-sm font-semibold text-gray-900">Étiquette interne</label>
+                            <select id="bulk-tag" name="tag_id" required class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]">
+                                <option value="">Choisir une étiquette</option>
+                                @foreach($marketingTags as $tag)<option value="{{ $tag->id }}">{{ $tag->name }}</option>@endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bulk-tag-action" class="block text-sm font-semibold text-gray-900">Action</label>
+                            <select id="bulk-tag-action" name="action" class="mt-1 block w-full rounded-md border-gray-300 text-sm">
+                                <option value="attach">Ajouter</option>
+                                <option value="detach">Retirer</option>
+                            </select>
+                        </div>
+                        <button class="rounded-md bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#526509]" @disabled($marketingTags->isEmpty())>Appliquer aux fiches cochées</button>
+                        <a href="{{ route('offer-journeys.contacts.segments') }}" class="text-sm font-semibold text-[#647a0b]">Gérer les étiquettes</a>
+                    </div>
+                    <p class="text-xs text-gray-500">Repères internes uniquement. N’utilisez pas d’informations médicales ou sensibles. Une étiquette ne constitue jamais un consentement marketing.</p>
+            @endif
 
             <!-- Tableau -->
             <div class="bg-white shadow overflow-hidden rounded-lg">
@@ -131,30 +152,33 @@
                     <table class="min-w-full divide-y divide-gray-200" id="clientTable">
                         <thead class="bg-[#647a0b] text-white">
                             <tr>
-                                <th onclick="sortTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                                @if($clientTagsEnabled)<th class="w-10 px-3 py-3"><span class="sr-only">Sélectionner</span></th>@endif
+                                <th onclick="sortTable({{ $clientTagsEnabled ? 1 : 0 }})" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
                                     {{ __('Nom du Client') }}
                                     <!-- Icône de Tri -->
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M6 8l4 4 4-4H6z" />
                                     </svg>
                                 </th>
-                                <th onclick="sortTable(1)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                                <th onclick="sortTable({{ $clientTagsEnabled ? 2 : 1 }})" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
                                     {{ __('Email') }}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M6 8l4 4 4-4H6z" />
                                     </svg>
                                 </th>
-                                <th onclick="sortTable(2)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
+                                <th onclick="sortTable({{ $clientTagsEnabled ? 3 : 2 }})" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
                                     {{ __('Téléphone') }}
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M6 8l4 4 4-4H6z" />
                                     </svg>
                                 </th>
+                                @if($clientTagsEnabled)<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Étiquettes</th>@endif
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($clientProfiles as $clientProfile)
                                 <tr class="hover:bg-gray-100 cursor-pointer" onclick="window.location='{{ route('client_profiles.show', $clientProfile->id) }}'">
+                                    @if($clientTagsEnabled)<td class="px-3 py-4" onclick="event.stopPropagation()"><input type="checkbox" name="client_ids[]" value="{{ $clientProfile->id }}" class="rounded border-gray-300 text-[#647a0b] focus:ring-[#647a0b]"></td>@endif
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center gap-2">
                                             <span>
@@ -174,11 +198,14 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {{ $clientProfile->phone }}
                                     </td>
+                                    @if($clientTagsEnabled)
+                                        <td class="px-6 py-4"><div class="flex max-w-xs flex-wrap gap-1">@forelse($clientProfile->marketingTags as $tag)<span class="rounded-full bg-[#f0f4df] px-2 py-0.5 text-xs font-medium text-[#526509]">{{ $tag->name }}</span>@empty<span class="text-xs text-gray-400">Aucune</span>@endforelse</div></td>
+                                    @endif
                                 </tr>
                             @endforeach
                             @if($clientProfiles->isEmpty())
                                 <tr>
-                                    <td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                    <td colspan="{{ $clientTagsEnabled ? 5 : 3 }}" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                         {{ __('Aucun profil client trouvé.') }}
                                     </td>
                                 </tr>
@@ -187,6 +214,7 @@
                     </table>
                 </div>
             </div>
+            @if($clientTagsEnabled)</form>@endif
         </div>
     </div>
 
@@ -199,7 +227,7 @@
             let tr = table.getElementsByTagName('tr');
 
             for (let i = 1; i < tr.length; i++) {
-                let td = tr[i].getElementsByTagName('td')[0];
+                let td = tr[i].getElementsByTagName('td')[{{ $clientTagsEnabled ? 1 : 0 }}];
                 if (td) {
                     let txtValue = td.textContent || td.innerText;
                     tr[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';

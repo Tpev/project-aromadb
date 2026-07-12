@@ -7,7 +7,16 @@
         </div>
     </x-slot>
 
-    <div class="py-6" x-data="{ copied: '' }">
+    @php
+        $shareCopies = [
+            'instagram' => "Je vous présente « {$journey->name} ». Retrouvez toutes les informations et la prochaine étape ici : {$canonicalUrl}",
+            'whatsapp' => "Bonjour,\n\nVoici les informations concernant « {$journey->name} » : {$canonicalUrl}\n\nJe reste disponible si vous avez une question.",
+            'newsletter' => "Découvrez « {$journey->name} » et consultez les informations pratiques avant de faire votre demande : {$canonicalUrl}",
+            'email' => "Bonjour,\n\nVous pouvez découvrir « {$journey->name} » et choisir la suite qui vous convient depuis cette page : {$canonicalUrl}\n\nBien cordialement,",
+            'website' => '<a href="'.$canonicalUrl.'">Découvrir '.e($journey->name).'</a>',
+        ];
+    @endphp
+    <div class="py-6" x-data="{ copied: '', copies: @js($shareCopies) }">
         <div class="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8">
             <div class="space-y-5">
                 @if(session('success'))
@@ -19,6 +28,19 @@
                     <div class="mt-4 flex flex-col gap-2 sm:flex-row">
                         <input value="{{ $canonicalUrl }}" readonly class="min-w-0 flex-1 rounded-md border-gray-300 bg-gray-50 text-sm text-gray-700">
                         <button type="button" @click="navigator.clipboard.writeText(@js($canonicalUrl)); copied = 'main'" class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b] hover:bg-[#f7f9ec]" x-text="copied === 'main' ? 'Copié' : 'Copier le lien'">Copier le lien</button>
+                    </div>
+                </section>
+
+                <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <h2 class="font-semibold text-gray-900">Textes prêts à personnaliser</h2>
+                    <p class="mt-1 text-sm text-gray-500">Adaptez le message à votre ton, puis copiez-le. Olithea ne publie rien automatiquement.</p>
+                    <div class="mt-4 space-y-4">
+                        @foreach(['instagram' => 'Instagram ou Facebook', 'whatsapp' => 'WhatsApp', 'newsletter' => 'Newsletter', 'email' => 'Email individuel', 'website' => 'Bouton pour votre site'] as $key => $label)
+                            <div>
+                                <div class="flex items-center justify-between gap-3"><label for="share-copy-{{ $key }}" class="text-sm font-medium text-gray-700">{{ $label }}</label><button type="button" @click="navigator.clipboard.writeText(copies.{{ $key }}); copied = '{{ $key }}'" class="text-xs font-semibold text-[#647a0b]" x-text="copied === '{{ $key }}' ? 'Copié' : 'Copier'"></button></div>
+                                <textarea id="share-copy-{{ $key }}" x-model="copies.{{ $key }}" rows="{{ $key === 'website' ? 2 : 4 }}" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"></textarea>
+                            </div>
+                        @endforeach
                     </div>
                 </section>
 

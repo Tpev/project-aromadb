@@ -24,6 +24,9 @@ OFFER_JOURNEYS_WRITING_ASSISTANT_ENABLED=false
 OFFER_JOURNEYS_CUSTOM_FORMS_ENABLED=false
 OFFER_JOURNEYS_MESSAGE_TOOLS_ENABLED=false
 OFFER_JOURNEYS_CAMPAIGNS_ENABLED=false
+OFFER_JOURNEYS_CLIENT_TAGS_ENABLED=false
+OFFER_JOURNEYS_SEGMENT_CAMPAIGNS_ENABLED=false
+OFFER_JOURNEYS_EMAIL_EDITOR_ENABLED=false
 OFFER_JOURNEYS_ABANDONMENT_REMINDERS_ENABLED=false
 OFFER_JOURNEYS_COMMERCIAL_TOOLS_ENABLED=false
 OFFER_JOURNEYS_CONTACT_IMPORT_ENABLED=false
@@ -157,10 +160,13 @@ Activer chaque ligne pour un seul praticien pilote, contrôler l’écran concer
 3. `OFFER_JOURNEYS_MESSAGE_TOOLS_ENABLED=true`, avec emails réels toujours coupés;
 4. `OFFER_JOURNEYS_COMMERCIAL_TOOLS_ENABLED=true`;
 5. `OFFER_JOURNEYS_CONTACT_IMPORT_ENABLED=true`, sur un petit fichier de test;
-6. `OFFER_JOURNEYS_CAMPAIGNS_ENABLED=true`, sans campagne planifiée;
-7. `OFFER_JOURNEYS_ABANDONMENT_REMINDERS_ENABLED=true`, après validation juridique du texte et du délai;
-8. `OFFER_JOURNEYS_RETENTION_ENABLED=true`, d’abord avec `--dry-run` et rapport vérifié;
-9. seulement ensuite, activer les emails marketing.
+6. `OFFER_JOURNEYS_CLIENT_TAGS_ENABLED=true`, puis vérifier l’ajout et le retrait d’une étiquette sur une fiche client pilote;
+7. `OFFER_JOURNEYS_SEGMENT_CAMPAIGNS_ENABLED=true`, puis vérifier les totaux éligibles et exclus d’un segment;
+8. `OFFER_JOURNEYS_EMAIL_EDITOR_ENABLED=true`, puis créer un brouillon, vérifier les aperçus ordinateur/téléphone et envoyer un test au praticien;
+9. `OFFER_JOURNEYS_CAMPAIGNS_ENABLED=true`, sans campagne planifiée;
+10. `OFFER_JOURNEYS_ABANDONMENT_REMINDERS_ENABLED=true`, après validation juridique du texte et du délai;
+11. `OFFER_JOURNEYS_RETENTION_ENABLED=true`, d’abord avec `--dry-run` et rapport vérifié;
+12. seulement ensuite, activer les emails marketing.
 
 Après chaque modification de `.env`:
 
@@ -187,3 +193,5 @@ Vérifier aussi que le cron exécute `php artisan schedule:run` chaque minute. L
 ## Retour arrière
 
 Mettre tous les flags à `false`, reconstruire le cache de configuration et redémarrer les workers. Laisser les tables du module en place pendant l'analyse; leur suppression n'est pas nécessaire pour restaurer le comportement antérieur.
+
+Pour désactiver uniquement l’éditeur visuel, mettre `OFFER_JOURNEYS_EMAIL_EDITOR_ENABLED=false`. Les campagnes texte historiques restent disponibles. Les campagnes visuelles programmées restent enregistrées mais leur envoi est suspendu avec le motif `email_editor_disabled` jusqu’à réactivation ou retour explicite en brouillon.

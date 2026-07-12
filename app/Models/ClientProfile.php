@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use App\Policies\ClientProfilePolicy;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 // ✅ ADD: password reset support (client)
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -143,6 +144,16 @@ class ClientProfile extends Authenticatable implements CanResetPasswordContract
                 ]);
             }
         });
+    }
+
+    public function marketingTags(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Domain\OfferJourneys\Models\OfferJourneyTag::class,
+            'client_profile_offer_journey_tag',
+            'client_profile_id',
+            'offer_journey_tag_id'
+        )->withTimestamps();
     }
 
     public function hasEspaceClient(): bool

@@ -22,6 +22,19 @@
                 <div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">La collecte de statistiques est actuellement désactivée. Les actions principales du parcours continuent de fonctionner.</div>
             @endunless
 
+            <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="conversion-path-title">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div><h2 id="conversion-path-title" class="font-semibold text-gray-900">Du visiteur au résultat obtenu</h2><p class="mt-1 text-sm text-gray-500">Chaque chiffre correspond uniquement à la période choisie.</p></div>
+                    @foreach($recommendations as $recommendation)<a href="{{ $recommendation['route'] }}" class="text-sm font-semibold text-[#647a0b]">{{ $recommendation['label'] }}</a>@endforeach
+                </div>
+                <div class="mt-5 grid gap-2 sm:grid-cols-4">
+                    @foreach([['Visiteurs',$metrics['visitors']],['Personnes intéressées',$metrics['leads']],['Rendez-vous ou achats',$metrics['conversions']],['Revenu attribué',number_format($metrics['revenue_cents']/100,2,',',' ').' €']] as [$label,$value])
+                        <div class="relative rounded-md border border-gray-200 p-4"><p class="text-xs font-medium text-gray-500">{{ $label }}</p><p class="mt-1 text-xl font-semibold text-gray-900">{{ $value }}</p>@unless($loop->last)<span class="absolute -right-2 top-1/2 z-10 hidden h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full bg-[#647a0b] text-[10px] text-white sm:flex">›</span>@endunless</div>
+                    @endforeach
+                </div>
+                @foreach($recommendations as $recommendation)<div class="mt-4 rounded-md border border-[#dfe6c7] bg-[#f7f9ec] p-3"><p class="text-sm font-semibold text-gray-900">{{ $recommendation['title'] }}</p><p class="mt-1 text-sm text-gray-600">{{ $recommendation['body'] }}</p></div>@endforeach
+            </section>
+
             <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" aria-label="Indicateurs principaux">
                 @foreach([
                     ['Visiteurs', $metrics['visitors'], 'Personnes uniques estimées'],

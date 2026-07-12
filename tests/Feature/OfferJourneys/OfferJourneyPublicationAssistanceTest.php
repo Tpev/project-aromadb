@@ -40,7 +40,7 @@ it('shows one shared preflight checklist and blocks incomplete publication', fun
 
     $this->get(route('offer-journeys.show', $this->journey))
         ->assertOk()
-        ->assertSee('Controle avant publication')
+        ->assertSee('Contrôle avant publication')
         ->assertSee('Ajoutez un titre public');
 
     $this->post(route('offer-journeys.publish', $this->journey))

@@ -38,6 +38,11 @@ class OfferJourneyMessageDelivery extends Model
         return $this->belongsTo(OfferJourneyContact::class, 'offer_journey_contact_id');
     }
 
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(OfferJourneyMessageCampaign::class, 'offer_journey_message_campaign_id');
+    }
+
     public function run(): BelongsTo
     {
         return $this->belongsTo(OfferJourneyAutomationRun::class, 'offer_journey_automation_run_id');

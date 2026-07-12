@@ -25,14 +25,14 @@ class OfferJourneyPublicationPreflight
             $errors['pages'] = 'Ajoutez au moins une page.';
         }
         if (blank($firstContent['title'] ?? null)) {
-            $errors['title'] = 'Ajoutez un titre public a la premiere page.';
+            $errors['title'] = 'Ajoutez un titre public à la première page.';
         }
         if ($first?->type !== 'thank_you' && blank($firstContent['cta_label'] ?? null)) {
-            $errors['cta_label'] = 'Indiquez clairement l action proposee par le bouton principal.';
+            $errors['cta_label'] = 'Indiquez clairement l’action proposée par le bouton principal.';
         }
         if (in_array($journey->objective, ['appointment', 'event', 'training', 'gift_voucher'], true)
             && ! app(OfferJourneySourceResolver::class)->sourceAvailable($journey, $journey->user)) {
-            $errors['source'] = 'L offre Olithea associee est absente ou indisponible.';
+            $errors['source'] = 'L’offre Olithea associée est absente ou indisponible.';
         }
         if ($journey->objective === 'lead_magnet' && ! $pages->contains(function ($page): bool {
             $content = $page->draft_content_json ?? [];
@@ -46,28 +46,28 @@ class OfferJourneyPublicationPreflight
         foreach ($pages as $page) {
             if ($page->form) {
                 if (blank($page->form->privacy_text)) {
-                    $errors['form_privacy_'.$page->id] = 'Expliquez la finalite du formulaire de la page « '.$page->name.' ».';
+                    $errors['form_privacy_'.$page->id] = 'Expliquez la finalité du formulaire de la page « '.$page->name.' ».';
                 }
                 foreach ($page->form->fields as $field) {
                     if (blank($field->purpose)) {
-                        $errors['field_purpose_'.$field->id] = 'Indiquez pourquoi le champ « '.$field->label.' » est demande.';
+                        $errors['field_purpose_'.$field->id] = 'Indiquez pourquoi le champ « '.$field->label.' » est demandé.';
                     }
                 }
             }
             if ($page->type !== 'thank_you'
                 && ! $journey->transitions->contains(fn ($transition): bool => (int) $transition->from_page_id === (int) $page->id && $transition->is_active)) {
-                $errors['transition_'.$page->id] = 'Definissez la suite du parcours apres la page « '.$page->name.' ».';
+                $errors['transition_'.$page->id] = 'Définissez la suite du parcours après la page « '.$page->name.' ».';
             }
         }
 
         if (blank($firstContent['summary'] ?? null)) {
-            $warnings['summary'] = 'Ajoutez une phrase courte pour expliquer le benefice concret de l offre.';
+            $warnings['summary'] = 'Ajoutez une phrase courte pour expliquer le bénéfice concret de l’offre.';
         }
         if (blank($firstContent['audience'] ?? null)) {
-            $warnings['audience'] = 'Precisez a qui cette offre est destinee.';
+            $warnings['audience'] = 'Précisez à qui cette offre est destinée.';
         }
         if (empty($firstContent['outcomes'] ?? [])) {
-            $warnings['outcomes'] = 'Ajoutez deux ou trois resultats concrets et realistes.';
+            $warnings['outcomes'] = 'Ajoutez deux ou trois résultats concrets et réalistes.';
         }
 
         $copy = $pages->map(fn ($page): string => json_encode($page->draft_content_json, JSON_UNESCAPED_UNICODE) ?: '')->implode(' ');
@@ -75,7 +75,7 @@ class OfferJourneyPublicationPreflight
         $riskyTerms = ['guerit', 'soigne', 'diagnostic', 'traitement garanti', 'resultat garanti', 'sans aucun risque'];
         $found = collect($riskyTerms)->filter(fn (string $term): bool => Str::contains($normalizedCopy, $term))->values();
         if ($found->isNotEmpty()) {
-            $warnings['medical_claims'] = 'Relisez les formulations potentiellement medicales ou absolues : '.$found->implode(', ').'.';
+            $warnings['medical_claims'] = 'Relisez les formulations potentiellement médicales ou absolues : '.$found->implode(', ').'.';
         }
 
         $cta = Str::lower(Str::ascii((string) ($firstContent['cta_label'] ?? '')));
@@ -92,7 +92,7 @@ class OfferJourneyPublicationPreflight
         }
 
         if ($journey->automations->isNotEmpty() && ! $journey->automations->contains('status', 'active')) {
-            $warnings['automation'] = 'Les messages automatiques existent mais aucune version n est active.';
+            $warnings['automation'] = 'Les messages de suivi existent mais aucune version n’est active.';
         }
         if ($reason = $this->sendingPolicy->blockingReason($journey->user, 'marketing')) {
             $warnings['sender'] = 'Les messages marketing ne partiront pas actuellement : '.app(OfferJourneyDiagnosticLabels::class)->reason($reason).'.';

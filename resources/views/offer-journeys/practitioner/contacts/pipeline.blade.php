@@ -3,7 +3,7 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <a href="{{ route('offer-journeys.contacts.index') }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">Personnes intéressées</a>
-                <h1 class="mt-1 text-2xl font-semibold text-gray-900">Pipeline</h1>
+                <h1 class="mt-1 text-2xl font-semibold text-gray-900">Suivi des contacts</h1>
                 <p class="mt-1 text-sm text-gray-500">Suivez les prochaines actions sans modifier vos dossiers clients.</p>
             </div>
             <a href="{{ route('offer-journeys.contacts.index') }}" class="inline-flex w-fit rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Vue liste</a>
