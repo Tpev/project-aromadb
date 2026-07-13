@@ -3,6 +3,8 @@
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 function makeTherapist(array $overrides = []): User
@@ -115,4 +117,38 @@ test('reservation page renders full-event informational mode when event is full'
     $response->assertSee('Informations de participation');
     $response->assertSee('complet');
     $response->assertDontSee('action="' . route('events.reserve.store', $event->id) . '"', false);
+});
+
+test('reservation page exposes the event image as its complete social preview', function () {
+    Storage::fake('public');
+
+    $therapist = makeTherapist();
+    $image = UploadedFile::fake()->image('atelier.jpg', 1200, 630)->store('events', 'public');
+    $event = makeEvent($therapist, ['image' => $image]);
+
+    $response = $this->get(route('events.reserve.create', $event));
+
+    $response->assertOk();
+    $response->assertSee('property="og:image" content="'.asset('storage/'.$image).'?v=', false);
+    $response->assertSee('property="og:image:secure_url"', false);
+    $response->assertSee('property="og:image:type" content="image/jpeg"', false);
+    $response->assertSee('property="og:image:width" content="1200"', false);
+    $response->assertSee('property="og:image:height" content="630"', false);
+});
+
+test('informational event page keeps event social metadata after the reserve redirect', function () {
+    Storage::fake('public');
+
+    $therapist = makeTherapist();
+    $image = UploadedFile::fake()->image('conference.png', 1200, 630)->store('events', 'public');
+    $event = makeEvent($therapist, [
+        'booking_required' => false,
+        'image' => $image,
+    ]);
+
+    $this->get(route('events.public.show', $event))
+        ->assertOk()
+        ->assertSee('property="og:title" content="Atelier Test"', false)
+        ->assertSee('property="og:image" content="'.asset('storage/'.$image).'?v=', false)
+        ->assertSee('property="og:image:type" content="image/png"', false);
 });

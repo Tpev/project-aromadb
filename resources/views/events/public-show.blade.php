@@ -7,7 +7,24 @@
     $descLooksHtml = $desc && preg_match('/<\/?[a-z][\s\S]*>/i', $desc);
     $descText = $desc ? trim(strip_tags($desc)) : '';
     $isVisio = ($event->event_type ?? 'in_person') === 'visio';
+    $eventUrl = url()->current();
+    $socialDescription = \Illuminate\Support\Str::limit(
+        $descText ?: "Découvrez « {$event->name} » proposé par {$event->user->name}.",
+        160,
+        '…'
+    );
 @endphp
+
+@section('meta_description', $socialDescription)
+
+@section('meta_og')
+    @include('events.partials.social-meta', [
+        'socialTitle' => $event->name,
+        'socialDescription' => $socialDescription,
+        'socialUrl' => $eventUrl,
+        'socialImage' => $socialImage,
+    ])
+@endsection
 
 <x-app-layout>
     <x-slot name="header">

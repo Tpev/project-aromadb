@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ReservationConfirmation;
 use App\Mail\NewReservationNotification;
+use App\Support\EventSocialImage;
 use Illuminate\Support\Facades\Log;
 use Stripe\StripeClient;
 
@@ -166,7 +167,7 @@ public function store(Request $request, $eventId)
     /**
      * Show the reservation form.
      */
-public function create($eventId)
+public function create($eventId, EventSocialImage $eventSocialImage)
 {
     $event = Event::with(['reservations', 'user'])->findOrFail($eventId);
     $canReserve = true;
@@ -191,7 +192,12 @@ public function create($eventId)
         }
     }
 
-    return view('reservations.create', compact('event', 'canReserve', 'reservationStatusMessage'));
+    return view('reservations.create', [
+        'event' => $event,
+        'canReserve' => $canReserve,
+        'reservationStatusMessage' => $reservationStatusMessage,
+        'socialImage' => $eventSocialImage->for($event),
+    ]);
 }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Product;
+use App\Support\EventSocialImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -623,7 +624,7 @@ public function show(Event $event)
     return view('events.show', compact('event'));
 }
 
-public function publicShow(Event $event)
+public function publicShow(Event $event, EventSocialImage $eventSocialImage)
 {
     abort_unless($event->showOnPortail, 404);
 
@@ -635,7 +636,10 @@ public function publicShow(Event $event)
         },
     ]);
 
-    return view('events.public-show', compact('event'));
+    return view('events.public-show', [
+        'event' => $event,
+        'socialImage' => $eventSocialImage->for($event),
+    ]);
 }
 
 }

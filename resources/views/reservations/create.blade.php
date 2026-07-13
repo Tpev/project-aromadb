@@ -60,11 +60,6 @@
             ? max(((int)$event->number_of_spot) - $activeCount, 0)
             : null;
 
-        // Image Open Graph : image de l'événement ou fallback générique
-        $ogImage = $event->image
-            ? asset('storage/' . $event->image)
-            : asset('images/og-default-event.jpg');
-
         // Description courte réutilisée pour meta_description + og:description
         $baseText = "Réservez votre place pour « {$event->name} », animé par {$event->user->name} le "
             . \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i')
@@ -90,18 +85,12 @@
 
     {{-- Open Graph + social preview --}}
     @section('meta_og')
-        <meta property="og:title" content="Réservez votre place pour « {{ e($event->name) }} »">
-        <meta property="og:description" content="{{ $ogDescription }}">
-        <meta property="og:url" content="{{ $eventUrl }}">
-        <meta property="og:image" content="{{ $ogImage }}">
-        <meta property="og:type" content="event">
-        <meta property="og:site_name" content="{{ config('app.name') }}">
-        <meta property="og:locale" content="fr_FR">
-
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="Réservez votre place pour « {{ e($event->name) }} »">
-        <meta name="twitter:description" content="{{ $ogDescription }}">
-        <meta name="twitter:image" content="{{ $ogImage }}">
+        @include('events.partials.social-meta', [
+            'socialTitle' => __('Réservez votre place pour « :event »', ['event' => $event->name]),
+            'socialDescription' => $ogDescription,
+            'socialUrl' => $eventUrl,
+            'socialImage' => $socialImage,
+        ])
     @endsection
 
     <div class="container mt-5">
