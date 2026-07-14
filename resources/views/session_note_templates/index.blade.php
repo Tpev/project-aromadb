@@ -7,6 +7,7 @@
     </x-slot>
 
     <div class="max-w-6xl mx-auto py-8 px-4">
+        @include('session_note_templates._context')
         @if(session('success'))
             <div class="mb-4 rounded-lg bg-green-100 border border-green-200 text-green-800 px-4 py-3 text-sm">
                 {{ session('success') }}
@@ -29,7 +30,7 @@
                         onkeyup="filterTable()"
                     >
 
-                    <a href="{{ route('session-note-templates.create') }}" class="am-btn am-btn-primary">
+                    <a href="{{ route('session-note-templates.create', $templateContextQuery) }}" class="am-btn am-btn-primary">
                         + {{ __('Créer un template') }}
                     </a>
                 </div>
@@ -40,7 +41,7 @@
                     <div class="am-empty-title">{{ __('Aucun template pour le moment') }}</div>
                     <div class="am-empty-sub">{{ __('Créez votre premier modèle pour accélérer vos notes de séance.') }}</div>
 
-                    <a href="{{ route('session-note-templates.create') }}" class="am-btn am-btn-primary mt-3">
+                    <a href="{{ route('session-note-templates.create', $templateContextQuery) }}" class="am-btn am-btn-primary mt-3">
                         + {{ __('Créer un template') }}
                     </a>
                 </div>
@@ -59,7 +60,7 @@
                             @foreach($templates as $t)
                                 <tr class="am-row" data-title="{{ strtolower($t->title) }}">
                                     <td class="am-td-title">
-                                        <a class="am-link" href="{{ route('session-note-templates.show', $t->id) }}">
+                                        <a class="am-link" href="{{ route('session-note-templates.show', array_merge(['session_note_template' => $t->id], $templateContextQuery)) }}">
                                             {{ $t->title }}
                                         </a>
                                         <div class="am-meta">
@@ -68,16 +69,17 @@
                                     </td>
 
                                     <td class="am-td-actions">
-                                        <a class="am-btn am-btn-soft" href="{{ route('session-note-templates.show', $t->id) }}">
+                                        <a class="am-btn am-btn-soft" href="{{ route('session-note-templates.show', array_merge(['session_note_template' => $t->id], $templateContextQuery)) }}">
                                             {{ __('Voir') }}
                                         </a>
-                                        <a class="am-btn am-btn-soft" href="{{ route('session-note-templates.edit', $t->id) }}">
+                                        <a class="am-btn am-btn-soft" href="{{ route('session-note-templates.edit', array_merge(['session_note_template' => $t->id], $templateContextQuery)) }}">
                                             {{ __('Modifier') }}
                                         </a>
                                         <form action="{{ route('session-note-templates.destroy', $t->id) }}" method="POST" class="am-inline"
                                               onsubmit="return confirm('Supprimer ce template ?');">
                                             @csrf
                                             @method('DELETE')
+                                            @include('session_note_templates._context_fields')
                                             <button type="submit" class="am-btn am-btn-danger">
                                                 {{ __('Supprimer') }}
                                             </button>

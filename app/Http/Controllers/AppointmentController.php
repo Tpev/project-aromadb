@@ -29,12 +29,12 @@ use App\Mail\AppointmentCancelledByClient;
 use App\Services\JitsiJwtService;
 use App\Models\BookingLink;
 use App\Models\GiftVoucher;
-use App\Models\Receipt;
 use App\Services\GiftVoucherRedeemService;
 use App\Services\AppointmentIcsService;
 use App\Services\AppointmentQuestionnaireAutomationService;
 use App\Services\CabinetAccessService;
 use App\Services\SharedCabinetSchedulingService;
+use App\Services\ReceiptRecordingService;
 use App\Models\PracticeLocation;
 
 class AppointmentController extends Controller
@@ -56,9 +56,24 @@ class AppointmentController extends Controller
 
     // 2. Charge tous les rendez-vous du thérapeute
     $allAppointments = Appointment::where('user_id', Auth::id())
-        ->with(['clientProfile', 'product'])
+        ->with([
+            'clientProfile',
+            'product',
+            'billingInvoices.receipts',
+            'sessionNotes:id,appointment_id,client_profile_id,user_id',
+        ])
         ->orderBy('appointment_date', 'asc') // tri global par date croissante
         ->get();
+
+    if ($request->filled('calendar_source') && in_array($request->input('calendar_source'), ['olithea', 'all'], true)) {
+        $request->session()->put('appointments.calendar_source', $request->input('calendar_source'));
+    }
+
+    $calendarSource = $request->session()->get('appointments.calendar_source', 'olithea');
+    $showGoogleEvents = $calendarSource === 'all';
+    $displayAppointments = $showGoogleEvents
+        ? $allAppointments
+        : $allAppointments->reject(fn (Appointment $appointment) => $appointment->external)->values();
 
     $events = [];
 
@@ -68,7 +83,7 @@ class AppointmentController extends Controller
     /* -------------------------------------------------------------------------
      | Construction du tableau $events pour FullCalendar
      | ---------------------------------------------------------------------- */
-    foreach ($allAppointments as $appointment) {
+    foreach ($displayAppointments as $appointment) {
         if ($appointment->isCancelled()) {
             continue;
         }
@@ -109,19 +124,19 @@ class AppointmentController extends Controller
      | ---------------------------------------------------------------------- */
 
     // RDV à venir : date >= maintenant, triés du plus proche au plus lointain
-    $rendezVousAVenir = $allAppointments
+    $rendezVousAVenir = $displayAppointments
         ->filter(fn ($a) => $a->appointment_date >= $now)
         ->sortBy('appointment_date')
         ->values();
 
     // RDV passés : date < maintenant, triés du plus récent au plus ancien
-    $rendezVousPasses = $allAppointments
+    $rendezVousPasses = $displayAppointments
         ->filter(fn ($a) => $a->appointment_date < $now)
         ->sortByDesc('appointment_date')
         ->values();
 
     // Pour compatibilité si tu utilisais déjà $appointments dans la vue
-    $appointments = $allAppointments;
+    $appointments = $displayAppointments;
 
     // 4. Indisponibilités
     $unavailabilities = Unavailability::where('user_id', Auth::id())
@@ -148,6 +163,8 @@ class AppointmentController extends Controller
         'rendezVousAVenir'    => $rendezVousAVenir,
         'rendezVousPasses'    => $rendezVousPasses,
         'events'              => $events,
+        'calendarSource'      => $calendarSource,
+        'showGoogleEvents'    => $showGoogleEvents,
     ]);
 }
 
@@ -412,6 +429,25 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
 {
     $this->authorize('view', $appointment);
 
+    $appointment->load([
+        'clientProfile',
+        'product',
+        'meeting',
+        'billingInvoices.receipts',
+        'sessionNotes' => fn ($query) => $query->latest(),
+    ]);
+
+    $availableInvoices = Invoice::query()
+        ->where('user_id', Auth::id())
+        ->where('client_profile_id', $appointment->client_profile_id)
+        ->where('type', 'invoice')
+        ->where(function ($query) use ($appointment) {
+            $query->whereNull('appointment_id')->orWhere('appointment_id', $appointment->id);
+        })
+        ->orderByDesc('invoice_date')
+        ->orderByDesc('invoice_number')
+        ->get();
+
     // Determine the mode based on the linked product
     $mode = 'Non spécifié';
     if ($appointment->product) {
@@ -456,7 +492,8 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
             'appointment',
             'mode',
             'meetingLink',
-            'meetingLinkPatient'
+            'meetingLinkPatient',
+            'availableInvoices'
         ));
     }
 
@@ -464,7 +501,8 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         'appointment',
         'mode',
         'meetingLink',
-        'meetingLinkPatient'
+        'meetingLinkPatient',
+        'availableInvoices'
     ));
 }
 
@@ -1419,6 +1457,12 @@ public function storePatient(Request $request)
                     'expires_at' => now()->addMinutes(GiftVoucherRedeemService::BOOKING_ONLINE_HOLD_MINUTES)->timestamp,
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
                     'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+                    'metadata' => [
+                        'appointment_id' => $appointment->id,
+                        'patient_email' => $appointment->clientProfile->email,
+                        'gift_voucher_id' => $voucherForBooking?->id,
+                        'gift_voucher_amount_cents' => $voucherPlannedCents,
+                    ],
                     'payment_intent_data' => [
                         'metadata' => [
                             'appointment_id' => $appointment->id,
@@ -2260,6 +2304,16 @@ public function success(Request $request)
             'stripe_account' => $account_id,
         ]);
 
+        if (($session->payment_status ?? null) !== 'paid' || ($paymentIntent->status ?? null) !== 'succeeded') {
+            Log::warning('Stripe appointment return ignored because payment is not complete.', [
+                'session_id' => $session->id ?? $session_id,
+                'session_payment_status' => $session->payment_status ?? null,
+                'payment_intent_status' => $paymentIntent->status ?? null,
+            ]);
+
+            return redirect()->route('welcome')->withErrors('Le paiement n\'est pas encore confirmé.');
+        }
+
         Log::info('PaymentIntent retrieved successfully', [
             'payment_intent_id' => $paymentIntent->id,
         ]);
@@ -2280,23 +2334,24 @@ public function success(Request $request)
 
         // Mettre à jour le statut de la réservation
         if ($appointment_id) {
-            $appointment = Appointment::find($appointment_id);
+            $appointment = Appointment::with('user')->find($appointment_id);
             if ($appointment) {
-                $voucherAppliedCents = $this->applyGiftVoucherFromStripeMetadata($appointment, $paymentIntent->metadata->toArray());
+                if ($appointment->user?->stripe_account_id
+                    && !hash_equals((string) $appointment->user->stripe_account_id, (string) $account_id)) {
+                    throw new \RuntimeException('Le compte Stripe ne correspond pas au rendez-vous.');
+                }
 
-                $appointment->status = 'Payée';
-                $appointment->save();
+                $finalization = $this->finalizeStripeAppointmentPayment(
+                    $appointment,
+                    $paymentIntent->metadata->toArray(),
+                    (int) ($paymentIntent->amount_received ?? $paymentIntent->amount ?? 0),
+                    (string) $paymentIntent->id
+                );
+                $invoice = $finalization['invoice'];
 
                 Log::info('Appointment status updated to paid', [
                     'appointment_id' => $appointment_id,
                 ]);
-
-                // Créer la facture
-                $invoice = $this->createInvoiceFromAppointment($appointment);
-
-                if ($voucherAppliedCents > 0) {
-                    $this->recordGiftVoucherPaymentOnInvoice($invoice, $appointment, $voucherAppliedCents);
-                }
 
                 Log::info('Invoice created successfully', [
                     'invoice_id' => $invoice->id,
@@ -2453,27 +2508,40 @@ public function cancel(Request $request)
  */
 protected function handleCheckoutSessionCompleted($session)
 {
-    // Récupérer les métadonnées
-    $appointment_id = $session->metadata->appointment_id;
+    if (($session->payment_status ?? null) !== 'paid') {
+        return;
+    }
 
-    // Mettre à jour le statut de la réservation
-    $appointment = Appointment::find($appointment_id);
-    if ($appointment && $appointment->status !== 'paid') {
-        $appointment->status = 'paid';
-        $appointment->save();
+    $metadata = is_object($session->metadata ?? null) && method_exists($session->metadata, 'toArray')
+        ? $session->metadata->toArray()
+        : (array) ($session->metadata ?? []);
+    $appointmentId = $metadata['appointment_id'] ?? null;
+    $appointment = $appointmentId ? Appointment::find($appointmentId) : null;
+
+    if ($appointment) {
+        $providerReference = is_object($session->payment_intent ?? null)
+            ? (string) ($session->payment_intent->id ?? '')
+            : (string) ($session->payment_intent ?? $session->id ?? '');
+        $finalization = $this->finalizeStripeAppointmentPayment(
+            $appointment,
+            $metadata,
+            (int) ($session->amount_total ?? 0),
+            $providerReference
+        );
+        $invoice = $finalization['invoice'];
 
         // Envoyer les emails après le paiement réussi
         try {
             // Email au patient
             $patientEmail = $appointment->clientProfile->email;
             if ($patientEmail) {
-                Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment));
+                Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment, $invoice));
             }
 
             // Email au thérapeute
             $therapistEmail = $appointment->user->email;
             if ($therapistEmail) {
-                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment));
+                Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment, $invoice));
             }
 
         } catch (\Exception $e) {
@@ -2483,62 +2551,117 @@ protected function handleCheckoutSessionCompleted($session)
 }
 
 
+public function finalizeStripeAppointmentPayment(
+    Appointment $appointment,
+    array $metadata,
+    int $stripePaidCents,
+    string $providerReference
+): array {
+    if ($appointment->external) {
+        throw new \LogicException('Un événement Google externe ne peut pas être encaissé.');
+    }
+
+    $voucherAppliedCents = $this->applyGiftVoucherFromStripeMetadata($appointment, $metadata);
+
+    $appointment->status = "Pay\u{00E9}e";
+    $appointment->save();
+
+    $invoice = $this->createInvoiceFromAppointment($appointment);
+
+    if ($stripePaidCents > 0) {
+        app(ReceiptRecordingService::class)->recordInvoicePayment(
+            $invoice,
+            round($stripePaidCents / 100, 2),
+            now()->toDateString(),
+            'card',
+            'payment',
+            'Paiement Stripe du rendez-vous',
+            'stripe',
+            $providerReference
+        );
+    }
+
+    if ($voucherAppliedCents > 0) {
+        $this->recordGiftVoucherPaymentOnInvoice($invoice, $appointment, $voucherAppliedCents);
+    }
+
+    return [
+        'invoice' => $invoice,
+        'voucher_applied_cents' => $voucherAppliedCents,
+    ];
+}
+
 protected function createInvoiceFromAppointment(Appointment $appointment)
 {
-    // Récupérer le thérapeute (User)
-    $therapist = $appointment->user;
+    return \Illuminate\Support\Facades\DB::transaction(function () use ($appointment) {
+        $appointment = Appointment::with(['user', 'clientProfile', 'product'])
+            ->lockForUpdate()
+            ->findOrFail($appointment->id);
 
-    // Récupérer le client (ClientProfile)
-    $client = $appointment->clientProfile;
+        $existingInvoice = Invoice::where('user_id', $appointment->user_id)
+            ->where('appointment_id', $appointment->id)
+            ->first();
 
-    // Récupérer le produit (Product)
-    $product = $appointment->product;
+        if ($existingInvoice) {
+            return $existingInvoice;
+        }
 
-    // Définir les dates de la facture
-    $invoiceDate = now();
-    $dueDate = $invoiceDate->copy()->addDays(30); // Par exemple, 30 jours après la date de facturation
+        $therapist = $appointment->user;
+        $client = $appointment->clientProfile;
+        $product = $appointment->product;
+        $invoiceDate = now();
+        $dueDate = $invoiceDate->copy()->addDays(30);
+        $unitPrice = $product->price;
+        $quantity = 1;
+        $totalPrice = $unitPrice * $quantity;
+        $taxAmount = ($totalPrice * $product->tax_rate) / 100;
+        $totalPriceWithTax = $totalPrice + $taxAmount;
 
-    // Calculer les montants
-    $unitPrice = $product->price;
-    $quantity = 1; // Puisqu'il s'agit d'un rendez-vous unique
-    $totalPrice = $unitPrice * $quantity;
-    $taxAmount = ($totalPrice * $product->tax_rate) / 100;
-    $totalPriceWithTax = $totalPrice + $taxAmount;
+        $lastInvoice = Invoice::where('user_id', $therapist->id)
+            ->lockForUpdate()
+            ->orderBy('invoice_number', 'desc')
+            ->first();
+        $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
 
-    // Déterminer le numéro de facture
-    $lastInvoice = Invoice::where('user_id', $therapist->id)
-                          ->orderBy('invoice_number', 'desc')
-                          ->first();
-    $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
+        $invoice = Invoice::create([
+            'client_profile_id' => $client->id,
+            'user_id' => $therapist->id,
+            'invoice_date' => $invoiceDate,
+            'due_date' => $dueDate,
+            'total_amount' => $totalPrice,
+            'total_tax_amount' => $taxAmount,
+            'total_amount_with_tax' => $totalPriceWithTax,
+            'status' => 'En attente',
+            'notes' => $appointment->notes,
+            'invoice_number' => $nextInvoiceNumber,
+            'appointment_id' => $appointment->id,
+        ]);
 
-    // Créer la facture
-    $invoice = Invoice::create([
-        'client_profile_id' => $client->id,
-        'user_id' => $therapist->id,
-        'invoice_date' => $invoiceDate,
-        'due_date' => $dueDate,
-        'total_amount' => $totalPrice,
-        'total_tax_amount' => $taxAmount,
-        'total_amount_with_tax' => $totalPriceWithTax,
-        'status' => 'Payée',
-        'notes' => $appointment->notes, // Vous pouvez personnaliser cela selon vos besoins
-        'invoice_number' => $nextInvoiceNumber,
-        'appointment_id' => $appointment->id, // Assurez-vous que la colonne existe dans la table invoices
-    ]);
+        $invoice->items()->create([
+            'type' => 'product',
+            'product_id' => $product->id,
+            'label' => $product->name,
+            'description' => mb_substr(trim((string) ($product->description ?? '')), 0, 255),
+            'description_snapshot' => filled($product->description) ? trim((string) $product->description) : null,
+            'service_date' => $appointment->appointment_date->toDateString(),
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'tax_rate' => $product->tax_rate,
+            'tax_amount' => $taxAmount,
+            'total_price' => $totalPrice,
+            'total_price_with_tax' => $totalPriceWithTax,
+        ]);
 
-    // Créer l'élément de facture
-    $invoice->items()->create([
-        'product_id' => $product->id,
-        'description' => $product->name,
-        'quantity' => $quantity,
-        'unit_price' => $unitPrice,
-        'tax_rate' => $product->tax_rate,
-        'tax_amount' => $taxAmount,
-        'total_price' => $totalPrice,
-        'total_price_with_tax' => $totalPriceWithTax,
-    ]);
+        app(\App\Services\InvoiceRecipientSnapshotService::class)->capture($invoice, true);
+        app(\App\Services\InvoiceActivityService::class)->record(
+            $invoice,
+            'created',
+            'Facture créée depuis le rendez-vous.',
+            metadata: ['appointment_id' => $appointment->id]
+        );
 
-    return $invoice;
+        return $invoice;
+    }, 3);
 }
 
 private function resolveGiftVoucherForBooking(User $therapist, ?string $voucherCode): ?GiftVoucher
@@ -2654,35 +2777,17 @@ private function recordGiftVoucherPaymentOnInvoice(Invoice $invoice, Appointment
         return;
     }
 
-    $already = Receipt::where('invoice_id', $invoice->id)
-        ->where('source', 'manual')
-        ->where('note', 'like', 'Paiement bon cadeau%')
-        ->exists();
-
-    if ($already) {
-        return;
-    }
-
     $amount = round($appliedCents / 100, 2);
-    $clientName = trim(
-        (string) optional($appointment->clientProfile)->first_name . ' ' .
-        (string) optional($appointment->clientProfile)->last_name
+    app(ReceiptRecordingService::class)->recordInvoicePayment(
+        $invoice,
+        $amount,
+        now()->toDateString(),
+        'other',
+        'payment',
+        'Paiement bon cadeau ' . ($appointment->giftVoucher?->code ?? ''),
+        'gift_voucher',
+        'appointment:' . $appointment->id . ':voucher:' . ($appointment->gift_voucher_id ?? 'unknown')
     );
-
-    Receipt::create([
-        'user_id' => $appointment->user_id,
-        'invoice_id' => $invoice->id,
-        'invoice_number' => (string) $invoice->invoice_number,
-        'encaissement_date' => now()->toDateString(),
-        'client_name' => $clientName ?: 'Client',
-        'nature' => 'service',
-        'amount_ht' => $amount,
-        'amount_ttc' => $amount,
-        'payment_method' => 'other',
-        'direction' => 'credit',
-        'source' => 'manual',
-        'note' => 'Paiement bon cadeau ' . ($appointment->giftVoucher?->code ?? ''),
-    ]);
 }
 
 
@@ -3528,6 +3633,12 @@ public function storeByToken(Request $request, string $token)
                     'expires_at' => now()->addMinutes(GiftVoucherRedeemService::BOOKING_ONLINE_HOLD_MINUTES)->timestamp,
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
                     'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+                    'metadata' => [
+                        'appointment_id' => $appointment->id,
+                        'patient_email' => $appointment->clientProfile->email,
+                        'gift_voucher_id' => $voucherForBooking?->id,
+                        'gift_voucher_amount_cents' => $voucherPlannedCents,
+                    ],
                     'payment_intent_data' => [
                         'metadata' => [
                             'appointment_id' => $appointment->id,

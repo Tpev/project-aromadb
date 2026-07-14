@@ -27,6 +27,9 @@
                     <h1 class="am-title">{{ __('Nouvelle note de séance') }}</h1>
                     <p class="am-sub">
                         {{ $clientProfile->first_name }} {{ $clientProfile->last_name }}
+                        @if($appointment)
+                            · Rendez-vous du {{ $appointment->appointment_date->format('d/m/Y à H:i') }}
+                        @endif
                     </p>
                 </div>
 
@@ -40,6 +43,9 @@
             <div class="am-body">
                 <form action="{{ route('session_notes.store', $clientProfile->id) }}" method="POST" id="session-note-form">
                     @csrf
+                    @if($appointment)
+                        <input type="hidden" name="appointment_id" value="{{ $appointment->id }}">
+                    @endif
 
                     @php
                         $templates = $templates ?? collect();
@@ -71,8 +77,11 @@
                                 {{ __('Appliquer') }}
                             </button>
 
-                            <a href="{{ route('session-note-templates.index') }}" class="am-btn am-btn-soft">
-                                {{ __('Gérer') }}
+                            <a href="{{ route('session-note-templates.index', array_filter([
+                                    'client_profile_id' => $clientProfile->id,
+                                    'appointment_id' => $appointment?->id,
+                                ])) }}" class="am-btn am-btn-soft">
+                                {{ __('Gérer les modèles') }}
                             </a>
                         </div>
 
@@ -141,6 +150,7 @@
             const templateSelect = document.getElementById('template-select');
             const applyBtn = document.getElementById('apply-template');
             const templateIdInput = document.getElementById('template-id-input');
+            const draftKey = 'olithea:session-note-draft:{{ $clientProfile->id }}:{{ $appointment?->id ?? 'general' }}';
 
             function syncNote() {
                 noteInput.value = quill.root.innerHTML;
@@ -157,12 +167,21 @@
                     quill.setText(oldNote);
                 }
                 syncNote();
+            } else if (localStorage.getItem(draftKey)) {
+                quill.clipboard.dangerouslyPasteHTML(localStorage.getItem(draftKey));
+                syncNote();
             } else {
                 syncNote();
             }
 
-            quill.on('text-change', syncNote);
-            form.addEventListener('submit', syncNote);
+            quill.on('text-change', function () {
+                syncNote();
+                localStorage.setItem(draftKey, quill.root.innerHTML);
+            });
+            form.addEventListener('submit', function () {
+                syncNote();
+                localStorage.removeItem(draftKey);
+            });
 
             // Restore old selected template if any
             const oldTemplateId = templateIdInput.value;

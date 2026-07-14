@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color:#647a0b;">
-            {{ __('Détails de la facture') }} – #{{ $invoice->invoice_number }}
+            {{ $invoice->document_label }} – #{{ $invoice->invoice_number }}
         </h2>
     </x-slot>
 
@@ -23,17 +23,17 @@
             @endif
 
             <div class="flex-between">
-                <h1 class="details-title">{{ __('Facture n°') }} {{ $invoice->invoice_number }}</h1>
+                <h1 class="details-title">{{ $invoice->document_label }} n°{{ $invoice->invoice_number }}</h1>
 
                 {{-- Actions à droite --}}
                 <div class="actions-bar">
-                    @if($invoice->status !== 'Payée' || $invoice->solde_restant > 0)
+                    @if(!$invoice->isCreditNote() && ($invoice->status !== 'Payée' || $invoice->solde_restant > 0))
                         <button type="button" class="btn-primary" onclick="openPayModal()">
                             <i class="fas fa-check"></i> {{ __('Enregistrer un paiement') }}
                         </button>
                     @endif
 
-                    @if($invoice->status !== 'Payée')
+                    @if(!$invoice->isCreditNote() && $invoice->status !== 'Payée')
                         @if($invoice->payment_link)
                             <a href="{{ $invoice->payment_link }}" target="_blank" class="btn-secondary">
                                 <i class="fas fa-link mr-2"></i> {{ __('Voir le Lien de Paiement') }}
@@ -50,7 +50,7 @@
                 </div>
             </div>
 
-            @if($invoice->status !== 'Payée' && !$invoice->payment_link)
+            @if(!$invoice->isCreditNote() && $invoice->status !== 'Payée' && !$invoice->payment_link)
                 <p class="small text-muted mt-2 mb-0">
                     {{ __("Cette action crée le lien Stripe puis l'envoie automatiquement par email à l'adresse de facturation du client ou de l'entreprise.") }}
                 </p>
@@ -137,6 +137,20 @@
                 $billingCity = $isCorporate
                     ? ($corp->billing_city ?? null)
                     : ($cp?->billing_city ?? ($cp?->city ?? null));
+
+                $recipient = $invoice->recipient_data;
+                $isCorporate = ($recipient['recipient_type'] ?? 'individual') === 'corporate';
+                $companyName = $recipient['company_name'] ?? '';
+                $clientName = $recipient['client_name'] ?? '';
+                $billToName = $clientName ?: $companyName;
+                $billingFirst = $recipient['billing_first_name'] ?? '';
+                $billingLast = $recipient['billing_last_name'] ?? '';
+                $billingContactName = $recipient['billing_contact_name'] ?? trim($billingFirst.' '.$billingLast);
+                $billingEmail = $recipient['email'] ?? '';
+                $billingPhone = $recipient['phone'] ?? '';
+                $billingAddress = $recipient['address'] ?? '';
+                $billingZip = $recipient['postal_code'] ?? '';
+                $billingCity = $recipient['city'] ?? '';
             @endphp
 
             {{-- Infos facture --}}
@@ -155,17 +169,13 @@
                                             Contact : {{ $billingContactName }}
                                         </span>
                                     @endif
-                                @elseif($company)
-                                    <span class="font-semibold block">{{ $company->name }}</span>
+                                @elseif($companyName)
+                                    <span class="font-semibold block">{{ $companyName }}</span>
                                     <span class="text-sm text-gray-600 block">
-                                        Bénéficiaire (profil client) :
-                                        {{ $cp?->first_name }} {{ $cp?->last_name }}
+                                        Bénéficiaire : {{ $clientName }}
                                     </span>
                                 @else
-                                    <span class="block">
-                                        Bénéficiaire (profil client) :
-                                        {{ $cp?->first_name }} {{ $cp?->last_name }}
-                                    </span>
+                                    <span class="block">{{ $clientName }}</span>
                                 @endif
                             </p>
                         </div>
@@ -181,8 +191,8 @@
                             <p class="invoice-value">
                                 @if($isCorporate)
                                     {{ $billToName }}@if(!empty($billingContactName)) – À l’attention de {{ $billingContactName }}@endif
-                                @elseif($company)
-                                    {{ $company->name }} – À l’attention de {{ $billingFirst }} {{ $billingLast }}
+                                @elseif($companyName)
+                                    {{ $companyName }} – À l’attention de {{ $billingFirst }} {{ $billingLast }}
                                 @else
                                     {{ $billingFirst }} {{ $billingLast }}
                                 @endif
@@ -275,12 +285,12 @@
     @php
         // --- Determine "Produit" (left column) and "Description" (right column)
         $produit = '';
-        $description = trim((string) ($item->description ?? ''));
+        $description = trim($item->billing_description);
 
-        if ($item->type === 'product' && $item->product) {
-            $produit = $item->product->name;
-        } elseif ($item->type === 'inventory' && $item->inventoryItem) {
-            $produit = $item->inventoryItem->name;
+        if ($item->type === 'product') {
+            $produit = $item->name;
+        } elseif ($item->type === 'inventory') {
+            $produit = $item->name;
         } else {
             // ✅ CUSTOM
             $produit = trim((string) ($item->label ?? ''));
@@ -316,7 +326,12 @@
         <td>{{ $produit }}</td>
 
         {{-- Description --}}
-        <td>{{ $description !== '' ? $description : '—' }}</td>
+        <td>
+            <div>{{ $description !== '' ? $description : '—' }}</div>
+            @if($item->service_date_label)
+                <div class="small text-muted mt-1"><strong>Date de prestation :</strong> {{ $item->service_date_label }}</div>
+            @endif
+        </td>
 
         <td>{{ $item->quantity }}</td>
         <td>{{ number_format($item->unit_price * (1 + $item->tax_rate / 100), 2, ',', ' ') }} €</td>
@@ -518,6 +533,95 @@
                 </div>
             @endif
 
+            @if($invoice->originalInvoice || $invoice->corrections->isNotEmpty())
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h2 class="details-subtitle">Documents liés</h2>
+                        @if($invoice->originalInvoice)
+                            <p class="mb-2">
+                                Document d’origine :
+                                <a href="{{ route('invoices.show', $invoice->originalInvoice) }}" class="am-link">
+                                    {{ $invoice->originalInvoice->document_label }} n°{{ $invoice->originalInvoice->invoice_number }}
+                                </a>
+                            </p>
+                        @endif
+                        @foreach($invoice->corrections as $correction)
+                            <p class="mb-1">
+                                <a href="{{ route('invoices.show', $correction) }}" class="am-link">
+                                    {{ $correction->document_label }} n°{{ $correction->invoice_number }}
+                                </a>
+                                · {{ $correction->correction_reason }}
+                            </p>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if($invoice->isLockedForEditing() && ($invoice->type ?? 'invoice') === 'invoice')
+                <div class="alert alert-info mt-4">
+                    <strong>Facture finalisée.</strong>
+                    Son contenu et les coordonnées du destinataire sont figés. Pour corriger une erreur, créez un document lié sans modifier l’original.
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <h2 class="details-subtitle">Corriger cette facture</h2>
+                        @php
+                            $hasCreditNote = $invoice->corrections->contains(
+                                fn ($correction) => $correction->isCreditNote()
+                            );
+                            $hasReplacement = $invoice->corrections->contains(
+                                fn ($correction) => $correction->correction_kind === 'replacement'
+                            );
+                        @endphp
+
+                        @if($hasReplacement)
+                            <div class="alert alert-info mb-0">
+                                Une facture rectificative est déjà liée à cette facture. Ouvrez-la dans les documents liés pour poursuivre.
+                            </div>
+                        @elseif($invoice->hasPositiveNetReceipt() && !$hasCreditNote)
+                            <form action="{{ route('invoices.corrections.store', $invoice) }}" method="POST" class="d-flex flex-wrap align-items-end gap-2">
+                                @csrf
+                                <input type="hidden" name="correction_kind" value="credit_note">
+                                <div class="flex-grow-1">
+                                    <label class="details-label" for="credit-note-reason">Motif de l’avoir</label>
+                                    <input id="credit-note-reason" name="correction_reason" class="form-control" required maxlength="1000">
+                                </div>
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Créer un avoir lié sans modifier la facture originale ?')">Créer un avoir</button>
+                            </form>
+                        @else
+                            <form action="{{ route('invoices.corrections.store', $invoice) }}" method="POST" class="d-flex flex-wrap align-items-end gap-2">
+                                @csrf
+                                <input type="hidden" name="correction_kind" value="replacement">
+                                <div class="flex-grow-1">
+                                    <label class="details-label" for="replacement-reason">Motif de la rectification</label>
+                                    <input id="replacement-reason" name="correction_reason" class="form-control" required maxlength="1000">
+                                </div>
+                                <button type="submit" class="btn-secondary" onclick="return confirm('Créer une nouvelle facture rectificative liée ?')">Créer une facture rectificative</button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            @if($invoice->activityLogs->isNotEmpty())
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <details>
+                            <summary class="details-subtitle" style="cursor:pointer;">Historique de la facture</summary>
+                            <div class="mt-2">
+                                @foreach($invoice->activityLogs as $activity)
+                                    <div class="small text-muted mb-1">
+                                        {{ $activity->created_at->format('d/m/Y à H:i') }} · {{ $activity->message }}
+                                        @if($activity->user) · {{ $activity->user->name }} @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            @endif
+
             {{-- Boutons bas de page --}}
             @php
                 $canSendPaymentReminder = $invoice->canSendPaymentReminder();
@@ -527,7 +631,9 @@
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <a href="{{ route('invoices.index') }}" class="btn-primary">{{ __('Retour à la liste') }}</a>
-                    <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-secondary">{{ __('Modifier la facture') }}</a>
+                    @if($invoice->isEditable())
+                        <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn-secondary">{{ __('Modifier la facture') }}</a>
+                    @endif
                     <a href="{{ route('invoices.pdf', $invoice->id) }}" class="btn-primary">{{ __('Télécharger le PDF') }}</a>
 
                     @if(is_null($invoice->sent_at))
@@ -782,4 +888,3 @@
         });
     </script>
 </x-app-layout>
-

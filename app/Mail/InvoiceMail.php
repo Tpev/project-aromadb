@@ -32,6 +32,7 @@ class InvoiceMail extends Mailable implements ShouldQueue
             'corporateClient',
             'items.product',
             'items.inventoryItem',
+            'originalInvoice',
         ]);
 
         // build the PDF from the same view you use in generatePDF()
@@ -39,11 +40,14 @@ class InvoiceMail extends Mailable implements ShouldQueue
             'invoice' => $this->invoice,
         ])->output();
 
-        return $this->subject("Votre Facture n°{$this->invoice->invoice_number}")
+        $documentLabel = $this->invoice->document_label;
+        $filenamePrefix = $this->invoice->isCreditNote() ? 'avoir' : 'facture';
+
+        return $this->subject("Votre {$documentLabel} n°{$this->invoice->invoice_number}")
                     ->markdown('emails.invoices.mail')
                     ->attachData(
                         $pdf,
-                        "facture_{$this->invoice->invoice_number}.pdf",
+                        "{$filenamePrefix}_{$this->invoice->invoice_number}.pdf",
                         ['mime' => 'application/pdf']
                     );
     }

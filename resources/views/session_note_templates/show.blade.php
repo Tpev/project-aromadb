@@ -10,6 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
 
     <div class="max-w-5xl mx-auto py-8 px-4">
+        @include('session_note_templates._context')
         @if(session('success'))
             <div class="mb-4 rounded-lg bg-green-100 border border-green-200 text-green-800 px-4 py-3 text-sm">
                 {{ session('success') }}
@@ -29,11 +30,11 @@
                 </div>
 
                 <div class="am-actions">
-                    <a href="{{ route('session-note-templates.index') }}" class="am-btn am-btn-soft">
+                    <a href="{{ route('session-note-templates.index', $templateContextQuery) }}" class="am-btn am-btn-soft">
                         {{ __('Retour') }}
                     </a>
 
-                    <a href="{{ route('session-note-templates.edit', $template->id) }}" class="am-btn am-btn-primary">
+                    <a href="{{ route('session-note-templates.edit', array_merge(['session_note_template' => $template->id], $templateContextQuery)) }}" class="am-btn am-btn-primary">
                         {{ __('Modifier') }}
                     </a>
 
@@ -41,6 +42,7 @@
                           onsubmit="return confirm('Supprimer ce template ?');">
                         @csrf
                         @method('DELETE')
+                        @include('session_note_templates._context_fields')
                         <button type="submit" class="am-btn am-btn-danger">
                             {{ __('Supprimer') }}
                         </button>

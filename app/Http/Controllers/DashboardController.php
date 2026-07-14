@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Services\DashboardFinancialMetricsService;
 
 class DashboardController extends Controller
 {
@@ -44,20 +45,25 @@ $upcomingAppointments = Appointment::where('user_id', $userId)
     ->count();
 
 
-        $totalInvoices = Invoice::where('user_id', $userId)->count();
-
-        $pendingInvoices = Invoice::where('user_id', $userId)
-            ->where('status', 'En Attente')
+        $totalInvoices = Invoice::where('user_id', $userId)
+            ->where('type', 'invoice')
             ->count();
 
-        $monthlyRevenue = Invoice::where('user_id', $userId)
-            ->whereMonth('invoice_date', Carbon::now()->month)
-            ->sum('total_amount');
+        $pendingInvoices = Invoice::where('user_id', $userId)
+            ->where('type', 'invoice')
+            ->whereIn('status', ['En attente', 'En Attente', "Partiellement pay\u{00E9}e"])
+            ->count();
+
+        $financialMetrics = app(DashboardFinancialMetricsService::class)->forUser($userId);
+        $monthlyRevenue = $financialMetrics['net_received_this_month'];
 
         // Graphiques
         $allMonths = range(1, 12);
 
         $appointmentsPerMonth = Appointment::where('user_id', $userId)
+            ->where(function ($query) {
+                $query->where('external', false)->orWhereNull('external');
+            })
             ->select(DB::raw('MONTH(appointment_date) as month'), DB::raw('COUNT(*) as count'))
             ->whereYear('appointment_date', Carbon::now()->year)
             ->groupBy('month')
@@ -67,15 +73,8 @@ $upcomingAppointments = Appointment::where('user_id', $userId)
 
         $appointmentsPerMonth = array_replace(array_fill_keys($allMonths, 0), $appointmentsPerMonth);
 
-        $monthlyRevenueData = Invoice::where('user_id', $userId)
-            ->select(DB::raw('MONTH(invoice_date) as month'), DB::raw('SUM(total_amount) as revenue'))
-            ->whereYear('invoice_date', Carbon::now()->year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('revenue', 'month')
-            ->toArray();
-
-        $monthlyRevenueData = array_replace(array_fill_keys($allMonths, 0), $monthlyRevenueData);
+        $monthlyRevenueData = $financialMetrics['monthly_net_received'];
+        $monthlyBilledData = $financialMetrics['monthly_billed'];
 
         $months = collect(range(1, 12))->mapWithKeys(function ($month) {
             return [$month => Carbon::create()->month($month)->translatedFormat('F')];
@@ -97,6 +96,7 @@ $recentAppointments = Appointment::query()
 
         // Dernières factures
         $recentInvoices = Invoice::where('user_id', $userId)
+            ->where('type', 'invoice')
             ->orderBy('invoice_date', 'desc')
             ->take(5)
             ->get();
@@ -224,6 +224,8 @@ $recentAppointments = Appointment::query()
         'monthlyRevenue',
         'appointmentsPerMonth',
         'monthlyRevenueData',
+        'monthlyBilledData',
+        'financialMetrics',
         'months',
         'recentAppointments',
         'recentInvoices',

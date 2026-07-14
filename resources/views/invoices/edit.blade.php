@@ -21,6 +21,9 @@
             <form id="invoiceEditForm" action="{{ route('invoices.update', $invoice) }}" method="POST" class="am-form">
                 @csrf
                 @method('PUT')
+                @if($invoice->appointment_id)
+                    <input type="hidden" name="appointment_id" value="{{ $invoice->appointment_id }}">
+                @endif
 
                 {{-- Client, dates, notes --}}
                 <div class="am-grid">
@@ -165,7 +168,11 @@
                                         // ✅ Custom: prefer label + description (new schema),
                                         // but keep backward compatibility for older invoices that had "Nom — Détails" in description.
                                         $rawLabel = old("items.$i.label", $item->label ?? '');
-                                        $rawDesc  = old("items.$i.description", $item->description ?? '');
+                                        $rawDesc  = old("items.$i.description", $item->billing_description);
+                                        $serviceMode = old("items.$i.service_date", optional($item->service_date)->format('Y-m-d'))
+                                            ? 'date'
+                                            : ((old("items.$i.service_period_start", optional($item->service_period_start)->format('Y-m-d'))
+                                                || old("items.$i.service_period_end", optional($item->service_period_end)->format('Y-m-d'))) ? 'period' : 'none');
 
                                         $cName = trim((string)$rawLabel);
                                         $cDetails = trim((string)$rawDesc);
@@ -206,6 +213,7 @@
                                                         <option value="{{ $prod->id }}"
                                                                 data-price="{{ $prod->price }}"
                                                                 data-tax-rate="{{ $prod->tax_rate }}"
+                                                                data-description="{{ $prod->description }}"
                                                             {{ $item->product_id == $prod->id ? 'selected' : '' }}>
                                                             {{ $prod->name }}
                                                         </option>
@@ -248,19 +256,37 @@
 
                                         <td class="am-td am-td--desc">
                                             @if($item->type === 'custom')
-                                                <input type="text"
+                                                <textarea
                                                        name="items[{{ $i }}][description]"
                                                        class="am-input custom-details"
-                                                       value="{{ $cDetails }}"
+                                                       rows="2"
                                                        placeholder="{{ __('Détails (optionnel)') }}"
-                                                       oninput="recomputeAllTotals()">
+                                                       oninput="recomputeAllTotals()">{{ $cDetails }}</textarea>
                                             @else
-                                                <input type="text"
+                                                <textarea
                                                        name="items[{{ $i }}][description]"
                                                        class="am-input description-input"
-                                                       value="{{ old("items.$i.description", $item->description ?? '') }}"
-                                                       oninput="recomputeAllTotals()">
+                                                       rows="2"
+                                                       oninput="recomputeAllTotals()">{{ old("items.$i.description", $item->billing_description) }}</textarea>
                                             @endif
+                                            <div class="am-service-date">
+                                                <label>Date de prestation</label>
+                                                <select class="am-input am-service-mode" onchange="syncServiceDateMode(this)">
+                                                    <option value="none" @selected($serviceMode === 'none')>Non renseignée</option>
+                                                    <option value="date" @selected($serviceMode === 'date')>Une date</option>
+                                                    <option value="period" @selected($serviceMode === 'period')>Une période</option>
+                                                </select>
+                                                <div class="am-service-single {{ $serviceMode === 'date' ? '' : 'hidden' }}">
+                                                    <input type="date" name="items[{{ $i }}][service_date]" class="am-input"
+                                                           value="{{ old("items.$i.service_date", optional($item->service_date)->format('Y-m-d')) }}">
+                                                </div>
+                                                <div class="am-service-period {{ $serviceMode === 'period' ? '' : 'hidden' }}">
+                                                    <input type="date" name="items[{{ $i }}][service_period_start]" class="am-input" aria-label="Début de la période"
+                                                           value="{{ old("items.$i.service_period_start", optional($item->service_period_start)->format('Y-m-d')) }}">
+                                                    <input type="date" name="items[{{ $i }}][service_period_end]" class="am-input" aria-label="Fin de la période"
+                                                           value="{{ old("items.$i.service_period_end", optional($item->service_period_end)->format('Y-m-d')) }}">
+                                                </div>
+                                            </div>
                                         </td>
 
                                         <td class="am-td am-td--qty">
@@ -487,6 +513,46 @@
             }[s]));
         }
 
+        function serviceDateFields(idx, defaults = {}) {
+            const serviceDate = defaults.serviceDate || '';
+            const periodStart = defaults.periodStart || '';
+            const periodEnd = defaults.periodEnd || '';
+            const mode = serviceDate ? 'date' : (periodStart || periodEnd ? 'period' : 'none');
+
+            return `
+                <div class="am-service-date">
+                    <label>Date de prestation</label>
+                    <select class="am-input am-service-mode" onchange="syncServiceDateMode(this)">
+                        <option value="none" ${mode === 'none' ? 'selected' : ''}>Non renseignée</option>
+                        <option value="date" ${mode === 'date' ? 'selected' : ''}>Une date</option>
+                        <option value="period" ${mode === 'period' ? 'selected' : ''}>Une période</option>
+                    </select>
+                    <div class="am-service-single ${mode === 'date' ? '' : 'hidden'}">
+                        <input type="date" name="items[${idx}][service_date]" class="am-input" value="${escapeHtml(serviceDate)}">
+                    </div>
+                    <div class="am-service-period ${mode === 'period' ? '' : 'hidden'}">
+                        <input type="date" name="items[${idx}][service_period_start]" class="am-input" aria-label="Début de la période" value="${escapeHtml(periodStart)}">
+                        <input type="date" name="items[${idx}][service_period_end]" class="am-input" aria-label="Fin de la période" value="${escapeHtml(periodEnd)}">
+                    </div>
+                </div>`;
+        }
+
+        function syncServiceDateMode(select) {
+            const wrap = select.closest('.am-service-date');
+            const single = wrap?.querySelector('.am-service-single');
+            const period = wrap?.querySelector('.am-service-period');
+            const singleInput = single?.querySelector('input');
+            const periodInputs = period?.querySelectorAll('input') || [];
+            const isDate = select.value === 'date';
+            const isPeriod = select.value === 'period';
+
+            single?.classList.toggle('hidden', !isDate);
+            period?.classList.toggle('hidden', !isPeriod);
+
+            if (!isDate && singleInput) singleInput.value = '';
+            if (!isPeriod) periodInputs.forEach(input => input.value = '');
+        }
+
         function computeLineDiscountHt(baseHt, type, value) {
             if (!type || value === null || value === undefined || value === '') return 0;
             const v = _num(value, 0);
@@ -609,7 +675,7 @@
                     <select name="items[${idx}][product_id]" class="am-input product-select" onchange="updateItem(this)">
                         <option value="">{{ __('Sélectionnez un produit') }}</option>
                         @foreach($products as $prod)
-                            <option value="{{ $prod->id }}" data-price="{{ $prod->price }}" data-tax-rate="{{ $prod->tax_rate }}">
+                            <option value="{{ $prod->id }}" data-price="{{ $prod->price }}" data-tax-rate="{{ $prod->tax_rate }}" data-description="{{ $prod->description }}">
                                 {{ $prod->name }}
                             </option>
                         @endforeach
@@ -619,7 +685,8 @@
                 </td>
 
                 <td class="am-td am-td--desc">
-                    <input type="text" name="items[${idx}][description]" class="am-input description-input" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
+                    <textarea name="items[${idx}][description]" class="am-input description-input" rows="2" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()"></textarea>
+                    ${serviceDateFields(idx)}
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -686,8 +753,9 @@
                 </td>
 
                 <td class="am-td am-td--desc">
-                    <input type="text" name="items[${idx}][description]" class="am-input custom-details"
-                           placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
+                    <textarea name="items[${idx}][description]" class="am-input custom-details" rows="2"
+                           placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()"></textarea>
+                    ${serviceDateFields(idx)}
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -781,6 +849,7 @@
                 <td class="am-td am-td--desc">
                     <input type="text" name="items[${idx}][description]" class="am-input am-readonly description-input"
                            value="${escapeHtml(opt.dataset.name || '')}" readonly>
+                    ${serviceDateFields(idx)}
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -866,8 +935,9 @@
                 </td>
 
                 <td class="am-td am-td--desc">
-				<input type="text" name="items[${idx}][description]" class="am-input"
-					   value="" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
+				<textarea name="items[${idx}][description]" class="am-input" rows="2"
+					   placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()"></textarea>
+                    ${serviceDateFields(idx)}
 
                 </td>
 
@@ -929,9 +999,13 @@
 
                 const unitEl = row.querySelector('.unit-price-input');
                 const taxEl  = row.querySelector('.tax-rate-input');
+                const descriptionEl = row.querySelector('.description-input');
 
                 if (unitEl) unitEl.value = price.toFixed(2);
                 if (taxEl)  taxEl.value  = taxRate.toFixed(2);
+                if (descriptionEl && descriptionEl.value.trim() === '') {
+                    descriptionEl.value = opt?.dataset?.description || '';
+                }
             }
 
             recomputeAllTotals();
@@ -1119,6 +1193,13 @@
         .am-table .am-input{ border-radius:10px; padding:9px 10px; }
         .am-num{ text-align:right; font-variant-numeric:tabular-nums; min-width:92px; }
 
+        .am-service-date{ margin-top:8px; padding-top:8px; border-top:1px solid #eef2f7; }
+        .am-service-date label{ display:block; margin-bottom:4px; color:#64748b; font-size:.75rem; font-weight:700; }
+        .am-service-date .am-input{ padding:7px 8px; font-size:.82rem; }
+        .am-service-single{ margin-top:6px; }
+        .am-service-period{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+        .am-service-single.hidden, .am-service-period.hidden{ display:none; }
+
         .am-readonly{ background:#f3f4f6 !important; cursor:not-allowed; }
 
         .am-pill{
@@ -1241,4 +1322,3 @@
         }
     </style>
 </x-app-layout>
-

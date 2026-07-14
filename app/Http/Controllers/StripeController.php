@@ -194,6 +194,12 @@ class StripeController extends Controller
                         'appointment_id' => $appointment->id,
                         'patient_email' => $appointment->clientProfile->email,
                     ],
+                    'payment_intent_data' => [
+                        'metadata' => [
+                            'appointment_id' => $appointment->id,
+                            'patient_email' => $appointment->clientProfile->email,
+                        ],
+                    ],
                 ],
                 [
                     'stripe_account' => $therapist->stripe_account_id, // Compte connecté du thérapeute
@@ -222,6 +228,7 @@ public function success(Request $request)
 {
     // Gérer le paiement réussi
     $session_id = $request->get('session_id');
+    $account_id = (string) $request->get('account_id', '');
 
     if (!$session_id) {
         Log::warning('ID de session manquant lors du succès du paiement.');
@@ -248,19 +255,40 @@ public function success(Request $request)
 
     try {
         // Récupérer la session
-        $session = $stripe->checkout->sessions->retrieve($session_id);
+        $stripeOptions = $account_id !== '' ? ['stripe_account' => $account_id] : [];
+        $session = $stripe->checkout->sessions->retrieve($session_id, [], $stripeOptions);
 
         // Récupérer le PaymentIntent
-        $paymentIntent = $stripe->paymentIntents->retrieve($session->payment_intent);
+        $paymentIntent = $stripe->paymentIntents->retrieve($session->payment_intent, [], $stripeOptions);
+
+        if (($session->payment_status ?? null) !== 'paid' || ($paymentIntent->status ?? null) !== 'succeeded') {
+            Log::warning('Stripe appointment return ignored because payment is not complete.', [
+                'session_id' => $session->id ?? $session_id,
+                'session_payment_status' => $session->payment_status ?? null,
+                'payment_intent_status' => $paymentIntent->status ?? null,
+            ]);
+
+            return redirect()->route('welcome')->withErrors('Le paiement n\'est pas encore confirmé.');
+        }
 
         // Obtenir les métadonnées
-        $appointment_id = $paymentIntent->metadata->appointment_id;
+        $metadata = $this->stripeMetadataArray($paymentIntent->metadata ?? $session->metadata ?? null);
+        $appointment_id = $metadata['appointment_id'] ?? null;
 
         // Mettre à jour le statut de la réservation
-        $appointment = Appointment::find($appointment_id);
+        $appointment = Appointment::with('user')->find($appointment_id);
         if ($appointment) {
-            $appointment->status = 'paid';
-            $appointment->save();
+            if ($account_id !== '' && $appointment->user?->stripe_account_id
+                && !hash_equals((string) $appointment->user->stripe_account_id, $account_id)) {
+                throw new \RuntimeException('Le compte Stripe ne correspond pas au rendez-vous.');
+            }
+
+            app(AppointmentController::class)->finalizeStripeAppointmentPayment(
+                $appointment,
+                $metadata,
+                (int) ($paymentIntent->amount_received ?? $paymentIntent->amount ?? 0),
+                (string) $paymentIntent->id
+            );
             Log::info('Rendez-vous ID ' . $appointment->id . ' marqué comme payé.');
         } else {
             Log::warning('Aucun rendez-vous trouvé avec l\'ID: ' . $appointment_id);
@@ -306,6 +334,10 @@ public function success(Request $request)
             return response('Invalid signature', 400);
         }
 
+        if ($connectedAccountId === '' && !empty($event->account)) {
+            $connectedAccountId = (string) $event->account;
+        }
+
         try {
             app(StripeFinanceSyncService::class)->ingestWebhookEvent($event);
         } catch (\Throwable $e) {
@@ -323,7 +355,7 @@ public function success(Request $request)
         switch ($event->type) {
             case 'checkout.session.completed':
                 $session = $event->data->object;
-                $this->handleCheckoutSessionCompleted($session);
+                $this->handleCheckoutSessionCompleted($session, $connectedAccountId);
                 break;
             // ... handle other event types
             default:
@@ -336,9 +368,9 @@ public function success(Request $request)
     /**
      * Traitement après la complétion de la session de paiement.
      */
-    protected function handleCheckoutSessionCompleted($session)
+    protected function handleCheckoutSessionCompleted($session, ?string $connectedAccountId = null)
     {
-        $metadata = (array) ($session->metadata ?? []);
+        $metadata = $this->stripeMetadataArray($session->metadata ?? null);
 
         // Gift voucher online purchase
         if (!empty($metadata['gift_voucher_order_id'])) {
@@ -361,17 +393,51 @@ public function success(Request $request)
         }
 
         // Récupérer les métadonnées
-        $appointment_id = $session->metadata->appointment_id ?? null;
+        $appointment_id = $metadata['appointment_id'] ?? null;
         if (!$appointment_id) {
             return;
         }
 
-        // Mettre à jour le statut de la réservation
-        $appointment = Appointment::find($appointment_id);
-        if ($appointment) {
-            $appointment->status = 'paid';
-            $appointment->save();
+        if (($session->payment_status ?? null) !== 'paid') {
+            return;
         }
+
+        // Mettre à jour le statut de la réservation
+        $appointment = Appointment::with('user')->find($appointment_id);
+        if ($appointment) {
+            if ($connectedAccountId && $appointment->user?->stripe_account_id
+                && !hash_equals((string) $appointment->user->stripe_account_id, $connectedAccountId)) {
+                Log::warning('Appointment Stripe webhook account mismatch.', [
+                    'appointment_id' => $appointment->id,
+                    'connected_account_id' => $connectedAccountId,
+                ]);
+                return;
+            }
+
+            $providerReference = is_object($session->payment_intent ?? null)
+                ? (string) ($session->payment_intent->id ?? '')
+                : (string) ($session->payment_intent ?? $session->id ?? '');
+
+            app(AppointmentController::class)->finalizeStripeAppointmentPayment(
+                $appointment,
+                $metadata,
+                (int) ($session->amount_total ?? 0),
+                $providerReference
+            );
+        }
+    }
+
+    private function stripeMetadataArray(mixed $metadata): array
+    {
+        if (is_object($metadata) && method_exists($metadata, 'toArray')) {
+            return $metadata->toArray();
+        }
+
+        if (is_object($metadata)) {
+            return get_object_vars($metadata);
+        }
+
+        return is_array($metadata) ? $metadata : [];
     }
 	
 	    public function redirectToStripeDashboard()

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Facture #{{ $invoice->invoice_number }}</title>
+    <title>{{ $invoice->document_label }} #{{ $invoice->invoice_number }}</title>
 
     @php
         $user = $invoice->user;
@@ -67,6 +67,19 @@
             : ($cp?->phone ?? null);
 
         $billingContactName = trim(($billingFirst . ' ' . $billingLast));
+
+        $recipient = $invoice->recipient_data;
+        $isCorporate = ($recipient['recipient_type'] ?? 'individual') === 'corporate';
+        $companyName = $recipient['company_name'] ?? '';
+        $clientName = $recipient['client_name'] ?? '';
+        $billingFirst = $recipient['billing_first_name'] ?? '';
+        $billingLast = $recipient['billing_last_name'] ?? '';
+        $billingContactName = $recipient['billing_contact_name'] ?? trim($billingFirst.' '.$billingLast);
+        $billingAddress = $recipient['address'] ?? '';
+        $billingZip = $recipient['postal_code'] ?? '';
+        $billingCity = $recipient['city'] ?? '';
+        $billingEmail = $recipient['email'] ?? '';
+        $billingPhone = $recipient['phone'] ?? '';
     @endphp
 
     <style>
@@ -225,16 +238,22 @@
             </td>
             <td class="header-meta-cell">
                 <div class="meta-badge">
-                    <div class="meta-title">FACTURE</div>
+                    <div class="meta-title">{{ mb_strtoupper($invoice->document_label) }}</div>
                     <table>
                         <tr>
-                            <td class="meta-label">N° facture</td>
+                            <td class="meta-label">N° {{ mb_strtolower($invoice->document_label) }}</td>
                             <td class="meta-value">#{{ $invoice->invoice_number }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">Date</td>
                             <td class="meta-value">{{ $invoiceDate ? $invoiceDate->format('d/m/Y') : '—' }}</td>
                         </tr>
+                        @if($invoice->originalInvoice)
+                            <tr>
+                                <td class="meta-label">Document d’origine</td>
+                                <td class="meta-value">Facture n°{{ $invoice->originalInvoice->invoice_number }} du {{ $invoice->originalInvoice->invoice_date->format('d/m/Y') }}</td>
+                            </tr>
+                        @endif
                         <tr>
                             <td class="meta-label">Échéance</td>
                             <td class="meta-value">{{ $dueDate ? $dueDate->format('d/m/Y') : '—' }}</td>
@@ -268,17 +287,17 @@
                     <div class="card-title">CLIENT</div>
 
                     @if($isCorporate)
-                        <p><strong>{{ $corp->trade_name ?: ($corp->name ?? 'Entreprise') }}</strong></p>
+                        <p><strong>{{ $clientName ?: $companyName ?: 'Entreprise' }}</strong></p>
                         @if($billingContactName !== '')
                             <p>À l’attention de {{ $billingContactName }}</p>
                         @endif
-                    @elseif($company)
-                        <p><strong>{{ $company->name }}</strong></p>
+                    @elseif($companyName)
+                        <p><strong>{{ $companyName }}</strong></p>
                         @if($billingContactName !== '')
                             <p>À l’attention de {{ $billingContactName }}</p>
                         @endif
                     @else
-                        <p><strong>{{ $billingContactName !== '' ? $billingContactName : '—' }}</strong></p>
+                        <p><strong>{{ $billingContactName !== '' ? $billingContactName : ($clientName ?: '—') }}</strong></p>
                     @endif
 
                     @if($billingAddress)<p>{{ $billingAddress }}</p>@endif
@@ -310,13 +329,13 @@
             @php
                 // --- Determine display name + description ---
                 $displayName = '—';
-                $description = trim((string) ($item->description ?? ''));
+                $description = trim($item->billing_description);
 
-                if ($item->type === 'product' && $item->product) {
-                    $displayName = $item->product->name;
+                if ($item->type === 'product') {
+                    $displayName = $item->name;
                     // description is optional and should never duplicate the product name
-                } elseif ($item->type === 'inventory' && $item->inventoryItem) {
-                    $displayName = $item->inventoryItem->name;
+                } elseif ($item->type === 'inventory') {
+                    $displayName = $item->name;
                 } else {
                     // ✅ CUSTOM: use label as primary
                     $displayName = trim((string) ($item->label ?? ''));
@@ -356,7 +375,12 @@
 
             <tr>
                 <td class="text">{{ $displayName }}</td>
-                <td class="text">{{ $description !== '' ? $description : '—' }}</td>
+                <td class="text">
+                    <div>{{ $description !== '' ? $description : '—' }}</div>
+                    @if($item->service_date_label)
+                        <div style="margin-top:3px; font-size:8px; color:#555;"><strong>Date de prestation :</strong> {{ $item->service_date_label }}</div>
+                    @endif
+                </td>
 
                 <td class="num">{{ number_format((float)$item->quantity, 2, ',', ' ') }}</td>
                 <td class="num"><span class="money">{{ number_format((float)$item->unit_price, 2, ',', ' ') }}&nbsp;€</span></td>

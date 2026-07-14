@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClientProfile;
 use App\Models\SessionNote;
 use App\Models\SessionNoteTemplate;
+use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
@@ -19,7 +20,7 @@ class MobileSessionNoteController extends Controller
         $this->authorize('view', $clientProfile);
 
         $sessionNotes = SessionNote::query()
-            ->with('template')
+            ->with(['template', 'appointment'])
             ->where('client_profile_id', $clientProfile->id)
             ->where('user_id', Auth::id())
             ->latest()
@@ -28,10 +29,12 @@ class MobileSessionNoteController extends Controller
         return view('mobile.session-notes.index', compact('clientProfile', 'sessionNotes'));
     }
 
-    public function create(ClientProfile $clientProfile)
+    public function create(Request $request, ClientProfile $clientProfile)
     {
         $this->authorize('view', $clientProfile);
         $this->authorize('create', SessionNote::class);
+
+        $appointment = $this->ownedAppointment($request, $clientProfile);
 
         return view('mobile.session-notes.form', [
             'clientProfile' => $clientProfile,
@@ -41,6 +44,7 @@ class MobileSessionNoteController extends Controller
             'method' => 'POST',
             'title' => 'Nouvelle note',
             'submitLabel' => 'Creer la note',
+            'appointment' => $appointment,
         ]);
     }
 
@@ -51,24 +55,28 @@ class MobileSessionNoteController extends Controller
 
         $validated = $this->validatedNote($request, includeTemplate: true);
         $templateId = $this->ownedTemplateId($validated['session_note_template_id'] ?? null);
+        $appointment = $this->ownedAppointment($request, $clientProfile);
 
         SessionNote::create([
             'client_profile_id' => $clientProfile->id,
             'user_id' => Auth::id(),
             'session_note_template_id' => $templateId,
+            'appointment_id' => $appointment?->id,
             'note' => Purifier::clean($validated['note']),
         ]);
 
-        return redirect()
-            ->route('mobile.session-notes.index', $clientProfile)
-            ->with('success', 'Note de seance creee.');
+        $redirect = $appointment
+            ? redirect()->route('mobile.appointments.show', $appointment)
+            : redirect()->route('mobile.session-notes.index', $clientProfile);
+
+        return $redirect->with('success', 'Note de séance créée.');
     }
 
     public function show(SessionNote $sessionNote)
     {
         $this->authorize('view', $sessionNote);
 
-        $sessionNote->load(['clientProfile', 'template']);
+        $sessionNote->load(['clientProfile', 'template', 'appointment']);
 
         return view('mobile.session-notes.show', compact('sessionNote'));
     }
@@ -125,6 +133,7 @@ class MobileSessionNoteController extends Controller
 
         if ($includeTemplate) {
             $rules['session_note_template_id'] = ['nullable', 'integer'];
+            $rules['appointment_id'] = ['nullable', 'integer'];
         }
 
         return $request->validate($rules);
@@ -149,5 +158,20 @@ class MobileSessionNoteController extends Controller
             ->where('user_id', Auth::id())
             ->orderBy('title')
             ->get();
+    }
+
+    protected function ownedAppointment(Request $request, ClientProfile $clientProfile): ?Appointment
+    {
+        if (! $request->filled('appointment_id')) {
+            return null;
+        }
+
+        return Appointment::query()
+            ->where('user_id', Auth::id())
+            ->where('client_profile_id', $clientProfile->id)
+            ->where(function ($query) {
+                $query->where('external', false)->orWhereNull('external');
+            })
+            ->findOrFail($request->integer('appointment_id'));
     }
 }

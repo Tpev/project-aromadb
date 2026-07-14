@@ -61,6 +61,11 @@
             </a>
         </div>
 
+        <a href="{{ route('session-note-templates.index', ['client_profile_id' => $clientProfile->id]) }}"
+           class="mb-4 inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#e4e8d5] bg-white px-3 text-sm font-semibold text-[#647a0b] shadow-sm">
+            Modèles de notes
+        </a>
+
         @if($sessionNotes->isNotEmpty())
             <div class="mb-4 rounded-lg border border-[#e4e8d5] bg-white p-3 shadow-sm">
                 <label class="flex h-10 items-center gap-2 rounded-lg bg-[#f7f8f1] px-3">

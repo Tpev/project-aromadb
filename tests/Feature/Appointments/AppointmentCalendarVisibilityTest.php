@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Appointment;
+use App\Models\Availability;
 use App\Models\ClientProfile;
 use App\Models\Product;
 use App\Models\User;
@@ -100,4 +101,101 @@ test('cancelled appointments are visually muted in appointments index lists', fu
     $response->assertOk()
         ->assertSee('am-row-cancelled', false)
         ->assertSee('bg-secondary-subtle text-secondary', false);
+});
+
+test('Google events are hidden by default and can be displayed without deleting them', function () {
+    $therapist = calendarTherapist(['email' => 'calendar-google-filter@example.test']);
+    $product = calendarProduct($therapist);
+    $client = calendarClient($therapist, 'Interne', 'Olithea', 'internal@example.test');
+
+    calendarAppointment($therapist, $client, $product, [
+        'appointment_date' => now()->addDays(2),
+    ]);
+
+    $external = Appointment::create([
+        'user_id' => $therapist->id,
+        'client_profile_id' => null,
+        'product_id' => null,
+        'appointment_date' => now()->addDays(3),
+        'duration' => 90,
+        'status' => 'busy',
+        'type' => 'external',
+        'external' => true,
+        'google_event_id' => 'google-busy-1',
+        'notes' => 'Sport personnel',
+    ]);
+
+    $this->actingAs($therapist)
+        ->get(route('appointments.index'))
+        ->assertOk()
+        ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
+
+    $this->get(route('appointments.index', ['calendar_source' => 'all']))
+        ->assertOk()
+        ->assertViewHas('events', fn (array $events) => collect($events)->pluck('title')->contains('Sport personnel'));
+
+    $this->get(route('appointments.index'))
+        ->assertViewHas('showGoogleEvents', true);
+
+    expect($external->fresh())->not->toBeNull()
+        ->and($external->fresh()->external)->toBeTrue();
+
+    $this->flushSession();
+
+    $this->actingAs($therapist)
+        ->get(route('mobile.appointments.index'))
+        ->assertOk()
+        ->assertViewIs('mobile.appointments.index')
+        ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
+
+    $this->get(route('mobile.appointments.index', ['calendar_source' => 'all']))
+        ->assertOk()
+        ->assertViewHas('events', fn (array $events) => collect($events)->pluck('title')->contains('Sport personnel'));
+});
+
+test('a hidden Google event still blocks its public booking slot', function () {
+    $therapist = calendarTherapist(['email' => 'calendar-google-blocking@example.test']);
+    $product = calendarProduct($therapist, [
+        'name' => 'Séance visio Google',
+        'visio' => true,
+        'en_visio' => true,
+        'dans_le_cabinet' => false,
+    ]);
+    $bookingDate = now()->addDays(10)->startOfDay();
+
+    Availability::create([
+        'user_id' => $therapist->id,
+        'day_of_week' => $bookingDate->dayOfWeekIso - 1,
+        'start_time' => '09:00:00',
+        'end_time' => '11:00:00',
+        'applies_to_all' => true,
+    ]);
+
+    Appointment::create([
+        'user_id' => $therapist->id,
+        'appointment_date' => $bookingDate->copy()->setTime(9, 0),
+        'duration' => 60,
+        'status' => 'busy',
+        'type' => 'external',
+        'external' => true,
+        'google_event_id' => 'google-public-block-1',
+        'notes' => 'Sport personnel',
+    ]);
+
+    $this->actingAs($therapist)
+        ->get(route('appointments.index'))
+        ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
+
+    $response = $this->post(route('appointments.available-slots-patient'), [
+        'therapist_id' => $therapist->id,
+        'product_id' => $product->id,
+        'date' => $bookingDate->toDateString(),
+        'mode' => 'visio',
+    ]);
+
+    $response->assertOk();
+    $starts = collect($response->json('slots'))->pluck('start');
+
+    expect($starts)->not->toContain('09:00')
+        ->and($starts)->toContain('10:00');
 });

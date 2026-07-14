@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Spatie\GoogleCalendar\Event;
+use App\Services\GoogleCalendarEventPolicy;
 
 class ImportGoogleEvents extends Command
 {
@@ -59,6 +60,23 @@ class ImportGoogleEvents extends Command
             // a) écarter nos propres slots poussés, before and after the rebrand.
             $description = $ev->description ?? '';
             if (str_contains($description, '[AromaMade]') || str_contains($description, '[Olithea]')) {
+                Appointment::query()
+                    ->where('user_id', $user->id)
+                    ->where('google_event_id', $ev->id)
+                    ->where('external', true)
+                    ->each(fn (Appointment $appointment) => $appointment->delete());
+
+                continue;
+            }
+
+            // A Google event marked as "available" must not block Olithea booking.
+            if (!app(GoogleCalendarEventPolicy::class)->isBlocking($ev)) {
+                Appointment::query()
+                    ->where('user_id', $user->id)
+                    ->where('google_event_id', $ev->id)
+                    ->where('external', true)
+                    ->each(fn (Appointment $appointment) => $appointment->delete());
+
                 continue;
             }
 

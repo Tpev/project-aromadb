@@ -5,18 +5,18 @@
     $isCancelled = method_exists($appointment, 'isCancelled') ? $appointment->isCancelled() : false;
 
     $clientName = $isExternal
-        ? ($appointment->notes ?: 'Occupé')
+        ? ($appointment->notes ?: 'OccupÃ©')
         : trim(
             optional($appointment->clientProfile)->first_name . ' ' .
             optional($appointment->clientProfile)->last_name
         );
 
-    $productName = optional($appointment->product)->name ?? '—';
+    $productName = optional($appointment->product)->name ?? 'â€”';
     $status = ucfirst($appointment->status ?? 'en attente');
 
     $statusClasses = match ($appointment->status) {
-        'Complété' => 'bg-green-50 text-green-700 border-green-100',
-        'Annulé', 'Annulee', 'Annulée', 'cancelled', 'canceled' => 'bg-slate-100 text-slate-500 border-slate-200',
+        'ComplÃ©tÃ©' => 'bg-green-50 text-green-700 border-green-100',
+        'AnnulÃ©', 'Annulee', 'AnnulÃ©e', 'cancelled', 'canceled' => 'bg-slate-100 text-slate-500 border-slate-200',
         'En attente', 'pending' => 'bg-amber-50 text-amber-700 border-amber-100',
         default => 'bg-slate-50 text-slate-700 border-slate-100',
     };
@@ -48,7 +48,7 @@
             <p class="mt-0.5 text-sm font-semibold {{ $isCancelled ? 'text-gray-500' : 'text-gray-900' }} flex items-center gap-1.5">
                 <i class="fas fa-clock text-[11px] {{ $isCancelled ? 'text-slate-400' : 'text-[#647a0b]' }}"></i>
                 {{ $date->format('H:i') }}
-                <span class="mx-1 text-gray-300">•</span>
+                <span class="mx-1 text-gray-300">â€¢</span>
                 <span class="text-xs text-gray-500">{{ $appointment->duration }} min</span>
             </p>
         </div>
@@ -72,6 +72,17 @@
         </p>
     </div>
 
+    @unless($isExternal)
+        <div class="mt-3 grid grid-cols-2 gap-1.5 text-[10px] font-semibold">
+            <span class="inline-flex min-h-7 items-center rounded-md bg-[#f7f8f1] px-2 text-[#4b5722]">
+                <i class="fas fa-notes-medical mr-1.5"></i>{{ $appointment->note_tracking_label }}
+            </span>
+            <span class="inline-flex min-h-7 items-center rounded-md bg-[#f7f8f1] px-2 text-[#4b5722]">
+                <i class="fas fa-file-invoice-dollar mr-1.5"></i>{{ $appointment->billing_tracking_label }}
+            </span>
+        </div>
+    @endunless
+
     <div class="mt-3 flex items-center justify-between text-[11px] text-gray-400">
         <div class="flex items-center gap-2">
             @if($appointment->type === 'visio' || optional($appointment->product)->visio)
@@ -91,7 +102,7 @@
 
         @unless($isExternal)
             <span class="inline-flex items-center gap-1 text-[11px] {{ $isCancelled ? 'text-slate-400' : 'text-[#647a0b]' }}">
-                Voir le détail
+                Voir le dÃ©tail
                 <i class="fas fa-chevron-right text-[9px]"></i>
             </span>
         @endunless

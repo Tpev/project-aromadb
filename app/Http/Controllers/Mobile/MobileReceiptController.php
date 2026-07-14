@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Receipt;
+use App\Models\Invoice;
+use App\Services\ReceiptRecordingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -181,6 +183,13 @@ class MobileReceiptController extends Controller
             'reversal_of_id' => $receipt->id,
             'locked_at' => now(),
         ]);
+
+        if ($receipt->invoice_id) {
+            $invoice = Invoice::where('user_id', Auth::id())->find($receipt->invoice_id);
+            if ($invoice) {
+                app(ReceiptRecordingService::class)->synchronizeInvoiceStatus($invoice);
+            }
+        }
 
         return back()->with('success', 'Contre-passation enregistree.');
     }

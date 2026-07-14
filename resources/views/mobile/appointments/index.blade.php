@@ -47,6 +47,17 @@
             </a>
         </div>
 
+        <div class="grid grid-cols-2 gap-1 rounded-lg border border-[#e4e8d5] bg-white p-1 text-[11px] font-medium">
+            <a href="{{ route('mobile.appointments.index', ['calendar_source' => 'olithea']) }}"
+               class="rounded-md px-2 py-2 text-center {{ $calendarSource === 'olithea' ? 'bg-[#647a0b] text-white' : 'text-gray-600' }}">
+                Rendez-vous Olithea
+            </a>
+            <a href="{{ route('mobile.appointments.index', ['calendar_source' => 'all']) }}"
+               class="rounded-md px-2 py-2 text-center {{ $calendarSource === 'all' ? 'bg-[#647a0b] text-white' : 'text-gray-600' }}">
+                Avec Google
+            </a>
+        </div>
+
         {{-- Quick stats --}}
         <div class="grid grid-cols-3 gap-2 text-center text-xs">
             <div class="rounded-xl bg-white border border-[#e4e8d5] py-2">

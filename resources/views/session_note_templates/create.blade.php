@@ -6,11 +6,13 @@
     </x-slot>
 
     <div class="container mt-5">
+        @include('session_note_templates._context')
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">Nouveau template</h1>
 
             <form action="{{ route('session-note-templates.store') }}" method="POST" id="template-form">
                 @csrf
+                @include('session_note_templates._context_fields')
 
                 <div class="details-box">
                     <label class="details-label" for="title">Titre</label>
@@ -26,7 +28,7 @@
                 </div>
 
                 <button type="submit" class="btn-primary mt-4">Créer</button>
-                <a href="{{ route('session-note-templates.index') }}" class="btn-secondary mt-4">Retour</a>
+                <a href="{{ route('session-note-templates.index', $templateContextQuery) }}" class="btn-secondary mt-4">Retour aux modèles</a>
             </form>
         </div>
     </div>

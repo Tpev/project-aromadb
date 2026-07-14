@@ -241,19 +241,52 @@
                             </div>
                         </a>
 
-                        {{-- Revenus du mois --}}
-                        <a href="{{ route('invoices.index', ['filter' => 'current_month']) }}"
-                           class="bg-[#6a3f2c] shadow rounded-lg p-5 text-white hover:shadow-lg transition col-span-1 sm:col-span-2">
-                            <div class="flex items-center">
-                                <div class="p-3 rounded-full bg-white text-[#6a3f2c] mr-4">💶</div>
-                                <div>
-                                    <div class="text-2xl font-bold">
-                                        {{ number_format($monthlyRevenue, 2, ',', ' ') }} €
-                                    </div>
-                                    <div class="text-sm">Revenus ce mois</div>
-                                </div>
+                        <div class="sm:col-span-2 lg:col-span-5 mt-2 flex items-end justify-between gap-4">
+                            <div>
+                                <h3 class="text-base font-semibold text-gray-900">Pilotage financier</h3>
+                                <p class="text-xs text-gray-500">Montants TTC. Les encaissements suivent la date réelle du règlement.</p>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('receipts.index') }}" class="bg-white border border-[#dfe5c7] shadow-sm rounded-lg p-5 hover:shadow-md transition">
+                            <div class="text-xs font-semibold uppercase text-[#647a0b] flex items-center gap-2">
+                                Encaissements nets ce mois
+                                <span title="Encaissements TTC moins corrections et remboursements, selon leur date de règlement." aria-label="Définition des encaissements nets">?</span>
+                            </div>
+                            <div class="mt-2 text-2xl font-bold {{ $financialMetrics['net_received_this_month'] < 0 ? 'text-red-700' : 'text-gray-900' }}">
+                                {{ number_format($financialMetrics['net_received_this_month'], 2, ',', ' ') }} €
                             </div>
                         </a>
+
+                        <a href="{{ route('invoices.index', ['filter' => 'current_month']) }}" class="bg-white border border-[#e5d0c7] shadow-sm rounded-lg p-5 hover:shadow-md transition">
+                            <div class="text-xs font-semibold uppercase text-[#854f38] flex items-center gap-2">
+                                Facturé ce mois
+                                <span title="Total TTC des factures émises ce mois. Les devis sont exclus, qu'elles soient payées ou non." aria-label="Définition du montant facturé">?</span>
+                            </div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ number_format($financialMetrics['billed_this_month'], 2, ',', ' ') }} €</div>
+                        </a>
+
+                        <a href="{{ route('invoices.index', ['filter' => 'pending']) }}" class="bg-white border border-[#ead9c7] shadow-sm rounded-lg p-5 hover:shadow-md transition">
+                            <div class="text-xs font-semibold uppercase text-[#9a6a31] flex items-center gap-2">
+                                À encaisser
+                                <span title="Solde TTC positif de toutes les factures, après déduction des encaissements et contre-passations." aria-label="Définition du reste à encaisser">?</span>
+                            </div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ number_format($financialMetrics['outstanding'], 2, ',', ' ') }} €</div>
+                        </a>
+
+                        <a href="{{ route('receipts.index') }}" class="bg-white border border-[#ead0d0] shadow-sm rounded-lg p-5 hover:shadow-md transition">
+                            <div class="text-xs font-semibold uppercase text-[#9b3a3a] flex items-center gap-2">
+                                Corrections et remboursements
+                                <span title="Total TTC des contre-passations et remboursements enregistrés ce mois." aria-label="Définition des corrections et remboursements">?</span>
+                            </div>
+                            <div class="mt-2 text-2xl font-bold text-gray-900">{{ number_format($financialMetrics['corrections_and_refunds'], 2, ',', ' ') }} €</div>
+                        </a>
+
+                        @if($financialMetrics['legacy_paid_without_receipt_count'] > 0)
+                            <div class="sm:col-span-2 lg:col-span-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                {{ $financialMetrics['legacy_paid_without_receipt_count'] }} facture(s) ancienne(s) marquée(s) payée(s) ne possèdent pas d'écriture d'encaissement. Elles restent intactes et ne sont pas incluses dans les encaissements.
+                            </div>
+                        @endif
 
                     </div>
                 </div>
@@ -275,9 +308,10 @@
                     </div>
                 </div>
 
-                {{-- Revenus mensuels --}}
+                {{-- Facturation et encaissements mensuels --}}
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                    <h3 class="text-xl font-semibold text-[#854f38] mb-4">Revenus Mensuels</h3>
+                    <h3 class="text-xl font-semibold text-[#854f38] mb-1">Facturation et encaissements</h3>
+                    <p class="text-xs text-gray-500 mb-4">Montants TTC par mois. Les valeurs négatives restent visibles.</p>
                     <div class="h-60">
                         <canvas id="revenueChart" class="w-full h-full"></canvas>
                     </div>
@@ -420,7 +454,8 @@
         document.addEventListener('DOMContentLoaded', function () {
 
             const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);
-            const revenueData      = @json(array_values($monthlyRevenueData)).map(Number);
+            const receivedData     = @json(array_values($monthlyRevenueData)).map(Number);
+            const billedData       = @json(array_values($monthlyBilledData)).map(Number);
             const monthLabels      = @json(array_values($months));
 
             // Rendez-vous par mois
@@ -464,24 +499,34 @@
                 }
             });
 
-            // Revenus mensuels
+            // Facturation et encaissements mensuels
             var ctxRevenue = document.getElementById('revenueChart').getContext('2d');
             var revenueChart = new Chart(ctxRevenue, {
                 type: 'line',
                 data: {
                     labels: monthLabels,
                     datasets: [{
-                        label: '{{ __("Revenus (€)") }}',
-                        data: revenueData,
-                        backgroundColor: 'rgba(133, 79, 56, 0.2)',
-                        borderColor: 'rgba(133, 79, 56, 1)',
+                        label: '{{ __("Encaissements nets TTC") }}',
+                        data: receivedData,
+                        backgroundColor: 'rgba(100, 122, 11, 0.12)',
+                        borderColor: 'rgba(100, 122, 11, 1)',
                         borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                        fill: false,
+                        tension: 0.3,
+                        pointBackgroundColor: 'rgba(100, 122, 11, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                        pointHoverBorderColor: 'rgba(100, 122, 11, 1)'
+                    }, {
+                        label: '{{ __("Facturé TTC") }}',
+                        data: billedData,
+                        backgroundColor: 'rgba(133, 79, 56, 0.10)',
+                        borderColor: 'rgba(133, 79, 56, 1)',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        fill: false,
+                        tension: 0.3,
+                        pointBackgroundColor: 'rgba(133, 79, 56, 1)'
                     }]
                 },
                 options: {
@@ -489,7 +534,7 @@
                     maintainAspectRatio: false,
                     scales: {
                         y: {
-                            beginAtZero: true,
+                            beginAtZero: false,
                             ticks: {
                                 callback: function (value) {
                                     return value + '€';
@@ -498,14 +543,14 @@
                         }
                     },
                     plugins: {
-                        legend: { display: false },
+                        legend: { display: true, position: 'bottom' },
                         tooltip: {
                             backgroundColor: 'rgba(0,0,0,0.7)',
                             titleColor: '#fff',
                             bodyColor: '#fff',
                             callbacks: {
                                 label: function (context) {
-                                    return context.parsed.y + ' €';
+                                    return context.dataset.label + ' : ' + context.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
                                 }
                             }
                         }

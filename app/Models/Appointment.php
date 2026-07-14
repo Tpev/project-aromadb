@@ -379,6 +379,54 @@ public function syncToGoogle(): void
         return $this->hasOne(Invoice::class);
     }
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function billingInvoices()
+    {
+        return $this->hasMany(Invoice::class)->where('type', 'invoice');
+    }
+
+    public function sessionNotes()
+    {
+        return $this->hasMany(SessionNote::class);
+    }
+
+    public function getSessionTrackingLabelAttribute(): string
+    {
+        if ($this->isCancelled()) {
+            return 'Annulée';
+        }
+
+        if ($this->status === 'Complété' || $this->appointment_date?->isPast()) {
+            return 'Terminée';
+        }
+
+        return 'À venir';
+    }
+
+    public function getNoteTrackingLabelAttribute(): string
+    {
+        return $this->sessionNotes->isNotEmpty() ? 'Note créée' : 'Note à rédiger';
+    }
+
+    public function getBillingTrackingLabelAttribute(): string
+    {
+        $invoices = $this->billingInvoices;
+
+        if ($invoices->isEmpty()) {
+            return 'À facturer';
+        }
+
+        if ($invoices->count() > 1) {
+            return 'Plusieurs factures';
+        }
+
+        return $invoices->first()->appointment_billing_status;
+    }
+
     public function giftVoucher()
     {
         return $this->belongsTo(GiftVoucher::class, 'gift_voucher_id');

@@ -13,6 +13,7 @@ class SessionNote extends Model
         'client_profile_id',
         'user_id',
         'session_note_template_id',
+        'appointment_id',
         'note',
         'created_at',
     ];
@@ -30,5 +31,10 @@ class SessionNote extends Model
     public function template()
     {
         return $this->belongsTo(SessionNoteTemplate::class, 'session_note_template_id');
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
     }
 }

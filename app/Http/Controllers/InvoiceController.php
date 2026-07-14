@@ -27,6 +27,11 @@ use App\Models\PackPurchase;
 use App\Models\PackProduct;
 use App\Services\PackPurchaseInvoicingService;
 use App\Services\StripePaymentLinkFactory;
+use App\Models\Appointment;
+use App\Services\ReceiptRecordingService;
+use App\Services\InvoiceActivityService;
+use App\Services\InvoiceLifecycleService;
+use App\Services\InvoiceRecipientSnapshotService;
 
 
 class InvoiceController extends Controller
@@ -51,8 +56,8 @@ public function index(Request $request)
 
     // Separate invoices and quotes
     $invoices = Invoice::where('user_id', Auth::id())
-        ->where('type', 'invoice')
-        ->with('clientProfile')
+        ->whereIn('type', ['invoice', 'credit_note'])
+        ->with(['clientProfile.company', 'corporateClient'])
         ->orderByDesc('id')
         ->get();
 
@@ -63,12 +68,13 @@ public function index(Request $request)
         ->get();
 
     // Some useful aggregates for mobile UI (also harmless for web)
+    $issuedInvoices = $invoices->where('type', 'invoice');
     $invoiceStats = [
-        'count'            => $invoices->count(),
-        'paid_count'       => $invoices->where('status', 'Payée')->count(),
-        'outstanding_count'=> $invoices->whereIn('status', ['En attente', 'Partiellement payée'])->count(),
-        'outstanding_total'=> $invoices->sum('solde_restant ?? 0'),
-        'total_ttc'        => $invoices->sum('total_amount_with_tax'),
+        'count'            => $issuedInvoices->count(),
+        'paid_count'       => $issuedInvoices->where('status', 'Payée')->count(),
+        'outstanding_count'=> $issuedInvoices->whereIn('status', ['En attente', 'Partiellement payée'])->count(),
+        'outstanding_total'=> $issuedInvoices->sum(fn (Invoice $invoice) => (float) $invoice->solde_restant),
+        'total_ttc'        => $issuedInvoices->sum('total_amount_with_tax'),
     ];
 
     $quoteStats = [
@@ -114,9 +120,21 @@ public function create(Request $request)
 
     $selectedClient = null;
     $selectedCorporateClient = null;
+    $selectedAppointment = null;
+
+    if ($request->filled('appointment_id')) {
+        $selectedAppointment = Appointment::where('user_id', auth()->id())
+            ->where(function ($query) {
+                $query->where('external', false)->orWhereNull('external');
+            })
+            ->with(['clientProfile', 'product'])
+            ->findOrFail($request->integer('appointment_id'));
+    }
 
     // Support both legacy ?client_id=... and current ?client_profile_id=...
-    $selectedClientId    = $request->input('client_profile_id') ?? $request->input('client_id');
+    $selectedClientId    = $selectedAppointment?->client_profile_id
+        ?? $request->input('client_profile_id')
+        ?? $request->input('client_id');
     $selectedCorporateId = $request->input('corporate_client_id');
 
     if ($selectedClientId) {
@@ -127,9 +145,9 @@ public function create(Request $request)
         $selectedCorporateClient = CorporateClient::where('user_id', auth()->id())->find($selectedCorporateId);
     }
 
-    $selectedProduct = null;
+    $selectedProduct = $selectedAppointment?->product;
 
-		if ($request->filled('product_id')) {
+		if (!$selectedProduct && $request->filled('product_id')) {
 			$selectedProduct = Product::where('user_id', auth()->id())
 				->find($request->input('product_id'));
 		}
@@ -143,7 +161,8 @@ public function create(Request $request)
         'packProducts',
         'selectedClient',
         'selectedCorporateClient',
-        'selectedProduct'
+        'selectedProduct',
+        'selectedAppointment'
     ));
 }
 
@@ -162,6 +181,11 @@ public function store(Request $request)
         'invoice_date'      => ['required', 'date'],
         'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
         'notes'             => ['nullable', 'string'],
+        'appointment_id'    => ['nullable', Rule::exists('appointments', 'id')->where(fn ($q) => $q
+            ->where('user_id', Auth::id())
+            ->where(fn ($appointments) => $appointments->where('external', false)->orWhereNull('external')))],
+        'allow_additional_invoice' => ['nullable', 'boolean'],
+        'additional_invoice_reason' => ['nullable', 'string', 'max:500', 'required_if:allow_additional_invoice,1'],
 
         // Discounts (global)
         'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
@@ -175,7 +199,10 @@ public function store(Request $request)
         // ✅ NEW: custom label
         'items.*.label'              => ['nullable', 'string', 'max:255'],
 
-        'items.*.description'        => ['nullable', 'string', 'max:255'],
+        'items.*.description'        => ['nullable', 'string'],
+        'items.*.service_date'       => ['nullable', 'date'],
+        'items.*.service_period_start' => ['nullable', 'date'],
+        'items.*.service_period_end' => ['nullable', 'date'],
         'items.*.quantity'           => ['required', 'numeric', 'min:1'],
         'items.*.unit_price'         => ['required', 'numeric', 'min:0'],
         'items.*.tax_rate'           => ['required', 'numeric', 'min:0'],
@@ -220,16 +247,39 @@ public function store(Request $request)
             if ($hasProduct && $hasInv) {
                 $validator->errors()->add("items.$idx.product_id", "Une ligne ne peut pas être à la fois un produit et un article d'inventaire.");
             }
+
+            $this->validateServiceDates($validator, $item, $idx);
+        }
+
+        if ($request->filled('appointment_id')) {
+            $appointment = Appointment::where('user_id', Auth::id())
+                ->where(function ($query) {
+                    $query->where('external', false)->orWhereNull('external');
+                })
+                ->find($request->input('appointment_id'));
+
+            if ($appointment) {
+                if ((int) $request->input('client_profile_id') !== (int) $appointment->client_profile_id) {
+                    $validator->errors()->add('appointment_id', 'Le rendez-vous ne correspond pas au client sélectionné.');
+                }
+
+                $containsAppointmentProduct = collect($items)->contains(
+                    fn ($item) => (int) ($item['product_id'] ?? 0) === (int) $appointment->product_id
+                );
+
+                if (!$containsAppointmentProduct) {
+                    $validator->errors()->add('appointment_id', 'La prestation du rendez-vous doit rester présente sur la facture.');
+                }
+            }
         }
     });
 
     $validatedData = $validator->validate();
-	// ✅ Force a non-null description for DB constraint
+	// Keep the legacy non-null column valid without a visible sentinel.
 	$validatedData['items'] = array_map(function ($item) {
 		$desc = trim((string)($item['description'] ?? ''));
 
-		// If empty => push "-"
-		$item['description'] = ($desc !== '') ? $desc : '-';
+		$item['description'] = $desc;
 
 		// (optional) also normalize label if you want
 		if (array_key_exists('label', $item)) {
@@ -240,7 +290,20 @@ public function store(Request $request)
 		return $item;
 	}, $validatedData['items'] ?? []);
 
-    $invoice = DB::transaction(function () use ($validatedData) {
+    $result = DB::transaction(function () use ($validatedData) {
+        if (! empty($validatedData['appointment_id']) && empty($validatedData['allow_additional_invoice'])) {
+            $existing = Invoice::query()
+                ->where('appointment_id', $validatedData['appointment_id'])
+                ->where('type', 'invoice')
+                ->lockForUpdate()
+                ->orderBy('id')
+                ->first();
+
+            if ($existing) {
+                return ['invoice' => $existing, 'duplicate' => true];
+            }
+        }
+
         $lastInvoice = Invoice::where('user_id', Auth::id())
             ->lockForUpdate()
             ->orderBy('invoice_number', 'desc')
@@ -257,6 +320,7 @@ public function store(Request $request)
             'invoice_number'         => $nextInvoiceNumber,
             'status'                 => 'En attente',
             'type'                   => 'invoice',
+            'appointment_id'         => $validatedData['appointment_id'] ?? null,
 
             // Totals will be recomputed
             'total_amount'           => 0,
@@ -282,8 +346,26 @@ public function store(Request $request)
             $validatedData['global_discount_value'] ?? null
         );
 
-        return $invoice;
+        app(InvoiceRecipientSnapshotService::class)->capture($invoice, true);
+        app(InvoiceActivityService::class)->record(
+            $invoice,
+            'created',
+            'Facture créée.',
+            Auth::user(),
+            array_filter([
+                'appointment_id' => $invoice->appointment_id,
+                'additional_invoice_reason' => $validatedData['additional_invoice_reason'] ?? null,
+            ])
+        );
+
+        return ['invoice' => $invoice, 'duplicate' => false];
     });
+
+    $invoice = $result['invoice'];
+    if ($result['duplicate']) {
+        return redirect()->route('invoices.show', $invoice)
+            ->with('error', 'Ce rendez-vous possède déjà une facture. Vous avez été redirigé vers celle-ci.');
+    }
 
     return redirect()->route('invoices.show', $invoice)->with('success', 'Facture créée avec succès.');
 }
@@ -301,10 +383,14 @@ public function show(Invoice $invoice)
 
     // Avoid N+1 and get everything the Blade needs
     $invoice->load([
-        'clientProfile',
+        'clientProfile.company',
+        'corporateClient',
         'items.product',
         'items.inventoryItem',
         'receipts' => fn ($q) => $q->orderBy('encaissement_date')->orderBy('id'),
+        'originalInvoice',
+        'corrections',
+        'activityLogs.user',
     ]);
 
     return view('invoices.show', compact('invoice'));
@@ -315,7 +401,19 @@ public function show(Invoice $invoice)
      */
 public function edit(Invoice $invoice)
 {
-    $this->authorize('update', $invoice);
+    $this->authorize('view', $invoice);
+
+    if (! $invoice->isEditable()) {
+        app(InvoiceActivityService::class)->record(
+            $invoice,
+            'edit_denied',
+            'Tentative de modification bloquée sur un document finalisé.',
+            Auth::user()
+        );
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('error', 'Cette facture est finalisée et ne peut plus être modifiée. Utilisez une correction ou un avoir.');
+    }
 
     $clients        = ClientProfile::where('user_id', Auth::id())->get();
     $corporateClients = CorporateClient::where('user_id', Auth::id())->get();
@@ -332,7 +430,19 @@ public function edit(Invoice $invoice)
  */
 public function update(Request $request, Invoice $invoice)
 {
-    $this->authorize('update', $invoice);
+    $this->authorize('view', $invoice);
+
+    if (! $invoice->isEditable()) {
+        app(InvoiceActivityService::class)->record(
+            $invoice,
+            'update_denied',
+            'Tentative d’enregistrement bloquée sur un document finalisé.',
+            Auth::user()
+        );
+
+        return redirect()->route('invoices.show', $invoice)
+            ->with('error', 'Cette facture est finalisée et ne peut plus être modifiée.');
+    }
 
     $validator = Validator::make($request->all(), [
         // Billing target (exactly one) - checked in ->after()
@@ -342,6 +452,9 @@ public function update(Request $request, Invoice $invoice)
         'invoice_date'      => ['required', 'date'],
         'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
         'notes'             => ['nullable', 'string'],
+        'appointment_id'    => ['nullable', Rule::exists('appointments', 'id')->where(fn ($q) => $q
+            ->where('user_id', Auth::id())
+            ->where(fn ($appointments) => $appointments->where('external', false)->orWhereNull('external')))],
 
         // Global discount
         'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
@@ -356,7 +469,10 @@ public function update(Request $request, Invoice $invoice)
 
         // ✅ New split fields
         'items.*.label'             => ['nullable', 'string', 'max:255'],
-        'items.*.description'       => ['nullable', 'string', 'max:255'],
+        'items.*.description'       => ['nullable', 'string'],
+        'items.*.service_date'       => ['nullable', 'date'],
+        'items.*.service_period_start' => ['nullable', 'date'],
+        'items.*.service_period_end' => ['nullable', 'date'],
 
         // Keep consistent with UI (0.01 step)
         'items.*.quantity'           => ['required', 'numeric', 'min:0.01'],
@@ -408,16 +524,17 @@ public function update(Request $request, Invoice $invoice)
             } else {
                 $validator->errors()->add("items.$idx.type", "Type de ligne invalide.");
             }
+
+            $this->validateServiceDates($validator, $item, $idx);
         }
     });
 
     $validatedData = $validator->validate();
-	// ✅ Force a non-null description for DB constraint
+	// Keep the legacy non-null column valid without a visible sentinel.
 	$validatedData['items'] = array_map(function ($item) {
 		$desc = trim((string)($item['description'] ?? ''));
 
-		// If empty => push "-"
-		$item['description'] = ($desc !== '') ? $desc : '-';
+		$item['description'] = $desc;
 
 		// (optional) also normalize label if you want
 		if (array_key_exists('label', $item)) {
@@ -434,6 +551,7 @@ public function update(Request $request, Invoice $invoice)
             'invoice_date'              => $validatedData['invoice_date'],
             'due_date'                  => $validatedData['due_date'] ?? null,
             'notes'                     => $validatedData['notes'] ?? null,
+            'appointment_id'            => $validatedData['appointment_id'] ?? $invoice->appointment_id,
 
             'global_discount_type'      => $validatedData['global_discount_type'] ?? null,
             'global_discount_value'     => $validatedData['global_discount_value'] ?? null,
@@ -457,6 +575,14 @@ public function update(Request $request, Invoice $invoice)
             $validatedData['global_discount_type'] ?? null,
             $validatedData['global_discount_value'] ?? null
         );
+
+        app(InvoiceRecipientSnapshotService::class)->capture($invoice->fresh(), true);
+        app(InvoiceActivityService::class)->record(
+            $invoice,
+            'updated',
+            'Facture mise à jour avant finalisation.',
+            Auth::user()
+        );
     });
 
     return redirect()->route('invoices.show', $invoice)->with('success', 'Facture mise à jour avec succès.');
@@ -468,8 +594,19 @@ public function update(Request $request, Invoice $invoice)
      */
     public function destroy(Invoice $invoice)
     {
-        // Check permission to delete the invoice
-        $this->authorize('delete', $invoice); // Ensure only the owner can delete the invoice
+        $this->authorize('view', $invoice);
+
+        if (! $invoice->isEditable()) {
+            app(InvoiceActivityService::class)->record(
+                $invoice,
+                'delete_denied',
+                'Tentative de suppression bloquée sur un document finalisé.',
+                Auth::user()
+            );
+
+            return redirect()->route('invoices.show', $invoice)
+                ->with('error', 'Une facture finalisée ne peut pas être supprimée. Utilisez une correction ou un avoir.');
+        }
 
         // La politique assure que l'utilisateur peut supprimer la facture
         $invoice->delete();
@@ -493,12 +630,13 @@ public function clientPdf(Invoice $invoice)
         'corporateClient',
         'items.product',
         'items.inventoryItem',
+        'originalInvoice',
     ]);
 
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
-    return $pdf->download('facture_' . $invoice->invoice_number . '.pdf');
+    return $pdf->download(($invoice->isCreditNote() ? 'avoir_' : 'facture_') . $invoice->invoice_number . '.pdf');
 }
 
 public function generatePDF(Invoice $invoice)
@@ -512,17 +650,18 @@ public function generatePDF(Invoice $invoice)
         'corporateClient',
         'items.product',
         'items.inventoryItem',
+        'originalInvoice',
     ]);
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
-    return $pdf->download('facture_'.$invoice->invoice_number.'.pdf');
+    return $pdf->download(($invoice->isCreditNote() ? 'avoir_' : 'facture_').$invoice->invoice_number.'.pdf');
 }
 
 
 public function markAsPaid(Request $request, Invoice $invoice)
 {
-    $this->authorize('update', $invoice);
+    $this->authorize('view', $invoice);
 
     $validated = $request->validate([
         'encaissement_date' => ['nullable','date'],
@@ -546,37 +685,18 @@ public function markAsPaid(Request $request, Invoice $invoice)
     }
 
     // Convertir TTC -> HT à partir de la facture (proportionnel au ratio global)
-    $ttcFacture = (float) $invoice->total_amount_with_tax;
-    $htFacture  = (float) $invoice->total_amount;
-
-    $ratioHT = $ttcFacture > 0 ? $htFacture / $ttcFacture : 1.0;
-    $montantHt = round($montantTtc * $ratioHT, 2);
-
-    // Créer l’écriture
-    \App\Models\Receipt::create([
-        'user_id'           => $invoice->user_id,
-        'invoice_id'        => $invoice->id,
-        'invoice_number'    => (string) $invoice->invoice_number,
-        'encaissement_date' => $date,
-        'client_name'       => $invoice->clientProfile
-                                 ? ($invoice->clientProfile->first_name.' '.$invoice->clientProfile->last_name)
-                                 : 'Client',
-        'nature'            => $nature,
-        'amount_ht'         => $montantHt,
-        'amount_ttc'        => $montantTtc,
-        'payment_method'    => $pm,
-        'direction'         => 'credit',
-        'source'            => 'payment',
-        'note'              => $validated['note'] ?? null,
-    ]);
-
-    // Mettre le statut
-    $invoice->refresh();
-    if ($invoice->solde_restant <= 0.001) {
-        $invoice->update(['status' => 'Payée']);
-    } else {
-        $invoice->update(['status' => 'Partiellement payée']);
-    }
+    app(ReceiptRecordingService::class)->recordInvoicePayment(
+        $invoice,
+        $montantTtc,
+        $date,
+        $pm,
+        'payment',
+        $validated['note'] ?? null,
+        null,
+        null,
+        $nature,
+        Auth::user()
+    );
 
     return redirect()->route('invoices.show', $invoice)
         ->with('success', 'Encaissement enregistré dans le livre de recettes.');
@@ -594,6 +714,9 @@ public function sendEmail(Invoice $invoice)
     }
 
 
+    app(InvoiceLifecycleService::class)->finalize($invoice, Auth::user(), 'sent');
+    $invoice->refresh();
+
     $therapistName = Auth::user()->name;
 
     try {
@@ -602,6 +725,13 @@ public function sendEmail(Invoice $invoice)
             ->queue(new InvoiceMail($invoice, $therapistName));
 
         $invoice->update(['sent_at' => now()]);
+        app(InvoiceActivityService::class)->record(
+            $invoice,
+            'email_sent',
+            $invoice->document_label.' envoyé par email.',
+            Auth::user(),
+            ['recipient' => $to, 'cc' => $cc]
+        );
 
         return redirect()
             ->route('invoices.show', $invoice)
@@ -679,7 +809,7 @@ public function sendPaymentReminder(Invoice $invoice)
 
 public function createPaymentLink(Invoice $invoice, StripePaymentLinkFactory $stripePaymentLinkFactory)
 {
-    $this->authorize('update', $invoice);
+    $this->authorize('view', $invoice);
 
     // Safety: only invoices (no quotes)
     if (($invoice->type ?? 'invoice') !== 'invoice') {
@@ -724,6 +854,8 @@ public function createPaymentLink(Invoice $invoice, StripePaymentLinkFactory $st
             $stripeAccountId
         );
         $invoice->save();
+        app(InvoiceLifecycleService::class)->finalize($invoice, Auth::user(), 'payment_link_created');
+        $invoice->refresh();
 
         try {
             $therapistName = Auth::user()->name;
@@ -778,39 +910,13 @@ private function resolveInvoiceEmailRecipients(Invoice $invoice): array
         'items.inventoryItem',
     ]);
 
-    $client = $invoice->clientProfile;
-    $company = $invoice->corporateClient ?: $client?->company;
-
-    $to = null;
-    $cc = null;
-    $recipientName = null;
-
-    if ($company) {
-        $to = $company->billing_email ?: $company->main_contact_email;
-
-        $recipientName = trim(($company->main_contact_first_name ?? '') . ' ' . ($company->main_contact_last_name ?? ''));
-        if (!$recipientName) {
-            $recipientName = $company->trade_name ?: $company->name;
-        }
-
-        if ($to && $client?->email && $client->email !== $to) {
-            $cc = $client->email;
-        }
-    }
-
-    if (!$to && $client) {
-        $to = $client->email_billing ?: $client->email;
-    }
-
-    if (!$recipientName && $client) {
-        $billingFirst = $client->first_name_billing ?: $client->first_name;
-        $billingLast = $client->last_name_billing ?: $client->last_name;
-        $recipientName = trim($billingFirst . ' ' . $billingLast);
-    }
-
-    if (!$recipientName) {
-        $recipientName = $to;
-    }
+    $recipient = $invoice->recipient_data;
+    $to = $recipient['email'] ?: null;
+    $cc = $recipient['cc_email'] ?? null;
+    $recipientName = $recipient['billing_contact_name']
+        ?: $recipient['client_name']
+        ?: $recipient['company_name']
+        ?: $to;
 
     return [
         'to' => $to,
@@ -1283,6 +1389,39 @@ public function createFromPackPurchase(PackPurchase $packPurchase, PackPurchaseI
  * @param  float|int|string|null  $globalDiscountValue
  * @return void
  */
+private function validateServiceDates($validator, array $item, int $index): void
+{
+    $serviceDate = filled($item['service_date'] ?? null);
+    $periodStart = filled($item['service_period_start'] ?? null);
+    $periodEnd = filled($item['service_period_end'] ?? null);
+
+    if ($serviceDate && ($periodStart || $periodEnd)) {
+        $validator->errors()->add(
+            "items.$index.service_date",
+            'Choisissez soit une date de prestation, soit une période, pas les deux.'
+        );
+    }
+
+    if ($periodStart xor $periodEnd) {
+        $validator->errors()->add(
+            "items.$index.service_period_start",
+            'Renseignez le début et la fin de la période de prestation.'
+        );
+    }
+
+    if ($periodStart && $periodEnd) {
+        $startTimestamp = strtotime((string) $item['service_period_start']);
+        $endTimestamp = strtotime((string) $item['service_period_end']);
+
+        if ($startTimestamp !== false && $endTimestamp !== false && $endTimestamp < $startTimestamp) {
+            $validator->errors()->add(
+                "items.$index.service_period_end",
+                'La fin de la période doit être postérieure ou égale au début.'
+            );
+        }
+    }
+}
+
 private function recomputeInvoiceTotalsWithDiscounts(
     Invoice $invoice,
     array $items,
@@ -1407,8 +1546,12 @@ private function recomputeInvoiceTotalsWithDiscounts(
             // ✅ Persist label for ALL types (normalized display)
             'label' => ($label !== '' ? $label : null),
 
-            // ✅ Keep description clean and optional
-            'description' => ($desc !== '' ? $desc : ''),
+            // Preserve the legacy varchar while keeping an untruncated snapshot.
+            'description' => mb_substr($desc, 0, 255),
+            'description_snapshot' => ($desc !== '' ? $desc : null),
+            'service_date' => $item['service_date'] ?? null,
+            'service_period_start' => $item['service_period_start'] ?? null,
+            'service_period_end' => $item['service_period_end'] ?? null,
 
             'quantity' => $quantity,
             'unit_price' => round($unitPriceHt, 6),

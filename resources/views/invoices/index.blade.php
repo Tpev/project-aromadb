@@ -125,7 +125,7 @@
                         <thead class="bg-[#647a0b] text-white">
                             <tr>
                                 <th onclick="sortTable(0)" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
-                                    {{ __('Numéro de Facture') }}
+                                    {{ __('Document') }}
                                     <!-- Icône de Tri -->
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M6 8l4 4 4-4H6z" />
@@ -167,7 +167,7 @@
                             @foreach($invoices as $invoice)
                                 <tr class="hover:bg-gray-100 cursor-pointer" onclick="window.location='{{ route('invoices.show', $invoice->id) }}'">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        {{ $invoice->invoice_number }}
+                                        {{ $invoice->document_label }} n°{{ $invoice->invoice_number }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         @php
@@ -180,11 +180,7 @@
                                             }
                                             $client = $invoice->clientProfile ?? null;
                                         @endphp
-                                        @if($invoice->corporate_client_id && $corp)
-                                            {{ $corp->trade_name ?: $corp->name }}
-                                        @else
-                                            {{ $client?->first_name }} {{ $client?->last_name }}
-                                        @endif
+                                        {{ $invoice->recipient_data['client_name'] ?: $invoice->recipient_data['company_name'] }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}

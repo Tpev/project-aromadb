@@ -192,7 +192,7 @@
                                     Copier le lien pour le client
                                 </span>
                                 <span x-show="!copied" class="text-[10px] text-gray-400">Copier</span>
-                                <span x-show="copied" x-cloak class="text-[10px] text-[#647a0b] font-semibold">Copié ✓</span>
+                                <span x-show="copied" x-cloak class="text-[10px] text-[#647a0b] font-semibold">Copié</span>
                             </button>
                         </div>
                     </div>
@@ -208,6 +208,52 @@
             <p class="text-sm text-gray-800 whitespace-pre-line">
                 {{ $appointment->notes ?: 'Aucune note pour ce rendez-vous.' }}
             </p>
+        </div>
+
+        <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+            <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Suivi de la séance</h2>
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center text-[10px] font-semibold">
+                <div class="rounded-lg bg-[#f7f8f1] px-2 py-2 text-[#4b5722]">
+                    <i class="fas fa-calendar-check mb-1 block"></i>{{ $appointment->session_tracking_label }}
+                </div>
+                <div class="rounded-lg bg-[#f7f8f1] px-2 py-2 text-[#4b5722]">
+                    <i class="fas fa-notes-medical mb-1 block"></i>{{ $appointment->note_tracking_label }}
+                </div>
+                <div class="rounded-lg bg-[#f7f8f1] px-2 py-2 text-[#4b5722]">
+                    <i class="fas fa-file-invoice-dollar mb-1 block"></i>{{ $appointment->billing_tracking_label }}
+                </div>
+            </div>
+
+            <div class="mt-3 space-y-2">
+                @if($appointment->sessionNotes->isEmpty())
+                    <a href="{{ route('mobile.session-notes.create', [
+                            'clientProfile' => $appointment->client_profile_id,
+                            'appointment_id' => $appointment->id,
+                        ]) }}" class="flex h-10 items-center justify-center rounded-lg border border-[#e4e8d5] text-xs font-semibold text-[#647a0b]">
+                        Ajouter une note de séance
+                    </a>
+                @else
+                    <a href="{{ route('mobile.session-notes.show', $appointment->sessionNotes->first()) }}" class="flex h-10 items-center justify-center rounded-lg border border-[#e4e8d5] text-xs font-semibold text-[#647a0b]">
+                        Voir la note de séance
+                    </a>
+                @endif
+
+                @if($appointment->billingInvoices->isEmpty())
+                    <a href="{{ route('invoices.create', [
+                            'client_id' => $appointment->client_profile_id,
+                            'product_id' => $appointment->product_id,
+                            'appointment_id' => $appointment->id,
+                        ]) }}" class="flex h-10 items-center justify-center rounded-lg bg-[#647a0b] text-xs font-semibold text-white">
+                        Créer la facture
+                    </a>
+                @else
+                    @foreach($appointment->billingInvoices as $linkedInvoice)
+                        <a href="{{ route('mobile.invoices.show', $linkedInvoice) }}" class="flex h-10 items-center justify-center rounded-lg border border-[#e4e8d5] text-xs font-semibold text-[#647a0b]">
+                            Voir la facture n°{{ $linkedInvoice->invoice_number }}
+                        </a>
+                    @endforeach
+                @endif
+            </div>
         </div>
 
         {{-- Actions --}}
@@ -273,7 +319,7 @@
                             <button type="submit"
                                     class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-[#647a0b]">
                                 <span class="flex items-center gap-2">
-                                    <span class="text-lg leading-none">📄</span>
+                                    <i class="fas fa-file-signature text-sm" aria-hidden="true"></i>
                                     Envoyer la feuille d’émargement
                                 </span>
                                 <i class="fas fa-chevron-right text-[9px] text-[#c3cc8b]"></i>

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Invoice;
 use App\Models\PackPurchase;
-use App\Models\Receipt;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -86,6 +85,13 @@ class PackPurchaseInvoicingService
                 }
             }
 
+            app(InvoiceActivityService::class)->record(
+                $invoice,
+                'created',
+                'Facture créée depuis un achat en ligne.',
+                metadata: ['pack_purchase_id' => $purchase->id]
+            );
+
             return $invoice;
         });
     }
@@ -110,35 +116,6 @@ class PackPurchaseInvoicingService
 
         $paidDate = ($paidAt ?: now())->toDateString();
 
-        $alreadyRecorded = Receipt::query()
-            ->where('invoice_id', $invoice->id)
-            ->where('source', 'payment')
-            ->where('payment_method', 'card')
-            ->where('direction', 'credit')
-            ->whereDate('encaissement_date', $paidDate)
-            ->where('amount_ttc', round($amountTtc, 2))
-            ->where(function ($q) use ($stripeInvoiceId) {
-                if ($stripeInvoiceId) {
-                    $q->where('note', 'like', '%' . $stripeInvoiceId . '%');
-                } else {
-                    $q->whereNull('note');
-                }
-            })
-            ->exists();
-
-        if ($alreadyRecorded) {
-            return $invoice;
-        }
-
-        $ratioHt = ((float) $invoice->total_amount_with_tax) > 0
-            ? ((float) $invoice->total_amount / (float) $invoice->total_amount_with_tax)
-            : 1.0;
-
-        $amountHt = round($amountTtc * $ratioHt, 2);
-        $clientName = $invoice->clientProfile
-            ? trim(($invoice->clientProfile->first_name ?? '') . ' ' . ($invoice->clientProfile->last_name ?? ''))
-            : 'Client';
-
         $noteParts = [];
         if ($sequenceNumber && $totalInstallments) {
             $noteParts[] = "Échéance {$sequenceNumber}/{$totalInstallments}";
@@ -151,27 +128,16 @@ class PackPurchaseInvoicingService
             $noteParts[] = "Stripe invoice {$stripeInvoiceId}";
         }
 
-        Receipt::create([
-            'user_id' => $invoice->user_id,
-            'invoice_id' => $invoice->id,
-            'invoice_number' => (string) $invoice->invoice_number,
-            'encaissement_date' => $paidDate,
-            'client_name' => $clientName !== '' ? $clientName : 'Client',
-            'nature' => 'service',
-            'amount_ht' => $amountHt,
-            'amount_ttc' => round($amountTtc, 2),
-            'payment_method' => 'card',
-            'direction' => 'credit',
-            'source' => 'payment',
-            'note' => implode(' - ', $noteParts),
-        ]);
-
-        $invoice->refresh();
-        if ((float) $invoice->solde_restant <= 0.001) {
-            $invoice->update(['status' => 'Payée']);
-        } else {
-            $invoice->update(['status' => 'Partiellement payée']);
-        }
+        app(ReceiptRecordingService::class)->recordInvoicePayment(
+            $invoice,
+            $amountTtc,
+            $paidDate,
+            'card',
+            'payment',
+            implode(' - ', $noteParts),
+            $stripeInvoiceId ? 'stripe' : null,
+            $stripeInvoiceId ?: null
+        );
 
         return $invoice;
     }

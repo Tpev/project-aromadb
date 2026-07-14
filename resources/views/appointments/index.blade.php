@@ -121,6 +121,21 @@
     </div>
 </div>
 
+<div class="d-flex justify-content-center mt-3" role="group" aria-label="Éléments affichés dans l'agenda">
+    <div class="d-inline-flex rounded-pill border p-1 bg-white">
+        <a href="{{ route('appointments.index', ['calendar_source' => 'olithea']) }}"
+           class="px-3 py-2 rounded-pill text-decoration-none small fw-semibold {{ $calendarSource === 'olithea' ? 'text-white' : 'text-secondary' }}"
+           style="{{ $calendarSource === 'olithea' ? 'background:#647a0b;' : '' }}">
+            Rendez-vous Olithea
+        </a>
+        <a href="{{ route('appointments.index', ['calendar_source' => 'all']) }}"
+           class="px-3 py-2 rounded-pill text-decoration-none small fw-semibold {{ $calendarSource === 'all' ? 'text-white' : 'text-secondary' }}"
+           style="{{ $calendarSource === 'all' ? 'background:#647a0b;' : '' }}">
+            Avec les événements Google
+        </a>
+    </div>
+</div>
+
             </div>
         </div>
 
@@ -230,30 +245,13 @@
 
                                         {{-- Statut --}}
                                         <td>
-                                            <span id="status-{{ $appointment->id }}"
-                                                  class="badge rounded-pill px-3 py-2
-                                                  @if($appointment->isCancelled())
-                                                      bg-secondary-subtle text-secondary
-                                                  @elseif($appointment->status === 'Complété')
-                                                      bg-success-subtle text-success
-                                                  @else
-                                                      bg-warning-subtle text-warning
-                                                  @endif">
-                                                {{ ucfirst($appointment->status) }}
-                                            </span>
+                                            @include('appointments.partials.tracking-status', ['appointment' => $appointment])
                                         </td>
                                         {{-- Actions (masquées pour external) --}}
                                         <td>
                                             @unless($appointment->external)
                                                 <div class="d-flex justify-content-center flex-wrap gap-2">
-                                                    {{-- Générer une facture --}}
-                                                    <a href="{{ route('invoices.create', [
-                                                             'client_id'  => $appointment->client_profile_id,
-                                                             'product_id' => $appointment->product_id]) }}"
-                                                       class="btn-invoice">
-                                                        <i class="fas fa-file-invoice-dollar"></i>
-                                                        Facturer
-                                                    </a>
+                                                    @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
 
                                                     {{-- Marquer comme complété --}}
                                                     @if ($appointment->status !== 'Complété')
@@ -376,30 +374,13 @@
                                         </td>
 
                                         <td>
-                                            <span id="status-{{ $appointment->id }}"
-                                                  class="badge rounded-pill px-3 py-2
-                                                  @if($appointment->isCancelled())
-                                                      bg-secondary-subtle text-secondary
-                                                  @elseif($appointment->status === 'Complété')
-                                                      bg-success-subtle text-success
-                                                  @else
-                                                      bg-secondary-subtle text-secondary
-                                                  @endif">
-                                                {{ ucfirst($appointment->status) }}
-                                            </span>
+                                            @include('appointments.partials.tracking-status', ['appointment' => $appointment])
                                         </td>
                                         {{-- Actions (masquées pour external) --}}
                                         <td>
                                             @unless($appointment->external)
                                                 <div class="d-flex justify-content-center flex-wrap gap-2">
-                                                    {{-- Générer une facture --}}
-                                                    <a href="{{ route('invoices.create', [
-                                                             'client_id'  => $appointment->client_profile_id,
-                                                             'product_id' => $appointment->product_id]) }}"
-                                                       class="btn-invoice">
-                                                        <i class="fas fa-file-invoice-dollar"></i>
-                                                        Facturer
-                                                    </a>
+                                                    @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
 
                                                     {{-- Marquer comme complété (au cas où oublié) --}}
                                                     @if ($appointment->status !== 'Complété')
@@ -747,4 +728,3 @@
         }
     </style>
 </x-app-layout>
-

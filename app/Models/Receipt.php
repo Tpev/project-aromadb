@@ -19,6 +19,8 @@ class Receipt extends Model
         'payment_method',
         'direction',       // credit|debit
         'source',          // payment|manual|correction|refund
+        'provider',
+        'provider_reference',
         'note',
         'locked_at',
         'record_number',

@@ -17,6 +17,16 @@ class StripePaymentLinkFactory
         $stripe = new StripeClient(config('services.stripe.secret'));
 
         $paymentLink = $stripe->paymentLinks->create([
+            'metadata' => [
+                'invoice_id' => (string) $invoice->id,
+                'user_id' => (string) $invoice->user_id,
+            ],
+            'payment_intent_data' => [
+                'metadata' => [
+                    'invoice_id' => (string) $invoice->id,
+                    'user_id' => (string) $invoice->user_id,
+                ],
+            ],
             'line_items' => [[
                 'price_data' => [
                     'currency' => 'eur',

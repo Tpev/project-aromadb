@@ -15,6 +15,7 @@
         ['label' => 'Evenements', 'icon' => 'fa-calendar-plus', 'route' => 'mobile.events.index', 'badge' => 'Mobile'],
         ['label' => 'Suivi des mesures', 'icon' => 'fa-chart-line', 'route' => 'mobile.clients.index', 'badge' => 'Client'],
         ['label' => 'Notes de seance', 'icon' => 'fa-notes-medical', 'route' => 'mobile.clients.index', 'badge' => 'Client'],
+        ['label' => 'Modeles de notes', 'icon' => 'fa-file-alt', 'route' => 'session-note-templates.index', 'badge' => 'Web'],
         ['label' => 'Documents clients', 'icon' => 'fa-folder-open', 'route' => 'mobile.documents.index', 'badge' => 'Mobile'],
         ['label' => 'Emargements', 'icon' => 'fa-signature', 'route' => 'mobile.emargements.index', 'badge' => 'Mobile'],
     ];

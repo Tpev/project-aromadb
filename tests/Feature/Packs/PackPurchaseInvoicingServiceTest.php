@@ -2,11 +2,13 @@
 
 use App\Models\ClientProfile;
 use App\Models\DigitalTraining;
+use App\Models\Invoice;
 use App\Models\PackProduct;
 use App\Models\PackPurchase;
 use App\Models\Receipt;
 use App\Models\User;
 use App\Services\PackPurchaseInvoicingService;
+use App\Services\StripePurchaseWebhookService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -134,4 +136,44 @@ test('service does not duplicate receipt for same stripe invoice id', function (
     $invoice = $purchase->fresh()->invoice;
     expect($invoice)->not->toBeNull();
     expect(Receipt::where('invoice_id', $invoice->id)->count())->toBe(1);
+});
+
+test('one-time Stripe pack checkout creates one invoice and receipt across distinct retry events', function () {
+    $purchase = createPackPurchaseForInvoicing([
+        'status' => 'pending',
+        'payment_mode' => 'one_time',
+        'payment_state' => 'pending',
+        'installments_total' => null,
+        'installments_paid' => 0,
+        'installment_amount_cents' => null,
+    ]);
+
+    $session = (object) [
+        'id' => 'cs_pack_one_time',
+        'payment_status' => 'paid',
+        'payment_intent' => 'pi_pack_one_time',
+        'amount_total' => 10000,
+        'metadata' => (object) [
+            'purchase_kind' => 'pack',
+            'payment_mode' => 'one_time',
+            'pack_purchase_id' => (string) $purchase->id,
+        ],
+    ];
+
+    $service = app(StripePurchaseWebhookService::class);
+
+    foreach (['evt_pack_one_time_a', 'evt_pack_one_time_b'] as $eventId) {
+        expect($service->handleEvent((object) [
+            'id' => $eventId,
+            'type' => 'checkout.session.completed',
+            'data' => (object) ['object' => $session],
+        ]))->toBeTrue();
+    }
+
+    $invoice = Invoice::where('pack_purchase_id', $purchase->id)->firstOrFail();
+
+    expect(Invoice::where('pack_purchase_id', $purchase->id)->count())->toBe(1)
+        ->and(Receipt::where('invoice_id', $invoice->id)->count())->toBe(1)
+        ->and(Receipt::where('invoice_id', $invoice->id)->value('provider_reference'))->toBe('pi_pack_one_time')
+        ->and($invoice->fresh()->status)->toBe("Pay\u{00E9}e");
 });

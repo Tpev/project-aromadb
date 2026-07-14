@@ -4,6 +4,7 @@
         ? route('mobile.session-notes.show', $sessionNote)
         : route('mobile.session-notes.index', $clientProfile);
     $noteValue = old('note', $sessionNote->exists ? trim(strip_tags($sessionNote->note ?? '')) : '');
+    $appointment = $appointment ?? $sessionNote->appointment;
 @endphp
 
 <x-mobile-layout :title="$title" :hide-nav="true">
@@ -11,6 +12,9 @@
         @csrf
         @if($method !== 'POST')
             @method($method)
+        @endif
+        @if($appointment)
+            <input type="hidden" name="appointment_id" value="{{ $appointment->id }}">
         @endif
 
         <div class="mb-4">
@@ -21,6 +25,19 @@
             </a>
             <h1 class="text-xl font-semibold leading-tight text-gray-900">{{ $title }}</h1>
             <p class="mt-1 break-words text-sm leading-snug text-gray-600">{{ $fullName }}</p>
+            @if($appointment)
+                <p class="mt-1 text-xs font-medium text-[#647a0b]">
+                    Rendez-vous du {{ $appointment->appointment_date->format('d/m/Y à H:i') }}
+                </p>
+            @endif
+            @unless($sessionNote->exists)
+                <a href="{{ route('session-note-templates.index', array_filter([
+                        'client_profile_id' => $clientProfile->id,
+                        'appointment_id' => $appointment?->id,
+                    ])) }}" class="mt-2 inline-flex text-xs font-semibold text-[#647a0b]">
+                    Gérer les modèles de notes
+                </a>
+            @endunless
         </div>
 
         @if($errors->any())
@@ -67,6 +84,7 @@
                            name="session_note_template_id"
                            id="mobileSessionNoteTemplateId"
                            value="{{ old('session_note_template_id') }}">
+
                 </section>
             @endif
 

@@ -15,6 +15,8 @@ use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\SessionNoteController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\InvoiceCorrectionController;
+use App\Http\Controllers\AppointmentInvoiceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\DashboardController;
@@ -1023,13 +1025,15 @@ Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.st
     Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show')->middleware('can:view,invoice');
     
     // Formulaire pour éditer une facture existante
-    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit')->middleware('can:update,invoice');
+    Route::get('/invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
     
     // Mettre à jour une facture existante
-    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update')->middleware('can:update,invoice');
+    Route::put('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
     
     // Supprimer une facture
-    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy')->middleware('can:delete,invoice');
+    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+    Route::post('/invoices/{invoice}/corrections', [InvoiceCorrectionController::class, 'store'])
+        ->name('invoices.corrections.store');
 	// Route to send invoice via email
     Route::post('/invoices/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])
          ->name('invoices.sendEmail');
@@ -1121,7 +1125,9 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAn
     Route::put('/appointments/{appointment}/complete', [AppointmentController::class, 'markAsCompleted'])->name('appointments.complete');
     Route::put('/appointments/{appointment}/completeindex', [AppointmentController::class, 'markAsCompletedIndex'])->name('appointments.completeindex');
 
-	Route::delete('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    Route::delete('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    Route::post('/appointments/{appointment}/associate-invoice', [AppointmentInvoiceController::class, 'associate'])
+        ->name('appointments.invoices.associate');
     
  
 });

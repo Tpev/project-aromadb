@@ -31,6 +31,9 @@
                         onkeyup="filterTable()"
                     >
 
+                    <a href="{{ route('session-note-templates.index', ['client_profile_id' => $clientProfile->id]) }}" class="am-btn am-btn-soft">
+                        {{ __('Modèles de notes') }}
+                    </a>
                     <a href="{{ route('session_notes.create', $clientProfile->id) }}" class="am-btn am-btn-primary">
                         + {{ __('Créer') }}
                     </a>

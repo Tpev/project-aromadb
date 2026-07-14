@@ -40,6 +40,18 @@
 
             <form id="invoiceForm" action="{{ route('invoices.store') }}" method="POST" class="am-form">
                 @csrf
+                @if(isset($selectedAppointment) && $selectedAppointment)
+                    <input type="hidden" name="appointment_id" value="{{ $selectedAppointment->id }}">
+                @endif
+                @if(request()->boolean('allow_additional_invoice') || old('allow_additional_invoice'))
+                    <input type="hidden" name="allow_additional_invoice" value="1">
+                    <div class="am-alert" style="margin-bottom:18px;">
+                        <div class="am-alert-title">Facture supplémentaire</div>
+                        <p class="mb-2">Ce rendez-vous possède déjà une facture. Indiquez pourquoi une autre facture est nécessaire.</p>
+                        <label class="am-label" for="additional_invoice_reason">Motif obligatoire</label>
+                        <textarea id="additional_invoice_reason" name="additional_invoice_reason" class="am-input" rows="2" required>{{ old('additional_invoice_reason') }}</textarea>
+                    </div>
+                @endif
 
                 {{-- Metadata --}}
                 <div class="am-grid">
@@ -341,6 +353,46 @@
             }[s]));
         }
 
+        function serviceDateFields(idx, defaults = {}) {
+            const serviceDate = defaults.serviceDate || '';
+            const periodStart = defaults.periodStart || '';
+            const periodEnd = defaults.periodEnd || '';
+            const mode = serviceDate ? 'date' : (periodStart || periodEnd ? 'period' : 'none');
+
+            return `
+                <div class="am-service-date">
+                    <label>Date de prestation</label>
+                    <select class="am-input am-service-mode" onchange="syncServiceDateMode(this)">
+                        <option value="none" ${mode === 'none' ? 'selected' : ''}>Non renseignée</option>
+                        <option value="date" ${mode === 'date' ? 'selected' : ''}>Une date</option>
+                        <option value="period" ${mode === 'period' ? 'selected' : ''}>Une période</option>
+                    </select>
+                    <div class="am-service-single ${mode === 'date' ? '' : 'hidden'}">
+                        <input type="date" name="items[${idx}][service_date]" class="am-input" value="${escapeHtml(serviceDate)}">
+                    </div>
+                    <div class="am-service-period ${mode === 'period' ? '' : 'hidden'}">
+                        <input type="date" name="items[${idx}][service_period_start]" class="am-input" aria-label="Début de la période" value="${escapeHtml(periodStart)}">
+                        <input type="date" name="items[${idx}][service_period_end]" class="am-input" aria-label="Fin de la période" value="${escapeHtml(periodEnd)}">
+                    </div>
+                </div>`;
+        }
+
+        function syncServiceDateMode(select) {
+            const wrap = select.closest('.am-service-date');
+            const single = wrap?.querySelector('.am-service-single');
+            const period = wrap?.querySelector('.am-service-period');
+            const singleInput = single?.querySelector('input');
+            const periodInputs = period?.querySelectorAll('input') || [];
+            const isDate = select.value === 'date';
+            const isPeriod = select.value === 'period';
+
+            single?.classList.toggle('hidden', !isDate);
+            period?.classList.toggle('hidden', !isPeriod);
+
+            if (!isDate && singleInput) singleInput.value = '';
+            if (!isPeriod) periodInputs.forEach(input => input.value = '');
+        }
+
         function computeLineDiscountHt(baseHt, type, value) {
             if (!type || value === null || value === undefined || value === '') return 0;
             const v = _num(value, 0);
@@ -470,7 +522,7 @@
         }
 
         // ---------- row builders ----------
-        function addProductItem() {
+        function addProductItem(serviceDate = '') {
             const table = document.querySelector('#invoice-items-table tbody');
             const idx = itemIndex++;
             const row = document.createElement('tr');
@@ -485,7 +537,7 @@
                     <select name="items[${idx}][product_id]" class="am-input product-select" onchange="updateProductRow(this)">
                         <option value="">{{ __('Sélectionnez') }}</option>
                         @foreach($products as $p)
-                            <option value="{{ $p->id }}" data-price="{{ $p->price }}" data-tax="{{ $p->tax_rate }}">
+                            <option value="{{ $p->id }}" data-price="{{ $p->price }}" data-tax="{{ $p->tax_rate }}" data-description="{{ $p->description }}">
                                 {{ $p->name }}
                             </option>
                         @endforeach
@@ -494,7 +546,8 @@
                 </td>
 
                 <td class="am-td am-td--desc">
-                    <input type="text" name="items[${idx}][description]" class="am-input" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()">
+                    <textarea name="items[${idx}][description]" class="am-input description-input" rows="2" placeholder="{{ __('Détails (optionnel)') }}" oninput="recomputeAllTotals()"></textarea>
+                    ${serviceDateFields(idx, { serviceDate })}
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -562,11 +615,13 @@ row.innerHTML = `
     </td>
 
     <td class="am-td am-td--desc">
-        <input type="text"
+        <textarea
                name="items[${idx}][description]"
                class="am-input custom-details"
+               rows="2"
                placeholder="{{ __('Détails (optionnel)') }}"
-               oninput="recomputeAllTotals()">
+               oninput="recomputeAllTotals()"></textarea>
+        ${serviceDateFields(idx)}
     </td>
 
     <td class="am-td am-td--qty">
@@ -626,9 +681,13 @@ row.innerHTML = `
 
             const unitEl = row.querySelector('.unit-price');
             const taxEl  = row.querySelector('.tax-rate');
+            const descriptionEl = row.querySelector('.description-input');
 
             if (unitEl) unitEl.value = price.toFixed(2);
             if (taxEl)  taxEl.value  = tax.toFixed(2);
+            if (descriptionEl && descriptionEl.value.trim() === '') {
+                descriptionEl.value = opt?.dataset?.description || '';
+            }
 
             recomputeAllTotals();
         }
@@ -679,6 +738,7 @@ row.innerHTML = `
                 <td class="am-td am-td--desc">
                     <input type="text" name="items[${idx}][description]" class="am-input am-readonly"
                            value="${escapeHtml(opt.dataset.name || '')}" readonly>
+                    ${serviceDateFields(idx)}
                 </td>
 
                 <td class="am-td am-td--qty">
@@ -767,12 +827,13 @@ row.innerHTML = `
                 </td>
 
 <td class="am-td am-td--desc">
-    <input type="text"
+    <textarea
            name="items[${idx}][description]"
            class="am-input"
-           value=""
+           rows="2"
            placeholder="{{ __('Détails (optionnel)') }}"
-           oninput="recomputeAllTotals()">
+           oninput="recomputeAllTotals()"></textarea>
+    ${serviceDateFields(idx)}
 </td>
 
 
@@ -834,11 +895,14 @@ row.innerHTML = `
 
             // ✅ If coming from appointment "Facturer", auto-add a prestation line and preselect it
             const preselectedProductId = @json($preselectedProductId);
+            const preselectedServiceDate = @json(isset($selectedAppointment) && $selectedAppointment
+                ? $selectedAppointment->appointment_date->format('Y-m-d')
+                : null);
             const tbody = document.querySelector('#invoice-items-table tbody');
             const hasRows = tbody && tbody.querySelectorAll('tr').length > 0;
 
             if (preselectedProductId && !hasRows) {
-                addProductItem();
+                addProductItem(preselectedServiceDate || '');
 
                 const lastRowSelect = tbody?.querySelector('tr:last-child select.product-select');
                 if (lastRowSelect) {
@@ -1058,6 +1122,13 @@ row.innerHTML = `
 
         .am-table .am-input{ border-radius:10px; padding:9px 10px; }
         .am-num{ text-align:right; font-variant-numeric:tabular-nums; min-width:92px; }
+
+        .am-service-date{ margin-top:8px; padding-top:8px; border-top:1px solid #eef2f7; }
+        .am-service-date label{ display:block; margin-bottom:4px; color:#64748b; font-size:.75rem; font-weight:700; }
+        .am-service-date .am-input{ padding:7px 8px; font-size:.82rem; }
+        .am-service-single{ margin-top:6px; }
+        .am-service-period{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+        .am-service-single.hidden, .am-service-period.hidden{ display:none; }
 
         .am-readonly{ background:#f3f4f6 !important; cursor:not-allowed; }
 

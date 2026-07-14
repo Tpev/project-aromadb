@@ -261,6 +261,23 @@ class StripePurchaseWebhookService
             'completed_at' => $paid ? Carbon::now() : null,
         ]);
 
+        if ($paid) {
+            $providerReference = !empty($session->payment_intent)
+                ? (is_object($session->payment_intent)
+                    ? (string) ($session->payment_intent->id ?? '')
+                    : (string) $session->payment_intent)
+                : (string) ($session->id ?? '');
+
+            $this->purchaseInvoicingService->registerInstallmentPayment(
+                $purchase->fresh(),
+                (int) ($session->amount_total ?? 0),
+                $providerReference !== '' ? $providerReference : null,
+                null,
+                null,
+                Carbon::now()
+            );
+        }
+
         return true;
     }
 

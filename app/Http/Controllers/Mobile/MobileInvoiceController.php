@@ -12,7 +12,7 @@ class MobileInvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        abort_unless(($invoice->type ?? 'invoice') === 'invoice', 404);
+        abort_unless(in_array($invoice->type ?? 'invoice', ['invoice', 'credit_note'], true), 404);
 
         return $this->documentView($invoice, false);
     }
@@ -34,6 +34,8 @@ class MobileInvoiceController extends Controller
             'items.product',
             'items.inventoryItem',
             'receipts' => fn ($query) => $query->orderBy('encaissement_date')->orderBy('id'),
+            'originalInvoice',
+            'corrections',
         ]);
 
         return view('mobile.invoices.show', [

@@ -12,6 +12,10 @@ class InvoiceItem extends Model
         'inventory_item_id',
         'type',
         'description',
+        'description_snapshot',
+        'service_date',
+        'service_period_start',
+        'service_period_end',
         'quantity',
         'unit_price',
         'tax_rate',
@@ -26,6 +30,31 @@ class InvoiceItem extends Model
 		'label',
     ];
 
+    protected $casts = [
+        'service_date' => 'date',
+        'service_period_start' => 'date',
+        'service_period_end' => 'date',
+    ];
+
+    public function getBillingDescriptionAttribute(): string
+    {
+        return (string) ($this->description_snapshot ?? $this->description ?? '');
+    }
+
+    public function getServiceDateLabelAttribute(): ?string
+    {
+        if ($this->service_date) {
+            return $this->service_date->format('d/m/Y');
+        }
+
+        if ($this->service_period_start && $this->service_period_end) {
+            return 'Du ' . $this->service_period_start->format('d/m/Y')
+                . ' au ' . $this->service_period_end->format('d/m/Y');
+        }
+
+        return null;
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -36,21 +65,31 @@ class InvoiceItem extends Model
         return $this->belongsTo(InventoryItem::class);
     }
 
-public function getNameAttribute()
+public function getNameAttribute(): string
 {
+    if (filled($this->label)) {
+        return (string) $this->label;
+    }
+
+    // Legacy fallback for lines created before labels were snapshotted.
     return match ($this->type) {
         'product' => $this->product?->name ?? '(Produit inconnu)',
-        'inventory' => $this->inventoryItem?->name ?? '(Item inventaire inconnu)',
-        default => $this->label ?: ($this->description ?? '(Sans nom)'),
+        'inventory' => $this->inventoryItem?->name ?? '(Article inconnu)',
+        default => $this->description ?: '(Sans nom)',
     };
 }
 
-    public function getVatRateAttribute()
+    public function getVatRateAttribute(): float
     {
+        if ($this->tax_rate !== null) {
+            return (float) $this->tax_rate;
+        }
+
+        // Legacy fallback for records that predate the stored tax-rate field.
         return match ($this->type) {
-            'product' => $this->product?->tax_rate ?? 0,
-            'inventory' => $this->inventoryItem?->vat_rate_sale ?? 0,
-            default => $this->tax_rate ?? 0,
+            'product' => (float) ($this->product?->tax_rate ?? 0),
+            'inventory' => (float) ($this->inventoryItem?->vat_rate_sale ?? 0),
+            default => 0.0,
         };
     }
 

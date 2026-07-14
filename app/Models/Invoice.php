@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\User;
 use App\Models\ClientProfile;
 use App\Models\CorporateClient;
+use Illuminate\Support\Str;
 
 class Invoice extends Model
 {
@@ -17,6 +18,10 @@ class Invoice extends Model
         'client_profile_id',
         'pack_purchase_id',
         'corporate_client_id',
+        'appointment_id',
+        'original_invoice_id',
+        'correction_kind',
+        'correction_reason',
         'user_id',
         'invoice_date',
         'due_date',
@@ -27,6 +32,8 @@ class Invoice extends Model
         'notes',
         'invoice_number',
     	'sent_at',	// Add this line
+		'finalized_at',
+		'recipient_snapshot',
 		'payment_link', // Add this line
         'last_payment_reminder_sent_at',
         'payment_reminder_count',
@@ -44,6 +51,16 @@ protected $attributes = [
 public function isQuote()
 {
     return $this->type === 'quote';
+}
+
+public function isCreditNote(): bool
+{
+    return $this->type === 'credit_note';
+}
+
+public function isInvoiceDocument(): bool
+{
+    return in_array($this->type ?? 'invoice', ['invoice', 'credit_note'], true);
 }
 
     /**
@@ -74,10 +91,27 @@ public function appointment()
     return $this->belongsTo(Appointment::class);
 }
 
+public function originalInvoice()
+{
+    return $this->belongsTo(self::class, 'original_invoice_id');
+}
+
+public function corrections()
+{
+    return $this->hasMany(self::class, 'original_invoice_id');
+}
+
+public function activityLogs()
+{
+    return $this->hasMany(InvoiceActivityLog::class)->latest();
+}
+
     protected $casts = [
         'invoice_date' => 'date',
         'due_date' => 'date',
         'sent_at' => 'datetime',
+        'finalized_at' => 'datetime',
+        'recipient_snapshot' => 'array',
         'last_payment_reminder_sent_at' => 'datetime',
     ];
 	
@@ -100,6 +134,77 @@ public function getSoldeRestantAttribute(): float
     $ttc = (float) $this->total_amount_with_tax;
     return max(0, $ttc - $this->total_encaisse);
 }	
+
+public function normalizedStatus(): string
+{
+    return Str::lower(Str::ascii(trim((string) $this->status)));
+}
+
+public function hasPositiveNetReceipt(): bool
+{
+    if ($this->relationLoaded('receipts')) {
+        $net = $this->receipts->sum(fn (Receipt $receipt) => $receipt->signed_amount_ttc);
+    } else {
+        $net = (float) $this->receipts()
+            ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount_ttc ELSE -amount_ttc END), 0) AS net")
+            ->value('net');
+    }
+
+    return $net > 0.001;
+}
+
+public function isLockedForEditing(): bool
+{
+    if ($this->isQuote()) {
+        return false;
+    }
+
+    if ($this->isCreditNote() || $this->finalized_at || $this->sent_at) {
+        return true;
+    }
+
+    if (in_array($this->normalizedStatus(), ['payee', 'partiellement payee', 'paid', 'partially paid'], true)) {
+        return true;
+    }
+
+    if ($this->hasPositiveNetReceipt()) {
+        return true;
+    }
+
+    $total = (float) $this->total_amount_with_tax;
+
+    return $total > 0.001 && $this->solde_restant <= 0.001;
+}
+
+public function isEditable(): bool
+{
+    return ! $this->isLockedForEditing();
+}
+
+public function getRecipientDataAttribute(): array
+{
+    return $this->recipient_snapshot
+        ?: app(\App\Services\InvoiceRecipientSnapshotService::class)->current($this);
+}
+
+public function getDocumentLabelAttribute(): string
+{
+    return $this->isCreditNote() ? 'Avoir' : ($this->isQuote() ? 'Devis' : 'Facture');
+}
+
+public function getAppointmentBillingStatusAttribute(): string
+{
+    if ($this->hasPositiveNetReceipt() && $this->solde_restant > 0.001) {
+        return 'Partiellement réglée';
+    }
+
+    if (((float) $this->total_amount_with_tax > 0.001 && $this->solde_restant <= 0.001)
+        || in_array($this->normalizedStatus(), ['payee', 'paid'], true)) {
+        return 'Réglée';
+    }
+
+    return 'En attente de règlement';
+}
 
 public function canSendPaymentReminder(): bool
 {

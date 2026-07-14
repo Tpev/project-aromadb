@@ -337,25 +337,44 @@
                     </button>
                 </x-ts-card>
 
-                {{-- Revenus du mois --}}
-                <x-ts-card class="rounded-3xl shadow-md border border-[#d6c2ba] bg-[#6a3f2c] text-white px-4 py-4">
-                    <button class="w-full text-left"
-                            onclick="window.location='{{ route('mobile.invoices.index', ['filter' => 'current_month']) }}'">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white text-[#6a3f2c] flex items-center justify-center text-xl">
-                                💶
-                            </div>
-                            <div class="space-y-0.5">
-                                <div class="text-2xl font-bold leading-tight">
-                                    {{ number_format($monthlyRevenue, 2, ',', ' ') }} €
-                                </div>
-                                <div class="text-sm opacity-90">
-                                    {{ __('Revenus ce mois') }}
-                                </div>
-                            </div>
-                        </div>
+                <div class="pt-2">
+                    <h2 class="text-base font-semibold text-gray-900">Pilotage financier</h2>
+                    <p class="text-xs text-gray-500">Montants TTC, selon la date réelle du règlement.</p>
+                </div>
+
+                <x-ts-card class="rounded-lg shadow-sm border border-[#dfe5c7] bg-white px-4 py-4">
+                    <button class="w-full text-left" onclick="window.location='{{ route('mobile.receipts.index') }}'">
+                        <div class="text-[11px] font-semibold uppercase text-[#647a0b]" title="Encaissements TTC moins corrections et remboursements du mois.">Encaissements nets ce mois</div>
+                        <div class="mt-1 text-2xl font-bold {{ $financialMetrics['net_received_this_month'] < 0 ? 'text-red-700' : 'text-gray-900' }}">{{ number_format($financialMetrics['net_received_this_month'], 2, ',', ' ') }} €</div>
                     </button>
                 </x-ts-card>
+
+                <x-ts-card class="rounded-lg shadow-sm border border-[#e5d0c7] bg-white px-4 py-4">
+                    <button class="w-full text-left" onclick="window.location='{{ route('mobile.invoices.index', ['filter' => 'current_month']) }}'">
+                        <div class="text-[11px] font-semibold uppercase text-[#854f38]" title="Total TTC des factures émises ce mois, hors devis.">Facturé ce mois</div>
+                        <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($financialMetrics['billed_this_month'], 2, ',', ' ') }} €</div>
+                    </button>
+                </x-ts-card>
+
+                <x-ts-card class="rounded-lg shadow-sm border border-[#ead9c7] bg-white px-4 py-4">
+                    <button class="w-full text-left" onclick="window.location='{{ route('mobile.invoices.index', ['filter' => 'pending']) }}'">
+                        <div class="text-[11px] font-semibold uppercase text-[#9a6a31]" title="Solde TTC restant sur toutes les factures.">À encaisser</div>
+                        <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($financialMetrics['outstanding'], 2, ',', ' ') }} €</div>
+                    </button>
+                </x-ts-card>
+
+                <x-ts-card class="rounded-lg shadow-sm border border-[#ead0d0] bg-white px-4 py-4">
+                    <button class="w-full text-left" onclick="window.location='{{ route('mobile.receipts.index') }}'">
+                        <div class="text-[11px] font-semibold uppercase text-[#9b3a3a]" title="Contre-passations et remboursements TTC du mois.">Corrections et remboursements</div>
+                        <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($financialMetrics['corrections_and_refunds'], 2, ',', ' ') }} €</div>
+                    </button>
+                </x-ts-card>
+
+                @if($financialMetrics['legacy_paid_without_receipt_count'] > 0)
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                        {{ $financialMetrics['legacy_paid_without_receipt_count'] }} facture(s) ancienne(s) payée(s) sans écriture d'encaissement restent intactes et sont exclues des encaissements.
+                    </div>
+                @endif
             </div>
 
             {{-- ===================================================== --}}
@@ -373,7 +392,7 @@
 
                 <x-ts-card class="rounded-3xl bg-white shadow border px-4 py-4">
                     <h3 class="text-sm font-semibold text-[#854f38] mb-2">
-                        {{ __('Revenus mensuels') }}
+                        {{ __('Facturation et encaissements') }}
                     </h3>
                     <div class="h-48">
                         <canvas id="revenueChart" class="w-full h-full"></canvas>
@@ -511,7 +530,8 @@
         document.addEventListener('DOMContentLoaded', function () {
 
             const appointmentsData = @json(array_values($appointmentsPerMonth)).map(Number);
-            const revenueData      = @json(array_values($monthlyRevenueData)).map(Number);
+            const receivedData     = @json(array_values($monthlyRevenueData)).map(Number);
+            const billedData       = @json(array_values($monthlyBilledData)).map(Number);
             const monthLabels      = @json(array_values($months));
 
             // Rendez-vous par mois
@@ -557,7 +577,7 @@
                 });
             }
 
-            // Revenus mensuels
+            // Facturation et encaissements mensuels
             const ctxRevenue = document.getElementById('revenueChart')?.getContext('2d');
             if (ctxRevenue) {
                 new Chart(ctxRevenue, {
@@ -565,17 +585,27 @@
                     data: {
                         labels: monthLabels,
                         datasets: [{
-                            label: '{{ __("Revenus (€)") }}',
-                            data: revenueData,
-                            backgroundColor: 'rgba(133, 79, 56, 0.2)',
-                            borderColor: 'rgba(133, 79, 56, 1)',
+                            label: '{{ __("Encaissements nets TTC") }}',
+                            data: receivedData,
+                            backgroundColor: 'rgba(100, 122, 11, 0.12)',
+                            borderColor: 'rgba(100, 122, 11, 1)',
                             borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: 'rgba(133, 79, 56, 1)',
+                            fill: false,
+                            tension: 0.3,
+                            pointBackgroundColor: 'rgba(100, 122, 11, 1)',
                             pointBorderColor: '#fff',
                             pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(133, 79, 56, 1)'
+                            pointHoverBorderColor: 'rgba(100, 122, 11, 1)'
+                        }, {
+                            label: '{{ __("Facturé TTC") }}',
+                            data: billedData,
+                            backgroundColor: 'rgba(133, 79, 56, 0.10)',
+                            borderColor: 'rgba(133, 79, 56, 1)',
+                            borderWidth: 2,
+                            borderDash: [6, 4],
+                            fill: false,
+                            tension: 0.3,
+                            pointBackgroundColor: 'rgba(133, 79, 56, 1)'
                         }]
                     },
                     options: {
@@ -583,7 +613,7 @@
                         maintainAspectRatio: false,
                         scales: {
                             y: {
-                                beginAtZero: true,
+                                beginAtZero: false,
                                 ticks: {
                                     callback: function (value) {
                                         return value + '€';
@@ -592,14 +622,14 @@
                             }
                         },
                         plugins: {
-                            legend: { display: false },
+                            legend: { display: true, position: 'bottom' },
                             tooltip: {
                                 backgroundColor: 'rgba(0,0,0,0.7)',
                                 titleColor: '#fff',
                                 bodyColor: '#fff',
                                 callbacks: {
                                     label: function (context) {
-                                        return context.parsed.y + ' €';
+                                        return context.dataset.label + ' : ' + context.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
                                     }
                                 }
                             }

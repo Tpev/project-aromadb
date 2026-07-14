@@ -47,7 +47,7 @@ public function view($user, Invoice $invoice)
      */
     public function update(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id; // Only allow the owner to update the invoice
+        return $invoice->user_id === $user->id && $invoice->isEditable();
     }
 
     /**
@@ -55,7 +55,7 @@ public function view($user, Invoice $invoice)
      */
     public function delete(User $user, Invoice $invoice)
     {
-        return $invoice->user_id === $user->id; // Only allow the owner to delete the invoice
+        return $invoice->user_id === $user->id && $invoice->isEditable();
     }
 
     /**

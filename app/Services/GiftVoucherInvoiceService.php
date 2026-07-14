@@ -20,12 +20,23 @@ class GiftVoucherInvoiceService
             return null;
         }
 
+        $providerReference = 'sale:' . $voucher->id;
+        $existingReceipt = Receipt::where('user_id', $therapist->id)
+            ->where('provider', 'gift_voucher')
+            ->where('provider_reference', $providerReference)
+            ->with('invoice')
+            ->first();
+
+        if ($existingReceipt?->invoice) {
+            return $existingReceipt->invoice;
+        }
+
         $client = $this->resolveBuyerClientProfile($voucher);
         if (! $client) {
             return null;
         }
 
-        return DB::transaction(function () use ($voucher, $therapist, $client, $paymentMethod, $note) {
+        return DB::transaction(function () use ($voucher, $therapist, $client, $paymentMethod, $note, $providerReference) {
             $lastInvoice = Invoice::where('user_id', $therapist->id)
                 ->lockForUpdate()
                 ->orderBy('invoice_number', 'desc')
@@ -43,7 +54,7 @@ class GiftVoucherInvoiceService
                 'total_amount' => $amountHt,
                 'total_tax_amount' => 0,
                 'total_amount_with_tax' => $amountHt,
-                'status' => 'Payée',
+                'status' => 'En attente',
                 'notes' => $note,
                 'invoice_number' => $nextInvoiceNumber,
                 'type' => 'invoice',
@@ -61,20 +72,23 @@ class GiftVoucherInvoiceService
                 'total_price_with_tax' => $amountHt,
             ]);
 
-            Receipt::create([
-                'user_id' => $therapist->id,
-                'invoice_id' => $invoice->id,
-                'invoice_number' => (string) $invoice->invoice_number,
-                'encaissement_date' => now()->toDateString(),
-                'client_name' => trim($client->first_name . ' ' . $client->last_name),
-                'nature' => 'service',
-                'amount_ht' => $amountHt,
-                'amount_ttc' => $amountHt,
-                'payment_method' => $this->normalizePaymentMethod($paymentMethod),
-                'direction' => 'credit',
-                'source' => 'manual',
-                'note' => 'Paiement bon cadeau ' . $voucher->code,
-            ]);
+            app(InvoiceActivityService::class)->record(
+                $invoice,
+                'created',
+                'Facture créée depuis la vente d’un bon cadeau.',
+                metadata: ['gift_voucher_id' => $voucher->id]
+            );
+
+            app(ReceiptRecordingService::class)->recordInvoicePayment(
+                $invoice,
+                $amountHt,
+                now()->toDateString(),
+                $this->normalizePaymentMethod($paymentMethod),
+                'manual',
+                'Paiement bon cadeau ' . $voucher->code,
+                'gift_voucher',
+                $providerReference
+            );
 
             return $invoice;
         });
@@ -127,4 +141,3 @@ class GiftVoucherInvoiceService
             : 'other';
     }
 }
-

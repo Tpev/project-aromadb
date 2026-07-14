@@ -198,6 +198,50 @@
                 </div>
             </div>
 
+            @unless($appointment->external)
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h2 class="details-subtitle">Suivi de la séance</h2>
+                        <div class="d-flex flex-wrap align-items-start gap-3">
+                            @include('appointments.partials.tracking-status', ['appointment' => $appointment])
+                            <div class="d-flex flex-wrap gap-2">
+                                @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
+                            </div>
+                        </div>
+
+                        @if($appointment->billingInvoices->isEmpty() && $availableInvoices->isNotEmpty())
+                            <form action="{{ route('appointments.invoices.associate', $appointment) }}" method="POST" class="mt-3 d-flex flex-wrap gap-2 align-items-end">
+                                @csrf
+                                <div>
+                                    <label for="invoice_id" class="details-label">Associer une facture existante</label>
+                                    <select name="invoice_id" id="invoice_id" class="form-control" required>
+                                        <option value="">Sélectionner une facture</option>
+                                        @foreach($availableInvoices as $availableInvoice)
+                                            <option value="{{ $availableInvoice->id }}">
+                                                Facture n°{{ $availableInvoice->invoice_number }} · {{ $availableInvoice->invoice_date->format('d/m/Y') }} · {{ number_format($availableInvoice->total_amount_with_tax, 2, ',', ' ') }} €
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn-secondary">Associer</button>
+                            </form>
+                        @endif
+
+                        @if($appointment->billingInvoices->isNotEmpty())
+                            <a href="{{ route('invoices.create', [
+                                    'client_id' => $appointment->client_profile_id,
+                                    'product_id' => $appointment->product_id,
+                                    'appointment_id' => $appointment->id,
+                                    'allow_additional_invoice' => 1,
+                                ]) }}" class="small text-muted d-inline-block mt-3"
+                               onclick="return confirm('Créer exceptionnellement une autre facture pour ce rendez-vous ? Le motif sera obligatoire.');">
+                                Créer exceptionnellement une autre facture
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endunless
+
             <!-- Action Buttons -->
             <div class="row mt-4">
                 <div class="col-md-12">
@@ -218,17 +262,6 @@
                                 </button>
                             </form>
                         @endif
-						{{-- Facturer (pré-remplit la facture comme sur l'index) --}}
-@if($appointment->client_profile_id && $appointment->product_id)
-    <a href="{{ route('invoices.create', [
-        'client_id'  => $appointment->client_profile_id,
-        'product_id' => $appointment->product_id,
-    ]) }}"
-       class="btn-primary">
-        <i class="fas fa-file-invoice-dollar"></i> {{ __('Facturer') }}
-    </a>
-@endif
-
                         <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST" style="display: inline-block;">
                             @csrf
                             @method('DELETE')

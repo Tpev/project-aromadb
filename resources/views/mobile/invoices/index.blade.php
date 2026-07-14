@@ -179,20 +179,22 @@
                             };
 
                             $sent = !is_null($invoice->sent_at);
+                            $recipient = $invoice->recipient_data;
+                            $recipientName = $recipient['client_name'] ?: $recipient['company_name'] ?: 'Client';
                         @endphp
 
                         <a href="{{ route('mobile.invoices.show', $invoice) }}"
                            class="block rounded-2xl border border-[#e4e8d5] bg-white/95 px-3.5 py-3 text-[11px] shadow-sm active:scale-[0.99] transition-transform"
                            data-type="invoice"
-                           data-client="{{ strtolower($invoice->clientProfile->first_name . ' ' . $invoice->clientProfile->last_name) }}"
+                           data-client="{{ strtolower($recipientName) }}"
                            data-status="{{ strtolower($status) }}"
                            data-number="{{ strtolower($invoice->invoice_number) }}">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="min-w-0">
                                     <p class="text-[11px] font-semibold text-gray-900 truncate">
-                                        #{{ $invoice->invoice_number }}
+                                        {{ $invoice->document_label }} #{{ $invoice->invoice_number }}
                                         <span class="text-gray-400 ml-1.5">
-                                            • {{ $invoice->clientProfile->first_name }} {{ $invoice->clientProfile->last_name }}
+                                            • {{ $recipientName }}
                                         </span>
                                     </p>
 

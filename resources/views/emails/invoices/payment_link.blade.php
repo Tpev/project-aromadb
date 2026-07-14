@@ -11,10 +11,14 @@ Payer la Facture
 
 **Détails de la Facture:**
 
-| Description | Quantité | Prix unitaire TTC | Total TTC |
-| ----------- | -------- | ----------------- | --------- |
+| Prestation | Description et date | Quantité | Prix unitaire TTC | Total TTC |
+| ---------- | ------------------- | -------- | ----------------- | --------- |
 @foreach($invoice->items as $item)
-| {{ $item->name }} | {{ rtrim(rtrim(number_format($item->quantity, 2, ',', ' '), '0'), ',') }} | {{ number_format($item->unit_price_ttc, 2, ',', ' ') }} € | {{ number_format($item->total_price_with_tax, 2, ',', ' ') }} € |
+@php
+    $emailLineName = str_replace('|', '\|', preg_replace('/\s+/u', ' ', trim((string) $item->name)));
+    $emailLineDescription = str_replace('|', '\|', preg_replace('/\s+/u', ' ', trim($item->billing_description))) ?: '—';
+@endphp
+| {{ $emailLineName }} | {{ $emailLineDescription }}{{ $item->service_date_label ? ' - Prestation : '.$item->service_date_label : '' }} | {{ rtrim(rtrim(number_format($item->quantity, 2, ',', ' '), '0'), ',') }} | {{ number_format($item->unit_price_ttc, 2, ',', ' ') }} € | {{ number_format($item->total_price_with_tax, 2, ',', ' ') }} € |
 @endforeach
 
 **Date d'émission :** {{ optional($invoice->invoice_date)->format('d/m/Y') }}

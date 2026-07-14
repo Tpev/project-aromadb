@@ -6,6 +6,8 @@ use App\Models\Receipt;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Models\Invoice;
+use App\Services\ReceiptRecordingService;
 
 class ReceiptController extends Controller
 {
@@ -229,6 +231,13 @@ class ReceiptController extends Controller
             'reversal_of_id'    => $receipt->id,
             'locked_at'         => now(),
         ]);
+
+        if ($receipt->invoice_id) {
+            $invoice = Invoice::where('user_id', Auth::id())->find($receipt->invoice_id);
+            if ($invoice) {
+                app(ReceiptRecordingService::class)->synchronizeInvoiceStatus($invoice);
+            }
+        }
 
         return back()->with('success', 'Contre-passation enregistrée.');
     }

@@ -10,9 +10,11 @@ use Stripe\Exception\SignatureVerificationException;
 use Stripe\StripeClient;
 use App\Models\User;
 use App\Models\Invoice;
+use App\Models\Appointment;
 use App\Notifications\InvoicePaid;
 use App\Services\StripeFinanceSyncService;
 use App\Services\StripePurchaseWebhookService;
+use App\Services\ReceiptRecordingService;
 
 class StripeWebhookController extends Controller
 {
@@ -39,6 +41,10 @@ class StripeWebhookController extends Controller
             // Invalid payload
             Log::error('Stripe Webhook Invalid Payload: ' . $e->getMessage());
             return response()->json(['error' => 'Invalid payload'], 400);
+        }
+
+        if ($connectedAccountId === '' && !empty($event->account)) {
+            $connectedAccountId = (string) $event->account;
         }
 
         try {
@@ -210,6 +216,45 @@ class StripeWebhookController extends Controller
 	
     protected function handleCheckoutSessionCompleted($session, ?string $connectedAccountId = null)
     {
+        if (($session->payment_status ?? null) !== 'paid') {
+            Log::info("Checkout Session {$session->id} ignored because it is not paid.");
+            return;
+        }
+
+        $appointmentId = $session->metadata->appointment_id ?? null;
+        if ($appointmentId) {
+            $appointment = Appointment::with('user')->find($appointmentId);
+
+            if (!$appointment) {
+                Log::warning("No appointment found with ID {$appointmentId} for Checkout Session {$session->id}.");
+                return;
+            }
+
+            if ($connectedAccountId && $appointment->user?->stripe_account_id
+                && !hash_equals((string) $appointment->user->stripe_account_id, $connectedAccountId)) {
+                Log::warning('Appointment Stripe webhook account mismatch.', [
+                    'appointment_id' => $appointment->id,
+                    'connected_account_id' => $connectedAccountId,
+                ]);
+                return;
+            }
+
+            $metadata = is_object($session->metadata) && method_exists($session->metadata, 'toArray')
+                ? $session->metadata->toArray()
+                : (is_object($session->metadata) ? get_object_vars($session->metadata) : (array) $session->metadata);
+            $providerReference = is_object($session->payment_intent ?? null)
+                ? (string) ($session->payment_intent->id ?? '')
+                : (string) ($session->payment_intent ?? $session->id);
+
+            app(AppointmentController::class)->finalizeStripeAppointmentPayment(
+                $appointment,
+                $metadata,
+                (int) ($session->amount_total ?? 0),
+                $providerReference
+            );
+            return;
+        }
+
         // Ensure that the session has the necessary metadata
         if (!isset($session->metadata->invoice_id)) {
             Log::warning("Checkout Session {$session->id} does not contain an invoice_id in metadata.");
@@ -226,12 +271,38 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        // Update the invoice status to 'Payée'
-        $invoice->status = 'Payée';
-        $invoice->save();
-
         $therapist = $invoice->user;
-        if ($therapist) {
+        if ($connectedAccountId && $therapist?->stripe_account_id
+            && !hash_equals((string) $therapist->stripe_account_id, $connectedAccountId)) {
+            Log::error("Checkout Session {$session->id} came from a different connected account.", [
+                'invoice_id' => $invoice->id,
+                'received_account' => $connectedAccountId,
+            ]);
+            return;
+        }
+
+        $providerReference = is_object($session->payment_intent ?? null)
+            ? (string) ($session->payment_intent->id ?? '')
+            : (string) ($session->payment_intent ?? $session->id);
+        $amountTtc = ((int) ($session->amount_total ?? 0)) / 100;
+
+        if ($amountTtc <= 0) {
+            Log::warning("Checkout Session {$session->id} has no positive paid amount.");
+            return;
+        }
+
+        $receipt = app(ReceiptRecordingService::class)->recordInvoicePayment(
+            $invoice,
+            $amountTtc,
+            now()->toDateString(),
+            'card',
+            'payment',
+            'Paiement Stripe de la facture',
+            'stripe',
+            $providerReference
+        );
+
+        if ($therapist && $receipt->wasRecentlyCreated) {
             try {
                 $therapist->notify(new InvoicePaid($invoice));
             } catch (\Throwable $e) {
