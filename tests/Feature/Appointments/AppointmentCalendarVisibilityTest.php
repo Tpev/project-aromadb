@@ -103,7 +103,7 @@ test('cancelled appointments are visually muted in appointments index lists', fu
         ->assertSee('bg-secondary-subtle text-secondary', false);
 });
 
-test('Google events are hidden by default and can be displayed without deleting them', function () {
+test('Google events are shown in the calendar by default and can be hidden without entering appointment lists', function () {
     $therapist = calendarTherapist(['email' => 'calendar-google-filter@example.test']);
     $product = calendarProduct($therapist);
     $client = calendarClient($therapist, 'Interne', 'Olithea', 'internal@example.test');
@@ -128,14 +128,18 @@ test('Google events are hidden by default and can be displayed without deleting 
     $this->actingAs($therapist)
         ->get(route('appointments.index'))
         ->assertOk()
+        ->assertSee('Afficher les événements Google')
+        ->assertViewHas('showGoogleEvents', true)
+        ->assertViewHas('events', fn (array $events) => collect($events)->pluck('title')->contains('Sport personnel'))
+        ->assertViewHas('appointments', fn ($appointments) => $appointments->every(fn (Appointment $appointment) => ! $appointment->external));
+
+    $this->get(route('appointments.index', ['calendar_source' => 'olithea']))
+        ->assertOk()
+        ->assertViewHas('showGoogleEvents', false)
         ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
 
-    $this->get(route('appointments.index', ['calendar_source' => 'all']))
-        ->assertOk()
-        ->assertViewHas('events', fn (array $events) => collect($events)->pluck('title')->contains('Sport personnel'));
-
     $this->get(route('appointments.index'))
-        ->assertViewHas('showGoogleEvents', true);
+        ->assertViewHas('showGoogleEvents', false);
 
     expect($external->fresh())->not->toBeNull()
         ->and($external->fresh()->external)->toBeTrue();
@@ -146,11 +150,14 @@ test('Google events are hidden by default and can be displayed without deleting 
         ->get(route('mobile.appointments.index'))
         ->assertOk()
         ->assertViewIs('mobile.appointments.index')
-        ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
-
-    $this->get(route('mobile.appointments.index', ['calendar_source' => 'all']))
-        ->assertOk()
+        ->assertSee('Événements Google')
+        ->assertViewHas('showGoogleEvents', true)
         ->assertViewHas('events', fn (array $events) => collect($events)->pluck('title')->contains('Sport personnel'));
+
+    $this->get(route('mobile.appointments.index', ['calendar_source' => 'olithea']))
+        ->assertOk()
+        ->assertViewHas('showGoogleEvents', false)
+        ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
 });
 
 test('a hidden Google event still blocks its public booking slot', function () {
@@ -183,7 +190,7 @@ test('a hidden Google event still blocks its public booking slot', function () {
     ]);
 
     $this->actingAs($therapist)
-        ->get(route('appointments.index'))
+        ->get(route('appointments.index', ['calendar_source' => 'olithea']))
         ->assertViewHas('events', fn (array $events) => ! collect($events)->pluck('title')->contains('Sport personnel'));
 
     $response = $this->post(route('appointments.available-slots-patient'), [

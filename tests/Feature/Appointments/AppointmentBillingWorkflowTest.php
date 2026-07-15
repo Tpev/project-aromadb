@@ -220,6 +220,13 @@ test('legacy appointments with multiple invoices are visible on desktop and mobi
     expect($context['appointment']->fresh()->billing_tracking_label)->toBe('Plusieurs factures');
 
     $this->actingAs($context['user'])
+        ->get(route('appointments.index'))
+        ->assertOk()
+        ->assertSee('appointment-status-stack', false)
+        ->assertSee('appointment-status-pill', false)
+        ->assertSee('Plusieurs factures');
+
+    $this
         ->get(route('appointments.show', $context['appointment']))
         ->assertOk()
         ->assertSee('Plusieurs factures')

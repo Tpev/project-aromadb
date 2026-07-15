@@ -47,16 +47,27 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-2 gap-1 rounded-lg border border-[#e4e8d5] bg-white p-1 text-[11px] font-medium">
-            <a href="{{ route('mobile.appointments.index', ['calendar_source' => 'olithea']) }}"
-               class="rounded-md px-2 py-2 text-center {{ $calendarSource === 'olithea' ? 'bg-[#647a0b] text-white' : 'text-gray-600' }}">
-                Rendez-vous Olithea
-            </a>
-            <a href="{{ route('mobile.appointments.index', ['calendar_source' => 'all']) }}"
-               class="rounded-md px-2 py-2 text-center {{ $calendarSource === 'all' ? 'bg-[#647a0b] text-white' : 'text-gray-600' }}">
-                Avec Google
-            </a>
-        </div>
+        <form action="{{ route('mobile.appointments.index') }}" method="GET">
+            @if(request()->filled('filter'))
+                <input type="hidden" name="filter" value="{{ request('filter') }}">
+            @endif
+            <input type="hidden" name="calendar_source" id="mobile-calendar-source" value="{{ $showGoogleEvents ? 'all' : 'olithea' }}">
+            <label for="mobile-google-events-toggle" class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-[#e4e8d5] bg-white px-3 py-2.5">
+                <span class="min-w-0">
+                    <span class="block text-xs font-semibold text-gray-800">Événements Google</span>
+                    <span class="block text-[10px] text-gray-500">{{ $showGoogleEvents ? 'Affichés dans le calendrier' : 'Masqués du calendrier' }}</span>
+                </span>
+                <span class="relative inline-flex h-6 w-11 shrink-0 rounded-full transition {{ $showGoogleEvents ? 'bg-[#647a0b]' : 'bg-gray-300' }}">
+                    <input type="checkbox"
+                           id="mobile-google-events-toggle"
+                           class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                           @checked($showGoogleEvents)
+                           aria-label="Afficher les événements Google dans le calendrier"
+                           onchange="document.getElementById('mobile-calendar-source').value = this.checked ? 'all' : 'olithea'; this.form.submit();">
+                    <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition {{ $showGoogleEvents ? 'translate-x-5' : 'translate-x-0.5' }}"></span>
+                </span>
+            </label>
+        </form>
 
         {{-- Quick stats --}}
         <div class="grid grid-cols-3 gap-2 text-center text-xs">

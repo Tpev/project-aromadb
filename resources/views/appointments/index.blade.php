@@ -121,20 +121,23 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-center mt-3" role="group" aria-label="Éléments affichés dans l'agenda">
-    <div class="d-inline-flex rounded-pill border p-1 bg-white">
-        <a href="{{ route('appointments.index', ['calendar_source' => 'olithea']) }}"
-           class="px-3 py-2 rounded-pill text-decoration-none small fw-semibold {{ $calendarSource === 'olithea' ? 'text-white' : 'text-secondary' }}"
-           style="{{ $calendarSource === 'olithea' ? 'background:#647a0b;' : '' }}">
-            Rendez-vous Olithea
-        </a>
-        <a href="{{ route('appointments.index', ['calendar_source' => 'all']) }}"
-           class="px-3 py-2 rounded-pill text-decoration-none small fw-semibold {{ $calendarSource === 'all' ? 'text-white' : 'text-secondary' }}"
-           style="{{ $calendarSource === 'all' ? 'background:#647a0b;' : '' }}">
-            Avec les événements Google
-        </a>
-    </div>
-</div>
+<form action="{{ route('appointments.index') }}" method="GET" class="google-events-toggle-form mt-3">
+    <input type="hidden" name="calendar_source" id="desktop-calendar-source" value="{{ $showGoogleEvents ? 'all' : 'olithea' }}">
+    <label for="desktop-google-events-toggle" class="google-events-toggle">
+        <span class="google-events-toggle-copy">
+            <span class="google-events-toggle-title">Afficher les événements Google</span>
+            <span class="google-events-toggle-state">{{ $showGoogleEvents ? 'Affichés dans le calendrier' : 'Masqués du calendrier' }}</span>
+        </span>
+        <span class="google-events-switch">
+            <input type="checkbox"
+                   id="desktop-google-events-toggle"
+                   @checked($showGoogleEvents)
+                   aria-label="Afficher les événements Google dans le calendrier"
+                   onchange="document.getElementById('desktop-calendar-source').value = this.checked ? 'all' : 'olithea'; this.form.submit();">
+            <span class="google-events-switch-track" aria-hidden="true"></span>
+        </span>
+    </label>
+</form>
 
             </div>
         </div>
@@ -190,11 +193,11 @@
                                         Produit
                                         <i class="fas fa-sort ms-1"></i>
                                     </th>
-                                    <th onclick="sortTable('upcomingTable', 4)">
+                                    <th class="appointment-status-column" onclick="sortTable('upcomingTable', 4)">
                                         Statut
                                         <i class="fas fa-sort ms-1"></i>
                                     </th>
-                                    <th>
+                                    <th class="appointment-actions-column">
                                         Actions
                                     </th>
                                 </tr>
@@ -244,13 +247,13 @@
                                         </td>
 
                                         {{-- Statut --}}
-                                        <td>
+                                        <td class="appointment-status-column">
                                             @include('appointments.partials.tracking-status', ['appointment' => $appointment])
                                         </td>
                                         {{-- Actions (masquées pour external) --}}
-                                        <td>
+                                        <td class="appointment-actions-column">
                                             @unless($appointment->external)
-                                                <div class="d-flex justify-content-center flex-wrap gap-2">
+                                                <div class="appointment-actions-stack d-flex flex-column align-items-center gap-2">
                                                     @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
 
                                                     {{-- Marquer comme complété --}}
@@ -320,11 +323,11 @@
                                         Produit
                                         <i class="fas fa-sort ms-1"></i>
                                     </th>
-                                    <th onclick="sortTable('pastTable', 4)">
+                                    <th class="appointment-status-column" onclick="sortTable('pastTable', 4)">
                                         Statut
                                         <i class="fas fa-sort ms-1"></i>
                                     </th>
-                                    <th>
+                                    <th class="appointment-actions-column">
                                         Actions
                                     </th>
                                 </tr>
@@ -373,13 +376,13 @@
                                             {{ $appointment->product->name ?? '—' }}
                                         </td>
 
-                                        <td>
+                                        <td class="appointment-status-column">
                                             @include('appointments.partials.tracking-status', ['appointment' => $appointment])
                                         </td>
                                         {{-- Actions (masquées pour external) --}}
-                                        <td>
+                                        <td class="appointment-actions-column">
                                             @unless($appointment->external)
-                                                <div class="d-flex justify-content-center flex-wrap gap-2">
+                                                <div class="appointment-actions-stack d-flex flex-column align-items-center gap-2">
                                                     @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
 
                                                     {{-- Marquer comme complété (au cas où oublié) --}}
@@ -567,6 +570,91 @@
             max-width: 280px;
         }
 
+        .google-events-toggle-form {
+            display: flex;
+            justify-content: center;
+        }
+
+        .google-events-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 310px;
+            padding: 10px 12px 10px 16px;
+            border: 1px solid #dfe5c9;
+            border-radius: 8px;
+            background: #ffffff;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .google-events-toggle-copy {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .google-events-toggle-title {
+            color: #26321f;
+            font-size: 0.86rem;
+            font-weight: 600;
+        }
+
+        .google-events-toggle-state {
+            color: #6b7280;
+            font-size: 0.72rem;
+        }
+
+        .google-events-switch {
+            position: relative;
+            display: inline-flex;
+            flex: 0 0 auto;
+        }
+
+        .google-events-switch input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+        }
+
+        .google-events-switch-track {
+            position: relative;
+            display: block;
+            width: 44px;
+            height: 24px;
+            border-radius: 999px;
+            background: #cbd0c1;
+            transition: background-color 0.2s ease;
+        }
+
+        .google-events-switch-track::after {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            content: '';
+            transition: transform 0.2s ease;
+        }
+
+        .google-events-switch input:checked + .google-events-switch-track {
+            background: #647a0b;
+        }
+
+        .google-events-switch input:checked + .google-events-switch-track::after {
+            transform: translateX(20px);
+        }
+
+        .google-events-switch input:focus-visible + .google-events-switch-track {
+            outline: 3px solid rgba(100, 122, 11, 0.25);
+            outline-offset: 2px;
+        }
+
         .btn-primary {
             background-color: #647a0b;
             border-color: #647a0b;
@@ -651,6 +739,59 @@
             border-top: none !important;
         }
 
+        .appointment-table .appointment-status-column {
+            width: 220px;
+            min-width: 220px;
+            padding-right: 0.75rem;
+            padding-left: 0.75rem;
+        }
+
+        .appointment-table .appointment-actions-column {
+            width: 210px;
+            min-width: 210px;
+            padding-right: 0.75rem;
+            padding-left: 0.75rem;
+        }
+
+        .appointment-status-stack {
+            display: grid !important;
+            width: 190px;
+            margin: 0 auto;
+            gap: 6px !important;
+            align-items: stretch !important;
+        }
+
+        .appointment-status-pill {
+            box-sizing: border-box;
+            display: flex !important;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            min-height: 28px;
+            padding: 5px 9px !important;
+            border: 1px solid transparent;
+            border-radius: 999px !important;
+            font-size: 0.76rem;
+            font-weight: 600;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .appointment-status-pill i {
+            width: 15px;
+            flex: 0 0 15px;
+            text-align: center;
+        }
+
+        .appointment-status-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .appointment-actions-stack {
+            min-width: 180px;
+        }
+
         .am-row-clickable {
             cursor: pointer;
         }
@@ -718,6 +859,9 @@
         }
         .bg-secondary-subtle {
             background-color: #f3f4f6 !important;
+        }
+        .bg-danger-subtle {
+            background-color: #fdecec !important;
         }
 
         .gap-2 {

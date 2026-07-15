@@ -69,11 +69,14 @@ class AppointmentController extends Controller
         $request->session()->put('appointments.calendar_source', $request->input('calendar_source'));
     }
 
-    $calendarSource = $request->session()->get('appointments.calendar_source', 'olithea');
+    $calendarSource = $request->session()->get('appointments.calendar_source', 'all');
     $showGoogleEvents = $calendarSource === 'all';
-    $displayAppointments = $showGoogleEvents
+    $listAppointments = $allAppointments
+        ->reject(fn (Appointment $appointment) => $appointment->external)
+        ->values();
+    $calendarAppointments = $showGoogleEvents
         ? $allAppointments
-        : $allAppointments->reject(fn (Appointment $appointment) => $appointment->external)->values();
+        : $listAppointments;
 
     $events = [];
 
@@ -83,7 +86,7 @@ class AppointmentController extends Controller
     /* -------------------------------------------------------------------------
      | Construction du tableau $events pour FullCalendar
      | ---------------------------------------------------------------------- */
-    foreach ($displayAppointments as $appointment) {
+    foreach ($calendarAppointments as $appointment) {
         if ($appointment->isCancelled()) {
             continue;
         }
@@ -124,19 +127,19 @@ class AppointmentController extends Controller
      | ---------------------------------------------------------------------- */
 
     // RDV à venir : date >= maintenant, triés du plus proche au plus lointain
-    $rendezVousAVenir = $displayAppointments
+    $rendezVousAVenir = $listAppointments
         ->filter(fn ($a) => $a->appointment_date >= $now)
         ->sortBy('appointment_date')
         ->values();
 
     // RDV passés : date < maintenant, triés du plus récent au plus ancien
-    $rendezVousPasses = $displayAppointments
+    $rendezVousPasses = $listAppointments
         ->filter(fn ($a) => $a->appointment_date < $now)
         ->sortByDesc('appointment_date')
         ->values();
 
     // Pour compatibilité si tu utilisais déjà $appointments dans la vue
-    $appointments = $displayAppointments;
+    $appointments = $listAppointments;
 
     // 4. Indisponibilités
     $unavailabilities = Unavailability::where('user_id', Auth::id())
