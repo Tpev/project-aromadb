@@ -12,7 +12,14 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public int $tries = 5;
+
     public Appointment $appointment;
+
+    public function backoff(): array
+    {
+        return [60, 300, 900, 1800];
+    }
 
     public function __construct(Appointment $appointment)
     {

@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
 use App\Models\ClientProfile;
 use App\Policies\ClientProfilePolicy;
@@ -37,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
 		 Carbon::setLocale('fr');
+		  // Queue workers are long-lived: close any cached SMTP transport between jobs.
+		  Queue::looping(static function (): void {
+		      Mail::purge();
+		  });
 		  \Illuminate\Support\Facades\Gate::policy(ClientProfile::class, ClientProfilePolicy::class);
           \Illuminate\Support\Facades\Gate::policy(OfferJourney::class, OfferJourneyPolicy::class);
           \Illuminate\Support\Facades\Gate::policy(OfferJourneyContact::class, OfferJourneyContactPolicy::class);
