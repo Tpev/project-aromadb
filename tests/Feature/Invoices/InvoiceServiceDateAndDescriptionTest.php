@@ -78,6 +78,48 @@ test('manual description overrides the catalog snapshot', function () {
     expect($item->billing_description)->toBe('Libellé choisi par le praticien');
 });
 
+test('current invoice form can keep a catalog product description empty', function () {
+    $context = serviceDateContext();
+    $payload = serviceDatePayload($context);
+    $payload['autofill_product_descriptions'] = 0;
+
+    $this->actingAs($context['user'])->post(route('invoices.store'), $payload);
+
+    $item = Invoice::where('user_id', $context['user']->id)->latest('id')->firstOrFail()->items()->firstOrFail();
+
+    expect($item->description)->toBe('')
+        ->and($item->description_snapshot)->toBeNull()
+        ->and($item->billing_description)->toBe('');
+});
+
+test('a practitioner can clear an existing product description on a draft invoice', function () {
+    $context = serviceDateContext();
+
+    $this->actingAs($context['user'])->post(route('invoices.store'), serviceDatePayload($context));
+    $invoice = Invoice::where('user_id', $context['user']->id)->latest('id')->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->put(route('invoices.update', $invoice), [
+            'client_profile_id' => $context['client']->id,
+            'invoice_date' => now()->toDateString(),
+            'autofill_product_descriptions' => 0,
+            'items' => [[
+                'type' => 'product',
+                'product_id' => $context['product']->id,
+                'description' => '',
+                'quantity' => 1,
+                'unit_price' => 90,
+                'tax_rate' => 0,
+                'service_date' => '2026-07-14',
+            ]],
+        ])
+        ->assertRedirect(route('invoices.show', $invoice));
+
+    $item = $invoice->fresh()->items()->firstOrFail();
+    expect($item->description)->toBe('')
+        ->and($item->description_snapshot)->toBeNull();
+});
+
 test('single service date and service period are mutually exclusive', function () {
     $context = serviceDateContext();
     $payload = serviceDatePayload($context, [
@@ -116,6 +158,117 @@ test('appointment invoice entry point validates ownership and prefills service d
     $this->actingAs($otherUser)
         ->get(route('invoices.create', ['appointment_id' => $appointment->id]))
         ->assertNotFound();
+});
+
+test('appointment invoice lines can replace the original appointment product', function () {
+    $context = serviceDateContext();
+    $replacement = Product::create([
+        'user_id' => $context['user']->id,
+        'name' => 'Prestation complémentaire',
+        'description' => 'Description qui reste facultative',
+        'price' => 35,
+        'tax_rate' => 0,
+        'duration' => 30,
+        'dans_le_cabinet' => true,
+    ]);
+    $appointment = Appointment::create([
+        'user_id' => $context['user']->id,
+        'client_profile_id' => $context['client']->id,
+        'product_id' => $context['product']->id,
+        'appointment_date' => '2026-07-20 10:00:00',
+        'duration' => 60,
+        'status' => 'Confirmé',
+        'type' => 'cabinet',
+    ]);
+
+    $response = $this->actingAs($context['user'])->post(route('invoices.store'), [
+        'client_profile_id' => $context['client']->id,
+        'appointment_id' => $appointment->id,
+        'invoice_date' => now()->toDateString(),
+        'autofill_product_descriptions' => 0,
+        'items' => [[
+            'type' => 'product',
+            'product_id' => $replacement->id,
+            'description' => '',
+            'quantity' => 1,
+            'unit_price' => 35,
+            'tax_rate' => 0,
+        ]],
+    ]);
+
+    $invoice = Invoice::where('appointment_id', $appointment->id)->firstOrFail();
+    $response->assertRedirect(route('invoices.show', $invoice));
+    expect($invoice->items)->toHaveCount(1)
+        ->and($invoice->items->first()->product_id)->toBe($replacement->id)
+        ->and($invoice->items->first()->billing_description)->toBe('');
+});
+
+test('a draft appointment invoice can remove its original product and add new lines', function () {
+    $context = serviceDateContext();
+    $replacement = Product::create([
+        'user_id' => $context['user']->id,
+        'name' => 'Prestation de remplacement',
+        'description' => null,
+        'price' => 45,
+        'tax_rate' => 0,
+        'duration' => 30,
+        'dans_le_cabinet' => true,
+    ]);
+    $additional = Product::create([
+        'user_id' => $context['user']->id,
+        'name' => 'Prestation ajoutee',
+        'description' => null,
+        'price' => 25,
+        'tax_rate' => 0,
+        'duration' => 15,
+        'dans_le_cabinet' => true,
+    ]);
+    $appointment = Appointment::create([
+        'user_id' => $context['user']->id,
+        'client_profile_id' => $context['client']->id,
+        'product_id' => $context['product']->id,
+        'appointment_date' => '2026-07-22 14:00:00',
+        'duration' => 60,
+        'status' => 'Confirme',
+        'type' => 'cabinet',
+    ]);
+    $createPayload = serviceDatePayload($context);
+    $createPayload['appointment_id'] = $appointment->id;
+
+    $this->actingAs($context['user'])->post(route('invoices.store'), $createPayload);
+    $invoice = Invoice::where('appointment_id', $appointment->id)->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->put(route('invoices.update', $invoice), [
+            'client_profile_id' => $context['client']->id,
+            'appointment_id' => $appointment->id,
+            'invoice_date' => now()->toDateString(),
+            'autofill_product_descriptions' => 0,
+            'items' => [
+                [
+                    'type' => 'product',
+                    'product_id' => $replacement->id,
+                    'description' => '',
+                    'quantity' => 1,
+                    'unit_price' => 45,
+                    'tax_rate' => 0,
+                ],
+                [
+                    'type' => 'product',
+                    'product_id' => $additional->id,
+                    'description' => '',
+                    'quantity' => 2,
+                    'unit_price' => 25,
+                    'tax_rate' => 0,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('invoices.show', $invoice));
+
+    $productIds = $invoice->fresh()->items()->pluck('product_id')->all();
+    expect($productIds)->toHaveCount(2)
+        ->and($productIds)->toContain($replacement->id, $additional->id)
+        ->and($productIds)->not->toContain($context['product']->id);
 });
 
 test('automatic appointment invoice snapshots its service date and is idempotent', function () {

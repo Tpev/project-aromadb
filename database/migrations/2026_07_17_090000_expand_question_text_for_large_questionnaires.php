@@ -1,0 +1,20 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('questions', function (Blueprint $table): void {
+            $table->text('text')->change();
+        });
+    }
+
+    public function down(): void
+    {
+        // Keep TEXT on rollback so existing long questions are never truncated.
+    }
+};

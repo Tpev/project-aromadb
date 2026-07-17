@@ -186,6 +186,7 @@ public function store(Request $request)
             ->where(fn ($appointments) => $appointments->where('external', false)->orWhereNull('external')))],
         'allow_additional_invoice' => ['nullable', 'boolean'],
         'additional_invoice_reason' => ['nullable', 'string', 'max:500', 'required_if:allow_additional_invoice,1'],
+        'autofill_product_descriptions' => ['sometimes', 'boolean'],
 
         // Discounts (global)
         'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
@@ -263,13 +264,6 @@ public function store(Request $request)
                     $validator->errors()->add('appointment_id', 'Le rendez-vous ne correspond pas au client sélectionné.');
                 }
 
-                $containsAppointmentProduct = collect($items)->contains(
-                    fn ($item) => (int) ($item['product_id'] ?? 0) === (int) $appointment->product_id
-                );
-
-                if (!$containsAppointmentProduct) {
-                    $validator->errors()->add('appointment_id', 'La prestation du rendez-vous doit rester présente sur la facture.');
-                }
             }
         }
     });
@@ -289,6 +283,11 @@ public function store(Request $request)
 
 		return $item;
 	}, $validatedData['items'] ?? []);
+
+    // Requests from older clients keep the previous automatic catalog description behavior.
+    $validatedData['autofill_product_descriptions'] = $request->exists('autofill_product_descriptions')
+        ? $request->boolean('autofill_product_descriptions')
+        : true;
 
     $result = DB::transaction(function () use ($validatedData) {
         if (! empty($validatedData['appointment_id']) && empty($validatedData['allow_additional_invoice'])) {
@@ -343,7 +342,8 @@ public function store(Request $request)
             $invoice,
             $validatedData['items'] ?? [],
             $validatedData['global_discount_type'] ?? null,
-            $validatedData['global_discount_value'] ?? null
+            $validatedData['global_discount_value'] ?? null,
+            $validatedData['autofill_product_descriptions']
         );
 
         app(InvoiceRecipientSnapshotService::class)->capture($invoice, true);
@@ -455,6 +455,7 @@ public function update(Request $request, Invoice $invoice)
         'appointment_id'    => ['nullable', Rule::exists('appointments', 'id')->where(fn ($q) => $q
             ->where('user_id', Auth::id())
             ->where(fn ($appointments) => $appointments->where('external', false)->orWhereNull('external')))],
+        'autofill_product_descriptions' => ['sometimes', 'boolean'],
 
         // Global discount
         'global_discount_type'  => ['nullable', Rule::in(['percent', 'amount'])],
@@ -545,6 +546,11 @@ public function update(Request $request, Invoice $invoice)
 		return $item;
 	}, $validatedData['items'] ?? []);
 
+    // The current form sends an explicit value so clearing a description remains intentional.
+    $validatedData['autofill_product_descriptions'] = $request->exists('autofill_product_descriptions')
+        ? $request->boolean('autofill_product_descriptions')
+        : true;
+
     DB::transaction(function () use ($validatedData, $invoice) {
         $invoice->update([
             'client_profile_id'         => $validatedData['client_profile_id'] ?? null,
@@ -573,7 +579,8 @@ public function update(Request $request, Invoice $invoice)
             $invoice,
             $validatedData['items'] ?? [],
             $validatedData['global_discount_type'] ?? null,
-            $validatedData['global_discount_value'] ?? null
+            $validatedData['global_discount_value'] ?? null,
+            $validatedData['autofill_product_descriptions']
         );
 
         app(InvoiceRecipientSnapshotService::class)->capture($invoice->fresh(), true);
@@ -1426,7 +1433,8 @@ private function recomputeInvoiceTotalsWithDiscounts(
     Invoice $invoice,
     array $items,
     ?string $globalDiscountType,
-    $globalDiscountValue
+    $globalDiscountValue,
+    bool $autofillProductDescriptions = true
 ): void
 {
     // 1) Create items with LINE discounts applied (but not global yet)
@@ -1469,7 +1477,9 @@ private function recomputeInvoiceTotalsWithDiscounts(
             $label = trim((string) $prod->name);
 
             // ✅ Keep description optional and separate (avoid duplication)
-            $desc = $desc ?: trim((string) ($prod->description ?? ''));
+            if ($autofillProductDescriptions && $desc === '') {
+                $desc = trim((string) ($prod->description ?? ''));
+            }
 
             $taxRate = (float) ($prod->tax_rate ?? 0);
             $unitPriceHt = (float) ($prod->price ?? 0);

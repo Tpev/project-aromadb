@@ -1,4 +1,13 @@
 <x-app-layout>
+    @php
+        $questionRows = collect(old('questions') ?: [[
+            'id' => null,
+            'text' => '',
+            'type' => 'text',
+            'options' => '',
+        ]])->values();
+    @endphp
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Créer un Questionnaire') }}
@@ -9,15 +18,16 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouveau Questionnaire') }}</h1>
 
-            <form action="{{ route('questionnaires.store') }}" method="POST">
+            <form action="{{ route('questionnaires.store') }}" method="POST" data-questionnaire-builder>
                 @csrf
+                <input type="hidden" name="questions_payload" value="">
 
                 <div class="input-section">
 
                     <!-- Titre du Questionnaire -->
                     <div class="details-box">
                         <label class="details-label" for="title">{{ __('Titre') }}</label>
-                        <input type="text" id="title" name="title" class="form-control" required placeholder="{{ __('Entrez le titre du questionnaire') }}">
+                        <input type="text" id="title" name="title" value="{{ old('title') }}" class="form-control" required placeholder="{{ __('Entrez le titre du questionnaire') }}">
                         @error('title')
                             <p class="text-red-500">{{ $message }}</p>
                         @enderror
@@ -26,7 +36,7 @@
                     <!-- Description du Questionnaire -->
                     <div class="details-box">
                         <label class="details-label" for="description">{{ __('Description') }}</label>
-                        <textarea id="description" name="description" class="form-control" placeholder="{{ __('Entrez une description optionnelle') }}"></textarea>
+                        <textarea id="description" name="description" class="form-control" placeholder="{{ __('Entrez une description optionnelle') }}">{{ old('description') }}</textarea>
                         @error('description')
                             <p class="text-red-500">{{ $message }}</p>
                         @enderror
@@ -36,25 +46,34 @@
                     <div class="details-box">
                         <label class="details-label">{{ __('Questions') }}</label>
                         <div id="questions-container">
-                            <div class="question-item mb-4">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <input type="text" name="questions[0][text]" class="form-control" placeholder="{{ __('Entrez la question') }}" required>
+                            @foreach($questionRows as $index => $row)
+                                <div class="question-item mb-4" data-question-row>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <textarea name="questions[{{ $index }}][text]" rows="2" class="form-control" placeholder="{{ __('Entrez la question') }}" required>{{ $row['text'] ?? '' }}</textarea>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select name="questions[{{ $index }}][type]" class="form-control question-type" required onchange="updateQuestionType(this)">
+                                                <option value="text" @selected(($row['type'] ?? 'text') === 'text')>{{ __('Texte') }}</option>
+                                                <option value="multiple_choice" @selected(($row['type'] ?? 'text') === 'multiple_choice')>{{ __('Choix multiple') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-danger remove-question" onclick="removeQuestion(this)" title="Supprimer cette question">X</button>
+                                        </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <select name="questions[0][type]" class="form-control question-type" required onchange="updateQuestionType(this)">
-                                            <option value="text">{{ __('Texte') }}</option>
-                                            <option value="multiple_choice">{{ __('Choix multiple') }}</option>
-                                        </select>
-                                    </div>
-									  <div class="additional-fields"></div>
-                                    <div class="col-md-2">
-                                        <button type="button" class="btn btn-danger remove-question" onclick="removeQuestion(this)" title="Supprimer cette question">X</button>
+                                    <div class="additional-fields">
+                                        @if(($row['type'] ?? 'text') === 'multiple_choice')
+                                            <label class="details-label">{{ __('Options (séparer par des virgules)') }}</label>
+                                            <input type="text" name="questions[{{ $index }}][options]" value="{{ $row['options'] ?? '' }}" class="form-control" placeholder="{{ __('Entrez les options') }}" required>
+                                        @endif
                                     </div>
                                 </div>
-                              
-                            </div>
+                            @endforeach
                         </div>
+                        @error('questions')
+                            <p class="text-red-500">{{ $message }}</p>
+                        @enderror
                         <button type="button" class="btn-primary mt-2" onclick="addQuestion()">{{ __('Ajouter une question') }}</button>
                     </div>
                 </div>
@@ -66,16 +85,17 @@
     </div>
 
     <script>
-        let questionIndex = 1; // Index for new questions
+        let questionIndex = {{ $questionRows->count() }};
 
         function addQuestion() {
             const questionContainer = document.getElementById('questions-container');
             const newQuestion = document.createElement('div');
             newQuestion.classList.add('question-item', 'mb-4'); // Add margin bottom for spacing
+            newQuestion.dataset.questionRow = '';
             newQuestion.innerHTML = `
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <input type="text" name="questions[${questionIndex}][text]" class="form-control" placeholder="{{ __('Entrez la question') }}" required>
+                        <textarea name="questions[${questionIndex}][text]" rows="2" class="form-control" placeholder="{{ __('Entrez la question') }}" required></textarea>
                     </div>
                     <div class="col-md-4">
                         <select name="questions[${questionIndex}][type]" class="form-control question-type" required onchange="updateQuestionType(this)">
@@ -106,16 +126,18 @@
             additionalFields.innerHTML = ''; // Clear previous additional fields
 
             const selectedType = select.value;
+            const match = select.name.match(/questions\[(\d+)\]/);
+            const index = match ? match[1] : questionIndex;
 
             if (selectedType === 'multiple_choice') {
                 additionalFields.innerHTML = `
                     <label class="details-label">{{ __('Options (séparer par des virgules)') }}</label>
-                    <input type="text" name="questions[${questionIndex - 1}][options]" class="form-control" placeholder="{{ __('Entrez les options') }}" required>
+                    <input type="text" name="questions[${index}][options]" class="form-control" placeholder="{{ __('Entrez les options') }}" required>
                 `;
             } else if (selectedType === 'true_false') {
                 additionalFields.innerHTML = `
                     <label class="details-label">{{ __('Vrai ou Faux') }}</label>
-                    <select name="questions[${questionIndex - 1}][true_false]" class="form-control" required>
+                    <select name="questions[${index}][true_false]" class="form-control" required>
                         <option value="true">{{ __('Vrai') }}</option>
                         <option value="false">{{ __('Faux') }}</option>
                     </select>
@@ -123,16 +145,18 @@
             } else if (selectedType === 'date') {
                 additionalFields.innerHTML = `
                     <label class="details-label">{{ __('Date') }}</label>
-                    <input type="date" name="questions[${questionIndex - 1}][date]" class="form-control" required>
+                    <input type="date" name="questions[${index}][date]" class="form-control" required>
                 `;
             } else if (selectedType === 'number') {
                 additionalFields.innerHTML = `
                     <label class="details-label">{{ __('Numéro') }}</label>
-                    <input type="number" name="questions[${questionIndex - 1}][number]" class="form-control" required>
+                    <input type="number" name="questions[${index}][number]" class="form-control" required>
                 `;
             }
         }
     </script>
+
+    @include('questionnaires.partials.compact-payload-script')
 
     <style>
         .container-fluid {

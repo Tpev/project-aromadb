@@ -11,7 +11,9 @@ use Illuminate\Support\Str;
 use App\Mail\QuestionnaireSentMail;
 use App\Mail\QuestionnaireCompletedMail;
 use App\Models\ClientProfile; 
+use App\Services\QuestionnairePayloadService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class QuestionnaireController extends Controller
 {
@@ -23,35 +25,19 @@ class QuestionnaireController extends Controller
         return view('questionnaires.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, QuestionnairePayloadService $payloadService)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'questions' => 'required|array',
-        ]);
+        $validated = $payloadService->validate($request);
 
-        // Create the questionnaire
-        $questionnaire = Questionnaire::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'user_id' => Auth::id(), // Associate with the logged-in therapist
-        ]);
+        DB::transaction(function () use ($validated, $payloadService): void {
+            $questionnaire = Questionnaire::create([
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'user_id' => Auth::id(),
+            ]);
 
-        // Loop through the questions and create them
-        foreach ($request->questions as $question) {
-            $newQuestion = new Question();
-            $newQuestion->questionnaire_id = $questionnaire->id;
-            $newQuestion->text = $question['text'];
-            $newQuestion->type = $question['type'];
-            
-            // If it's multiple choice, store the options as a comma-separated string
-            if ($question['type'] === 'multiple_choice' && isset($question['options'])) {
-                $newQuestion->options = $question['options'];
-            }
-
-            $newQuestion->save();
-        }
+            $payloadService->syncQuestions($questionnaire, $validated['questions']);
+        });
 
         return redirect()->route('questionnaires.index')->with('success', 'Questionnaire créé avec succès.');
     }
@@ -217,65 +203,23 @@ public function edit(Questionnaire $questionnaire)
     return view('questionnaires.edit', compact('questionnaire'));
 }
 
-    public function update(Request $request, Questionnaire $questionnaire)
+    public function update(
+        Request $request,
+        Questionnaire $questionnaire,
+        QuestionnairePayloadService $payloadService
+    )
     {
-        // Validate the incoming data.
-        $request->validate([
-            'title'                 => 'required|string|max:255',
-            'description'           => 'nullable|string',
-            'questions'             => 'required|array',
-            'questions.*.text'      => 'required|string',
-            'questions.*.type'      => 'required|string',
-            // You can add validation rules for options, true_false, etc. as needed.
-        ]);
+        $this->authorize('update', $questionnaire);
+        $validated = $payloadService->validate($request);
 
-        // Update the questionnaire's title and description.
-        $questionnaire->update($request->only('title', 'description'));
+        DB::transaction(function () use ($questionnaire, $validated, $payloadService): void {
+            $questionnaire->update([
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+            ]);
 
-        // Get the IDs of the existing questions for this questionnaire.
-        $existingQuestionIds = $questionnaire->questions()->pluck('id')->toArray();
-        $updatedQuestionIds = [];
-
-        // Loop through each submitted question.
-        foreach ($request->questions as $questionData) {
-            // If an ID exists in the question data, update the existing question.
-            if (isset($questionData['id'])) {
-                $question = Question::find($questionData['id']);
-                if ($question && $question->questionnaire_id === $questionnaire->id) {
-                    $question->text = $questionData['text'];
-                    $question->type = $questionData['type'];
-
-                    // Update additional fields for certain question types.
-                    if ($questionData['type'] === 'multiple_choice' && isset($questionData['options'])) {
-                        $question->options = $questionData['options'];
-                    }
-                    // Add handling for other types (true_false, date, number, etc.) if needed.
-
-                    $question->save();
-                    $updatedQuestionIds[] = $question->id;
-                }
-            } else {
-                // Create a new question.
-                $newQuestion = new Question();
-                $newQuestion->questionnaire_id = $questionnaire->id;
-                $newQuestion->text = $questionData['text'];
-                $newQuestion->type = $questionData['type'];
-
-                if ($questionData['type'] === 'multiple_choice' && isset($questionData['options'])) {
-                    $newQuestion->options = $questionData['options'];
-                }
-                // Add additional handling for other types if needed.
-
-                $newQuestion->save();
-                $updatedQuestionIds[] = $newQuestion->id;
-            }
-        }
-
-        // Determine which questions have been removed from the form and delete them.
-        $questionsToDelete = array_diff($existingQuestionIds, $updatedQuestionIds);
-        if (!empty($questionsToDelete)) {
-            Question::destroy($questionsToDelete);
-        }
+            $payloadService->syncQuestions($questionnaire, $validated['questions']);
+        });
 
         return redirect()->route('questionnaires.index')
                          ->with('success', 'Questionnaire updated successfully.');

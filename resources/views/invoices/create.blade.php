@@ -36,6 +36,7 @@
 
                 // ✅ Preselect prestation from appointment (when coming from "Facturer" button)
                 $preselectedProductId = old('preselected_product_id', isset($selectedProduct) ? $selectedProduct->id : null);
+                $autofillProductDescriptions = (bool) old('autofill_product_descriptions', false);
             @endphp
 
             <form id="invoiceForm" action="{{ route('invoices.store') }}" method="POST" class="am-form">
@@ -127,11 +128,30 @@
                             <div class="am-muted">{{ __('Ajoutez des prestations, inventaire, packs, ou une ligne libre.') }}</div>
                         </div>
 
-                        <div class="am-actions">
-                            <button type="button" class="am-btn am-btn-primary" onclick="addProductItem()">{{ __('Ajouter une prestation') }}</button>
-                            <button type="button" class="am-btn am-btn-primary" onclick="openInventoryModal()">{{ __('Ajouter depuis l\'inventaire') }}</button>
-                            <button type="button" class="am-btn am-btn-primary" onclick="openPackModal()">{{ __('Ajouter un pack') }}</button>
-                            <button type="button" class="am-btn am-btn-primary" onclick="addCustomItem()">{{ __('Ajouter une ligne libre') }}</button>
+                        <div class="am-item-tools">
+                            <input type="hidden" name="autofill_product_descriptions" value="0">
+                            <label class="am-description-toggle" for="autofill_product_descriptions">
+                                <span>
+                                    <strong>Reprendre la description du catalogue</strong>
+                                    <small>Uniquement pour les descriptions encore vides</small>
+                                </span>
+                                <span class="am-switch">
+                                    <input type="checkbox"
+                                           id="autofill_product_descriptions"
+                                           name="autofill_product_descriptions"
+                                           value="1"
+                                           @checked($autofillProductDescriptions)
+                                           onchange="syncProductDescriptionAutofill()">
+                                    <span class="am-switch-track" aria-hidden="true"></span>
+                                </span>
+                            </label>
+
+                            <div class="am-actions">
+                                <button type="button" class="am-btn am-btn-primary" onclick="addProductItem()">{{ __('Ajouter une prestation') }}</button>
+                                <button type="button" class="am-btn am-btn-primary" onclick="openInventoryModal()">{{ __('Ajouter depuis l\'inventaire') }}</button>
+                                <button type="button" class="am-btn am-btn-primary" onclick="openPackModal()">{{ __('Ajouter un pack') }}</button>
+                                <button type="button" class="am-btn am-btn-primary" onclick="addCustomItem()">{{ __('Ajouter une ligne libre') }}</button>
+                            </div>
                         </div>
                     </div>
 
@@ -351,6 +371,21 @@
             return String(str).replace(/[&<>"']/g, s => ({
                 '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
             }[s]));
+        }
+
+        function shouldAutofillProductDescriptions() {
+            return document.getElementById('autofill_product_descriptions')?.checked === true;
+        }
+
+        function syncProductDescriptionAutofill() {
+            if (!shouldAutofillProductDescriptions()) return;
+
+            document.querySelectorAll('#invoice-items-table .product-select').forEach(select => {
+                const description = select.closest('tr')?.querySelector('.description-input');
+                if (description && description.value.trim() === '') {
+                    description.value = select.selectedOptions[0]?.dataset?.description || '';
+                }
+            });
         }
 
         function serviceDateFields(idx, defaults = {}) {
@@ -685,7 +720,7 @@ row.innerHTML = `
 
             if (unitEl) unitEl.value = price.toFixed(2);
             if (taxEl)  taxEl.value  = tax.toFixed(2);
-            if (descriptionEl && descriptionEl.value.trim() === '') {
+            if (shouldAutofillProductDescriptions() && descriptionEl && descriptionEl.value.trim() === '') {
                 descriptionEl.value = opt?.dataset?.description || '';
             }
 
@@ -1048,6 +1083,25 @@ row.innerHTML = `
         .am-section-title{ font-weight:900; color:#111827; font-size:1.05rem; margin-bottom:2px; }
         .am-muted{ color:#6b7280; font-size:.9rem; }
 
+        .am-item-tools{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+        .am-description-toggle{
+            display:flex; align-items:center; justify-content:space-between; gap:14px;
+            width:min(100%, 390px); min-height:58px; padding:9px 11px;
+            border:1px solid #dfe5c7; border-radius:8px; background:#fbfcf7; cursor:pointer;
+        }
+        .am-description-toggle strong{ display:block; color:#374151; font-size:.86rem; }
+        .am-description-toggle small{ display:block; margin-top:2px; color:#6b7280; font-size:.75rem; }
+        .am-switch{ position:relative; display:inline-flex; width:44px; height:24px; flex:0 0 44px; }
+        .am-switch input{ position:absolute; inset:0; z-index:2; width:100%; height:100%; opacity:0; cursor:pointer; }
+        .am-switch-track{ width:44px; height:24px; border-radius:999px; background:#d1d5db; transition:background .15s; }
+        .am-switch-track::after{
+            content:''; display:block; width:20px; height:20px; margin:2px;
+            border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .15s;
+        }
+        .am-switch input:checked + .am-switch-track{ background:#647a0b; }
+        .am-switch input:checked + .am-switch-track::after{ transform:translateX(20px); }
+        .am-switch input:focus-visible + .am-switch-track{ outline:3px solid rgba(100,122,11,.25); outline-offset:2px; }
+
         .am-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
 
         .am-btn{
@@ -1281,6 +1335,8 @@ row.innerHTML = `
             .am-title{ font-size:1.5rem; }
             .am-actions{ justify-content:stretch; }
             .am-actions .am-btn{ flex:1 1 auto; width:100%; }
+            .am-item-tools{ width:100%; align-items:stretch; }
+            .am-description-toggle{ width:100%; }
             .am-footer{ justify-content:stretch; }
             .am-footer .am-btn{ width:100%; }
             .am-totals{ max-width:100%; }

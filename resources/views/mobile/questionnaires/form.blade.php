@@ -27,11 +27,12 @@
 @endphp
 
 <x-mobile-layout :title="$title" :hide-nav="true">
-    <form method="POST" action="{{ $action }}" class="mx-auto w-full max-w-lg px-4 pb-28 pt-4">
+    <form method="POST" action="{{ $action }}" class="mx-auto w-full max-w-lg px-4 pb-28 pt-4" data-questionnaire-builder>
         @csrf
         @if($method !== 'POST')
             @method($method)
         @endif
+        <input type="hidden" name="questions_payload" value="">
 
         <div class="mb-4">
             <a href="{{ $questionnaire->exists ? route('mobile.questionnaires.show', $questionnaire) : route('mobile.questionnaires.index') }}"
@@ -93,7 +94,7 @@
 
                 <div id="mobileQuestionRows" class="mt-3 space-y-3">
                     @foreach($questionRows as $index => $row)
-                        <article class="mobile-question-row rounded-lg border border-[#f1f3e6] bg-[#fbfcf7] p-3">
+                        <article class="mobile-question-row rounded-lg border border-[#f1f3e6] bg-[#fbfcf7] p-3" data-question-row>
                             @if(! empty($row['id']))
                                 <input type="hidden" name="questions[{{ $index }}][id]" value="{{ $row['id'] }}">
                             @endif
@@ -112,11 +113,10 @@
 
                             <label class="mt-3 block">
                                 <span class="text-sm font-medium text-gray-700">Texte</span>
-                                <input type="text"
-                                       name="questions[{{ $index }}][text]"
-                                       value="{{ $row['text'] }}"
-                                       required
-                                       class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                                <textarea name="questions[{{ $index }}][text]"
+                                          rows="3"
+                                          required
+                                          class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ $row['text'] }}</textarea>
                             </label>
 
                             <label class="mt-3 block">
@@ -169,7 +169,7 @@
 
         function mobileQuestionTemplate(index) {
             return `
-                <article class="mobile-question-row rounded-lg border border-[#f1f3e6] bg-[#fbfcf7] p-3">
+                <article class="mobile-question-row rounded-lg border border-[#f1f3e6] bg-[#fbfcf7] p-3" data-question-row>
                     <div class="flex items-center justify-between gap-3">
                         <div class="text-xs font-semibold uppercase text-gray-500">
                             Question
@@ -184,10 +184,10 @@
 
                     <label class="mt-3 block">
                         <span class="text-sm font-medium text-gray-700">Texte</span>
-                        <input type="text"
-                               name="questions[${index}][text]"
-                               required
-                               class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                        <textarea name="questions[${index}][text]"
+                                  rows="3"
+                                  required
+                                  class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]"></textarea>
                     </label>
 
                     <label class="mt-3 block">
@@ -245,4 +245,6 @@
             syncMobileQuestionOptions(select);
         });
     </script>
+
+    @include('questionnaires.partials.compact-payload-script')
 </x-mobile-layout>

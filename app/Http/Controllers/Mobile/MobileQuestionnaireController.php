@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Question;
 use App\Models\Questionnaire;
+use App\Services\QuestionnairePayloadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class MobileQuestionnaireController extends Controller
 {
@@ -35,18 +35,18 @@ class MobileQuestionnaireController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, QuestionnairePayloadService $payloadService)
     {
-        $validated = $this->validatedPayload($request);
+        $validated = $payloadService->validate($request);
 
-        $questionnaire = DB::transaction(function () use ($validated) {
+        $questionnaire = DB::transaction(function () use ($validated, $payloadService) {
             $questionnaire = Questionnaire::create([
                 'user_id' => Auth::id(),
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
             ]);
 
-            $this->syncQuestions($questionnaire, $validated['questions']);
+            $payloadService->syncQuestions($questionnaire, $validated['questions']);
 
             return $questionnaire;
         });
@@ -80,19 +80,23 @@ class MobileQuestionnaireController extends Controller
         ]);
     }
 
-    public function update(Request $request, Questionnaire $questionnaire)
+    public function update(
+        Request $request,
+        Questionnaire $questionnaire,
+        QuestionnairePayloadService $payloadService
+    )
     {
         $this->authorizeOwner($questionnaire);
 
-        $validated = $this->validatedPayload($request);
+        $validated = $payloadService->validate($request);
 
-        DB::transaction(function () use ($questionnaire, $validated) {
+        DB::transaction(function () use ($questionnaire, $validated, $payloadService) {
             $questionnaire->update([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
             ]);
 
-            $this->syncQuestions($questionnaire, $validated['questions']);
+            $payloadService->syncQuestions($questionnaire, $validated['questions']);
         });
 
         return redirect()
@@ -122,64 +126,6 @@ class MobileQuestionnaireController extends Controller
         return redirect()
             ->route('mobile.questionnaires.show', $questionnaire)
             ->with('success', 'Question supprimee.');
-    }
-
-    protected function validatedPayload(Request $request): array
-    {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'questions' => ['required', 'array', 'min:1'],
-            'questions.*.id' => ['nullable', 'integer'],
-            'questions.*.text' => ['required', 'string', 'max:255'],
-            'questions.*.type' => ['required', 'string', 'in:text,multiple_choice'],
-            'questions.*.options' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        foreach ($validated['questions'] as $index => $question) {
-            if ($question['type'] === 'multiple_choice' && trim((string) ($question['options'] ?? '')) === '') {
-                throw ValidationException::withMessages([
-                    "questions.{$index}.options" => 'Les options sont requises pour une question a choix multiple.',
-                ]);
-            }
-        }
-
-        return $validated;
-    }
-
-    protected function syncQuestions(Questionnaire $questionnaire, array $questionRows): void
-    {
-        $keptQuestionIds = [];
-
-        foreach ($questionRows as $row) {
-            $question = null;
-
-            if (! empty($row['id'])) {
-                $question = $questionnaire->questions()
-                    ->whereKey((int) $row['id'])
-                    ->first();
-
-                abort_unless($question, 403);
-            }
-
-            $question ??= new Question([
-                'questionnaire_id' => $questionnaire->id,
-            ]);
-
-            $question->questionnaire_id = $questionnaire->id;
-            $question->text = trim($row['text']);
-            $question->type = $row['type'];
-            $question->options = $row['type'] === 'multiple_choice'
-                ? trim((string) ($row['options'] ?? ''))
-                : null;
-            $question->save();
-
-            $keptQuestionIds[] = $question->id;
-        }
-
-        $questionnaire->questions()
-            ->whereNotIn('id', $keptQuestionIds)
-            ->delete();
     }
 
     protected function authorizeOwner(Questionnaire $questionnaire): void
