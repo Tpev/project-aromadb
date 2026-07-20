@@ -83,3 +83,8 @@ Schedule::command('offer-journeys:dispatch-campaigns --limit=20')
 Schedule::command('offer-journeys:dispatch-abandonments --limit=100')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+// Sensitive account exports are temporary and stay outside the public disk.
+Schedule::command('account:exports:purge --days=7')
+    ->dailyAt('03:40')
+    ->withoutOverlapping();
