@@ -156,13 +156,13 @@
             </div>
 
             <div class="details-box">
-                <label class="details-label" for="email">{{ __('Email (optionnel)') }}</label>
-                <input type="email" id="email" name="email" class="form-control">
+                <label class="details-label" for="email">{{ __('Email') }}</label>
+                <input type="email" id="email" name="email" class="form-control" required>
             </div>
 
             <div class="details-box">
-                <label class="details-label" for="phone">{{ __('Téléphone (optionnel)') }}</label>
-                <input type="text" id="phone" name="phone" class="form-control">
+                <label class="details-label" for="phone">{{ __('Téléphone') }}</label>
+                <input type="text" id="phone" name="phone" class="form-control" required>
             </div>
 
             <div class="details-box">
