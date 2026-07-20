@@ -15,8 +15,11 @@ use App\Models\LicenseHistory;
 use App\Models\Product;
 use App\Models\Availability;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB; // Importing the DB facade
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;        // Importing the Str facade
+use App\Services\AccountDataExportService;
 use App\Services\ProfileAvatarService;
 
 class AdminController extends Controller
@@ -482,6 +485,46 @@ return view('admin.therapists.show', compact(
 ));
 
 
+}
+
+public function exportTherapistData(User $therapist, AccountDataExportService $exporter)
+{
+    abort_unless(auth()->user()?->isAdmin(), 403);
+    abort_unless($therapist->is_therapist, 404);
+
+    $lock = Cache::lock('account-data-export:'.$therapist->id, 15 * 60);
+
+    if (! $lock->get()) {
+        return back()->with('error', 'Un export est déjà en cours pour ce praticien. Réessayez dans quelques instants.');
+    }
+
+    try {
+        $result = $exporter->export($therapist);
+
+        Log::notice('Account data export downloaded by admin', [
+            'admin_user_id' => auth()->id(),
+            'therapist_user_id' => $therapist->id,
+            'rows' => $result->totalRows(),
+            'files' => $result->exportedFileCount,
+            'warnings' => count($result->warnings),
+        ]);
+
+        return response()->download(
+            $result->absolutePath,
+            basename($result->absolutePath),
+            [
+                'Content-Type' => 'application/zip',
+                'Cache-Control' => 'private, no-store, max-age=0',
+                'X-Content-Type-Options' => 'nosniff',
+            ],
+        )->deleteFileAfterSend(true);
+    } catch (\Throwable $exception) {
+        report($exception);
+
+        return back()->with('error', 'La génération de l’export a échoué. Consultez les logs puis réessayez.');
+    } finally {
+        $lock->release();
+    }
 }
 
 	

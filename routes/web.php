@@ -1276,6 +1276,9 @@ Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])-
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
 Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
+Route::post('/admin/therapists/{therapist}/export-data', [AdminController::class, 'exportTherapistData'])
+    ->middleware('auth')
+    ->name('admin.therapists.exportData');
 Route::put('/admin/therapists/{therapist}/featured', [\App\Http\Controllers\AdminController::class, 'updateFeatured'])
         ->name('admin.therapists.updateFeatured');
 Route::put(

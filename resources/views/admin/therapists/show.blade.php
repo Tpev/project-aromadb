@@ -12,6 +12,7 @@
 
     <!-- Include your main CSS file -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
     <!-- Custom Styles -->
     <style>
@@ -322,6 +323,59 @@
             color: #cbd5e1;
         }
 
+        .data-export-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            background-color: #2a2a3c;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .data-export-card h2 {
+            margin: 0 0 8px;
+            color: #f0f0f0;
+            font-size: 1.25rem;
+        }
+
+        .data-export-card p {
+            margin: 0;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .data-export-card form {
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .data-export-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 44px;
+            white-space: nowrap;
+            background: #647a0b;
+            font-weight: 600;
+        }
+
+        .data-export-button:hover { background: #748d0d; }
+        .data-export-button:disabled { cursor: wait; opacity: 0.7; }
+
+        .alert-error {
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            border: 1px solid rgba(248, 113, 113, 0.45);
+            border-radius: 8px;
+            background: rgba(127, 29, 29, 0.7);
+            color: #fee2e2;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .therapist-info-card {
@@ -340,6 +394,14 @@
             .impersonation-actions {
                 justify-content: center;
             }
+
+            .data-export-card {
+                align-items: stretch;
+                flex-direction: column;
+                text-align: left;
+            }
+
+            .data-export-button { width: 100%; }
         }
     </style>
 </head>
@@ -405,6 +467,26 @@
                     </div>
                 @endif
             </div>
+        </div>
+
+        @if(session('error'))
+            <div class="alert-error" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        <div class="data-export-card">
+            <div>
+                <h2>Export des données du praticien</h2>
+                <p>Archive ZIP complète, limitée aux données et documents appartenant à ce compte.</p>
+            </div>
+            <form method="POST" action="{{ route('admin.therapists.exportData', $therapist) }}">
+                @csrf
+                <button type="submit" class="data-export-button">
+                    <i class="fas fa-file-download" aria-hidden="true"></i>
+                    <span>Télécharger l’export ZIP</span>
+                </button>
+            </form>
         </div>
 
         <h2 class="section-title">Contenus créés par ce thérapeute</h2>
