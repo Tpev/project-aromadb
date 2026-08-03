@@ -18,6 +18,13 @@ return [
 		'domain' => env('JITSI_DOMAIN'),
 		'app_id' => env('JITSI_APP_ID'),
         'secret' => env('JITSI_APP_SECRET'),
+		'participant_name_gate' => [
+			'enabled' => env('JITSI_PARTICIPANT_NAME_GATE_ENABLED', false),
+			'user_ids' => array_values(array_filter(array_map(
+				static fn (string $id): ?int => ctype_digit(trim($id)) ? (int) trim($id) : null,
+				explode(',', (string) env('JITSI_PARTICIPANT_NAME_GATE_USER_IDS', ''))
+			))),
+		],
 	],
     'stripe' => [
         'secret' => env('STRIPE_SECRET'),

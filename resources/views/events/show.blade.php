@@ -37,7 +37,7 @@
     // Host link = therapist / moderator
     // Public link = participant / non-moderator
     $visioHostLink   = $event->visio_host_link ?? null;
-    $visioPublicLink = $event->visio_public_link ?? null;
+    $visioPublicLink = app(\App\Support\EventVisioJoinLink::class)->for($event);
 
     $visioProvider = $event->visio_provider ?? null;
     $isOlitheaVisio = $isVisio && $visioProvider === 'aromamade' && !empty($event->visio_token);

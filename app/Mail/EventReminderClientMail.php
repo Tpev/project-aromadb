@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Event;
 use App\Models\Reservation;
+use App\Support\EventVisioJoinLink;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -39,17 +40,9 @@ class EventReminderClientMail extends Mailable implements ShouldQueue
         // Determine format + link
         $isVisio = ($this->event->event_type ?? 'in_person') === 'visio';
 
-        // Participant link (external or Olithea public link)
-        // Note: for Olithea (Jitsi+JWT), this should be generated dynamically via accessor.
-        $visioJoinLink = null;
-
-        if ($isVisio) {
-            if (!empty($this->event->visio_url)) {
-                $visioJoinLink = $this->event->visio_url;
-            } elseif (!empty($this->event->visio_public_link)) {
-                $visioJoinLink = $this->event->visio_public_link;
-            }
-        }
+        $visioJoinLink = $isVisio
+            ? app(EventVisioJoinLink::class)->for($this->event)
+            : null;
 
         return $this->applyPractitionerReplyTo($this->event->user)
             ->subject($subject)

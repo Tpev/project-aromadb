@@ -31,6 +31,7 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\TestCertificateController;	
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventVisioJoinController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\LicenseTierController;
 use App\Http\Controllers\ContactController;
@@ -772,6 +773,12 @@ Route::get('/test-certificate', [TestCertificateController::class, 'generateTest
 
 
 Route::get('events/{event}/infos', [EventController::class, 'publicShow'])->name('events.public.show');
+
+Route::get('events/{event}/visio', [EventVisioJoinController::class, 'show'])
+    ->name('events.visio.join.show');
+Route::post('events/{event}/visio', [EventVisioJoinController::class, 'join'])
+    ->middleware('throttle:20,1')
+    ->name('events.visio.join');
 
 // Route to show the reservation form
 Route::get('events/{event}/reserve', [ReservationController::class, 'create'])->name('events.reserve.create');

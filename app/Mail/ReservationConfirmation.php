@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Reservation;
+use App\Support\EventVisioJoinLink;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -57,14 +58,9 @@ class ReservationConfirmation extends Mailable
             return [null, null];
         }
 
-        // If you have two-link system via accessors:
-        if (!empty($event->visio_public_link)) {
-            return [$event->visio_public_link, 'Rejoindre la visio'];
-        }
-
-        // External visio
-        if (!empty($event->visio_url)) {
-            return [$event->visio_url, 'Rejoindre la visio'];
+        $joinLink = app(EventVisioJoinLink::class)->for($event);
+        if ($joinLink) {
+            return [$joinLink, 'Rejoindre la visio'];
         }
 
         return [null, null];
