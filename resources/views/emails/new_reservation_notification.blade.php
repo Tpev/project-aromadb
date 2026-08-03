@@ -15,8 +15,8 @@ Vous avez une nouvelle réservation pour votre événement **{{ $event->name }}*
 
 ## Détails de l'événement:
 
-- **Date et Heure:** {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
-- **Durée:** {{ $event->duration }} minutes
+- **Date et Heure:** {{ $event->formatted_period }}
+- **Durée:** {{ $event->formatted_duration }}
 - **Lieu:** {{ $event->location }}
 
 

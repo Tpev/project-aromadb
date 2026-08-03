@@ -61,8 +61,8 @@
             : null;
 
         // Description courte réutilisée pour meta_description + og:description
-        $baseText = "Réservez votre place pour « {$event->name} », animé par {$event->user->name} le "
-            . \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i')
+        $baseText = "Réservez votre place pour « {$event->name} », animé par {$event->user->name}. "
+            . $event->formatted_period
             . " à {$event->location}.";
 
         if ($event->limited_spot && $spotsLeft !== null) {
@@ -116,7 +116,7 @@
                         <i class="fas fa-calendar-alt mr-2"></i>{{ __('Date et Heure') }}
                     </h3>
                     <p class="info-text">
-                        {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
+                        {{ $event->formatted_period }}
                     </p>
                 </div>
 
@@ -125,7 +125,7 @@
                     <h3 class="info-title">
                         <i class="fas fa-hourglass-half mr-2"></i>{{ __('Durée') }}
                     </h3>
-                    <p class="info-text">{{ $event->duration }} {{ __('minutes') }}</p>
+                    <p class="info-text">{{ $event->formatted_duration }}</p>
                 </div>
 
                 <!-- Location -->

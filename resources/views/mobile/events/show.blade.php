@@ -1,5 +1,4 @@
 @php
-    $start = \Carbon\Carbon::parse($event->start_date_time);
     $isVisio = ($event->event_type ?? 'in_person') === 'visio';
     $capacity = $event->limited_spot && $event->number_of_spot ? $event->number_of_spot : 'Illimite';
     $remaining = $event->limited_spot && $event->number_of_spot
@@ -29,7 +28,7 @@
                             {{ $event->name }}
                         </h1>
                         <p class="mt-1 text-sm leading-snug text-gray-600">
-                            {{ $start->format('d/m/Y H:i') }} - {{ $event->duration }} min
+                            {{ $event->formatted_period }} - {{ $event->formatted_duration }}
                         </p>
                     </div>
                 </div>

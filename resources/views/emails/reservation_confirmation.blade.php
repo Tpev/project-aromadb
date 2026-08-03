@@ -9,8 +9,8 @@ Voici les informations pour l’événement **{{ $event->name }}**.
 
 ## Détails de l’événement
 
-- **Date & heure :** {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
-- **Durée :** {{ $event->duration }} minutes
+- **Date & heure :** {{ $event->formatted_period }}
+- **Durée :** {{ $event->formatted_duration }}
 - **Lieu :** {{ $event->location ?: (($event->event_type ?? 'in_person') === 'visio' ? 'En ligne (Visio)' : '—') }}
 
 @if($event->associatedProduct && ($event->associatedProduct->price ?? 0) > 0)

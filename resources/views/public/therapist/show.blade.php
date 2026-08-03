@@ -832,7 +832,7 @@
             {{-- Section Événements --}}
             <div class="bg-[#f9fafb] shadow rounded-lg p-8">
                 <h3 class="text-3xl font-semibold text-[#854f38] flex items-center">
-                    <i class="fas fa-calendar-alt text-[#854f38] mr-3"></i> {{ __('Événements à Venir') }}
+                    <i class="fas fa-calendar-alt text-[#854f38] mr-3"></i> {{ __('Événements à venir et en cours') }}
                 </h3>
                 @if($events->count() > 0)
                     <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -844,7 +844,10 @@
                                 <div class="p-6">
                                     <h4 class="text-2xl font-semibold text-[#854f38]">{{ $event->name }}</h4>
                                     <p class="mt-2 text-gray-600">
-                                        <i class="fas fa-calendar-alt mr-1 text-[#854f38]"></i> {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                                        <i class="fas fa-calendar-alt mr-1 text-[#854f38]"></i> {{ $event->formatted_period }}
+                                    </p>
+                                    <p class="text-gray-600 mt-1">
+                                        <i class="fas fa-hourglass-half mr-1 text-[#854f38]"></i> {{ $event->formatted_duration }}
                                     </p>
                                     <p class="text-gray-600 mt-1">
                                         <i class="fas fa-map-marker-alt mr-1 text-[#854f38]"></i> {{ $event->location }}

@@ -120,14 +120,7 @@
                     @enderror
                 </div>
 
-                <!-- Duration -->
-                <div class="details-box">
-                    <label class="details-label" for="duration">{{ __('Durée (minutes)') }}</label>
-                    <input type="number" id="duration" name="duration" class="form-control" value="{{ old('duration') }}" required>
-                    @error('duration')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
-                </div>
+                @include('events.partials.duration-fields')
 
                 <!-- NEW: Event Type -->
                 <div class="details-box">

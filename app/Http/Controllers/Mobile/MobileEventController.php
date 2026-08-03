@@ -9,10 +9,11 @@ use App\Models\ClientProfile;
 use App\Models\Event;
 use App\Models\Product;
 use App\Models\Reservation;
-use App\Models\Unavailability;
-use Carbon\Carbon;
+use App\Services\EventCalendarBlockService;
+use App\Support\EventDuration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -31,8 +32,8 @@ class MobileEventController extends Controller
 
         return view('mobile.events.index', [
             'events' => $events,
-            'upcomingEvents' => $events->filter(fn (Event $event) => Carbon::parse($event->start_date_time)->gte($now)),
-            'pastEvents' => $events->filter(fn (Event $event) => Carbon::parse($event->start_date_time)->lt($now)),
+            'upcomingEvents' => $events->filter(fn (Event $event) => ! $event->isPast($now)),
+            'pastEvents' => $events->filter(fn (Event $event) => $event->isPast($now)),
             'canCreateEvent' => $this->canUseEvents(),
         ]);
     }
@@ -59,7 +60,7 @@ class MobileEventController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, EventCalendarBlockService $calendarBlocks)
     {
         abort_unless($this->canUseEvents(), 403);
 
@@ -67,18 +68,12 @@ class MobileEventController extends Controller
         $blockCalendar = $request->boolean('block_calendar');
         $data['user_id'] = Auth::id();
 
-        $event = Event::create($data);
+        $event = DB::transaction(function () use ($data, $blockCalendar, $calendarBlocks): Event {
+            $event = Event::create($data);
+            $calendarBlocks->sync($event, $blockCalendar);
 
-        if ($blockCalendar) {
-            $start = Carbon::parse($event->start_date_time);
-
-            Unavailability::create([
-                'user_id' => Auth::id(),
-                'start_date' => $start,
-                'end_date' => (clone $start)->addMinutes((int) $event->duration),
-                'reason' => 'Evenement : ' . $event->name,
-            ]);
-        }
+            return $event;
+        });
 
         return redirect()
             ->route('mobile.events.show', $event)
@@ -118,11 +113,20 @@ class MobileEventController extends Controller
         ]);
     }
 
-    public function update(Request $request, Event $event)
+    public function update(Request $request, Event $event, EventCalendarBlockService $calendarBlocks)
     {
         $this->authorizeOwner($event);
 
-        $event->update($this->eventPayload($request, $event));
+        DB::transaction(function () use ($request, $event, $calendarBlocks): void {
+            $event->update($this->eventPayload($request, $event));
+
+            if ($request->has('block_calendar') || $event->calendarBlock()->exists()) {
+                $calendarBlocks->sync(
+                    $event,
+                    $request->has('block_calendar') ? $request->boolean('block_calendar') : true,
+                );
+            }
+        });
 
         return redirect()
             ->route('mobile.events.show', $event)
@@ -201,7 +205,7 @@ class MobileEventController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_date_time' => ['required', 'date'],
-            'duration' => ['required', 'integer', 'min:1'],
+            ...EventDuration::rules(),
             'booking_required' => ['required', 'boolean'],
             'limited_spot' => ['required', 'boolean'],
             'number_of_spot' => ['nullable', 'integer', 'min:1'],
@@ -214,7 +218,9 @@ class MobileEventController extends Controller
             'collect_payment' => ['nullable', 'boolean'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ]);
+        ], EventDuration::messages());
+
+        $validated = EventDuration::normalizePayload($validated);
 
         if (! empty($validated['associated_product'])) {
             $ownsProduct = Product::query()

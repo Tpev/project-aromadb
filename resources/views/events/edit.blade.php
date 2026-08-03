@@ -112,13 +112,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     @enderror
                 </div>
 
-                <!-- Duration -->
+                @include('events.partials.duration-fields', ['event' => $event])
+
                 <div class="details-box">
-                    <label class="details-label" for="duration">{{ __('Durée (minutes)') }}</label>
-                    <input type="number" id="duration" name="duration" class="form-control" value="{{ old('duration', $event->duration) }}" required>
-                    @error('duration')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    <label class="details-label" for="block_calendar">{{ __('Bloquer mon agenda sur cette plage horaire') }}</label>
+                    <label class="d-flex align-items-center gap-2">
+                        <input type="hidden" name="block_calendar" value="0">
+                        <input type="checkbox"
+                               id="block_calendar"
+                               name="block_calendar"
+                               value="1"
+                               {{ old('block_calendar', $event->calendarBlock()->exists()) ? 'checked' : '' }}>
+                        <span>{{ __('Synchroniser une indisponibilité avec cet événement') }}</span>
+                    </label>
+                    @error('block_calendar') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- NEW: Event Type -->

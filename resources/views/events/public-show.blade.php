@@ -55,7 +55,7 @@
                     <div>
                         <h1 class="text-3xl font-bold">{{ $event->name }}</h1>
                         <p class="mt-1 text-sm text-white/85">
-                            {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                            {{ $event->formatted_period }}
                             · {{ $event->location }}
                         </p>
                     </div>
@@ -96,13 +96,13 @@
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-[#854f38]">{{ __('Date & heure') }}</h3>
                         <p class="mt-2 text-sm font-medium text-slate-900">
-                            {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                            {{ $event->formatted_period }}
                         </p>
                     </div>
 
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fdfaf3] px-4 py-3">
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-[#854f38]">{{ __('Durée') }}</h3>
-                        <p class="mt-2 text-sm font-medium text-slate-900">{{ $event->duration }} {{ __('minutes') }}</p>
+                        <p class="mt-2 text-sm font-medium text-slate-900">{{ $event->formatted_duration }}</p>
                     </div>
 
                     <div class="rounded-xl border border-[#e2ecc3] bg-[#fbfff6] px-4 py-3 md:col-span-2">

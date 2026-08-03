@@ -36,7 +36,7 @@
                 <div class="mt-1 truncate text-base font-semibold text-gray-900">{{ $total }}</div>
             </div>
             <div class="min-h-[68px] rounded-lg border border-[#e4e8d5] bg-white p-2 shadow-sm">
-                <div class="text-[11px] font-medium leading-tight text-gray-500">A venir</div>
+                <div class="text-[11px] font-medium leading-tight text-gray-500">À venir / en cours</div>
                 <div class="mt-1 truncate text-base font-semibold text-gray-900">{{ $upcomingCount }}</div>
             </div>
             <div class="min-h-[68px] rounded-lg border border-[#e4e8d5] bg-white p-2 shadow-sm">
@@ -96,8 +96,8 @@
             <div id="mobileEventList" class="space-y-3">
                 @foreach($events as $event)
                     @php
-                        $start = \Carbon\Carbon::parse($event->start_date_time);
-                        $isPast = $start->isPast();
+                        $isPast = $event->isPast();
+                        $isOngoing = $event->isOngoing();
                         $isVisio = ($event->event_type ?? 'in_person') === 'visio';
                         $capacity = $event->limited_spot && $event->number_of_spot ? $event->number_of_spot : 'Illimite';
                         $searchText = strtolower(trim($event->name . ' ' . ($event->location ?? '') . ' ' . ($event->description ?? '')));
@@ -112,19 +112,19 @@
                                     {{ $event->name }}
                                 </h2>
                                 <p class="mt-1 text-xs leading-snug text-gray-600">
-                                    {{ $start->format('d/m/Y H:i') }} - {{ $isVisio ? 'Visio' : ($event->location ?: 'Lieu non renseigne') }}
+                                    {{ $event->formatted_period }} - {{ $isVisio ? 'Visio' : ($event->location ?: 'Lieu non renseigne') }}
                                 </p>
                             </div>
 
                             <span class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $isPast ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-[#647a0b]/20 bg-[#647a0b]/10 text-[#647a0b]' }}">
-                                {{ $isPast ? 'Passe' : 'A venir' }}
+                                {{ $isPast ? 'Passé' : ($isOngoing ? 'En cours' : 'À venir') }}
                             </span>
                         </div>
 
                         <div class="mt-3 grid grid-cols-3 gap-2">
                             <div class="rounded-lg bg-[#f7f8f1] p-2">
                                 <div class="text-[11px] font-medium text-gray-500">Duree</div>
-                                <div class="mt-0.5 truncate text-sm font-semibold text-gray-900">{{ $event->duration }} min</div>
+                                <div class="mt-0.5 truncate text-sm font-semibold text-gray-900">{{ $event->formatted_duration }}</div>
                             </div>
                             <div class="rounded-lg bg-[#f7f8f1] p-2">
                                 <div class="text-[11px] font-medium text-gray-500">Places</div>

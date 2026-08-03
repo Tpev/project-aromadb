@@ -1165,7 +1165,7 @@ Route::get('/', function () {
     // Upcoming events
     $events = Event::with('user')
         ->whereHas('user', fn($q) => $q->where('visible_annuarire_admin_set', true))
-        ->where('start_date_time', '>', now())
+        ->notEnded()
         ->orderBy('start_date_time', 'asc')
         ->take(5)
         ->get();

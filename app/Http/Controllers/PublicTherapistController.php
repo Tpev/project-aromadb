@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Event;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InformationRequestMail;
 use App\Models\InformationRequest;
@@ -77,7 +76,7 @@ public function show($slug)
 		->get();
 
     $events = Event::where('user_id', $therapist->id)
-        ->where('start_date_time', '>=', Carbon::now())
+        ->notEnded()
         ->where('showOnPortail', true)
         ->orderBy('start_date_time', 'asc')
         ->with('associatedProduct')

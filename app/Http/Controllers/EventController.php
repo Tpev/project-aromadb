@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Product;
+use App\Services\EventCalendarBlockService;
+use App\Support\EventDuration;
 use App\Support\EventSocialImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -16,8 +19,6 @@ use App\Models\Reservation;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ReservationConfirmation;
 use App\Mail\NewReservationNotification;
-use App\Models\Unavailability;
-use Carbon\Carbon;
 
 class EventController extends Controller
 {
@@ -32,8 +33,8 @@ class EventController extends Controller
 
         $now = now();
 
-        $upcomingEvents = $events->filter(fn ($e) => $e->start_date_time >= $now);
-        $pastEvents     = $events->filter(fn ($e) => $e->start_date_time < $now);
+        $upcomingEvents = $events->filter(fn (Event $event) => ! $event->isPast($now));
+        $pastEvents     = $events->filter(fn (Event $event) => $event->isPast($now));
 
         return view('events.index', compact('upcomingEvents', 'pastEvents'));
     }
@@ -44,13 +45,13 @@ class EventController extends Controller
         return view('events.create', compact('products'));
     }
 
-   public function store(Request $request)
+   public function store(Request $request, EventCalendarBlockService $calendarBlocks)
 {
     $validated = $request->validate([
         'name'               => 'required|string|max:255',
         'description'        => 'nullable|string',
         'start_date_time'    => 'required|date',
-        'duration'           => 'required|integer',
+        ...EventDuration::rules(),
         'block_calendar'     => 'nullable|boolean',
 
         'booking_required'   => 'required|boolean',
@@ -72,12 +73,15 @@ class EventController extends Controller
         'collect_payment' => 'nullable|boolean',
         'price'           => 'nullable|numeric|min:0',
         'tax_rate'        => 'nullable|numeric|min:0|max:100',
-    ]);
+    ], EventDuration::messages());
 
+    $validated = EventDuration::normalizePayload($validated);
     $validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
 
     $data = $validated;
     $data['user_id'] = Auth::id();
+    $blockCalendar = $request->boolean('block_calendar');
+    unset($data['block_calendar']);
 
     /*
     |--------------------------------------------------------------------------
@@ -172,19 +176,10 @@ class EventController extends Controller
         $data['image'] = $request->file('image')->store('events', 'public');
     }
 
-    Event::create($data);
-
-    if ($request->boolean('block_calendar')) {
-        $start = Carbon::parse($data['start_date_time']);
-        $end   = (clone $start)->addMinutes((int) $data['duration']);
-
-        Unavailability::create([
-            'user_id'    => Auth::id(),
-            'start_date' => $start,
-            'end_date'   => $end,
-            'reason'     => "Événement : " . $data['name'],
-        ]);
-    }
+    DB::transaction(function () use ($data, $blockCalendar, $calendarBlocks): void {
+        $event = Event::create($data);
+        $calendarBlocks->sync($event, $blockCalendar);
+    });
 
     return redirect()
         ->route('events.index')
@@ -198,7 +193,7 @@ class EventController extends Controller
         return view('events.edit', compact('event', 'products'));
     }
 
-   public function update(Request $request, Event $event)
+   public function update(Request $request, Event $event, EventCalendarBlockService $calendarBlocks)
 {
     $this->authorize('update', $event);
 
@@ -206,7 +201,8 @@ class EventController extends Controller
         'name'               => 'required|string|max:255',
         'description'        => 'nullable|string',
         'start_date_time'    => 'required|date',
-        'duration'           => 'required|integer',
+        ...EventDuration::rules(),
+        'block_calendar'     => 'nullable|boolean',
 
         'booking_required'   => 'required|boolean',
         'limited_spot'       => 'required|boolean',
@@ -226,11 +222,14 @@ class EventController extends Controller
         'collect_payment' => 'nullable|boolean',
         'price'           => 'nullable|numeric|min:0',
         'tax_rate'        => 'nullable|numeric|min:0|max:100',
-    ]);
+    ], EventDuration::messages());
 
+    $validated = EventDuration::normalizePayload($validated);
     $validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
 
     $data = $validated;
+    $blockCalendar = $request->boolean('block_calendar');
+    unset($data['block_calendar']);
 
     /*
     |--------------------------------------------------------------------------
@@ -325,7 +324,16 @@ class EventController extends Controller
         $data['image'] = $request->file('image')->store('events', 'public');
     }
 
-    $event->update($data);
+    DB::transaction(function () use ($request, $event, $data, $blockCalendar, $calendarBlocks): void {
+        $event->update($data);
+
+        if ($request->has('block_calendar') || $event->calendarBlock()->exists()) {
+            $calendarBlocks->sync(
+                $event,
+                $request->has('block_calendar') ? $blockCalendar : true,
+            );
+        }
+    });
 
     return redirect()
         ->route('events.index')
@@ -414,7 +422,7 @@ public function duplicate(Event $event)
     return view('events.duplicate', compact('event', 'products'));
 }
 
-public function storeDuplicate(Request $request, Event $event)
+public function storeDuplicate(Request $request, Event $event, EventCalendarBlockService $calendarBlocks)
 {
     $this->authorize('update', $event);
 
@@ -422,7 +430,8 @@ public function storeDuplicate(Request $request, Event $event)
         'name'               => 'required|string|max:255',
         'description'        => 'nullable|string',
         'start_date_time'    => 'required|date',
-        'duration'           => 'required|integer',
+        ...EventDuration::rules(),
+        'block_calendar'     => 'nullable|boolean',
 
         'booking_required'   => 'required|boolean',
         'limited_spot'       => 'required|boolean',
@@ -442,7 +451,8 @@ public function storeDuplicate(Request $request, Event $event)
         // duplication options
         'duplicate_participants' => 'nullable|boolean',
         'send_confirmation_to_copied_participants' => 'nullable|boolean',
-    ]);
+    ], EventDuration::messages());
+$validated = EventDuration::normalizePayload($validated);
 $validated['description'] = $this->sanitizeEventDescription($validated['description'] ?? null);
 
     $data = $validated;
@@ -450,8 +460,9 @@ $validated['description'] = $this->sanitizeEventDescription($validated['descript
 
     $duplicateParticipants = (bool) ($data['duplicate_participants'] ?? false);
     $sendConfirmation      = (bool) ($data['send_confirmation_to_copied_participants'] ?? false);
+    $blockCalendar = $request->boolean('block_calendar');
 
-    unset($data['duplicate_participants'], $data['send_confirmation_to_copied_participants']);
+    unset($data['duplicate_participants'], $data['send_confirmation_to_copied_participants'], $data['block_calendar']);
 
     /*
     |--------------------------------------------------------------------------
@@ -507,7 +518,12 @@ $validated['description'] = $this->sanitizeEventDescription($validated['descript
     }
 
     // Create new event
-    $newEvent = Event::create($data);
+    $newEvent = DB::transaction(function () use ($data, $blockCalendar, $calendarBlocks): Event {
+        $newEvent = Event::create($data);
+        $calendarBlocks->sync($newEvent, $blockCalendar);
+
+        return $newEvent;
+    });
 
     /*
     |--------------------------------------------------------------------------

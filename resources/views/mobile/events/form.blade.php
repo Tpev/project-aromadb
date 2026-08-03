@@ -10,6 +10,7 @@
     }
 
     $stripeConnected = ! empty(auth()->user()->stripe_account_id);
+    $calendarBlocked = (bool) old('block_calendar', $event->exists ? $event->calendarBlock()->exists() : false);
 @endphp
 
 <x-mobile-layout :title="$title" :hide-nav="true">
@@ -64,26 +65,18 @@
                                   class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ $fieldValue('description') }}</textarea>
                     </label>
 
-                    <div class="grid grid-cols-[1fr_100px] gap-3">
+                    <div class="space-y-3">
                         <label class="block min-w-0">
                             <span class="text-sm font-medium text-gray-700">Debut</span>
                             <input type="datetime-local"
+                                   id="start_date_time"
                                    name="start_date_time"
                                    value="{{ $startValue }}"
                                    required
                                    class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
                         </label>
 
-                        <label class="block">
-                            <span class="text-sm font-medium text-gray-700">Duree</span>
-                            <input type="number"
-                                   name="duration"
-                                   value="{{ $fieldValue('duration', 60) }}"
-                                   min="1"
-                                   required
-                                   inputmode="numeric"
-                                   class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
-                        </label>
+                        @include('events.partials.duration-fields', ['event' => $event, 'mobile' => true])
                     </div>
                 </div>
             </section>
@@ -230,19 +223,17 @@
                         </span>
                     </label>
 
-                    @if($method === 'POST')
-                        <label class="flex items-center justify-between gap-4 rounded-lg bg-[#f7f8f1] px-3 py-3">
-                            <span class="text-sm font-medium text-gray-700">Bloquer mon agenda</span>
-                            <span>
-                                <input type="hidden" name="block_calendar" value="0">
-                                <input type="checkbox"
-                                       name="block_calendar"
-                                       value="1"
-                                       class="h-5 w-5 rounded border-gray-300 text-[#647a0b] focus:ring-[#647a0b]"
-                                       {{ old('block_calendar') ? 'checked' : '' }}>
-                            </span>
-                        </label>
-                    @endif
+                    <label class="flex items-center justify-between gap-4 rounded-lg bg-[#f7f8f1] px-3 py-3">
+                        <span class="text-sm font-medium text-gray-700">Bloquer mon agenda</span>
+                        <span>
+                            <input type="hidden" name="block_calendar" value="0">
+                            <input type="checkbox"
+                                   name="block_calendar"
+                                   value="1"
+                                   class="h-5 w-5 rounded border-gray-300 text-[#647a0b] focus:ring-[#647a0b]"
+                                   {{ $calendarBlocked ? 'checked' : '' }}>
+                        </span>
+                    </label>
                 </div>
             </section>
 

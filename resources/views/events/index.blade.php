@@ -118,7 +118,7 @@
     
         <!-- Upcoming Events Table -->
         <div class="table-responsive mx-auto">
-            <h2 class="table-title">{{ __('Événements à Venir') }}</h2>
+            <h2 class="table-title">{{ __('Événements à venir et en cours') }}</h2>
             <table class="table table-bordered table-hover" id="upcomingEventTable">
                 <thead>
                     <tr>
@@ -132,7 +132,7 @@
                     @foreach($upcomingEvents as $event)
                         <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('events.show', $event->id) }}');">
                             <td>{{ $event->name }}</td>
-                            <td>{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y H:i') }}</td>
+                            <td>{{ $event->formatted_period }}</td>
                             <td>{{ $event->location }}</td>
                             <td>
                                 @php
@@ -163,7 +163,7 @@
                     @foreach($pastEvents as $event)
                         <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('events.show', $event->id) }}');">
                             <td>{{ $event->name }}</td>
-                            <td>{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y H:i') }}</td>
+                            <td>{{ $event->formatted_period }}</td>
                             <td>{{ $event->location }}</td>
                             <td>
                                 @php

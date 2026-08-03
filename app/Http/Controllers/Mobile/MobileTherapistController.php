@@ -9,7 +9,6 @@ use App\Models\Product;
 use App\Models\Event;
 use App\Models\InformationRequest;
 use App\Mail\InformationRequestMail;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 class MobileTherapistController extends Controller
@@ -41,7 +40,7 @@ class MobileTherapistController extends Controller
 
         // Événements à venir à afficher sur le portail
         $events = Event::where('user_id', $therapist->id)
-            ->where('start_date_time', '>=', Carbon::now())
+            ->notEnded()
             ->where('showOnPortail', true)
             ->orderBy('start_date_time', 'asc')
             ->with('associatedProduct') // eager load

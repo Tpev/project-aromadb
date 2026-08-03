@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Services\JitsiJwtService;
+use App\Support\EventDuration;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -18,6 +21,7 @@ protected $fillable = [
     'description',
     'start_date_time',
     'duration',
+    'end_date_time',
     'booking_required',
     'limited_spot',
     'number_of_spot',
@@ -38,6 +42,26 @@ protected $fillable = [
     'visio_token',
 ];
 
+    protected $casts = [
+        'start_date_time' => 'datetime',
+        'end_date_time' => 'datetime',
+        'duration' => 'integer',
+        'booking_required' => 'boolean',
+        'limited_spot' => 'boolean',
+        'showOnPortail' => 'boolean',
+        'collect_payment' => 'boolean',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Event $event): void {
+            if ($event->start_date_time && (int) $event->duration > 0) {
+                $event->end_date_time = Carbon::parse($event->start_date_time)
+                    ->addMinutes((int) $event->duration);
+            }
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -51,6 +75,106 @@ protected $fillable = [
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    public function calendarBlock()
+    {
+        return $this->hasOne(Unavailability::class);
+    }
+
+    public function getEndsAtAttribute(): ?Carbon
+    {
+        if ($this->end_date_time) {
+            return Carbon::parse($this->end_date_time);
+        }
+
+        if (! $this->start_date_time || (int) $this->duration < 1) {
+            return null;
+        }
+
+        return Carbon::parse($this->start_date_time)->addMinutes((int) $this->duration);
+    }
+
+    public function getFormattedDurationAttribute(): string
+    {
+        return EventDuration::format($this->duration);
+    }
+
+    public function getFormattedPeriodAttribute(): string
+    {
+        if (! $this->start_date_time || ! $this->ends_at) {
+            return 'Date à confirmer';
+        }
+
+        $start = Carbon::parse($this->start_date_time);
+        $end = $this->ends_at;
+
+        if ($start->isSameDay($end)) {
+            return 'Le '.$start->format('d/m/Y').' de '.$start->format('H:i').' à '.$end->format('H:i');
+        }
+
+        return 'Du '.$start->format('d/m/Y').' à '.$start->format('H:i')
+            .' au '.$end->format('d/m/Y').' à '.$end->format('H:i');
+    }
+
+    public function isUpcoming(?Carbon $at = null): bool
+    {
+        $at ??= now();
+
+        return Carbon::parse($this->start_date_time)->gt($at);
+    }
+
+    public function isOngoing(?Carbon $at = null): bool
+    {
+        $at ??= now();
+
+        return Carbon::parse($this->start_date_time)->lte($at)
+            && $this->ends_at?->gt($at);
+    }
+
+    public function isPast(?Carbon $at = null): bool
+    {
+        $at ??= now();
+
+        return ! $this->ends_at || $this->ends_at->lte($at);
+    }
+
+    public function scopeNotEnded(Builder $query, ?Carbon $at = null): Builder
+    {
+        $at ??= now();
+        $driver = $query->getConnection()->getDriverName();
+
+        return $query->where(function (Builder $query) use ($at, $driver): void {
+            $query->where('end_date_time', '>', $at)
+                ->orWhere(function (Builder $query) use ($at, $driver): void {
+                    $query->whereNull('end_date_time');
+
+                    if ($driver === 'sqlite') {
+                        $query->whereRaw("datetime(start_date_time, '+' || duration || ' minutes') > ?", [$at]);
+                    } else {
+                        $query->whereRaw('DATE_ADD(start_date_time, INTERVAL duration MINUTE) > ?', [$at]);
+                    }
+                });
+        });
+    }
+
+    public function scopeEnded(Builder $query, ?Carbon $at = null): Builder
+    {
+        $at ??= now();
+        $driver = $query->getConnection()->getDriverName();
+
+        return $query->where(function (Builder $query) use ($at, $driver): void {
+            $query->where('end_date_time', '<=', $at)
+                ->orWhere(function (Builder $query) use ($at, $driver): void {
+                    $query->whereNull('end_date_time');
+
+                    if ($driver === 'sqlite') {
+                        $query->whereRaw("datetime(start_date_time, '+' || duration || ' minutes') <= ?", [$at]);
+                    } else {
+                        $query->whereRaw('DATE_ADD(start_date_time, INTERVAL duration MINUTE) <= ?', [$at]);
+                    }
+                });
+        });
     }
 
     public function isVisio(): bool

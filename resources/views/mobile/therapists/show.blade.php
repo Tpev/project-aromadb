@@ -435,7 +435,7 @@
                                 <i class="fas fa-calendar-alt text-secondary-700 text-sm"></i>
                             </div>
                             <h2 class="text-lg font-semibold text-gray-900">
-                                {{ __('Événements à venir') }}
+                                {{ __('Événements à venir et en cours') }}
                             </h2>
                         </div>
 
@@ -463,9 +463,15 @@
                                             </p>
 
                                             <div class="text-[12px] text-gray-700 space-y-0.5">
-                                                <p>
-                                                    <i class="fas fa-calendar-alt mr-1 text-secondary-600 text-xs"></i>
-                                                    {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}
+                                                <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <i class="fas fa-calendar-alt text-secondary-600 text-xs"></i>
+                                                        {{ $event->formatted_period }}
+                                                    </span>
+                                                    <span class="inline-flex items-center gap-1">
+                                                        <i class="fas fa-hourglass-half text-[10px] text-[#854f38]"></i>
+                                                        {{ $event->formatted_duration }}
+                                                    </span>
                                                 </p>
                                                 <p>
                                                     <i class="fas fa-map-marker-alt mr-1 text-secondary-600 text-xs"></i>

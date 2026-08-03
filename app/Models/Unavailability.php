@@ -11,6 +11,7 @@ class Unavailability extends Model
 
     protected $fillable = [
         'user_id',
+        'event_id',
         'start_date',
         'end_date',
         'reason',
@@ -23,8 +24,14 @@ class Unavailability extends Model
     {
         return $this->belongsTo(User::class);
     }
-	    protected $casts = [
-        'start_date' => 'datetime',        
-		'end_date' => 'datetime',
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 }

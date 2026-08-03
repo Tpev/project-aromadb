@@ -309,7 +309,8 @@
                 <h3 class="text-lg font-bold leading-snug text-[#2f3825] line-clamp-2">{{ $event->name }}</h3>
 
                 <div class="mt-3 space-y-1 text-sm text-gray-600">
-                  <p>{{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y à H:i') }}</p>
+                  <p>{{ $event->formatted_period }}</p>
+                  <p>{{ $event->formatted_duration }}</p>
                   <p>{{ $event->location }}</p>
 
                   @if($event->user)

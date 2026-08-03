@@ -4,8 +4,8 @@
 Ceci est un rappel concernant votre réservation pour l’événement **{{ $event->name }}**.
 
 **Détails de l’événement :**
-- **Date et heure :** {{ \Carbon\Carbon::parse($event->start_date_time)->format('d/m/Y \à H:i') }}
-- **Durée :** {{ $event->duration ?? '—' }} minutes
+- **Date et heure :** {{ $event->formatted_period }}
+- **Durée :** {{ $event->formatted_duration }}
 - **Format :** {{ ($isVisio ?? false) ? 'Visio' : 'Présentiel' }}
 @if(($isVisio ?? false))
 - **Accès :** En ligne (Visio)
