@@ -2220,6 +2220,37 @@ public function availableDatesPatient(Request $request)
             ->with('success', 'Indisponibilité supprimée avec succès.');
     }
 
+    public function destroyManyUnavailabilities(Request $request)
+    {
+        $validated = $request->validate([
+            'unavailability_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'unavailability_ids.*' => ['required', 'integer', 'distinct'],
+        ], [
+            'unavailability_ids.required' => 'Sélectionnez au moins une indisponibilité.',
+            'unavailability_ids.min' => 'Sélectionnez au moins une indisponibilité.',
+            'unavailability_ids.max' => 'Vous pouvez supprimer jusqu’à 500 indisponibilités à la fois.',
+        ]);
+
+        $deletedCount = Unavailability::query()
+            ->where('user_id', Auth::id())
+            ->whereIn('id', $validated['unavailability_ids'])
+            ->delete();
+
+        if ($deletedCount === 0) {
+            return redirect()
+                ->route('unavailabilities.index')
+                ->with('error', 'Aucune indisponibilité n’a été supprimée.');
+        }
+
+        $message = $deletedCount === 1
+            ? '1 indisponibilité supprimée avec succès.'
+            : $deletedCount.' indisponibilités supprimées avec succès.';
+
+        return redirect()
+            ->route('unavailabilities.index')
+            ->with('success', $message);
+    }
+
     private function validatedUnavailabilityPayload(Request $request): array
     {
         $validated = $request->validate([

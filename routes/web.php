@@ -868,6 +868,9 @@ Route::middleware(['auth'])->group(function () {
     // List unavailability
     Route::get('/unavailability', [AppointmentController::class, 'indexUnavailability'])->name('unavailabilities.index');
 
+    // Delete several unavailabilities owned by the authenticated user
+    Route::delete('/unavailability/bulk-delete', [AppointmentController::class, 'destroyManyUnavailabilities'])->name('unavailabilities.destroy-many');
+
     // Show edit form
     Route::get('/unavailability/{id}/edit', [AppointmentController::class, 'editUnavailability'])->name('unavailabilities.edit');
 

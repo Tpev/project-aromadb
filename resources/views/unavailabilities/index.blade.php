@@ -115,13 +115,40 @@
 
         <!-- Table des indisponibilités -->
         <div class="table-responsive mx-auto">
+            @if($unavailabilities->isNotEmpty())
+                <form id="bulkDeleteForm"
+                      action="{{ route('unavailabilities.destroy-many') }}"
+                      method="POST"
+                      class="bulk-action-bar">
+                    @csrf
+                    @method('DELETE')
+                    <span id="selectedCount" class="bulk-selection-count" aria-live="polite">
+                        {{ __('0 indisponibilité sélectionnée') }}
+                    </span>
+                    <button type="submit" id="bulkDeleteButton" class="btn btn-danger" disabled>
+                        <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                        {{ __('Supprimer la sélection') }}
+                    </button>
+                </form>
+                @error('unavailability_ids')
+                    <p class="bulk-error">{{ $message }}</p>
+                @enderror
+            @endif
+
             <table class="table table-bordered table-hover" id="unavailabilityTable">
                 <thead>
                     <tr>
-                        <th onclick="sortTable(0)">{{ __('Date de début') }} <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable(1)">{{ __('Heure de début') }} <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable(2)">{{ __('Date de fin') }} <i class="fas fa-sort"></i></th>
-                        <th onclick="sortTable(3)">{{ __('Heure de fin') }} <i class="fas fa-sort"></i></th>
+                        <th class="selection-cell">
+                            <input type="checkbox"
+                                   id="selectAllUnavailabilities"
+                                   class="selection-checkbox"
+                                   aria-label="{{ __('Sélectionner toutes les indisponibilités affichées') }}"
+                                   title="{{ __('Tout sélectionner') }}">
+                        </th>
+                        <th onclick="sortTable(1)">{{ __('Date de début') }} <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(2)">{{ __('Heure de début') }} <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(3)">{{ __('Date de fin') }} <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable(4)">{{ __('Heure de fin') }} <i class="fas fa-sort"></i></th>
                         <th>{{ __('Raison') }}</th>
                         <th>{{ __('Actions') }}</th>
                     </tr>
@@ -133,6 +160,15 @@
                             $endAt = \Carbon\Carbon::parse($unavailability->end_date)->locale('fr');
                         @endphp
                         <tr>
+                            <td class="selection-cell">
+                                <input type="checkbox"
+                                       id="unavailability-{{ $unavailability->id }}"
+                                       name="unavailability_ids[]"
+                                       value="{{ $unavailability->id }}"
+                                       form="bulkDeleteForm"
+                                       class="selection-checkbox unavailability-checkbox"
+                                       aria-label="{{ __('Sélectionner l’indisponibilité du :date', ['date' => $startAt->format('d/m/Y à H:i')]) }}">
+                            </td>
                             <td>
                                 <div class="date-cell">
                                     <span class="date-main">{{ $startAt->format('d/m/Y') }}</span>
@@ -215,6 +251,44 @@
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin: 0 auto;
+        }
+
+        .bulk-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .bulk-selection-count {
+            color: #475569;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .bulk-error {
+            margin: -6px 0 12px;
+            color: #b91c1c;
+            font-size: 0.875rem;
+            text-align: right;
+        }
+
+        .selection-cell {
+            width: 48px;
+            min-width: 48px;
+        }
+
+        .selection-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #647a0b;
+        }
+
+        #bulkDeleteButton:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
         }
 
         .table {
@@ -303,6 +377,16 @@
             .table-responsive {
                 padding: 10px;
             }
+
+            .bulk-action-bar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .bulk-selection-count,
+            .bulk-error {
+                text-align: left;
+            }
         }
     </style>
 
@@ -315,11 +399,11 @@
             let tr = table.getElementsByTagName('tr');
 
             for (let i = 1; i < tr.length; i++) {
-                let tdStartDate = tr[i].getElementsByTagName('td')[0];
-                let tdStartTime = tr[i].getElementsByTagName('td')[1];
-                let tdEndDate = tr[i].getElementsByTagName('td')[2];
-                let tdEndTime = tr[i].getElementsByTagName('td')[3];
-                let tdReason = tr[i].getElementsByTagName('td')[4];
+                let tdStartDate = tr[i].getElementsByTagName('td')[1];
+                let tdStartTime = tr[i].getElementsByTagName('td')[2];
+                let tdEndDate = tr[i].getElementsByTagName('td')[3];
+                let tdEndTime = tr[i].getElementsByTagName('td')[4];
+                let tdReason = tr[i].getElementsByTagName('td')[5];
 
                 if (tdStartDate && tdStartTime && tdEndDate && tdEndTime && tdReason) {
                     let txtValueStartDate = tdStartDate.textContent || tdStartDate.innerText;
@@ -341,6 +425,8 @@
                     }
                 }
             }
+
+            updateBulkSelectionState();
         }
 
         function sortTable(n) {
@@ -353,25 +439,29 @@
             while (switching) {
                 switching = false;
                 let rowsArray = Array.from(rows).slice(1); // Exclude header
+                let shouldSwitch = false;
+                let switchIndex = -1;
+
                 for (let i = 0; i < rowsArray.length - 1; i++) {
-                    let shouldSwitch = false;
                     let x = rowsArray[i].getElementsByTagName('td')[n];
                     let y = rowsArray[i + 1].getElementsByTagName('td')[n];
 
                     if (dir === 'asc') {
                         if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
                             shouldSwitch = true;
+                            switchIndex = i;
                             break;
                         }
                     } else if (dir === 'desc') {
                         if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
                             shouldSwitch = true;
+                            switchIndex = i;
                             break;
                         }
                     }
                 }
                 if (shouldSwitch) {
-                    rowsArray[i].parentNode.insertBefore(rowsArray[i + 1], rowsArray[i]);
+                    rowsArray[switchIndex].parentNode.insertBefore(rowsArray[switchIndex + 1], rowsArray[switchIndex]);
                     switching = true;
                     switchcount++;
                 } else {
@@ -382,5 +472,67 @@
                 }
             }
         }
+
+        function visibleSelectionCheckboxes() {
+            return Array.from(document.querySelectorAll('.unavailability-checkbox'))
+                .filter(checkbox => checkbox.closest('tr').style.display !== 'none');
+        }
+
+        function updateBulkSelectionState() {
+            const checkboxes = Array.from(document.querySelectorAll('.unavailability-checkbox'));
+            const visibleCheckboxes = visibleSelectionCheckboxes();
+            const selectedCount = checkboxes.filter(checkbox => checkbox.checked).length;
+            const selectedVisibleCount = visibleCheckboxes.filter(checkbox => checkbox.checked).length;
+            const countLabel = document.getElementById('selectedCount');
+            const deleteButton = document.getElementById('bulkDeleteButton');
+            const selectAll = document.getElementById('selectAllUnavailabilities');
+
+            if (countLabel) {
+                countLabel.textContent = selectedCount === 1
+                    ? '1 indisponibilité sélectionnée'
+                    : `${selectedCount} indisponibilités sélectionnées`;
+            }
+
+            if (deleteButton) {
+                deleteButton.disabled = selectedCount === 0;
+            }
+
+            if (selectAll) {
+                selectAll.checked = visibleCheckboxes.length > 0 && selectedVisibleCount === visibleCheckboxes.length;
+                selectAll.indeterminate = selectedVisibleCount > 0 && selectedVisibleCount < visibleCheckboxes.length;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('selectAllUnavailabilities');
+            const bulkDeleteForm = document.getElementById('bulkDeleteForm');
+
+            document.querySelectorAll('.unavailability-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateBulkSelectionState);
+            });
+
+            selectAll?.addEventListener('change', function () {
+                visibleSelectionCheckboxes().forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+                updateBulkSelectionState();
+            });
+
+            bulkDeleteForm?.addEventListener('submit', function (event) {
+                const selectedCount = document.querySelectorAll('.unavailability-checkbox:checked').length;
+
+                if (selectedCount === 0) {
+                    event.preventDefault();
+                    return;
+                }
+
+                const label = selectedCount === 1 ? 'cette indisponibilité' : `ces ${selectedCount} indisponibilités`;
+                if (!window.confirm(`Supprimer ${label} ? Cette action est définitive.`)) {
+                    event.preventDefault();
+                }
+            });
+
+            updateBulkSelectionState();
+        });
     </script>
 </x-app-layout>
