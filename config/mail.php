@@ -113,4 +113,8 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
+    'practitioner_reply_to' => [
+        'enabled' => env('PRACTITIONER_REPLY_TO_ENABLED', true),
+    ],
+
 ];

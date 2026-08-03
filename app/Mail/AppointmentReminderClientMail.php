@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -10,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 
 class AppointmentReminderClientMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public int $tries = 5;
 
@@ -106,12 +107,8 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
                 ?? null;
         }
 
-        // Reply-To therapist
-        $replyToEmail = $this->appointment->user?->email ?? config('mail.from.address');
-        $replyToName  = $this->appointment->user?->name  ?? config('mail.from.name');
-
-        return $this->subject('Rappel de rendez-vous')
-            ->replyTo($replyToEmail, $replyToName)
+        return $this->applyPractitionerReplyTo($this->appointment->user)
+            ->subject('Rappel de rendez-vous')
             ->markdown('emails.appointment_reminder', [
                 'appointment'     => $this->appointment,
                 'resolvedMode'    => $resolvedMode,

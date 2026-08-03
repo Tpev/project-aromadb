@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\DigitalTrainingEnrollment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class DigitalTrainingAccessMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public DigitalTrainingEnrollment $enrollment;
 
@@ -20,6 +21,7 @@ class DigitalTrainingAccessMail extends Mailable
 
     public function build()
     {
+        $this->enrollment->loadMissing('training.user');
         $training = $this->enrollment->training;
         $practitioner = optional($training->user);
 
@@ -29,7 +31,7 @@ class DigitalTrainingAccessMail extends Mailable
             ? $practitioner->name . ' vous a donné accès à une formation'
             : 'Accès à votre formation';
 
-        return $this
+        return $this->applyPractitionerReplyTo($training?->user)
             ->subject($subject)
             ->view('emails.digital-trainings.access')
             ->with([

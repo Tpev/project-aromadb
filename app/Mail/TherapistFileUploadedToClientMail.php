@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\ClientFile;
 use App\Models\ClientProfile;
 use Illuminate\Bus\Queueable;
@@ -11,13 +12,14 @@ use Illuminate\Queue\SerializesModels;
 
 class TherapistFileUploadedToClientMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public ClientProfile $clientProfile;
     public ClientFile $clientFile;
 
     public function __construct(ClientProfile $clientProfile, ClientFile $clientFile)
     {
+        $clientProfile->loadMissing('user');
         $this->clientProfile = $clientProfile;
         $this->clientFile = $clientFile;
     }
@@ -30,7 +32,8 @@ class TherapistFileUploadedToClientMail extends Mailable implements ShouldQueue
             ?? $this->clientProfile->user->name
             ?? 'votre thérapeute';
 
-        return $this->subject("Nouveau document de {$therapistName}")
+        return $this->applyPractitionerReplyTo($this->clientProfile->user)
+            ->subject("Nouveau document de {$therapistName}")
             ->markdown('emails.therapist_file_uploaded_to_client');
     }
 }

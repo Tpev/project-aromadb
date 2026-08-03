@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewsletterMail;
 use App\Models\ClientProfile;
 use App\Models\Newsletter;
 use App\Models\NewsletterRecipient;
@@ -201,22 +202,7 @@ class NewsletterController extends Controller
             'last_name'  => 'Nom',
         ];
 
-        Mail::send('emails.newsletter', [
-            'newsletter'     => $newsletter,
-            'client'         => $client,
-            'unsubscribeUrl' => null,
-        ], function ($message) use ($newsletter, $to) {
-$user = $newsletter->user;
-
-$message->to($to)
-    ->from($newsletter->from_email, $newsletter->from_name)
-    ->replyTo(
-        $user?->email ?? config('mail.from.address'),
-        $user?->name  ?? config('mail.from.name')
-    )
-    ->subject('[TEST] ' . $newsletter->subject);
-
-        });
+        Mail::to($to)->send(new NewsletterMail($newsletter, $client, null, true));
 
         return back()->with('success', 'Email de test envoyé à ' . $to);
     }
@@ -301,21 +287,7 @@ protected function sendNewsletterEmail(Newsletter $newsletter, $client, Newslett
         'token' => $recipient->unsubscribe_token,
     ]);
 
-    Mail::send('emails.newsletter', [
-        'newsletter'     => $newsletter,
-        'client'         => $client,
-        'unsubscribeUrl' => $unsubscribeUrl,
-    ], function ($message) use ($newsletter, $recipient) {
-        $user = $newsletter->user; // relies on Newsletter->user() relation
-
-        $message->to($recipient->email)
-            ->from($newsletter->from_email, $newsletter->from_name)
-            ->replyTo(
-                $user?->email ?? config('mail.from.address'),
-                $user?->name  ?? config('mail.from.name')
-            )
-            ->subject($newsletter->subject);
-    });
+    Mail::to($recipient->email)->send(new NewsletterMail($newsletter, $client, $unsubscribeUrl));
 
     $recipient->status  = 'sent';
     $recipient->sent_at = now();

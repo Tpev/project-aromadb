@@ -43,7 +43,7 @@ public function store(Request $request)
     $connectionLink = route('webrtc.room', ['room' => $token]); // Using the room token for secure access
 
     // Send email with connection link
-    Mail::to($request->participant_email)->send(new \App\Mail\MeetingInvitation($connectionLink));
+    Mail::to($request->participant_email)->send(new \App\Mail\MeetingInvitation($connectionLink, Auth::user()));
 
 $connectionLink = route('webrtc.room', ['room' => $token]) . '#1'; // Appending #1 for the initiator
 

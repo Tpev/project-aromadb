@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Document;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentSignedFinalMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public function __construct(
         public Document $document,
@@ -20,9 +21,11 @@ class DocumentSignedFinalMail extends Mailable implements ShouldQueue
 
     public function build()
     {
+        $this->document->loadMissing('owner');
         $downloadUrl = $this->publicDownloadUrl();
 
-        $mail = $this->subject('Votre document signé')
+        $mail = $this->applyPractitionerReplyTo($this->document->owner)
+            ->subject('Votre document signé')
             ->markdown('emails.documents.signed-final', [
                 'document'    => $this->document,
                 'clientName'  => $this->clientName,

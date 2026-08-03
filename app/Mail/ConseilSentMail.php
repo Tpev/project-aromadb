@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\ClientProfile;
 use App\Models\Conseil;
 use Illuminate\Bus\Queueable;
@@ -10,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 
 class ConseilSentMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public $clientProfile;
     public $conseil;
@@ -43,7 +44,8 @@ class ConseilSentMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Nouveau Conseil Disponible')
+        return $this->applyPractitionerReplyTo($this->conseil->user)
+                    ->subject('Nouveau Conseil Disponible')
                     ->markdown('emails.conseil_sent_markdown');
     }
 }

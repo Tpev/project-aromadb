@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\ClientProfile;
 use App\Models\CommunityGroup;
 use Illuminate\Bus\Queueable;
@@ -13,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
 
 class CommunityInviteMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public function __construct(
         public CommunityGroup $community,
@@ -25,8 +26,11 @@ class CommunityInviteMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
+        $this->community->loadMissing('user');
+
         return new Envelope(
             subject: 'Invitation à rejoindre une communauté privée',
+            replyTo: $this->practitionerReplyToAddresses($this->community->user),
         );
     }
 

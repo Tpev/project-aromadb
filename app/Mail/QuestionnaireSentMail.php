@@ -2,6 +2,8 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -11,12 +13,13 @@ use Illuminate\Queue\SerializesModels;
 
 class QuestionnaireSentMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public $therapistName;
     public $questionnaireTitle;
     public $link;
     public $client_profile_name;
+    public ?User $practitioner;
 
     /**
      * Create a new message instance.
@@ -25,12 +28,13 @@ class QuestionnaireSentMail extends Mailable
      * @param string $questionnaireTitle
      * @param string $link
      */
-    public function __construct(string $therapistName, string $questionnaireTitle, string $link, string $client_profile_name)
+    public function __construct(string $therapistName, string $questionnaireTitle, string $link, string $client_profile_name, ?User $practitioner = null)
     {
         $this->therapistName = $therapistName;
         $this->questionnaireTitle = $questionnaireTitle;
         $this->link = $link;
 		$this->client_profile_name = $client_profile_name;
+        $this->practitioner = $practitioner;
     }
 
     /**
@@ -40,6 +44,7 @@ class QuestionnaireSentMail extends Mailable
     {
         return new Envelope(
             subject: 'Questionnaire envoyé',
+            replyTo: $this->practitionerReplyToAddresses($this->practitioner),
         );
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Mobile;
 
+use App\Mail\NewsletterMail;
 use App\Http\Controllers\Controller;
 use App\Models\Audience;
 use App\Models\ClientProfile;
@@ -176,21 +177,7 @@ class MobileNewsletterController extends Controller
             'last_name' => 'Nom',
         ];
 
-        Mail::send('emails.newsletter', [
-            'newsletter' => $newsletter,
-            'client' => $client,
-            'unsubscribeUrl' => null,
-        ], function ($message) use ($newsletter, $validated) {
-            $user = $newsletter->user;
-
-            $message->to($validated['test_email'])
-                ->from($newsletter->from_email, $newsletter->from_name)
-                ->replyTo(
-                    $user?->email ?? config('mail.from.address'),
-                    $user?->name ?? config('mail.from.name')
-                )
-                ->subject('[TEST] ' . $newsletter->subject);
-        });
+        Mail::to($validated['test_email'])->send(new NewsletterMail($newsletter, $client, null, true));
 
         return redirect()
             ->route('mobile.newsletters.show', $newsletter)
@@ -385,21 +372,7 @@ class MobileNewsletterController extends Controller
             'token' => $recipient->unsubscribe_token,
         ]);
 
-        Mail::send('emails.newsletter', [
-            'newsletter' => $newsletter,
-            'client' => $client,
-            'unsubscribeUrl' => $unsubscribeUrl,
-        ], function ($message) use ($newsletter, $recipient) {
-            $user = $newsletter->user;
-
-            $message->to($recipient->email)
-                ->from($newsletter->from_email, $newsletter->from_name)
-                ->replyTo(
-                    $user?->email ?? config('mail.from.address'),
-                    $user?->name ?? config('mail.from.name')
-                )
-                ->subject($newsletter->subject);
-        });
+        Mail::to($recipient->email)->send(new NewsletterMail($newsletter, $client, $unsubscribeUrl));
 
         $recipient->update([
             'status' => 'sent',

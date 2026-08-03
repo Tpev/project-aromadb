@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +12,7 @@ use PDF;
 
 class InvoicePaymentReminderMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public $invoice;
     public $therapistName;
@@ -36,7 +37,8 @@ class InvoicePaymentReminderMail extends Mailable implements ShouldQueue
             'invoice' => $this->invoice,
         ])->output();
 
-        return $this->subject("Rappel de paiement - Facture #{$this->invoice->invoice_number}")
+        return $this->applyPractitionerReplyTo($this->invoice->user)
+            ->subject("Rappel de paiement - Facture #{$this->invoice->invoice_number}")
             ->markdown('emails.invoices.payment_reminder')
             ->attachData(
                 $pdf,

@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -10,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 
 class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public int $tries = 5;
 
@@ -121,11 +122,8 @@ class AppointmentCreatedPatientMail extends Mailable implements ShouldQueue
             $latestCancelAt = $this->appointment->appointment_date->copy()->subHours($cutoffHours);
         }
 
-        return $this->subject('Confirmation de votre rendez-vous')
-		->replyTo(
-        $this->appointment->user?->email,
-        $this->appointment->user?->name
-    )
+        return $this->applyPractitionerReplyTo($this->appointment->user)
+            ->subject('Confirmation de votre rendez-vous')
             ->markdown('emails.appointment_created_patient', [
                 'resolvedMode'    => $resolvedMode,
                 'modeLabel'       => $modeLabel,

@@ -58,10 +58,7 @@ class AppointmentCancelledByClient extends Mailable implements ShouldQueue
         $fromEmail = config('mail.from.address');
         $fromName  = config('mail.from.name');
 
-        // Prefer the therapist company email as Reply-To (so they can reply easily if needed)
-        $replyToEmail = $a->user?->company_email ?: $a->user?->email;
-
-        $mailable = $this->subject($subject)
+        return $this->subject($subject)
             ->from($fromEmail, $fromName)
             ->view('emails.appointments.cancelled-by-client')
             ->with([
@@ -72,11 +69,5 @@ class AppointmentCancelledByClient extends Mailable implements ShouldQueue
                 'timeStr'        => $timeStr,
                 'appointmentUrl' => route('appointments.show', $a),
             ]);
-
-        if (!empty($replyToEmail)) {
-            $mailable->replyTo($replyToEmail, $therapistName);
-        }
-
-        return $mailable;
     }
 }

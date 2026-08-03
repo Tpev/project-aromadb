@@ -88,7 +88,7 @@ class QuestionnaireController extends Controller
             $therapist = Auth::user();
             $therapistName = $therapist->name;
             $link = route('questionnaires.fill', ['token' => $token]);
-            Mail::to($clientProfile->email)->send(new QuestionnaireSentMail($therapistName, $questionnaire_name, $link, $client_profile_name));
+            Mail::to($clientProfile->email)->send(new QuestionnaireSentMail($therapistName, $questionnaire_name, $link, $client_profile_name, $therapist));
             return redirect()->route('client_profiles.show', $clientProfile->id)->with('success', 'Questionnaire envoyé avec succès.');
         }
     }

@@ -92,7 +92,8 @@ class AppointmentQuestionnaireAutomationService
                     $therapist->name,
                     $questionnaire->title,
                     route('questionnaires.fill', ['token' => $response->token]),
-                    (string) ($clientProfile->first_name ?: 'Client')
+                    (string) ($clientProfile->first_name ?: 'Client'),
+                    $therapist
                 )
             );
         } catch (\Throwable $e) {

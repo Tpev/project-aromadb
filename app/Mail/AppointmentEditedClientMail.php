@@ -3,6 +3,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -10,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 
 class AppointmentEditedClientMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public $appointment;
 
@@ -19,6 +20,7 @@ class AppointmentEditedClientMail extends Mailable
      */
     public function __construct(Appointment $appointment)
     {
+        $appointment->loadMissing('user');
         $this->appointment = $appointment;
     }
 
@@ -27,7 +29,8 @@ class AppointmentEditedClientMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Votre rendez-vous a été modifié')
+        return $this->applyPractitionerReplyTo($this->appointment->user)
+                    ->subject('Votre rendez-vous a été modifié')
                     ->markdown('emails.appointment_edited');
     }
 }

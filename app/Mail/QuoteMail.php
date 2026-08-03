@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -11,7 +12,7 @@ use PDF;
 
 class QuoteMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public Invoice $quote;
     public string $therapistName;
@@ -53,7 +54,8 @@ class QuoteMail extends Mailable implements ShouldQueue
     {
         $pdf = PDF::loadView('invoices.pdf_quote', ['invoice' => $this->quote])->output();
 
-        return $this->subject('Votre Devis n°' . ($this->quote->quote_number ?? ''))
+        return $this->applyPractitionerReplyTo($this->quote->user)
+            ->subject('Votre Devis n°' . ($this->quote->quote_number ?? ''))
             ->markdown('emails.quotes.mail', [
                 'quote'         => $this->quote,
                 'therapistName' => $this->therapistName,

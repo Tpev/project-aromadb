@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class ReservationConfirmation extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public Reservation $reservation;
     public $event;
@@ -39,7 +40,8 @@ class ReservationConfirmation extends Mailable
      */
     public function build()
     {
-        return $this->subject('Confirmation de votre réservation')
+        return $this->applyPractitionerReplyTo($this->event?->user)
+            ->subject('Confirmation de votre réservation')
             ->markdown('emails.reservation_confirmation', [
                 'reservation' => $this->reservation,
                 'event'       => $this->event,

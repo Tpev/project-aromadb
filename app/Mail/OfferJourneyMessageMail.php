@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Domain\OfferJourneys\Models\OfferJourneyMessageCampaign;
 use App\Domain\OfferJourneys\Services\OfferJourneyEmailRenderer;
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -12,7 +13,7 @@ use Symfony\Component\Mime\Email;
 
 class OfferJourneyMessageMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public function __construct(
         public readonly User $therapist,
@@ -32,10 +33,9 @@ class OfferJourneyMessageMail extends Mailable
             ?: trim(($this->therapist->first_name ?? '').' '.($this->therapist->last_name ?? ''))
             ?: $this->therapist->name
             ?: 'Votre praticien';
-        $replyTo = $this->therapist->company_email ?: $this->therapist->email;
-
-        $mail = $this->subject($this->messageSubject)
-            ->from(config('mail.from.address'), $therapistName.' via Olithea');
+        $mail = $this->applyPractitionerReplyTo($this->therapist)
+            ->subject($this->messageSubject)
+            ->from(config('mail.from.address'), config('mail.from.name'));
 
         if ($this->campaign?->content_json) {
             $rendered = app(OfferJourneyEmailRenderer::class)->render(
@@ -56,10 +56,6 @@ class OfferJourneyMessageMail extends Mailable
                     'unsubscribeUrl' => $this->unsubscribeUrl,
                     'category' => $this->category,
                 ]);
-        }
-
-        if (filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
-            $mail->replyTo($replyTo, $therapistName);
         }
 
         $configurationSet = config('offer_journeys.deliverability.configuration_set');

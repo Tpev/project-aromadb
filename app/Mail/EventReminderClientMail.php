@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Event;
 use App\Models\Reservation;
 use Illuminate\Bus\Queueable;
@@ -11,7 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 
 class EventReminderClientMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public Event $event;
     public Reservation $reservation;
@@ -50,7 +51,8 @@ class EventReminderClientMail extends Mailable implements ShouldQueue
             }
         }
 
-        return $this->subject($subject)
+        return $this->applyPractitionerReplyTo($this->event->user)
+            ->subject($subject)
             ->markdown('emails.event_reminder', [
                 'visioJoinLink' => $visioJoinLink,
                 'isVisio' => $isVisio,

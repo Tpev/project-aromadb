@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -10,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 
 class InvoicePaymentLinkMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public $invoice;
     public $therapistName;
@@ -43,7 +44,8 @@ class InvoicePaymentLinkMail extends Mailable implements ShouldQueue
             'items.inventoryItem',
         ]);
 
-        return $this->subject("{$this->therapistName} - Votre lien de paiement pour la facture #{$this->invoice->invoice_number}")
+        return $this->applyPractitionerReplyTo($this->invoice->user)
+                    ->subject("{$this->therapistName} - Votre lien de paiement pour la facture #{$this->invoice->invoice_number}")
                     ->markdown('emails.invoices.payment_link');
     }
 }

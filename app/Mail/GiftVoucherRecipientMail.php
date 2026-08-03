@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\GiftVoucher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 
 class GiftVoucherRecipientMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public function __construct(
         public GiftVoucher $voucher,
@@ -18,10 +19,12 @@ class GiftVoucherRecipientMail extends Mailable
 
     public function build()
     {
+        $this->voucher->loadMissing('therapist');
         $therapist = $this->voucher->therapist;
         $from = $this->voucher->buyer_name ?: 'un proche';
 
-        return $this->subject('Vous avez reçu un bon cadeau de ' . $from . ' – ' . ($therapist->company_name ?? $therapist->name ?? 'Olithea'))
+        return $this->applyPractitionerReplyTo($therapist)
+            ->subject('Vous avez reçu un bon cadeau de ' . $from . ' – ' . ($therapist->company_name ?? $therapist->name ?? 'Olithea'))
             ->markdown('emails.gift-voucher.recipient')
             ->with([
                 'voucher' => $this->voucher,

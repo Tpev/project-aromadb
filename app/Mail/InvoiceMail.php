@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,7 +12,7 @@ use PDF;
 
 class InvoiceMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable, RepliesToPractitioner, SerializesModels;
 
     public $invoice;
     public $therapistName;
@@ -43,7 +44,8 @@ class InvoiceMail extends Mailable implements ShouldQueue
         $documentLabel = $this->invoice->document_label;
         $filenamePrefix = $this->invoice->isCreditNote() ? 'avoir' : 'facture';
 
-        return $this->subject("Votre {$documentLabel} n°{$this->invoice->invoice_number}")
+        return $this->applyPractitionerReplyTo($this->invoice->user)
+                    ->subject("Votre {$documentLabel} n°{$this->invoice->invoice_number}")
                     ->markdown('emails.invoices.mail')
                     ->attachData(
                         $pdf,
