@@ -181,7 +181,7 @@
 
     {{-- JS --}}
     <script>
-        const products = @json($products->map(fn($p) => ['id' => $p->id, 'name' => $p->name])->values());
+        const products = @json($products->map(fn($p) => ['id' => $p->id, 'label' => $p->pack_selection_label])->values());
         const body = document.getElementById('itemsBody');
         const addRowBtn = document.getElementById('addRow');
 
@@ -196,7 +196,7 @@
 
         function rowHtml(index) {
             const options = products.map(p =>
-                `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+                `<option value="${p.id}">${escapeHtml(p.label)}</option>`
             ).join('');
 
             return `

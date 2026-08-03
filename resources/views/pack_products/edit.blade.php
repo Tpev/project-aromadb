@@ -186,7 +186,7 @@
     </div>
 
     <script>
-        const products = @json($products->map(fn($p) => ['id' => $p->id, 'name' => $p->name])->values());
+        const products = @json($products->map(fn($p) => ['id' => $p->id, 'label' => $p->pack_selection_label])->values());
         const initialItems = @json($pack->items->map(fn($it) => ['product_id' => $it->product_id, 'quantity' => $it->quantity])->values());
 
         const body = document.getElementById('itemsBody');
@@ -204,7 +204,7 @@
         function rowHtml(index, productId = '', qty = 1) {
             const options = products.map(p => {
                 const sel = String(p.id) === String(productId) ? 'selected' : '';
-                return `<option value="${p.id}" ${sel}>${escapeHtml(p.name)}</option>`;
+                return `<option value="${p.id}" ${sel}>${escapeHtml(p.label)}</option>`;
             }).join('');
 
             return `

@@ -98,6 +98,18 @@ class Product extends Model
         return $this->price + ($this->price * $this->tax_rate / 100);
     }
 
+    public function getPackSelectionLabelAttribute(): string
+    {
+        $duration = $this->duration
+            ? (int) $this->duration.' min'
+            : 'Durée non renseignée';
+        $price = $this->price !== null
+            ? number_format((float) $this->price_incl_tax, 2, ',', ' ').' € TTC'
+            : 'Prix non renseigné';
+
+        return $this->name.' - '.$duration.' - '.$price;
+    }
+
     /** (Optionnel) Scope pratique pour filtrer ce qui est visible dans le portail. */
     public function scopeVisibleInPortal($query)
     {

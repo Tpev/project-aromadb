@@ -151,7 +151,7 @@
                                         class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
                                     <option value="">Choisir</option>
                                     @foreach($products as $product)
-                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                        <option value="{{ $product->id }}">{{ $product->pack_selection_label }}</option>
                                     @endforeach
                                 </select>
                             </label>
