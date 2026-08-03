@@ -152,3 +152,27 @@ test('informational event page keeps event social metadata after the reserve red
         ->assertSee('property="og:image" content="'.asset('storage/'.$image).'?v=', false)
         ->assertSee('property="og:image:type" content="image/png"', false);
 });
+
+test('event detail images preserve their intrinsic size on information and reservation pages', function () {
+    Storage::fake('public');
+
+    $therapist = makeTherapist();
+    $image = UploadedFile::fake()->image('format-portrait.jpg', 480, 720)->store('events', 'public');
+    $bookableEvent = makeEvent($therapist, ['image' => $image]);
+    $informationalEvent = makeEvent($therapist, [
+        'booking_required' => false,
+        'image' => $image,
+    ]);
+
+    $this->get(route('events.reserve.create', $bookableEvent))
+        ->assertOk()
+        ->assertSee('data-event-image-display="intrinsic"', false)
+        ->assertSee('h-auto max-h-[32rem] max-w-full', false)
+        ->assertDontSee('w-full h-64 object-cover', false);
+
+    $this->get(route('events.public.show', $informationalEvent))
+        ->assertOk()
+        ->assertSee('data-event-image-display="intrinsic"', false)
+        ->assertSee('h-auto max-h-[32rem] max-w-full', false)
+        ->assertDontSee('w-full h-72 object-cover', false);
+});

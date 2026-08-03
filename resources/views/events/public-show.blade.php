@@ -84,9 +84,12 @@
 
             <div class="px-6 py-6 sm:px-8 space-y-6">
                 @if($event->image)
-                    <img src="{{ asset('storage/' . $event->image) }}"
-                         alt="{{ $event->name }}"
-                         class="w-full h-72 object-cover rounded-xl border border-gray-200">
+                    <div class="flex justify-center">
+                        <img src="{{ asset('storage/' . $event->image) }}"
+                             alt="{{ $event->name }}"
+                             class="block h-auto max-h-[32rem] max-w-full rounded-xl border border-gray-200 object-contain"
+                             data-event-image-display="intrinsic">
+                    </div>
                 @endif
 
                 <div class="grid gap-4 md:grid-cols-2">

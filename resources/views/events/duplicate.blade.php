@@ -235,6 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="details-box">
                     <label class="details-label" for="image">{{ __('Image') }}</label>
                     <input type="file" id="image" name="image" class="form-control">
+                    <p class="text-xs text-slate-500 mt-2">
+                        {{ __('Sur la page de l’événement, l’image conserve ses proportions et n’est pas agrandie au-delà de sa taille d’origine.') }}
+                    </p>
                     @if($event->image)
                         <p class="text-xs text-slate-500 mt-2">
                             {{ __('Image actuelle reprise si vous ne changez rien.') }}

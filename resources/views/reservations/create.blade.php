@@ -100,10 +100,11 @@
 
             <!-- Event Image -->
             @if($event->image)
-                <div class="event-image mb-4">
+                <div class="event-image mb-4 flex justify-center">
                     <img src="{{ asset('storage/' . $event->image) }}"
                          alt="{{ $event->name }}"
-                         class="w-full h-64 object-cover rounded-lg shadow-lg">
+                         class="block h-auto max-h-[32rem] max-w-full rounded-lg object-contain shadow-lg"
+                         data-event-image-display="intrinsic">
                 </div>
             @endif
 
