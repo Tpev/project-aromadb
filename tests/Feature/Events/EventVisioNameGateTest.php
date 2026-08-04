@@ -6,6 +6,8 @@ use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Support\EventVisioJoinLink;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -53,7 +55,7 @@ test('enabled Olithea event links open the participant name gate', function () {
         ->assertSee($event->name);
 });
 
-test('name submission redirects to the unchanged room with a separate display name fragment', function () {
+test('name submission signs the chosen participant name into the unchanged non moderator room token', function () {
     $event = makeVisioGateEvent(User::factory()->create());
 
     $response = $this->post(route('events.visio.join', $event), [
@@ -61,11 +63,18 @@ test('name submission redirects to the unchanged room with a separate display na
     ]);
 
     $destination = $response->headers->get('Location');
+    $query = [];
+    parse_str((string) parse_url($destination, PHP_URL_QUERY), $query);
+    $claims = JWT::decode($query['jwt'], new Key(config('services.jitsi.secret'), 'HS256'));
 
     $response->assertRedirect();
     expect($destination)
         ->toStartWith('https://visio.olithea.test/conference-room-token?jwt=')
-        ->toEndWith('#userInfo.displayName=%22Sophie%20Schauber%22')
+        ->and(parse_url($destination, PHP_URL_FRAGMENT))->toBeNull()
+        ->and($claims->room)->toBe('conference-room-token')
+        ->and($claims->context->user->name)->toBe('Sophie Schauber')
+        ->and($claims->context->user->moderator)->toBeFalse()
+        ->and($claims->context->group)->toBe('client')
         ->and($event->fresh()->visio_token)->toBe('conference-room-token')
         ->and(session("event_visio_names.{$event->id}"))->toBe('Sophie Schauber');
 });
@@ -85,7 +94,16 @@ test('kill switch and practitioner allowlist preserve the existing direct partic
     $joinLink = app(EventVisioJoinLink::class);
 
     config()->set('services.jitsi.participant_name_gate.enabled', false);
-    expect($joinLink->for($event))->toStartWith('https://visio.olithea.test/conference-room-token?jwt=');
+    $legacyDirectLink = $joinLink->for($event);
+    $query = [];
+    parse_str((string) parse_url($legacyDirectLink, PHP_URL_QUERY), $query);
+    $legacyClaims = JWT::decode($query['jwt'], new Key(config('services.jitsi.secret'), 'HS256'));
+
+    expect($legacyDirectLink)
+        ->toStartWith('https://visio.olithea.test/conference-room-token?jwt=')
+        ->and($legacyClaims->room)->toBe('conference-room-token')
+        ->and($legacyClaims->context->user->name)->toBe('Participant')
+        ->and($legacyClaims->context->user->moderator)->toBeFalse();
     $this->get(route('events.visio.join.show', $event))
         ->assertRedirectContains('https://visio.olithea.test/conference-room-token?jwt=');
 

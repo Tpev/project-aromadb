@@ -42,17 +42,6 @@ final class EventVisioJoinLink
 
     public function directForDisplayName(Event $event, string $displayName): ?string
     {
-        $directLink = $this->directFor($event);
-
-        if (! $directLink) {
-            return null;
-        }
-
-        $encodedName = rawurlencode(json_encode(
-            $displayName,
-            JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
-        ));
-
-        return $directLink.'#userInfo.displayName='.$encodedName;
+        return $event->visioPublicLinkFor($displayName);
     }
 }

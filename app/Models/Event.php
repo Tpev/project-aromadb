@@ -210,7 +210,7 @@ protected $fillable = [
      * Build a Jitsi JWT payload for an event.
      * We do NOT rely on appointment context here.
      */
-    protected function makeEventJwt(bool $moderator): string
+    protected function makeEventJwt(bool $moderator, ?string $participantDisplayName = null): string
     {
         /** @var \App\Services\JitsiJwtService $jitsi */
         $jitsi = app(JitsiJwtService::class);
@@ -243,14 +243,16 @@ protected $fillable = [
             ]);
         }
 
-        // Public/participant: generic non-moderator JWT
+        $participantDisplayName = trim((string) $participantDisplayName);
+
+        // Public/participant: always non-moderator, with an optional name from the join gate.
         return $jitsi->generate([
             'room' => $room,
             'sub'  => config('services.jitsi.domain', 'visio.aromamade.com'),
             'context' => [
                 'user' => [
                     'id' => (string) Str::uuid(),
-                    'name' => 'Participant',
+                    'name' => $participantDisplayName !== '' ? $participantDisplayName : 'Participant',
                     'email' => null,
                     'moderator' => false,
                 ],
@@ -269,6 +271,11 @@ protected $fillable = [
      */
     public function getVisioPublicLinkAttribute(): ?string
     {
+        return $this->visioPublicLinkFor();
+    }
+
+    public function visioPublicLinkFor(?string $participantDisplayName = null): ?string
+    {
         if (!$this->isVisio()) return null;
 
         if (!empty($this->visio_url)) {
@@ -276,7 +283,7 @@ protected $fillable = [
         }
 
         if ($this->isAromaMadeVisio()) {
-            $jwt = $this->makeEventJwt(false);
+            $jwt = $this->makeEventJwt(false, $participantDisplayName);
             return $this->visioBaseUrl() . '/' . $this->visio_token . '?jwt=' . urlencode($jwt);
         }
 
