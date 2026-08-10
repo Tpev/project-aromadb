@@ -532,7 +532,7 @@
 
                         <div class="details-box">
                             <label class="details-label" for="cancellation_notice_hours">
-                                {{ __('Délai minimum d\'annulation client (heures avant le rendez-vous)') }}
+                                {{ __('Délai minimum de modification ou d\'annulation client (heures avant le rendez-vous)') }}
                             </label>
 
                             <input type="number"
@@ -544,7 +544,7 @@
                                    value="{{ old('cancellation_notice_hours', $user->cancellation_notice_hours ?? 0) }}">
 
                             <small class="text-gray-500">
-                                {{ __('Ex : 24 = annulation possible jusqu\'à 24h avant. 0 = annulation possible à tout moment.') }}
+                                {{ __('Ex. : 24 = modification ou annulation en ligne possible jusqu\'à 24 h avant. 0 = possible jusqu\'au début du rendez-vous.') }}
                             </small>
 
                             @error('cancellation_notice_hours')

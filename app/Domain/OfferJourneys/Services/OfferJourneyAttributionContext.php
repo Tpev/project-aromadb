@@ -53,10 +53,20 @@ class OfferJourneyAttributionContext
             $journey = OfferJourney::query()
                 ->whereKey((int) ($payload['journey_id'] ?? 0))
                 ->where('user_id', $userId)
-                ->where('source_type', $sourceType)
                 ->whereIn('status', ['published', 'paused'])
                 ->first();
-            if (! $journey || ($sourceId !== null && (int) $journey->source_id !== $sourceId)) {
+            if (! $journey) {
+                return null;
+            }
+
+            $version = $journey->versions()
+                ->whereKey((int) ($payload['journey_version_id'] ?? 0))
+                ->first();
+            $snapshot = $version?->snapshot_json ?? [];
+            $attributedSourceType = $version ? ($snapshot['source_type'] ?? null) : $journey->source_type;
+            $attributedSourceId = $version ? ($snapshot['source_id'] ?? null) : $journey->source_id;
+            if ($attributedSourceType !== $sourceType
+                || ($sourceId !== null && (int) $attributedSourceId !== $sourceId)) {
                 return null;
             }
 

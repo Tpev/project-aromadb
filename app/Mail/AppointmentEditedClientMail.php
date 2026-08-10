@@ -7,7 +7,9 @@ use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
+use App\Services\AppointmentMailDeliveryGuard;
 
 class AppointmentEditedClientMail extends Mailable
 {
@@ -24,6 +26,14 @@ class AppointmentEditedClientMail extends Mailable
         $this->appointment = $appointment;
     }
 
+    public function headers(): Headers
+    {
+        return new Headers(text: [
+            AppointmentMailDeliveryGuard::APPOINTMENT_HEADER => (string) $this->appointment->id,
+            AppointmentMailDeliveryGuard::MESSAGE_HEADER => 'active-update',
+        ]);
+    }
+
     /**
      * Build the message.
      */
@@ -31,6 +41,8 @@ class AppointmentEditedClientMail extends Mailable
     {
         return $this->applyPractitionerReplyTo($this->appointment->user)
                     ->subject('Votre rendez-vous a été modifié')
-                    ->markdown('emails.appointment_edited');
+                    ->markdown('emails.appointment_edited', [
+                        'managementUrl' => route('appointments.showPatient', $this->appointment->token),
+                    ]);
     }
 }

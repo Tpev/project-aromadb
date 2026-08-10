@@ -432,7 +432,7 @@
                                         {{ \Carbon\Carbon::parse($appointment->appointment_date)->locale('fr_FR')->isoFormat('DD/MM/YYYY HH:mm') }}
                                     </span>
                                     <span class="capitalize">
-                                        {{ $appointment->status }}
+                                        {{ $appointment->status_label }}
                                     </span>
                                 </div>
                             </button>

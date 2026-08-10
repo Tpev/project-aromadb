@@ -1,82 +1,64 @@
 <?php
-// app/Console/Commands/SendOneHourReminder.php
-//
-// Retro-compatible + idempotent:
-// - If column reminder_1h_sent_at exists => prevents duplicates (atomic claim)
-// - If column doesn't exist yet => behaves like before (sends every time command runs)
-// - Uses chunkById to avoid loading everything in memory
-// - Uses ->queue() when the mailable implements ShouldQueue, else ->send()
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Schema;
+use App\Jobs\SendAppointmentReminderJob;
 use App\Models\Appointment;
-use App\Mail\AppointmentReminderClientMail;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Schema;
 
 class SendOneHourReminder extends Command
 {
     protected $signature = 'email:send-one-hour-reminder';
-    protected $description = 'Send email reminders 1 hour before appointments';
+    protected $description = 'Place les rappels de rendez-vous à une heure dans la file';
 
-    public function handle()
+    public function handle(): int
     {
-        // Window: appointments between 50 and 70 minutes from now
-        $startReminderWindow = Carbon::now()->addMinutes(50)->startOfMinute();
-        $endReminderWindow   = Carbon::now()->addMinutes(70)->endOfMinute();
-
-        $hasSentColumn = Schema::hasColumn('appointments', 'reminder_1h_sent_at');
-
-        $query = Appointment::whereBetween('appointment_date', [$startReminderWindow, $endReminderWindow])
-            ->notCancelled()
-            ->with('clientProfile', 'user', 'product')
-            ->orderBy('id');
-
-        if ($hasSentColumn) {
-            $query->whereNull('reminder_1h_sent_at');
+        if (!Schema::hasColumn('appointments', 'reminder_1h_queued_at')) {
+            $this->warn('Migration des rappels non appliquée : aucun email placé en file.');
+            return self::FAILURE;
         }
 
-        $sent = 0;
+        $start = Carbon::now()->addMinutes(50)->startOfMinute();
+        $end = Carbon::now()->addMinutes(70)->endOfMinute();
+        $queued = 0;
 
-        $query->chunkById(200, function ($appointments) use ($hasSentColumn, &$sent) {
-            foreach ($appointments as $appointment) {
-                $email = $appointment->clientProfile?->email;
-                if (!$email) {
-                    continue;
-                }
-
-                // If column exists, claim atomically to prevent duplicates across runs/overlaps
-                if ($hasSentColumn) {
-                    $claimed = Appointment::whereKey($appointment->id)
+        Appointment::query()
+            ->whereBetween('appointment_date', [$start, $end])
+            ->notCancelled()
+            ->whereNull('reminder_1h_sent_at')
+            ->where(function ($query) {
+                $query->whereNull('reminder_1h_queued_at')
+                    ->orWhere('reminder_1h_queued_at', '<', now()->subHours(2));
+            })
+            ->orderBy('id')
+            ->chunkById(200, function ($appointments) use (&$queued) {
+                foreach ($appointments as $appointment) {
+                    $claimedAt = now();
+                    $claimed = Appointment::query()
+                        ->whereKey($appointment->id)
                         ->notCancelled()
                         ->whereNull('reminder_1h_sent_at')
-                        ->update(['reminder_1h_sent_at' => now()]);
+                        ->where(function ($query) {
+                            $query->whereNull('reminder_1h_queued_at')
+                                ->orWhere('reminder_1h_queued_at', '<', now()->subHours(2));
+                        })
+                        ->update(['reminder_1h_queued_at' => $claimedAt]);
 
-                    if ($claimed !== 1) {
-                        continue; // already handled by another run
+                    if ($claimed === 1) {
+                        SendAppointmentReminderJob::dispatch(
+                            $appointment->id,
+                            '1h',
+                            $appointment->appointment_date->toIso8601String(),
+                            $claimedAt->toIso8601String()
+                        );
+                        $queued++;
                     }
                 }
+            });
 
-                $appointment->refresh();
-                if ($appointment->isCancelled()) {
-                    continue;
-                }
-
-                $mailable = new AppointmentReminderClientMail($appointment);
-
-                // If the mailable is queueable, prefer queue() (your mail currently implements ShouldQueue)
-                if (method_exists($mailable, 'queue')) {
-                    Mail::to($email)->queue($mailable);
-                } else {
-                    Mail::to($email)->send($mailable);
-                }
-
-                $sent++;
-            }
-        });
-
-        $this->info("One-hour reminder emails processed. Sent/queued: {$sent}");
+        $this->info("Rappels 1 h placés en file : {$queued}");
+        return self::SUCCESS;
     }
 }

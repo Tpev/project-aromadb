@@ -138,7 +138,7 @@ class StripeController extends Controller
             return redirect()->back()->withErrors('Rendez-vous invalide.');
         }
 
-        if ($appointment->status !== 'pending') {
+        if (!$appointment->isPendingPayment()) {
             Log::warning('Rendez-vous déjà payé ou en cours: ID ' . $appointment->id);
             return redirect()->back()->withErrors('Le rendez-vous a déjà été payé ou est en cours.');
         }
@@ -283,12 +283,16 @@ public function success(Request $request)
                 throw new \RuntimeException('Le compte Stripe ne correspond pas au rendez-vous.');
             }
 
-            app(AppointmentController::class)->finalizeStripeAppointmentPayment(
+            $finalization = app(AppointmentController::class)->finalizeStripeAppointmentPayment(
                 $appointment,
                 $metadata,
                 (int) ($paymentIntent->amount_received ?? $paymentIntent->amount ?? 0),
                 (string) $paymentIntent->id
             );
+            if ($finalization['cancelled_payment_received'] ?? false) {
+                return redirect()->route('appointments.showPatient', $appointment->token)
+                    ->with('error', 'Le paiement a été reçu après l’annulation. Le rendez-vous reste annulé et le praticien va vérifier la régularisation.');
+            }
             Log::info('Rendez-vous ID ' . $appointment->id . ' marqué comme payé.');
         } else {
             Log::warning('Aucun rendez-vous trouvé avec l\'ID: ' . $appointment_id);
@@ -418,12 +422,15 @@ public function success(Request $request)
                 ? (string) ($session->payment_intent->id ?? '')
                 : (string) ($session->payment_intent ?? $session->id ?? '');
 
-            app(AppointmentController::class)->finalizeStripeAppointmentPayment(
+            $finalization = app(AppointmentController::class)->finalizeStripeAppointmentPayment(
                 $appointment,
                 $metadata,
                 (int) ($session->amount_total ?? 0),
                 $providerReference
             );
+            if ($finalization['cancelled_payment_received'] ?? false) {
+                return;
+            }
         }
     }
 

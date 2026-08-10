@@ -7,7 +7,7 @@
     $selectedProduct = old('product_id', $appointment->product_id);
     $selectedMode = old('type', $appointment->type ?: ($appointment->exists ? $appointment->getResolvedMode() : 'visio'));
     $selectedLocation = old('practice_location_id', $appointment->practice_location_id);
-    $selectedStatus = old('status', $appointment->status ?: 'Programme');
+    $selectedStatus = old('status', $appointment->exists ? $appointment->canonicalStatus() : 'scheduled');
 
     $modeOptions = [
         'cabinet' => ['label' => 'Cabinet', 'icon' => 'fa-map-marker-alt'],
@@ -17,10 +17,10 @@
     ];
 
     $statusOptions = [
-        'Programme' => 'Programme',
-        'Confirme' => 'Confirme',
-        'Complete' => 'Complete',
-        'Annulee' => 'Annule',
+        'scheduled' => 'Programmé',
+        'confirmed' => 'Confirmé',
+        'paid' => 'Payé',
+        'completed' => 'Terminé',
     ];
 @endphp
 

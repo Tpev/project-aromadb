@@ -12,10 +12,12 @@ use App\Domain\OfferJourneys\Services\OfferJourneyPublisher;
 use App\Domain\OfferJourneys\Services\OfferJourneyAutomationBuilder;
 use App\Domain\OfferJourneys\Services\OfferJourneyResourceStorage;
 use App\Domain\OfferJourneys\Services\OfferJourneyPublicationPreflight;
+use App\Domain\OfferJourneys\Services\OfferJourneyWorkspace;
 use App\Domain\OfferJourneys\Services\OfferJourneyTemplateLibrary;
 use App\Http\Controllers\Controller;
 use App\Models\DigitalTraining;
 use App\Models\Event;
+use App\Models\GiftVoucher;
 use App\Models\Product;
 use App\Support\OfferJourneys\OfferJourneyAccess;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -92,7 +94,12 @@ class OfferJourneyController extends Controller
         $hasContact = $journey->leads_count > 0;
         $next = match (true) {
             ! $published => ['title' => 'Vérifiez puis publiez votre page', 'body' => 'Contrôlez les textes, le formulaire et la destination avant de la rendre visible.', 'label' => 'Vérifier le parcours', 'url' => route('offer-journeys.show', $journey)],
-            $newContacts > 0 => ['title' => $newContacts.' nouvelle(s) personne(s) attendent votre suivi', 'body' => 'Consultez leur demande et choisissez une prochaine action.', 'label' => 'Voir les personnes', 'url' => route('offer-journeys.contacts.index', ['status' => 'new'])],
+            $newContacts > 0 => [
+                'title' => $newContacts === 1 ? '1 nouvelle personne attend votre suivi' : $newContacts.' nouvelles personnes attendent votre suivi',
+                'body' => 'Consultez leur demande et choisissez une prochaine action.',
+                'label' => 'Voir les personnes',
+                'url' => route('offer-journeys.contacts.index', ['status' => 'new']),
+            ],
             ! $shared => ['title' => 'Partagez votre page', 'body' => 'Préparez un lien pour Instagram, votre newsletter, un email ou un support imprimé.', 'label' => 'Préparer le partage', 'url' => route('offer-journeys.share', $journey)],
             $journey->views_count >= 20 && $journey->leads_count === 0 => ['title' => 'Votre page est consultée sans générer de demande', 'body' => 'Regardez où les visiteurs s’arrêtent avant de modifier le titre, le formulaire ou le bouton.', 'label' => 'Comprendre les résultats', 'url' => route('offer-journeys.analytics', $journey)],
             default => ['title' => 'Consultez les résultats', 'body' => 'Suivez les visites, contacts et actions confirmées pour décider de la prochaine amélioration.', 'label' => 'Voir les résultats', 'url' => route('offer-journeys.analytics', $journey)],
@@ -208,6 +215,7 @@ class OfferJourneyController extends Controller
                     'resource_url' => $validated['resource_url'] ?? null,
                     'resource_file' => $resourceFile,
                 ],
+                'theme_json' => ['style' => $template['theme_style'] ?? 'olive'],
                 'validation_state' => 'ready',
             ]);
 
@@ -227,17 +235,17 @@ class OfferJourneyController extends Controller
                     'position' => 1,
                     'draft_content_json' => [
                         'title' => match ($validated['objective']) {
-                            'lead_magnet' => 'Votre ressource est prete',
+                            'lead_magnet' => 'Votre ressource est prête',
                             'appointment' => 'Choisissez votre rendez-vous',
-                            'event' => 'Inscrivez-vous a cet evenement',
-                            'training' => 'Accedez a la formation',
+                            'event' => 'Inscrivez-vous à cet événement',
+                            'training' => 'Accédez à la formation',
                             'gift_voucher' => 'Finalisez votre bon cadeau',
                             default => 'Continuer',
                         },
                         'summary' => '',
                         'cta_label' => match ($validated['objective']) {
-                            'lead_magnet' => 'Telecharger la ressource',
-                            'appointment' => 'Voir les disponibilites',
+                            'lead_magnet' => 'Télécharger la ressource',
+                            'appointment' => 'Voir les disponibilités',
                             'event' => "S'inscrire",
                             'training' => 'Decouvrir la formation',
                             'gift_voucher' => 'Choisir un bon cadeau',
@@ -246,6 +254,7 @@ class OfferJourneyController extends Controller
                         'resource_url' => $validated['resource_url'] ?? null,
                         'resource_file' => $resourceFile,
                     ],
+                    'theme_json' => ['style' => $template['theme_style'] ?? 'olive'],
                     'validation_state' => 'ready',
                 ]);
             }
@@ -257,13 +266,20 @@ class OfferJourneyController extends Controller
                 'position' => $actionPage ? 2 : 1,
                 'draft_content_json' => [
                     'title' => 'Merci, votre demande a bien été prise en compte.',
-                    'summary' => $validated['objective'] === 'lead_magnet'
-                        ? 'Votre ressource est disponible ci-dessous et vous sera également envoyée par email.'
-                        : 'Vous allez recevoir les prochaines informations par email.',
+                    'summary' => match ($validated['objective']) {
+                        'lead_magnet' => 'Votre demande est confirmée. Utilisez le bouton ci-dessous pour accéder à la ressource.',
+                        'contact_request' => 'Votre demande a été transmise au praticien. Il vous répondra avec les coordonnées indiquées.',
+                        'appointment' => 'Votre demande est confirmée. Les informations du rendez-vous restent accessibles depuis votre espace.',
+                        'event' => 'Votre inscription a bien été prise en compte.',
+                        'training' => 'Votre demande d’accès a bien été prise en compte.',
+                        'gift_voucher' => 'Votre demande concernant le bon cadeau a bien été prise en compte.',
+                        default => 'Votre demande a bien été prise en compte.',
+                    },
                     'cta_label' => $validated['objective'] === 'lead_magnet' ? 'Accéder à la ressource' : 'Voir le profil du praticien',
                     'resource_url' => $validated['resource_url'] ?? null,
                     'resource_file' => $resourceFile,
                 ],
+                'theme_json' => ['style' => $template['theme_style'] ?? 'olive'],
                 'validation_state' => 'ready',
             ]);
 
@@ -320,7 +336,12 @@ class OfferJourneyController extends Controller
             ->with('success', 'Le parcours a été créé en brouillon.');
     }
 
-    public function show(Request $request, OfferJourney $journey, OfferJourneyPublicationPreflight $preflight): View
+    public function show(
+        Request $request,
+        OfferJourney $journey,
+        OfferJourneyPublicationPreflight $preflight,
+        OfferJourneyWorkspace $workspace
+    ): View
     {
         $this->authorize('view', $journey);
         $journey->load(['pages.form.fields', 'transitions', 'versions.publisher']);
@@ -330,20 +351,39 @@ class OfferJourneyController extends Controller
             'preflight' => (bool) config('offer_journeys.publication_assistance_enabled', false)
                 ? $preflight->inspect($journey)
                 : null,
+            'workspace' => $workspace->for($journey),
+            'workspaceSection' => 'overview',
         ]);
     }
 
-    public function edit(OfferJourney $journey): View
+    public function edit(OfferJourney $journey, OfferJourneyWorkspace $workspace): View
     {
         $this->authorize('update', $journey);
         $journey->load(['pages.form.fields', 'transitions']);
 
-        return view('offer-journeys.practitioner.edit', compact('journey'));
+        return view('offer-journeys.practitioner.edit', [
+            'journey' => $journey,
+            'workspace' => $workspace->for($journey),
+            'workspaceSection' => 'settings',
+            'sourceOptions' => $this->sourceOptions($journey->user_id, $journey->objective),
+            'currentSourceRef' => $journey->source_type && $journey->source_id
+                ? $journey->source_type.':'.$journey->source_id
+                : '',
+        ]);
     }
 
     public function update(Request $request, OfferJourney $journey): RedirectResponse
     {
         $this->authorize('update', $journey);
+
+        $sourceCanBeSelected = in_array($journey->objective, ['appointment', 'event', 'training'], true);
+        [$sourceType, $sourceId] = array_pad(explode(':', (string) $request->input('source_ref'), 2), 2, null);
+        if ($sourceCanBeSelected) {
+            $request->merge([
+                'source_type' => $sourceType ?: null,
+                'source_id' => ctype_digit((string) $sourceId) ? (int) $sourceId : null,
+            ]);
+        }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:160'],
@@ -354,14 +394,31 @@ class OfferJourneyController extends Controller
                 Rule::unique('offer_journeys')->where('user_id', $request->user()->id)->ignore($journey->id),
             ],
             'show_on_profile' => ['nullable', 'boolean'],
+            'source_ref' => ['nullable', 'string', 'max:100'],
+            'source_type' => ['nullable', Rule::in(['product', 'event', 'digital_training'])],
+            'source_id' => ['nullable', 'integer'],
         ]);
 
+        if ($sourceCanBeSelected) {
+            $this->validateOwnedSource(
+                $request->user()->id,
+                $journey->objective,
+                $validated['source_type'] ?? null,
+                $validated['source_id'] ?? null
+            );
+        }
+
         $oldSlug = $journey->slug;
-        $journey->update([
+        $updates = [
             'name' => $validated['name'],
             'slug' => Str::slug($validated['slug']),
             'show_on_profile' => $request->boolean('show_on_profile'),
-        ]);
+        ];
+        if ($sourceCanBeSelected) {
+            $updates['source_type'] = $validated['source_type'] ?? null;
+            $updates['source_id'] = $validated['source_id'] ?? null;
+        }
+        $journey->update($updates);
 
         if ($oldSlug !== $journey->slug) {
             OfferJourneySlugRedirect::query()->updateOrCreate(
@@ -512,6 +569,41 @@ class OfferJourneyController extends Controller
         };
 
         abort_unless($model && $model::query()->whereKey($sourceId)->where('user_id', $userId)->exists(), 422, 'La ressource sélectionnée est indisponible.');
+    }
+
+    private function sourceOptions(int $userId, string $objective): \Illuminate\Support\Collection
+    {
+        return match ($objective) {
+            'appointment' => Product::query()
+                ->where('user_id', $userId)
+                ->orderBy('name')
+                ->get()
+                ->map(fn (Product $product): array => [
+                    'value' => 'product:'.$product->id,
+                    'label' => $product->pack_selection_label,
+                ]),
+            'event' => Event::query()
+                ->where('user_id', $userId)
+                ->latest('start_date_time')
+                ->get()
+                ->map(fn (Event $event): array => [
+                    'value' => 'event:'.$event->id,
+                    'label' => $event->name.' - '.$event->formatted_period.' - '.($event->price > 0
+                        ? number_format((float) $event->price, 2, ',', ' ').' €'
+                        : 'gratuit'),
+                ]),
+            'training' => DigitalTraining::query()
+                ->where('user_id', $userId)
+                ->orderBy('title')
+                ->get()
+                ->map(fn (DigitalTraining $training): array => [
+                    'value' => 'digital_training:'.$training->id,
+                    'label' => $training->title.' - '.($training->estimated_duration_minutes
+                        ? \App\Support\EventDuration::format($training->estimated_duration_minutes)
+                        : 'durée libre').' - '.($training->formatted_price ?: 'gratuite'),
+                ]),
+            default => collect(),
+        };
     }
 
     private function objectives(): array

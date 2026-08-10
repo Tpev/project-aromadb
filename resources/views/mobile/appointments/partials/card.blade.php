@@ -12,12 +12,12 @@
         );
 
     $productName = optional($appointment->product)->name ?? '—';
-    $status = ucfirst($appointment->status ?? 'en attente');
+    $status = $appointment->status_label;
 
-    $statusClasses = match ($appointment->status) {
-        'Complété' => 'bg-green-50 text-green-700 border-green-100',
-        'Annulé', 'Annulee', 'Annulée', 'cancelled', 'canceled' => 'bg-slate-100 text-slate-500 border-slate-200',
-        'En attente', 'pending' => 'bg-amber-50 text-amber-700 border-amber-100',
+    $statusClasses = match ($appointment->canonicalStatus()) {
+        'completed' => 'bg-green-50 text-green-700 border-green-100',
+        'cancelled' => 'bg-slate-100 text-slate-500 border-slate-200',
+        'pending_payment' => 'bg-amber-50 text-amber-700 border-amber-100',
         default => 'bg-slate-50 text-slate-700 border-slate-100',
     };
 

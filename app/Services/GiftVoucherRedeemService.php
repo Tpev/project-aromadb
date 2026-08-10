@@ -315,7 +315,7 @@ class GiftVoucherRedeemService
                 continue;
             }
 
-            if (($appointment->status ?? null) !== 'pending') {
+            if (!$appointment->isPendingPayment()) {
                 continue;
             }
 

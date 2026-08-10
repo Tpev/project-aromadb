@@ -28,10 +28,14 @@ Schedule::command(SendDailyKpiEmail::class)->dailyAt('6:00');
 Schedule::command(CheckMilestones::class)->hourly();
 
 // Schedule the appointment reminder email command to run every hour
-Schedule::command(SendAppointmentReminders::class)->hourly();
+Schedule::command(SendAppointmentReminders::class)->hourly()->withoutOverlapping(30);
 
 // Schedule the 1-hour appointment reminder command
-Schedule::command(SendOneHourReminder::class)->hourly();
+Schedule::command(SendOneHourReminder::class)->everyTenMinutes()->withoutOverlapping(10);
+
+Schedule::command('appointments:cleanup-cancelled-google-events --limit=100')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping(20);
 
 // Event reminder
 Schedule::command('events:send-reminders')->everyMinute();
@@ -47,6 +51,10 @@ Schedule::command(ImportGoogleEvents::class)
 Schedule::command(ReleaseStaleGiftVoucherBookingReservations::class)
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+Schedule::command('appointments:expire-pending-payments --limit=500')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(10);
 
 // Finance Stripe: réconciliation cashflow/frais/payouts.
 Schedule::command(SyncStripeFinance::class)

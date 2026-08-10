@@ -105,5 +105,5 @@ test('appointment Stripe webhook finalizes invoice receipt and service date with
     expect(Invoice::where('appointment_id', $appointment->id)->count())->toBe(1)
         ->and(Receipt::where('invoice_id', $invoice->id)->count())->toBe(1)
         ->and($invoice->items()->firstOrFail()->service_date->format('Y-m-d'))->toBe('2026-07-25')
-        ->and($appointment->fresh()->status)->toBe("Pay\u{00E9}e");
+        ->and($appointment->fresh()->status)->toBe(Appointment::STATUS_PAID);
 });

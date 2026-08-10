@@ -331,6 +331,8 @@ class ClientProfileController extends Controller
 
         $appointments = $clientProfile->appointments()
             ->where('appointment_date', '>=', now())
+            ->notCancelled()
+            ->with(['user', 'product'])
             ->orderBy('appointment_date')
             ->get();
 

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Auth\Events\Login;
+use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
@@ -20,6 +21,7 @@ use App\Models\Appointment;
 use App\Models\Reservation;
 use App\Models\DigitalTrainingEnrollment;
 use App\Models\GiftVoucherOrder;
+use App\Services\AppointmentMailDeliveryGuard;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
 		 Carbon::setLocale('fr');
+		  Event::listen(MessageSending::class, AppointmentMailDeliveryGuard::class);
 		  // Queue workers are long-lived: close any cached SMTP transport between jobs.
 		  Queue::looping(static function (): void {
 		      Mail::purge();

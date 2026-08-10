@@ -4,6 +4,7 @@ namespace App\Http\Controllers\OfferJourneys;
 
 use App\Domain\OfferJourneys\Models\OfferJourney;
 use App\Domain\OfferJourneys\Models\OfferJourneyCampaignLink;
+use App\Domain\OfferJourneys\Services\OfferJourneyWorkspace;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,7 @@ class OfferJourneyCampaignController extends Controller
 {
     use AuthorizesRequests;
 
-    public function show(OfferJourney $journey): View
+    public function show(OfferJourney $journey, OfferJourneyWorkspace $workspace): View
     {
         $this->authorize('view', $journey);
         $journey->load(['user', 'campaignLinks' => fn ($query) => $query->latest()]);
@@ -26,6 +27,8 @@ class OfferJourneyCampaignController extends Controller
         return view('offer-journeys.practitioner.share', [
             'journey' => $journey,
             'canonicalUrl' => $this->publicUrl($journey),
+            'workspace' => $workspace->for($journey),
+            'workspaceSection' => 'share',
         ]);
     }
 

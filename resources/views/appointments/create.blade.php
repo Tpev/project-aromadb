@@ -352,7 +352,7 @@
                 </div>
 
                 {{-- Status --}}
-                <input type="hidden" name="status" value="Confirmé">
+                <input type="hidden" name="status" value="confirmed">
 
                 {{-- Notes --}}
                 <div class="details-box">

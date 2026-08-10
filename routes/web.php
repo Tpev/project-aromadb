@@ -572,6 +572,12 @@ Route::prefix('client')->group(function () {
 
     Route::middleware('auth:client')->group(function () {
         Route::get('home', [ClientProfileController::class, 'home'])->name('client.home');
+        Route::get('appointments/{appointment}', [\App\Http\Controllers\AppointmentManagementController::class, 'portalShow'])
+            ->name('client.appointments.show');
+        Route::get('appointments/{appointment}/reschedule', [\App\Http\Controllers\AppointmentManagementController::class, 'portalReschedule'])
+            ->name('client.appointments.reschedule');
+        Route::post('appointments/{appointment}/cancel', [\App\Http\Controllers\AppointmentManagementController::class, 'portalCancel'])
+            ->name('client.appointments.cancel');
         Route::get('communautes', [ClientCommunityController::class, 'index'])->name('client.communities.index');
         Route::post('communautes/{community}/rejoindre', [ClientCommunityController::class, 'accept'])->name('client.communities.accept');
         Route::get('communautes/{community}', [ClientCommunityController::class, 'show'])->name('client.communities.show');
@@ -1135,6 +1141,9 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAn
     Route::put('/appointments/{appointment}/complete', [AppointmentController::class, 'markAsCompleted'])->name('appointments.complete');
     Route::put('/appointments/{appointment}/completeindex', [AppointmentController::class, 'markAsCompletedIndex'])->name('appointments.completeindex');
 
+    Route::post('/appointments/{appointment}/cancel', [\App\Http\Controllers\AppointmentManagementController::class, 'cancelAsPractitioner'])
+        ->name('appointments.lifecycle.cancel');
+
     Route::delete('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
     Route::post('/appointments/{appointment}/associate-invoice', [AppointmentInvoiceController::class, 'associate'])
         ->name('appointments.invoices.associate');
@@ -1147,9 +1156,29 @@ Route::middleware([\App\Http\Middleware\TrackPageViews::class])->group(function 
 
 Route::get('/book-appointment/{therapist}', [AppointmentController::class, 'createPatient'])->name('appointments.createPatient');
 Route::post('/book-appointment', [AppointmentController::class, 'storePatient'])->name('appointments.storePatient');
-Route::get('/appointment-confirmation/{token}', [AppointmentController::class, 'showPatient'])->name('appointments.showPatient');
-Route::get('/appointment-ics/{token}', [AppointmentController::class, 'downloadICS'])->name('appointments.downloadICS');
-Route::post('/appointment-confirmation/{token}/cancel', [AppointmentController::class, 'cancelFromMagicLink'])
+Route::get('/appointment-confirmation/{token}', [AppointmentController::class, 'showPatient'])
+    ->middleware('throttle:60,1')
+    ->name('appointments.showPatient');
+Route::get('/appointment-ics/{token}', [AppointmentController::class, 'downloadICS'])
+    ->middleware('throttle:30,1')
+    ->name('appointments.downloadICS');
+Route::get('/appointment-confirmation/{token}/reschedule', [\App\Http\Controllers\AppointmentManagementController::class, 'rescheduleForm'])
+    ->middleware('throttle:30,1')
+    ->name('appointment.confirmation.reschedule.form');
+Route::get('/appointment-confirmation/{token}/available-slots', [\App\Http\Controllers\AppointmentManagementController::class, 'availableSlots'])
+    ->middleware('throttle:30,1')
+    ->name('appointment.confirmation.reschedule.slots');
+Route::get('/appointment-confirmation/{token}/payment', [\App\Http\Controllers\AppointmentManagementController::class, 'resumePayment'])
+    ->middleware('throttle:15,1')
+    ->name('appointment.confirmation.payment.resume');
+Route::get('/checkout/resume/{sessionId}', [\App\Http\Controllers\AppointmentManagementController::class, 'resumeLegacyPayment'])
+    ->middleware('throttle:15,1')
+    ->name('checkout.resume');
+Route::post('/appointment-confirmation/{token}/reschedule', [\App\Http\Controllers\AppointmentManagementController::class, 'reschedule'])
+    ->middleware('throttle:15,1')
+    ->name('appointment.confirmation.reschedule');
+Route::post('/appointment-confirmation/{token}/cancel', [\App\Http\Controllers\AppointmentManagementController::class, 'cancelByToken'])
+    ->middleware('throttle:10,1')
     ->name('appointment.confirmation.cancel');
 });
 

@@ -193,7 +193,7 @@
                     </label>
 
                     <label class="block min-w-0">
-                        <span class="text-sm font-medium text-gray-700">Annulation h</span>
+                        <span class="text-sm font-medium text-gray-700">Modification / annulation (h)</span>
                         <input type="number"
                                name="cancellation_notice_hours"
                                value="{{ old('cancellation_notice_hours', $user->cancellation_notice_hours ?? 0) }}"

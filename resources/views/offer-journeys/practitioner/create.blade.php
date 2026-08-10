@@ -9,8 +9,9 @@
 
     <div class="py-6">
         <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <form method="POST" enctype="multipart/form-data" action="{{ route('offer-journeys.store') }}" class="space-y-5"
+            <form method="POST" enctype="multipart/form-data" action="{{ route('offer-journeys.store') }}" class="space-y-5" @submit="sessionStorage.removeItem(draftKey)"
                   x-data="{
+                      draftKey: 'olithea-offer-journey-create-v1',
                       step: {{ $errors->any() ? 4 : 1 }},
                       objective: @js(old('objective', 'appointment')),
                       templateKey: @js(old('template_key', '')),
@@ -37,6 +38,20 @@
                       canReview() { return this.name.trim() && this.publicTitle.trim() && this.cta.trim(); },
                       actionLabel() {
                           return {appointment:'une prise de rendez-vous',event:'une inscription à un événement',lead_magnet:'l’accès à une ressource',training:'l’accès à une formation',gift_voucher:'l’achat d’un bon cadeau',contact_request:'une demande de contact'}[this.objective] || 'l’action choisie';
+                      },
+                      saveDraft() {
+                          sessionStorage.setItem(this.draftKey, JSON.stringify({step:this.step, objective:this.objective, templateKey:this.templateKey, sourceRef:this.sourceRef, name:this.name, publicTitle:this.publicTitle, summary:this.summary, cta:this.cta}));
+                      },
+                      init() {
+                          if (!@js($errors->any())) {
+                              try {
+                                  const saved = JSON.parse(sessionStorage.getItem(this.draftKey) || 'null');
+                                  if (saved) Object.assign(this, saved);
+                              } catch (error) {
+                                  sessionStorage.removeItem(this.draftKey);
+                              }
+                          }
+                          ['step','objective','templateKey','sourceRef','name','publicTitle','summary','cta'].forEach(field => this.$watch(field, () => this.saveDraft()));
                       }
                   }">
                 @csrf
@@ -69,15 +84,13 @@
 
                 <section x-show="step === 2" x-cloak class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                     <h2 class="text-lg font-semibold text-gray-900">Quelle offre souhaitez-vous promouvoir ?</h2>
-                    <p class="mt-1 text-sm text-gray-600">Associez un élément déjà géré dans Olithea. Vous pouvez aussi continuer sans association.</p>
-                    <label for="source_ref" class="mt-4 block text-sm font-medium text-gray-700">Élément associé</label>
-                    <select id="source_ref" name="source_ref" x-model="sourceRef" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]">
-                        <option value="">Aucun pour le moment</option>
-                        <optgroup label="Prestations">@foreach($products as $product)<option value="product:{{ $product->id }}">{{ $product->name }}</option>@endforeach</optgroup>
-                        <optgroup label="Événements">@foreach($events as $event)<option value="event:{{ $event->id }}">{{ $event->name }}</option>@endforeach</optgroup>
-                        <optgroup label="Formations">@foreach($trainings as $training)<option value="digital_training:{{ $training->id }}">{{ $training->title }}</option>@endforeach</optgroup>
-                    </select>
-                    <p x-show="objective === 'gift_voucher'" class="mt-3 rounded-md bg-[#f7f9ec] p-3 text-sm text-[#526509]">Olithea utilisera automatiquement votre page de bons cadeaux.</p>
+                    <p class="mt-1 text-sm text-gray-600">Associez un élément déjà géré dans Olithea. Vous pourrez aussi le choisir ou le modifier plus tard dans les paramètres.</p>
+                    <div x-show="objective === 'appointment'" x-cloak class="mt-4"><label for="source-product" class="block text-sm font-medium text-gray-700">Prestation associée</label><select id="source-product" name="source_ref" x-model="sourceRef" :disabled="objective !== 'appointment'" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Je choisirai plus tard</option>@foreach($products as $product)<option value="product:{{ $product->id }}">{{ $product->pack_selection_label }}</option>@endforeach</select><p class="mt-1 text-xs text-gray-500">La prestation devra être associée avant la publication.</p></div>
+                    <div x-show="objective === 'event'" x-cloak class="mt-4"><label for="source-event" class="block text-sm font-medium text-gray-700">Événement associé</label><select id="source-event" name="source_ref" x-model="sourceRef" :disabled="objective !== 'event'" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Je choisirai plus tard</option>@foreach($events as $event)<option value="event:{{ $event->id }}">{{ $event->name }} - {{ $event->formatted_period }} - {{ $event->price > 0 ? number_format($event->price, 2, ',', ' ').' €' : 'gratuit' }}</option>@endforeach</select><p class="mt-1 text-xs text-gray-500">L’événement devra être associé avant la publication.</p></div>
+                    <div x-show="objective === 'training'" x-cloak class="mt-4"><label for="source-training" class="block text-sm font-medium text-gray-700">Formation associée</label><select id="source-training" name="source_ref" x-model="sourceRef" :disabled="objective !== 'training'" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Je choisirai plus tard</option>@foreach($trainings as $training)<option value="digital_training:{{ $training->id }}">{{ $training->title }} - {{ $training->estimated_duration_minutes ? \App\Support\EventDuration::format($training->estimated_duration_minutes) : 'durée libre' }} - {{ $training->formatted_price ?: 'gratuite' }}</option>@endforeach</select><p class="mt-1 text-xs text-gray-500">La formation devra être associée avant la publication.</p></div>
+                    <p x-show="objective === 'lead_magnet'" x-cloak class="mt-4 border-l-2 border-[#647a0b] bg-[#f7f9ec] p-3 text-sm text-gray-700">Vous ajouterez le fichier ou le lien de la ressource à l’étape suivante.</p>
+                    <p x-show="objective === 'contact_request'" x-cloak class="mt-4 border-l-2 border-[#647a0b] bg-[#f7f9ec] p-3 text-sm text-gray-700">Aucune offre existante n’est nécessaire : Olithea préparera un formulaire de demande.</p>
+                    <p x-show="objective === 'gift_voucher'" x-cloak class="mt-4 border-l-2 border-[#647a0b] bg-[#f7f9ec] p-3 text-sm text-gray-700">Olithea utilisera automatiquement votre page de bons cadeaux.</p>
                     <div class="mt-5 flex justify-between"><button type="button" @click="step = 1" class="text-sm font-semibold text-gray-600">Retour</button><button type="button" @click="step = 3" class="rounded-md bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white">Continuer</button></div>
                 </section>
 

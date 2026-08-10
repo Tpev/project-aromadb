@@ -99,7 +99,10 @@ class OfferJourneyContactImportController extends Controller
             ]);
         });
 
-        return back()->with('success', count($created).' contact(s) importé(s), '.$skipped.' ignoré(s). Aucun message n’a été envoyé.');
+        $createdLabel = count($created) === 1 ? '1 contact importé' : count($created).' contacts importés';
+        $skippedLabel = $skipped === 1 ? '1 ligne ignorée' : $skipped.' lignes ignorées';
+
+        return back()->with('success', $createdLabel.', '.$skippedLabel.'. Aucun message n’a été envoyé.');
     }
 
     public function rollback(Request $request, OfferJourneyContactImport $import): RedirectResponse

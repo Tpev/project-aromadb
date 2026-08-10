@@ -10,6 +10,10 @@ Votre rendez-vous prévu le **{{ $appointment->appointment_date->format('d/m/Y �
 - **Prestation :** {{ $appointment->product->name }}
 - **Thérapeute :** {{ $appointment->user->name }}
 
+@component('mail::button', ['url' => $managementUrl])
+Gérer mon rendez-vous
+@endcomponent
+
 Si vous avez des questions ou besoin de plus d'informations, n'hésitez pas à nous contacter.
 
 Merci,<br>

@@ -122,7 +122,7 @@
                 <ul class="list-disc list-inside text-gray-700 mb-4">
                     <li>Après création d’un Compte Personnel, l’Utilisateur peut réserver un créneau horaire auprès d’un Professionnel (en cabinet, à domicile ou à distance).</li>
                     <li>Le Professionnel reste seul responsable de la gestion de ses disponibilités et de l’exécution des rendez-vous planifiés.</li>
-                    <li>L’Utilisateur peut modifier ou annuler son rendez-vous jusqu’à 4 heures avant l’heure prévue, via son espace « Mes Rendez-vous ». Passé ce délai, il doit contacter directement le Professionnel.</li>
+                    <li>L’Utilisateur peut modifier ou annuler son rendez-vous en ligne dans le délai configuré par le Professionnel et affiché dans les informations du rendez-vous. Passé ce délai, il doit contacter directement le Professionnel. Texte à valider par Olithea et son conseil juridique.</li>
                 </ul>
 
                 <!-- Service Visio -->

@@ -218,10 +218,10 @@
                 <div class="details-box">
                     <label class="details-label" for="status">{{ __('Statut') }}</label>
                     <select id="status" name="status" class="form-control" required>
-                        <option value="Programmé" {{ old('status', $appointment->status) == 'Programmé' ? 'selected' : '' }}>Programmé</option>
-                        <option value="Confirmé" {{ old('status', $appointment->status) == 'Confirmé' ? 'selected' : '' }}>Confirmé</option>
-                        <option value="Complété" {{ old('status', $appointment->status) == 'Complété' ? 'selected' : '' }}>Complété</option>
-                        <option value="Annulé"   {{ old('status', $appointment->status) == 'Annulé' ? 'selected' : '' }}>Annulé</option>
+                        <option value="scheduled" @selected(old('status', $appointment->canonicalStatus()) === 'scheduled')>Programmé</option>
+                        <option value="confirmed" @selected(old('status', $appointment->canonicalStatus()) === 'confirmed')>Confirmé</option>
+                        <option value="paid" @selected(old('status', $appointment->canonicalStatus()) === 'paid')>Payé</option>
+                        <option value="completed" @selected(old('status', $appointment->canonicalStatus()) === 'completed')>Terminé</option>
                     </select>
                     @error('status')<p class="text-red-500">{{ $message }}</p>@enderror
                 </div>

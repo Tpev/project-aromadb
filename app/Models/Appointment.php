@@ -14,11 +14,42 @@ class Appointment extends Model
 {
     use HasFactory;
 
+    public const STATUS_SCHEDULED = 'scheduled';
+    public const STATUS_PENDING_PAYMENT = 'pending_payment';
+    public const STATUS_CONFIRMED = 'confirmed';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
     public const CANCELLED_STATUSES = [
         'cancelled',
         'canceled',
+        'Annulé',
+        'Annule',
         'Annulée',
         'Annulee',
+        'annulé',
+        'annule',
+        'annulée',
+        'annulee',
+    ];
+
+    public const WRITABLE_STATUSES = [
+        self::STATUS_SCHEDULED,
+        self::STATUS_PENDING_PAYMENT,
+        self::STATUS_CONFIRMED,
+        self::STATUS_PAID,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+    ];
+
+    public const ACCEPTED_STATUS_VALUES = [
+        'scheduled', 'Programmé', 'Programme',
+        'pending', 'pending_payment', 'En attente', 'En attente de paiement',
+        'confirmed', 'Confirmé', 'Confirme', 'Confirmée', 'Confirmee',
+        'paid', 'Payée', 'Payee', 'Payé', 'Paye',
+        'completed', 'Complété', 'Complete', 'Complétée', 'Completee', 'Terminé', 'Termine', 'Terminée', 'Terminee',
+        'cancelled', 'canceled', 'Annulé', 'Annule', 'Annulée', 'Annulee',
     ];
 
     /* ------------------------------------------------------------------ */
@@ -41,6 +72,20 @@ class Appointment extends Model
         'practice_location_id',    // ← SELECTED cabinet location (if cabinet)
         'address',                 // ← optional, for domicile override
         'token',                   // allow mass-assign only if you want; it is auto-set in creating()
+        'cancelled_at',
+        'cancelled_by_type',
+        'cancelled_by_id',
+        'cancellation_reason',
+        'rescheduled_at',
+        'rescheduled_by_type',
+        'rescheduled_by_id',
+        'reminder_24h_sent_at',
+        'reminder_1h_sent_at',
+        'reminder_24h_queued_at',
+        'reminder_1h_queued_at',
+        'client_confirmation_sent_at',
+        'consumed_pack_purchase_id',
+        'financial_follow_up_required',
 
         // NEW
         'requires_emargement',
@@ -52,6 +97,14 @@ class Appointment extends Model
         'external'             => 'boolean',
         'duration'             => 'integer',
         'gift_voucher_amount_cents' => 'integer',
+        'cancelled_at'         => 'datetime',
+        'rescheduled_at'       => 'datetime',
+        'reminder_24h_sent_at' => 'datetime',
+        'reminder_1h_sent_at'  => 'datetime',
+        'reminder_24h_queued_at' => 'datetime',
+        'reminder_1h_queued_at' => 'datetime',
+        'client_confirmation_sent_at' => 'datetime',
+        'financial_follow_up_required' => 'boolean',
 
         // NEW
         'requires_emargement'  => 'boolean',
@@ -68,7 +121,102 @@ class Appointment extends Model
 
     public function isCancelled(): bool
     {
-        return in_array($this->status, self::CANCELLED_STATUSES, true);
+        return $this->canonicalStatus() === self::STATUS_CANCELLED;
+    }
+
+    public static function normalizeStatus(?string $status): string
+    {
+        $normalized = Str::lower(Str::ascii(trim((string) $status)));
+
+        return match ($normalized) {
+            'pending', 'pending_payment', 'en attente', 'en attente de paiement' => self::STATUS_PENDING_PAYMENT,
+            'confirmed', 'confirme', 'confirmee' => self::STATUS_CONFIRMED,
+            'paid', 'payee', 'paye' => self::STATUS_PAID,
+            'completed', 'complete', 'completee', 'termine', 'terminee' => self::STATUS_COMPLETED,
+            'cancelled', 'canceled', 'annule', 'annulee' => self::STATUS_CANCELLED,
+            'scheduled', 'programme', 'programmee' => self::STATUS_SCHEDULED,
+            default => self::STATUS_SCHEDULED,
+        };
+    }
+
+    public static function statusValuesFor(string $canonicalStatus): array
+    {
+        return array_values(array_filter(
+            self::ACCEPTED_STATUS_VALUES,
+            fn (string $status): bool => self::normalizeStatus($status) === $canonicalStatus
+        ));
+    }
+
+    public function canonicalStatus(): string
+    {
+        return self::normalizeStatus($this->status);
+    }
+
+    public function isScheduled(): bool
+    {
+        return $this->canonicalStatus() === self::STATUS_SCHEDULED;
+    }
+
+    public function isPendingPayment(): bool
+    {
+        return $this->canonicalStatus() === self::STATUS_PENDING_PAYMENT;
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->canonicalStatus() === self::STATUS_CONFIRMED;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->canonicalStatus() === self::STATUS_PAID;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->canonicalStatus() === self::STATUS_COMPLETED;
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->canonicalStatus()) {
+            self::STATUS_PENDING_PAYMENT => 'En attente de paiement',
+            self::STATUS_CONFIRMED => 'Confirmé',
+            self::STATUS_PAID => 'Payé',
+            self::STATUS_COMPLETED => 'Terminé',
+            self::STATUS_CANCELLED => 'Annulé',
+            default => 'Programmé',
+        };
+    }
+
+    public function managementDeadlineAt(): ?Carbon
+    {
+        if (!$this->appointment_date) {
+            return null;
+        }
+
+        $hours = max(0, (int) ($this->user?->cancellation_notice_hours ?? 0));
+
+        return $this->appointment_date->copy()->subHours($hours);
+    }
+
+    public function canBeManagedOnline(): bool
+    {
+        if ($this->external || !$this->appointment_date || $this->isCancelled() || $this->isCompleted()) {
+            return false;
+        }
+
+        return $this->appointment_date->isFuture()
+            && now()->lte($this->managementDeadlineAt());
+    }
+
+    public function requiresFinancialFollowUp(): bool
+    {
+        return (bool) $this->financial_follow_up_required
+            || $this->isPaid()
+            || $this->billingInvoices()->exists()
+            || (int) ($this->gift_voucher_amount_cents ?? 0) > 0
+            || !is_null($this->consumed_pack_purchase_id);
     }
 
     /* ------------------------------------------------------------------ */
@@ -374,6 +522,11 @@ public function syncToGoogle(): void
         return $this->hasOne(Meeting::class);
     }
 
+    public function activities()
+    {
+        return $this->hasMany(AppointmentActivity::class)->orderBy('created_at');
+    }
+
     public function invoice()
     {
         return $this->hasOne(Invoice::class);
@@ -400,7 +553,7 @@ public function syncToGoogle(): void
             return 'Annulée';
         }
 
-        if ($this->status === 'Complété' || $this->appointment_date?->isPast()) {
+        if ($this->isCompleted() || $this->appointment_date?->isPast()) {
             return 'Terminée';
         }
 

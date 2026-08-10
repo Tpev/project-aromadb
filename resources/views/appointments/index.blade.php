@@ -257,7 +257,7 @@
                                                     @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
 
                                                     {{-- Marquer comme complété --}}
-                                                    @if ($appointment->status !== 'Complété')
+                                                    @if (!$appointment->isCompleted() && !$appointment->isCancelled())
                                                         <form action="{{ route('appointments.completeindex', $appointment->id) }}"
                                                               method="POST"
                                                               class="btn-complete-form">
@@ -386,7 +386,7 @@
                                                     @include('appointments.partials.tracking-actions', ['appointment' => $appointment])
 
                                                     {{-- Marquer comme complété (au cas où oublié) --}}
-                                                    @if ($appointment->status !== 'Complété')
+                                                    @if (!$appointment->isCompleted() && !$appointment->isCancelled())
                                                         <form action="{{ route('appointments.completeindex', $appointment->id) }}"
                                                               method="POST"
                                                               class="btn-complete-form">

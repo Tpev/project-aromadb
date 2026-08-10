@@ -6,10 +6,11 @@ use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Services\AppointmentMailDeliveryGuard;
 
-class AppointmentReminderClientMail extends Mailable implements ShouldQueue
+class AppointmentReminderClientMail extends Mailable
 {
     use Queueable, RepliesToPractitioner, SerializesModels;
 
@@ -20,6 +21,14 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
     public function backoff(): array
     {
         return [60, 300, 900, 1800];
+    }
+
+    public function headers(): Headers
+    {
+        return new Headers(text: [
+            AppointmentMailDeliveryGuard::APPOINTMENT_HEADER => (string) $this->appointment->id,
+            AppointmentMailDeliveryGuard::MESSAGE_HEADER => 'reminder',
+        ]);
     }
 
     public function __construct(Appointment $appointment)
@@ -116,6 +125,7 @@ class AppointmentReminderClientMail extends Mailable implements ShouldQueue
                 'cabinetAddress'  => $cabinetAddress,
                 'clientAddress'   => $clientAddress,
                 'visioUrl'        => $visioUrl, // 👈 NEW
+                'managementUrl'   => route('appointments.showPatient', $this->appointment->token),
             ]);
     }
 }

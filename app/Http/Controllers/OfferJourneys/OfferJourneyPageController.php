@@ -4,11 +4,13 @@ namespace App\Http\Controllers\OfferJourneys;
 
 use App\Domain\OfferJourneys\Models\OfferJourney;
 use App\Domain\OfferJourneys\Models\OfferJourneyPage;
-use App\Domain\OfferJourneys\Models\OfferJourneySlugRedirect;
-use App\Http\Controllers\Controller;
-use App\Domain\OfferJourneys\Services\OfferJourneyTransitionEditor;
-use App\Domain\OfferJourneys\Services\OfferJourneyResourceStorage;
 use App\Domain\OfferJourneys\Models\OfferJourneyReusableSection;
+use App\Domain\OfferJourneys\Models\OfferJourneySlugRedirect;
+use App\Domain\OfferJourneys\Services\OfferJourneyPageImageStorage;
+use App\Domain\OfferJourneys\Services\OfferJourneyResourceStorage;
+use App\Domain\OfferJourneys\Services\OfferJourneyTransitionEditor;
+use App\Domain\OfferJourneys\Services\OfferJourneyWorkspace;
+use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,13 +62,17 @@ class OfferJourneyPageController extends Controller
             ->with('success', 'La nouvelle étape a été ajoutée.');
     }
 
-    public function edit(OfferJourney $journey, OfferJourneyPage $page): View
+    public function edit(Request $request, OfferJourney $journey, OfferJourneyPage $page, OfferJourneyWorkspace $workspace): View
     {
         $this->authorizePage($journey, $page);
         $this->ensureFormForPage($journey, $page);
 
         $journey->load(['pages.form.fields', 'transitions']);
         $page->load('form.fields');
+        $editorSection = in_array($request->query('section'), ['content', 'form', 'after', 'seo'], true)
+            ? $request->query('section')
+            : 'content';
+
         return view('offer-journeys.practitioner.pages.edit', [
             'journey' => $journey,
             'page' => $page,
@@ -80,10 +86,13 @@ class OfferJourneyPageController extends Controller
             'reusableSections' => (bool) config('offer_journeys.rich_editor_enabled', false)
                 ? OfferJourneyReusableSection::query()->where('user_id', $journey->user_id)->orderBy('name')->get()
                 : collect(),
+            'workspace' => $workspace->for($journey),
+            'workspaceSection' => $editorSection === 'form' ? 'form' : 'page',
+            'editorSection' => $editorSection,
         ]);
     }
 
-    public function update(Request $request, OfferJourney $journey, OfferJourneyPage $page, OfferJourneyTransitionEditor $transitionEditor, OfferJourneyResourceStorage $resourceStorage): RedirectResponse
+    public function update(Request $request, OfferJourney $journey, OfferJourneyPage $page, OfferJourneyTransitionEditor $transitionEditor, OfferJourneyResourceStorage $resourceStorage, OfferJourneyPageImageStorage $imageStorage): RedirectResponse
     {
         $this->authorizePage($journey, $page);
         $this->ensureFormForPage($journey, $page);
@@ -106,10 +115,15 @@ class OfferJourneyPageController extends Controller
             'faq' => ['nullable', 'string', 'max:6000'],
             'seo_title' => ['nullable', 'string', 'max:160'],
             'seo_description' => ['nullable', 'string', 'max:300'],
+            'social_title' => ['nullable', 'string', 'max:120'],
+            'social_description' => ['nullable', 'string', 'max:240'],
+            'social_image' => ['nullable', 'url:http,https', 'max:2000'],
             'is_indexable' => ['nullable', 'boolean'],
             'resource_url' => ['nullable', 'url:http,https', 'max:2000'],
             'resource_file_upload' => ['nullable', 'file', 'max:51200', 'mimetypes:application/pdf,application/zip,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,video/mp4,video/webm'],
             'remove_resource_file' => ['nullable', 'boolean'],
+            'hero_image_upload' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'remove_hero_image' => ['nullable', 'boolean'],
             'transition_action' => ['required', Rule::in(['none', 'next_page', 'source'])],
             'transition_page_id' => ['nullable', 'integer'],
             'transition_condition' => ['required', Rule::in(['always', 'marketing_consent'])],
@@ -131,7 +145,7 @@ class OfferJourneyPageController extends Controller
             'enabled_blocks.*' => [Rule::in(['audience', 'outcomes', 'steps', 'hero_image', 'gallery', 'video', 'testimonials', 'speaker', 'price', 'practical', 'faq'])],
             'block_order' => ['nullable', 'array'],
             'block_order.*' => [Rule::in(['audience', 'outcomes', 'steps', 'hero_image', 'gallery', 'video', 'testimonials', 'speaker', 'price', 'practical', 'faq'])],
-            'hero_image_url' => ['nullable', 'url:http,https', 'max:2000'],
+            'hero_image_url' => ['nullable', 'string', 'max:2000'],
             'hero_image_alt' => ['nullable', 'string', 'max:180'],
             'gallery_items' => ['nullable', 'string', 'max:6000'],
             'video_url' => ['nullable', 'url:http,https', 'max:2000'],
@@ -142,6 +156,10 @@ class OfferJourneyPageController extends Controller
             'speaker_image_url' => ['nullable', 'url:http,https', 'max:2000'],
             'price_label' => ['nullable', 'string', 'max:120'],
             'theme_style' => ['nullable', Rule::in(['olive', 'forest', 'clay', 'neutral'])],
+        ], [
+            'hero_image_upload.image' => 'Le fichier choisi doit être une image valide.',
+            'hero_image_upload.mimes' => 'L’image doit être au format JPG, PNG ou WebP.',
+            'hero_image_upload.max' => 'L’image principale ne doit pas dépasser 5 Mo.',
         ]);
 
         $customFields = collect();
@@ -164,10 +182,25 @@ class OfferJourneyPageController extends Controller
                 }
             }
         }
+        $existingHeroImage = collect(($page->draft_content_json ?? [])['blocks'] ?? [])->firstWhere('type', 'hero_image');
+        $heroImageUrl = $request->boolean('remove_hero_image')
+            ? null
+            : (array_key_exists('hero_image_url', $validated)
+                ? ($validated['hero_image_url'] ?: null)
+                : data_get($existingHeroImage, 'data.url'));
+        $heroImageAlt = array_key_exists('hero_image_alt', $validated)
+            ? ($validated['hero_image_alt'] ?: null)
+            : data_get($existingHeroImage, 'data.alt');
+
         if ((bool) config('offer_journeys.rich_editor_enabled', false)) {
-            if (filled($validated['hero_image_url'] ?? null) && blank($validated['hero_image_alt'] ?? null)) {
+            if (filled($heroImageUrl) && ! $this->isAllowedImageReference($heroImageUrl)) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'hero_image_alt' => 'Décrivez brièvement l image principale pour les personnes utilisant un lecteur d écran.',
+                    'hero_image_upload' => 'L’image principale enregistrée n’est pas valide. Choisissez une nouvelle image.',
+                ]);
+            }
+            if (($request->hasFile('hero_image_upload') || filled($heroImageUrl)) && blank($heroImageAlt)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'hero_image_alt' => 'Décrivez brièvement l’image principale pour les personnes utilisant un lecteur d’écran.',
                 ]);
             }
             foreach ($this->pairedLines($validated['gallery_items'] ?? '', 'url', 'alt') as $item) {
@@ -185,34 +218,59 @@ class OfferJourneyPageController extends Controller
             $resourceFile = $resourceStorage->store($request->file('resource_file_upload'), $request->user(), $journey);
         }
 
+        $storedHeroImagePath = null;
+        if ((bool) config('offer_journeys.rich_editor_enabled', false) && $request->hasFile('hero_image_upload')) {
+            $storedHeroImage = $imageStorage->store($request->file('hero_image_upload'), $request->user(), $journey, $page);
+            $storedHeroImagePath = $storedHeroImage['path'];
+            $heroImageUrl = $storedHeroImage['url'];
+
+            // Selecting a new image is an explicit request to show the image section.
+            $validated['enabled_blocks'] = collect($validated['enabled_blocks'] ?? [])
+                ->push('hero_image')
+                ->unique()
+                ->values()
+                ->all();
+        }
+        $validated['hero_image_url'] = $heroImageUrl;
+        $validated['hero_image_alt'] = $heroImageAlt;
+
         $oldSlug = $page->slug;
         $newSlug = Str::slug($validated['slug']);
         $blocks = (bool) config('offer_journeys.rich_editor_enabled', false)
             ? $this->blocks($validated)
             : (($page->draft_content_json ?? [])['blocks'] ?? []);
 
-        $page->update([
-            'name' => $validated['name'],
-            'slug' => $newSlug,
-            'draft_content_json' => [
-                'title' => $validated['title'],
-                'summary' => $validated['summary'] ?? '',
-                'cta_label' => $validated['cta_label'],
-                'audience' => $validated['audience'] ?? '',
-                'outcomes' => $this->lines($validated['outcomes'] ?? ''),
-                'steps' => $this->lines($validated['steps'] ?? ''),
-                'practical_details' => $validated['practical_details'] ?? '',
-                'faq' => $this->faq($validated['faq'] ?? ''),
-                'resource_url' => $validated['resource_url'] ?? null,
-                'resource_file' => $resourceFile,
-                'blocks' => $blocks,
-            ],
-            'theme_json' => ['style' => $validated['theme_style'] ?? data_get($page->theme_json, 'style', 'olive')],
-            'seo_title' => $validated['seo_title'] ?? null,
-            'seo_description' => $validated['seo_description'] ?? null,
-            'is_indexable' => $request->boolean('is_indexable'),
-            'validation_state' => 'ready',
-        ]);
+        try {
+            $page->update([
+                'name' => $validated['name'],
+                'slug' => $newSlug,
+                'draft_content_json' => [
+                    'title' => $validated['title'],
+                    'summary' => $validated['summary'] ?? '',
+                    'cta_label' => $validated['cta_label'],
+                    'audience' => $validated['audience'] ?? '',
+                    'outcomes' => $this->lines($validated['outcomes'] ?? ''),
+                    'steps' => $this->lines($validated['steps'] ?? ''),
+                    'practical_details' => $validated['practical_details'] ?? '',
+                    'faq' => $this->faq($validated['faq'] ?? ''),
+                    'resource_url' => $validated['resource_url'] ?? null,
+                    'resource_file' => $resourceFile,
+                    'blocks' => $blocks,
+                    'social_title' => array_key_exists('social_title', $validated) ? ($validated['social_title'] ?: null) : (($page->draft_content_json ?? [])['social_title'] ?? null),
+                    'social_description' => array_key_exists('social_description', $validated) ? ($validated['social_description'] ?: null) : (($page->draft_content_json ?? [])['social_description'] ?? null),
+                    'social_image' => array_key_exists('social_image', $validated) ? ($validated['social_image'] ?: null) : (($page->draft_content_json ?? [])['social_image'] ?? null),
+                ],
+                'theme_json' => ['style' => $validated['theme_style'] ?? data_get($page->theme_json, 'style', 'olive')],
+                'seo_title' => $validated['seo_title'] ?? null,
+                'seo_description' => $validated['seo_description'] ?? null,
+                'is_indexable' => $request->boolean('is_indexable'),
+                'validation_state' => 'ready',
+            ]);
+        } catch (\Throwable $exception) {
+            $imageStorage->delete($storedHeroImagePath);
+
+            throw $exception;
+        }
         if ($oldSlug !== $newSlug) {
             OfferJourneySlugRedirect::query()->updateOrCreate(
                 ['offer_journey_id' => $journey->id, 'scope_type' => 'page', 'old_slug' => $oldSlug],
@@ -402,5 +460,19 @@ class OfferJourneyPageController extends Controller
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function isAllowedImageReference(string $url): bool
+    {
+        if (preg_match('#^/(?:images|storage)/[A-Za-z0-9_./%+-]+$#', $url) === 1
+            && ! str_contains($url, '..')) {
+            return true;
+        }
+
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        return in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true);
     }
 }

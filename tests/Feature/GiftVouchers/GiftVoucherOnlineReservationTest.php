@@ -90,7 +90,7 @@ test('gift voucher online reservation can be finalized after stripe payment', fu
     expect($reservation->status)->toBe(GiftVoucherRedeemService::STATUS_APPLIED);
 });
 
-test('gift voucher online reservation is released when stripe payment is cancelled', function () {
+test('gift voucher reservation is released only after secure appointment cancellation', function () {
     $therapist = User::factory()->create([
         'is_therapist' => true,
         'slug' => 'therapist-gift-voucher-cancel',
@@ -120,10 +120,23 @@ test('gift voucher online reservation is released when stripe payment is cancell
         'Reservation test'
     );
 
-    $response = $this->get(route('appointments.cancel', ['appointment_id' => $appointment->id]));
+    $insecureResponse = $this->get(route('appointments.cancel', ['appointment_id' => $appointment->id]));
+    $insecureResponse->assertRedirect(route('welcome'));
+    $this->assertDatabaseHas('appointments', ['id' => $appointment->id]);
+    expect($voucher->fresh()->remaining_amount_cents)->toBe(0);
 
-    $response->assertRedirect(route('therapist.show', $therapist->slug));
-    $this->assertDatabaseMissing('appointments', ['id' => $appointment->id]);
+    $paymentReturn = $this->get(route('appointments.cancel', [
+        'appointment_id' => $appointment->id,
+        'token' => $appointment->token,
+    ]));
+    $paymentReturn->assertRedirect(route('appointments.showPatient', $appointment->token));
+
+    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token));
+    $response->assertRedirect(route('appointments.showPatient', $appointment->token));
+    $this->assertDatabaseHas('appointments', [
+        'id' => $appointment->id,
+        'status' => Appointment::STATUS_CANCELLED,
+    ]);
 
     expect($voucher->fresh()->remaining_amount_cents)->toBe(5000);
 

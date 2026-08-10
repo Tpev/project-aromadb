@@ -798,7 +798,7 @@
 
                                                 <tr>
                                                     <td>{{ $appointment->appointment_date }}</td>
-                                                    <td>{{ ucfirst($appointment->status) }}</td>
+                                                    <td>{{ $appointment->status_label }}</td>
                                                     <td>{{ optional($appointment->product)->name ?? '—' }}</td>
                                                     <td>{{ $appointment->notes ?? 'Pas de notes' }}</td>
                                                     <td style="min-width:280px; text-align:center">

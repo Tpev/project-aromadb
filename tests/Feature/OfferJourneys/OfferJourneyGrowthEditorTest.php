@@ -4,6 +4,8 @@ use App\Domain\OfferJourneys\Models\OfferJourney;
 use App\Domain\OfferJourneys\Models\OfferJourneyFormAnswer;
 use App\Domain\OfferJourneys\Models\OfferJourneyReusableSection;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     foreach (['enabled', 'public_pages_enabled', 'template_library_enabled', 'rich_editor_enabled', 'writing_assistant_enabled', 'custom_forms_enabled', 'publication_assistance_enabled'] as $flag) {
@@ -146,4 +148,151 @@ it('stores bounded visual blocks custom questions and explicit writing suggestio
 
     expect(OfferJourneyFormAnswer::query()->count())->toBe(1)
         ->and(OfferJourneyFormAnswer::query()->first()->value_json['value'])->toBe('En ligne');
+});
+
+it('uploads preserves and removes a page hero image without changing published history', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->therapist)->post(route('offer-journeys.store'), [
+        'name' => 'Guide image',
+        'objective' => 'lead_magnet',
+        'template_key' => 'free_guide',
+        'public_title' => 'Préparez votre première séance',
+        'summary' => 'Des repères utiles.',
+        'cta_label' => 'Recevoir le guide',
+        'resource_url' => 'https://example.test/guide.pdf',
+    ])->assertRedirect();
+
+    $journey = OfferJourney::query()->firstOrFail();
+    $page = $journey->pages()->where('type', 'opt_in')->firstOrFail();
+    $nextPage = $journey->pages()->where('position', '>', $page->position)->firstOrFail();
+    $payload = [
+        'name' => $page->name,
+        'slug' => $page->slug,
+        'title' => 'Préparez votre première séance',
+        'summary' => 'Des repères utiles.',
+        'cta_label' => 'Recevoir le guide',
+        'resource_url' => 'https://example.test/guide.pdf',
+        'transition_action' => 'next_page',
+        'transition_page_id' => $nextPage->id,
+        'transition_condition' => 'always',
+        'form_submit_label' => 'Recevoir le guide',
+        'form_privacy_text' => 'Ces informations servent à répondre à votre demande.',
+        'marketing_consent_mode' => 'optional',
+        'enabled_blocks' => ['hero_image'],
+        'block_order' => ['hero_image'],
+        'hero_image_alt' => 'Carnet et tasse posés sur une table',
+        'theme_style' => 'olive',
+    ];
+
+    $this->put(route('offer-journeys.pages.update', [$journey, $page]), $payload + [
+        'hero_image_upload' => UploadedFile::fake()->image('accueil.png', 1200, 675),
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $page->refresh();
+    $uploadedUrl = data_get(collect($page->draft_content_json['blocks'])->firstWhere('type', 'hero_image'), 'data.url');
+    $uploadedPath = str($uploadedUrl)->after('/storage/')->toString();
+
+    expect($uploadedUrl)->toStartWith("/storage/offer-journeys/{$this->therapist->id}/pages/{$page->id}/");
+    Storage::disk('public')->assertExists($uploadedPath);
+
+    $this->post(route('offer-journeys.publish', $journey))->assertSessionHasNoErrors();
+    $publishedUrl = data_get(
+        collect($journey->fresh()->publishedVersion->pages->firstWhere('offer_journey_page_id', $page->id)->content_json['blocks'])->firstWhere('type', 'hero_image'),
+        'data.url'
+    );
+
+    $this->put(route('offer-journeys.pages.update', [$journey, $page]), $payload + [
+        'hero_image_url' => $uploadedUrl,
+        'remove_hero_image' => '1',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $draftUrl = data_get(collect($page->fresh()->draft_content_json['blocks'])->firstWhere('type', 'hero_image'), 'data.url');
+    expect($draftUrl)->toBeNull()
+        ->and($publishedUrl)->toBe($uploadedUrl);
+    Storage::disk('public')->assertExists($uploadedPath);
+});
+
+it('automatically enables the main image section when an image is uploaded', function () {
+    Storage::fake('public');
+
+    $this->actingAs($this->therapist)->post(route('offer-journeys.store'), [
+        'name' => 'Guide image automatique',
+        'objective' => 'lead_magnet',
+        'template_key' => 'free_guide',
+        'public_title' => 'Une page avec une image',
+        'summary' => 'Une presentation claire.',
+        'cta_label' => 'Continuer',
+        'resource_url' => 'https://example.test/guide.pdf',
+    ])->assertRedirect();
+
+    $journey = OfferJourney::query()->firstOrFail();
+    $page = $journey->pages()->where('type', 'opt_in')->firstOrFail();
+
+    $this->actingAs($this->therapist)->put(route('offer-journeys.pages.update', [$journey, $page]), [
+        'name' => $page->name,
+        'slug' => $page->slug,
+        'title' => 'Une page avec une image',
+        'summary' => 'Une presentation claire.',
+        'cta_label' => 'Continuer',
+        'transition_action' => 'next_page',
+        'transition_page_id' => $journey->pages()->where('position', '>', $page->position)->value('id'),
+        'transition_condition' => 'always',
+        'form_submit_label' => 'Continuer',
+        'form_privacy_text' => 'Ces informations servent a repondre a votre demande.',
+        'marketing_consent_mode' => 'optional',
+        'block_order' => ['audience', 'hero_image'],
+        'enabled_blocks' => ['audience'],
+        'hero_image_alt' => 'Bureau calme avec un agenda ouvert',
+        'hero_image_upload' => UploadedFile::fake()->image('agenda.png', 1200, 675),
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $heroBlock = collect($page->fresh()->draft_content_json['blocks'])->firstWhere('type', 'hero_image');
+
+    expect($heroBlock)->not->toBeNull()
+        ->and(data_get($heroBlock, 'data.url'))->toStartWith("/storage/offer-journeys/{$this->therapist->id}/pages/{$page->id}/");
+});
+
+it('keeps legacy local hero image paths when no replacement is submitted', function () {
+    $this->actingAs($this->therapist)->post(route('offer-journeys.store'), [
+        'name' => 'Guide existant',
+        'objective' => 'lead_magnet',
+        'template_key' => 'free_guide',
+        'public_title' => 'Un guide pratique',
+        'summary' => 'Des repères simples.',
+        'cta_label' => 'Recevoir le guide',
+        'resource_url' => 'https://example.test/guide.pdf',
+    ]);
+
+    $journey = OfferJourney::query()->firstOrFail();
+    $page = $journey->pages()->where('type', 'opt_in')->firstOrFail();
+    $content = $page->draft_content_json;
+    $content['blocks'] = [[
+        'id' => 'hero_image',
+        'type' => 'hero_image',
+        'position' => 0,
+        'data' => ['url' => '/images/ancienne-image.webp', 'alt' => 'Une ancienne image'],
+    ]];
+    $page->update(['draft_content_json' => $content]);
+
+    $this->put(route('offer-journeys.pages.update', [$journey, $page]), [
+        'name' => $page->name,
+        'slug' => $page->slug,
+        'title' => 'Un guide pratique',
+        'summary' => 'Des repères simples.',
+        'cta_label' => 'Recevoir le guide',
+        'resource_url' => 'https://example.test/guide.pdf',
+        'transition_action' => 'none',
+        'transition_condition' => 'always',
+        'form_submit_label' => 'Recevoir le guide',
+        'form_privacy_text' => 'Ces informations servent à répondre à votre demande.',
+        'marketing_consent_mode' => 'optional',
+        'enabled_blocks' => ['hero_image'],
+        'block_order' => ['hero_image'],
+        'theme_style' => 'olive',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $savedHero = collect($page->fresh()->draft_content_json['blocks'])->firstWhere('type', 'hero_image');
+    expect(data_get($savedHero, 'data.url'))->toBe('/images/ancienne-image.webp')
+        ->and(data_get($savedHero, 'data.alt'))->toBe('Une ancienne image');
 });

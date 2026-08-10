@@ -246,12 +246,15 @@ class StripeWebhookController extends Controller
                 ? (string) ($session->payment_intent->id ?? '')
                 : (string) ($session->payment_intent ?? $session->id);
 
-            app(AppointmentController::class)->finalizeStripeAppointmentPayment(
+            $finalization = app(AppointmentController::class)->finalizeStripeAppointmentPayment(
                 $appointment,
                 $metadata,
                 (int) ($session->amount_total ?? 0),
                 $providerReference
             );
+            if ($finalization['cancelled_payment_received'] ?? false) {
+                return;
+            }
             return;
         }
 

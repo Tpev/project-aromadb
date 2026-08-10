@@ -39,8 +39,8 @@
         // Client address (domicile)
         $clientAddress = $appointment->clientProfile?->address ?? $appointment->address ?? null;
 
-        $isConfirmed = in_array($appointment->status, ['Payée', 'confirmed'], true);
-        $isPending   = $appointment->status === 'pending';
+        $isConfirmed = $appointment->isPaid() || $appointment->isConfirmed();
+        $isPending   = $appointment->isPendingPayment();
     @endphp
 
     {{-- Header --}}
@@ -105,7 +105,7 @@
                             {{ __('Détails du rendez-vous') }}
                         </p>
                         <p class="text-xs text-gray-500 mt-0.5">
-                            {{ __('Le statut actuel est : :status', ['status' => $appointment->status ?? '—']) }}
+                            {{ __('Le statut actuel est : :status', ['status' => $appointment->status_label]) }}
                         </p>
                     </div>
                 @endif
@@ -261,7 +261,7 @@
             @endif
 
             @if($isPending && $appointment->stripe_session_id)
-                <a href="{{ route('checkout.resume', $appointment->stripe_session_id) }}"
+                <a href="{{ route('appointment.confirmation.payment.resume', $appointment->token) }}"
                    class="w-full inline-flex items-center justify-center px-4 py-2 rounded-full bg-amber-500 text-white text-sm font-semibold shadow-sm active:scale-[0.98] transition-transform">
                     <i class="fas fa-credit-card mr-2 text-xs"></i>
                     {{ __('Procéder au paiement') }}
@@ -311,5 +311,4 @@
     </style>
 
 </x-mobile-layout>
-
 

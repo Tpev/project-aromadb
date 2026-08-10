@@ -80,9 +80,10 @@ class OfferJourneyClientTagController extends Controller
         });
 
         return back()->with('success', sprintf(
-            'L’étiquette a été %s pour %d fiche(s) client.',
+            'L’étiquette a été %s pour %d %s.',
             $validated['action'] === 'attach' ? 'ajoutée' : 'retirée',
-            $clients->count()
+            $clients->count(),
+            $clients->count() === 1 ? 'fiche client' : 'fiches clients',
         ));
     }
 

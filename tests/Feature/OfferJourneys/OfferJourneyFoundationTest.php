@@ -138,6 +138,7 @@ it('publishes immutable page snapshots and keeps draft changes private', functio
         'summary' => 'Cette modification ne doit pas être publique.',
         'cta_label' => 'Continuer',
     ]]);
+    $journey->update(['name' => 'Nom interne encore en brouillon']);
 
     config()->set('offer_journeys.public_pages_enabled', true);
 
@@ -147,5 +148,7 @@ it('publishes immutable page snapshots and keeps draft changes private', functio
     ]))
         ->assertOk()
         ->assertSee('Premier titre publié')
-        ->assertDontSee('Titre encore en brouillon');
+        ->assertSee('Séance découverte')
+        ->assertDontSee('Titre encore en brouillon')
+        ->assertDontSee('Nom interne encore en brouillon');
 });

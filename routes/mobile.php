@@ -305,6 +305,10 @@ Route::middleware('web')
             ->middleware('auth')
             ->name('appointments.update');
 
+        Route::post('/rendez-vous/{appointment}/annuler', [\App\Http\Controllers\AppointmentManagementController::class, 'cancelAsPractitioner'])
+            ->middleware('auth')
+            ->name('appointments.cancel');
+
         Route::get('/rendez-vous/{appointment}', [AppointmentController::class, 'show'])
             ->middleware('auth')
             ->name('appointments.show');

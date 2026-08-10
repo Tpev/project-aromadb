@@ -57,7 +57,7 @@
                 <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm" x-data="{ rules: [{ field: 'tag', operator: 'has' }] }">
                     <h2 class="font-semibold text-gray-900">Créer un segment</h2>
                     <p class="mt-1 text-xs text-gray-500">Combinez jusqu’à 10 règles. Les étiquettes des contacts et des fiches clients liées sont prises en compte.</p>
-                    <form method="POST" action="{{ route('offer-journeys.contacts.segments.store') }}" class="mt-4 space-y-4">
+                    <form method="POST" action="{{ route('offer-journeys.contacts.segments.store') }}" class="segment-builder mt-4 space-y-4" data-estimate-url="{{ route('offer-journeys.contacts.segments.estimate') }}">
                         @csrf
                         <div><label for="segment-name" class="block text-sm font-medium text-gray-700">Nom</label><input id="segment-name" name="name" required maxlength="120" value="{{ old('name') }}" placeholder="Ex. Intéressés par les ateliers" class="mt-1 block w-full rounded-md border-gray-300 text-sm"></div>
                         <div><label for="segment-description" class="block text-sm font-medium text-gray-700">Description facultative</label><textarea id="segment-description" name="description" rows="2" maxlength="500" class="mt-1 block w-full rounded-md border-gray-300 text-sm">{{ old('description') }}</textarea></div>
@@ -80,6 +80,7 @@
                             </template>
                         </div>
                         <button type="button" @click="rules.push({ field: 'tag', operator: 'has' })" class="text-sm font-semibold text-[#647a0b]">+ Ajouter une règle</button>
+                        <div class="flex items-center justify-between gap-3 border-y border-gray-200 py-3"><p class="segment-estimate text-sm text-gray-600" role="status">Estimez le nombre de contacts avant d’enregistrer.</p><button type="button" class="segment-estimate-button shrink-0 rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700">Estimer</button></div>
                         <button class="w-full rounded-md bg-[#647a0b] px-3 py-2 text-sm font-semibold text-white hover:bg-[#526509]">Créer le segment</button>
                     </form>
                 </section>
@@ -88,9 +89,45 @@
                     <h2 class="font-semibold text-gray-900">Nouvelle étiquette</h2>
                     <p class="mt-1 text-xs text-gray-500">Utilisez un repère non sensible, par exemple « atelier juillet » ou « bon cadeau ».</p>
                     <form method="POST" action="{{ route('offer-journeys.contacts.tags.store') }}" class="mt-4 flex gap-2">@csrf<input name="name" required maxlength="80" placeholder="Nom de l’étiquette" class="min-w-0 flex-1 rounded-md border-gray-300 text-sm"><button class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b]">Ajouter</button></form>
-                    <div class="mt-4 flex flex-wrap gap-2">@foreach($tags as $tag)<span class="rounded-full bg-[#f0f4df] px-2.5 py-1 text-xs font-medium text-[#526509]">{{ $tag->name }}</span>@endforeach</div>
+                    <div class="mt-4 divide-y divide-gray-100 border-t border-gray-100">
+                        @forelse($tags as $tag)
+                            <div class="flex items-center gap-2 py-2" x-data="{ editing: false }">
+                                <span x-show="!editing" class="min-w-0 flex-1 truncate text-sm font-medium text-[#526509]">{{ $tag->name }}</span>
+                                @unless($tag->is_system)
+                                    <button type="button" x-show="!editing" @click="editing = true" class="text-xs font-semibold text-gray-600">Renommer</button>
+                                    <form x-show="editing" x-cloak method="POST" action="{{ route('offer-journeys.contacts.tags.update', $tag) }}" class="flex min-w-0 flex-1 gap-2">@csrf @method('PUT')<input name="name" value="{{ $tag->name }}" required maxlength="80" class="min-w-0 flex-1 rounded-md border-gray-300 py-1 text-sm"><button class="text-xs font-semibold text-[#647a0b]">Enregistrer</button><button type="button" @click="editing = false" class="text-xs text-gray-500">Annuler</button></form>
+                                    <form x-show="!editing" method="POST" action="{{ route('offer-journeys.contacts.tags.destroy', $tag) }}" onsubmit="return confirm('Supprimer cette étiquette ? Aucun contact ne sera supprimé.')">@csrf @method('DELETE')<button class="text-xs font-semibold text-red-700">Supprimer</button></form>
+                                @else
+                                    <span class="text-xs text-gray-400">Système</span>
+                                @endunless
+                            </div>
+                        @empty
+                            <p class="py-3 text-sm text-gray-500">Aucune étiquette créée.</p>
+                        @endforelse
+                    </div>
                 </section>
             </aside>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('.segment-builder');
+            const button = form?.querySelector('.segment-estimate-button');
+            const output = form?.querySelector('.segment-estimate');
+            button?.addEventListener('click', async () => {
+                button.disabled = true;
+                output.textContent = 'Calcul en cours…';
+                try {
+                    const response = await fetch(form.dataset.estimateUrl, {method: 'POST', headers: {'Accept': 'application/json'}, body: new FormData(form)});
+                    const result = await response.json();
+                    if (!response.ok) throw result;
+                    output.textContent = result.label;
+                } catch (error) {
+                    output.textContent = error.message || 'Vérifiez les règles avant de lancer l’estimation.';
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+    </script>
 </x-app-layout>

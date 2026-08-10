@@ -7,10 +7,12 @@ use App\Domain\OfferJourneys\Models\OfferJourneyContact;
 use App\Domain\OfferJourneys\Models\OfferJourneySegment;
 use App\Domain\OfferJourneys\Models\OfferJourneySuppression;
 use App\Domain\OfferJourneys\Models\OfferJourneyTag;
+use App\Domain\OfferJourneys\Models\OfferJourneySegmentRule;
 use App\Domain\OfferJourneys\Services\OfferJourneySegmentQuery;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -111,6 +113,46 @@ class OfferJourneyContactOrganizationController extends Controller
         return back()->with('success', 'Le segment a été créé.');
     }
 
+    public function estimateSegment(Request $request, OfferJourneySegmentQuery $segmentQuery): JsonResponse
+    {
+        $this->authorize('viewAny', OfferJourneyContact::class);
+        $validated = $request->validate([
+            'match_type' => ['nullable', Rule::in(['all', 'any'])],
+            'rules' => ['required', 'array', 'min:1', 'max:10'],
+            'rules.*.field' => ['required', Rule::in(['status', 'tag', 'journey', 'inactive_days', 'marketing_consent'])],
+            'rules.*.operator' => ['nullable', Rule::in(['equals', 'not_equals', 'has', 'missing', 'older_than_days'])],
+            'rules.*.value' => ['nullable', 'string', 'max:180'],
+        ]);
+
+        $rules = collect($validated['rules'])->map(function (array $rule) use ($request) {
+            $field = $rule['field'];
+            $value = $rule['value'] ?? null;
+            if ($field === 'tag') {
+                abort_unless(OfferJourneyTag::query()->where('user_id', $request->user()->id)->whereKey((int) $value)->exists(), 422, 'Étiquette invalide.');
+            }
+            if ($field === 'journey') {
+                abort_unless(OfferJourney::query()->ownedBy($request->user())->whereKey((int) $value)->exists(), 422, 'Parcours invalide.');
+            }
+
+            return new OfferJourneySegmentRule([
+                'field' => $field,
+                'operator' => $this->normalizedOperator($field, $rule['operator'] ?? null),
+                'value_json' => ['value' => $value ?? true],
+            ]);
+        });
+        $segment = new OfferJourneySegment(['match_type' => $validated['match_type'] ?? 'all']);
+        $segment->setRelation('rules', $rules);
+        $count = $segmentQuery->apply(
+            OfferJourneyContact::query()->where('user_id', $request->user()->id),
+            $segment
+        )->count();
+
+        return response()->json([
+            'count' => $count,
+            'label' => $count === 1 ? '1 contact correspond actuellement.' : $count.' contacts correspondent actuellement.',
+        ]);
+    }
+
     public function destroySegment(Request $request, OfferJourneySegment $segment): RedirectResponse
     {
         $this->authorize('viewAny', OfferJourneyContact::class);
@@ -131,6 +173,45 @@ class OfferJourneyContactOrganizationController extends Controller
         );
 
         return back()->with('success', 'L’étiquette est disponible.');
+    }
+
+    public function updateTag(Request $request, OfferJourneyTag $tag): RedirectResponse
+    {
+        $this->authorize('viewAny', OfferJourneyContact::class);
+        abort_unless((int) $tag->user_id === (int) $request->user()->id, 404);
+        abort_if($tag->is_system, 422, 'Cette étiquette système ne peut pas être renommée.');
+
+        $validated = $request->validate(['name' => ['required', 'string', 'max:80']]);
+        $slug = Str::slug($validated['name']) ?: 'etiquette';
+        abort_if(
+            OfferJourneyTag::query()->where('user_id', $request->user()->id)->where('slug', $slug)->whereKeyNot($tag->id)->exists(),
+            422,
+            'Une étiquette portant ce nom existe déjà.'
+        );
+
+        $tag->update(['name' => $validated['name'], 'slug' => $slug]);
+
+        return back()->with('success', 'L’étiquette a été renommée. Les segments existants restent valides.');
+    }
+
+    public function destroyTag(Request $request, OfferJourneyTag $tag): RedirectResponse
+    {
+        $this->authorize('viewAny', OfferJourneyContact::class);
+        abort_unless((int) $tag->user_id === (int) $request->user()->id, 404);
+        abort_if($tag->is_system, 422, 'Cette étiquette système ne peut pas être supprimée.');
+
+        $usedBySegment = OfferJourneySegment::query()
+            ->where('user_id', $request->user()->id)
+            ->with('rules')
+            ->get()
+            ->contains(fn ($segment) => $segment->rules->contains(fn ($rule) => $rule->field === 'tag' && (int) ($rule->value_json['value'] ?? 0) === (int) $tag->id));
+        if ($usedBySegment) {
+            return back()->withErrors(['tag' => 'Cette étiquette est utilisée par un segment. Modifiez ou supprimez ce segment avant de retirer l’étiquette.']);
+        }
+
+        $tag->delete();
+
+        return back()->with('success', 'L’étiquette a été supprimée. Aucun contact n’a été supprimé.');
     }
 
     public function attachTag(Request $request, OfferJourneyContact $contact): RedirectResponse

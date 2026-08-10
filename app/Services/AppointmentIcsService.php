@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class AppointmentIcsService
 {
@@ -12,13 +13,16 @@ class AppointmentIcsService
         $eventData = $this->buildEventData($appointment);
         $nowUtc = Carbon::now('UTC');
         $uid = sprintf('appointment-%s-%s@olithea.fr', $appointment->id ?: 'draft', $appointment->token ?: uniqid());
+        $sequence = Schema::hasTable('appointment_activities')
+            ? $appointment->activities()->where('action', 'rescheduled')->count()
+            : 0;
 
         $lines = array_filter([
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//Olithea//Appointments//FR',
             'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH',
+            'METHOD:' . ($appointment->isCancelled() ? 'CANCEL' : 'PUBLISH'),
             'BEGIN:VEVENT',
             'UID:' . $this->escapeText($uid),
             'DTSTAMP:' . $nowUtc->format('Ymd\THis\Z'),
@@ -27,7 +31,8 @@ class AppointmentIcsService
             'SUMMARY:' . $this->escapeText($eventData['summary']),
             'DESCRIPTION:' . $this->escapeText($eventData['description']),
             $eventData['location'] !== null ? 'LOCATION:' . $this->escapeText($eventData['location']) : null,
-            'STATUS:CONFIRMED',
+            'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED'),
+            'SEQUENCE:' . max(0, (int) $sequence),
             'TRANSP:OPAQUE',
             'URL:' . $this->escapeText($eventData['event_url']),
             $appointment->user?->email

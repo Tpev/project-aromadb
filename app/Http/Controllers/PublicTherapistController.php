@@ -88,6 +88,7 @@ public function show($slug)
             ->where('user_id', $therapist->id)
             ->where('show_on_profile', true)
             ->published()
+            ->with('publishedVersion')
             ->orderByDesc('published_at')
             ->get();
     }

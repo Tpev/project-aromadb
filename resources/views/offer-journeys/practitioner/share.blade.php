@@ -1,10 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <a href="{{ route('offer-journeys.show', $journey) }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">{{ $journey->name }}</a>
-            <h1 class="mt-1 text-2xl font-semibold text-gray-900">Partager</h1>
-            <p class="mt-1 text-sm text-gray-500">Utilisez un lien distinct pour comprendre d'où viennent les visites.</p>
-        </div>
+        @include('offer-journeys.practitioner._workspace-header')
     </x-slot>
 
     @php
@@ -19,6 +15,7 @@
     <div class="py-6" x-data="{ copied: '', copies: @js($shareCopies) }">
         <div class="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8">
             <div class="space-y-5">
+                <div><h2 class="text-xl font-semibold text-gray-900">Partager</h2><p class="mt-1 text-sm text-gray-500">Utilisez un lien distinct pour comprendre d'où viennent les visites.</p></div>
                 @if(session('success'))
                     <div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{ session('success') }}</div>
                 @endif

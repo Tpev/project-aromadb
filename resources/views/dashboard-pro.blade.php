@@ -345,7 +345,7 @@
                                         {{ \Carbon\Carbon::parse($appointment->appointment_date)->locale('fr_FR')->isoFormat('DD/MM/YYYY HH:mm') }}
                                     </td>
                                     <td class="px-4 py-2">{{ $appointment->duration }} min</td>
-                                    <td class="px-4 py-2">{{ ucfirst($appointment->status) }}</td>
+                                    <td class="px-4 py-2">{{ $appointment->status_label }}</td>
                                 </tr>
                             @empty
                                 <tr>

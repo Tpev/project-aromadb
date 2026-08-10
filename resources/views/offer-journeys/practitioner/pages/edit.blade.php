@@ -1,41 +1,69 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div><a href="{{ route('offer-journeys.show', $journey) }}" class="text-sm font-medium text-[#647a0b] hover:text-[#854f38]">{{ $journey->name }}</a><h1 class="mt-1 text-2xl font-semibold text-gray-900">{{ $page->name }}</h1></div>
-            <div class="flex items-center gap-2"><a href="{{ route('offer-journeys.preview', $journey) }}" target="_blank" rel="noopener" class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b]">Prévisualiser</a><span class="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">Brouillon · {{ config('offer_journeys.page_type_labels.'.$page->type, $page->type) }}</span></div>
-        </div>
+        @include('offer-journeys.practitioner._workspace-header')
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        @php
+            $errorKeys = collect($errors->keys());
+            $initialEditorSection = $errorKeys->contains(fn ($key) => str_starts_with($key, 'form_') || str_starts_with($key, 'custom_fields')) ? 'form'
+                : ($errorKeys->contains(fn ($key) => str_starts_with($key, 'transition_') || $key === 'fallback_page_id') ? 'after'
+                : ($errorKeys->contains(fn ($key) => str_starts_with($key, 'seo_') || str_starts_with($key, 'social_') || $key === 'is_indexable') ? 'seo' : $editorSection));
+        @endphp
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" x-data="{
+            section: @js($initialEditorSection),
+            sections: ['content', 'form', 'after', 'seo'],
+            writingReview: null,
+            writingLoading: false,
+            async reviewWriting() {
+                this.writingLoading = true;
+                const response = await fetch('{{ route('offer-journeys.pages.writing-assistant', [$journey, $page]) }}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content},
+                    body: JSON.stringify({title: document.getElementById('title').value, summary: document.getElementById('summary').value, cta_label: document.getElementById('cta_label').value})
+                });
+                this.writingReview = response.ok ? await response.json() : {warnings: ['Le contrôle est temporairement indisponible.'], title_suggestions: []};
+                this.writingLoading = false;
+            },
+            chooseSection(value) {
+                this.section = value;
+                const url = new URL(window.location.href);
+                url.searchParams.set('section', value);
+                window.history.replaceState({}, '', url);
+                this.scrollSelectedTab();
+            },
+            scrollSelectedTab() {
+                this.$nextTick(() => document.getElementById('page-editor-tab-' + this.section)?.scrollIntoView({block: 'nearest', inline: 'center'}));
+            },
+            moveSection(direction) {
+                const current = this.sections.indexOf(this.section);
+                this.chooseSection(this.sections[(current + direction + this.sections.length) % this.sections.length]);
+                this.$nextTick(() => document.getElementById('page-editor-tab-' + this.section)?.focus());
+            }
+        }" x-init="scrollSelectedTab()">
+            <div class="mb-5 flex flex-wrap items-start justify-between gap-3"><div><h2 class="text-xl font-semibold text-gray-900">{{ $page->name }}</h2><p class="mt-1 text-sm text-gray-500">Modifiez le brouillon sans changer la version actuellement en ligne.</p></div><span class="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">{{ config('offer_journeys.page_type_labels.'.$page->type, $page->type) }}</span></div>
             @if(session('success'))<div class="mb-5 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 
-            <form method="POST" enctype="multipart/form-data" action="{{ route('offer-journeys.pages.update', [$journey, $page]) }}" class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"
-                  x-data="{
-                      writingReview: null,
-                      writingLoading: false,
-                      async reviewWriting() {
-                          this.writingLoading = true;
-                          const response = await fetch('{{ route('offer-journeys.pages.writing-assistant', [$journey, $page]) }}', {
-                              method: 'POST',
-                              headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content},
-                              body: JSON.stringify({title: document.getElementById('title').value, summary: document.getElementById('summary').value, cta_label: document.getElementById('cta_label').value})
-                          });
-                          this.writingReview = response.ok ? await response.json() : {warnings: ['Le contrôle est temporairement indisponible.'], title_suggestions: []};
-                          this.writingLoading = false;
-                      }
-                  }">
+            <nav class="mb-5 flex overflow-x-auto border border-gray-200 bg-white" aria-label="Édition de la page" role="tablist">
+                @foreach(['content' => ['Contenu', 'Textes et sections'], 'form' => ['Formulaire', $form ? 'Champs demandés' : 'Non requis'], 'after' => ['Après l’envoi', 'Confirmation et suite'], 'seo' => ['Référencement et partage', 'Google et réseaux']] as $key => [$label, $hint])
+                    <button id="page-editor-tab-{{ $key }}" type="button" role="tab" aria-controls="page-editor-panel-{{ $key }}" :aria-selected="section === '{{ $key }}' ? 'true' : 'false'" :tabindex="section === '{{ $key }}' ? 0 : -1" @click="chooseSection('{{ $key }}')" @keydown.right.prevent="moveSection(1)" @keydown.left.prevent="moveSection(-1)" @keydown.home.prevent="chooseSection(sections[0]); $nextTick(() => document.getElementById('page-editor-tab-' + section)?.focus())" @keydown.end.prevent="chooseSection(sections[sections.length - 1]); $nextTick(() => document.getElementById('page-editor-tab-' + section)?.focus())" :class="section === '{{ $key }}' ? 'border-[#647a0b] bg-[#f7f9ec] text-[#526509]' : 'border-transparent text-gray-600 hover:bg-gray-50'" class="min-h-[64px] min-w-[180px] flex-1 border-b-2 px-4 py-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#647a0b]">
+                        <span class="block text-sm font-semibold">{{ $label }}</span><span class="mt-0.5 block text-xs font-normal text-gray-500">{{ $hint }}</span>
+                    </button>
+                @endforeach
+            </nav>
+
+            <form method="POST" enctype="multipart/form-data" action="{{ route('offer-journeys.pages.update', [$journey, $page]) }}" class="space-y-5">
                 @csrf @method('PUT')
-                <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <section id="page-editor-panel-content" role="tabpanel" aria-labelledby="page-editor-tab-content" x-show="section === 'content'" x-cloak class="border border-gray-200 bg-white p-5">
                     <h2 class="font-semibold text-gray-900">{{ $form ? 'Contenu de l’étape formulaire' : 'Contenu de la page' }}</h2>
                     @if($form)<p class="mt-1 text-sm text-gray-600">Ce contenu présente votre proposition avant d’afficher les champs configurés dans le panneau « Champs du formulaire ».</p>@endif
                     <div class="mt-4 space-y-4">
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <div><label for="name" class="block text-sm font-medium text-gray-700">Nom interne</label><input id="name" name="name" value="{{ old('name', $page->name) }}" required class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
-                            <div><label for="slug" class="block text-sm font-medium text-gray-700">Adresse de l'étape</label><input id="slug" name="slug" value="{{ old('slug', $page->slug) }}" required class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
+                            <div><label for="name" class="block text-sm font-medium text-gray-700">Nom interne</label><input id="name" name="name" value="{{ old('name', $page->name) }}" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
+                            <div><label for="slug" class="block text-sm font-medium text-gray-700">Adresse de l'étape</label><input id="slug" name="slug" value="{{ old('slug', $page->slug) }}" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
                         </div>
-                        <div><label for="title" class="block text-sm font-medium text-gray-700">Titre public</label><input id="title" name="title" value="{{ old('title', $content['title'] ?? '') }}" required maxlength="180" class="mt-1 block w-full rounded-md border-gray-300 text-lg font-semibold focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
+                        <div><label for="title" class="block text-sm font-medium text-gray-700">Titre public</label><input id="title" name="title" value="{{ old('title', $content['title'] ?? '') }}" maxlength="180" class="mt-1 block w-full rounded-md border-gray-300 text-lg font-semibold focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
                         @if(config('offer_journeys.writing_assistant_enabled'))
                             <div class="border-y border-gray-200 bg-[#f7f8f3] px-4 py-4">
                                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -68,6 +96,8 @@
                                     'speaker' => 'Intervenant', 'price' => 'Tarif', 'practical' => 'Informations pratiques', 'faq' => 'Questions fréquentes',
                                 ];
                                 $orderedTypes = $savedBlocks->sortBy('position')->keys()->merge(collect(array_keys($blockLabels))->diff($savedBlocks->keys()))->values();
+                                $heroImageUrl = old('hero_image_url', data_get($savedBlocks, 'hero_image.data.url'));
+                                $heroImageRemoved = (bool) old('remove_hero_image', false);
                             @endphp
                             <section class="border-y border-gray-200 bg-[#f7f8f3] px-4 py-5">
                                 <h3 class="font-semibold text-gray-900">Organisation visuelle</h3>
@@ -83,8 +113,26 @@
                                 </ol>
 
                                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                                    <div><label for="hero_image_url" class="block text-sm font-medium text-gray-700">Image principale</label><input id="hero_image_url" type="url" name="hero_image_url" value="{{ old('hero_image_url', data_get($savedBlocks, 'hero_image.data.url')) }}" class="mt-1 block w-full border-gray-300 text-sm" placeholder="https://..."></div>
-                                    <div><label for="hero_image_alt" class="block text-sm font-medium text-gray-700">Description de l'image</label><input id="hero_image_alt" name="hero_image_alt" value="{{ old('hero_image_alt', data_get($savedBlocks, 'hero_image.data.alt')) }}" class="mt-1 block w-full border-gray-300 text-sm" placeholder="Ce que montre l'image"></div>
+                                    <div class="sm:col-span-2">
+                                        <span class="block text-sm font-medium text-gray-700">Image principale</span>
+                                        <div class="mt-2 grid gap-4 border border-gray-200 bg-white p-4 md:grid-cols-[minmax(220px,320px)_1fr] md:items-center">
+                                            <div id="hero-image-preview-wrap" class="aspect-[16/9] overflow-hidden bg-[#eef1e5]" @if(blank($heroImageUrl) || $heroImageRemoved) hidden @endif>
+                                                <img id="hero-image-preview" src="{{ $heroImageUrl ?: '' }}" alt="" class="h-full w-full object-cover">
+                                            </div>
+                                            <div id="hero-image-empty" class="flex aspect-[16/9] items-center justify-center border border-dashed border-gray-300 bg-gray-50 px-4 text-center text-sm text-gray-500" @if(filled($heroImageUrl) && ! $heroImageRemoved) style="display: none" @endif>Aucune image sélectionnée</div>
+                                            <div>
+                                                <label for="hero_image_upload" class="block text-sm font-semibold text-gray-900">Choisir une image</label>
+                                                <input id="hero_image_upload" type="file" name="hero_image_upload" accept="image/jpeg,image/png,image/webp" class="mt-2 block w-full rounded-md border border-gray-300 bg-white p-2 text-sm file:mr-3 file:border-0 file:bg-[#647a0b] file:px-3 file:py-2 file:font-semibold file:text-white hover:file:bg-[#526509]">
+                                                <p class="mt-2 text-xs leading-5 text-gray-500">JPG, PNG ou WebP, 5 Mo maximum. Une image horizontale offre généralement le meilleur rendu.</p>
+                                                @error('hero_image_upload')<p class="mt-2 text-sm text-red-700">{{ $message }}</p>@enderror
+                                                @if(filled($heroImageUrl))
+                                                    <label class="mt-3 flex items-center gap-2 text-sm text-red-700"><input id="remove_hero_image" type="checkbox" name="remove_hero_image" value="1" @checked(old('remove_hero_image')) class="rounded border-gray-300 text-red-600 focus:ring-red-500">Retirer l’image du brouillon</label>
+                                                @endif
+                                                <input type="hidden" name="hero_image_url" value="{{ $heroImageUrl }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="sm:col-span-2"><label for="hero_image_alt" class="block text-sm font-medium text-gray-700">Description de l'image</label><p class="text-xs text-gray-500">Décrivez brièvement ce que montre l’image pour les personnes qui utilisent un lecteur d’écran.</p><input id="hero_image_alt" name="hero_image_alt" value="{{ old('hero_image_alt', data_get($savedBlocks, 'hero_image.data.alt')) }}" class="mt-1 block w-full border-gray-300 text-sm" placeholder="Ex. Carnet ouvert sur une table">@error('hero_image_alt')<p class="mt-1 text-sm text-red-700">{{ $message }}</p>@enderror</div>
                                     <div class="sm:col-span-2"><label for="gallery_items" class="block text-sm font-medium text-gray-700">Galerie</label><p class="text-xs text-gray-500">Une ligne par image : Adresse HTTPS | Description</p><textarea id="gallery_items" name="gallery_items" rows="3" class="mt-1 block w-full border-gray-300 text-sm">{{ old('gallery_items', collect(data_get($savedBlocks, 'gallery.data.items', []))->map(fn($item) => ($item['url'] ?? '').' | '.($item['alt'] ?? ''))->implode("\n")) }}</textarea></div>
                                     <div class="sm:col-span-2"><label for="video_url" class="block text-sm font-medium text-gray-700">Vidéo YouTube ou Vimeo</label><input id="video_url" type="url" name="video_url" value="{{ old('video_url', data_get($savedBlocks, 'video.data.url')) }}" class="mt-1 block w-full border-gray-300 text-sm" placeholder="https://..."></div>
                                     <div class="sm:col-span-2"><label for="testimonials" class="block text-sm font-medium text-gray-700">Témoignages</label><p class="text-xs text-gray-500">Un par ligne : Prénom ou initiales | Témoignage dont vous avez l'autorisation</p><textarea id="testimonials" name="testimonials" rows="4" class="mt-1 block w-full border-gray-300 text-sm">{{ old('testimonials', collect(data_get($savedBlocks, 'testimonials.data.items', []))->map(fn($item) => ($item['author'] ?? '').' | '.($item['quote'] ?? ''))->implode("\n")) }}</textarea></div>
@@ -96,22 +144,28 @@
                                 </div>
                             </section>
                         @endif
-                        <div><label for="cta_label" class="block text-sm font-medium text-gray-700">Bouton principal</label><input id="cta_label" name="cta_label" value="{{ old('cta_label', $content['cta_label'] ?? 'Continuer') }}" required maxlength="80" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
+                        <div><label for="cta_label" class="block text-sm font-medium text-gray-700">Bouton principal</label><input id="cta_label" name="cta_label" value="{{ old('cta_label', $content['cta_label'] ?? 'Continuer') }}" maxlength="80" class="mt-1 block w-full rounded-md border-gray-300 focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
                     </div>
                 </section>
 
-                <aside class="space-y-5">
-                    <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-                        <h2 class="font-semibold text-gray-900">Référencement</h2>
+                <div class="space-y-5">
+                    <section id="page-editor-panel-seo" role="tabpanel" aria-labelledby="page-editor-tab-seo" x-show="section === 'seo'" x-cloak class="border border-gray-200 bg-white p-5">
+                        <h2 class="font-semibold text-gray-900">Référencement et partage</h2>
+                        <p class="mt-1 text-sm text-gray-600">Choisissez le titre et la description visibles dans Google. L’image principale sera utilisée lors du partage lorsqu’elle est renseignée.</p>
                         <div class="mt-4 space-y-4">
                             <div><label for="seo_title" class="block text-sm font-medium text-gray-700">Titre SEO</label><input id="seo_title" name="seo_title" value="{{ old('seo_title', $page->seo_title) }}" maxlength="160" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
                             <div><label for="seo_description" class="block text-sm font-medium text-gray-700">Description SEO</label><textarea id="seo_description" name="seo_description" rows="3" maxlength="300" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]">{{ old('seo_description', $page->seo_description) }}</textarea></div>
                             <label class="flex items-start gap-3"><input type="checkbox" name="is_indexable" value="1" @checked(old('is_indexable', $page->is_indexable)) class="mt-1 rounded border-gray-300 text-[#647a0b] focus:ring-[#647a0b]"><span class="text-sm text-gray-700">Autoriser l'indexation de cette page après publication</span></label>
+                            <div class="border-t border-gray-200 pt-4"><h3 class="text-sm font-semibold text-gray-900">Aperçu sur les réseaux sociaux</h3><p class="mt-1 text-xs text-gray-500">Ces informations sont utilisées par Facebook, LinkedIn et les messageries lors du partage.</p></div>
+                            <div><label for="social_title" class="block text-sm font-medium text-gray-700">Titre au partage</label><input id="social_title" name="social_title" value="{{ old('social_title', $content['social_title'] ?? '') }}" maxlength="120" placeholder="Par défaut : le titre public" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"></div>
+                            <div><label for="social_description" class="block text-sm font-medium text-gray-700">Description au partage</label><textarea id="social_description" name="social_description" rows="3" maxlength="240" placeholder="Par défaut : la présentation" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]">{{ old('social_description', $content['social_description'] ?? '') }}</textarea></div>
+                            <div><label for="social_image" class="block text-sm font-medium text-gray-700">Image de partage différente, facultatif</label><input id="social_image" type="url" name="social_image" value="{{ old('social_image', $content['social_image'] ?? '') }}" maxlength="2000" placeholder="https://..." class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><p class="mt-1 text-xs text-gray-500">L’image principale est utilisée automatiquement. Indiquez ici une adresse HTTPS uniquement si vous souhaitez une autre image pour les réseaux sociaux.</p></div>
+                            <div class="overflow-hidden border border-gray-200 bg-gray-50"><div class="aspect-[1.91/1] bg-gray-100">@if(filled($content['social_image'] ?? null) || filled(data_get(collect($content['blocks'] ?? [])->firstWhere('type', 'hero_image'), 'data.url')))<img src="{{ $content['social_image'] ?? data_get(collect($content['blocks'] ?? [])->firstWhere('type', 'hero_image'), 'data.url') }}" alt="" class="h-full w-full object-cover">@else<div class="flex h-full items-center justify-center text-sm text-gray-400">Aucune image de partage</div>@endif</div><div class="p-3"><p class="truncate text-sm font-semibold text-gray-900">{{ ($content['social_title'] ?? null) ?: ($page->seo_title ?: ($content['title'] ?? $journey->name)) }}</p><p class="mt-1 line-clamp-2 text-xs text-gray-500">{{ ($content['social_description'] ?? null) ?: ($page->seo_description ?: ($content['summary'] ?? '')) }}</p></div></div>
                             @if(config('offer_journeys.rich_editor_enabled'))<div><label for="theme_style" class="block text-sm font-medium text-gray-700">Style de la page</label><select id="theme_style" name="theme_style" class="mt-1 block w-full border-gray-300 text-sm"><option value="olive" @selected(old('theme_style', data_get($page->theme_json, 'style', 'olive'))==='olive')>Olive</option><option value="forest" @selected(old('theme_style', data_get($page->theme_json, 'style'))==='forest')>Forêt</option><option value="clay" @selected(old('theme_style', data_get($page->theme_json, 'style'))==='clay')>Terre cuite</option><option value="neutral" @selected(old('theme_style', data_get($page->theme_json, 'style'))==='neutral')>Neutre</option></select></div>@endif
                         </div>
                     </section>
                     @if($form)
-                        <section class="rounded-lg border border-[#cbd5a5] bg-[#f7f9ec] p-5 shadow-sm">
+                        <section id="page-editor-panel-form" role="tabpanel" aria-labelledby="page-editor-tab-form" x-show="section === 'form'" x-cloak class="border border-[#cbd5a5] bg-[#f7f9ec] p-5">
                             <h2 class="font-semibold text-gray-900">Champs du formulaire</h2>
                             <p class="mt-1 text-xs text-gray-600">Les réponses créeront ou mettront à jour un contact du parcours après publication.</p>
                             @php
@@ -153,25 +207,48 @@
                                 </div>
                             @endif
                         </section>
+                    @else
+                        <section id="page-editor-panel-form" role="tabpanel" aria-labelledby="page-editor-tab-form" x-show="section === 'form'" x-cloak class="border border-gray-200 bg-white p-5">
+                            <h2 class="font-semibold text-gray-900">Aucun formulaire nécessaire</h2>
+                            <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-600">Pour cet objectif, le bouton dirige directement vers la réservation, l’inscription ou le paiement déjà géré dans Olithea. Vous ne demandez donc pas deux fois les mêmes informations.</p>
+                        </section>
                     @endif
-                    <section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-                        <h2 class="font-semibold text-gray-900">Étape suivante</h2>
+                    <section id="page-editor-panel-after" role="tabpanel" aria-labelledby="page-editor-tab-after" x-show="section === 'after'" x-cloak class="border border-gray-200 bg-white p-5">
+                        <h2 class="font-semibold text-gray-900">Que se passe-t-il ensuite ?</h2>
+                        <p class="mt-1 text-sm text-gray-600">Choisissez ce que la personne verra après son clic ou l’envoi du formulaire. Aucun email n’est promis ici s’il n’est pas configuré dans Messages.</p>
                         @php
                             $transitionAction = $primaryTransition?->to_page_id ? 'next_page' : ($primaryTransition?->external_action ? 'source' : 'none');
                             $transitionCondition = $primaryTransition?->condition_json['type'] ?? 'always';
+                            $stopActionLabel = $journey->objective === 'contact_request'
+                                ? 'Le praticien répondra personnellement'
+                                : 'Terminer ici, sans autre page';
+                            $sourceActionLabel = match ($journey->objective) {
+                                'appointment' => 'Proposer une prise de rendez-vous',
+                                'event' => 'Ouvrir l’inscription à l’événement',
+                                'lead_magnet' => 'Donner accès à la ressource liée',
+                                'training' => 'Conduire vers la formation',
+                                'gift_voucher' => 'Conduire vers le bon cadeau',
+                                default => 'Ouvrir l’offre liée',
+                            };
                         @endphp
-                        <div class="mt-4 space-y-4">
-                            <div><label for="transition_action" class="block text-sm font-medium text-gray-700">Après le bouton principal</label><select id="transition_action" name="transition_action" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="none" @selected(old('transition_action', $transitionAction)==='none')>Terminer le parcours</option><option value="next_page" @selected(old('transition_action', $transitionAction)==='next_page')>Ouvrir une autre étape</option><option value="source" @selected(old('transition_action', $transitionAction)==='source')>Ouvrir la réservation ou le paiement lié</option></select></div>
-                            <div><label for="transition_page_id" class="block text-sm font-medium text-gray-700">Étape cible</label><select id="transition_page_id" name="transition_page_id" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Choisir une étape</option>@foreach($journey->pages->where('id', '!=', $page->id) as $targetPage)<option value="{{ $targetPage->id }}" @selected((int) old('transition_page_id', $primaryTransition?->to_page_id)===$targetPage->id)>{{ $targetPage->name }}</option>@endforeach</select></div>
-                            <div><label for="transition_condition" class="block text-sm font-medium text-gray-700">Condition</label><select id="transition_condition" name="transition_condition" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="always" @selected(old('transition_condition', $transitionCondition)==='always')>Dans tous les cas</option><option value="marketing_consent" @selected(old('transition_condition', $transitionCondition)==='marketing_consent')>Si la personne accepte les suivis</option></select></div>
-                            <div><label for="fallback_page_id" class="block text-sm font-medium text-gray-700">Sinon, ouvrir</label><select id="fallback_page_id" name="fallback_page_id" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Aucune étape de secours</option>@foreach($journey->pages->where('id', '!=', $page->id) as $targetPage)<option value="{{ $targetPage->id }}" @selected((int) old('fallback_page_id', $fallbackTransition?->to_page_id)===$targetPage->id)>{{ $targetPage->name }}</option>@endforeach</select></div>
+                        <div class="mt-4 space-y-4" x-data="{ transitionAction: @js(old('transition_action', $transitionAction)) }">
+                            <div><label for="transition_action" class="block text-sm font-medium text-gray-700">Résultat pour la personne</label><select id="transition_action" name="transition_action" x-model="transitionAction" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="none" @selected(old('transition_action', $transitionAction)==='none')>{{ $stopActionLabel }}</option><option value="next_page" @selected(old('transition_action', $transitionAction)==='next_page')>Afficher une confirmation ou une autre page</option><option value="source" @selected(old('transition_action', $transitionAction)==='source')>{{ $sourceActionLabel }}</option></select></div>
+                            <div x-show="transitionAction === 'next_page'"><label for="transition_page_id" class="block text-sm font-medium text-gray-700">Page affichée ensuite</label><select id="transition_page_id" name="transition_page_id" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Choisir la page</option>@foreach($journey->pages->where('id', '!=', $page->id) as $targetPage)@php($targetPageLabel = match ($targetPage->type) { 'thank_you' => 'Afficher une confirmation', 'booking' => 'Proposer une prise de rendez-vous', 'event_registration' => 'Ouvrir une inscription à un événement', 'training_access' => 'Conduire vers une formation', 'checkout' => 'Conduire vers un paiement ou un bon cadeau', 'content' => 'Donner accès à un contenu ou une ressource', default => 'Ouvrir une autre page' })<option value="{{ $targetPage->id }}" @selected((int) old('transition_page_id', $primaryTransition?->to_page_id)===$targetPage->id)>{{ $targetPageLabel }} · {{ $targetPage->name }}</option>@endforeach</select></div>
+                            <details class="border-t border-gray-200 pt-4">
+                                <summary class="cursor-pointer text-sm font-semibold text-[#526509]">Cas particuliers, facultatif</summary>
+                                <p class="mt-1 text-xs text-gray-500">Utile uniquement si la suite dépend de l’acceptation des messages de suivi.</p>
+                                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                    <div><label for="transition_condition" class="block text-sm font-medium text-gray-700">Afficher cette suite</label><select id="transition_condition" name="transition_condition" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="always" @selected(old('transition_condition', $transitionCondition)==='always')>Pour toutes les personnes</option><option value="marketing_consent" @selected(old('transition_condition', $transitionCondition)==='marketing_consent')>Seulement si les suivis sont acceptés</option></select></div>
+                                    <div><label for="fallback_page_id" class="block text-sm font-medium text-gray-700">Sinon, afficher</label><select id="fallback_page_id" name="fallback_page_id" class="mt-1 block w-full rounded-md border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]"><option value="">Aucune autre page</option>@foreach($journey->pages->where('id', '!=', $page->id) as $targetPage)<option value="{{ $targetPage->id }}" @selected((int) old('fallback_page_id', $fallbackTransition?->to_page_id)===$targetPage->id)>{{ $targetPage->name }}</option>@endforeach</select></div>
+                                </div>
+                            </details>
                         </div>
                     </section>
-                    <div class="flex flex-col gap-3">
+                    <div class="sticky bottom-0 z-10 flex flex-col gap-3 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] backdrop-blur sm:flex-row sm:items-center sm:justify-end">
                         <button class="rounded-md bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#526509]">Enregistrer le brouillon</button>
                         <a href="{{ route('offer-journeys.show', $journey) }}" class="rounded-md border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50">Retour au parcours</a>
                     </div>
-                </aside>
+                </div>
             </form>
             @if(config('offer_journeys.rich_editor_enabled'))
                 <section class="mt-6 border-y border-gray-200 bg-white py-5" aria-labelledby="reusable-title">
@@ -226,6 +303,31 @@
                             const rect = row.getBoundingClientRect();
                             list.insertBefore(dragged, event.clientY < rect.top + rect.height / 2 ? row : row.nextSibling);
                         });
+                    });
+
+                    const imageInput = document.getElementById('hero_image_upload');
+                    const imagePreview = document.getElementById('hero-image-preview');
+                    const imagePreviewWrap = document.getElementById('hero-image-preview-wrap');
+                    const imageEmpty = document.getElementById('hero-image-empty');
+                    const removeImage = document.getElementById('remove_hero_image');
+                    const heroImageSectionToggle = document.querySelector('input[name="enabled_blocks[]"][value="hero_image"]');
+                    let localPreviewUrl = null;
+
+                    imageInput?.addEventListener('change', function () {
+                        const file = imageInput.files?.[0];
+                        if (!file) return;
+                        if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+                        localPreviewUrl = URL.createObjectURL(file);
+                        imagePreview.src = localPreviewUrl;
+                        imagePreviewWrap.hidden = false;
+                        imageEmpty.style.display = 'none';
+                        if (removeImage) removeImage.checked = false;
+                        if (heroImageSectionToggle) heroImageSectionToggle.checked = true;
+                    });
+
+                    removeImage?.addEventListener('change', function () {
+                        imagePreviewWrap.hidden = removeImage.checked;
+                        imageEmpty.style.display = removeImage.checked ? 'flex' : 'none';
                     });
                 });
             </script>

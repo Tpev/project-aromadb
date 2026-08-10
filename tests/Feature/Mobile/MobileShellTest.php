@@ -3314,7 +3314,7 @@ test('authenticated practitioners can open invoice and quote details from mobile
         ->assertOk()
         ->assertSee('DEV-MOB-001')
         ->assertSee('Proposition mobile')
-        ->assertSee('Ouvrir la vue web complete');
+        ->assertSee('Ouvrir la vue web complète');
 });
 
 test('mobile invoice details are protected by ownership and document type', function () {
@@ -3430,7 +3430,7 @@ test('authenticated practitioners can create an appointment from mobile', functi
         'product_id' => $product->id,
         'duration' => 45,
         'type' => 'domicile',
-        'status' => 'Programme',
+        'status' => Appointment::STATUS_SCHEDULED,
     ]);
 });
 
@@ -3518,7 +3518,7 @@ test('authenticated practitioners can update their appointment from mobile', fun
         'user_id' => $user->id,
         'client_profile_id' => $client->id,
         'product_id' => $product->id,
-        'appointment_date' => now()->subDays(2)->setTime(10, 0),
+        'appointment_date' => now()->addDays(2)->setTime(10, 0),
         'duration' => 60,
         'type' => 'entreprise',
         'status' => 'Programme',
@@ -3535,7 +3535,7 @@ test('authenticated practitioners can update their appointment from mobile', fun
         ->put("/mobile/rendez-vous/{$appointment->id}", [
             'client_profile_id' => $client->id,
             'product_id' => $product->id,
-            'appointment_date' => now()->subDay()->format('Y-m-d'),
+            'appointment_date' => now()->addDays(3)->format('Y-m-d'),
             'appointment_time' => '14:15',
             'type' => 'entreprise',
             'status' => 'Confirme',
@@ -3546,7 +3546,7 @@ test('authenticated practitioners can update their appointment from mobile', fun
 
     $this->assertDatabaseHas('appointments', [
         'id' => $appointment->id,
-        'status' => 'Confirme',
+        'status' => Appointment::STATUS_CONFIRMED,
         'notes' => 'Mis a jour depuis mobile',
         'duration' => 60,
     ]);

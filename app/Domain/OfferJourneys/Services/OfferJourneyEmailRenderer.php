@@ -26,7 +26,7 @@ class OfferJourneyEmailRenderer
         $content ??= $campaign->content_json ?: $this->content->defaultContent();
         $style = array_merge($this->content->defaultStyle(), $style ?? $campaign->style_json ?? []);
         $preheader ??= $campaign->preheader ?: '';
-        $assets = $campaign->emailAssets()->get()->keyBy('id');
+        $assets = ($campaign->relationLoaded('emailAssets') ? $campaign->emailAssets : $campaign->emailAssets()->get())->keyBy('id');
         $therapistName = $user->company_name
             ?: trim(($user->first_name ?? '').' '.($user->last_name ?? ''))
             ?: $user->name
@@ -36,6 +36,7 @@ class OfferJourneyEmailRenderer
             'offre' => $campaign->name,
             'nom_praticien' => $therapistName,
             'lien_offre' => '',
+            'lien_ressource' => '',
         ], $variables);
 
         $htmlRows = '';
@@ -73,6 +74,32 @@ class OfferJourneyEmailRenderer
         return ['html' => $html, 'text' => trim($text)];
     }
 
+    /** @return array{html: string, text: string} */
+    public function renderPortable(
+        User $user,
+        string $subject,
+        string $offerName,
+        array $content,
+        array $style,
+        array $variables,
+        string $unsubscribeUrl,
+        string $category = 'marketing',
+        ?string $preheader = null
+    ): array {
+        $campaign = new OfferJourneyMessageCampaign([
+            'user_id' => $user->id,
+            'name' => $offerName,
+            'subject' => $subject,
+            'preheader' => $preheader,
+            'content_json' => $content,
+            'style_json' => $style,
+        ]);
+        $campaign->setRelation('user', $user);
+        $campaign->setRelation('emailAssets', collect());
+
+        return $this->render($campaign, $variables, $unsubscribeUrl, $category, $content, $style, $preheader);
+    }
+
     public function plainBody(OfferJourneyMessageCampaign $campaign, array $content): string
     {
         $user = $campaign->user ?: User::query()->findOrFail($campaign->user_id);
@@ -82,6 +109,7 @@ class OfferJourneyEmailRenderer
             $text = $this->textBlock($block, $assets, [
                 'prenom' => '{{prenom}}', 'offre' => '{{offre}}',
                 'nom_praticien' => '{{nom_praticien}}', 'lien_offre' => '{{lien_offre}}',
+                'lien_ressource' => '{{lien_ressource}}',
             ], $user);
             if ($text !== '') {
                 $parts[] = $text;
@@ -117,6 +145,14 @@ class OfferJourneyEmailRenderer
 
     private function imageHtml(array $data, $assets): string
     {
+        if (filled($data['url'] ?? null)) {
+            $width = ['full' => 564, 'large' => 480, 'medium' => 320][$data['width'] ?? 'full'] ?? 564;
+            $requestedAlign = $data['align'] ?? 'center';
+            $align = in_array($requestedAlign, ['left', 'center', 'right'], true) ? $requestedAlign : 'center';
+
+            return '<tr><td align="'.$align.'" style="padding:10px 28px;"><img src="'.e($data['url']).'" width="'.$width.'" alt="'.e($data['alt'] ?? '').'" style="display:block;width:100%;max-width:'.$width.'px;height:auto;border:0;"></td></tr>';
+        }
+
         $asset = $assets->get((int) ($data['asset_id'] ?? 0));
         if (! $asset || ! Storage::disk('public')->exists($asset->path)) {
             return '';

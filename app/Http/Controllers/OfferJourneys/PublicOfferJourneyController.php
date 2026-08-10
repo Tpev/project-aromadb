@@ -88,15 +88,16 @@ class PublicOfferJourneyController extends Controller
             || ! empty($transition['external_action'])
             || filled(($pageVersion->content_json ?? [])['resource_url'] ?? null)
             || ! empty(($pageVersion->content_json ?? [])['resource_file'])
-            || ($sourceResolver->sourceAvailable($journey, $therapist) && $sourceResolver->publicActionUrl($journey, $therapist));
+            || ($sourceResolver->sourceAvailable($journey, $therapist, true) && $sourceResolver->publicActionUrl($journey, $therapist, true));
 
         return view('offer-journeys.public.show', [
             'therapist' => $therapist,
             'journey' => $journey,
+            'journeyDisplayName' => $journey->publishedVersion?->snapshot_json['name'] ?? $journey->name,
             'page' => $pageVersion,
             'content' => $pageVersion->content_json ?? [],
-            'actionUrl' => $sourceResolver->publicActionUrl($journey, $therapist),
-            'sourceAvailable' => $sourceResolver->sourceAvailable($journey, $therapist),
+            'actionUrl' => $sourceResolver->publicActionUrl($journey, $therapist, true),
+            'sourceAvailable' => $sourceResolver->sourceAvailable($journey, $therapist, true),
             'hasPublicAction' => $hasPublicAction,
             'isPreview' => false,
             'primaryActionUrl' => null,
@@ -158,9 +159,23 @@ class PublicOfferJourneyController extends Controller
             }
         }
 
+        $attributes = collect($allowedFields)
+            ->mapWithKeys(fn (array $field, string $name) => [$name => mb_strtolower((string) ($field['label'] ?? $name))])
+            ->merge([
+                'email' => 'adresse email',
+                'privacy_ack' => 'confirmation de confidentialité',
+                'marketing_consent' => 'consentement aux suivis',
+            ])
+            ->all();
+
         $validated = $request->validate($rules, [
-            'privacy_ack.accepted' => 'Veuillez confirmer avoir pris connaissance de l’utilisation de vos informations.',
-        ]);
+            'required' => 'Le champ :attribute est obligatoire.',
+            'email' => 'Indiquez une adresse email valide.',
+            'accepted' => 'Veuillez confirmer avoir pris connaissance de l’utilisation de vos informations.',
+            'in' => 'La réponse choisie pour :attribute n’est pas valide.',
+            'max.string' => 'Le champ :attribute est trop long.',
+            'max.array' => 'Vous avez sélectionné trop de réponses pour :attribute.',
+        ], $attributes);
 
         $result = $capture->capture($therapist, $journey, $page, $validated, $request);
         $nextPageSlug = $result['next_page_slug'];
@@ -222,8 +237,8 @@ class PublicOfferJourneyController extends Controller
             ));
         }
 
-        $actionUrl = $sourceResolver->publicActionUrl($journey, $therapist);
-        abort_unless($actionUrl && $sourceResolver->sourceAvailable($journey, $therapist), 404);
+        $actionUrl = $sourceResolver->publicActionUrl($journey, $therapist, true);
+        abort_unless($actionUrl && $sourceResolver->sourceAvailable($journey, $therapist, true), 404);
 
         return redirect()->away($actionUrl)->withCookie($attributionContext->cookie($journey, $request));
     }

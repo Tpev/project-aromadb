@@ -122,7 +122,8 @@ it('renders the page editor for a form step', function () {
         ->assertOk()
         ->assertSee('Contenu de l’étape formulaire')
         ->assertSee('Champs du formulaire')
-        ->assertSee('Étape suivante');
+        ->assertSee('Que se passe-t-il ensuite ?')
+        ->assertSee('Résultat pour la personne');
 });
 
 it('creates a real form when a practitioner adds a form step', function () {

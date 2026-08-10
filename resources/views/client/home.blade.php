@@ -92,8 +92,21 @@ window.addEventListener('DOMContentLoaded', () => {
             <h2 class="text-xl font-semibold text-gray-800 mb-4">📅 Mes Rendez-vous à venir</h2>
             <ul class="divide-y divide-gray-200">
                 @forelse($appointments as $appointment)
-                    <li class="py-2 text-sm">
-                        {{ $appointment->appointment_date->format('d/m/Y H:i') }} avec {{ $appointment->user->name ?? 'votre thérapeute' }}
+                    <li class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+                        <span>
+                            <strong>{{ $appointment->appointment_date->format('d/m/Y à H:i') }}</strong><br>
+                            {{ $appointment->product?->name ?? 'Rendez-vous' }} avec {{ $appointment->user->company_name ?? $appointment->user->name ?? 'votre praticien' }}
+                        </span>
+                        <span class="flex flex-wrap gap-2">
+                            <a href="{{ route('client.appointments.show', $appointment) }}" class="inline-flex min-h-10 items-center rounded-md bg-[#647a0b] px-3 py-2 font-semibold text-white">Voir</a>
+                            @if($appointment->canBeManagedOnline())
+                                <a href="{{ route('client.appointments.reschedule', $appointment) }}" class="inline-flex min-h-10 items-center rounded-md border border-[#647a0b] px-3 py-2 font-semibold text-[#526508]">Modifier</a>
+                                <form method="POST" action="{{ route('client.appointments.cancel', $appointment) }}" onsubmit="return confirm('Confirmer l’annulation de ce rendez-vous ?');">
+                                    @csrf
+                                    <button type="submit" class="inline-flex min-h-10 items-center rounded-md border border-[#a5513b] px-3 py-2 font-semibold text-[#934832]">Annuler</button>
+                                </form>
+                            @endif
+                        </span>
                     </li>
                 @empty
                     <li class="text-gray-500 text-sm">Aucun rendez-vous prévu.</li>

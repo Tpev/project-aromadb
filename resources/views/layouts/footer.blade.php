@@ -1,10 +1,10 @@
 <footer class="bg-gray-800 text-white py-8">
-    <div class="container mx-auto text-center">
+    <div class="container mx-auto px-4 text-center sm:px-6">
 <!-- Footer Links -->
-    <div class="container mx-auto flex justify-between">
+    <div class="mx-auto flex max-w-7xl flex-col gap-8 sm:flex-row sm:justify-between">
 
         <!-- Left Column -->
-        <ul class="space-y-2">
+        <ul class="min-w-0 space-y-2 text-center sm:max-w-[46%] sm:text-left">
             <li>
                 <a href="/" class="hover:underline text-lg">Accueil</a>
             </li>
@@ -15,7 +15,7 @@
         </ul>
 
         <!-- Right Column -->
-        <ul class="space-y-2 text-right">
+        <ul class="min-w-0 space-y-2 text-center sm:max-w-[46%] sm:text-right">
             <li>
                 <a href="/privacy-policy" class="hover:underline text-lg">
                     Politique de confidentialité
@@ -35,7 +35,7 @@
 
     </div>
         <!-- Social Media Links -->
-        <div class="flex justify-center space-x-4 mb-4">
+        <div class="mb-4 mt-8 flex justify-center space-x-4">
             <a href="https://www.facebook.com/profile.php?id=100089128162095" class="text-blue-600 hover:text-blue-400"><i class="fab fa-facebook-f"></i></a>
             <a href="https://www.instagram.com/olithea/" class="text-pink-600 hover:text-pink-400"><i class="fab fa-instagram"></i></a>
         </div>

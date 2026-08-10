@@ -20,7 +20,6 @@ use App\Models\SpecialAvailability;
 use App\Models\Meeting;
 use App\Models\Invoice;
 use App\Models\PracticeLocation;
-use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
 use App\Notifications\AppointmentBooked;
 use App\Services\AppointmentQuestionnaireAutomationService;
@@ -192,7 +191,7 @@ class MobileAppointmentController extends Controller
             'user_id'               => $therapist->id,
             'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
             'appointment_date'      => $appointmentDateTime,
-            'status'                => 'pending',
+            'status'                => Appointment::STATUS_PENDING_PAYMENT,
             'notes'                 => $request->notes,
             'type'                  => $mode,                 // ← on stocke le mode
             'duration'              => $product->duration,
@@ -244,9 +243,10 @@ class MobileAppointmentController extends Controller
                             'quantity' => 1,
                         ]],
                         'mode' => 'payment',
+                        'expires_at' => now()->addMinutes(30)->timestamp,
                         // On garde les mêmes routes callbacks (AppointmentController)
                         'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                        'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+                        'cancel_url'  => route('appointments.cancel', ['appointment_id' => $appointment->id, 'token' => $appointment->token]),
                         'payment_intent_data' => [
                             'metadata' => [
                                 'appointment_id' => $appointment->id,
@@ -271,11 +271,11 @@ class MobileAppointmentController extends Controller
             } else {
                 // Pas de Stripe connecté : on confirme directement
                 Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
-                $appointment->update(['status' => 'confirmed']);
+                $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
                 try {
                     if ($appointment->clientProfile->email) {
-                        Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                        \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                     }
                     if ($therapist->email) {
                         Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -294,11 +294,11 @@ class MobileAppointmentController extends Controller
         }
 
         /* ---------------------- Pas de paiement requis ---------------------- */
-        $appointment->update(['status' => 'confirmed']);
+        $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
         try {
             if ($appointment->clientProfile->email) {
-                Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
             }
             if ($therapist->email) {
                 Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -816,7 +816,7 @@ class MobileAppointmentController extends Controller
     {
         $query->where(function ($statusQuery) {
             $statusQuery->whereNull('status')
-                ->orWhereNotIn('status', ['cancelled', 'canceled', 'Annulé', 'Annule', 'Annulée', 'Annulee']);
+                ->orWhereNotIn('status', Appointment::CANCELLED_STATUSES);
         });
 
         $driver = app('db')->connection()->getDriverName();

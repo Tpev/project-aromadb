@@ -12,7 +12,7 @@ class OfferJourneyEmailContent
 {
     public const VERSION = 'blocks-v1';
     public const TYPES = ['heading', 'paragraph', 'image', 'button', 'callout', 'divider', 'spacer', 'details', 'signature'];
-    public const VARIABLES = ['prenom', 'offre', 'nom_praticien', 'lien_offre'];
+    public const VARIABLES = ['prenom', 'offre', 'nom_praticien', 'lien_offre', 'lien_ressource'];
 
     public function defaultContent(): array
     {
@@ -52,6 +52,17 @@ class OfferJourneyEmailContent
 
     /** @return array{content: array, style: array} */
     public function validate(array $content, array $style, User $user, OfferJourneyMessageCampaign $campaign): array
+    {
+        return $this->validateContent($content, $style, $user, $campaign);
+    }
+
+    /** @return array{content: array, style: array} */
+    public function validatePortable(array $content, array $style, User $user): array
+    {
+        return $this->validateContent($content, $style, $user, null);
+    }
+
+    private function validateContent(array $content, array $style, User $user, ?OfferJourneyMessageCampaign $campaign): array
     {
         $blocks = $content['blocks'] ?? null;
         if (! is_array($blocks) || count($blocks) > 60) {
@@ -101,7 +112,7 @@ class OfferJourneyEmailContent
         return $value;
     }
 
-    private function validateBlock(string $type, array $data, int $index, User $user, OfferJourneyMessageCampaign $campaign): array
+    private function validateBlock(string $type, array $data, int $index, User $user, ?OfferJourneyMessageCampaign $campaign): array
     {
         return match ($type) {
             'heading' => [
@@ -138,8 +149,22 @@ class OfferJourneyEmailContent
         };
     }
 
-    private function validateImage(array $data, int $index, User $user, OfferJourneyMessageCampaign $campaign): array
+    private function validateImage(array $data, int $index, User $user, ?OfferJourneyMessageCampaign $campaign): array
     {
+        if (! $campaign) {
+            $url = trim((string) ($data['url'] ?? ''));
+            if (! filter_var($url, FILTER_VALIDATE_URL) || ! in_array(parse_url($url, PHP_URL_SCHEME), ['http', 'https'], true)) {
+                throw ValidationException::withMessages(["content.blocks.$index.url" => 'Utilisez une adresse complète commençant par https:// pour l’image.']);
+            }
+
+            return [
+                'url' => $url,
+                'alt' => $this->plain($data['alt'] ?? '', 180, $index, true),
+                'width' => $this->choice($data['width'] ?? 'full', ['full', 'large', 'medium'], 'largeur d’image', $index),
+                'align' => $this->choice($data['align'] ?? 'center', ['left', 'center', 'right'], 'alignement', $index),
+            ];
+        }
+
         $assetId = (int) ($data['asset_id'] ?? 0);
         $owned = OfferJourneyEmailAsset::query()
             ->whereKey($assetId)
@@ -201,7 +226,7 @@ class OfferJourneyEmailContent
     private function url(mixed $value, int $index): string
     {
         $value = trim((string) $value);
-        if ($value === '{{lien_offre}}') {
+        if (in_array($value, ['{{lien_offre}}', '{{lien_ressource}}'], true)) {
             return $value;
         }
         if (mb_strlen($value) > 2000 || ! filter_var($value, FILTER_VALIDATE_URL) || ! in_array(parse_url($value, PHP_URL_SCHEME), ['http', 'https'], true)) {

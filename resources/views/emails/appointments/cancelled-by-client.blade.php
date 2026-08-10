@@ -22,6 +22,10 @@
     @endif
 </ul>
 
+@if($a->requiresFinancialFollowUp())
+<p><strong>À vérifier :</strong> ce rendez-vous comporte un paiement, une facture ou un bon cadeau. L’annulation n’a déclenché aucun remboursement ni recrédit automatique.</p>
+@endif
+
 <p>
     Vous pouvez retrouver ce rendez-vous dans votre agenda / tableau de bord.
 </p>

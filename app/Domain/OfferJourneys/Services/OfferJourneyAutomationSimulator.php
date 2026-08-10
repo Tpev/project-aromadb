@@ -27,7 +27,7 @@ class OfferJourneyAutomationSimulator
                 'type' => $node->type,
                 'detail' => match ($node->type) {
                     'email' => ($config['is_enabled'] ?? false) ? 'Message prévu, sans envoi pendant ce test' : 'Message désactivé',
-                    'wait' => 'Délai prévu : '.((int) ($config['delay_minutes'] ?? 0)).' minute(s)',
+                    'wait' => 'Délai prévu : '.$this->formatDelay((int) ($config['delay_minutes'] ?? 0)),
                     'condition' => 'Condition vérifiée sans modifier les données',
                     'action' => 'Action prévue, sans modification pendant ce test',
                     'end' => 'Fin du parcours',
@@ -41,6 +41,16 @@ class OfferJourneyAutomationSimulator
         }
 
         return $result;
+    }
+
+    private function formatDelay(int $minutes): string
+    {
+        return match (true) {
+            $minutes <= 0 => 'immédiatement',
+            $minutes % 1440 === 0 => intdiv($minutes, 1440).' '.(intdiv($minutes, 1440) === 1 ? 'jour' : 'jours'),
+            $minutes % 60 === 0 => intdiv($minutes, 60).' '.(intdiv($minutes, 60) === 1 ? 'heure' : 'heures'),
+            default => $minutes.' '.($minutes === 1 ? 'minute' : 'minutes'),
+        };
     }
 
     private function matches(array $config, array $context): bool

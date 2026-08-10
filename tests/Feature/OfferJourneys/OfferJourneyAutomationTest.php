@@ -235,7 +235,7 @@ it('estimates eligible recipients without counting test messages or recent marke
     $this->actingAs($this->therapist)
         ->get(route('offer-journeys.automation', $this->journey))
         ->assertOk()
-        ->assertSee('1 destinataire(s) potentiellement concerné(s)');
+        ->assertSee('1 destinataire potentiellement concerné');
 
     OfferJourneyMessageDelivery::query()->create([
         'user_id' => $this->therapist->id,
@@ -254,7 +254,7 @@ it('estimates eligible recipients without counting test messages or recent marke
     $this->actingAs($this->therapist)
         ->get(route('offer-journeys.automation', $this->journey))
         ->assertOk()
-        ->assertSee('0 destinataire(s) potentiellement concerné(s)');
+        ->assertSee('0 destinataires potentiellement concernés');
 });
 
 it('keeps message tools unavailable while their feature flag is disabled', function () {

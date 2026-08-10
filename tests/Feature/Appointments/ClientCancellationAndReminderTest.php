@@ -129,13 +129,15 @@ test('24h reminder command skips cancelled appointments', function () {
 
     Artisan::call('email:send-appointment-reminders');
 
-    Mail::assertQueued(AppointmentReminderClientMail::class, function ($mail) use ($activeAppointment) {
+    Mail::assertSent(AppointmentReminderClientMail::class, function ($mail) use ($activeAppointment) {
         return $mail->appointment->is($activeAppointment->fresh());
     });
 
-    Mail::assertNotQueued(AppointmentReminderClientMail::class, function ($mail) use ($cancelledAppointment) {
+    Mail::assertNotSent(AppointmentReminderClientMail::class, function ($mail) use ($cancelledAppointment) {
         return $mail->appointment->is($cancelledAppointment->fresh());
     });
+    expect($activeAppointment->fresh()->reminder_24h_sent_at)->not->toBeNull()
+        ->and($cancelledAppointment->fresh()->reminder_24h_sent_at)->toBeNull();
 
     Carbon::setTestNow();
 });
@@ -161,13 +163,15 @@ test('1h reminder command skips cancelled appointments', function () {
 
     Artisan::call('email:send-one-hour-reminder');
 
-    Mail::assertQueued(AppointmentReminderClientMail::class, function ($mail) use ($activeAppointment) {
+    Mail::assertSent(AppointmentReminderClientMail::class, function ($mail) use ($activeAppointment) {
         return $mail->appointment->is($activeAppointment->fresh());
     });
 
-    Mail::assertNotQueued(AppointmentReminderClientMail::class, function ($mail) use ($cancelledAppointment) {
+    Mail::assertNotSent(AppointmentReminderClientMail::class, function ($mail) use ($cancelledAppointment) {
         return $mail->appointment->is($cancelledAppointment->fresh());
     });
+    expect($activeAppointment->fresh()->reminder_1h_sent_at)->not->toBeNull()
+        ->and($cancelledAppointment->fresh()->reminder_1h_sent_at)->toBeNull();
 
     Carbon::setTestNow();
 });

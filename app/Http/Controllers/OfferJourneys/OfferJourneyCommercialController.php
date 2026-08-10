@@ -87,7 +87,11 @@ class OfferJourneyCommercialController extends Controller
             }
         });
 
-        return back()->with('success', $contacts->count().' contact(s) ont été mis à jour. Aucun message n’a été envoyé.');
+        $updatedLabel = $contacts->count() === 1
+            ? '1 contact a été mis à jour.'
+            : $contacts->count().' contacts ont été mis à jour.';
+
+        return back()->with('success', $updatedLabel.' Aucun message n’a été envoyé.');
     }
 
     public function goal(Request $request): RedirectResponse

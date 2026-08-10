@@ -63,9 +63,12 @@ Route::middleware(['auth', 'offer-journeys.available'])
         Route::post('/actions-groupees', [OfferJourneyCommercialController::class, 'bulk'])->name('bulk');
         Route::post('/objectifs', [OfferJourneyCommercialController::class, 'goal'])->name('goals.store');
         Route::get('/segments', [OfferJourneyContactOrganizationController::class, 'segments'])->name('segments');
+        Route::post('/segments/estimation', [OfferJourneyContactOrganizationController::class, 'estimateSegment'])->name('segments.estimate');
         Route::post('/segments', [OfferJourneyContactOrganizationController::class, 'storeSegment'])->name('segments.store');
         Route::delete('/segments/{segment}', [OfferJourneyContactOrganizationController::class, 'destroySegment'])->name('segments.destroy');
         Route::post('/tags', [OfferJourneyContactOrganizationController::class, 'storeTag'])->name('tags.store');
+        Route::put('/tags/{tag}', [OfferJourneyContactOrganizationController::class, 'updateTag'])->name('tags.update');
+        Route::delete('/tags/{tag}', [OfferJourneyContactOrganizationController::class, 'destroyTag'])->name('tags.destroy');
         Route::get('/{contact}', [OfferJourneyContactController::class, 'show'])->name('show');
         Route::put('/{contact}/status', [OfferJourneyContactController::class, 'updateStatus'])->name('status');
         Route::post('/{contact}/notes', [OfferJourneyContactController::class, 'storeNote'])->name('notes.store');

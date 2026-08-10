@@ -146,13 +146,21 @@ class OfferJourneyAutomationProcessor
 
         try {
             $unsubscribeUrl = URL::signedRoute('offer-journeys.unsubscribe.show', ['contact' => $run->contact]);
+            $rendererVariables = collect($values)->mapWithKeys(
+                fn ($value, $key) => [trim((string) $key, '{}') => $value]
+            )->all();
             $sentMessage = Mail::to($run->contact->email)->send(new OfferJourneyMessageMail(
-                $run->automation->journey->user,
-                $subject,
-                $body,
-                $unsubscribeUrl,
-                $category,
-                $delivery->id
+                therapist: $run->automation->journey->user,
+                messageSubject: $subject,
+                messageBody: $body,
+                unsubscribeUrl: $unsubscribeUrl,
+                category: $category,
+                deliveryId: $delivery->id,
+                renderVariables: $rendererVariables,
+                portableContent: is_array($config['email_content'] ?? null) ? $config['email_content'] : [],
+                portableStyle: is_array($config['email_style'] ?? null) ? $config['email_style'] : [],
+                preheader: $config['preheader'] ?? null,
+                offerName: $run->automation->journey->name
             ));
             $delivery->update([
                 'status' => 'sent',

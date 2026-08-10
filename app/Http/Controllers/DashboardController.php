@@ -38,6 +38,7 @@ class DashboardController extends Controller
 
 $upcomingAppointments = Appointment::where('user_id', $userId)
     ->where('appointment_date', '>=', now())
+    ->notCancelled()
     ->where(function ($q) {
         $q->where('external', false)
           ->orWhereNull('external');
@@ -59,12 +60,16 @@ $upcomingAppointments = Appointment::where('user_id', $userId)
 
         // Graphiques
         $allMonths = range(1, 12);
+        $monthExpression = DB::connection()->getDriverName() === 'sqlite'
+            ? "CAST(strftime('%m', appointment_date) AS INTEGER)"
+            : 'MONTH(appointment_date)';
 
         $appointmentsPerMonth = Appointment::where('user_id', $userId)
+            ->notCancelled()
             ->where(function ($query) {
                 $query->where('external', false)->orWhereNull('external');
             })
-            ->select(DB::raw('MONTH(appointment_date) as month'), DB::raw('COUNT(*) as count'))
+            ->select(DB::raw($monthExpression.' as month'), DB::raw('COUNT(*) as count'))
             ->whereYear('appointment_date', Carbon::now()->year)
             ->groupBy('month')
             ->orderBy('month')
@@ -84,6 +89,7 @@ $upcomingAppointments = Appointment::where('user_id', $userId)
 $recentAppointments = Appointment::query()
     ->where('user_id', $userId)
     ->where('appointment_date', '>=', now())   // seulement à partir de maintenant
+    ->notCancelled()
     ->where(function ($q) {
         $q->where('external', false)
           ->orWhereNull('external');          // garde les anciens en null pour compat

@@ -12,6 +12,13 @@
                 {{ __('Rendez-vous avec ') }}{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
             </h1>
 
+            @if($appointment->financial_follow_up_required)
+                <div class="alert alert-warning mt-3" role="alert">
+                    <strong>Suivi financier requis.</strong>
+                    Ce rendez-vous est annulé, mais un paiement, une facture, un bon cadeau ou un crédit de pack doit être vérifié manuellement.
+                </div>
+            @endif
+
             <!-- Client Information Section -->
             <div class="info-box">
                 <h2 class="section-title">
@@ -77,7 +84,7 @@
                     </div>
                     <div class="col-md-4">
                         <label class="details-label">{{ __('Statut') }}</label>
-                        <p class="details-value">{{ ucfirst($appointment->status) }}</p>
+                        <p class="details-value">{{ $appointment->status_label }}</p>
                     </div>
                     <div class="col-md-4">
                         <label class="details-label">{{ __('Mode') }}</label>
@@ -249,11 +256,13 @@
                         <a href="{{ route('appointments.index') }}" class="btn-primary">
                             <i class="fas fa-arrow-left"></i> {{ __('Retour à la liste') }}
                         </a>
-                        <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary">
-                            <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
-                        </a>
+                        @unless($appointment->isCancelled())
+                            <a href="{{ route('appointments.edit', $appointment->id) }}" class="btn-secondary">
+                                <i class="fas fa-edit"></i> {{ __('Modifier le Rendez-vous') }}
+                            </a>
+                        @endunless
 							
-                        @if($appointment->status !== 'Complété')
+                        @if(!$appointment->isCompleted() && !$appointment->isCancelled())
                             <form action="{{ route('appointments.complete', $appointment->id) }}" method="POST" style="display: inline-block;">
                                 @csrf
                                 @method('PUT')
@@ -262,13 +271,14 @@
                                 </button>
                             </form>
                         @endif
-                        <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST" style="display: inline-block;">
+                        @if(!$appointment->isCancelled() && !$appointment->isCompleted())
+                        <form action="{{ route('appointments.lifecycle.cancel', $appointment->id) }}" method="POST" style="display: inline-block;">
                             @csrf
-                            @method('DELETE')
                             <button type="submit" class="btn-secondary" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous?') }}')">
-                                <i class="fas fa-trash"></i> {{ __('Annuler le Rendez-vous') }}
+                                <i class="fas fa-times-circle"></i> {{ __('Annuler le Rendez-vous') }}
                             </button>
                         </form>
+                        @endif
                     </div>
                 </div>
             </div>

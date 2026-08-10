@@ -94,7 +94,7 @@ class SharedCabinetSchedulingService
     {
         $query->where(function (Builder $statusQuery) {
             $statusQuery->whereNull('status')
-                ->orWhereNotIn('status', ['Annulé', 'Annule', 'cancelled', 'canceled', 'Annulée', 'Annulee']);
+                ->orWhereNotIn('status', Appointment::CANCELLED_STATUSES);
         });
 
         $driver = app('db')->connection()->getDriverName();

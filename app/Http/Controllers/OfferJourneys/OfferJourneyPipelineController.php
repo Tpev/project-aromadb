@@ -25,7 +25,8 @@ class OfferJourneyPipelineController extends Controller
 
         $stages = OfferJourneyPipelineStage::query()
             ->where('user_id', $request->user()->id)
-            ->with(['contacts' => fn ($query) => $query->orderByDesc('last_activity_at')->limit(100)])
+            ->withCount('contacts')
+            ->with(['contacts' => fn ($query) => $query->orderByDesc('last_activity_at')->limit(50)])
             ->orderBy('position')
             ->get();
 

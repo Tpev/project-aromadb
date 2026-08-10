@@ -38,7 +38,7 @@ Rejoindre la visio
 Vous pouvez retrouver les informations de votre rendez-vous via ce lien :
 
 @component('mail::button', ['url' => $confirmationUrl])
-Voir mon rendez-vous
+Gérer mon rendez-vous
 @endcomponent
 
 @if(!empty($icsUrl))

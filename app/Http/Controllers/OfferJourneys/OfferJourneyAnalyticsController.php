@@ -4,6 +4,9 @@ namespace App\Http\Controllers\OfferJourneys;
 
 use App\Domain\OfferJourneys\Models\OfferJourney;
 use App\Domain\OfferJourneys\Models\OfferJourneyEvent;
+use App\Domain\OfferJourneys\Models\OfferJourneyContact;
+use App\Domain\OfferJourneys\Models\OfferJourneyEntry;
+use App\Domain\OfferJourneys\Services\OfferJourneyWorkspace;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -14,7 +17,7 @@ class OfferJourneyAnalyticsController extends Controller
 {
     use AuthorizesRequests;
 
-    public function show(Request $request, OfferJourney $journey): View
+    public function show(Request $request, OfferJourney $journey, OfferJourneyWorkspace $workspace): View
     {
         $this->authorize('view', $journey);
         $days = in_array((int) $request->query('days', 30), [7, 30, 90, 365], true)
@@ -27,18 +30,50 @@ class OfferJourneyAnalyticsController extends Controller
             ->where('occurred_at', '>=', $from)
             ->where('is_test', false)
             ->where('is_bot', false);
+        $entries = OfferJourneyEntry::query()
+            ->where('offer_journey_id', $journey->id)
+            ->where('entered_at', '>=', $from);
+        $conversions = $journey->conversions()
+            ->where('status', 'confirmed')
+            ->where('occurred_at', '>=', $from);
+        $formSubmissions = (clone $events)->where('event_name', 'lead_captured')->count();
+        $uniqueContacts = (clone $entries)->distinct()->count('offer_journey_contact_id');
 
         $metrics = [
             'views' => (clone $events)->where('event_name', 'page_viewed')->count(),
             'visitors' => (clone $events)->where('event_name', 'page_viewed')->whereNotNull('session_id')->distinct('session_id')->count('session_id'),
-            'leads' => (clone $events)->where('event_name', 'lead_captured')->count(),
+            'form_submissions' => $formSubmissions,
+            'unique_contacts' => $uniqueContacts,
+            'new_contacts' => OfferJourneyContact::query()
+                ->where('user_id', $journey->user_id)
+                ->where('created_at', '>=', $from)
+                ->whereHas('entries', fn ($query) => $query->where('offer_journey_id', $journey->id))
+                ->count(),
+            'leads' => $formSubmissions,
             'cta_clicks' => (clone $events)->where('event_name', 'primary_cta_clicked')->count(),
-            'conversions' => $journey->conversions()->where('status', 'confirmed')->where('occurred_at', '>=', $from)->count(),
-            'revenue_cents' => (int) $journey->conversions()->where('status', 'confirmed')->where('occurred_at', '>=', $from)->sum('amount_cents'),
+            'conversions' => (clone $conversions)->count(),
+            'revenue_cents' => (int) (clone $conversions)->sum('amount_cents'),
         ];
+        $metrics['submission_rate'] = $metrics['visitors'] > 0
+            ? round(($metrics['form_submissions'] / $metrics['visitors']) * 100, 1)
+            : 0.0;
+        $metrics['contact_rate'] = $metrics['visitors'] > 0
+            ? round(($metrics['unique_contacts'] / $metrics['visitors']) * 100, 1)
+            : 0.0;
+        $metrics['form_to_contact_rate'] = $metrics['form_submissions'] > 0
+            ? round(($metrics['unique_contacts'] / $metrics['form_submissions']) * 100, 1)
+            : 0.0;
+        $metrics['contact_to_conversion_rate'] = $metrics['unique_contacts'] > 0
+            ? round(($metrics['conversions'] / $metrics['unique_contacts']) * 100, 1)
+            : 0.0;
         $metrics['conversion_rate'] = $metrics['visitors'] > 0
             ? round(($metrics['conversions'] / $metrics['visitors']) * 100, 1)
             : 0.0;
+        $conversionBreakdown = (clone $conversions)
+            ->selectRaw('conversion_type, COUNT(*) as total, COALESCE(SUM(amount_cents), 0) as revenue_cents')
+            ->groupBy('conversion_type')
+            ->orderByDesc('total')
+            ->get();
 
         $bySource = (clone $events)
             ->where('event_name', 'page_viewed')
@@ -87,6 +122,9 @@ class OfferJourneyAnalyticsController extends Controller
             $recommendations->push(['title' => 'Identifiez le canal le plus utile', 'body' => 'Comparez les liens de campagne et continuez à mesurer avant de changer la page.', 'route' => route('offer-journeys.share', $journey), 'label' => 'Voir les liens']);
         }
 
-        return view('offer-journeys.practitioner.analytics', compact('journey', 'days', 'metrics', 'bySource', 'byPage', 'stepPerformance', 'byCampaign', 'recommendations'));
+        return view('offer-journeys.practitioner.analytics', compact('journey', 'days', 'metrics', 'conversionBreakdown', 'bySource', 'byPage', 'stepPerformance', 'byCampaign', 'recommendations') + [
+            'workspace' => $workspace->for($journey, $days),
+            'workspaceSection' => 'analytics',
+        ]);
     }
 }

@@ -23,7 +23,11 @@ class OfferJourneyMessageMail extends Mailable
         public readonly string $category,
         public readonly ?int $deliveryId = null,
         public readonly ?OfferJourneyMessageCampaign $campaign = null,
-        public readonly array $renderVariables = []
+        public readonly array $renderVariables = [],
+        public readonly array $portableContent = [],
+        public readonly array $portableStyle = [],
+        public readonly ?string $preheader = null,
+        public readonly ?string $offerName = null
     ) {
     }
 
@@ -37,7 +41,22 @@ class OfferJourneyMessageMail extends Mailable
             ->subject($this->messageSubject)
             ->from(config('mail.from.address'), config('mail.from.name'));
 
-        if ($this->campaign?->content_json) {
+        if ($this->portableContent !== []) {
+            $rendered = app(OfferJourneyEmailRenderer::class)->renderPortable(
+                $this->therapist,
+                $this->messageSubject,
+                $this->offerName ?: 'Votre demande',
+                $this->portableContent,
+                $this->portableStyle,
+                $this->renderVariables,
+                $this->unsubscribeUrl,
+                $this->category,
+                $this->preheader
+            );
+            $mail->html($rendered['html'])
+                ->text('emails.offer-journeys.rendered-text')
+                ->with(['renderedText' => $rendered['text']]);
+        } elseif ($this->campaign?->content_json) {
             $rendered = app(OfferJourneyEmailRenderer::class)->render(
                 $this->campaign,
                 $this->renderVariables,

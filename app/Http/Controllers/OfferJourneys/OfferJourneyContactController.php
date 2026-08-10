@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Domain\OfferJourneys\Models\OfferJourneySegment;
 use App\Domain\OfferJourneys\Models\OfferJourneyTag;
 use App\Domain\OfferJourneys\Services\OfferJourneySegmentQuery;
+use App\Domain\OfferJourneys\Services\OfferJourneyWorkspace;
 use App\Domain\OfferJourneys\Models\OfferJourneyTask;
 use App\Domain\OfferJourneys\Models\OfferJourneySavedFilter;
 use App\Domain\OfferJourneys\Models\OfferJourneyPipelineStage;
@@ -27,17 +28,29 @@ class OfferJourneyContactController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(Request $request, OfferJourneySegmentQuery $segmentQuery): View
+    public function index(Request $request, OfferJourneySegmentQuery $segmentQuery, OfferJourneyWorkspace $workspace): View
     {
         $this->authorize('viewAny', OfferJourneyContact::class);
 
         $query = OfferJourneyContact::query()
             ->ownedBy($request->user())
-            ->with(['pipelineStage', 'tags'])
+            ->with([
+                'pipelineStage',
+                'tags',
+                'entries.journey',
+                'consents' => fn ($query) => $query
+                    ->where('purpose', 'marketing_follow_up')
+                    ->latest('granted_at'),
+                'tasks' => fn ($query) => $query
+                    ->where('status', 'open')
+                    ->orderByRaw('due_at IS NULL')
+                    ->orderBy('due_at'),
+            ])
             ->withCount('entries')
             ->when($request->filled('journey_id'), fn ($query) => $query->whereHas('entries', fn ($entries) => $entries->where('offer_journey_id', (int) $request->input('journey_id'))))
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
             ->when($request->filled('tag_id'), fn ($query) => $query->whereHas('tags', fn ($tags) => $tags->whereKey((int) $request->input('tag_id'))))
+            ->when($request->filled('pipeline_stage_id'), fn ($query) => $query->where('pipeline_stage_id', (int) $request->input('pipeline_stage_id')))
             ->when($request->filled('inactive_days'), fn ($query) => $query->where('last_activity_at', '<=', now()->subDays(max(1, (int) $request->input('inactive_days')))))
             ->when($request->filled('q'), function ($query) use ($request) {
                 $term = '%'.str_replace(['%', '_'], ['\%', '\_'], (string) $request->string('q')).'%';
@@ -59,10 +72,15 @@ class OfferJourneyContactController extends Controller
             }
         }
 
+        $filteredCount = (clone $query)->count();
         $contacts = $query
             ->orderByDesc('last_activity_at')
             ->paginate(25)
             ->withQueryString();
+
+        $selectedJourney = $request->filled('journey_id')
+            ? OfferJourney::query()->ownedBy($request->user())->findOrFail((int) $request->input('journey_id'))
+            : null;
 
         return view('offer-journeys.practitioner.contacts.index', [
             'contacts' => $contacts,
@@ -75,6 +93,15 @@ class OfferJourneyContactController extends Controller
             'savedFilters' => OfferJourneySavedFilter::query()->where('user_id', $request->user()->id)->orderBy('name')->get(),
             'pipelineStages' => OfferJourneyPipelineStage::query()->where('user_id', $request->user()->id)->orderBy('position')->get(),
             'journeys' => OfferJourney::query()->ownedBy($request->user())->orderBy('name')->get(['id', 'name']),
+            'summary' => [
+                'filtered' => $filteredCount,
+                'new' => OfferJourneyContact::query()->ownedBy($request->user())->where('status', 'new')->count(),
+                'due' => OfferJourneyTask::query()->where('user_id', $request->user()->id)->where('status', 'open')->whereNotNull('due_at')->where('due_at', '<=', now())->count(),
+                'converted' => OfferJourneyContact::query()->ownedBy($request->user())->where('status', 'converted')->count(),
+            ],
+            'selectedJourney' => $selectedJourney,
+            'workspace' => $selectedJourney ? $workspace->for($selectedJourney) : null,
+            'workspaceSection' => 'contacts',
         ]);
     }
 

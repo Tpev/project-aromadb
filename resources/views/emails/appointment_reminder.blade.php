@@ -31,6 +31,10 @@ Rejoindre la visio
 
 ---
 
+@component('mail::button', ['url' => $managementUrl])
+Gérer mon rendez-vous
+@endcomponent
+
 Si vous avez des questions, vous pouvez répondre directement à cet email.
 
 Merci,  

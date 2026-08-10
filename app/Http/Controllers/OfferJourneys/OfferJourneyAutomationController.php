@@ -11,6 +11,9 @@ use App\Domain\OfferJourneys\Services\OfferJourneyAutomationBuilder;
 use App\Domain\OfferJourneys\Services\OfferJourneyAutomationSimulator;
 use App\Domain\OfferJourneys\Services\OfferJourneyMessagePreview;
 use App\Domain\OfferJourneys\Services\OfferJourneyMessageTemplateLibrary;
+use App\Domain\OfferJourneys\Services\OfferJourneyEmailContent;
+use App\Domain\OfferJourneys\Services\OfferJourneyAutomationEmailComposer;
+use App\Domain\OfferJourneys\Services\OfferJourneyWorkspace;
 use App\Http\Controllers\Controller;
 use App\Support\OfferJourneys\OfferJourneyAccess;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -27,7 +30,8 @@ class OfferJourneyAutomationController extends Controller
         OfferJourney $journey,
         OfferJourneyAutomationBuilder $builder,
         OfferJourneyMessagePreview $messagePreview,
-        OfferJourneyMessageTemplateLibrary $messageTemplateLibrary
+        OfferJourneyMessageTemplateLibrary $messageTemplateLibrary,
+        OfferJourneyWorkspace $workspace
     ): View
     {
         $this->authorize('update', $journey);
@@ -97,14 +101,18 @@ class OfferJourneyAutomationController extends Controller
             'messagePreviews',
             'messageTemplates',
             'recipientEstimate'
-        ));
+        ) + [
+            'workspace' => $workspace->for($journey),
+            'workspaceSection' => 'messages',
+        ]);
     }
 
     public function update(
         Request $request,
         OfferJourney $journey,
         OfferJourneyAutomation $automation,
-        OfferJourneyAutomationBuilder $builder
+        OfferJourneyAutomationBuilder $builder,
+        OfferJourneyAutomationEmailComposer $emailComposer
     ): RedirectResponse {
         $this->authorizeAutomation($journey, $automation);
         $validated = $request->validate([
@@ -113,6 +121,17 @@ class OfferJourneyAutomationController extends Controller
             'messages.*.body' => ['required', 'string', 'max:6000'],
             'messages.*.delay_days' => ['required', 'integer', 'min:0', 'max:60'],
             'messages.*.is_enabled' => ['nullable', 'boolean'],
+            'messages.*.editor_version' => ['nullable', Rule::in([OfferJourneyEmailContent::VERSION])],
+            'messages.*.preheader' => ['nullable', 'string', 'max:180'],
+            'messages.*.heading' => ['nullable', 'string', 'max:180'],
+            'messages.*.image_url' => ['nullable', 'url:http,https', 'max:2000'],
+            'messages.*.image_alt' => ['nullable', 'string', 'max:180', 'required_with:messages.*.image_url'],
+            'messages.*.button_label' => ['nullable', 'string', 'max:80', 'required_with:messages.*.button_url'],
+            'messages.*.button_url' => ['nullable', 'string', 'max:2000', 'required_with:messages.*.button_label'],
+            'messages.*.details_title' => ['nullable', 'string', 'max:120'],
+            'messages.*.details_text' => ['nullable', 'string', 'max:1500'],
+            'messages.*.signature' => ['nullable', 'string', 'max:500'],
+            'messages.*.primary_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ]);
 
         $version = $builder->editableVersion($automation);
@@ -126,6 +145,13 @@ class OfferJourneyAutomationController extends Controller
             $config['body'] = $input['body'];
             $config['delay_minutes'] = ((int) $input['delay_days']) * 1440;
             $config['is_enabled'] = (bool) ($input['is_enabled'] ?? false);
+            if (($input['editor_version'] ?? null) === OfferJourneyEmailContent::VERSION) {
+                $portable = $emailComposer->compose($input, $config, $request->user());
+                $config['email_content'] = $portable['content'];
+                $config['email_style'] = $portable['style'];
+                $config['preheader'] = $portable['preheader'];
+                $config['editor_version'] = OfferJourneyEmailContent::VERSION;
+            }
             $node->update(['config_json' => $config]);
         }
 

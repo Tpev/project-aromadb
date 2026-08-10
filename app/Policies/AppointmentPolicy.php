@@ -37,8 +37,8 @@ class AppointmentPolicy
     {
         \Log::info('Authorizing delete for appointment', ['user_id' => $user->id, 'appointment_user_id' => $appointment->user_id]);
 
-        // Check if the authenticated user is the one who created the appointment
-        return $user->id === $appointment->user_id;
+        // Hard deletion is exceptional. Normal cancellations preserve history.
+        return (bool) ($user->is_admin ?? false);
     }    
     public function deleteUnavailability(User $user, Unavailability $unavailability)
     {

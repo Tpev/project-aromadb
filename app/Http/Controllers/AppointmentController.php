@@ -14,18 +14,17 @@ use App\Models\Availability;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\AppointmentCreatedPatientMail;
 use App\Mail\AppointmentCreatedTherapistMail;
-use App\Mail\AppointmentEditedClientMail;
+use App\Mail\AppointmentPaymentAfterCancellationMail;
 use App\Models\Unavailability;
 use Stripe\StripeClient;
 use App\Notifications\AppointmentBooked;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Models\SpecialAvailability;
 use App\Models\PackPurchase;
-use App\Mail\AppointmentCancelledByClient;
 use App\Services\JitsiJwtService;
 use App\Models\BookingLink;
 use App\Models\GiftVoucher;
@@ -188,7 +187,7 @@ class AppointmentController extends Controller
                 'title' => 'Nouveau rendez-vous',
                 'appointment' => new Appointment([
                     'appointment_date' => now()->addHour(),
-                    'status' => 'Programme',
+                    'status' => Appointment::STATUS_SCHEDULED,
                     'duration' => 60,
                 ]),
                 'clientProfiles' => $clientProfiles,
@@ -211,7 +210,7 @@ public function store(Request $request)
         'client_profile_id' => 'required',
         'appointment_date'  => 'required|date',
         'appointment_time'  => 'required|date_format:H:i',
-        'status'            => 'required|string',
+        'status'            => ['required', 'string', Rule::in(array_values(array_diff(Appointment::ACCEPTED_STATUS_VALUES, Appointment::CANCELLED_STATUSES)))],
         'notes'             => 'nullable|string',
         'product_id'        => 'required|exists:products,id',
 
@@ -241,6 +240,10 @@ public function store(Request $request)
     // Produit & durée
     $product  = Product::findOrFail($request->product_id);
     $duration = (int) $product->duration;
+
+    if ((int) $product->user_id !== (int) $therapistId) {
+        return back()->withErrors(['product_id' => 'Cette prestation n’appartient pas à votre compte.'])->withInput();
+    }
 
     /**
      * ✅ Mode
@@ -348,7 +351,7 @@ public function store(Request $request)
         'client_profile_id'     => $clientProfileId,
         'user_id'               => $therapistId,
         'appointment_date'      => $appointmentDateTime,
-        'status'                => $request->status,
+        'status'                => Appointment::normalizeStatus($request->status),
         'notes'                 => $request->notes,
         'product_id'            => $request->product_id,
         'duration'              => $duration,
@@ -382,6 +385,7 @@ public function store(Request $request)
 
         if ($packPurchase) {
             $packPurchase->consumeProduct($product->id, 1);
+            $appointment->forceFill(['consumed_pack_purchase_id' => $packPurchase->id])->saveQuietly();
         }
     } catch (\Exception $e) {
         Log::warning('Pack auto-consumption (therapist store) skipped due to error: ' . $e->getMessage());
@@ -409,7 +413,7 @@ public function store(Request $request)
     if (!$skipNotifications) {
         $therapistEmail = $appointment->user->email;
         $patientEmail   = $appointment->clientProfile->email;
-        if (!empty($patientEmail))  { Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment)); }
+        if (!empty($patientEmail))  { \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit(); }
         if (!empty($therapistEmail)){ Mail::to($therapistEmail)->queue(new AppointmentCreatedTherapistMail($appointment)); }
         if (!$appointment->isCancelled()) {
             app(AppointmentQuestionnaireAutomationService::class)->dispatchForConfirmedAppointment($appointment);
@@ -519,6 +523,13 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         // Ensure the appointment belongs to the authenticated user
         $this->authorize('update', $appointment);
 
+        if ($appointment->isCancelled()) {
+            $route = request()->routeIs('mobile.*') ? 'mobile.appointments.show' : 'appointments.show';
+
+            return redirect()->route($route, $appointment)
+                ->with('error', 'Un rendez-vous annulé ne peut plus être modifié. Créez un nouveau rendez-vous si nécessaire.');
+        }
+
         // Get client profiles for the logged-in therapist
         $clientProfiles = ClientProfile::where('user_id', Auth::id())->get();
 
@@ -559,16 +570,23 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
      * Update the specified appointment in storage.
      */
  public function update(Request $request, Appointment $appointment)
-{
-    // Autorisation
-    $this->authorize('update', $appointment);
+ {
+     // Autorisation
+     $this->authorize('update', $appointment);
+
+    if ($appointment->isCancelled()) {
+        $route = $request->routeIs('mobile.*') ? 'mobile.appointments.show' : 'appointments.show';
+
+        return redirect()->route($route, $appointment)
+            ->with('error', 'Un rendez-vous annulé ne peut plus être modifié. Créez un nouveau rendez-vous si nécessaire.');
+    }
 
     // Validation de base
     $request->validate([
         'client_profile_id' => 'required|exists:client_profiles,id',
         'appointment_date'  => 'required|date',
         'appointment_time'  => 'required|date_format:H:i',
-        'status'            => 'required|string',
+        'status'            => ['required', 'string', Rule::in(array_values(array_diff(Appointment::ACCEPTED_STATUS_VALUES, Appointment::CANCELLED_STATUSES)))],
         'notes'             => 'nullable|string',
         'product_id'        => 'required|exists:products,id',
         'force_availability_override' => 'nullable|boolean',
@@ -582,6 +600,15 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
     // Produit & durée
     $product  = Product::findOrFail($request->product_id);
     $duration = (int) $product->duration;
+
+    if ((int) $product->user_id !== (int) $therapistId) {
+        return back()->withErrors(['product_id' => 'Cette prestation n’appartient pas à votre compte.'])->withInput();
+    }
+
+    $clientProfile = ClientProfile::findOrFail((int) $request->client_profile_id);
+    if ((int) $clientProfile->user_id !== (int) $therapistId) {
+        return back()->withErrors(['client_profile_id' => 'Ce client n’appartient pas à votre compte.'])->withInput();
+    }
 
     // Mode (UI prioritaire): support both "mode" and "type" like create flow
     $uiMode = $request->input('mode');
@@ -631,21 +658,48 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
             ->withInput();
     }
 
-    // Mise à jour du rendez-vous (avec practice_location_id si cabinet)
-    $appointment->update([
+    $previousDate = $appointment->appointment_date?->copy();
+
+    $dateChanged = !$previousDate || !$previousDate->equalTo($appointmentDateTime);
+    $editableAttributes = [
         'client_profile_id'     => $request->client_profile_id,
         'user_id'               => $therapistId,
-        'appointment_date'      => $appointmentDateTime,
-        'status'                => $request->status,
+        'status'                => Appointment::normalizeStatus($request->status),
         'notes'                 => $request->notes,
         'product_id'            => $request->product_id,
         'duration'              => $duration,
         'practice_location_id'  => $mode === 'cabinet' ? $locationId : null,
-    ]);
+        'type'                  => $mode,
+    ];
+
+    if ($dateChanged) {
+        DB::transaction(function () use (
+            $appointment,
+            $editableAttributes,
+            $appointmentDateTime,
+            $therapistId,
+            $forceOverride
+        ) {
+            // The lifecycle save performs the single Google sync after commit.
+            $appointment->forceFill($editableAttributes)->saveQuietly();
+
+            app(\App\Services\AppointmentLifecycleService::class)->reschedule(
+                $appointment,
+                $appointmentDateTime,
+                'practitioner',
+                (int) $therapistId,
+                false,
+                $forceOverride
+            );
+            $appointment->refresh();
+        }, 3);
+    } else {
+        $appointment->update($editableAttributes);
+    }
 
     // Email de mise à jour au client si email présent
-    if ($appointment->clientProfile && $appointment->clientProfile->email) {
-        Mail::to($appointment->clientProfile->email)->queue(new AppointmentEditedClientMail($appointment));
+    if (!$dateChanged && $appointment->clientProfile && $appointment->clientProfile->email) {
+        \App\Jobs\SendAppointmentEditedClientJob::dispatch($appointment->id)->afterCommit();
     }
 
     if ($request->routeIs('mobile.*') || $request->is('mobile/*')) {
@@ -1284,7 +1338,7 @@ public function storePatient(Request $request)
         'user_id'               => $therapist->id,
         'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
         'appointment_date'      => $appointmentDateTime,
-        'status'                => 'pending',
+        'status'                => Appointment::STATUS_PENDING_PAYMENT,
         'notes'                 => $request->notes,
         'type'                  => $mode,                 // ← on stocke le mode
         'duration'              => $product->duration,
@@ -1353,10 +1407,11 @@ public function storePatient(Request $request)
             if ($packPurchase) {
                 // Consomme 1 crédit (ta méthode fait déjà transaction + locks + expired/exhausted)
                 $packPurchase->consumeProduct($product->id, 1);
+                $appointment->forceFill(['consumed_pack_purchase_id' => $packPurchase->id])->saveQuietly();
 
                 // Confirmer sans paiement
                 $appointment->update([
-                    'status' => 'confirmed',
+                    'status' => Appointment::STATUS_CONFIRMED,
                     // Optionnel : garde une trace dans les notes (ne casse rien)
                     // 'notes' => trim(($appointment->notes ?? '') . "\n[Pack] Crédit utilisé (PackPurchase #{$packPurchase->id})"),
                 ]);
@@ -1364,7 +1419,7 @@ public function storePatient(Request $request)
                 // Emails (même logique que "pas de paiement requis")
                 try {
                     if ($appointment->clientProfile->email) {
-                        Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                        \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                     }
                     if ($therapist->email) {
                         Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -1389,7 +1444,7 @@ public function storePatient(Request $request)
         $payableAmountCents = max(0, $totalAmountCents - $voucherPlannedCents);
 
         if ($payableAmountCents === 0) {
-            $appointment->update(['status' => 'confirmed']);
+            $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
             if ($voucherForBooking && $voucherPlannedCents > 0) {
                 try {
@@ -1418,7 +1473,7 @@ public function storePatient(Request $request)
 
             try {
                 if ($appointment->clientProfile->email) {
-                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                    \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                 }
                 if ($therapist->email) {
                     Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -1461,7 +1516,7 @@ public function storePatient(Request $request)
                     'mode' => 'payment',
                     'expires_at' => now()->addMinutes(GiftVoucherRedeemService::BOOKING_ONLINE_HOLD_MINUTES)->timestamp,
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                    'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+                    'cancel_url'  => route('appointments.cancel', ['appointment_id' => $appointment->id, 'token' => $appointment->token]),
                     'metadata' => [
                         'appointment_id' => $appointment->id,
                         'patient_email' => $appointment->clientProfile->email,
@@ -1494,7 +1549,7 @@ public function storePatient(Request $request)
         } else {
             // Pas de Stripe connecté : on confirme directement
             Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
-            $appointment->update(['status' => 'confirmed']);
+            $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
             if ($voucherForBooking && $voucherPlannedCents > 0) {
                 try {
@@ -1523,7 +1578,7 @@ public function storePatient(Request $request)
 
             try {
                 if ($appointment->clientProfile->email) {
-                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                    \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                 }
                 if ($therapist->email) {
                     Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -1540,7 +1595,7 @@ public function storePatient(Request $request)
     }
 
     /* ---------------------- Pas de paiement requis ---------------------- */
-    $appointment->update(['status' => 'confirmed']);
+    $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
     if ($voucherForBooking && $voucherPlannedCents > 0) {
         try {
@@ -1569,7 +1624,7 @@ public function storePatient(Request $request)
 
     try {
         if ($appointment->clientProfile->email) {
-            Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+            \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
         }
         if ($therapist->email) {
             Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -1600,7 +1655,7 @@ public function storePatient(Request $request)
 
         $icsService = app(AppointmentIcsService::class);
 
-        return view('appointments.show_patient', [
+        return view('appointments.show_patient_v2', [
             'appointment' => $appointment,
             'icsUrl' => route('appointments.downloadICS', $appointment->token),
             'googleCalendarUrl' => $icsService->googleCalendarUrl($appointment),
@@ -1620,7 +1675,7 @@ public function storePatient(Request $request)
         $fileName = $icsService->fileName($appointment);
 
         return response($icsContent)
-            ->header('Content-Type', 'text/calendar; charset=UTF-8; method=PUBLISH')
+            ->header('Content-Type', 'text/calendar; charset=UTF-8; method=' . ($appointment->isCancelled() ? 'CANCEL' : 'PUBLISH'))
             ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
     }
 
@@ -2278,8 +2333,12 @@ public function markAsCompleted(Appointment $appointment)
     // Ensure the appointment belongs to the authenticated user
     $this->authorize('update', $appointment);
 
+    if ($appointment->isCancelled()) {
+        return back()->with('error', 'Un rendez-vous annulé ne peut pas être marqué comme terminé.');
+    }
+
     // Update the status to 'Complété'
-    $appointment->status = 'Complété';
+    $appointment->status = Appointment::STATUS_COMPLETED;
     $appointment->save();
 
     return redirect()->route('appointments.show', $appointment->id)->with('success', 'Le rendez-vous a été marqué comme complété.');
@@ -2290,8 +2349,12 @@ public function markAsCompletedIndex(Appointment $appointment)
     // Ensure the appointment belongs to the authenticated user
     $this->authorize('update', $appointment);
 
+    if ($appointment->isCancelled()) {
+        return back()->with('error', 'Un rendez-vous annulé ne peut pas être marqué comme terminé.');
+    }
+
     // Update the status to 'Complété'
-    $appointment->status = 'Complété';
+    $appointment->status = Appointment::STATUS_COMPLETED;
     $appointment->save();
 
     return redirect()->route('appointments.index')->with('success', 'Le rendez-vous a été marqué comme complété.');
@@ -2383,6 +2446,10 @@ public function success(Request $request)
                     (int) ($paymentIntent->amount_received ?? $paymentIntent->amount ?? 0),
                     (string) $paymentIntent->id
                 );
+                if ($finalization['cancelled_payment_received'] ?? false) {
+                    return redirect()->route('appointments.showPatient', $appointment->token)
+                        ->with('error', 'Le paiement a été reçu après l’annulation. Le rendez-vous reste annulé et le praticien va vérifier la régularisation.');
+                }
                 $invoice = $finalization['invoice'];
 
                 Log::info('Appointment status updated to paid', [
@@ -2399,7 +2466,7 @@ public function success(Request $request)
                     // Email au patient
                     $patientEmail = $appointment->clientProfile->email;
                     if ($patientEmail) {
-                        Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment, $invoice));
+                        \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                         Log::info('Email de confirmation envoyé au patient', [
                             'patient_email' => $patientEmail,
                         ]);
@@ -2453,53 +2520,25 @@ public function success(Request $request)
      */
 public function cancel(Request $request)
 {
-    // Récupérer l'ID du rendez-vous depuis les paramètres de la requête
-    $appointment_id = $request->get('appointment_id');
+    $appointmentId = (int) $request->query('appointment_id');
+    $token = (string) $request->query('token');
 
-    if ($appointment_id) {
-        $appointment = Appointment::find($appointment_id);
-        if ($appointment) {
-            // Récupérer le thérapeute associé au rendez-vous
-            $therapist = $appointment->user;
+    $appointment = $appointmentId > 0 && strlen($token) === 64
+        ? Appointment::query()->whereKey($appointmentId)->where('token', $token)->first()
+        : null;
 
-            if ($therapist) {
-                app(GiftVoucherRedeemService::class)->releaseReservedForAppointment(
-                    $appointment,
-                    'Paiement Stripe annule par le client.'
-                );
+    if (!$appointment || !$appointment->isPendingPayment()) {
+        Log::warning('Rejected insecure or stale appointment payment cancellation return.', [
+            'appointment_id' => $appointmentId ?: null,
+            'has_token' => $token !== '',
+        ]);
 
-                // Supprimer le rendez-vous
-                $appointment->delete();
-
-                Log::info('Appointment deleted due to cancellation', [
-                    'appointment_id' => $appointment_id,
-                    'therapist_id' => $therapist->id,
-                ]);
-
-                // Rediriger vers le profil du thérapeute avec un message d'erreur
-                return redirect()->route('therapist.show', $therapist->slug)->with('error', 'Le paiement a été annulé et votre rendez-vous a été supprimé.');
-            } else {
-                Log::warning('Therapist not found for appointment', [
-                    'appointment_id' => $appointment_id,
-                ]);
-
-                // Rediriger avec un message d'erreur si le thérapeute n'est pas trouvé
-                return redirect()->route('welcome')->withErrors('Thérapeute non trouvé.');
-            }
-        } else {
-            Log::warning('Attempted to delete non-existent appointment', [
-                'appointment_id' => $appointment_id,
-            ]);
-
-            // Rediriger avec un message d'erreur si le rendez-vous n'existe pas
-            return redirect()->route('welcome')->withErrors('Rendez-vous introuvable.');
-        }
-    } else {
-        Log::warning('No appointment_id provided on cancellation.');
-
-        // Rediriger avec un message d'erreur si aucun appointment_id n'est fourni
-        return redirect()->route('welcome')->withErrors('ID de rendez-vous manquant.');
+        return redirect()->route('welcome')
+            ->with('error', 'Ce lien de retour de paiement n’est plus valide. Aucun rendez-vous n’a été modifié.');
     }
+
+    return redirect()->route('appointments.showPatient', $appointment->token)
+        ->with('error', 'Le paiement a été interrompu. Votre créneau est encore réservé temporairement ; vous pouvez l’annuler depuis cette page.');
 }
 
 
@@ -2564,6 +2603,9 @@ protected function handleCheckoutSessionCompleted($session)
             (int) ($session->amount_total ?? 0),
             $providerReference
         );
+        if ($finalization['cancelled_payment_received'] ?? false) {
+            return;
+        }
         $invoice = $finalization['invoice'];
 
         // Envoyer les emails après le paiement réussi
@@ -2571,7 +2613,7 @@ protected function handleCheckoutSessionCompleted($session)
             // Email au patient
             $patientEmail = $appointment->clientProfile->email;
             if ($patientEmail) {
-                Mail::to($patientEmail)->queue(new AppointmentCreatedPatientMail($appointment, $invoice));
+                \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
             }
 
             // Email au thérapeute
@@ -2593,38 +2635,99 @@ public function finalizeStripeAppointmentPayment(
     int $stripePaidCents,
     string $providerReference
 ): array {
-    if ($appointment->external) {
-        throw new \LogicException('Un événement Google externe ne peut pas être encaissé.');
+    $result = DB::transaction(function () use ($appointment, $metadata, $stripePaidCents, $providerReference) {
+        $locked = Appointment::query()
+            ->with(['user', 'clientProfile', 'product', 'billingInvoices'])
+            ->lockForUpdate()
+            ->findOrFail($appointment->id);
+
+        if ($locked->external) {
+            throw new \LogicException('Un événement Google externe ne peut pas être encaissé.');
+        }
+
+        if ($locked->isCancelled()) {
+            $alreadyRecorded = $locked->activities()
+                ->where('action', 'payment_received_after_cancellation')
+                ->get()
+                ->contains(fn ($activity) => ($activity->metadata['provider_reference'] ?? null) === $providerReference);
+
+            if (!$alreadyRecorded) {
+                $locked->activities()->create([
+                    'action' => 'payment_received_after_cancellation',
+                    'actor_type' => 'stripe',
+                    'metadata' => [
+                        'provider_reference' => $providerReference,
+                        'amount_cents' => $stripePaidCents,
+                    ],
+                ]);
+            }
+
+            if (!$locked->financial_follow_up_required) {
+                $locked->forceFill(['financial_follow_up_required' => true])->saveQuietly();
+            }
+
+            return [
+                'invoice' => $locked->billingInvoices->first(),
+                'voucher_applied_cents' => 0,
+                'cancelled_payment_received' => true,
+                'notify_late_payment' => !$alreadyRecorded,
+                'appointment' => $locked,
+            ];
+        }
+
+        $voucherAppliedCents = $this->applyGiftVoucherFromStripeMetadata($locked, $metadata);
+
+        $locked->forceFill(['status' => Appointment::STATUS_PAID])->saveQuietly();
+        $invoice = $this->createInvoiceFromAppointment($locked);
+
+        if ($stripePaidCents > 0) {
+            app(ReceiptRecordingService::class)->recordInvoicePayment(
+                $invoice,
+                round($stripePaidCents / 100, 2),
+                now()->toDateString(),
+                'card',
+                'payment',
+                'Paiement Stripe du rendez-vous',
+                'stripe',
+                $providerReference
+            );
+        }
+
+        if ($voucherAppliedCents > 0) {
+            $this->recordGiftVoucherPaymentOnInvoice($invoice, $locked, $voucherAppliedCents);
+        }
+
+        return [
+            'invoice' => $invoice,
+            'voucher_applied_cents' => $voucherAppliedCents,
+            'cancelled_payment_received' => false,
+            'notify_late_payment' => false,
+            'appointment' => $locked,
+        ];
+    }, 3);
+
+    if ($result['cancelled_payment_received']) {
+        Log::critical('Payment received for a cancelled appointment; manual financial follow-up required.', [
+            'appointment_id' => $appointment->id,
+            'provider_reference' => $providerReference,
+            'amount_cents' => $stripePaidCents,
+        ]);
+
+        if ($result['notify_late_payment']) {
+            $lateAppointment = $result['appointment'];
+            $practitionerEmail = $lateAppointment->user?->company_email ?: $lateAppointment->user?->email;
+
+            if ($practitionerEmail) {
+                Mail::to($practitionerEmail)->queue(
+                    (new AppointmentPaymentAfterCancellationMail($lateAppointment, $stripePaidCents, $providerReference))->afterCommit()
+                );
+            }
+        }
     }
 
-    $voucherAppliedCents = $this->applyGiftVoucherFromStripeMetadata($appointment, $metadata);
+    unset($result['notify_late_payment'], $result['appointment']);
 
-    $appointment->status = "Pay\u{00E9}e";
-    $appointment->save();
-
-    $invoice = $this->createInvoiceFromAppointment($appointment);
-
-    if ($stripePaidCents > 0) {
-        app(ReceiptRecordingService::class)->recordInvoicePayment(
-            $invoice,
-            round($stripePaidCents / 100, 2),
-            now()->toDateString(),
-            'card',
-            'payment',
-            'Paiement Stripe du rendez-vous',
-            'stripe',
-            $providerReference
-        );
-    }
-
-    if ($voucherAppliedCents > 0) {
-        $this->recordGiftVoucherPaymentOnInvoice($invoice, $appointment, $voucherAppliedCents);
-    }
-
-    return [
-        'invoice' => $invoice,
-        'voucher_applied_cents' => $voucherAppliedCents,
-    ];
+    return $result;
 }
 
 protected function createInvoiceFromAppointment(Appointment $appointment)
@@ -2754,7 +2857,7 @@ private function applyGiftVoucherFromStripeMetadata(Appointment $appointment, ar
     if ($alreadyApplied > 0) {
         $appointment->gift_voucher_id = $voucherId;
         $appointment->gift_voucher_amount_cents = $alreadyApplied;
-        $appointment->save();
+        $appointment->saveQuietly();
         return (int) $alreadyApplied;
     }
 
@@ -2775,7 +2878,7 @@ private function applyGiftVoucherFromStripeMetadata(Appointment $appointment, ar
     if ($appliedCents > 0) {
         $appointment->gift_voucher_id = $voucher->id;
         $appointment->gift_voucher_amount_cents = $appliedCents;
-        $appointment->save();
+        $appointment->saveQuietly();
 
         return $appliedCents;
     }
@@ -2802,7 +2905,7 @@ private function applyGiftVoucherFromStripeMetadata(Appointment $appointment, ar
 
     $appointment->gift_voucher_id = $voucher->id;
     $appointment->gift_voucher_amount_cents = $appliedCents;
-    $appointment->save();
+    $appointment->saveQuietly();
 
     return $appliedCents;
 }
@@ -3262,7 +3365,7 @@ private function applyBlockingAppointmentsFilter($query)
     // Keep NULL statuses blocking (often used for external blocks / legacy).
     $query->where(function ($q) {
         $q->whereNull('status')
-          ->orWhereNotIn('status', ['cancelled', 'canceled', 'Annulée', 'Annulee']);
+          ->orWhereNotIn('status', Appointment::CANCELLED_STATUSES);
     });
 
     // 2) Exclude external "all-day multi-day" blocks (Google all-day spanning multiple days)
@@ -3280,48 +3383,11 @@ private function applyBlockingAppointmentsFilter($query)
 
 public function cancelFromMagicLink(Request $request, string $token)
 {
-    $appointment = Appointment::where('token', $token)->firstOrFail();
-
-    // already cancelled?
-    if ($appointment->isCancelled()) {
-        return redirect()
-            ->route('appointments.showPatient', $token)
-            ->with('success', __('Ce rendez-vous est déjà annulé.'));
-    }
-
-    // don’t allow cancellation for past appointments
-    if ($appointment->appointment_date && $appointment->appointment_date->isPast()) {
-        return redirect()
-            ->route('appointments.showPatient', $token)
-            ->with('error', __('Ce rendez-vous est déjà passé et ne peut plus être annulé.'));
-    }
-
-    // cancellation cutoff (therapist setting)
-    $cutoffHours = max(0, (int) ($appointment->user?->cancellation_notice_hours ?? 0));
-
-    if ($cutoffHours > 0 && $appointment->appointment_date) {
-        $latestCancelAt = $appointment->appointment_date->copy()->subHours($cutoffHours);
-
-        if (now()->greaterThan($latestCancelAt)) {
-            return redirect()
-                ->route('appointments.showPatient', $token)
-                ->with('error', __('L’annulation en ligne n’est plus possible à moins de :hours heure(s) du rendez-vous. Merci de contacter votre thérapeute.', [
-                    'hours' => $cutoffHours
-                ]));
-        }
-    }
-
-    // cancel
-    $appointment->status = 'cancelled';
-    $appointment->save();
-
-    // email therapist
-    $therapistEmail = $appointment->user?->company_email ?: $appointment->user?->email;
-    if ($therapistEmail) {
-        Mail::to($therapistEmail)->send(new AppointmentCancelledByClient($appointment));
-    }
-
-return redirect()->route('appointments.showPatient', ['token' => $token]);
+    return app(AppointmentManagementController::class)->cancelByToken(
+        $request,
+        $token,
+        app(\App\Services\AppointmentLifecycleService::class)
+    );
 }
 
 public function storeByToken(Request $request, string $token)
@@ -3487,7 +3553,7 @@ public function storeByToken(Request $request, string $token)
         'user_id'               => $therapist->id,
         'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
         'appointment_date'      => $appointmentDateTime,
-        'status'                => 'pending',
+        'status'                => Appointment::STATUS_PENDING_PAYMENT,
         'notes'                 => $request->notes,
         'type'                  => $mode,                 // ← on stocke le mode
         'duration'              => $product->duration,
@@ -3562,10 +3628,11 @@ public function storeByToken(Request $request, string $token)
             if ($packPurchase) {
                 // Consomme 1 crédit (ta méthode fait déjà transaction + locks + expired/exhausted)
                 $packPurchase->consumeProduct($product->id, 1);
+                $appointment->forceFill(['consumed_pack_purchase_id' => $packPurchase->id])->saveQuietly();
 
                 // Confirmer sans paiement
                 $appointment->update([
-                    'status' => 'confirmed',
+                    'status' => Appointment::STATUS_CONFIRMED,
                     // Optionnel : garde une trace dans les notes (ne casse rien)
                     // 'notes' => trim(($appointment->notes ?? '') . "\n[Pack] Crédit utilisé (PackPurchase #{$packPurchase->id})"),
                 ]);
@@ -3573,7 +3640,7 @@ public function storeByToken(Request $request, string $token)
                 // Emails (même logique que "pas de paiement requis")
                 try {
                     if ($appointment->clientProfile->email) {
-                        Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                        \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                     }
                     if ($therapist->email) {
                         Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -3598,7 +3665,7 @@ public function storeByToken(Request $request, string $token)
         $payableAmountCents = max(0, $totalAmountCents - $voucherPlannedCents);
 
         if ($payableAmountCents === 0) {
-            $appointment->update(['status' => 'confirmed']);
+            $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
             if ($voucherForBooking && $voucherPlannedCents > 0) {
                 try {
@@ -3627,7 +3694,7 @@ public function storeByToken(Request $request, string $token)
 
             try {
                 if ($appointment->clientProfile->email) {
-                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                    \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                 }
                 if ($therapist->email) {
                     Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -3670,7 +3737,7 @@ public function storeByToken(Request $request, string $token)
                     'mode' => 'payment',
                     'expires_at' => now()->addMinutes(GiftVoucherRedeemService::BOOKING_ONLINE_HOLD_MINUTES)->timestamp,
                     'success_url' => route('appointments.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                    'cancel_url'  => route('appointments.cancel') . '?appointment_id=' . $appointment->id,
+                    'cancel_url'  => route('appointments.cancel', ['appointment_id' => $appointment->id, 'token' => $appointment->token]),
                     'metadata' => [
                         'appointment_id' => $appointment->id,
                         'patient_email' => $appointment->clientProfile->email,
@@ -3703,7 +3770,7 @@ public function storeByToken(Request $request, string $token)
         } else {
             // Pas de Stripe connecté : on confirme directement
             Log::warning("Thérapeute {$therapist->id} sans compte Stripe. Confirmation sans paiement.");
-            $appointment->update(['status' => 'confirmed']);
+            $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
             if ($voucherForBooking && $voucherPlannedCents > 0) {
                 try {
@@ -3732,7 +3799,7 @@ public function storeByToken(Request $request, string $token)
 
             try {
                 if ($appointment->clientProfile->email) {
-                    Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+                    \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
                 }
                 if ($therapist->email) {
                     Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));
@@ -3749,7 +3816,7 @@ public function storeByToken(Request $request, string $token)
     }
 
     /* ---------------------- Pas de paiement requis ---------------------- */
-    $appointment->update(['status' => 'confirmed']);
+    $appointment->update(['status' => Appointment::STATUS_CONFIRMED]);
 
     if ($voucherForBooking && $voucherPlannedCents > 0) {
         try {
@@ -3778,7 +3845,7 @@ public function storeByToken(Request $request, string $token)
 
     try {
         if ($appointment->clientProfile->email) {
-            Mail::to($appointment->clientProfile->email)->queue(new AppointmentCreatedPatientMail($appointment));
+            \App\Jobs\SendAppointmentConfirmationJob::dispatch($appointment->id)->afterCommit();
         }
         if ($therapist->email) {
             Mail::to($therapist->email)->queue(new AppointmentCreatedTherapistMail($appointment));

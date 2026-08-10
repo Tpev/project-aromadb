@@ -8,15 +8,13 @@
     $client  = $appointment->clientProfile;
     $product = $appointment->product;
 
-    $statusLabel = ucfirst($appointment->status ?? 'En attente');
+    $statusLabel = $appointment->status_label;
 
-    $statusClasses = match ($appointment->status) {
-        'Complété'    => 'bg-green-50 text-green-700 border-green-100',
-        'Annulé'      => 'bg-red-50 text-red-700 border-red-100',
-        'En attente',
-        'pending'     => 'bg-amber-50 text-amber-700 border-amber-100',
-        'Payée',
-        'paid'        => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    $statusClasses = match ($appointment->canonicalStatus()) {
+        'completed'       => 'bg-green-50 text-green-700 border-green-100',
+        'cancelled'       => 'bg-red-50 text-red-700 border-red-100',
+        'pending_payment' => 'bg-amber-50 text-amber-700 border-amber-100',
+        'paid'            => 'bg-emerald-50 text-emerald-700 border-emerald-100',
         default       => 'bg-slate-50 text-slate-700 border-slate-100',
     };
 
@@ -259,12 +257,14 @@
         {{-- Actions --}}
         <div class="space-y-3">
             {{-- Primary actions --}}
-            <div class="grid grid-cols-2 gap-2">
-                <a href="{{ route('mobile.appointments.edit', $appointment) }}"
-                   class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99] transition">
-                    <i class="fas fa-edit text-[11px] mr-1.5"></i>
-                    Modifier
-                </a>
+            <div class="grid {{ $appointment->isCancelled() ? 'grid-cols-1' : 'grid-cols-2' }} gap-2">
+                @unless($appointment->isCancelled())
+                    <a href="{{ route('mobile.appointments.edit', $appointment) }}"
+                       class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99] transition">
+                        <i class="fas fa-edit text-[11px] mr-1.5"></i>
+                        Modifier
+                    </a>
+                @endunless
 
                 <a href="{{ route('mobile.appointments.index') }}"
                    class="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-white border border-[#e4e8d5] text-[12px] font-medium text-gray-800 active:scale-[0.99] transition">
@@ -276,7 +276,7 @@
             {{-- Secondary actions list --}}
             <div class="rounded-2xl border border-[#e4e8d5] bg-white p-2 shadow-sm text-[12px]">
                 {{-- Mark as completed --}}
-                @if($appointment->status !== 'Complété')
+                @if(!$appointment->isCompleted() && !$appointment->isCancelled())
                     <form action="{{ route('appointments.complete', $appointment->id) }}"
                           method="POST"
                           onsubmit="return confirm('Marquer ce rendez-vous comme complété ?')">
@@ -293,21 +293,22 @@
                     </form>
                 @endif
 
-                {{-- Delete --}}
-                <form action="{{ route('appointments.destroy', $appointment->id) }}"
+                {{-- Non-destructive cancellation --}}
+                @if(!$appointment->isCancelled() && !$appointment->isCompleted())
+                <form action="{{ route('mobile.appointments.cancel', $appointment->id) }}"
                       method="POST"
                       onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')">
                     @csrf
-                    @method('DELETE')
                     <button type="submit"
                             class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-red-600 mt-1.5">
                         <span class="flex items-center gap-2">
-                            <i class="fas fa-trash text-[11px]"></i>
-                            Annuler / supprimer le rendez-vous
+                            <i class="fas fa-times-circle text-[11px]"></i>
+                            Annuler le rendez-vous
                         </span>
                         <i class="fas fa-chevron-right text-[9px] text-red-300"></i>
                     </button>
                 </form>
+                @endif
 
                 {{-- Emargement --}}
                 @can('update', $appointment)

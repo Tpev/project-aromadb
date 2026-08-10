@@ -66,7 +66,8 @@ class MobileClientPortalController extends Controller
 
         $appointments = $clientProfile->appointments()
             ->where('appointment_date', '>=', now())
-            ->with('user')
+            ->notCancelled()
+            ->with(['user', 'product'])
             ->orderBy('appointment_date')
             ->take(5)
             ->get();

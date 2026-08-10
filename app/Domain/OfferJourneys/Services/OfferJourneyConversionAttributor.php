@@ -271,7 +271,7 @@ class OfferJourneyConversionAttributor
         if (in_array($status, $confirmed, true)) {
             return 'confirmed';
         }
-        if (in_array($status, ['cancelled', 'canceled', 'Annulée', 'Annulee'], true)) {
+        if (in_array($status, \App\Models\Appointment::CANCELLED_STATUSES, true)) {
             return 'cancelled';
         }
         if (in_array($status, ['refunded', 'remboursé', 'remboursee'], true)) {

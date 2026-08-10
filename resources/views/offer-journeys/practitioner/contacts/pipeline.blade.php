@@ -21,12 +21,12 @@
                 <section class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"><div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><h2 class="font-semibold text-gray-900">Objectif de {{ now()->translatedFormat('F Y') }}</h2><p class="mt-1 text-sm text-gray-500">Fixez un repère global ou propre à un parcours. Les conversions réelles restent la source de vérité.</p><div class="mt-2 flex flex-wrap gap-2">@forelse($goals as $goal)<span class="rounded-full bg-[#f0f4df] px-2.5 py-1 text-xs font-medium text-[#526509]">{{ $goal->offer_journey_id ? ($journeys->firstWhere('id', $goal->offer_journey_id)?->name ?? 'Parcours') : 'Tous les parcours' }}: {{ $goal->target_count }}</span>@empty<span class="text-xs text-gray-500">Aucun objectif défini.</span>@endforelse</div></div><form method="POST" action="{{ route('offer-journeys.contacts.goals.store') }}" class="grid gap-2 sm:grid-cols-[180px_120px_auto]">@csrf<input type="hidden" name="period" value="{{ $period }}"><select name="journey_id" class="rounded-md border-gray-300 text-sm"><option value="">Tous les parcours</option>@foreach($journeys as $journey)<option value="{{ $journey->id }}">{{ $journey->name }}</option>@endforeach</select><input type="number" name="target_count" min="1" max="100000" required placeholder="Objectif" class="rounded-md border-gray-300 text-sm"><button class="rounded-md border border-[#647a0b] px-3 py-2 text-sm font-semibold text-[#647a0b]">Enregistrer</button></form></div></section>
             @endif
 
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="grid min-w-0 gap-4 pb-3 sm:grid-cols-2 xl:grid-cols-3">
                 @foreach($stages as $stage)
                     <section class="pipeline-stage min-w-0 rounded-lg border border-gray-200 bg-gray-50" data-stage-id="{{ $stage->id }}">
                         <header class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                             <h2 class="font-semibold text-gray-900">{{ $stage->name }}</h2>
-                            <span class="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200">{{ $stage->contacts->count() }}</span>
+                            <span data-stage-count class="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200">{{ $stage->contacts_count }}</span>
                         </header>
                         <div class="min-h-28 space-y-3 p-3">
                             @forelse($stage->contacts as $contact)
@@ -51,6 +51,9 @@
                                 <p class="px-2 py-6 text-center text-sm text-gray-500">Aucun contact</p>
                             @endforelse
                         </div>
+                        @if($stage->contacts_count > $stage->contacts->count())
+                            <footer class="border-t border-gray-200 px-4 py-3 text-xs text-gray-500">{{ $stage->contacts->count() }} affichés sur {{ $stage->contacts_count }} · <a href="{{ route('offer-journeys.contacts.index', ['pipeline_stage_id' => $stage->id]) }}" class="font-semibold text-[#647a0b]">Voir la liste complète</a></footer>
+                        @endif
                     </section>
                 @endforeach
             </div>
@@ -69,7 +72,17 @@
                         if (!dragged) return;
                         const response = await fetch(dragged.dataset.moveUrl, {method: 'PUT', headers: {'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token}, body: JSON.stringify({pipeline_stage_id: stage.dataset.stageId})});
                         const result = await response.json();
-                        if (response.ok) stage.querySelector('.min-h-28').appendChild(dragged);
+                        if (response.ok) {
+                            const sourceStage = dragged.closest('.pipeline-stage');
+                            if (sourceStage === stage) return;
+                            stage.querySelector('.min-h-28').appendChild(dragged);
+                            dragged.querySelector('select[name="pipeline_stage_id"]')?.setAttribute('value', stage.dataset.stageId);
+                            dragged.querySelectorAll('select[name="pipeline_stage_id"]').forEach((select) => select.value = stage.dataset.stageId);
+                            const sourceCount = sourceStage?.querySelector('[data-stage-count]');
+                            const targetCount = stage.querySelector('[data-stage-count]');
+                            if (sourceCount) sourceCount.textContent = Math.max(0, Number(sourceCount.textContent) - 1);
+                            if (targetCount) targetCount.textContent = Number(targetCount.textContent) + 1;
+                        }
                         else window.alert(result.message || 'Ce déplacement nécessite des informations complémentaires.');
                     });
                 });
