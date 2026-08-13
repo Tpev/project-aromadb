@@ -274,8 +274,9 @@
                         @if(!$appointment->isCancelled() && !$appointment->isCompleted())
                         <form action="{{ route('appointments.lifecycle.cancel', $appointment->id) }}" method="POST" style="display: inline-block;">
                             @csrf
-                            <button type="submit" class="btn-secondary" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir annuler ce rendez-vous?') }}')">
-                                <i class="fas fa-times-circle"></i> {{ __('Annuler le Rendez-vous') }}
+                            <button type="submit" class="btn-secondary" onclick="return confirm('{{ $appointment->appointment_date?->isPast() ? __('Marquer ce rendez-vous passé comme annulé ? Aucun email ne sera envoyé au client.') : __('Êtes-vous sûr de vouloir annuler ce rendez-vous ?') }}')">
+                                <i class="fas fa-times-circle"></i>
+                                {{ $appointment->appointment_date?->isPast() ? __('Marquer comme annulé') : __('Annuler le Rendez-vous') }}
                             </button>
                         </form>
                         @endif

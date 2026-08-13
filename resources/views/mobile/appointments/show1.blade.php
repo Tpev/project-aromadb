@@ -297,13 +297,13 @@
                 @if(!$appointment->isCancelled() && !$appointment->isCompleted())
                 <form action="{{ route('mobile.appointments.cancel', $appointment->id) }}"
                       method="POST"
-                      onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')">
+                      onsubmit="return confirm('{{ $appointment->appointment_date?->isPast() ? 'Marquer ce rendez-vous passé comme annulé ? Aucun email ne sera envoyé au client.' : 'Êtes-vous sûr de vouloir annuler ce rendez-vous ?' }}')">
                     @csrf
                     <button type="submit"
                             class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-red-600 mt-1.5">
                         <span class="flex items-center gap-2">
                             <i class="fas fa-times-circle text-[11px]"></i>
-                            Annuler le rendez-vous
+                            {{ $appointment->appointment_date?->isPast() ? 'Marquer comme annulé' : 'Annuler le rendez-vous' }}
                         </span>
                         <i class="fas fa-chevron-right text-[9px] text-red-300"></i>
                     </button>

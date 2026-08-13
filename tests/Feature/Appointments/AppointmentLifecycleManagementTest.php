@@ -645,3 +645,67 @@ test('cancelled appointments are excluded from practitioner dashboard indicators
                 && !$appointments->contains('id', $cancelled->id);
         });
 });
+
+test('a practitioner can mark an uncompleted past appointment as cancelled', function () {
+    Mail::fake();
+    $user = lifecycleUser();
+    $product = lifecycleProduct($user);
+    $client = lifecycleClient($user);
+    $appointment = lifecycleAppointment($user, $product, $client, [
+        'appointment_date' => now()->subDay(),
+        'status' => Appointment::STATUS_CONFIRMED,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('appointments.lifecycle.cancel', $appointment))
+        ->assertRedirect(route('appointments.show', $appointment))
+        ->assertSessionHas('success', 'Le rendez-vous passé a été marqué comme annulé. Aucun email n’a été envoyé au client.');
+
+    $fresh = $appointment->fresh();
+    $activity = $fresh->activities()->where('action', 'cancelled')->firstOrFail();
+
+    expect($fresh->isCancelled())->toBeTrue()
+        ->and($fresh->status_label)->toBe('Annulé')
+        ->and($fresh->cancelled_by_type)->toBe('practitioner')
+        ->and($activity->metadata['historical_correction'])->toBeTrue();
+
+    Mail::assertNothingQueued();
+});
+
+test('clients still cannot cancel past appointments', function () {
+    Mail::fake();
+    $user = lifecycleUser();
+    $product = lifecycleProduct($user);
+    $client = lifecycleClient($user);
+    $appointment = lifecycleAppointment($user, $product, $client, [
+        'appointment_date' => now()->subDay(),
+        'status' => Appointment::STATUS_CONFIRMED,
+    ]);
+
+    $this->post(route('appointment.confirmation.cancel', $appointment->token))
+        ->assertRedirect(route('appointments.showPatient', $appointment->token))
+        ->assertSessionHas('error');
+
+    expect($appointment->fresh()->isCancelled())->toBeFalse();
+    Mail::assertNothingQueued();
+});
+
+test('completed appointments remain protected from historical cancellation', function () {
+    Mail::fake();
+    $user = lifecycleUser();
+    $product = lifecycleProduct($user);
+    $client = lifecycleClient($user);
+    $appointment = lifecycleAppointment($user, $product, $client, [
+        'appointment_date' => now()->subDay(),
+        'status' => Appointment::STATUS_COMPLETED,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('appointments.lifecycle.cancel', $appointment))
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    expect($appointment->fresh()->isCompleted())->toBeTrue()
+        ->and($appointment->fresh()->isCancelled())->toBeFalse();
+    Mail::assertNothingQueued();
+});

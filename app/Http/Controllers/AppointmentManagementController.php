@@ -186,6 +186,7 @@ class AppointmentManagementController extends Controller
         AppointmentLifecycleService $lifecycle
     ) {
         $this->authorize('update', $appointment);
+        $isPast = $appointment->appointment_date?->isPast() ?? false;
 
         $data = $request->validate([
             'cancellation_reason' => ['nullable', 'string', 'max:500'],
@@ -197,7 +198,8 @@ class AppointmentManagementController extends Controller
                 'practitioner',
                 (int) Auth::id(),
                 $data['cancellation_reason'] ?? null,
-                false
+                false,
+                true
             );
         } catch (ValidationException $exception) {
             return back()->with('error', collect($exception->errors())->flatten()->first());
@@ -205,8 +207,13 @@ class AppointmentManagementController extends Controller
 
         $route = $request->routeIs('mobile.*') ? 'mobile.appointments.show' : 'appointments.show';
 
-        return redirect()->route($route, $appointment)
-            ->with('success', $result['changed'] ? 'Le rendez-vous a été annulé.' : 'Le rendez-vous était déjà annulé.');
+        $message = $result['changed']
+            ? ($isPast
+                ? 'Le rendez-vous passé a été marqué comme annulé. Aucun email n’a été envoyé au client.'
+                : 'Le rendez-vous a été annulé.')
+            : 'Le rendez-vous était déjà annulé.';
+
+        return redirect()->route($route, $appointment)->with('success', $message);
     }
 
     public function portalShow(Appointment $appointment)

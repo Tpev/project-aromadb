@@ -28,11 +28,13 @@ class AppointmentLifecycleService
         string $actorType,
         ?int $actorId = null,
         ?string $reason = null,
-        bool $enforceDeadline = true
+        bool $enforceDeadline = true,
+        bool $allowPast = false
     ): array {
         $wasPending = false;
+        $wasPast = false;
 
-        $result = DB::transaction(function () use ($appointment, $actorType, $actorId, $reason, $enforceDeadline, &$wasPending) {
+        $result = DB::transaction(function () use ($appointment, $actorType, $actorId, $reason, $enforceDeadline, $allowPast, &$wasPending, &$wasPast) {
             $locked = Appointment::query()->with(['user', 'clientProfile', 'product'])
                 ->lockForUpdate()
                 ->findOrFail($appointment->id);
@@ -41,8 +43,9 @@ class AppointmentLifecycleService
                 return ['appointment' => $locked, 'changed' => false];
             }
 
-            $this->assertManageable($locked, $enforceDeadline, 'annulation');
+            $this->assertManageable($locked, $enforceDeadline, 'annulation', $allowPast);
             $wasPending = $locked->isPendingPayment();
+            $wasPast = $locked->appointment_date?->isPast() ?? false;
             $financialFollowUp = $locked->requiresFinancialFollowUp();
 
             $locked->forceFill([
@@ -63,6 +66,7 @@ class AppointmentLifecycleService
                 'metadata' => [
                     'reason' => $reason ? trim($reason) : null,
                     'status_before' => $appointment->status,
+                    'historical_correction' => $wasPast,
                     'financial_follow_up' => $financialFollowUp,
                     'financial_policy' => config('appointments.cancellation'),
                 ],
@@ -84,7 +88,11 @@ class AppointmentLifecycleService
         }
 
         $this->syncGoogleAfterCommit($cancelled);
-        $this->queueCancellationNotifications($cancelled, $actorType);
+        $this->queueCancellationNotifications(
+            $cancelled,
+            $actorType,
+            !($actorType === 'practitioner' && $wasPast)
+        );
 
         return $result;
     }
@@ -208,9 +216,19 @@ class AppointmentLifecycleService
         return $result;
     }
 
-    public function assertManageable(Appointment $appointment, bool $enforceDeadline, string $action): void
+    public function assertManageable(
+        Appointment $appointment,
+        bool $enforceDeadline,
+        string $action,
+        bool $allowPast = false
+    ): void
     {
-        if ($appointment->external || $appointment->isCompleted() || !$appointment->appointment_date || $appointment->appointment_date->isPast()) {
+        if (
+            $appointment->external
+            || $appointment->isCompleted()
+            || !$appointment->appointment_date
+            || (!$allowPast && $appointment->appointment_date->isPast())
+        ) {
             throw ValidationException::withMessages([
                 'appointment' => "Ce rendez-vous est passé ou terminé et ne peut plus faire l’objet d’une {$action} en ligne.",
             ]);
@@ -230,10 +248,14 @@ class AppointmentLifecycleService
         }
     }
 
-    private function queueCancellationNotifications(Appointment $appointment, string $actorType): void
+    private function queueCancellationNotifications(
+        Appointment $appointment,
+        string $actorType,
+        bool $notifyClient = true
+    ): void
     {
         $clientEmail = $appointment->clientProfile?->email;
-        if ($clientEmail) {
+        if ($notifyClient && $clientEmail) {
             Mail::to($clientEmail)->queue(
                 (new AppointmentCancellationConfirmedClientMail($appointment))->afterCommit()
             );
