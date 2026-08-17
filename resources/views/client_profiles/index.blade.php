@@ -43,6 +43,23 @@
     $requiredLabel = $requiredFamily
         ? ($familyLabels[$requiredFamily] ?? $requiredFamily)
         : __('une formule supérieure');
+
+    $clientSortUrl = function (string $column) use ($clientSort, $clientSortDirection): string {
+        $nextDirection = $clientSort === $column && $clientSortDirection === 'asc' ? 'desc' : 'asc';
+
+        return request()->fullUrlWithQuery([
+            'sort' => $column,
+            'direction' => $nextDirection,
+        ]);
+    };
+
+    $clientSortIcon = function (string $column) use ($clientSort, $clientSortDirection): string {
+        if ($clientSort !== $column) {
+            return 'fa-sort';
+        }
+
+        return $clientSortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down';
+    };
 @endphp
 
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -153,24 +170,26 @@
                         <thead class="bg-[#647a0b] text-white">
                             <tr>
                                 @if($clientTagsEnabled)<th class="w-10 px-3 py-3"><span class="sr-only">Sélectionner</span></th>@endif
-                                <th onclick="sortTable({{ $clientTagsEnabled ? 1 : 0 }})" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
-                                    {{ __('Nom du Client') }}
-                                    <!-- Icône de Tri -->
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 8l4 4 4-4H6z" />
-                                    </svg>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                                    aria-sort="{{ $clientSort === 'name' ? ($clientSortDirection === 'asc' ? 'ascending' : 'descending') : 'none' }}">
+                                    <a href="{{ $clientSortUrl('name') }}" class="inline-flex items-center gap-2 text-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/70">
+                                        {{ __('Nom du Client') }}
+                                        <i class="fas {{ $clientSortIcon('name') }}" aria-hidden="true"></i>
+                                    </a>
                                 </th>
-                                <th onclick="sortTable({{ $clientTagsEnabled ? 2 : 1 }})" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
-                                    {{ __('Email') }}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 8l4 4 4-4H6z" />
-                                    </svg>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                                    aria-sort="{{ $clientSort === 'email' ? ($clientSortDirection === 'asc' ? 'ascending' : 'descending') : 'none' }}">
+                                    <a href="{{ $clientSortUrl('email') }}" class="inline-flex items-center gap-2 text-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/70">
+                                        {{ __('Email') }}
+                                        <i class="fas {{ $clientSortIcon('email') }}" aria-hidden="true"></i>
+                                    </a>
                                 </th>
-                                <th onclick="sortTable({{ $clientTagsEnabled ? 3 : 2 }})" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer">
-                                    {{ __('Téléphone') }}
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block ml-1 transform" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 8l4 4 4-4H6z" />
-                                    </svg>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                                    aria-sort="{{ $clientSort === 'phone' ? ($clientSortDirection === 'asc' ? 'ascending' : 'descending') : 'none' }}">
+                                    <a href="{{ $clientSortUrl('phone') }}" class="inline-flex items-center gap-2 text-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/70">
+                                        {{ __('Téléphone') }}
+                                        <i class="fas {{ $clientSortIcon('phone') }}" aria-hidden="true"></i>
+                                    </a>
                                 </th>
                                 @if($clientTagsEnabled)<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Étiquettes</th>@endif
                             </tr>
@@ -218,7 +237,7 @@
         </div>
     </div>
 
-    <!-- JavaScript pour le tri et le filtrage -->
+    <!-- JavaScript pour le filtrage -->
     <script>
         function filterTable() {
             let input = document.getElementById('search');
@@ -235,68 +254,10 @@
             }
         }
 
-        function sortTable(n) {
-            let table = document.getElementById('clientTable');
-            let rows = table.rows;
-            let switching = true;
-            let shouldSwitch;
-            let dir = "asc";
-            let switchcount = 0;
-
-            while (switching) {
-                switching = false;
-                for (let i = 1; i < (rows.length - 1); i++) {
-                    shouldSwitch = false;
-                    let x = rows[i].getElementsByTagName('td')[n];
-                    let y = rows[i + 1].getElementsByTagName('td')[n];
-
-                    let xContent = x.textContent || x.innerText;
-                    let yContent = y.textContent || y.innerText;
-
-                    if (dir === "asc") {
-                        if (xContent.toLowerCase() > yContent.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir === "desc") {
-                        if (xContent.toLowerCase() < yContent.toLowerCase()) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else {
-                    if (switchcount === 0 && dir === "asc") {
-                        dir = "desc";
-                        switching = true;
-                    }
-                }
-            }
-
-            // Mettre à jour les icônes de tri
-            let ths = table.getElementsByTagName('th');
-            for (let i = 0; i < ths.length; i++) {
-                let icon = ths[i].getElementsByTagName('svg')[0];
-                if (i === n) {
-                    icon.classList.toggle('rotate-180', dir === 'desc');
-                } else {
-                    icon.classList.remove('rotate-180');
-                }
-            }
-        }
     </script>
 
     <!-- Styles Personnalisés -->
     <style>
-        /* Styles pour les icônes de tri */
-        .rotate-180 {
-            transform: rotate(180deg);
-        }
-
         /* Ajustements pour les petits écrans */
         @media (max-width: 640px) {
             .md\:flex-row {

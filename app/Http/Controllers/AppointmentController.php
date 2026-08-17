@@ -125,20 +125,37 @@ class AppointmentController extends Controller
      | Séparation : rendez-vous à venir / rendez-vous passés
      | ---------------------------------------------------------------------- */
 
+    $appointmentStatusFilter = $request->query('appointment_status', 'active');
+    if (! in_array($appointmentStatusFilter, ['active', 'cancelled', 'all'], true)) {
+        $appointmentStatusFilter = 'active';
+    }
+
+    $appointmentStatusCounts = [
+        'active' => $listAppointments->reject(fn (Appointment $appointment) => $appointment->isCancelled())->count(),
+        'cancelled' => $listAppointments->filter(fn (Appointment $appointment) => $appointment->isCancelled())->count(),
+        'all' => $listAppointments->count(),
+    ];
+
+    $filteredAppointments = (match ($appointmentStatusFilter) {
+        'cancelled' => $listAppointments->filter(fn (Appointment $appointment) => $appointment->isCancelled()),
+        'all' => $listAppointments,
+        default => $listAppointments->reject(fn (Appointment $appointment) => $appointment->isCancelled()),
+    })->values();
+
     // RDV à venir : date >= maintenant, triés du plus proche au plus lointain
-    $rendezVousAVenir = $listAppointments
+    $rendezVousAVenir = $filteredAppointments
         ->filter(fn ($a) => $a->appointment_date >= $now)
         ->sortBy('appointment_date')
         ->values();
 
     // RDV passés : date < maintenant, triés du plus récent au plus ancien
-    $rendezVousPasses = $listAppointments
+    $rendezVousPasses = $filteredAppointments
         ->filter(fn ($a) => $a->appointment_date < $now)
         ->sortByDesc('appointment_date')
         ->values();
 
     // Pour compatibilité si tu utilisais déjà $appointments dans la vue
-    $appointments = $listAppointments;
+    $appointments = $filteredAppointments;
 
     // 4. Indisponibilités
     $unavailabilities = Unavailability::where('user_id', Auth::id())
@@ -167,6 +184,8 @@ class AppointmentController extends Controller
         'events'              => $events,
         'calendarSource'      => $calendarSource,
         'showGoogleEvents'    => $showGoogleEvents,
+        'appointmentStatusFilter' => $appointmentStatusFilter,
+        'appointmentStatusCounts' => $appointmentStatusCounts,
     ]);
 }
 

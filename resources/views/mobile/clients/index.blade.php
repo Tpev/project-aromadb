@@ -37,6 +37,23 @@
                     oninput="filterMobileClients()"
                 />
             </div>
+
+            <form method="GET" action="{{ route('mobile.clients.index') }}" class="mt-2 flex items-center gap-2">
+                <label for="mobile-client-sort" class="sr-only">Trier les clients par</label>
+                <select id="mobile-client-sort" name="sort" class="min-w-0 flex-1 rounded-md border-[#dfe5c9] py-1.5 text-xs focus:border-[#647a0b] focus:ring-[#647a0b]">
+                    <option value="name" @selected($clientSort === 'name')>Nom</option>
+                    <option value="email" @selected($clientSort === 'email')>Email</option>
+                    <option value="phone" @selected($clientSort === 'phone')>Téléphone</option>
+                </select>
+                <label for="mobile-client-sort-direction" class="sr-only">Ordre du tri</label>
+                <select id="mobile-client-sort-direction" name="direction" class="rounded-md border-[#dfe5c9] py-1.5 text-xs focus:border-[#647a0b] focus:ring-[#647a0b]">
+                    <option value="asc" @selected($clientSortDirection === 'asc')>Croissant</option>
+                    <option value="desc" @selected($clientSortDirection === 'desc')>Décroissant</option>
+                </select>
+                <button type="submit" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#647a0b] text-white" title="Appliquer le tri" aria-label="Appliquer le tri">
+                    <i class="fas fa-sort-amount-down text-[11px]" aria-hidden="true"></i>
+                </button>
+            </form>
         </div>
 
         {{-- List --}}

@@ -122,6 +122,7 @@
 </div>
 
 <form action="{{ route('appointments.index') }}" method="GET" class="google-events-toggle-form mt-3">
+    <input type="hidden" name="appointment_status" value="{{ $appointmentStatusFilter }}">
     <input type="hidden" name="calendar_source" id="desktop-calendar-source" value="{{ $showGoogleEvents ? 'all' : 'olithea' }}">
     <label for="desktop-google-events-toggle" class="google-events-toggle">
         <span class="google-events-toggle-copy">
@@ -156,6 +157,27 @@
                 <div id="calendar" class="am-calendar-wrapper"></div>
             </div>
         </div>
+
+        @php
+            $appointmentStatusOptions = [
+                'active' => 'Actifs',
+                'cancelled' => 'Annulés',
+                'all' => 'Tous',
+            ];
+        @endphp
+        <nav class="appointment-status-filter mb-4" aria-label="Filtrer les rendez-vous par statut">
+            <span class="appointment-status-filter-label">Afficher</span>
+            <div class="appointment-status-filter-tabs">
+                @foreach($appointmentStatusOptions as $statusValue => $statusLabel)
+                    <a href="{{ request()->fullUrlWithQuery(['appointment_status' => $statusValue]) }}"
+                       class="appointment-status-filter-tab {{ $appointmentStatusFilter === $statusValue ? 'is-active' : '' }}"
+                       @if($appointmentStatusFilter === $statusValue) aria-current="page" @endif>
+                        {{ $statusLabel }}
+                        <span>{{ $appointmentStatusCounts[$statusValue] }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </nav>
 
         {{-- ============================
              Rendez-vous à venir
@@ -281,7 +303,7 @@
                     </div>
                 @else
                     <p class="text-muted small text-center mb-0">
-                        Aucun rendez-vous à venir pour le moment.
+                        {{ $appointmentStatusFilter === 'cancelled' ? 'Aucun rendez-vous annulé à venir.' : 'Aucun rendez-vous à venir pour le moment.' }}
                     </p>
                 @endif
             </div>
@@ -410,7 +432,7 @@
                     </div>
                 @else
                     <p class="text-muted small text-center mb-0">
-                        Aucun rendez-vous passé enregistré.
+                        {{ $appointmentStatusFilter === 'cancelled' ? 'Aucun rendez-vous annulé dans l’historique.' : 'Aucun rendez-vous passé enregistré.' }}
                     </p>
                 @endif
             </div>
@@ -573,6 +595,65 @@
         .google-events-toggle-form {
             display: flex;
             justify-content: center;
+        }
+
+        .appointment-status-filter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .appointment-status-filter-label {
+            color: #6b7280;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .appointment-status-filter-tabs {
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            border: 1px solid #dfe5c9;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .appointment-status-filter-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 34px;
+            padding: 6px 11px;
+            border-radius: 5px;
+            color: #4b5563;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .appointment-status-filter-tab:hover {
+            background: #f5f7eb;
+            color: #526509;
+        }
+
+        .appointment-status-filter-tab.is-active {
+            background: #647a0b;
+            color: #ffffff;
+        }
+
+        .appointment-status-filter-tab span {
+            min-width: 20px;
+            padding: 1px 5px;
+            border-radius: 999px;
+            background: rgba(100, 122, 11, 0.12);
+            text-align: center;
+            font-size: 0.7rem;
+        }
+
+        .appointment-status-filter-tab.is-active span {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .google-events-toggle {

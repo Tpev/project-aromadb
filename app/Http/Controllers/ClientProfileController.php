@@ -53,7 +53,7 @@ class ClientProfileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->license_status === 'inactive') {
             return redirect('/license-tiers/pricing');
@@ -70,21 +70,51 @@ class ClientProfileController extends Controller
             $clientProfilesQuery->with('marketingTags');
         }
 
-        $clientProfiles = $clientProfilesQuery
-            ->orderBy('last_name')
-            ->orderBy('first_name')
-            ->get();
+        $clientSort = in_array($request->query('sort'), ['name', 'email', 'phone'], true)
+            ? $request->query('sort')
+            : 'name';
+        $clientSortDirection = $request->query('direction') === 'desc' ? 'desc' : 'asc';
+
+        match ($clientSort) {
+            'email' => $clientProfilesQuery
+                ->orderByRaw("CASE WHEN email IS NULL OR email = '' THEN 1 ELSE 0 END")
+                ->orderBy('email', $clientSortDirection)
+                ->orderBy('last_name')
+                ->orderBy('first_name'),
+            'phone' => $clientProfilesQuery
+                ->orderByRaw("CASE WHEN phone IS NULL OR phone = '' THEN 1 ELSE 0 END")
+                ->orderBy('phone', $clientSortDirection)
+                ->orderBy('last_name')
+                ->orderBy('first_name'),
+            default => $clientProfilesQuery
+                ->orderBy('last_name', $clientSortDirection)
+                ->orderBy('first_name', $clientSortDirection),
+        };
+
+        $clientProfiles = $clientProfilesQuery->get();
         $marketingTags = $clientTagsEnabled
             ? OfferJourneyTag::query()->where('user_id', $userId)->orderBy('name')->get()
             : collect();
 
         // If request comes from /mobile/... → use mobile view
         if (request()->routeIs('mobile.*') || request()->is('mobile/*')) {
-            return view('mobile.clients.index', compact('clientProfiles', 'clientTagsEnabled', 'marketingTags'));
+            return view('mobile.clients.index', compact(
+                'clientProfiles',
+                'clientTagsEnabled',
+                'marketingTags',
+                'clientSort',
+                'clientSortDirection'
+            ));
         }
 
         // Default: desktop/web view
-        return view('client_profiles.index', compact('clientProfiles', 'clientTagsEnabled', 'marketingTags'));
+        return view('client_profiles.index', compact(
+            'clientProfiles',
+            'clientTagsEnabled',
+            'marketingTags',
+            'clientSort',
+            'clientSortDirection'
+        ));
     }
 
     /**

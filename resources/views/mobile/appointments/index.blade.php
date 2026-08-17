@@ -36,7 +36,7 @@
             <div>
                 <h1 class="text-lg font-semibold text-gray-900">Mes rendez-vous</h1>
                 <p class="text-xs text-gray-500">
-                    {{ $appointments->count() }} rendez-vous au total
+                    {{ $appointments->count() }} rendez-vous {{ $appointments->count() > 1 ? 'affichés' : 'affiché' }}
                 </p>
             </div>
 
@@ -51,6 +51,7 @@
             @if(request()->filled('filter'))
                 <input type="hidden" name="filter" value="{{ request('filter') }}">
             @endif
+            <input type="hidden" name="appointment_status" value="{{ $appointmentStatusFilter }}">
             <input type="hidden" name="calendar_source" id="mobile-calendar-source" value="{{ $showGoogleEvents ? 'all' : 'olithea' }}">
             <label for="mobile-google-events-toggle" class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-[#e4e8d5] bg-white px-3 py-2.5">
                 <span class="min-w-0">
@@ -68,6 +69,26 @@
                 </span>
             </label>
         </form>
+
+        @php
+            $appointmentStatusOptions = [
+                'active' => 'Actifs',
+                'cancelled' => 'Annulés',
+                'all' => 'Tous',
+            ];
+        @endphp
+        <nav class="flex items-center gap-1 rounded-lg border border-[#e4e8d5] bg-white p-1" aria-label="Filtrer les rendez-vous par statut">
+            @foreach($appointmentStatusOptions as $statusValue => $statusLabel)
+                <a href="{{ request()->fullUrlWithQuery(['appointment_status' => $statusValue]) }}"
+                   class="flex min-h-9 flex-1 items-center justify-center gap-1 rounded-md px-2 text-[11px] font-semibold {{ $appointmentStatusFilter === $statusValue ? 'bg-[#647a0b] text-white' : 'text-gray-600' }}"
+                   @if($appointmentStatusFilter === $statusValue) aria-current="page" @endif>
+                    {{ $statusLabel }}
+                    <span class="rounded-full px-1.5 py-0.5 text-[9px] {{ $appointmentStatusFilter === $statusValue ? 'bg-white/20' : 'bg-[#f0f4df] text-[#526509]' }}">
+                        {{ $appointmentStatusCounts[$statusValue] }}
+                    </span>
+                </a>
+            @endforeach
+        </nav>
 
         {{-- Quick stats --}}
         <div class="grid grid-cols-3 gap-2 text-center text-xs">

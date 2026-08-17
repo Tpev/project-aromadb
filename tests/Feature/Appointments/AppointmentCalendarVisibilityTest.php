@@ -86,21 +86,59 @@ test('cancelled appointments are excluded from calendar events on appointments i
     });
 });
 
-test('cancelled appointments are visually muted in appointments index lists', function () {
+test('cancelled appointments are hidden by default and remain accessible in the cancelled history', function () {
     $therapist = calendarTherapist(['email' => 'calendar-muted@example.test']);
     $product = calendarProduct($therapist);
-    $client = calendarClient($therapist, 'Camille', 'Muted', 'camille@example.test');
+    $activeClient = calendarClient($therapist, 'Alice', 'Active', 'alice-active@example.test');
+    $futureCancelledClient = calendarClient($therapist, 'Camille', 'FutureCancelled', 'camille@example.test');
+    $pastCancelledClient = calendarClient($therapist, 'Pascal', 'PastCancelled', 'pascal@example.test');
 
-    calendarAppointment($therapist, $client, $product, [
+    calendarAppointment($therapist, $activeClient, $product, [
+        'status' => 'Confirmé',
+        'appointment_date' => now()->addDays(2),
+    ]);
+
+    calendarAppointment($therapist, $futureCancelledClient, $product, [
         'status' => 'cancelled',
         'appointment_date' => now()->addDay(),
+    ]);
+
+    calendarAppointment($therapist, $pastCancelledClient, $product, [
+        'status' => 'Annulé',
+        'appointment_date' => now()->subDay(),
     ]);
 
     $response = $this->actingAs($therapist)->get(route('appointments.index'));
 
     $response->assertOk()
+        ->assertSee('Alice Active')
+        ->assertDontSee('Camille FutureCancelled')
+        ->assertDontSee('Pascal PastCancelled')
+        ->assertViewHas('appointmentStatusFilter', 'active')
+        ->assertViewHas('appointmentStatusCounts', [
+            'active' => 1,
+            'cancelled' => 2,
+            'all' => 3,
+        ]);
+
+    $cancelledResponse = $this->get(route('appointments.index', ['appointment_status' => 'cancelled']));
+
+    $cancelledResponse->assertOk()
+        ->assertSee('FutureCancelled')
+        ->assertSee('PastCancelled')
         ->assertSee('am-row-cancelled', false)
-        ->assertSee('bg-secondary-subtle text-secondary', false);
+        ->assertSee('bg-secondary-subtle text-secondary', false)
+        ->assertViewHas('appointmentStatusFilter', 'cancelled')
+        ->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 2 && $appointments->every(fn (Appointment $appointment) => $appointment->isCancelled()))
+        ->assertViewHas('rendezVousAVenir', fn ($appointments) => $appointments->count() === 1 && $appointments->first()->isCancelled())
+        ->assertViewHas('rendezVousPasses', fn ($appointments) => $appointments->count() === 1 && $appointments->first()->isCancelled());
+
+    $this->get(route('mobile.appointments.index', ['appointment_status' => 'cancelled']))
+        ->assertOk()
+        ->assertViewIs('mobile.appointments.index')
+        ->assertSee('FutureCancelled')
+        ->assertSee('PastCancelled')
+        ->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 2 && $appointments->every(fn (Appointment $appointment) => $appointment->isCancelled()));
 });
 
 test('Google events are shown in the calendar by default and can be hidden without entering appointment lists', function () {
