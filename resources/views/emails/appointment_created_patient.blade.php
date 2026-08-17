@@ -31,6 +31,10 @@ Rejoindre la visio
 
 - **Praticien :** {{ $appointment->user->company_name ?? $appointment->user->name }}
 
+@if($appointment->wants_earlier_slot)
+Vous avez choisi d’être prévenu par email si un créneau compatible se libère plus tôt. Votre rendez-vous actuel restera réservé tant que vous n’aurez pas confirmé une éventuelle proposition.
+@endif
+
 ---
 
 ## Gérer votre rendez-vous

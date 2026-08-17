@@ -203,6 +203,18 @@
                         <p class="details-value" style="white-space: pre-line;">{{ $appointment->notes ?: __('Aucune information complémentaire') }}</p>
                     </div>
                 </div>
+
+                @if(config('appointments.earlier_slots.enabled', false) && $appointment->wants_earlier_slot)
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <label class="details-label">{{ __('Alerte de créneau plus tôt') }}</label>
+                            <p class="details-value">
+                                <i class="fas fa-bell" style="color:#647a0b;" aria-hidden="true"></i>
+                                {{ __('Le client souhaite être prévenu si un créneau compatible se libère avant ce rendez-vous.') }}
+                            </p>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             @unless($appointment->external)

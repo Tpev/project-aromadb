@@ -149,6 +149,15 @@
                     </p>
                 </div>
             @endif
+
+            @if(config('appointments.earlier_slots.enabled', false) && $appointment->wants_earlier_slot)
+                <div class="mt-3 border-t border-[#f1f3e6] pt-3 text-xs text-gray-700">
+                    <p class="flex items-start gap-2">
+                        <i class="fas fa-bell mt-0.5 text-[#647a0b]" aria-hidden="true"></i>
+                        <span>Le client souhaite être prévenu si un créneau compatible se libère plus tôt.</span>
+                    </p>
+                </div>
+            @endif
         </div>
 
         {{-- Visio links (if any) --}}

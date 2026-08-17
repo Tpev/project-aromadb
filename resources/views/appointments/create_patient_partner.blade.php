@@ -69,6 +69,19 @@
         font-size:.85rem;
         margin-left:6px;
     }
+    .earlier-slot-choice {
+        display:flex;
+        align-items:flex-start;
+        gap:12px;
+        padding:14px;
+        border:1px solid #dfe5c9;
+        border-radius:8px;
+        background:#f8faef;
+        cursor:pointer;
+    }
+    .earlier-slot-choice input { width:18px; height:18px; margin-top:2px; accent-color:#647a0b; }
+    .earlier-slot-choice strong { display:block; color:#26351f; }
+    .earlier-slot-choice small { display:block; margin-top:4px; color:#687064; line-height:1.45; }
 </style>
 
 <div class="container mt-5">
@@ -172,6 +185,18 @@
                 <small class="subtle">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
                 @error('notes')<p class="text-danger mt-2">{{ $message }}</p>@enderror
             </div>
+
+            @if(config('appointments.earlier_slots.enabled', false))
+                <div class="details-box">
+                    <label class="earlier-slot-choice" for="wants_earlier_slot">
+                        <input type="checkbox" id="wants_earlier_slot" name="wants_earlier_slot" value="1" @checked(old('wants_earlier_slot'))>
+                        <span>
+                            <strong>{{ __('Me prévenir si un rendez-vous plus tôt se libère') }}</strong>
+                            <small>{{ __('Vous recevrez un email uniquement pour un créneau compatible. Votre rendez-vous actuel restera réservé jusqu’à votre confirmation.') }}</small>
+                        </span>
+                    </label>
+                </div>
+            @endif
 
             <div class="details-box">
                 <label class="details-label" for="gift_voucher_code">{{ __('Code bon cadeau (optionnel)') }}</label>

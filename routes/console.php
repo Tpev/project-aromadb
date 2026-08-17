@@ -56,6 +56,10 @@ Schedule::command('appointments:expire-pending-payments --limit=500')
     ->everyFiveMinutes()
     ->withoutOverlapping(10);
 
+Schedule::command('appointments:expire-earlier-slot-offers --limit=500')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(10);
+
 // Finance Stripe: réconciliation cashflow/frais/payouts.
 Schedule::command(SyncStripeFinance::class)
     ->dailyAt('03:10')

@@ -273,6 +273,16 @@
                         @error('notes')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
 
+                    @if(config('appointments.earlier_slots.enabled', false))
+                        <label class="earlier-slot-choice mb-3" for="wants_earlier_slot">
+                            <input type="checkbox" id="wants_earlier_slot" name="wants_earlier_slot" value="1" @checked(old('wants_earlier_slot'))>
+                            <span>
+                                <strong>{{ __('Me prévenir si un rendez-vous plus tôt se libère') }}</strong>
+                                <small>{{ __('Votre rendez-vous reste réservé jusqu’à votre confirmation. Seuls les créneaux compatibles vous seront proposés.') }}</small>
+                            </span>
+                        </label>
+                    @endif
+
                     <!-- Step 2 actions -->
                     <div class="mt-4 flex flex-col gap-2">
                         <div class="flex gap-2">
@@ -311,6 +321,13 @@
         .details-label { font-weight: 700; color: #647a0b; display:block; margin-bottom: 5px; font-size: 0.9rem; }
         .form-control { width: 100%; padding: 8px 10px; border: 1px solid #854f38; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
         .form-control:focus { border-color:#647a0b; outline: none; box-shadow: 0 0 5px rgba(100,122,11,.4); }
+        .earlier-slot-choice {
+            display:flex; align-items:flex-start; gap:10px; padding:13px;
+            border:1px solid #dfe5c9; border-radius:8px; background:#f8faef; cursor:pointer;
+        }
+        .earlier-slot-choice input { width:18px; height:18px; margin-top:2px; accent-color:#647a0b; flex:0 0 auto; }
+        .earlier-slot-choice strong { display:block; color:#26351f; font-size:.88rem; line-height:1.35; }
+        .earlier-slot-choice small { display:block; margin-top:4px; color:#687064; font-size:.75rem; line-height:1.45; }
         .btn-primary, .btn-secondary, .btn-secondary-outline {
             border:none; color:#fff; padding:10px 16px; border-radius:6px;
             display:inline-flex; align-items:center; justify-content:center; cursor:pointer;

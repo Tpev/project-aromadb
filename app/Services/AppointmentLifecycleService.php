@@ -2,14 +2,18 @@
 
 namespace App\Services;
 
+use App\Jobs\DiscoverEarlierSlotOffersJob;
+use App\Mail\AppointmentEarlierSlotClaimedClientMail;
+use App\Mail\AppointmentEarlierSlotClaimedTherapistMail;
 use App\Mail\AppointmentCancelledByClient;
 use App\Mail\AppointmentCancellationConfirmedClientMail;
 use App\Mail\AppointmentRescheduledClientMail;
 use App\Mail\AppointmentRescheduledTherapistMail;
 use App\Models\Appointment;
+use App\Support\AppointmentLocationFingerprint;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -93,6 +97,7 @@ class AppointmentLifecycleService
             $actorType,
             !($actorType === 'practitioner' && $wasPast)
         );
+        $this->queueEarlierSlotDiscovery($cancelled, $cancelled->appointment_date);
 
         return $result;
     }
@@ -165,6 +170,7 @@ class AppointmentLifecycleService
         if ($updated['changed']) {
             $this->syncGoogleAfterCommit($updated['appointment']);
             $this->queueRescheduleNotifications($updated['appointment'], $updated['old_start'], $actorType);
+            $this->queueEarlierSlotDiscovery($updated['appointment'], $updated['old_start']);
         }
 
         return $updated;
@@ -212,6 +218,7 @@ class AppointmentLifecycleService
         $this->expireStripeCheckout($expired);
         $this->releaseTemporaryGiftVoucher($expired);
         $this->syncGoogleAfterCommit($expired);
+        $this->queueEarlierSlotDiscovery($expired, $expired->appointment_date);
 
         return $result;
     }
@@ -273,6 +280,23 @@ class AppointmentLifecycleService
 
     private function queueRescheduleNotifications(Appointment $appointment, Carbon $oldStart, string $actorType): void
     {
+        if ($actorType === 'earlier_slot') {
+            if ($appointment->clientProfile?->email) {
+                Mail::to($appointment->clientProfile->email)->queue(
+                    (new AppointmentEarlierSlotClaimedClientMail($appointment, $oldStart))->afterCommit()
+                );
+            }
+
+            $practitionerEmail = $appointment->user?->company_email ?: $appointment->user?->email;
+            if ($practitionerEmail) {
+                Mail::to($practitionerEmail)->queue(
+                    (new AppointmentEarlierSlotClaimedTherapistMail($appointment, $oldStart))->afterCommit()
+                );
+            }
+
+            return;
+        }
+
         if ($appointment->clientProfile?->email) {
             Mail::to($appointment->clientProfile->email)->queue(
                 (new AppointmentRescheduledClientMail($appointment, $oldStart))->afterCommit()
@@ -285,6 +309,40 @@ class AppointmentLifecycleService
                 (new AppointmentRescheduledTherapistMail($appointment, $oldStart))->afterCommit()
             );
         }
+    }
+
+    private function queueEarlierSlotDiscovery(Appointment $appointment, ?Carbon $releasedStart): void
+    {
+        if (
+            ! config('appointments.earlier_slots.enabled', false)
+            || ! $releasedStart
+            || ! $appointment->product_id
+            || (int) $appointment->duration <= 0
+        ) {
+            return;
+        }
+
+        $mode = in_array($appointment->type, ['cabinet', 'visio', 'domicile', 'entreprise'], true)
+            ? $appointment->type
+            : $appointment->getResolvedMode();
+        $locationFingerprint = in_array($mode, ['domicile', 'entreprise'], true)
+            ? AppointmentLocationFingerprint::for($appointment)
+            : null;
+
+        DB::afterCommit(function () use ($appointment, $releasedStart, $mode, $locationFingerprint) {
+            DiscoverEarlierSlotOffersJob::dispatch(
+                (int) $appointment->id,
+                (int) $appointment->user_id,
+                (int) $appointment->product_id,
+                $releasedStart->copy()->startOfMinute()->toIso8601String(),
+                (int) $appointment->duration,
+                $mode,
+                $mode === 'cabinet' && $appointment->practice_location_id
+                    ? (int) $appointment->practice_location_id
+                    : null,
+                $locationFingerprint,
+            );
+        });
     }
 
     private function syncGoogleAfterCommit(Appointment $appointment): void

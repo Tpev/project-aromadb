@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\AppointmentEarlierSlotOffer;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AppointmentMailDeliveryGuard
 {
@@ -26,15 +28,26 @@ class AppointmentMailDeliveryGuard
         $messageType = trim($messageHeader->getBodyAsString());
         $appointment = Appointment::query()->find($appointmentId);
 
-        $allowed = $appointment && match ($messageType) {
-            'confirmation' => !$appointment->isCancelled()
-                && !$appointment->isCompleted()
-                && !$appointment->isPendingPayment(),
-            'reminder' => $this->isReminderEligible($appointment),
-            'active-update' => !$appointment->isCancelled()
-                && !$appointment->isPendingPayment(),
-            default => true,
-        };
+        if (str_starts_with($messageType, 'earlier-slot-offer:')) {
+            $offerId = (int) Str::after($messageType, 'earlier-slot-offer:');
+            $offer = AppointmentEarlierSlotOffer::query()
+                ->with(['opportunity', 'appointment.user'])
+                ->find($offerId);
+            $allowed = $appointment
+                && $offer
+                && (int) $offer->appointment_id === $appointmentId
+                && app(AppointmentEarlierSlotService::class)->state($offer) === AppointmentEarlierSlotService::STATE_AVAILABLE;
+        } else {
+            $allowed = $appointment && match ($messageType) {
+                'confirmation' => !$appointment->isCancelled()
+                    && !$appointment->isCompleted()
+                    && !$appointment->isPendingPayment(),
+                'reminder' => $this->isReminderEligible($appointment),
+                'active-update' => !$appointment->isCancelled()
+                    && !$appointment->isPendingPayment(),
+                default => true,
+            };
+        }
 
         if (!$allowed) {
             Log::info('Appointment email stopped before transport.', [

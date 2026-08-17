@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Services\AppointmentEarlierSlotService;
 use App\Services\AppointmentAvailabilityService;
 use App\Services\AppointmentLifecycleService;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -120,6 +122,30 @@ class AppointmentManagementController extends Controller
             : 'Ce rendez-vous était déjà annulé.';
 
         return redirect()->route('appointments.showPatient', $token)->with('success', $message);
+    }
+
+    public function updateEarlierSlotPreference(
+        Request $request,
+        string $token,
+        AppointmentEarlierSlotService $earlierSlots
+    ): RedirectResponse {
+        $data = $request->validate([
+            'enabled' => ['required', 'boolean'],
+        ]);
+        $appointment = $this->appointmentForToken($token);
+        $enabled = (bool) $data['enabled'];
+
+        if (! $earlierSlots->updatePreference($appointment, $enabled)) {
+            return redirect()->route('appointments.showPatient', $token)
+                ->with('error', 'Cette préférence ne peut pas être modifiée pour ce rendez-vous.');
+        }
+
+        return redirect()->route('appointments.showPatient', $token)->with(
+            'success',
+            $enabled
+                ? 'Vous serez prévenu si un créneau compatible se libère plus tôt.'
+                : 'Vous ne recevrez plus de proposition de créneau plus tôt.'
+        );
     }
 
     public function resumePayment(

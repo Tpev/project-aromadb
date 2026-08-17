@@ -87,6 +87,8 @@ class Appointment extends Model
         'client_confirmation_sent_at',
         'consumed_pack_purchase_id',
         'financial_follow_up_required',
+        'wants_earlier_slot',
+        'earlier_slot_opted_in_at',
 
         // NEW
         'requires_emargement',
@@ -106,6 +108,8 @@ class Appointment extends Model
         'reminder_1h_queued_at' => 'datetime',
         'client_confirmation_sent_at' => 'datetime',
         'financial_follow_up_required' => 'boolean',
+        'wants_earlier_slot' => 'boolean',
+        'earlier_slot_opted_in_at' => 'datetime',
 
         // NEW
         'requires_emargement'  => 'boolean',
@@ -526,6 +530,11 @@ public function syncToGoogle(): void
     public function activities()
     {
         return $this->hasMany(AppointmentActivity::class)->orderBy('created_at');
+    }
+
+    public function earlierSlotOffers()
+    {
+        return $this->hasMany(AppointmentEarlierSlotOffer::class);
     }
 
     public function invoice()

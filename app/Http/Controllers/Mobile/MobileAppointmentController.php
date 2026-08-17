@@ -94,11 +94,22 @@ class MobileAppointmentController extends Controller
             'type'             => 'nullable|string',
             // practice_location_id is validated conditionally (see below)
             'practice_location_id' => 'nullable|integer',
+            'wants_earlier_slot' => 'nullable|boolean',
         ], $messages);
 
         // Produit & thérapeute
         $product   = Product::findOrFail($request->product_id);
         $therapist = User::findOrFail($request->therapist_id);
+        $wantsEarlierSlot = config('appointments.earlier_slots.enabled', false)
+            && $request->boolean('wants_earlier_slot');
+
+        if ($wantsEarlierSlot) {
+            $request->validate([
+                'email' => 'required|email|max:255',
+            ], [
+                'email.required' => 'Votre adresse e-mail est nécessaire pour recevoir une proposition de créneau.',
+            ]);
+        }
 
         // Inférer le "type" (mode) à partir du produit si non fourni
         $mode = $request->input('type');
@@ -186,7 +197,7 @@ class MobileAppointmentController extends Controller
         );
 
         // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
-        $appointment = Appointment::create([
+        $appointmentAttributes = [
             'client_profile_id'     => $clientProfile->id,
             'user_id'               => $therapist->id,
             'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
@@ -196,7 +207,12 @@ class MobileAppointmentController extends Controller
             'type'                  => $mode,                 // ← on stocke le mode
             'duration'              => $product->duration,
             'product_id'            => $product->id,
-        ]);
+        ];
+        if (config('appointments.earlier_slots.enabled', false)) {
+            $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
+            $appointmentAttributes['earlier_slot_opted_in_at'] = $wantsEarlierSlot ? now() : null;
+        }
+        $appointment = Appointment::create($appointmentAttributes);
 
         // Si visio : créer une réunion + lien
         if ($mode === 'visio' || !empty($product->visio) || !empty($product->en_visio)) {
@@ -738,10 +754,19 @@ class MobileAppointmentController extends Controller
 
         // 5) Conflits avec d'autres rendez-vous (global par thérapeute, avec buffer)
         $conflictingAppointments = Appointment::where('user_id', (int) $therapistId)
-            ->where(function ($q) use ($bufferedStart, $bufferedEnd) {
-                $q->where('appointment_date', '<', $bufferedEnd)
-                  ->whereRaw("DATE_ADD(appointment_date, INTERVAL duration MINUTE) > ?", [$bufferedStart]);
-            });
+            ->where('appointment_date', '<', $bufferedEnd);
+
+        if ($conflictingAppointments->getConnection()->getDriverName() === 'sqlite') {
+            $conflictingAppointments->whereRaw(
+                "datetime(appointment_date, '+' || COALESCE(duration, 60) || ' minutes') > ?",
+                [$bufferedStart]
+            );
+        } else {
+            $conflictingAppointments->whereRaw(
+                'DATE_ADD(appointment_date, INTERVAL COALESCE(duration, 60) MINUTE) > ?',
+                [$bufferedStart]
+            );
+        }
 
         $this->applyBlockingAppointmentsFilter($conflictingAppointments);
 

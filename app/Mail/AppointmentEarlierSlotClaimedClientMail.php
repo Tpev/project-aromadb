@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Mail;
+
+use App\Mail\Concerns\RepliesToPractitioner;
+use App\Models\Appointment;
+use App\Services\AppointmentMailDeliveryGuard;
+use Carbon\Carbon;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Headers;
+use Illuminate\Queue\SerializesModels;
+
+class AppointmentEarlierSlotClaimedClientMail extends Mailable implements ShouldQueue
+{
+    use Queueable, RepliesToPractitioner, SerializesModels;
+
+    public int $tries = 5;
+
+    public function __construct(public Appointment $appointment, public Carbon $oldStart)
+    {
+        $this->appointment->loadMissing(['clientProfile', 'user', 'product', 'practiceLocation']);
+    }
+
+    public function backoff(): array
+    {
+        return [60, 300, 900, 1800];
+    }
+
+    public function headers(): Headers
+    {
+        return new Headers(text: [
+            AppointmentMailDeliveryGuard::APPOINTMENT_HEADER => (string) $this->appointment->id,
+            AppointmentMailDeliveryGuard::MESSAGE_HEADER => 'active-update',
+        ]);
+    }
+
+    public function build()
+    {
+        return $this->applyPractitionerReplyTo($this->appointment->user)
+            ->subject('Votre rendez-vous a bien été avancé')
+            ->markdown('emails.appointments.earlier-slot-claimed-client', [
+                'managementUrl' => route('appointments.showPatient', $this->appointment->token),
+                'icsUrl' => route('appointments.downloadICS', $this->appointment->token),
+            ]);
+    }
+}

@@ -12,4 +12,10 @@ return [
         'consumed_gift_voucher' => 'preserve_consumed_amount',
         'temporary_gift_voucher_reservation' => 'release',
     ],
+
+    'earlier_slots' => [
+        // Disabled by default so production can migrate first, then enable deliberately.
+        'enabled' => filter_var(env('APPOINTMENT_EARLIER_SLOT_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'retention_days' => max(30, (int) env('APPOINTMENT_EARLIER_SLOT_RETENTION_DAYS', 90)),
+    ],
 ];

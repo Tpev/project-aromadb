@@ -246,6 +246,26 @@
             </p>
         </x-ts-card>
 
+        @if(config('appointments.earlier_slots.enabled', false) && $appointment->canBeManagedOnline() && $appointment->clientProfile?->email)
+            <section class="rounded-lg border border-[#dfe5c9] bg-[#f8faef] p-4" aria-labelledby="mobile-earlier-slot-title">
+                <h2 id="mobile-earlier-slot-title" class="text-sm font-semibold text-[#334224]">
+                    {{ $appointment->wants_earlier_slot ? 'Alerte de créneau plus tôt activée' : 'Vous préférez un rendez-vous plus tôt ?' }}
+                </h2>
+                <p class="mt-1 text-xs leading-5 text-gray-600">
+                    {{ $appointment->wants_earlier_slot
+                        ? 'Vous serez prévenu par email si un créneau compatible se libère avant votre rendez-vous.'
+                        : 'Activez l’alerte pour être prévenu si un créneau compatible se libère avant votre rendez-vous.' }}
+                </p>
+                <form class="mt-3" method="POST" action="{{ route('appointment.confirmation.earlier-slot-preference', $appointment->token) }}">
+                    @csrf
+                    <input type="hidden" name="enabled" value="{{ $appointment->wants_earlier_slot ? 0 : 1 }}">
+                    <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-md border border-[#647a0b] bg-white px-3 py-2 text-xs font-semibold text-[#526508]">
+                        {{ $appointment->wants_earlier_slot ? 'Ne plus me prévenir' : 'Me prévenir si un créneau se libère' }}
+                    </button>
+                </form>
+            </section>
+        @endif
+
         {{-- ACTIONS --}}
         <div class="space-y-3 mt-2">
             @if($isConfirmed)

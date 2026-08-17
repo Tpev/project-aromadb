@@ -1180,6 +1180,15 @@ Route::post('/appointment-confirmation/{token}/reschedule', [\App\Http\Controlle
 Route::post('/appointment-confirmation/{token}/cancel', [\App\Http\Controllers\AppointmentManagementController::class, 'cancelByToken'])
     ->middleware('throttle:10,1')
     ->name('appointment.confirmation.cancel');
+Route::post('/appointment-confirmation/{token}/earlier-slot-preference', [\App\Http\Controllers\AppointmentManagementController::class, 'updateEarlierSlotPreference'])
+    ->middleware('throttle:10,1')
+    ->name('appointment.confirmation.earlier-slot-preference');
+Route::get('/creneau-plus-tot/{token}', [\App\Http\Controllers\AppointmentEarlierSlotController::class, 'show'])
+    ->middleware('throttle:30,1')
+    ->name('appointments.earlier-slot.show');
+Route::post('/creneau-plus-tot/{token}', [\App\Http\Controllers\AppointmentEarlierSlotController::class, 'claim'])
+    ->middleware('throttle:10,1')
+    ->name('appointments.earlier-slot.claim');
 });
 
 

@@ -1260,6 +1260,7 @@ public function storePatient(Request $request)
         'type'             => 'nullable|string',
         // practice_location_id is validated conditionally (see below)
         'practice_location_id' => 'nullable|integer',
+        'wants_earlier_slot' => 'nullable|boolean',
     ], $messages);
 
     // Produit & thérapeute
@@ -1270,6 +1271,8 @@ public function storePatient(Request $request)
     $voucherPlannedCents = $voucherForBooking
         ? min((int) $voucherForBooking->remaining_amount_cents, $totalAmountCents)
         : 0;
+    $wantsEarlierSlot = config('appointments.earlier_slots.enabled', false)
+        && $request->boolean('wants_earlier_slot');
 
     // Inférer le "type" (mode) à partir du produit si non fourni
     // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
@@ -1363,7 +1366,7 @@ public function storePatient(Request $request)
     }
 
     // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
-    $appointment = Appointment::create([
+    $appointmentAttributes = [
         'client_profile_id'     => $clientProfile->id,
         'user_id'               => $therapist->id,
         'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
@@ -1375,7 +1378,12 @@ public function storePatient(Request $request)
         'product_id'            => $product->id,
         'gift_voucher_id'       => $voucherForBooking?->id,
         'gift_voucher_amount_cents' => $voucherPlannedCents > 0 ? $voucherPlannedCents : null,
-    ]);
+    ];
+    if (config('appointments.earlier_slots.enabled', false)) {
+        $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
+        $appointmentAttributes['earlier_slot_opted_in_at'] = $wantsEarlierSlot ? now() : null;
+    }
+    $appointment = Appointment::create($appointmentAttributes);
 
     // Si visio : créer une réunion + lien
     if ($mode === 'visio' || !empty($product->visio) || !empty($product->en_visio)) {
@@ -3466,6 +3474,7 @@ public function storeByToken(Request $request, string $token)
         'type'             => 'nullable|string',
         // practice_location_id is validated conditionally (see below)
         'practice_location_id' => 'nullable|integer',
+        'wants_earlier_slot' => 'nullable|boolean',
     ], $messages);
 
     // Produit & thérapeute
@@ -3484,6 +3493,8 @@ public function storeByToken(Request $request, string $token)
     $voucherPlannedCents = $voucherForBooking
         ? min((int) $voucherForBooking->remaining_amount_cents, $totalAmountCents)
         : 0;
+    $wantsEarlierSlot = config('appointments.earlier_slots.enabled', false)
+        && $request->boolean('wants_earlier_slot');
 
     // Inférer le "type" (mode) à partir du produit si non fourni
     // NB: dans votre config, chaque "mode" correspond généralement à un produit distinct
@@ -3577,7 +3588,7 @@ public function storeByToken(Request $request, string $token)
     }
 
     // Créer le rendez-vous (statut 'pending' si paiement, sinon on confirmera plus bas)
-    $appointment = Appointment::create([
+    $appointmentAttributes = [
         'client_profile_id'     => $clientProfile->id,
         'user_id'               => $therapist->id,
         'practice_location_id'  => $practiceLocationId,   // ← ENREGISTRÉ ICI POUR LE CABINET
@@ -3592,7 +3603,12 @@ public function storeByToken(Request $request, string $token)
 
         // ✅ partner tracking
         'booking_link_id'       => $bookingLink->id,
-    ]);
+    ];
+    if (config('appointments.earlier_slots.enabled', false)) {
+        $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
+        $appointmentAttributes['earlier_slot_opted_in_at'] = $wantsEarlierSlot ? now() : null;
+    }
+    $appointment = Appointment::create($appointmentAttributes);
 
     // ✅ increment uses after successful appointment creation
     $bookingLink->incrementUse();

@@ -34,6 +34,10 @@
         .appointment-reason { width:100%; margin-top:18px; }
         .appointment-reason label { display:block; margin-bottom:6px; color:#4f584a; font-size:13px; font-weight:700; }
         .appointment-reason input { width:100%; border:1px solid #cfd6c5; border-radius:6px; padding:10px 12px; }
+        .appointment-earlier-slot { margin-top:24px; padding:16px 18px; border:1px solid #dfe5c9; border-radius:8px; background:#f8faef; }
+        .appointment-earlier-slot strong { display:block; color:#334224; }
+        .appointment-earlier-slot p { margin:5px 0 12px; color:#687064; font-size:13px; line-height:1.5; }
+        .appointment-earlier-slot button { border:1px solid #647a0b; border-radius:6px; background:#fff; color:#526508; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; }
         @media (max-width:640px) {
             .appointment-manage-page { padding:18px 12px 44px; }
             .appointment-manage-header, .appointment-manage-content { padding:22px 18px; }
@@ -70,6 +74,26 @@
                             <div><dt>Lieu</dt><dd>{!! nl2br(e($location)) !!}</dd></div>
                         @endif
                     </dl>
+
+                    @if(config('appointments.earlier_slots.enabled', false) && $canManage && $appointment->clientProfile?->email)
+                        <section class="appointment-earlier-slot" aria-labelledby="earlier-slot-preference-title">
+                            <strong id="earlier-slot-preference-title">
+                                {{ $appointment->wants_earlier_slot ? 'Alerte de créneau plus tôt activée' : 'Vous préférez un rendez-vous plus tôt ?' }}
+                            </strong>
+                            <p>
+                                {{ $appointment->wants_earlier_slot
+                                    ? 'Vous serez prévenu par email si un créneau compatible se libère avant votre rendez-vous.'
+                                    : 'Activez l’alerte pour être prévenu si un créneau compatible se libère avant votre rendez-vous.' }}
+                            </p>
+                            <form method="POST" action="{{ route('appointment.confirmation.earlier-slot-preference', $appointment->token) }}">
+                                @csrf
+                                <input type="hidden" name="enabled" value="{{ $appointment->wants_earlier_slot ? 0 : 1 }}">
+                                <button type="submit">
+                                    {{ $appointment->wants_earlier_slot ? 'Ne plus me prévenir' : 'Me prévenir si un créneau se libère' }}
+                                </button>
+                            </form>
+                        </section>
+                    @endif
 
                     @if($appointment->isCancelled())
                         <p class="appointment-help">Ce rendez-vous est annulé. Aucun nouveau rappel ne sera envoyé.</p>
