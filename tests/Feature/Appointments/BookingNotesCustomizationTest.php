@@ -115,6 +115,18 @@ test('practitioners can customize or restore the default booking notes placehold
         ->toBe(User::DEFAULT_BOOKING_NOTES_PLACEHOLDER);
 });
 
+test('company information tabs render with a valid alpine state', function () {
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+    ]);
+
+    $this->actingAs($therapist)
+        ->get(route('profile.editCompanyInfo'))
+        ->assertOk()
+        ->assertSee('x-data="{ activeTab:', false)
+        ->assertDontSee("x-data='{ activeTab:", false);
+});
+
 test('appointment information is visible to the practitioner on desktop mobile and email', function () {
     $therapist = User::factory()->create([
         'is_therapist' => true,

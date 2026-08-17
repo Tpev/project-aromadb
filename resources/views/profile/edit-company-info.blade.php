@@ -38,7 +38,7 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Mettre à Jour les Informations de l\'Entreprise') }}</h1>
 
-            <div x-data='{ activeTab: @js($errors->has('booking_notes_placeholder') ? 'booking' : 'company') }'>
+            <div x-data="{ activeTab: @js($errors->has('booking_notes_placeholder') ? 'booking' : 'company') }">
                 {{-- Tabs header --}}
                 <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200">
                     <button type="button"
