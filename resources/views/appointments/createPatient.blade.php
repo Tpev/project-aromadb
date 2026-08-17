@@ -647,8 +647,9 @@
                         </div>
 
                         <div class="details-box">
-                            <label class="details-label" for="notes">{{ __('Notes') }}</label>
-                            <textarea id="notes" name="notes" class="form-control" placeholder="{{ __('Ex: infos importantes, contexte, objectif…') }}">{{ old('notes') }}</textarea>
+                            <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
+                            <textarea id="notes" name="notes" class="form-control" placeholder="{{ $therapist->resolvedBookingNotesPlaceholder() }}">{{ old('notes') }}</textarea>
+                            <small class="hint">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
                             @error('notes')<p class="text-red-500">{{ $message }}</p>@enderror
                         </div>
 

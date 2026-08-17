@@ -861,10 +861,22 @@ private function isAvailable(
 	$conflictingAppointments = $this->applyBlockingAppointmentsFilter($conflictingAppointments);
 
 	// ✅ overlap check (use COALESCE for safety)
-	$conflictingAppointments->where(function ($q) use ($bufferedStart, $bufferedEnd) {
-		$q->where('appointment_date', '<', $bufferedEnd)
-		  ->whereRaw("DATE_ADD(appointment_date, INTERVAL COALESCE(duration,60) MINUTE) > ?", [$bufferedStart]);
-	});
+    $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+    $conflictingAppointments->where(function ($q) use ($bufferedStart, $bufferedEnd, $isSqlite) {
+        $q->where('appointment_date', '<', $bufferedEnd);
+
+        if ($isSqlite) {
+            $q->whereRaw(
+                "datetime(appointment_date, '+' || COALESCE(duration, 60) || ' minutes') > ?",
+                [$bufferedStart]
+            );
+        } else {
+            $q->whereRaw(
+                'DATE_ADD(appointment_date, INTERVAL COALESCE(duration, 60) MINUTE) > ?',
+                [$bufferedStart]
+            );
+        }
+    });
 
 
     if ($excludeAppointmentId) {
@@ -1321,7 +1333,6 @@ public function storePatient(Request $request)
             'phone'      => $request->phone,
             'address'    => $request->address,
             'birthdate'  => $request->birthdate,
-            'notes'      => $request->notes,
         ]
     );
 
@@ -3536,7 +3547,6 @@ public function storeByToken(Request $request, string $token)
             'phone'      => $request->phone,
             'address'    => $request->address,
             'birthdate'  => $request->birthdate,
-            'notes'      => $request->notes,
         ]
     );
 

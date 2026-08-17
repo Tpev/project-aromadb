@@ -38,7 +38,7 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Mettre à Jour les Informations de l\'Entreprise') }}</h1>
 
-            <div x-data="{ activeTab: 'company' }">
+            <div x-data='{ activeTab: @js($errors->has('booking_notes_placeholder') ? 'booking' : 'company') }'>
                 {{-- Tabs header --}}
                 <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200">
                     <button type="button"
@@ -526,6 +526,27 @@
                                 {{ __('Optionnel : laissez vide pour ne pas définir de limite globale.') }}
                             </small>
                             @error('global_daily_booking_limit')
+                                <p class="text-red-500">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="details-box">
+                            <label class="details-label" for="booking_notes_placeholder">
+                                {{ __('Texte d’aide du champ « Informations complémentaires »') }}
+                            </label>
+                            <input
+                                type="text"
+                                id="booking_notes_placeholder"
+                                name="booking_notes_placeholder"
+                                class="form-control"
+                                maxlength="255"
+                                value="{{ old('booking_notes_placeholder', $user->booking_notes_placeholder) }}"
+                                placeholder="{{ \App\Models\User::DEFAULT_BOOKING_NOTES_PLACEHOLDER }}"
+                            >
+                            <small class="text-gray-500">
+                                {{ __('Ce texte aide vos clients à savoir quelles informations vous transmettre lors de la réservation. Laissez vide pour conserver le texte actuel.') }}
+                            </small>
+                            @error('booking_notes_placeholder')
                                 <p class="text-red-500">{{ $message }}</p>
                             @enderror
                         </div>

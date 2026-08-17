@@ -239,10 +239,10 @@
         {{-- NOTES --}}
         <x-ts-card>
             <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">
-                {{ __('Notes') }}
+                {{ __('Informations complémentaires au rendez-vous') }}
             </p>
-            <p class="text-sm text-gray-700">
-                {{ $appointment->notes ?: __('Aucune note ajoutée') }}
+            <p class="text-sm text-gray-700 whitespace-pre-line">
+                {{ $appointment->notes ?: __('Aucune information complémentaire') }}
             </p>
         </x-ts-card>
 
@@ -311,4 +311,3 @@
     </style>
 
 </x-mobile-layout>
-

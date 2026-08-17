@@ -64,6 +64,7 @@ class Appointment extends Model
         'type',
         'duration',
         'product_id',
+        'booking_link_id',
         'stripe_session_id',
         'gift_voucher_id',
         'gift_voucher_amount_cents',

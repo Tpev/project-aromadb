@@ -199,8 +199,8 @@
 
                 <div class="row mt-3">
                     <div class="col-md-12">
-                        <label class="details-label">{{ __('Notes') }}</label>
-                        <p class="details-value">{{ $appointment->notes ?? __('Aucune note') }}</p>
+                        <label class="details-label">{{ __('Informations complémentaires au rendez-vous') }}</label>
+                        <p class="details-value" style="white-space: pre-line;">{{ $appointment->notes ?: __('Aucune information complémentaire') }}</p>
                     </div>
                 </div>
             </div>

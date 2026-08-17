@@ -201,10 +201,10 @@
         {{-- Notes --}}
         <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
             <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Notes
+                Informations complémentaires au rendez-vous
             </h2>
             <p class="text-sm text-gray-800 whitespace-pre-line">
-                {{ $appointment->notes ?: 'Aucune note pour ce rendez-vous.' }}
+                {{ $appointment->notes ?: 'Aucune information complémentaire' }}
             </p>
         </div>
 

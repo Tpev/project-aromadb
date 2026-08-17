@@ -19,6 +19,11 @@ Un nouveau rendez-vous a été programmé.
 {!! nl2br(e($clientAddress ?? 'Adresse non renseignée')) !!}
 @endif
 
+@if(filled($appointment->notes))
+**Informations complémentaires :**<br>
+{!! nl2br(e($appointment->notes)) !!}
+@endif
+
 Vous pouvez consulter ce rendez-vous dans votre agenda.
 
 @isset($appointmentUrl)

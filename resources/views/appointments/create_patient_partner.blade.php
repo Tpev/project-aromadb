@@ -166,6 +166,14 @@
             </div>
 
             <div class="details-box">
+                <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
+                <textarea id="notes" name="notes" class="form-control"
+                          placeholder="{{ $therapist->resolvedBookingNotesPlaceholder() }}">{{ old('notes') }}</textarea>
+                <small class="subtle">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
+                @error('notes')<p class="text-danger mt-2">{{ $message }}</p>@enderror
+            </div>
+
+            <div class="details-box">
                 <label class="details-label" for="gift_voucher_code">{{ __('Code bon cadeau (optionnel)') }}</label>
                 <input type="text" id="gift_voucher_code" name="gift_voucher_code" class="form-control"
                        value="{{ old('gift_voucher_code') }}" placeholder="{{ __('Ex: AM-ABCD-EFGH-IJKL') }}">

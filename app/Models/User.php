@@ -14,6 +14,8 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    public const DEFAULT_BOOKING_NOTES_PLACEHOLDER = 'Ex: infos importantes, contexte, objectif…';
+
     /**
      * NEW LICENSE DEFINITIONS — Add nothing else here unless needed
      */
@@ -82,6 +84,7 @@ class User extends Authenticatable
 
         'buffer_time_between_appointments',
         'global_daily_booking_limit',
+        'booking_notes_placeholder',
         'cgv_pdf_path',
 		'onboarding_mode',
         'invoice_extra_info',
@@ -114,6 +117,15 @@ class User extends Authenticatable
         'konva_branding_settings' => 'array',
         'digital_sales_retractation_enabled' => 'boolean',
     ];
+
+    public function resolvedBookingNotesPlaceholder(): string
+    {
+        $placeholder = trim((string) $this->booking_notes_placeholder);
+
+        return $placeholder !== ''
+            ? $placeholder
+            : self::DEFAULT_BOOKING_NOTES_PLACEHOLDER;
+    }
 
     /*
     |--------------------------------------------------------------------------

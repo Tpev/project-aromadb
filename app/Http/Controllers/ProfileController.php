@@ -131,6 +131,7 @@ class ProfileController extends Controller
             'remove_portal_logo' => 'nullable|boolean',
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
             'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
+            'booking_notes_placeholder' => 'nullable|string|max:255',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
             'cancellation_notice_hours' => 'nullable|integer|min:0|max:720',
 
@@ -183,6 +184,11 @@ class ProfileController extends Controller
             'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
             'global_daily_booking_limit' => $validatedData['global_daily_booking_limit'] ?? null,
         ]);
+
+        if (array_key_exists('booking_notes_placeholder', $validatedData)) {
+            $placeholder = trim((string) ($validatedData['booking_notes_placeholder'] ?? ''));
+            $user->booking_notes_placeholder = $placeholder !== '' ? $placeholder : null;
+        }
 		// Google Calendar event color (store only palette ID)
 		if ($request->filled('google_event_color_id')) {
 			$user->google_event_color_id = (string) $request->input('google_event_color_id');
