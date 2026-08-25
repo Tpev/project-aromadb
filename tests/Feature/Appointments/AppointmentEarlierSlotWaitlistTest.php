@@ -609,6 +609,38 @@ test('a slot occupied after the email was prepared cannot be claimed', function 
     Mail::assertNotQueued(AppointmentEarlierSlotClaimedTherapistMail::class);
 });
 
+test('the earlier-slot confirmation email contains the existing visio room link', function () {
+    $practitioner = earlierSlotPractitioner();
+    $product = earlierSlotProduct($practitioner);
+    $client = earlierSlotClient($practitioner, 'visio-confirmation@example.test');
+    $appointment = earlierSlotAppointment(
+        $practitioner,
+        $product,
+        $client,
+        Carbon::parse('2026-08-31 10:00:00')
+    );
+    $room = str_repeat('e', 32);
+
+    Meeting::create([
+        'appointment_id' => $appointment->id,
+        'client_profile_id' => $client->id,
+        'name' => 'Visio créneau avancé',
+        'start_time' => $appointment->appointment_date,
+        'duration' => 60,
+        'participant_email' => $client->email,
+        'room_token' => $room,
+    ]);
+
+    $html = (new AppointmentEarlierSlotClaimedClientMail(
+        $appointment,
+        $appointment->appointment_date->copy()->addWeek()
+    ))->render();
+
+    expect($html)
+        ->toContain('Rejoindre la visio')
+        ->toContain($room);
+});
+
 test('cancelling and rescheduling appointments queue discovery for the exact released slot', function () {
     Queue::fake([DiscoverEarlierSlotOffersJob::class]);
 

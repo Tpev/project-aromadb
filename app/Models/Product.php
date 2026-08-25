@@ -42,6 +42,7 @@ class Product extends Model
         'booking_questionnaire_frequency',
         'preparation_time_minutes',
         'buffer_time_after_minutes',
+        'booking_notes_placeholder',
         'confirmation_email_note',
         'reminder_email_note',
     ];
@@ -114,6 +115,43 @@ class Product extends Model
             : 'Prix non renseigné';
 
         return $this->name.' - '.$duration.' - '.$price;
+    }
+
+    public function resolvedBookingNotesPlaceholder(?User $therapist = null): string
+    {
+        $customPlaceholder = trim((string) $this->booking_notes_placeholder);
+
+        if ($customPlaceholder !== '') {
+            return $customPlaceholder;
+        }
+
+        $therapist ??= $this->user;
+
+        return $therapist?->resolvedBookingNotesPlaceholder()
+            ?? User::DEFAULT_BOOKING_NOTES_PLACEHOLDER;
+    }
+
+    public function getDirectBookingVariantLabelAttribute(): string
+    {
+        $modes = [];
+        if ($this->visio) $modes[] = 'Visio';
+        if ($this->dans_le_cabinet) $modes[] = 'Cabinet';
+        if ($this->adomicile) $modes[] = 'À domicile';
+        if ($this->en_entreprise) $modes[] = 'Entreprise';
+
+        $parts = $modes ?: ['Mode non renseigné'];
+
+        if ((int) $this->duration > 0) {
+            $parts[] = (int) $this->duration.' min';
+        }
+
+        if ($this->price_visible_in_portal) {
+            $parts[] = (float) $this->price_incl_tax > 0
+                ? number_format((float) $this->price_incl_tax, 2, ',', ' ').' €'
+                : 'Gratuit';
+        }
+
+        return implode(' · ', $parts);
     }
 
     /** (Optionnel) Scope pratique pour filtrer ce qui est visible dans le portail. */

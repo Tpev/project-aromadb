@@ -11,6 +11,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 use App\Services\AppointmentMailDeliveryGuard;
+use App\Services\AppointmentClientVisioUrlResolver;
 
 class AppointmentRescheduledClientMail extends Mailable implements ShouldQueue
 {
@@ -20,7 +21,7 @@ class AppointmentRescheduledClientMail extends Mailable implements ShouldQueue
 
     public function __construct(public Appointment $appointment, public Carbon $oldStart)
     {
-        $this->appointment->loadMissing(['clientProfile', 'user', 'product']);
+        $this->appointment->loadMissing(['clientProfile', 'user', 'product', 'meeting']);
     }
 
     public function backoff(): array
@@ -38,11 +39,14 @@ class AppointmentRescheduledClientMail extends Mailable implements ShouldQueue
 
     public function build()
     {
+        $visioUrl = app(AppointmentClientVisioUrlResolver::class)->resolve($this->appointment);
+
         return $this->applyPractitionerReplyTo($this->appointment->user)
             ->subject('Votre nouveau créneau est confirmé')
             ->markdown('emails.appointments.rescheduled-client', [
                 'managementUrl' => route('appointments.showPatient', $this->appointment->token),
                 'icsUrl' => route('appointments.downloadICS', $this->appointment->token),
+                'visioUrl' => $visioUrl,
             ]);
     }
 }

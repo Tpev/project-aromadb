@@ -394,6 +394,7 @@
                     'duration' => (int) ($p->duration ?? 0),
                     'price'    => rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.'),
                     'price_raw'=> $total,
+                    'booking_notes_placeholder' => $p->resolvedBookingNotesPlaceholder($therapist),
                 ];
 
                 if ($p->adomicile) {
@@ -731,6 +732,7 @@
             const OLD_TIME        = @json(old('appointment_time'));
             const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
             const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
+            const DEFAULT_BOOKING_NOTES_PLACEHOLDER = @json($therapist->resolvedBookingNotesPlaceholder());
 
         let allowedDates = [];
         let currentSlotsRequestId = 0;
@@ -817,6 +819,21 @@
                 // keep hidden location name used by backend
                 const locId = $('#practice_location_id').val();
                 $('#practice_location_id_hidden').val(locId || '');
+            }
+
+            function updateBookingNotesPlaceholder(productId) {
+                let placeholder = DEFAULT_BOOKING_NOTES_PLACEHOLDER;
+
+                Object.values(PRODUCT_CATALOG).some(function (product) {
+                    return Object.values(product.modes || {}).some(function (mode) {
+                        const variant = (mode.products || []).find(v => String(v.id) === String(productId || ''));
+                        if (!variant) return false;
+                        placeholder = variant.booking_notes_placeholder || DEFAULT_BOOKING_NOTES_PLACEHOLDER;
+                        return true;
+                    });
+                });
+
+                $('#notes').attr('placeholder', placeholder);
             }
 
             function resetTimeSelect() {
@@ -1113,6 +1130,7 @@
 
                 // reset hidden state & UI
                 $('#product_id').val('');
+                updateBookingNotesPlaceholder(null);
                 $('#selected_mode_slug').val('');
                 $('#product_variant').empty().append('<option value="" disabled selected>{{ __("Sélectionner un format") }}</option>');
                 $('#format-section').hide();
@@ -1181,6 +1199,8 @@
                     $('#product_id').val(String(chosen));
                 }
 
+                updateBookingNotesPlaceholder($('#product_id').val());
+
                 autoPickDate = null;
                 autoPickTime = null;
 
@@ -1208,6 +1228,7 @@
                 if (productId) {
                     $('#product_id').val(productId);
                 }
+                updateBookingNotesPlaceholder(productId);
                 if ($('#selected_mode_slug').val() === 'cabinet') {
                     configureCabinetLocations(productId);
                 }

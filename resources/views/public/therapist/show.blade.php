@@ -702,7 +702,7 @@
                                     @foreach($bookableVariants as $variant)
                                         <a href="{{ route('appointments.createPatient', ['therapist' => $therapist->id, 'product_id' => $variant->id]) }}"
                                            class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8ea633]">
-                                            {{ $bookableVariants->count() === 1 ? __('Voir les créneaux') : __('Créneaux') . ' · ' . $variant->duration . ' min · ' . number_format($variant->price_incl_tax ?? $variant->price, 2, ',', ' ') . ' €' }}
+                                            {{ $bookableVariants->count() === 1 ? __('Voir les créneaux') : $variant->direct_booking_variant_label }}
                                         </a>
                                     @endforeach
                                 </div>

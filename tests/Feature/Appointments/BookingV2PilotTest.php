@@ -572,6 +572,7 @@ test('product scheduling and email settings are saved only for an allowlisted pr
         'price_visible_in_portal' => 1,
         'preparation_time_minutes' => 10,
         'buffer_time_after_minutes' => 20,
+        'booking_notes_placeholder' => 'Quel est votre objectif pour ce bilan ?',
         'confirmation_email_note' => 'Préparez votre questionnaire.',
         'reminder_email_note' => 'Merci d’arriver à l’heure.',
     ];
@@ -580,6 +581,7 @@ test('product scheduling and email settings are saved only for an allowlisted pr
     $stored = Product::query()->where('user_id', $allowed->id)->where('name', 'Bilan')->firstOrFail();
     expect($stored->preparation_time_minutes)->toBe(10)
         ->and($stored->buffer_time_after_minutes)->toBe(20)
+        ->and($stored->booking_notes_placeholder)->toBe('Quel est votre objectif pour ce bilan ?')
         ->and($stored->confirmation_email_note)->toBe('Préparez votre questionnaire.');
 
     $legacy = bookingV2User();
@@ -588,6 +590,7 @@ test('product scheduling and email settings are saved only for an allowlisted pr
     $legacyProduct = Product::query()->where('user_id', $legacy->id)->where('name', 'Bilan legacy')->firstOrFail();
     expect($legacyProduct->preparation_time_minutes)->toBeNull()
         ->and($legacyProduct->buffer_time_after_minutes)->toBeNull()
+        ->and($legacyProduct->booking_notes_placeholder)->toBeNull()
         ->and($legacyProduct->confirmation_email_note)->toBeNull();
 });
 
@@ -681,6 +684,7 @@ test('the booking v2 migration can be safely rerun after a partial deployment', 
         ->and(Schema::hasColumns('products', [
             'preparation_time_minutes',
             'buffer_time_after_minutes',
+            'booking_notes_placeholder',
             'confirmation_email_note',
             'reminder_email_note',
         ]))->toBeTrue()
@@ -730,6 +734,42 @@ test('allowlisted portal service cards link to the ordinary preselected booking 
     $this->get($mobileBookingUrl)
         ->assertOk()
         ->assertSee('Séance découverte');
+});
+
+test('direct booking buttons distinguish same-name prestation variants on desktop and mobile', function () {
+    $user = bookingV2User([
+        'slug' => 'cabinet-variantes-reservation',
+        'company_name' => 'Cabinet Variantes',
+    ]);
+    bookingV2Product($user, [
+        'name' => 'Accompagnement individuel',
+        'duration' => 60,
+        'price' => 70,
+        'visio' => true,
+        'dans_le_cabinet' => false,
+        'visible_in_portal' => true,
+        'price_visible_in_portal' => true,
+    ]);
+    bookingV2Product($user, [
+        'name' => 'Accompagnement individuel',
+        'duration' => 90,
+        'price' => 95,
+        'visio' => false,
+        'adomicile' => true,
+        'visible_in_portal' => true,
+        'price_visible_in_portal' => true,
+    ]);
+    enableBookingV2For($user);
+
+    foreach ([
+        route('therapist.show', $user->slug),
+        route('mobile.therapists.show', $user->slug),
+    ] as $url) {
+        $this->get($url)
+            ->assertOk()
+            ->assertSee('Visio · 60 min · 70,00 €')
+            ->assertSee('À domicile · 90 min · 95,00 €');
+    }
 });
 
 test('snapshotted product notes appear only in the appropriate escaped client email', function () {

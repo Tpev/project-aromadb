@@ -33,13 +33,26 @@ class AppointmentManagementController extends Controller
         $data = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d'],
         ]);
-        $selectedDate = $data['date'] ?? $appointment->appointment_date->toDateString();
-        $date = Carbon::createFromFormat('Y-m-d', $selectedDate)->startOfDay();
+        $availabilityWindow = $availability->availableDates($appointment, Carbon::today(), 90);
+        $availableDates = $availabilityWindow['dates'];
+        $requestedDate = $data['date'] ?? null;
+        $currentDate = $appointment->appointment_date->toDateString();
+        $selectedDate = collect([
+            $requestedDate,
+            $currentDate,
+            $availabilityWindow['next']['date'] ?? null,
+        ])->first(fn ($date) => $date && in_array($date, $availableDates, true));
 
         return view('appointments.reschedule_patient', [
             'appointment' => $appointment,
             'selectedDate' => $selectedDate,
-            'slots' => $availability->slotsForDate($appointment, $date),
+            'availableDates' => $availableDates,
+            'slots' => $selectedDate
+                ? $availability->slotsForDate(
+                    $appointment,
+                    Carbon::createFromFormat('Y-m-d', $selectedDate)->startOfDay()
+                )
+                : [],
         ]);
     }
 

@@ -34,6 +34,7 @@ test('duplicating a Stripe-backed prestation does not copy unique Stripe identif
         'stripe_price_id' => 'price_source_unique',
         'preparation_time_minutes' => 10,
         'buffer_time_after_minutes' => 15,
+        'booking_notes_placeholder' => 'Que souhaitez-vous travailler ?',
         'confirmation_email_note' => 'Message de confirmation',
         'reminder_email_note' => 'Message de rappel',
     ]);
@@ -55,6 +56,7 @@ test('duplicating a Stripe-backed prestation does not copy unique Stripe identif
             'direct_booking_enabled' => 0,
             'preparation_time_minutes' => 10,
             'buffer_time_after_minutes' => 15,
+            'booking_notes_placeholder' => 'Que souhaitez-vous travailler ?',
             'confirmation_email_note' => 'Message de confirmation',
             'reminder_email_note' => 'Message de rappel',
         ]
@@ -72,6 +74,7 @@ test('duplicating a Stripe-backed prestation does not copy unique Stripe identif
         ->and($duplicate->collect_payment)->toBeTrue()
         ->and($duplicate->preparation_time_minutes)->toBe(10)
         ->and($duplicate->buffer_time_after_minutes)->toBe(15)
+        ->and($duplicate->booking_notes_placeholder)->toBe('Que souhaitez-vous travailler ?')
         ->and($duplicate->confirmation_email_note)->toBe('Message de confirmation')
         ->and($duplicate->reminder_email_note)->toBe('Message de rappel');
 });

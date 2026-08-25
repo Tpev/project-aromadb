@@ -133,6 +133,14 @@
                     <h2 class="text-sm font-semibold text-gray-900">Communication avec le client</h2>
                     <div class="mt-3 space-y-3">
                         <label class="block">
+                            <span class="text-sm font-medium text-gray-700">Question « Informations complémentaires »</span>
+                            <input name="booking_notes_placeholder" type="text" maxlength="255"
+                                   value="{{ old('booking_notes_placeholder', $product->booking_notes_placeholder) }}"
+                                   placeholder="{{ auth()->user()->resolvedBookingNotesPlaceholder() }}"
+                                   class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                            <span class="mt-1 block text-xs text-gray-500">Laissez vide pour utiliser la question générale du compte.</span>
+                        </label>
+                        <label class="block">
                             <span class="text-sm font-medium text-gray-700">Message de confirmation</span>
                             <textarea name="confirmation_email_note" rows="3" maxlength="2000" class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ old('confirmation_email_note', $product->confirmation_email_note) }}</textarea>
                         </label>

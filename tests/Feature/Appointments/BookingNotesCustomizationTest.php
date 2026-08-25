@@ -87,6 +87,43 @@ test('each practitioner booking form uses only their customized placeholder', fu
         ->assertDontSee('Avez-vous une information pratique à partager ?');
 });
 
+test('a prestation question overrides the global question in normal partner and mobile booking catalogs', function () {
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'accept_online_appointments' => true,
+        'slug' => 'question-par-prestation',
+        'booking_notes_placeholder' => 'Question générale du cabinet ?',
+    ]);
+    config()->set('appointments.booking_v2.enabled', true);
+    config()->set('appointments.booking_v2.allowed_user_ids', [$therapist->id]);
+
+    $product = bookingNotesProduct($therapist);
+    $product->update([
+        'booking_notes_placeholder' => 'Quel âge a votre enfant ?',
+        'visible_in_portal' => true,
+    ]);
+    $bookingLink = bookingNotesLink($therapist, $product, 'booking-notes-product-specific');
+
+    expect($product->fresh()->resolvedBookingNotesPlaceholder($therapist))
+        ->toBe('Quel âge a votre enfant ?');
+
+    foreach ([
+        route('appointments.createPatient', $therapist),
+        route('bookingLinks.create', $bookingLink->token),
+        route('mobile.appointments.create_from_therapist', $therapist->slug),
+    ] as $url) {
+        $this->get($url)
+            ->assertOk()
+            ->assertSee('booking_notes_placeholder', false)
+            ->assertSee('enfant', false);
+    }
+
+    $product->update(['booking_notes_placeholder' => null]);
+
+    expect($product->fresh()->resolvedBookingNotesPlaceholder($therapist))
+        ->toBe('Question générale du cabinet ?');
+});
+
 test('practitioners can customize or restore the default booking notes placeholder', function () {
     $therapist = User::factory()->create([
         'is_therapist' => true,

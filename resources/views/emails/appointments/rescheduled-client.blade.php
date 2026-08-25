@@ -10,6 +10,12 @@ Votre rendez-vous a été déplacé :
 - **Prestation :** {{ $appointment->product?->name ?? 'Rendez-vous' }}
 - **Praticien :** {{ $appointment->user?->company_name ?: $appointment->user?->name }}
 
+@if(!empty($visioUrl))
+@component('mail::button', ['url' => $visioUrl])
+Rejoindre la visio
+@endcomponent
+@endif
+
 @component('mail::button', ['url' => $managementUrl])
 Gérer mon rendez-vous
 @endcomponent

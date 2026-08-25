@@ -276,9 +276,10 @@
 
                     <!-- Notes -->
                     <div class="details-box mb-3">
-                        <label class="details-label" for="notes">{{ __('Notes') }}</label>
+                        <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
                         <textarea id="notes" name="notes" class="form-control"
-                                  rows="3">{{ old('notes') }}</textarea>
+                                  rows="3" placeholder="{{ $therapist->resolvedBookingNotesPlaceholder() }}">{{ old('notes') }}</textarea>
+                        <small class="text-xs text-gray-500">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
                         @error('notes')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
 
@@ -444,6 +445,7 @@
 
     <script>
         const PRODUCT_MODES = @json($productModes);
+        const DEFAULT_BOOKING_NOTES_PLACEHOLDER = @json($therapist->resolvedBookingNotesPlaceholder());
         const OLD_TIME      = @json(old('appointment_time'));
         const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
         const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
@@ -758,6 +760,7 @@
 
                 // reset hidden state & UI
                 $('#product_id').val('');
+                $('#notes').attr('placeholder', DEFAULT_BOOKING_NOTES_PLACEHOLDER);
                 $('#selected_mode_slug').val('');
                 $('#cabinet-location-section').hide();
                 $('#therapist-address-section').hide();
@@ -781,6 +784,10 @@
 
                 $('#product_id').val(productId);
                 $('#selected_mode_slug').val(modeSlug);
+
+                const selectedName = $('#product_name').val();
+                const selectedMode = (PRODUCT_MODES[selectedName] || []).find(m => String(m.product.id) === String(productId));
+                $('#notes').attr('placeholder', selectedMode?.product?.booking_notes_placeholder || DEFAULT_BOOKING_NOTES_PLACEHOLDER);
 
                 resetTimeSelect();
                 fp.set('enable', []);

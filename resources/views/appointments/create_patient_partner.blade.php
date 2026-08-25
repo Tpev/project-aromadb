@@ -252,6 +252,7 @@
     const catalog = @json($catalog);
     const bookingV2Locations = @json($compatibleLocationsByProduct ?? []);
     const bookingV2Active = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
+    const defaultBookingNotesPlaceholder = @json($therapist->resolvedBookingNotesPlaceholder());
     const oldProductId = @json((string) old('product_id', ''));
     const oldLocationId = @json((string) old('practice_location_id', ''));
     let pendingOldDate = @json(old('appointment_date'));
@@ -271,6 +272,7 @@
 
     const prestationHelp = document.getElementById('prestationHelp');
     const variantMeta = document.getElementById('variantMeta');
+    const notesInput = document.getElementById('notes');
 
     const dateLoadingMessage = document.getElementById('date-loading-message');
     const noSlotsMessage = document.getElementById('no-slots-message');
@@ -284,6 +286,10 @@
     $practiceLocationSelect.select2({ width: '100%' });
 
     function setVariantMeta(v) {
+        if (notesInput) {
+            notesInput.placeholder = v?.booking_notes_placeholder || defaultBookingNotesPlaceholder;
+        }
+
         if (!v) {
             variantMeta.style.display = 'none';
             variantMeta.innerHTML = '';

@@ -10,6 +10,12 @@ Le créneau plus tôt est confirmé. Votre paiement éventuel et toutes les info
 - **Prestation :** {{ $appointment->product?->name ?? 'Rendez-vous' }}
 - **Mode :** {{ $appointment->getResolvedModeLabel() }}
 
+@if(!empty($visioUrl))
+@component('mail::button', ['url' => $visioUrl])
+Rejoindre la visio
+@endcomponent
+@endif
+
 @component('mail::button', ['url' => $managementUrl])
 Voir mon rendez-vous
 @endcomponent

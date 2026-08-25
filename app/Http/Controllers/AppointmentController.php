@@ -4029,13 +4029,14 @@ public function createByToken(string $token)
      */
     $productsByName = $products->groupBy('name');
 
-    $catalog = $productsByName->map(function ($items, $name) {
-        $variants = $items->values()->map(function ($p) {
+    $catalog = $productsByName->map(function ($items, $name) use ($therapist) {
+        $variants = $items->values()->map(function ($p) use ($therapist) {
             return [
                 'id' => (int) $p->id,
                 'name' => (string) $p->name,
                 'price' => is_null($p->price) ? null : (float) $p->price,
                 'duration' => is_null($p->duration) ? null : (int) $p->duration,
+                'booking_notes_placeholder' => $p->resolvedBookingNotesPlaceholder($therapist),
 
                 // Flags used by the JS to infer mode
                 'visio' => (bool) (!empty($p->visio) || !empty($p->en_visio)),

@@ -63,6 +63,7 @@ class ProductController extends Controller
             'booking_questionnaire_frequency' => 'nullable|string|in:first_time_only,every_booking',
             'preparation_time_minutes' => 'nullable|integer|min:0|max:480',
             'buffer_time_after_minutes' => 'nullable|integer|min:0|max:480',
+            'booking_notes_placeholder' => 'nullable|string|max:255',
             'confirmation_email_note' => 'nullable|string|max:2000',
             'reminder_email_note' => 'nullable|string|max:2000',
 
@@ -198,6 +199,7 @@ class ProductController extends Controller
             'booking_questionnaire_frequency' => 'nullable|string|in:first_time_only,every_booking',
             'preparation_time_minutes' => 'nullable|integer|min:0|max:480',
             'buffer_time_after_minutes' => 'nullable|integer|min:0|max:480',
+            'booking_notes_placeholder' => 'nullable|string|max:255',
             'confirmation_email_note' => 'nullable|string|max:2000',
             'reminder_email_note' => 'nullable|string|max:2000',
         ]);
@@ -389,6 +391,7 @@ public function storeDuplicate(Request $request, Product $product)
         'direct_booking_enabled'  => 'nullable|boolean',
         'preparation_time_minutes' => 'nullable|integer|min:0|max:480',
         'buffer_time_after_minutes' => 'nullable|integer|min:0|max:480',
+        'booking_notes_placeholder' => 'nullable|string|max:255',
         'confirmation_email_note' => 'nullable|string|max:2000',
         'reminder_email_note' => 'nullable|string|max:2000',
     ]);
@@ -469,6 +472,9 @@ public function storeDuplicate(Request $request, Product $product)
         return [
             'preparation_time_minutes' => $validatedData['preparation_time_minutes'] ?? null,
             'buffer_time_after_minutes' => $validatedData['buffer_time_after_minutes'] ?? null,
+            'booking_notes_placeholder' => filled($validatedData['booking_notes_placeholder'] ?? null)
+                ? trim($validatedData['booking_notes_placeholder'])
+                : null,
             'confirmation_email_note' => filled($validatedData['confirmation_email_note'] ?? null)
                 ? trim($validatedData['confirmation_email_note'])
                 : null,

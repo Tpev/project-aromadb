@@ -30,6 +30,14 @@
         <h3 class="extra-settings-title">{{ __('Communication avec le client') }}</h3>
         <div class="extra-settings-box">
             <div class="details-box">
+                <label class="details-label" for="booking_notes_placeholder">{{ __('Question affichée dans « Informations complémentaires »') }}</label>
+                <input id="booking_notes_placeholder" name="booking_notes_placeholder" type="text" class="form-control" maxlength="255"
+                       value="{{ old('booking_notes_placeholder', $bookingProduct?->booking_notes_placeholder) }}"
+                       placeholder="{{ auth()->user()->resolvedBookingNotesPlaceholder() }}">
+                <small class="text-gray-500">{{ __('Laissez vide pour utiliser la question générale définie dans les informations de votre entreprise.') }}</small>
+                @error('booking_notes_placeholder') <p class="text-red-500">{{ $message }}</p> @enderror
+            </div>
+            <div class="details-box">
                 <label class="details-label" for="confirmation_email_note">{{ __('Message ajouté à l’email de confirmation') }}</label>
                 <textarea id="confirmation_email_note" name="confirmation_email_note" class="form-control" rows="3" maxlength="2000" x-model="confirmationNote">{{ old('confirmation_email_note', $bookingProduct?->confirmation_email_note) }}</textarea>
                 @error('confirmation_email_note') <p class="text-red-500">{{ $message }}</p> @enderror

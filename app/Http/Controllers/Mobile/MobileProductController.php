@@ -164,6 +164,7 @@ class MobileProductController extends Controller
             'booking_questionnaire_frequency' => ['nullable', 'string', 'in:first_time_only,every_booking'],
             'preparation_time_minutes' => ['nullable', 'integer', 'min:0', 'max:480'],
             'buffer_time_after_minutes' => ['nullable', 'integer', 'min:0', 'max:480'],
+            'booking_notes_placeholder' => ['nullable', 'string', 'max:255'],
             'confirmation_email_note' => ['nullable', 'string', 'max:2000'],
             'reminder_email_note' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -223,6 +224,7 @@ class MobileProductController extends Controller
             $payload += [
                 'preparation_time_minutes' => $validated['preparation_time_minutes'] ?? null,
                 'buffer_time_after_minutes' => $validated['buffer_time_after_minutes'] ?? null,
+                'booking_notes_placeholder' => filled($validated['booking_notes_placeholder'] ?? null) ? trim($validated['booking_notes_placeholder']) : null,
                 'confirmation_email_note' => filled($validated['confirmation_email_note'] ?? null) ? trim($validated['confirmation_email_note']) : null,
                 'reminder_email_note' => filled($validated['reminder_email_note'] ?? null) ? trim($validated['reminder_email_note']) : null,
             ];

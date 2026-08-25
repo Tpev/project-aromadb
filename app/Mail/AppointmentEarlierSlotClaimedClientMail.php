@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Mail\Concerns\RepliesToPractitioner;
 use App\Models\Appointment;
 use App\Services\AppointmentMailDeliveryGuard;
+use App\Services\AppointmentClientVisioUrlResolver;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,7 +21,7 @@ class AppointmentEarlierSlotClaimedClientMail extends Mailable implements Should
 
     public function __construct(public Appointment $appointment, public Carbon $oldStart)
     {
-        $this->appointment->loadMissing(['clientProfile', 'user', 'product', 'practiceLocation']);
+        $this->appointment->loadMissing(['clientProfile', 'user', 'product', 'practiceLocation', 'meeting']);
     }
 
     public function backoff(): array
@@ -38,11 +39,14 @@ class AppointmentEarlierSlotClaimedClientMail extends Mailable implements Should
 
     public function build()
     {
+        $visioUrl = app(AppointmentClientVisioUrlResolver::class)->resolve($this->appointment);
+
         return $this->applyPractitionerReplyTo($this->appointment->user)
             ->subject('Votre rendez-vous a bien été avancé')
             ->markdown('emails.appointments.earlier-slot-claimed-client', [
                 'managementUrl' => route('appointments.showPatient', $this->appointment->token),
                 'icsUrl' => route('appointments.downloadICS', $this->appointment->token),
+                'visioUrl' => $visioUrl,
             ]);
     }
 }

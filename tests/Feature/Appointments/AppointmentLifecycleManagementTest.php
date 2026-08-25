@@ -251,6 +251,80 @@ test('rescheduling preserves commercial data and leaves the visio meeting untouc
     Mail::assertQueued(AppointmentRescheduledTherapistMail::class);
 });
 
+test('rescheduling only enables dates with compatible available slots', function () {
+    $user = lifecycleUser();
+    $product = lifecycleProduct($user);
+    $client = lifecycleClient($user);
+    $availableDate = now()->addDays(7)->setTime(10, 0)->startOfMinute();
+    $unavailableDate = $availableDate->copy()->addDay();
+
+    Availability::create([
+        'user_id' => $user->id,
+        'day_of_week' => $availableDate->dayOfWeekIso - 1,
+        'start_time' => '09:00:00',
+        'end_time' => '13:00:00',
+        'applies_to_all' => true,
+    ]);
+
+    $appointment = lifecycleAppointment($user, $product, $client, [
+        'appointment_date' => $availableDate,
+    ]);
+
+    $this->get(route('appointment.confirmation.reschedule.form', $appointment->token))
+        ->assertOk()
+        ->assertSee('const availableDates =', false)
+        ->assertSee('"'.$availableDate->toDateString().'"', false)
+        ->assertDontSee('"'.$unavailableDate->toDateString().'"', false)
+        ->assertSee('disableMobile: true', false);
+});
+
+test('the rescheduling client email contains the existing visio room link without changing it', function () {
+    $user = lifecycleUser();
+    $product = lifecycleProduct($user);
+    $client = lifecycleClient($user);
+    $appointment = lifecycleAppointment($user, $product, $client);
+    $room = str_repeat('r', 32);
+
+    Meeting::create([
+        'appointment_id' => $appointment->id,
+        'client_profile_id' => $client->id,
+        'name' => 'Visio déplacement',
+        'start_time' => $appointment->appointment_date,
+        'duration' => 60,
+        'participant_email' => $client->email,
+        'room_token' => $room,
+    ]);
+
+    $html = (new AppointmentRescheduledClientMail(
+        $appointment,
+        $appointment->appointment_date->copy()->subDay()
+    ))->render();
+
+    expect($html)
+        ->toContain('Rejoindre la visio')
+        ->toContain($room)
+        ->and($appointment->meeting()->sole()->room_token)->toBe($room);
+});
+
+test('the rescheduling client email does not show a visio button for an in-person appointment', function () {
+    $user = lifecycleUser();
+    $product = lifecycleProduct($user, [
+        'visio' => false,
+        'dans_le_cabinet' => true,
+    ]);
+    $client = lifecycleClient($user);
+    $appointment = lifecycleAppointment($user, $product, $client, [
+        'type' => 'cabinet',
+    ]);
+
+    $html = (new AppointmentRescheduledClientMail(
+        $appointment,
+        $appointment->appointment_date->copy()->subDay()
+    ))->render();
+
+    expect($html)->not->toContain('Rejoindre la visio');
+});
+
 test('an occupied replacement slot is rejected without changing the appointment', function () {
     Mail::fake();
     $user = lifecycleUser();

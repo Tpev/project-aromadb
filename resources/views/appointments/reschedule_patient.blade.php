@@ -1,5 +1,6 @@
 <x-app-layout>
     @section('title', 'Modifier mon rendez-vous | Olithea')
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
         .reschedule-page { background:#f5f6f1; min-height:70vh; padding:32px 16px 64px; }
         .reschedule-card { max-width:760px; margin:0 auto; background:#fff; border:1px solid #e0e5d3; border-radius:8px; box-shadow:0 10px 28px rgba(37,49,25,.07); padding:30px; }
@@ -12,9 +13,13 @@
         .reschedule-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
         .reschedule-button { min-height:44px; border-radius:6px; padding:10px 17px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; }
         .reschedule-button.primary { border:0; background:#647a0b; color:#fff; cursor:pointer; }
+        .reschedule-button.primary:disabled { opacity:.55; cursor:not-allowed; }
         .reschedule-button.secondary { border:1px solid #647a0b; color:#526508; background:#fff; }
         .reschedule-errors { margin-bottom:18px; border-radius:6px; background:#fbe9e5; color:#843d2e; padding:13px 15px; }
+        .reschedule-empty { margin:0 0 18px; border-radius:6px; background:#f4f7eb; color:#4d5848; padding:13px 15px; }
         .reschedule-note { color:#687064; font-size:13px; line-height:1.5; margin-top:20px; }
+        .flatpickr-calendar { border:1px solid #647a0b; }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover { background:#647a0b; border-color:#647a0b; }
         @media(max-width:640px) { .reschedule-page{padding:18px 12px 44px}.reschedule-card{padding:22px 18px}.reschedule-card h1{font-size:23px}.reschedule-form-grid{grid-template-columns:1fr}.reschedule-actions,.reschedule-button{width:100%} }
     </style>
 
@@ -25,12 +30,16 @@
             @if($errors->any())<div class="reschedule-errors" role="alert">{{ $errors->all()[0] }}</div>@endif
             <div class="current-slot"><strong>Créneau actuel</strong><br>{{ $appointment->appointment_date?->format('d/m/Y à H:i') }} · {{ $appointment->product?->name ?? 'Rendez-vous' }}</div>
 
+            @if(empty($availableDates))
+                <p class="reschedule-empty" role="status">Aucun autre créneau n’est disponible pour le moment. Votre rendez-vous actuel reste bien réservé.</p>
+            @endif
+
             <form method="POST" action="{{ route('appointment.confirmation.reschedule', $appointment->token) }}">
                 @csrf
                 <div class="reschedule-form-grid">
                     <div class="reschedule-field">
                         <label for="appointment_date">Nouvelle date</label>
-                        <input type="date" id="appointment_date" name="appointment_date" min="{{ now()->toDateString() }}" value="{{ old('appointment_date', $selectedDate) }}" required>
+                        <input type="text" id="appointment_date" name="appointment_date" value="{{ old('appointment_date', $selectedDate) }}" autocomplete="off" required @disabled(empty($availableDates))>
                     </div>
                     <div class="reschedule-field">
                         <label for="appointment_time">Nouvelle heure</label>
@@ -43,7 +52,7 @@
                     </div>
                 </div>
                 <div class="reschedule-actions">
-                    <button type="submit" class="reschedule-button primary">Confirmer le nouveau créneau</button>
+                    <button type="submit" class="reschedule-button primary" @disabled(empty($availableDates))>Confirmer le nouveau créneau</button>
                     <a class="reschedule-button secondary" href="{{ route('appointments.showPatient', $appointment->token) }}">Conserver le créneau actuel</a>
                 </div>
             </form>
@@ -51,15 +60,20 @@
         </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dateInput = document.getElementById('appointment_date');
             const timeSelect = document.getElementById('appointment_time');
             const endpoint = @json(route('appointment.confirmation.reschedule.slots', $appointment->token));
-            dateInput.addEventListener('change', async () => {
+            const availableDates = @json($availableDates);
+
+            const loadSlots = async (date) => {
+                if (!date || !availableDates.includes(date)) return;
                 timeSelect.innerHTML = '<option value="">Chargement…</option>';
                 try {
-                    const response = await fetch(`${endpoint}?date=${encodeURIComponent(dateInput.value)}`, { headers: { Accept: 'application/json' } });
+                    const response = await fetch(`${endpoint}?date=${encodeURIComponent(date)}`, { headers: { Accept: 'application/json' } });
                     const data = await response.json();
                     const slots = Array.isArray(data.slots) ? data.slots : [];
                     timeSelect.innerHTML = '<option value="">Choisissez une heure</option>' + slots.map(slot => `<option value="${slot.start}">${slot.start} – ${slot.end}</option>`).join('');
@@ -67,6 +81,18 @@
                 } catch (error) {
                     timeSelect.innerHTML = '<option value="">Impossible de charger les créneaux</option>';
                 }
+            };
+
+            flatpickr(dateInput, {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                minDate: 'today',
+                locale: 'fr',
+                disableMobile: true,
+                enable: availableDates,
+                defaultDate: @json(old('appointment_date', $selectedDate)),
+                onChange: (_selectedDates, dateStr) => loadSlots(dateStr),
             });
         });
     </script>
