@@ -55,6 +55,7 @@
                                class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
                     </label>
                 </div>
+
             </section>
 
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
@@ -203,6 +204,35 @@
                                class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
                     </label>
                 </div>
+
+                @if(app(\App\Support\BookingV2Access::class)->enabledFor($user))
+                    <div class="mt-4 space-y-3 border-t border-[#e4e8d5] pt-4"
+                         x-data="{ bookingMode: @js(old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy')) }">
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700">Horaires proposés</span>
+                            <select name="booking_schedule_mode" x-model="bookingMode" class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                                <option value="legacy" @selected(old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy') === 'legacy')>Fonctionnement actuel</option>
+                                <option value="fixed" @selected(old('booking_schedule_mode', $user->booking_schedule_mode) === 'fixed')>Intervalle fixe</option>
+                                <option value="optimized" @selected(old('booking_schedule_mode', $user->booking_schedule_mode) === 'optimized')>Optimiser selon la prestation</option>
+                            </select>
+                        </label>
+                        <label class="block" x-show="bookingMode === 'fixed'" style="{{ old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy') === 'fixed' ? '' : 'display:none;' }}">
+                            <span class="text-sm font-medium text-gray-700">Intervalle fixe</span>
+                            <select name="booking_slot_interval_minutes" class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                                @foreach([15, 30, 45, 60] as $interval)
+                                    <option value="{{ $interval }}" @selected((int) old('booking_slot_interval_minutes', $user->booking_slot_interval_minutes ?: 15) === $interval)>{{ $interval }} min</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <label class="flex items-center justify-between gap-4 rounded-lg bg-[#f7f8f1] px-3 py-3">
+                            <span class="text-sm font-medium text-gray-700">Demandes d’information</span>
+                            <span>
+                                <input type="hidden" name="information_requests_enabled" value="0">
+                                <input type="checkbox" name="information_requests_enabled" value="1" class="h-5 w-5 rounded border-gray-300 text-[#647a0b] focus:ring-[#647a0b]" @checked(old('information_requests_enabled', $user->information_requests_enabled ?? true))>
+                            </span>
+                        </label>
+                    </div>
+                @endif
             </section>
 
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">

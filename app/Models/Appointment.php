@@ -89,6 +89,10 @@ class Appointment extends Model
         'financial_follow_up_required',
         'wants_earlier_slot',
         'earlier_slot_opted_in_at',
+        'preparation_time_minutes',
+        'buffer_time_after_minutes',
+        'confirmation_email_note',
+        'reminder_email_note',
 
         // NEW
         'requires_emargement',
@@ -110,6 +114,8 @@ class Appointment extends Model
         'financial_follow_up_required' => 'boolean',
         'wants_earlier_slot' => 'boolean',
         'earlier_slot_opted_in_at' => 'datetime',
+        'preparation_time_minutes' => 'integer',
+        'buffer_time_after_minutes' => 'integer',
 
         // NEW
         'requires_emargement'  => 'boolean',
@@ -251,6 +257,23 @@ class Appointment extends Model
             // Never sent by default
             if (is_null($appt->emargement_sent)) {
                 $appt->emargement_sent = false;
+            }
+
+            if (
+                ! $appt->external
+                && app(\App\Support\BookingV2Access::class)->enabledFor((int) $appt->user_id)
+            ) {
+                $practitioner = $appt->relationLoaded('user')
+                    ? $appt->user
+                    : ($appt->user_id ? User::find($appt->user_id) : null);
+                $product = $appt->relationLoaded('product')
+                    ? $appt->product
+                    : ($appt->product_id ? Product::find($appt->product_id) : null);
+
+                if ($practitioner) {
+                    app(\App\Services\BookingSchedulingPolicy::class)
+                        ->applySnapshots($appt, $practitioner, $product);
+                }
             }
         });
     }

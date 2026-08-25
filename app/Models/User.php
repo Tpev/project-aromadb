@@ -83,6 +83,9 @@ class User extends Authenticatable
         'featured_weight',
 
         'buffer_time_between_appointments',
+        'booking_schedule_mode',
+        'booking_slot_interval_minutes',
+        'information_requests_enabled',
         'global_daily_booking_limit',
         'booking_notes_placeholder',
         'cgv_pdf_path',
@@ -111,6 +114,8 @@ class User extends Authenticatable
         'is_featured' => 'boolean',
         'featured_until' => 'datetime',
         'buffer_time_between_appointments' => 'integer',
+        'booking_slot_interval_minutes' => 'integer',
+        'information_requests_enabled' => 'boolean',
         'global_daily_booking_limit' => 'integer',
         'gift_voucher_online_enabled' => 'boolean',
         'gift_voucher_background_updated_at' => 'datetime',

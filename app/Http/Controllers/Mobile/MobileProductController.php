@@ -162,6 +162,10 @@ class MobileProductController extends Controller
             'booking_questionnaire_enabled' => ['nullable', 'boolean'],
             'booking_questionnaire_id' => ['nullable', 'integer', 'exists:questionnaires,id'],
             'booking_questionnaire_frequency' => ['nullable', 'string', 'in:first_time_only,every_booking'],
+            'preparation_time_minutes' => ['nullable', 'integer', 'min:0', 'max:480'],
+            'buffer_time_after_minutes' => ['nullable', 'integer', 'min:0', 'max:480'],
+            'confirmation_email_note' => ['nullable', 'string', 'max:2000'],
+            'reminder_email_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $questionnaireEnabled = $request->boolean('booking_questionnaire_enabled');
@@ -194,7 +198,7 @@ class MobileProductController extends Controller
         ];
         $modeFlags[$validated['mode']] = true;
 
-        return [
+        $payload = [
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
@@ -214,6 +218,17 @@ class MobileProductController extends Controller
                 : null,
             ...$modeFlags,
         ];
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor(Auth::user())) {
+            $payload += [
+                'preparation_time_minutes' => $validated['preparation_time_minutes'] ?? null,
+                'buffer_time_after_minutes' => $validated['buffer_time_after_minutes'] ?? null,
+                'confirmation_email_note' => filled($validated['confirmation_email_note'] ?? null) ? trim($validated['confirmation_email_note']) : null,
+                'reminder_email_note' => filled($validated['reminder_email_note'] ?? null) ? trim($validated['reminder_email_note']) : null,
+            ];
+        }
+
+        return $payload;
     }
 
     private function ownedQuestionnaires(): Collection

@@ -508,6 +508,39 @@
                             @enderror
                         </div>
 
+                        @if(app(\App\Support\BookingV2Access::class)->enabledFor($user))
+                            <div x-data="{ bookingMode: @js(old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy')) }">
+                            <div class="details-box">
+                                <label class="details-label" for="booking_schedule_mode">{{ __('Organisation des horaires proposés') }}</label>
+                                <select id="booking_schedule_mode" name="booking_schedule_mode" class="form-control" x-model="bookingMode">
+                                    <option value="legacy" @selected(old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy') === 'legacy')>{{ __('Conserver le fonctionnement actuel') }}</option>
+                                    <option value="fixed" @selected(old('booking_schedule_mode', $user->booking_schedule_mode) === 'fixed')>{{ __('Proposer des départs à intervalle fixe') }}</option>
+                                    <option value="optimized" @selected(old('booking_schedule_mode', $user->booking_schedule_mode) === 'optimized')>{{ __('Optimiser selon la durée et le battement') }}</option>
+                                </select>
+                                <small class="text-gray-500">{{ __('L’optimisation adapte les horaires à la prestation choisie afin de limiter les trous inutilisables.') }}</small>
+                                @error('booking_schedule_mode') <p class="text-red-500">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="details-box" id="booking-slot-interval-field" x-show="bookingMode === 'fixed'" style="{{ old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy') === 'fixed' ? '' : 'display:none;' }}">
+                                <label class="details-label" for="booking_slot_interval_minutes">{{ __('Intervalle entre les heures de départ') }}</label>
+                                <select id="booking_slot_interval_minutes" name="booking_slot_interval_minutes" class="form-control">
+                                    @foreach([15, 30, 45, 60] as $interval)
+                                        <option value="{{ $interval }}" @selected((int) old('booking_slot_interval_minutes', $user->booking_slot_interval_minutes ?: 15) === $interval)>{{ $interval }} min</option>
+                                    @endforeach
+                                </select>
+                                <small class="text-gray-500">{{ __('Exemple pour une disponibilité à 9 h : 9 h, 9 h 30, 10 h avec un intervalle de 30 minutes.') }}</small>
+                            </div>
+                            </div>
+
+                            <div class="details-box">
+                                <input type="hidden" name="information_requests_enabled" value="0">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="information_requests_enabled" value="1" class="form-checkbox h-5 w-5 text-green-500" @checked(old('information_requests_enabled', $user->information_requests_enabled ?? true))>
+                                    <span class="ml-2 text-gray-700">{{ __('Autoriser les demandes d’information sur mon portail') }}</span>
+                                </label>
+                            </div>
+                        @endif
+
                         <div class="details-box">
                             <label class="details-label" for="global_daily_booking_limit">
                                 {{ __('Limite globale de rendez-vous par jour (toutes prestations)') }}

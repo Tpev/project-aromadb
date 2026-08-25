@@ -29,6 +29,12 @@ Rejoindre la visio
 
 - **Thérapeute :** {{ $appointment->user->company_name ?? $appointment->user->name }}
 
+@if(filled($appointment->reminder_email_note))
+@component('mail::panel')
+<div style="white-space: pre-line">{{ $appointment->reminder_email_note }}</div>
+@endcomponent
+@endif
+
 ---
 
 @component('mail::button', ['url' => $managementUrl])

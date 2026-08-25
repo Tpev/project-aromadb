@@ -366,7 +366,7 @@ public function store(Request $request)
     }
 
     // Création du rendez-vous (avec practice_location_id si cabinet)
-    $appointment = Appointment::create([
+    $appointment = app(\App\Services\BookingAppointmentCreationService::class)->create([
         'client_profile_id'     => $clientProfileId,
         'user_id'               => $therapistId,
         'appointment_date'      => $appointmentDateTime,
@@ -376,7 +376,7 @@ public function store(Request $request)
         'duration'              => $duration,
         'practice_location_id'  => $mode === 'cabinet' ? $locationId : null,
         'type'                  => $mode,
-    ]);
+    ], $therapist, $product, $appointmentDateTime, $mode, $locationId, $skipAvailability);
 
     /* ============================================================
        ✅ PACK AUTO-CONSUMPTION (création par le thérapeute)
@@ -796,6 +796,18 @@ private function isAvailable(
     // 1) Récup produit & mode
     $product = Product::findOrFail((int) $productId);
 
+    if ((int) $product->user_id !== (int) $therapist->id) {
+        return false;
+    }
+
+    if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+        return app(\App\Services\AppointmentAvailabilityService::class)->isAvailable(
+            $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId, $excludeAppointmentId),
+            $start,
+            true
+        );
+    }
+
     if (!in_array($mode, ['cabinet','visio','domicile','entreprise'], true)) {
         // Déduction simple si le mode n'est pas fourni
         $modes = [];
@@ -1210,10 +1222,15 @@ public function createPatient(Request $request, $therapistId)
     $therapist = User::findOrFail($therapistId);
 
     // Retrieve and order the therapist's products by display_order in ascending order
-    $products = Product::where('user_id', $therapistId)
-                       ->orderBy('display_order', 'asc') // Change to 'desc' for descending order
-                       ->get();
+    $productsQuery = Product::where('user_id', $therapistId);
+    if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+        $productsQuery->where('can_be_booked_online', true);
+    }
+    $products = $productsQuery->orderBy('display_order', 'asc')->get();
     $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
+    $compatibleLocationsByProduct = app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+        ? app(\App\Services\BookingLocationService::class)->compatibleLocationsByProduct($therapist, $products)
+        : [];
     $preferredProduct = null;
     if ($request->filled('product_id')) {
         $preferredProduct = $products->first(fn ($product) => (int) $product->id === (int) $request->query('product_id')
@@ -1221,7 +1238,13 @@ public function createPatient(Request $request, $therapistId)
     }
 
     // Return the view with the therapist and ordered products
-    return view('appointments.createPatient', compact('therapist', 'products', 'practiceLocations', 'preferredProduct'));
+    return view('appointments.createPatient', compact(
+        'therapist',
+        'products',
+        'practiceLocations',
+        'compatibleLocationsByProduct',
+        'preferredProduct'
+    ));
 }
 
 
@@ -1266,6 +1289,14 @@ public function storePatient(Request $request)
     // Produit & thérapeute
     $product   = Product::findOrFail($request->product_id);
     $therapist = User::findOrFail($request->therapist_id);
+    if (
+        app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+        && ((int) $product->user_id !== (int) $therapist->id || ! $product->can_be_booked_online)
+    ) {
+        return back()->withErrors([
+            'product_id' => 'Cette prestation n’est plus disponible à la réservation en ligne.',
+        ])->withInput();
+    }
     $voucherForBooking = $this->resolveGiftVoucherForBooking($therapist, $request->input('gift_voucher_code'));
     $totalAmountCents = $this->computeBookableAmountCents($product);
     $voucherPlannedCents = $voucherForBooking
@@ -1383,7 +1414,14 @@ public function storePatient(Request $request)
         $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
         $appointmentAttributes['earlier_slot_opted_in_at'] = $wantsEarlierSlot ? now() : null;
     }
-    $appointment = Appointment::create($appointmentAttributes);
+    $appointment = app(\App\Services\BookingAppointmentCreationService::class)->create(
+        $appointmentAttributes,
+        $therapist,
+        $product,
+        $appointmentDateTime,
+        $mode,
+        $practiceLocationId
+    );
 
     // Si visio : créer une réunion + lien
     if ($mode === 'visio' || !empty($product->visio) || !empty($product->en_visio)) {
@@ -1732,6 +1770,13 @@ public function storePatient(Request $request)
     $product     = Product::findOrFail((int) $request->product_id);
     $duration    = (int) ($product->duration ?? 0);
 
+    if (
+        (int) $product->user_id !== $therapistId
+        || (app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && ! $product->can_be_booked_online)
+    ) {
+        return response()->json(['slots' => [], 'message' => 'Cette prestation n’est pas disponible pour ce praticien.'], 422);
+    }
+
     // 2) Resolve mode
     $requestedMode = $request->input('mode');
     $mode = in_array($requestedMode, ['cabinet','visio','domicile','entreprise'], true)
@@ -1759,6 +1804,15 @@ public function storePatient(Request $request)
         if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
             return response()->json(['slots' => [], 'message' => 'Invalid location for this therapist.'], 422);
         }
+    }
+
+    if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+        $template = $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId);
+
+        return response()->json([
+            'slots' => app(\App\Services\AppointmentAvailabilityService::class)
+                ->slotsForDate($template, Carbon::createFromFormat('Y-m-d', $request->date)),
+        ]);
     }
 
     // 4) Minimum notice + buffer
@@ -1910,6 +1964,13 @@ public function availableConcreteDatesPatient(Request $request)
     $product     = Product::findOrFail((int) $request->product_id);
     $therapist   = User::findOrFail($therapistId);
 
+    if (
+        (int) $product->user_id !== $therapistId
+        || (app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && ! $product->can_be_booked_online)
+    ) {
+        return response()->json(['dates' => [], 'next' => null, 'message' => 'Cette prestation n’est pas disponible pour ce praticien.'], 422);
+    }
+
     // Resolve mode like slots endpoint does
     $mode = $this->resolvePatientMode($product, $request->input('mode'));
 
@@ -1934,6 +1995,16 @@ public function availableConcreteDatesPatient(Request $request)
 
     $days  = (int) $request->input('days', 90);
     $today = Carbon::today();
+
+    if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+        return response()->json(
+            app(\App\Services\AppointmentAvailabilityService::class)->availableDates(
+                $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId),
+                $today,
+                $days,
+            )
+        );
+    }
 
     $dates = [];
     $next  = null;
@@ -3608,7 +3679,14 @@ public function storeByToken(Request $request, string $token)
         $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
         $appointmentAttributes['earlier_slot_opted_in_at'] = $wantsEarlierSlot ? now() : null;
     }
-    $appointment = Appointment::create($appointmentAttributes);
+    $appointment = app(\App\Services\BookingAppointmentCreationService::class)->create(
+        $appointmentAttributes,
+        $therapist,
+        $product,
+        $appointmentDateTime,
+        $mode,
+        $practiceLocationId
+    );
 
     // ✅ increment uses after successful appointment creation
     $bookingLink->incrementUse();
@@ -3940,6 +4018,9 @@ public function createByToken(string $token)
 
     // 5) Practice locations (safe ordering)
     $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
+    $compatibleLocationsByProduct = app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+        ? app(\App\Services\BookingLocationService::class)->compatibleLocationsByProduct($therapist, $products)
+        : [];
 
     /**
      * 6) Build the same "prestation group + variants" data your partner blade expects
@@ -3978,6 +4059,7 @@ public function createByToken(string $token)
         'productsByName'    => $productsByName,
         'catalog'           => $catalog,
         'practiceLocations' => $practiceLocations,
+        'compatibleLocationsByProduct' => $compatibleLocationsByProduct,
     ]);
 }
 
@@ -4010,5 +4092,25 @@ private function rollbackFailedBooking(Appointment $appointment, $bookingLink = 
     }
 }
 
+private function bookingAvailabilityTemplate(
+    User $therapist,
+    Product $product,
+    ?string $mode,
+    ?int $locationId,
+    ?int $excludeAppointmentId = null
+): Appointment {
+    $appointment = new Appointment([
+        'user_id' => $therapist->id,
+        'product_id' => $product->id,
+        'duration' => $product->duration,
+        'type' => $mode,
+        'practice_location_id' => $mode === 'cabinet' ? $locationId : null,
+    ]);
+    $appointment->id = $excludeAppointmentId ?? 0;
+    $appointment->setRelation('user', $therapist);
+    $appointment->setRelation('product', $product);
+
+    return $appointment;
+}
 
 }

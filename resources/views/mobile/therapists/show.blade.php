@@ -81,6 +81,12 @@
         </style>
     @endonce
 
+    @if(session('error'))
+        <div class="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div
         x-data="{
             infoOpen: false,
@@ -177,7 +183,7 @@
                     </div>
 
                     <div class="w-full flex flex-col gap-3 mt-2">
-                        @if($therapist->accept_online_appointments)
+                        @if($canOfferOnlineBooking)
                             <x-ts-button
                                 tag="a"
                                 href="{{ route('mobile.appointments.create_from_therapist', $therapist->slug) }}"
@@ -189,6 +195,7 @@
                         @endif
 
                         <div class="flex gap-3">
+                            @if(!app(\App\Support\BookingV2Access::class)->enabledFor($therapist) || ($therapist->information_requests_enabled ?? true))
                             <x-ts-button
                                 type="button"
                                 class="flex-1 !bg-white/20 !border-0"
@@ -197,6 +204,7 @@
                                 <i class="fas fa-envelope-open-text mr-2"></i>
                                 {{ __('Demande d’information') }}
                             </x-ts-button>
+                            @endif
 
                             <x-ts-button
                                 tag="a"
@@ -418,6 +426,23 @@
                                         <p class="mt-1 text-[13px] text-gray-700 leading-snug break-words">
                                             {{ $truncated }}
                                         </p>
+                                    @endif
+
+                                    @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && $therapist->accept_online_appointments)
+                                        @php
+                                            $bookableVariants = $group->filter(fn($variant) =>
+                                                $variant->can_be_booked_online
+                                                && in_array((int) $variant->id, $directlyBookableProductIds ?? [], true)
+                                            );
+                                        @endphp
+                                        <div class="flex flex-wrap gap-2 pt-1">
+                                            @foreach($bookableVariants as $variant)
+                                                <a href="{{ route('mobile.appointments.create_from_therapist', ['slug' => $therapist->slug, 'product_id' => $variant->id]) }}"
+                                                   class="inline-flex min-h-10 items-center justify-center rounded-full bg-[#647a0b] px-4 py-2 text-xs font-semibold text-white">
+                                                    {{ $bookableVariants->count() === 1 ? __('Voir les créneaux') : $variant->duration . ' min · ' . number_format($variant->price_incl_tax ?? $variant->price, 2, ',', ' ') . ' €' }}
+                                                </a>
+                                            @endforeach
+                                        </div>
                                     @endif
                                 </div>
                             @endforeach
@@ -656,6 +681,7 @@
             </p>
         </div>
 
+        @if(!app(\App\Support\BookingV2Access::class)->enabledFor($therapist) || ($therapist->information_requests_enabled ?? true))
         {{-- ─────────────────── MODAL: Demande d’information ─────────────────── --}}
         <div
             x-show="infoOpen"
@@ -763,6 +789,7 @@
                 </form>
             </div>
         </div>
+        @endif
 
         {{-- ─────────────────── FULLSCREEN IMAGE MODAL ─────────────────── --}}
         <div

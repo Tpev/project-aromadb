@@ -51,6 +51,9 @@ class MobileProfileController extends Controller
             'buffer_time_between_appointments' => ['nullable', 'integer', 'min:0'],
             'global_daily_booking_limit' => ['nullable', 'integer', 'min:1', 'max:500'],
             'cancellation_notice_hours' => ['nullable', 'integer', 'min:0', 'max:720'],
+            'booking_schedule_mode' => ['nullable', 'string', 'in:legacy,fixed,optimized'],
+            'booking_slot_interval_minutes' => ['nullable', 'integer', 'in:15,30,45,60'],
+            'information_requests_enabled' => ['nullable', 'boolean'],
         ]);
 
         $originalCompanyName = $user->company_name;
@@ -79,6 +82,14 @@ class MobileProfileController extends Controller
         $user->share_email_publicly = $request->boolean('share_email_publicly');
         $user->share_phone_publicly = $request->boolean('share_phone_publicly');
         $user->accept_online_appointments = $request->boolean('accept_online_appointments');
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($user)) {
+            $user->booking_schedule_mode = $validated['booking_schedule_mode'] ?? 'legacy';
+            $user->booking_slot_interval_minutes = $user->booking_schedule_mode === 'fixed'
+                ? (int) ($validated['booking_slot_interval_minutes'] ?? 15)
+                : null;
+            $user->information_requests_enabled = $request->boolean('information_requests_enabled');
+        }
 
         $user->services = json_encode($this->servicesFromText($validated['services_text'] ?? ''), JSON_UNESCAPED_UNICODE);
 

@@ -132,6 +132,9 @@ class ProfileController extends Controller
             'buffer_time_between_appointments' => 'nullable|integer|min:0',
             'global_daily_booking_limit' => 'nullable|integer|min:1|max:500',
             'booking_notes_placeholder' => 'nullable|string|max:255',
+            'booking_schedule_mode' => 'nullable|string|in:legacy,fixed,optimized',
+            'booking_slot_interval_minutes' => 'nullable|integer|in:15,30,45,60',
+            'information_requests_enabled' => 'nullable|boolean',
             'cgv_pdf' => 'nullable|file|mimes:pdf|max:10096',
             'cancellation_notice_hours' => 'nullable|integer|min:0|max:720',
 
@@ -188,6 +191,14 @@ class ProfileController extends Controller
         if (array_key_exists('booking_notes_placeholder', $validatedData)) {
             $placeholder = trim((string) ($validatedData['booking_notes_placeholder'] ?? ''));
             $user->booking_notes_placeholder = $placeholder !== '' ? $placeholder : null;
+        }
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($user)) {
+            $user->booking_schedule_mode = $validatedData['booking_schedule_mode'] ?? 'legacy';
+            $user->booking_slot_interval_minutes = ($user->booking_schedule_mode === 'fixed')
+                ? (int) ($validatedData['booking_slot_interval_minutes'] ?? 15)
+                : null;
+            $user->information_requests_enabled = $request->boolean('information_requests_enabled');
         }
 		// Google Calendar event color (store only palette ID)
 		if ($request->filled('google_event_color_id')) {

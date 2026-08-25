@@ -37,6 +37,12 @@ class MobileTherapistController extends Controller
         $prestations = $therapist->products()
             ->orderBy('display_order')
             ->get();
+        $bookingV2Enabled = app(\App\Support\BookingV2Access::class)->enabledFor($therapist);
+        $directlyBookableProductIds = $bookingV2Enabled
+            ? app(\App\Services\BookingLocationService::class)->publiclyBookableProductIds($therapist, $prestations)
+            : [];
+        $canOfferOnlineBooking = (bool) $therapist->accept_online_appointments
+            && (! $bookingV2Enabled || $directlyBookableProductIds !== []);
 
         // Événements à venir à afficher sur le portail
         $events = Event::where('user_id', $therapist->id)
@@ -51,7 +57,9 @@ class MobileTherapistController extends Controller
             'therapist',
             'testimonials',
             'prestations',
-            'events'
+            'events',
+            'directlyBookableProductIds',
+            'canOfferOnlineBooking'
         ));
     }
 
@@ -62,6 +70,15 @@ class MobileTherapistController extends Controller
      */
     public function sendInformationRequest(Request $request, string $slug)
     {
+        $therapist = User::where('slug', $slug)
+            ->where('is_therapist', true)
+            ->firstOrFail();
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+            && ! ($therapist->information_requests_enabled ?? true)) {
+            return back()->with('error', 'Ce praticien n’accepte pas de demande d’information pour le moment.');
+        }
+
         $request->validate([
             'first_name' => 'required|string|max:100',
             'last_name'  => 'required|string|max:100',
@@ -70,11 +87,6 @@ class MobileTherapistController extends Controller
             'message'    => 'required|string|max:2000',
             'terms'      => 'accepted', // si tu gardes la case CGU/Privacy sur le mobile
         ]);
-
-        // Retrieve therapist
-        $therapist = User::where('slug', $slug)
-            ->where('is_therapist', true)
-            ->firstOrFail();
 
         // 1) Stocker la demande en BDD
         InformationRequest::create([

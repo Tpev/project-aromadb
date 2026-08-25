@@ -37,6 +37,12 @@ public function show($slug)
     $prestations = $therapist->products()
         ->orderBy('display_order')
         ->get();
+    $bookingV2Enabled = app(\App\Support\BookingV2Access::class)->enabledFor($therapist);
+    $directlyBookableProductIds = $bookingV2Enabled
+        ? app(\App\Services\BookingLocationService::class)->publiclyBookableProductIds($therapist, $prestations)
+        : [];
+    $canOfferOnlineBooking = (bool) $therapist->accept_online_appointments
+        && (! $bookingV2Enabled || $directlyBookableProductIds !== []);
 
     // ✅ Packs (PackProduct) + contenu (items + product)
     $packProducts = \App\Models\PackProduct::where('user_id', $therapist->id)
@@ -99,8 +105,10 @@ public function show($slug)
         'prestations',
         'packProducts',
         'events',
-		'trainings',
-        'offerJourneys'
+        'trainings',
+        'offerJourneys',
+        'directlyBookableProductIds',
+        'canOfferOnlineBooking'
     ));
 }
 
@@ -109,6 +117,15 @@ public function show($slug)
 
 public function sendInformationRequest(Request $request, $slug)
 {
+    $therapist = User::where('slug', $slug)
+        ->where('is_therapist', true)
+        ->firstOrFail();
+
+    if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+        && ! ($therapist->information_requests_enabled ?? true)) {
+        return back()->with('error', 'Ce praticien n’accepte pas de demande d’information pour le moment.');
+    }
+
     $request->validate([
         'first_name' => 'required|string|max:100',
         'last_name'  => 'required|string|max:100',
@@ -116,11 +133,6 @@ public function sendInformationRequest(Request $request, $slug)
         'phone'      => ['nullable','regex:/^[0-9\-\+\(\)\s]+$/','min:8'],
         'message'    => 'required|string|max:2000',
     ]);
-
-    // Retrieve therapist
-    $therapist = User::where('slug', $slug)
-                     ->where('is_therapist', true)
-                     ->firstOrFail();
 
     // 1) Store the request in DB
     InformationRequest::create([

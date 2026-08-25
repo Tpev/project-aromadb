@@ -133,6 +133,15 @@
                     <!-- Cabinet location -->
                     <div class="details-box mb-3" id="cabinet-location-section" style="display:none;">
                         <label class="details-label" for="practice_location_id">{{ __('Sélectionnez le Cabinet') }}</label>
+                        @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist))
+                            <p id="auto-location-summary" class="mb-2 rounded-lg bg-[#f7f8f1] p-3 text-sm text-gray-700" style="display:none;">
+                                <strong id="auto-location-label"></strong><br>
+                                <span id="auto-location-address"></span>
+                            </p>
+                            <p id="no-compatible-location" class="mb-2 rounded-lg bg-red-50 p-3 text-sm text-red-700" style="display:none;">
+                                {{ __('Aucun cabinet n’est configuré pour cette prestation. Contactez directement le praticien.') }}
+                            </p>
+                        @endif
                         <select id="practice_location_id" name="practice_location_id" class="form-control">
                             <option value="" disabled selected>{{ __('Choisir un lieu') }}</option>
                             @foreach($practiceLocations as $loc)
@@ -436,6 +445,8 @@
     <script>
         const PRODUCT_MODES = @json($productModes);
         const OLD_TIME      = @json(old('appointment_time'));
+        const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
+        const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
 
         let allowedDates = [];
         let currentSlotsRequestId = 0;
@@ -652,10 +663,54 @@
                 fetchDates(productId, modeSlug, locId);
             }
 
+            function configureCabinetLocations(productId) {
+                if (!BOOKING_V2_ACTIVE) return;
+
+                const $select = $('#practice_location_id');
+                if (!productId) {
+                    $select.find('option[value]').prop('disabled', false).prop('hidden', false);
+                    $select.val('').show();
+                    $('#auto-location-summary, #no-compatible-location').hide();
+                    return;
+                }
+
+                const locations = BOOKING_V2_LOCATIONS[String(productId)] || [];
+                const allowedIds = locations.map(location => String(location.id));
+                $select.find('option[value]').each(function () {
+                    const allowed = allowedIds.includes(String($(this).val()));
+                    $(this).prop('disabled', !allowed).prop('hidden', !allowed);
+                });
+                $('#auto-location-summary, #no-compatible-location').hide();
+
+                if (locations.length === 0) {
+                    $select.val('').hide();
+                    $('#therapist-address-section').hide();
+                    $('#no-compatible-location').show();
+                    return;
+                }
+
+                if (locations.length === 1) {
+                    const location = locations[0];
+                    $select.val(String(location.id)).hide();
+                    $('#auto-location-label').text(location.label);
+                    $('#auto-location-address').text(location.address);
+                    $('#auto-location-summary').show();
+                    $('#therapist-address').text(location.address || '{{ __('Adresse non disponible.') }}');
+                    $('#therapist-address-section').show();
+                    return;
+                }
+
+                if (!allowedIds.includes(String($select.val() || ''))) {
+                    $select.val('');
+                    $('#therapist-address-section').hide();
+                }
+                $select.show();
+            }
+
             function refreshSummary() {
                 const productName = $('#product_name').val() || '';
                 const modeSlug    = $('#selected_mode_slug').val() || '';
-                const dateRaw     = $('#appointment_date').val() || '';
+                const dateRaw     = (fp.altInput && fp.altInput.value) ? fp.altInput.value : ($('#appointment_date').val() || '');
                 const timeRaw     = $('#appointment_time').val() || '';
 
                 let modeLabel = '';
@@ -710,6 +765,7 @@
                 $('#client-address-helper').hide();
                 $('#mode-error').addClass('d-none').text('');
                 $('#location-error').addClass('d-none').text('');
+                configureCabinetLocations(null);
 
                 allowedDates = [];
                 fp.set('enable', []);
@@ -733,6 +789,7 @@
                 if (modeSlug === 'cabinet') {
                     $('#cabinet-location-section').show();
                     $('#client-address-helper').hide();
+                    configureCabinetLocations(productId);
                 } else if (modeSlug === 'domicile') {
                     $('#cabinet-location-section').hide();
                     $('#therapist-address-section').hide();
@@ -806,6 +863,18 @@
                         @endif
                     }, 300);
                 @endif
+            @endif
+
+            @if(!old('product_id') && ($preferredProduct ?? null))
+                setTimeout(function () {
+                    const productId = @json((string) $preferredProduct->id);
+                    $('#product_name').val(@json($preferredProduct->name)).trigger('change');
+                    setTimeout(function () {
+                        if ($('#consultation_mode option[value="' + productId + '"]').length) {
+                            $('#consultation_mode').val(productId).trigger('change');
+                        }
+                    }, 50);
+                }, 100);
             @endif
 
             // Validate before submit (ensure cabinet has location)

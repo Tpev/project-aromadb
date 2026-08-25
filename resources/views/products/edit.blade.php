@@ -48,6 +48,8 @@
                     @error('duration') <p class="text-red-500">{{ $message }}</p> @enderror
                 </div>
 
+                @include('products.partials.booking-v2-fields')
+
                 <!-- Mode -->
                 <div class="details-box">
                     <label class="details-label" for="mode">{{ __('Mode') }}</label>

@@ -150,6 +150,12 @@
 @endif
 
 {{-- FULL-WIDTH HERO – CLS 0.00 -------------------------------------------- --}}
+@if(session('error'))
+    <div class="mx-auto my-4 max-w-7xl rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-red-800" role="alert">
+        {{ session('error') }}
+    </div>
+@endif
+
 <section class="relative overflow-hidden isolate">
 
     {{-- optional banner (painted once size is known) ----------------------- --}}
@@ -214,7 +220,7 @@
                 <nav aria-label="{{ __('Liens de prise de contact') }}"
                      class="mt-8 flex flex-wrap md:flex-nowrap gap-4
                             justify-center md:justify-start">
-                    @if ($therapist->accept_online_appointments)
+                    @if ($canOfferOnlineBooking)
                         <a  href="{{ route('appointments.createPatient', $therapist->id) }}"
                             class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
                                    text-lg px-8 py-3 rounded-full hover:bg-[#e8f0d8]
@@ -223,6 +229,7 @@
                         </a>
                     @endif
 
+                    @if(!app(\App\Support\BookingV2Access::class)->enabledFor($therapist) || ($therapist->information_requests_enabled ?? true))
                     <button type="button"
                             class="inline-block whitespace-nowrap bg-[#854f38] text-white font-semibold
                                    text-lg px-8 py-3 rounded-full hover:bg-[#6a3f2c]
@@ -231,6 +238,7 @@
                             x-on:click.prevent="$dispatch('open-request-modal')">
                         {{ __('Demander des informations') }}
                     </button>
+                    @endif
 
                     <a  href="{{ route('client.login') }}"
                         class="inline-block whitespace-nowrap bg-white text-[#8ea633] font-semibold
@@ -283,17 +291,19 @@
         <span class="font-medium truncate">{{ $therapist->company_name }}</span>
 
         <div class="flex gap-3">
-            @if ($therapist->accept_online_appointments)
+            @if ($canOfferOnlineBooking)
                 <a href="{{ route('appointments.createPatient', $therapist->id) }}"
                    class="bg-white text-[#8ea633] font-semibold px-5 py-2 rounded-full hover:bg-[#e8f0d8]">
                     {{ __('Prendre Rendez-vous') }}
                 </a>
             @endif
+            @if(!app(\App\Support\BookingV2Access::class)->enabledFor($therapist) || ($therapist->information_requests_enabled ?? true))
             <button type="button"
                     class="hidden md:inline bg-[#854f38] hover:bg-[#6a3f2c] px-5 py-2 rounded-full"
                     x-on:click="$dispatch('open-request-modal')">
                 {{ __('Infos') }}
             </button>
+            @endif
         </div>
     </div>
 </div>
@@ -678,6 +688,25 @@
                                class="mt-4 inline-block text-[#854f38] hover:text-[#6a3f2c]">
                                 {{ __('Télécharger la brochure') }}
                             </a>
+                        @endif
+
+                        @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && $therapist->accept_online_appointments)
+                            @php
+                                $bookableVariants = $group->filter(fn($variant) =>
+                                    $variant->can_be_booked_online
+                                    && in_array((int) $variant->id, $directlyBookableProductIds ?? [], true)
+                                );
+                            @endphp
+                            @if($bookableVariants->isNotEmpty())
+                                <div class="mt-5 flex flex-wrap gap-2">
+                                    @foreach($bookableVariants as $variant)
+                                        <a href="{{ route('appointments.createPatient', ['therapist' => $therapist->id, 'product_id' => $variant->id]) }}"
+                                           class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8ea633]">
+                                            {{ $bookableVariants->count() === 1 ? __('Voir les créneaux') : __('Créneaux') . ' · ' . $variant->duration . ' min · ' . number_format($variant->price_incl_tax ?? $variant->price, 2, ',', ' ') . ' €' }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -1088,6 +1117,7 @@
 
         </div>
     </div>
+@if(!app(\App\Support\BookingV2Access::class)->enabledFor($therapist) || ($therapist->information_requests_enabled ?? true))
 {{-- Modal de demande d’information --}}
 <div
     x-data="{ open: false }"
@@ -1212,6 +1242,7 @@
     </div>
 	
 </div>
+@endif
 
     {{-- Styles personnalisés --}}
     @push('styles')

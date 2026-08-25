@@ -87,6 +87,8 @@
                     @enderror
                 </div>
 
+                @include('products.partials.booking-v2-fields')
+
                 <!-- Mode de prestation -->
                 <div class="details-box">
                     <label class="details-label" for="mode">{{ __('Mode de Prestation') }}</label>

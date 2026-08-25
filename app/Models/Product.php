@@ -40,6 +40,10 @@ class Product extends Model
         'booking_questionnaire_enabled',
         'booking_questionnaire_id',
         'booking_questionnaire_frequency',
+        'preparation_time_minutes',
+        'buffer_time_after_minutes',
+        'confirmation_email_note',
+        'reminder_email_note',
     ];
 
     protected $casts = [
@@ -55,6 +59,8 @@ class Product extends Model
         'can_be_booked_online' => 'boolean',
         'collect_payment'      => 'boolean',
         'booking_questionnaire_enabled' => 'boolean',
+        'preparation_time_minutes' => 'integer',
+        'buffer_time_after_minutes' => 'integer',
     ];
 
     /** Le thérapeute qui a créé le produit. */

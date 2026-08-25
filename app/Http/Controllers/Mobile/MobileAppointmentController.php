@@ -34,7 +34,7 @@ class MobileAppointmentController extends Controller
      * 1) From therapist mobile public profile (slug) → show booking form.
      *    Route idea: GET /mobile/therapeute/{slug}/prendre-rdv
      */
-    public function createFromTherapistSlug(string $slug)
+    public function createFromTherapistSlug(Request $request, string $slug)
     {
         $therapist = User::where('slug', $slug)
             ->where('is_therapist', true)
@@ -42,17 +42,31 @@ class MobileAppointmentController extends Controller
             ->firstOrFail();
 
         // Products shown to clients (same logic as createPatient, but ordered)
-        $products = Product::where('user_id', $therapist->id)
-            ->orderBy('display_order', 'asc')
-            ->get();
+        $productsQuery = Product::where('user_id', $therapist->id);
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+            $productsQuery->where('can_be_booked_online', true);
+        }
+        $products = $productsQuery->orderBy('display_order', 'asc')->get();
 
         // Cabinet locations (for "cabinet" mode)
         $practiceLocations = app(CabinetAccessService::class)->accessibleLocations($therapist);
+        $compatibleLocationsByProduct = app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+            ? app(\App\Services\BookingLocationService::class)->compatibleLocationsByProduct($therapist, $products)
+            : [];
+        $preferredProduct = null;
+        if ($request->filled('product_id')) {
+            $preferredProduct = $products->first(fn (Product $product): bool =>
+                (int) $product->id === (int) $request->query('product_id')
+                && (bool) $product->can_be_booked_online
+            );
+        }
 
         return view('mobile.appointments.create', [
             'therapist'         => $therapist,
             'products'          => $products,
             'practiceLocations' => $practiceLocations,
+            'compatibleLocationsByProduct' => $compatibleLocationsByProduct,
+            'preferredProduct' => $preferredProduct,
         ]);
     }
 
@@ -100,6 +114,14 @@ class MobileAppointmentController extends Controller
         // Produit & thérapeute
         $product   = Product::findOrFail($request->product_id);
         $therapist = User::findOrFail($request->therapist_id);
+        if (
+            app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
+            && ((int) $product->user_id !== (int) $therapist->id || ! $product->can_be_booked_online)
+        ) {
+            return back()->withErrors([
+                'product_id' => 'Cette prestation n’est plus disponible à la réservation en ligne.',
+            ])->withInput();
+        }
         $wantsEarlierSlot = config('appointments.earlier_slots.enabled', false)
             && $request->boolean('wants_earlier_slot');
 
@@ -212,7 +234,14 @@ class MobileAppointmentController extends Controller
             $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
             $appointmentAttributes['earlier_slot_opted_in_at'] = $wantsEarlierSlot ? now() : null;
         }
-        $appointment = Appointment::create($appointmentAttributes);
+        $appointment = app(\App\Services\BookingAppointmentCreationService::class)->create(
+            $appointmentAttributes,
+            $therapist,
+            $product,
+            $appointmentDateTime,
+            $mode,
+            $practiceLocationId
+        );
 
         // Si visio : créer une réunion + lien
         if ($mode === 'visio' || !empty($product->visio) || !empty($product->en_visio)) {
@@ -387,6 +416,13 @@ class MobileAppointmentController extends Controller
         $product     = Product::findOrFail((int) $request->product_id);
         $duration    = (int) ($product->duration ?? 0);
 
+        if (
+            (int) $product->user_id !== $therapistId
+            || (app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && ! $product->can_be_booked_online)
+        ) {
+            return response()->json(['slots' => [], 'message' => 'Cette prestation n’est pas disponible pour ce praticien.'], 422);
+        }
+
         // 2) Resolve mode
         $requestedMode = $request->input('mode');
         $mode = in_array($requestedMode, ['cabinet','visio','domicile','entreprise'], true)
@@ -413,6 +449,15 @@ class MobileAppointmentController extends Controller
             if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
                 return response()->json(['slots' => [], 'message' => 'Invalid location for this therapist.'], 422);
             }
+        }
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+            return response()->json([
+                'slots' => app(\App\Services\AppointmentAvailabilityService::class)->slotsForDate(
+                    $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId),
+                    Carbon::createFromFormat('Y-m-d', $request->date)
+                ),
+            ]);
         }
 
         // 4) Minimum notice + buffer
@@ -555,6 +600,14 @@ class MobileAppointmentController extends Controller
 
         $therapistId = (int) $request->therapist_id;
         $product     = Product::findOrFail((int) $request->product_id);
+        $therapist   = User::findOrFail($therapistId);
+
+        if (
+            (int) $product->user_id !== $therapistId
+            || (app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && ! $product->can_be_booked_online)
+        ) {
+            return response()->json(['dates' => [], 'message' => 'Cette prestation n’est pas disponible pour ce praticien.'], 422);
+        }
 
         $mode = $this->resolvePatientMode($product, $request->input('mode'));
 
@@ -568,12 +621,23 @@ class MobileAppointmentController extends Controller
 
             $location = PracticeLocation::query()->find($locationId);
 
-            if (!$location || !app(CabinetAccessService::class)->canAccessLocation(User::findOrFail($therapistId), $location)) {
+            if (!$location || !app(CabinetAccessService::class)->canAccessLocation($therapist, $location)) {
                 return response()->json([
                     'dates' => [],
                     'message' => 'Invalid location for this therapist.',
                 ], 422);
             }
+        }
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+            $template = $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId);
+            $result = app(\App\Services\AppointmentAvailabilityService::class)->availableDates(
+                $template,
+                Carbon::today(),
+                (int) $request->input('days', 90),
+            );
+
+            return response()->json(['dates' => $result['dates']]);
         }
 
         $days  = (int) $request->input('days', 90);
@@ -675,6 +739,18 @@ class MobileAppointmentController extends Controller
 
         // 1) Récup produit & mode
         $product = Product::findOrFail((int) $productId);
+
+        if ((int) $product->user_id !== (int) $therapist->id) {
+            return false;
+        }
+
+        if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
+            return app(\App\Services\AppointmentAvailabilityService::class)->isAvailable(
+                $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId, $excludeAppointmentId),
+                $start,
+                true
+            );
+        }
 
         if (!in_array($mode, ['cabinet','visio','domicile','entreprise'], true)) {
             // Déduction simple si le mode n'est pas fourni
@@ -853,4 +929,26 @@ class MobileAppointmentController extends Controller
             $portableCondition
         );
     }
+
+    private function bookingAvailabilityTemplate(
+        User $therapist,
+        Product $product,
+        ?string $mode,
+        ?int $locationId,
+        ?int $excludeAppointmentId = null
+    ): Appointment {
+        $appointment = new Appointment([
+            'user_id' => $therapist->id,
+            'product_id' => $product->id,
+            'duration' => $product->duration,
+            'type' => $mode,
+            'practice_location_id' => $mode === 'cabinet' ? $locationId : null,
+        ]);
+        $appointment->id = $excludeAppointmentId ?? 0;
+        $appointment->setRelation('user', $therapist);
+        $appointment->setRelation('product', $product);
+
+        return $appointment;
+    }
+
 }

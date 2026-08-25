@@ -272,6 +272,86 @@ test('only opted in appointments with the exact practitioner prestation duration
     });
 });
 
+test('booking v2 earlier slot offers respect optimized grids and appointment buffer snapshots', function () {
+    Queue::fake([DiscoverEarlierSlotOffersJob::class]);
+
+    $practitioner = earlierSlotPractitioner([
+        'booking_schedule_mode' => 'optimized',
+        'booking_slot_interval_minutes' => 30,
+    ]);
+    config()->set('appointments.booking_v2.enabled', true);
+    config()->set('appointments.booking_v2.allowed_user_ids', [$practitioner->id]);
+
+    $product = earlierSlotProduct($practitioner, [
+        'preparation_time_minutes' => 15,
+        'buffer_time_after_minutes' => 30,
+    ]);
+    $releasedDate = Carbon::parse('2026-08-24 10:00:00');
+    earlierSlotAvailability($practitioner, $releasedDate);
+
+    earlierSlotAppointment(
+        $practitioner,
+        $product,
+        earlierSlotClient($practitioner, 'v2-blocker@example.test'),
+        Carbon::parse('2026-08-24 09:00:00'),
+        ['wants_earlier_slot' => false]
+    );
+    $invalidRelease = earlierSlotAppointment(
+        $practitioner,
+        $product,
+        earlierSlotClient($practitioner, 'v2-invalid-release@example.test'),
+        $releasedDate,
+        ['status' => Appointment::STATUS_CANCELLED, 'wants_earlier_slot' => false]
+    );
+    $validRelease = earlierSlotAppointment(
+        $practitioner,
+        $product,
+        earlierSlotClient($practitioner, 'v2-valid-release@example.test'),
+        $releasedDate->copy()->setTime(10, 30),
+        ['status' => Appointment::STATUS_CANCELLED, 'wants_earlier_slot' => false]
+    );
+    $waiting = earlierSlotAppointment(
+        $practitioner,
+        $product,
+        earlierSlotClient($practitioner, 'v2-waiting@example.test'),
+        Carbon::parse('2026-08-31 10:30:00')
+    );
+
+    $invalid = app(AppointmentEarlierSlotService::class)->discover(
+        $invalidRelease->id,
+        $practitioner->id,
+        $product->id,
+        $releasedDate->toIso8601String(),
+        60,
+        'visio',
+        null,
+    );
+    expect($invalid)->toBeNull();
+
+    $opportunity = app(AppointmentEarlierSlotService::class)->discover(
+        $validRelease->id,
+        $practitioner->id,
+        $product->id,
+        $releasedDate->copy()->setTime(10, 30)->toIso8601String(),
+        60,
+        'visio',
+        null,
+    );
+
+    expect($opportunity)->not->toBeNull()
+        ->and($opportunity->offers()->count())->toBe(1)
+        ->and($opportunity->offers()->firstOrFail()->appointment_id)->toBe($waiting->id);
+
+    $offer = $opportunity->offers()->firstOrFail();
+    $result = app(AppointmentEarlierSlotService::class)->claim($offer->token);
+    $moved = $waiting->fresh();
+
+    expect($result['state'])->toBe(AppointmentEarlierSlotService::STATE_CLAIMED)
+        ->and($moved->appointment_date->equalTo($releasedDate->copy()->setTime(10, 30)))->toBeTrue()
+        ->and($moved->preparation_time_minutes)->toBe(15)
+        ->and($moved->buffer_time_after_minutes)->toBe(30);
+});
+
 test('home and workplace offers require the same normalized address', function () {
     $practitioner = earlierSlotPractitioner();
     $product = earlierSlotProduct($practitioner, [

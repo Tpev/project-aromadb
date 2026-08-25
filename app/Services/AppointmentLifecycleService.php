@@ -24,6 +24,8 @@ class AppointmentLifecycleService
     public function __construct(
         private readonly AppointmentAvailabilityService $availability,
         private readonly GiftVoucherRedeemService $giftVouchers,
+        private readonly BookingSchedulingPolicy $schedulingPolicy,
+        private readonly BookingReservationLockService $reservationLocks,
     ) {
     }
 
@@ -111,19 +113,18 @@ class AppointmentLifecycleService
         bool $skipAvailability = false
     ): array {
         $oldStart = $appointment->appointment_date?->copy();
-        $slotLock = Cache::lock(
-            'appointment-reschedule:'.$appointment->user_id.':'.$newStart->format('YmdHi'),
-            30
-        );
+        $appointment->loadMissing(['user', 'product']);
+        $mode = $appointment->user
+            ? $this->schedulingPolicy->resolvedMode($appointment, $appointment->user)
+            : $appointment->getResolvedMode();
+        $locationId = $mode === 'cabinet' ? $appointment->practice_location_id : null;
 
-        if (!$slotLock->get()) {
-            throw ValidationException::withMessages([
-                'appointment_time' => 'Ce créneau est en cours de réservation. Veuillez réessayer dans quelques secondes.',
-            ]);
-        }
-
-        try {
-            $updated = DB::transaction(function () use ($appointment, $newStart, $actorType, $actorId, $enforceDeadline, $skipAvailability, &$oldStart) {
+        $updated = $this->reservationLocks->run(
+            (int) $appointment->user_id,
+            $newStart,
+            $mode,
+            $locationId ? (int) $locationId : null,
+            fn () => DB::transaction(function () use ($appointment, $newStart, $actorType, $actorId, $enforceDeadline, $skipAvailability, &$oldStart) {
                 $locked = Appointment::query()->with(['user', 'clientProfile', 'product', 'practiceLocation'])
                     ->lockForUpdate()
                     ->findOrFail($appointment->id);
@@ -137,6 +138,10 @@ class AppointmentLifecycleService
 
                 if (!$skipAvailability) {
                     $this->availability->assertAvailable($locked, $newStart, true);
+                }
+
+                if ($locked->preparation_time_minutes === null && $locked->buffer_time_after_minutes === null) {
+                    $this->schedulingPolicy->applySnapshots($locked, $locked->user, $locked->product);
                 }
 
                 $locked->forceFill([
@@ -162,10 +167,8 @@ class AppointmentLifecycleService
                 ]);
 
                 return ['appointment' => $locked, 'changed' => true, 'old_start' => $oldStart];
-            }, 3);
-        } finally {
-            $slotLock->release();
-        }
+            }, 3),
+        );
 
         if ($updated['changed']) {
             $this->syncGoogleAfterCommit($updated['appointment']);

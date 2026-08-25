@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Availability;
+use App\Models\SpecialAvailability;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -12,71 +13,110 @@ class BackfillAvailabilityLocations extends Command
     /**
      * Usage:
      *   php artisan app:backfill-availability-locations
-     *   php artisan app:backfill-availability-locations --dry-run
+     *   php artisan app:backfill-availability-locations --user-id=123 --dry-run
      */
-    protected $signature   = 'app:backfill-availability-locations {--dry-run : Show what would change without writing}';
-    protected $description = 'Assign the primary practice location to all existing availabilities that have no practice_location_id.';
+    protected $signature = 'app:backfill-availability-locations
+        {--dry-run : Show what would change without writing}
+        {--user-id=* : Limit the operation to one or more practitioner IDs}';
+
+    protected $description = 'Assign the primary practice location to weekly and special availabilities that have no location.';
 
     public function handle(): int
     {
         $dry = (bool) $this->option('dry-run');
+        $rawUserIds = collect($this->option('user-id'));
+        if ($rawUserIds->contains(fn ($id): bool => ! ctype_digit((string) $id) || (int) $id <= 0)) {
+            $this->error('Chaque option --user-id doit contenir un identifiant positif.');
 
-        $this->info(($dry ? '[DRY-RUN] ' : '') . 'Backfilling availability practice_location_id …');
+            return self::FAILURE;
+        }
 
-        $totalUsers   = 0;
-        $totalUpdated = 0;
+        $requestedUserIds = $rawUserIds
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values();
 
-        // Work user-by-user to respect multi-tenant data ownership
-        User::query()->chunkById(200, function ($users) use (&$totalUsers, &$totalUpdated, $dry) {
-            foreach ($users as $u) {
-                $primary = $u->practiceLocations()->where('is_primary', true)->first();
+        $this->info(($dry ? '[DRY-RUN] ' : '').'Backfilling availability practice_location_id...');
 
-                if (!$primary) {
-                    // No primary location for this user → skip
-                    continue;
-                }
+        $usersTouched = 0;
+        $weeklyUpdated = 0;
+        $specialUpdated = 0;
+        $foundUserIds = collect();
 
-                $totalUsers++;
+        $users = User::query()
+            ->when($requestedUserIds->isNotEmpty(), fn ($query) => $query->whereKey($requestedUserIds))
+            ->lazyById(200);
 
-                // Count how many availabilities are missing a location
-                $missingCount = Availability::where('user_id', $u->id)
-                    ->whereNull('practice_location_id')
-                    ->count();
+        foreach ($users as $user) {
+            $foundUserIds->push((int) $user->id);
+            $weeklyMissing = Availability::query()
+                ->where('user_id', $user->id)
+                ->whereNull('practice_location_id')
+                ->count();
+            $specialMissing = SpecialAvailability::query()
+                ->where('user_id', $user->id)
+                ->whereNull('practice_location_id')
+                ->count();
 
-                if ($missingCount === 0) {
-                    continue;
-                }
+            if ($weeklyMissing === 0 && $specialMissing === 0) {
+                continue;
+            }
 
-                $this->line(sprintf(
-                    'User #%d: %d availability(ies) without location → will set to primary #%d',
-                    $u->id,
-                    $missingCount,
-                    $primary->id
+            $primary = $user->practiceLocations()->where('is_primary', true)->first();
+            if (!$primary) {
+                $this->warn(sprintf(
+                    'User #%d: %d weekly and %d special availability period(s) skipped because no primary practice location exists.',
+                    $user->id,
+                    $weeklyMissing,
+                    $specialMissing,
                 ));
 
-                if ($dry) {
-                    $totalUpdated += $missingCount;
-                    continue;
-                }
-
-                // Update in chunks for memory safety
-                DB::transaction(function () use ($u, $primary, &$totalUpdated) {
-                    Availability::where('user_id', $u->id)
-                        ->whereNull('practice_location_id')
-                        ->chunkById(500, function ($rows) use ($primary, &$totalUpdated) {
-                            $ids = $rows->pluck('id');
-                            $affected = Availability::whereIn('id', $ids)->update([
-                                'practice_location_id' => $primary->id,
-                                'updated_at'           => now(),
-                            ]);
-                            $totalUpdated += $affected;
-                        });
-                });
+                continue;
             }
-        });
 
-        $this->info(($dry ? '[DRY-RUN] ' : '') . "Users touched: {$totalUsers}");
-        $this->info(($dry ? '[DRY-RUN] ' : '') . "Availabilities updated: {$totalUpdated}");
+            $usersTouched++;
+            $this->line(sprintf(
+                'User #%d: %d weekly and %d special period(s) -> primary location #%d.',
+                $user->id,
+                $weeklyMissing,
+                $specialMissing,
+                $primary->id,
+            ));
+
+            if ($dry) {
+                $weeklyUpdated += $weeklyMissing;
+                $specialUpdated += $specialMissing;
+                continue;
+            }
+
+            DB::transaction(function () use ($user, $primary, &$weeklyUpdated, &$specialUpdated): void {
+                $values = [
+                    'practice_location_id' => $primary->id,
+                    'updated_at' => now(),
+                ];
+
+                $weeklyUpdated += Availability::query()
+                    ->where('user_id', $user->id)
+                    ->whereNull('practice_location_id')
+                    ->update($values);
+                $specialUpdated += SpecialAvailability::query()
+                    ->where('user_id', $user->id)
+                    ->whereNull('practice_location_id')
+                    ->update($values);
+            });
+        }
+
+        $missingRequestedIds = $requestedUserIds->diff($foundUserIds);
+        if ($missingRequestedIds->isNotEmpty()) {
+            $this->error('Utilisateur(s) introuvable(s) : '.$missingRequestedIds->implode(', '));
+
+            return self::FAILURE;
+        }
+
+        $prefix = $dry ? '[DRY-RUN] ' : '';
+        $this->info($prefix."Users touched: {$usersTouched}");
+        $this->info($prefix."Weekly availabilities updated: {$weeklyUpdated}");
+        $this->info($prefix."Special availabilities updated: {$specialUpdated}");
 
         return self::SUCCESS;
     }

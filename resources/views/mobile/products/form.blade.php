@@ -110,6 +110,40 @@
                 </div>
             </section>
 
+            @if(app(\App\Support\BookingV2Access::class)->enabledFor(auth()->user()))
+                <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
+                    <h2 class="text-sm font-semibold text-gray-900">Organisation du rendez-vous</h2>
+                    <p class="mt-1 text-xs text-gray-500">Ces temps protègent votre agenda sans allonger la durée affichée.</p>
+                    <div class="mt-3 grid grid-cols-2 gap-3">
+                        @foreach(['preparation_time_minutes' => 'Avant', 'buffer_time_after_minutes' => 'Après'] as $field => $label)
+                            <label class="block min-w-0">
+                                <span class="text-sm font-medium text-gray-700">{{ $label }}</span>
+                                <select name="{{ $field }}" class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                                    <option value="">{{ $field === 'preparation_time_minutes' ? 'Aucun' : 'Réglage général' }}</option>
+                                    @foreach([0, 5, 10, 15, 20, 30, 45, 60] as $minutes)
+                                        <option value="{{ $minutes }}" @selected((string) old($field, $product->{$field}) === (string) $minutes)>{{ $minutes }} min</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                        @endforeach
+                    </div>
+                </section>
+
+                <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
+                    <h2 class="text-sm font-semibold text-gray-900">Communication avec le client</h2>
+                    <div class="mt-3 space-y-3">
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700">Message de confirmation</span>
+                            <textarea name="confirmation_email_note" rows="3" maxlength="2000" class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ old('confirmation_email_note', $product->confirmation_email_note) }}</textarea>
+                        </label>
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700">Message de rappel</span>
+                            <textarea name="reminder_email_note" rows="3" maxlength="2000" class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ old('reminder_email_note', $product->reminder_email_note) }}</textarea>
+                        </label>
+                    </div>
+                </section>
+            @endif
+
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
                 <h2 class="text-sm font-semibold text-gray-900">Mode</h2>
                 <div class="mt-3 grid grid-cols-2 gap-2">

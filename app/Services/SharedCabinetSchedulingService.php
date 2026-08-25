@@ -6,12 +6,91 @@ use App\Models\Appointment;
 use App\Models\PracticeLocation;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class SharedCabinetSchedulingService
 {
     public function __construct(
         private readonly CabinetAccessService $cabinetAccessService,
+        private readonly BookingSchedulingPolicy $schedulingPolicy,
     ) {
+    }
+
+    /** @param array{preparation:int,buffer_after:int} $candidateRules */
+    public function hasSharedCabinetConflictForAppointment(
+        Appointment $appointment,
+        CarbonInterface $start,
+        array $candidateRules
+    ): bool {
+        $duration = (int) ($appointment->duration ?: $appointment->product?->duration ?: 0);
+        $end = $start->copy()->addMinutes($duration);
+
+        return $this->appointmentsConflictWithCandidate(
+            $this->blockingAppointmentsForWindow($appointment, $start, $end),
+            $start,
+            $duration,
+            $candidateRules,
+        );
+    }
+
+    /** @return Collection<int, Appointment> */
+    public function blockingAppointmentsForWindow(
+        Appointment $appointment,
+        CarbonInterface $start,
+        CarbonInterface $end,
+    ): Collection {
+        $locationId = (int) $appointment->practice_location_id;
+        $location = PracticeLocation::query()->find($locationId);
+
+        if (! $location || ! $location->is_shared || ! $this->cabinetAccessService->enabled()) {
+            return collect();
+        }
+
+        $memberIds = $this->cabinetAccessService->activeMemberUserIds($location);
+        if ($memberIds === []) {
+            return collect();
+        }
+
+        return Appointment::query()
+            ->with('user')
+            ->whereIn('user_id', $memberIds)
+            ->where('practice_location_id', $locationId)
+            ->whereKeyNot($appointment->id)
+            ->where(function (Builder $statusQuery) {
+                $this->applyBlockingAppointmentsFilter($statusQuery);
+            })
+            ->where('appointment_date', '<', $end->copy()->addDays(2))
+            ->where('appointment_date', '>=', $start->copy()->subDays(2))
+            ->get();
+    }
+
+    /**
+     * @param Collection<int, Appointment> $appointments
+     * @param array{preparation:int,buffer_after:int} $candidateRules
+     */
+    public function appointmentsConflictWithCandidate(
+        Collection $appointments,
+        CarbonInterface $start,
+        int $duration,
+        array $candidateRules,
+    ): bool {
+        $end = $start->copy()->addMinutes($duration);
+
+        return $appointments->contains(function (Appointment $existing) use ($start, $end, $candidateRules): bool {
+                $existingStart = $existing->appointment_date;
+                $existingEnd = $existingStart->copy()->addMinutes((int) ($existing->duration ?: 60));
+                $existingRules = $this->schedulingPolicy->valuesForAppointment($existing, $existing->user);
+
+                if ($existingStart->gte($start)) {
+                    return $existingStart->lt($end->copy()->addMinutes(
+                        max($candidateRules['buffer_after'], $existingRules['preparation'])
+                    ));
+                }
+
+                return $existingEnd->copy()->addMinutes(
+                    max($existingRules['buffer_after'], $candidateRules['preparation'])
+                )->gt($start);
+            });
     }
 
     public function shouldApplySharedConstraint(?string $mode, ?int $practiceLocationId): bool

@@ -82,11 +82,32 @@
     .earlier-slot-choice input { width:18px; height:18px; margin-top:2px; accent-color:#647a0b; }
     .earlier-slot-choice strong { display:block; color:#26351f; }
     .earlier-slot-choice small { display:block; margin-top:4px; color:#687064; line-height:1.45; }
+    .booking-errors {
+        margin: 0 0 20px;
+        padding: 14px 16px;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        background: #fef2f2;
+        color: #991b1b;
+    }
+    .booking-errors p { margin: 0 0 6px; font-weight: 700; }
+    .booking-errors ul { margin: 0; padding-left: 20px; }
 </style>
 
 <div class="container mt-5">
     <div class="details-container">
         <h1 class="details-title">{{ __('Réserver une prestation (lien partenaire)') }}</h1>
+
+        @if ($errors->any())
+            <div class="booking-errors" role="alert" aria-live="polite">
+                <p>{{ __('La réservation n’a pas pu être enregistrée.') }}</p>
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form action="{{ route('bookingLinks.store', ['token' => $bookingLink->token]) }}" method="POST">
             @csrf
@@ -114,16 +135,25 @@
                 <div class="subtle mt-2" id="variantMeta" style="display:none;"></div>
             </div>
 
-            <input type="hidden" name="product_id" id="product_id">
-            <input type="hidden" name="type" id="type">
+            <input type="hidden" name="product_id" id="product_id" value="{{ old('product_id') }}">
+            <input type="hidden" name="type" id="type" value="{{ old('type') }}">
 
             {{-- Cabinet selector (only for cabinet mode) --}}
             <div class="details-box" id="practiceLocationBox" style="display:none;">
                 <label class="details-label" for="practice_location_id">{{ __('Cabinet') }}</label>
+                @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist))
+                    <p id="autoLocationSummary" class="subtle" style="display:none;text-align:left;">
+                        <strong id="autoLocationLabel"></strong><br>
+                        <span id="autoLocationAddress"></span>
+                    </p>
+                    <p id="noCompatibleLocation" class="subtle" style="display:none;text-align:left;color:#b91c1c;">
+                        {{ __('Aucun cabinet n’est configuré pour cette prestation. Contactez directement le praticien.') }}
+                    </p>
+                @endif
                 <select id="practice_location_id" name="practice_location_id" class="form-select">
                     <option value="">{{ __('Choisir un cabinet') }}</option>
                     @foreach($practiceLocations as $loc)
-                        <option value="{{ $loc->id }}">
+                        <option value="{{ $loc->id }}" @selected((string) old('practice_location_id') === (string) $loc->id)>
                             {{ $loc->full_address ?? ($loc->address ?? ('Cabinet #' . $loc->id)) }}
                         </option>
                     @endforeach
@@ -146,7 +176,7 @@
             <div class="details-box">
                 <label class="details-label" for="appointment_date">{{ __('Date') }}</label>
                 <input type="text" id="appointment_date" name="appointment_date" class="form-control"
-                       placeholder="{{ __('Choisir une date') }}" required>
+                       value="{{ old('appointment_date') }}" placeholder="{{ __('Choisir une date') }}" required>
             </div>
 
             {{-- Time --}}
@@ -160,22 +190,22 @@
             {{-- Patient info --}}
             <div class="details-box">
                 <label class="details-label" for="first_name">{{ __('Prénom') }}</label>
-                <input type="text" id="first_name" name="first_name" class="form-control" required>
+                <input type="text" id="first_name" name="first_name" class="form-control" value="{{ old('first_name') }}" required>
             </div>
 
             <div class="details-box">
                 <label class="details-label" for="last_name">{{ __('Nom') }}</label>
-                <input type="text" id="last_name" name="last_name" class="form-control" required>
+                <input type="text" id="last_name" name="last_name" class="form-control" value="{{ old('last_name') }}" required>
             </div>
 
             <div class="details-box">
                 <label class="details-label" for="email">{{ __('Email') }}</label>
-                <input type="email" id="email" name="email" class="form-control" required>
+                <input type="email" id="email" name="email" class="form-control" value="{{ old('email') }}" required>
             </div>
 
             <div class="details-box">
                 <label class="details-label" for="phone">{{ __('Téléphone') }}</label>
-                <input type="text" id="phone" name="phone" class="form-control" required>
+                <input type="text" id="phone" name="phone" class="form-control" value="{{ old('phone') }}" required>
             </div>
 
             <div class="details-box">
@@ -213,12 +243,19 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
 (function () {
     const therapistId = @json($therapist->id);
     const catalog = @json($catalog);
+    const bookingV2Locations = @json($compatibleLocationsByProduct ?? []);
+    const bookingV2Active = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
+    const oldProductId = @json((string) old('product_id', ''));
+    const oldLocationId = @json((string) old('practice_location_id', ''));
+    let pendingOldDate = @json(old('appointment_date'));
+    let pendingOldTime = @json(old('appointment_time'));
 
     const $prestationSelect = $('#prestation_name');
     const $variantSelect = $('#variant_select');
@@ -302,7 +339,10 @@
     // Flatpickr
     const fp = flatpickr("#appointment_date", {
         dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
         minDate: "today",
+        locale: "fr",
         disableMobile: true,
         enable: [],
         onChange: function(selectedDates, dateStr) {
@@ -348,6 +388,12 @@
                 } else {
                     noSlotsMessage.classList.add('d-none');
                     noSlotsMessage.textContent = "";
+
+                    if (pendingOldDate && dates.includes(pendingOldDate)) {
+                        const dateToRestore = pendingOldDate;
+                        pendingOldDate = null;
+                        fp.setDate(dateToRestore, true);
+                    }
                 }
             },
             error: function (xhr) {
@@ -397,6 +443,11 @@
                     opt.textContent = start;
                     timeSelect.appendChild(opt);
                 });
+
+                if (pendingOldTime && Array.from(timeSelect.options).some(option => option.value === pendingOldTime)) {
+                    timeSelect.value = pendingOldTime;
+                    pendingOldTime = null;
+                }
             },
             error: function (xhr) {
                 console.error('Error fetching slots:', xhr.responseText);
@@ -404,6 +455,49 @@
                 noSlotsMessage.textContent = "{{ __('Une erreur est survenue lors de la récupération des créneaux.') }}";
             }
         });
+    }
+
+    function configureCabinetLocations(productId) {
+        if (!bookingV2Active) return;
+
+        if (!productId) {
+            $practiceLocationSelect.find('option[value]').prop('disabled', false);
+            $practiceLocationSelect.val('').trigger('change.select2');
+            $practiceLocationSelect.next('.select2-container').show();
+            $('#autoLocationSummary, #noCompatibleLocation').hide();
+            return;
+        }
+
+        const locations = bookingV2Locations[String(productId)] || [];
+        const allowedIds = locations.map(location => String(location.id));
+        $practiceLocationSelect.find('option[value]').each(function () {
+            $(this).prop('disabled', !allowedIds.includes(String($(this).val())));
+        });
+        $('#autoLocationSummary, #noCompatibleLocation').hide();
+
+        if (locations.length === 0) {
+            $practiceLocationSelect.val('').trigger('change.select2');
+            $practiceLocationSelect.next('.select2-container').hide();
+            $('#noCompatibleLocation').show();
+            return;
+        }
+
+        if (locations.length === 1) {
+            const location = locations[0];
+            $practiceLocationSelect.val(String(location.id)).trigger('change.select2');
+            $practiceLocationSelect.next('.select2-container').hide();
+            $('#autoLocationLabel').text(location.label);
+            $('#autoLocationAddress').text(location.address);
+            $('#autoLocationSummary').show();
+            return;
+        }
+
+        if (!allowedIds.includes(String($practiceLocationSelect.val() || ''))) {
+            $practiceLocationSelect.val('').trigger('change.select2');
+        } else {
+            $practiceLocationSelect.trigger('change.select2');
+        }
+        $practiceLocationSelect.next('.select2-container').show();
     }
 
     function refreshAvailability() {
@@ -422,6 +516,7 @@
 
         if (mode === 'cabinet') {
             practiceLocationBox.style.display = 'block';
+            configureCabinetLocations(productId);
             const locationId = $practiceLocationSelect.val();
             if (!locationId) return;
             fetchDates(productId, mode, locationId);
@@ -445,6 +540,7 @@
         fp.clear();
         fp.set('enable', []);
         resetTimeSelect();
+        configureCabinetLocations(null);
 
         if (!selectedName) {
             variantBox.style.display = 'none';
@@ -533,7 +629,27 @@
         refreshAvailability();
     });
 
-    onPrestationChange();
+    if (oldProductId) {
+        const oldEntry = catalog.find(entry => (entry.variants || []).some(
+            variant => String(variant.id) === oldProductId
+        ));
+
+        if (oldEntry) {
+            $prestationSelect.val(oldEntry.name).trigger('change');
+
+            if ((oldEntry.variants || []).length > 1) {
+                $variantSelect.val(oldProductId).trigger('change');
+            }
+
+            if (oldLocationId && !$practiceLocationSelect.find(`option[value="${oldLocationId}"]`).prop('disabled')) {
+                $practiceLocationSelect.val(oldLocationId).trigger('change');
+            }
+        } else {
+            onPrestationChange();
+        }
+    } else {
+        onPrestationChange();
+    }
 })();
 </script>
 

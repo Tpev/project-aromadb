@@ -545,6 +545,15 @@
                         {{-- Cabinet: choose a practice location --}}
                         <div class="details-box" id="cabinet-location-section" style="display:none;">
                             <label class="details-label" for="practice_location_id">{{ __('Cabinet') }}</label>
+                            @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist))
+                                <p id="auto-location-summary" class="mb-2 rounded-lg bg-[#f7f8f1] p-3 text-sm text-gray-700" style="display:none;">
+                                    <strong id="auto-location-label"></strong><br>
+                                    <span id="auto-location-address"></span>
+                                </p>
+                                <p id="no-compatible-location" class="mb-2 rounded-lg bg-red-50 p-3 text-sm text-red-700" style="display:none;">
+                                    {{ __('Aucun cabinet n’est configuré pour cette prestation. Contactez directement le praticien.') }}
+                                </p>
+                            @endif
                             <select id="practice_location_id" class="form-control">
                                 <option value="" disabled selected>{{ __('Choisir un lieu') }}</option>
                                 @foreach($practiceLocations as $loc)
@@ -718,8 +727,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const PRODUCT_CATALOG = @json($productCatalog);
-        const OLD_TIME        = @json(old('appointment_time'));
+            const PRODUCT_CATALOG = @json($productCatalog);
+            const OLD_TIME        = @json(old('appointment_time'));
+            const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
+            const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
 
         let allowedDates = [];
         let currentSlotsRequestId = 0;
@@ -772,7 +783,7 @@
             function updateSummary() {
                 const presta = $('#product_name').val() || '—';
                 const mode   = $('#selected_mode_slug').val() || '—';
-                const date   = $('#appointment_date').val() || '—';
+                const date   = (fp.altInput && fp.altInput.value) ? fp.altInput.value : ($('#appointment_date').val() || '—');
                 const time   = $('#appointment_time').val() || '—';
 
                 const modeLabel = (function() {
@@ -1022,6 +1033,56 @@
                 fetchDates(productId, modeSlug, locId);
             }
 
+            function configureCabinetLocations(productId) {
+                if (!BOOKING_V2_ACTIVE) return;
+
+                const $select = $('#practice_location_id');
+
+                if (!productId) {
+                    $select.find('option[value]').prop('disabled', false).prop('hidden', false);
+                    $select.val('').show();
+                    $('#practice_location_id_hidden').val('');
+                    $('#auto-location-summary, #no-compatible-location').hide();
+                    return;
+                }
+
+                const locations = BOOKING_V2_LOCATIONS[String(productId)] || [];
+                const allowedIds = locations.map(location => String(location.id));
+
+                $select.find('option[value]').each(function () {
+                    const allowed = allowedIds.includes(String($(this).val()));
+                    $(this).prop('disabled', !allowed).prop('hidden', !allowed);
+                });
+                $('#auto-location-summary, #no-compatible-location').hide();
+
+                if (locations.length === 0) {
+                    $select.val('').hide();
+                    $('#practice_location_id_hidden').val('');
+                    $('#therapist-address-section').hide();
+                    $('#no-compatible-location').show();
+                    return;
+                }
+
+                if (locations.length === 1) {
+                    const location = locations[0];
+                    $select.val(String(location.id)).hide();
+                    $('#practice_location_id_hidden').val(String(location.id));
+                    $('#auto-location-label').text(location.label);
+                    $('#auto-location-address').text(location.address);
+                    $('#auto-location-summary').show();
+                    $('#therapist-address').text(location.address || '{{ __('Adresse non disponible.') }}');
+                    $('#therapist-address-section').show();
+                    return;
+                }
+
+                if (!allowedIds.includes(String($select.val() || ''))) {
+                    $select.val('');
+                    $('#practice_location_id_hidden').val('');
+                    $('#therapist-address-section').hide();
+                }
+                $select.show();
+            }
+
             // -----------------------------
             // Events
             // -----------------------------
@@ -1064,6 +1125,7 @@
                 $('#location-error').addClass('d-none').text('');
                 $('#practice_location_id').val('');
                 $('#practice_location_id_hidden').val('');
+                configureCabinetLocations(null);
 
                 autoPickDate = null;
                 autoPickTime = null;
@@ -1128,6 +1190,7 @@
 
                 if (modeSlug === 'cabinet') {
                     $('#cabinet-location-section').show();
+                    configureCabinetLocations($('#product_id').val());
                 } else {
                     $('#cabinet-location-section').hide();
                     $('#therapist-address-section').hide();
@@ -1144,6 +1207,9 @@
                 const productId = $(this).val();
                 if (productId) {
                     $('#product_id').val(productId);
+                }
+                if ($('#selected_mode_slug').val() === 'cabinet') {
+                    configureCabinetLocations(productId);
                 }
 
                 autoPickDate = null;

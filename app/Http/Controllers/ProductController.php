@@ -61,6 +61,10 @@ class ProductController extends Controller
             'booking_questionnaire_enabled' => 'nullable|boolean',
             'booking_questionnaire_id' => 'nullable|integer|exists:questionnaires,id',
             'booking_questionnaire_frequency' => 'nullable|string|in:first_time_only,every_booking',
+            'preparation_time_minutes' => 'nullable|integer|min:0|max:480',
+            'buffer_time_after_minutes' => 'nullable|integer|min:0|max:480',
+            'confirmation_email_note' => 'nullable|string|max:2000',
+            'reminder_email_note' => 'nullable|string|max:2000',
 
         ]);
 
@@ -102,6 +106,7 @@ class ProductController extends Controller
             'booking_questionnaire_enabled' => $questionnaireAutomation['booking_questionnaire_enabled'],
             'booking_questionnaire_id' => $questionnaireAutomation['booking_questionnaire_id'],
             'booking_questionnaire_frequency' => $questionnaireAutomation['booking_questionnaire_frequency'],
+            ...$this->bookingV2ProductPayload($validatedData),
         ]);
 		/* ---------------------- Lien réservation directe (partenaire) ---------------------- */
 		if ($request->boolean('direct_booking_enabled')) {
@@ -191,6 +196,10 @@ class ProductController extends Controller
             'booking_questionnaire_enabled' => 'nullable|boolean',
             'booking_questionnaire_id' => 'nullable|integer|exists:questionnaires,id',
             'booking_questionnaire_frequency' => 'nullable|string|in:first_time_only,every_booking',
+            'preparation_time_minutes' => 'nullable|integer|min:0|max:480',
+            'buffer_time_after_minutes' => 'nullable|integer|min:0|max:480',
+            'confirmation_email_note' => 'nullable|string|max:2000',
+            'reminder_email_note' => 'nullable|string|max:2000',
         ]);
 
         $questionnaireAutomation = $this->resolveQuestionnaireAutomationSettings($request, $validatedData);
@@ -246,6 +255,7 @@ class ProductController extends Controller
             'booking_questionnaire_enabled' => $questionnaireAutomation['booking_questionnaire_enabled'],
             'booking_questionnaire_id' => $questionnaireAutomation['booking_questionnaire_id'],
             'booking_questionnaire_frequency' => $questionnaireAutomation['booking_questionnaire_frequency'],
+            ...$this->bookingV2ProductPayload($validatedData),
         ]);
 
         /* ---------------------- Lien réservation directe (partenaire) ---------------------- */
@@ -377,6 +387,10 @@ public function storeDuplicate(Request $request, Product $product)
         'price_visible_in_portal' => 'required|boolean',
 
         'direct_booking_enabled'  => 'nullable|boolean',
+        'preparation_time_minutes' => 'nullable|integer|min:0|max:480',
+        'buffer_time_after_minutes' => 'nullable|integer|min:0|max:480',
+        'confirmation_email_note' => 'nullable|string|max:2000',
+        'reminder_email_note' => 'nullable|string|max:2000',
     ]);
 
     // Image: upload wins, else optionally remove, else keep original path
@@ -422,6 +436,7 @@ public function storeDuplicate(Request $request, Product $product)
         'requires_emargement'     => $validatedData['requires_emargement'],
         'visible_in_portal'       => $validatedData['visible_in_portal'],
         'price_visible_in_portal' => $validatedData['price_visible_in_portal'],
+        ...$this->bookingV2ProductPayload($validatedData),
     ]);
 
     $newProduct->save();
@@ -439,6 +454,24 @@ public function storeDuplicate(Request $request, Product $product)
 
     return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
 }
+
+    private function bookingV2ProductPayload(array $validatedData): array
+    {
+        if (! app(\App\Support\BookingV2Access::class)->enabledFor(Auth::user())) {
+            return [];
+        }
+
+        return [
+            'preparation_time_minutes' => $validatedData['preparation_time_minutes'] ?? null,
+            'buffer_time_after_minutes' => $validatedData['buffer_time_after_minutes'] ?? null,
+            'confirmation_email_note' => filled($validatedData['confirmation_email_note'] ?? null)
+                ? trim($validatedData['confirmation_email_note'])
+                : null,
+            'reminder_email_note' => filled($validatedData['reminder_email_note'] ?? null)
+                ? trim($validatedData['reminder_email_note'])
+                : null,
+        ];
+    }
 
 
 }
