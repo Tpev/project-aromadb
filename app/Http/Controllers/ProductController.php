@@ -414,7 +414,12 @@ public function storeDuplicate(Request $request, Product $product)
     $enEntreprise  = $validatedData['mode'] === 'en_entreprise';
     $dansLeCabinet = $validatedData['mode'] === 'dans_le_cabinet';
 
-    $newProduct = $product->replicate();
+    // Stripe identifiers are unique remote-resource references. A duplicated
+    // prestation must receive its own identifiers if it is synchronized later.
+    $newProduct = $product->replicate([
+        'stripe_product_id',
+        'stripe_price_id',
+    ]);
     $newProduct->fill([
         'name'                    => $validatedData['name'],
         'description'             => $validatedData['description'] ?? null,
