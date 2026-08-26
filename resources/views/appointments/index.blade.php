@@ -188,7 +188,7 @@
                     Rendez-vous à venir
                 </h2>
                 <p class="text-muted small mb-0">
-                    Tri possible sur chaque colonne. Cliquez sur une ligne pour ouvrir le rendez-vous.
+                    Tri possible sur chaque colonne. Cliquez sur le nom pour ouvrir la fiche client, ou ailleurs sur la ligne pour ouvrir le rendez-vous.
                 </p>
             </div>
 
@@ -235,12 +235,16 @@
                                                     <i class="fas fa-link small text-muted"></i>
                                                     {{ $appointment->notes ?: 'Occupé' }}
                                                 </span>
-                                            @else
-                                                <span class="d-inline-flex align-items-center justify-content-center gap-1">
+                                            @elseif($appointment->clientProfile)
+                                                <a href="{{ route('client_profiles.show', $appointment->clientProfile) }}"
+                                                   class="am-client-link d-inline-flex align-items-center justify-content-center gap-1"
+                                                   title="Ouvrir la fiche client">
                                                     <i class="fas fa-user small" style="color:#647a0b;"></i>
                                                     {{ optional($appointment->clientProfile)->first_name }}
                                                     {{ optional($appointment->clientProfile)->last_name }}
-                                                </span>
+                                                </a>
+                                            @else
+                                                <span class="text-muted">Client indisponible</span>
                                             @endif
                                         </td>
 
@@ -365,12 +369,16 @@
                                                     <i class="fas fa-link small text-muted"></i>
                                                     {{ $appointment->notes ?: 'Occupé' }}
                                                 </span>
-                                            @else
-                                                <span class="d-inline-flex align-items-center justify-content-center gap-1">
+                                            @elseif($appointment->clientProfile)
+                                                <a href="{{ route('client_profiles.show', $appointment->clientProfile) }}"
+                                                   class="am-client-link d-inline-flex align-items-center justify-content-center gap-1"
+                                                   title="Ouvrir la fiche client">
                                                     <i class="fas fa-user small" style="color:#854f38;"></i>
                                                     {{ optional($appointment->clientProfile)->first_name }}
                                                     {{ optional($appointment->clientProfile)->last_name }}
-                                                </span>
+                                                </a>
+                                            @else
+                                                <span class="text-muted">Client indisponible</span>
                                             @endif
                                         </td>
 
@@ -875,6 +883,18 @@
 
         .am-row-clickable {
             cursor: pointer;
+        }
+
+        .am-client-link {
+            color: inherit;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .am-client-link:hover,
+        .am-client-link:focus-visible {
+            color: #647a0b;
+            text-decoration: underline;
         }
 
         /* Bouton "Générer une facture" */

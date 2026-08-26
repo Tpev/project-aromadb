@@ -141,6 +141,23 @@ test('cancelled appointments are hidden by default and remain accessible in the 
         ->assertViewHas('appointments', fn ($appointments) => $appointments->count() === 2 && $appointments->every(fn (Appointment $appointment) => $appointment->isCancelled()));
 });
 
+test('client names open client profiles while appointment rows keep their appointment destination', function () {
+    $therapist = calendarTherapist(['email' => 'calendar-client-link@example.test']);
+    $product = calendarProduct($therapist);
+    $client = calendarClient($therapist, 'Alice', 'Navigation', 'alice-navigation@example.test');
+    $appointment = calendarAppointment($therapist, $client, $product, [
+        'appointment_date' => now()->addDays(2),
+    ]);
+
+    $this->actingAs($therapist)
+        ->get(route('appointments.index'))
+        ->assertOk()
+        ->assertSee(route('client_profiles.show', $client), false)
+        ->assertSee('class="am-client-link', false)
+        ->assertSee('data-url="'.route('appointments.show', $appointment).'"', false)
+        ->assertSee('Cliquez sur le nom pour ouvrir la fiche client');
+});
+
 test('Google events are shown in the calendar by default and can be hidden without entering appointment lists', function () {
     $therapist = calendarTherapist(['email' => 'calendar-google-filter@example.test']);
     $product = calendarProduct($therapist);

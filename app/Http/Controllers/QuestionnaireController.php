@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Questionnaire;
-use App\Models\Question;
-use App\Models\Response;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use App\Mail\QuestionnaireSentMail;
 use App\Mail\QuestionnaireCompletedMail;
-use App\Models\ClientProfile; 
+use App\Mail\QuestionnaireSentMail;
+use App\Models\ClientProfile;
+use App\Models\Question;
+use App\Models\Questionnaire;
+use App\Models\Response;
 use App\Services\QuestionnairePayloadService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class QuestionnaireController extends Controller
 {
@@ -46,6 +46,7 @@ class QuestionnaireController extends Controller
     public function index()
     {
         $questionnaires = Questionnaire::where('user_id', Auth::id())->get(); // Fetch only the logged-in user's questionnaires
+
         return view('questionnaires.index', compact('questionnaires'));
     }
 
@@ -58,7 +59,9 @@ class QuestionnaireController extends Controller
             'action' => 'required|in:fill_now,send_email',
         ]);
 
-        $clientProfile = ClientProfile::findOrFail($request->client_profile_id);
+        $clientProfile = ClientProfile::query()
+            ->where('user_id', Auth::id())
+            ->findOrFail($request->client_profile_id);
         $questionnaire = Questionnaire::findOrFail($request->questionnaire_id);
 
         // Check authorization
@@ -73,6 +76,7 @@ class QuestionnaireController extends Controller
                 'token' => $token,
                 'answers' => json_encode([]), // Initialize answers as an empty array
             ]);
+
             return redirect()->route('questionnaires.fill', ['token' => $token]);
         } else {
             // Send the email
@@ -89,7 +93,11 @@ class QuestionnaireController extends Controller
             $therapistName = $therapist->name;
             $link = route('questionnaires.fill', ['token' => $token]);
             Mail::to($clientProfile->email)->send(new QuestionnaireSentMail($therapistName, $questionnaire_name, $link, $client_profile_name, $therapist));
-            return redirect()->route('client_profiles.show', $clientProfile->id)->with('success', 'Questionnaire envoyé avec succès.');
+
+            return redirect()->route('client_profiles.show', [
+                'clientProfile' => $clientProfile->id,
+                'tab' => 'Questionnaires',
+            ])->with('success', 'Questionnaire envoyé avec succès.');
         }
     }
 
@@ -99,50 +107,53 @@ class QuestionnaireController extends Controller
         $response = Response::where('token', $token)->firstOrFail();
 
         // Get the associated questionnaire and its questions
-        $questionnaire = $response->questionnaire; 
+        $questionnaire = $response->questionnaire;
         $questions = $questionnaire->questions;
 
         return view('questionnaires.fill', compact('token', 'questionnaire', 'questions'));
     }
 
-public function storeResponses(Request $request, $token)
-{
-    // Find the response based on the token
-    $response = Response::with('questionnaire.user')->where('token', $token)->firstOrFail(); 
+    public function storeResponses(Request $request, $token)
+    {
+        // Find the response based on the token
+        $response = Response::with('questionnaire.user')->where('token', $token)->firstOrFail();
 
-    $request->validate([
-        'answers' => 'required|array',
-    ]);
+        $request->validate([
+            'answers' => 'required|array',
+        ]);
 
-    // Save the answers
-    $response->answers = json_encode($request->answers);
-    $response->is_completed = true;
-    $response->save();
+        // Save the answers
+        $response->answers = json_encode($request->answers);
+        $response->is_completed = true;
+        $response->save();
 
-    // Check if the user is authenticated
-    if (auth()->check()) {
-        // Send email notification if the user exists
-        if ($response->questionnaire->user) {
-            Mail::to($response->questionnaire->user->email)->queue(new QuestionnaireCompletedMail($response));
+        // Check if the user is authenticated
+        if (auth()->check()) {
+            // Send email notification if the user exists
+            if ($response->questionnaire->user) {
+                Mail::to($response->questionnaire->user->email)->queue(new QuestionnaireCompletedMail($response));
+            } else {
+                // Log a warning if the user does not exist
+                Log::warning('User not found for questionnaire ID: '.$response->questionnaire->id);
+            }
+
+            return redirect()->route('questionnaires.index')->with('success', 'Questionnaire soumis avec succès.');
         } else {
-            // Log a warning if the user does not exist
-            Log::warning('User not found for questionnaire ID: ' . $response->questionnaire->id);
+            // Redirect to a thank you page for unauthenticated users
+            return redirect()->route('thank_you'); // Make sure to define this route in your routes file
         }
-
-        return redirect()->route('questionnaires.index')->with('success', 'Questionnaire soumis avec succès.');
-    } else {
-        // Redirect to a thank you page for unauthenticated users
-        return redirect()->route('thank_you'); // Make sure to define this route in your routes file
     }
-}
 
     public function showResponse($id)
     {
         // Fetch the response along with the associated questionnaire and client profile
         $response = Response::with(['questionnaire', 'clientProfile'])->findOrFail($id);
-        
+
         // Check if the authenticated user is allowed to view this client profile
-        if ($response->questionnaire->user_id !== auth()->id()) {
+        if (
+            $response->questionnaire->user_id !== auth()->id()
+            || $response->clientProfile->user_id !== auth()->id()
+        ) {
             abort(403, __('Unauthorized action.'));
         }
 
@@ -159,56 +170,67 @@ public function storeResponses(Request $request, $token)
         return redirect()->route('questionnaires.index')->with('success', 'Questionnaire supprimé avec succès.');
     }
 
-    public function showSendQuestionnaire()
+    public function showSendQuestionnaire(Request $request)
     {
         $questionnaires = Questionnaire::where('user_id', Auth::id())->get(); // Fetch questionnaires for the therapist
-        $clients = ClientProfile::where('user_id', Auth::id())->get(); // Fetch clients for the therapist
+        $clientsQuery = ClientProfile::where('user_id', Auth::id());
+        $selectedClient = null;
 
-        return view('questionnaires.send', compact('questionnaires', 'clients'));
+        if ($request->filled('client_profile_id')) {
+            $selectedClient = (clone $clientsQuery)->findOrFail($request->integer('client_profile_id'));
+        }
+
+        $clients = $clientsQuery
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get(); // Fetch clients for the therapist
+
+        return view('questionnaires.send', compact('questionnaires', 'clients', 'selectedClient'));
     }
 
     public function show($id)
     {
         // Fetch the questionnaire along with its questions
         $questionnaire = Questionnaire::with('questions')->findOrFail($id);
-        
+
         // Check authorization
         $this->authorize('view', $questionnaire); // Ensure the therapist owns the questionnaire
 
         return view('questionnaires.show', compact('questionnaire'));
     }
-	public function destroyQuestion(Questionnaire $questionnaire, Question $question)
-{
-    // Ensure that the question belongs to the provided questionnaire
-    if ($questionnaire->id !== $question->questionnaire_id) {
-        abort(404, 'Question not found in this questionnaire.');
+
+    public function destroyQuestion(Questionnaire $questionnaire, Question $question)
+    {
+        // Ensure that the question belongs to the provided questionnaire
+        if ($questionnaire->id !== $question->questionnaire_id) {
+            abort(404, 'Question not found in this questionnaire.');
+        }
+
+        // Authorize that the logged-in user can update (modify) this questionnaire
+        $this->authorize('update', $questionnaire);
+
+        // Delete the question
+        $question->delete();
+
+        // Redirect back to the questionnaire details page with a success message
+        return redirect()->route('questionnaires.show', $questionnaire->id)
+            ->with('success', 'Question removed successfully.');
     }
 
-    // Authorize that the logged-in user can update (modify) this questionnaire
-    $this->authorize('update', $questionnaire);
+    public function edit(Questionnaire $questionnaire)
+    {
+        // Optionally authorize that the current user can edit this questionnaire.
+        $this->authorize('update', $questionnaire);
 
-    // Delete the question
-    $question->delete();
-
-    // Redirect back to the questionnaire details page with a success message
-    return redirect()->route('questionnaires.show', $questionnaire->id)
-                     ->with('success', 'Question removed successfully.');
-}
-public function edit(Questionnaire $questionnaire)
-{
-    // Optionally authorize that the current user can edit this questionnaire.
-    $this->authorize('update', $questionnaire);
-
-    // Load the edit view and pass the questionnaire instance.
-    return view('questionnaires.edit', compact('questionnaire'));
-}
+        // Load the edit view and pass the questionnaire instance.
+        return view('questionnaires.edit', compact('questionnaire'));
+    }
 
     public function update(
         Request $request,
         Questionnaire $questionnaire,
         QuestionnairePayloadService $payloadService
-    )
-    {
+    ) {
         $this->authorize('update', $questionnaire);
         $validated = $payloadService->validate($request);
 
@@ -222,6 +244,6 @@ public function edit(Questionnaire $questionnaire)
         });
 
         return redirect()->route('questionnaires.index')
-                         ->with('success', 'Questionnaire updated successfully.');
+            ->with('success', 'Questionnaire updated successfully.');
     }
 }

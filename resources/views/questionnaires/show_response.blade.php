@@ -36,7 +36,10 @@
 
 
             <div class="text-center mt-4">
-                <a href="{{ route('questionnaires.index') }}" class="btn btn-secondary">{{ __('Retour à la liste des questionnaires') }}</a>
+                <a href="{{ route('client_profiles.show', [
+                    'clientProfile' => $response->clientProfile->id,
+                    'tab' => 'Questionnaires',
+                ]) }}" class="btn btn-secondary">{{ __('Retour à la fiche client') }}</a>
             </div>
         </div>
     </div>

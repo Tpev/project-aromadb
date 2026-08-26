@@ -83,28 +83,28 @@
 
     // Feature key for these
     $canUseAdvanced = $user->canUseFeature('client_profile_advanced');
+
+    $tabs = [
+        'Aperçu',
+        'Rendez-vous',
+        'Forfaits',
+        'Notes de séance',
+        'Questionnaires',
+        'Conseils envoyés',
+        'Mesures',
+        'Messagerie',
+        'Fichiers & Documents',
+    ];
+    $initialTab = in_array(request()->query('tab'), $tabs, true)
+        ? request()->query('tab')
+        : 'Aperçu';
 @endphp
 
 
-<div x-data="{ tab: 'Aperçu' }">
+<div x-data="{ tab: @js($initialTab) }">
 
     {{-- Header Tabs --}}
     <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2 mb-4 text-sm">
-
-        @php
-            $tabs = [
-                'Aperçu',
-                'Rendez-vous',
-				'Forfaits',
-                'Notes de séance',
-                'Questionnaires',
-                'Conseils envoyés',
-                'Mesures',
-                'Messagerie',
-                'Fichiers & Documents',
-				
-            ];
-        @endphp
 
         @foreach($tabs as $t)
 
@@ -918,7 +918,7 @@
                     <div class="row mt-4">
                         <div class="col-md-12">
                             <h2 class="details-title">{{ __('Réponses aux Questionnaires de ce client') }}</h2>
-                            <a href="{{ route('questionnaires.send.show', $clientProfile->id) }}"
+                            <a href="{{ route('questionnaires.send.show', ['client_profile_id' => $clientProfile->id]) }}"
                                class="btn btn-primary mb-3">
                                 {{ __('Remplir / Envoyer un questionnaire') }}
                             </a>

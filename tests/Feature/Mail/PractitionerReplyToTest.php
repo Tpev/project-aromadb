@@ -8,7 +8,6 @@ use App\Mail\AppointmentEditedClientMail;
 use App\Mail\AppointmentReminderClientMail;
 use App\Mail\ClientFileUploadedTherapistMail;
 use App\Mail\ClientMessageReceivedTherapistMail;
-use App\Mail\CommunityInviteMail;
 use App\Mail\Concerns\RepliesToPractitioner;
 use App\Mail\DocumentSignRequestMail;
 use App\Mail\EventReminderClientMail;
@@ -16,8 +15,8 @@ use App\Mail\InformationRequestMail;
 use App\Mail\InvoiceMail;
 use App\Mail\InvoicePaymentLinkMail;
 use App\Mail\InvoicePaymentReminderMail;
-use App\Mail\NewsletterMail;
 use App\Mail\NewReservationNotification;
+use App\Mail\NewsletterMail;
 use App\Mail\OfferJourneyMessageMail;
 use App\Mail\QuestionnaireCompletedMail;
 use App\Mail\QuestionnaireSentMail;
@@ -49,9 +48,7 @@ class PractitionerReplyToProbeMail extends Mailable implements ShouldQueue
 {
     use Queueable, RepliesToPractitioner, SerializesModels;
 
-    public function __construct(public User $practitioner)
-    {
-    }
+    public function __construct(public User $practitioner) {}
 
     public function build(): self
     {
@@ -366,7 +363,7 @@ test('remaining client invitations content and portal mails resolve their practi
     ]))->setRelation('therapist', $practitioner);
     $community = (new App\Models\CommunityGroup(['name' => 'Communauté']))->setRelation('user', $practitioner);
     $emargement = (new App\Models\Emargement(['token' => 'token-emargement']))->setRelation('therapist', $practitioner);
-    $testimonialRequest = (new App\Models\TestimonialRequest())->setRelation('therapist', $practitioner);
+    $testimonialRequest = (new App\Models\TestimonialRequest)->setRelation('therapist', $practitioner);
 
     $mails = [
         new App\Mail\ClientSetPasswordLink($client, 'token-espace-client'),
@@ -380,8 +377,8 @@ test('remaining client invitations content and portal mails resolve their practi
         new App\Mail\GiftVoucherRecipientMail($voucher, '%PDF-1.4'),
         new App\Mail\MeetingInvitation('https://olithea.fr/visio', $practitioner),
         new App\Mail\TestimonialRequestMail($testimonialRequest),
-        new App\Mail\TherapistFileUploadedToClientMail($client, new App\Models\ClientFile()),
-        new App\Mail\TherapistMessageSentToClientMail($client, new App\Models\Message()),
+        new App\Mail\TherapistFileUploadedToClientMail($client, new App\Models\ClientFile),
+        new App\Mail\TherapistMessageSentToClientMail($client, new App\Models\Message),
     ];
 
     foreach ($mails as $mail) {
@@ -392,6 +389,28 @@ test('remaining client invitations content and portal mails resolve their practi
         expect($mail->hasReplyTo('cabinet@example.test', 'Cabinet Harmonie'))->toBeTrue()
             ->and(practitionerReplyToCount($mail))->toBe(1);
     }
+});
+
+test('client activation invitation identifies the practitioner and explains the portal', function () {
+    $practitioner = practitionerReplyToUser();
+    $client = ClientProfile::create([
+        'user_id' => $practitioner->id,
+        'first_name' => 'Nadine',
+        'last_name' => 'Cliente',
+        'email' => 'nadine-activation@example.test',
+        'password_setup_expires_at' => now()->addDays(3),
+    ]);
+
+    $mail = new App\Mail\ClientSetPasswordLink($client, 'token-espace-client');
+    $content = html_entity_decode(strip_tags($mail->render()));
+
+    expect($content)
+        ->toContain('Cabinet Harmonie vous invite à activer votre espace client sécurisé sur Olithéa')
+        ->toContain('rendez-vous, documents, questionnaires ou messages')
+        ->toContain('Ce lien est personnel et valable jusqu’au')
+        ->toContain('Si vous n’attendiez pas cette invitation')
+        ->and($mail->hasSubject('Cabinet Harmonie vous invite à activer votre espace client'))
+        ->toBeTrue();
 });
 
 test('every inventoried client-facing mailable explicitly opts in', function () {

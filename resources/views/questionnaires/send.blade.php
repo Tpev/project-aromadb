@@ -7,20 +7,38 @@
 
     <div class="container mt-5">
         <div class="details-container mx-auto p-4">
-            <h1 class="details-title">{{ __('Envoyer un Questionnaire à un Client') }}</h1>
+            <h1 class="details-title">
+                {{ $selectedClient ? __('Remplir ou envoyer un questionnaire') : __('Envoyer un Questionnaire à un Client') }}
+            </h1>
 
             <form action="#" method="POST" id="questionnaireForm">
                 @csrf
 
                 <!-- Client Profile Selection -->
                 <div class="details-box">
-                    <label for="client_profile_id" class="details-label">{{ __('Sélectionnez un Client') }}</label>
-                    <select id="client_profile_id" name="client_profile_id" class="form-control" required>
-                        <option value="">{{ __('Choisissez un Client') }}</option>
-                        @foreach($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->first_name }} {{ $client->last_name }}</option>
-                        @endforeach
-                    </select>
+                    @if($selectedClient)
+                        <label class="details-label">{{ __('Client concerné') }}</label>
+                        <input type="hidden" name="client_profile_id" value="{{ $selectedClient->id }}">
+                        <div class="form-control bg-gray-100" aria-label="Client concerné">
+                            {{ $selectedClient->first_name }} {{ $selectedClient->last_name }}
+                            @if($selectedClient->email)
+                                <span class="text-muted">— {{ $selectedClient->email }}</span>
+                            @endif
+                        </div>
+                        <p class="mt-2 text-sm text-gray-600">
+                            Le destinataire est verrouillé car vous êtes parti de sa fiche client.
+                        </p>
+                    @else
+                        <label for="client_profile_id" class="details-label">{{ __('Sélectionnez un Client') }}</label>
+                        <select id="client_profile_id" name="client_profile_id" class="form-control" required>
+                            <option value="">{{ __('Choisissez un Client') }}</option>
+                            @foreach($clients as $client)
+                                <option value="{{ $client->id }}" @selected((string) old('client_profile_id') === (string) $client->id)>
+                                    {{ $client->first_name }} {{ $client->last_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @endif
                     @error('client_profile_id')
                         <p class="text-red-500">{{ $message }}</p>
                     @enderror
@@ -55,7 +73,11 @@
 
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary">{{ __('Soumettre') }}</button>
-                    <a href="{{ route('client_profiles.index') }}" class="btn btn-secondary">{{ __('Retour à la liste') }}</a>
+                    <a href="{{ $selectedClient
+                        ? route('client_profiles.show', ['clientProfile' => $selectedClient->id, 'tab' => 'Questionnaires'])
+                        : route('client_profiles.index') }}" class="btn btn-secondary">
+                        {{ $selectedClient ? __('Retour à la fiche client') : __('Retour à la liste') }}
+                    </a>
                 </div>
             </form>
         </div>
@@ -152,4 +174,3 @@
         }
     </script>
 </x-app-layout>
-	
