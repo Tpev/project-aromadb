@@ -51,8 +51,8 @@ class InvoiceRecipientSnapshotService
             'phone' => (string) ($isCorporate
                 ? ($corporate->billing_phone ?: $corporate->main_contact_phone)
                 : $client?->phone),
-            'siret' => (string) ($corporate?->siret ?? ''),
-            'vat_number' => (string) ($corporate?->vat_number ?? ''),
+            'siret' => trim((string) ($company?->siret ?? '')),
+            'vat_number' => trim((string) ($company?->vat_number ?? '')),
         ];
     }
 

@@ -80,6 +80,8 @@
         $billingCity = $recipient['city'] ?? '';
         $billingEmail = $recipient['email'] ?? '';
         $billingPhone = $recipient['phone'] ?? '';
+        // Old snapshots may not have this key, and imported records may contain only spaces.
+        $recipientSiret = trim((string) ($recipient['siret'] ?? ''));
     @endphp
 
     <style>
@@ -302,6 +304,7 @@
 
                     @if($billingAddress)<p>{{ $billingAddress }}</p>@endif
                     @if($billingZip || $billingCity)<p>{{ trim(($billingZip ?? '').' '.($billingCity ?? '')) }}</p>@endif
+                    @if($recipientSiret)<p>SIRET : {{ $recipientSiret }}</p>@endif
                     @if($billingEmail)<p>Email : {{ $billingEmail }}</p>@endif
                     @if($billingPhone)<p>Téléphone : {{ $billingPhone }}</p>@endif
                 </div>

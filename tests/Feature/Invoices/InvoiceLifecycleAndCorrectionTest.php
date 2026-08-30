@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\ClientProfile;
+use App\Models\CorporateClient;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\User;
@@ -220,6 +221,81 @@ test('finalization refreshes then freezes recipient and line snapshots', functio
         ->and($pdfHtml)->not->toContain('Nadine après envoi')
         ->and($pdfHtml)->toContain('Séance initiale')
         ->and($pdfHtml)->not->toContain('Nouveau nom catalogue');
+});
+
+test('invoice pdf displays the business client siret', function () {
+    $context = lifecycleInvoiceContext('invoice-corporate-siret@example.test');
+    $company = CorporateClient::create([
+        'user_id' => $context['user']->id,
+        'name' => 'Aromates Conseil',
+        'siret' => '123 456 789 00012',
+        'billing_address' => '25 avenue des Entreprises',
+        'billing_zip' => '75008',
+        'billing_city' => 'Paris',
+        'billing_email' => 'compta@aromates-conseil.example.test',
+    ]);
+    $invoice = lifecycleInvoice($context, [
+        'client_profile_id' => null,
+        'corporate_client_id' => $company->id,
+    ]);
+    app(InvoiceRecipientSnapshotService::class)->capture($invoice, true);
+    $company->update(['siret' => '999 999 999 99999']);
+
+    $pdfHtml = view('invoices.pdf', [
+        'invoice' => $invoice->fresh(['user', 'corporateClient', 'items.product']),
+    ])->render();
+
+    expect($pdfHtml)
+        ->toContain('Aromates Conseil')
+        ->toContain('SIRET : 123 456 789 00012')
+        ->not->toContain('999 999 999 99999');
+});
+
+test('invoice pdf displays the siret of a company attached to an individual client', function () {
+    $context = lifecycleInvoiceContext('invoice-linked-company-siret@example.test');
+    $company = CorporateClient::create([
+        'user_id' => $context['user']->id,
+        'name' => 'Société Cliente Liée',
+        'siret' => '987 654 321 00019',
+    ]);
+    $context['client']->update(['company_id' => $company->id]);
+    $invoice = lifecycleInvoice($context);
+
+    $pdfHtml = view('invoices.pdf', [
+        'invoice' => $invoice->fresh(['user', 'clientProfile.company', 'items.product']),
+    ])->render();
+
+    expect($pdfHtml)
+        ->toContain('Société Cliente Liée')
+        ->toContain('SIRET : 987 654 321 00019');
+});
+
+test('invoice pdf omits the siret line when the business client siret is absent or blank', function () {
+    $context = lifecycleInvoiceContext('invoice-empty-corporate-siret@example.test');
+    $company = CorporateClient::create([
+        'user_id' => $context['user']->id,
+        'name' => 'Entreprise sans SIRET',
+        'siret' => null,
+    ]);
+    $invoiceWithoutSiret = lifecycleInvoice($context, [
+        'client_profile_id' => null,
+        'corporate_client_id' => $company->id,
+    ]);
+    $withoutSiretHtml = view('invoices.pdf', [
+        'invoice' => $invoiceWithoutSiret->fresh(['user', 'corporateClient', 'items.product']),
+    ])->render();
+
+    $company->update(['siret' => '   ']);
+    $invoiceWithBlankSiret = lifecycleInvoice($context, [
+        'client_profile_id' => null,
+        'corporate_client_id' => $company->id,
+    ]);
+    $withBlankSiretHtml = view('invoices.pdf', [
+        'invoice' => $invoiceWithBlankSiret->fresh(['user', 'corporateClient', 'items.product']),
+    ])->render();
+
+    expect($withoutSiretHtml)->not->toContain('SIRET :')
+        ->and($withBlankSiretHtml)->not->toContain('SIRET :');
 });
 
 test('legacy invoices without a snapshot render through a live-data fallback and can be backfilled safely', function () {
