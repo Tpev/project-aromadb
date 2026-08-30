@@ -80,8 +80,8 @@ class MobileAppointmentController extends Controller
     {
         // Messages d'erreur personnalisés
         $messages = [
-            'therapist_id.required'   => 'Le thérapeute est requis.',
-            'therapist_id.exists'     => 'Le thérapeute sélectionné est invalide.',
+            'therapist_id.required'   => 'Le professionnel est requis.',
+            'therapist_id.exists'     => 'Le professionnel sélectionné est invalide.',
             'first_name.required'     => 'Le prénom est requis.',
             'last_name.required'      => 'Le nom est requis.',
             'email.email'             => 'Veuillez fournir une adresse e-mail valide.',

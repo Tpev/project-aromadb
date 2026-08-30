@@ -2,9 +2,8 @@
 <x-app-layout>
 @php
     $therapistName = $therapist->company_name
-        ?? $therapist->business_name
-        ?? $therapist->name
-        ?? __('Thérapeute');
+        ?: ($therapist->business_name
+        ?: ($therapist->name ?: __('Professionnel')));
 
     $pageTitle = "{$therapistName} — Réservation partenaire";
 @endphp

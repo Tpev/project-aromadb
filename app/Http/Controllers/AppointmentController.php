@@ -1214,7 +1214,7 @@ public function createPatient(Request $request, $therapistId)
 
     if (!$therapistExists) {
         return redirect()->back()->withErrors([
-            'therapist_id' => 'Thérapeute invalide ou ne prend pas de rendez-vous en ligne.'
+            'therapist_id' => 'Ce professionnel est invalide ou ne prend pas de rendez-vous en ligne.'
         ]);
     }
 
@@ -1252,8 +1252,8 @@ public function storePatient(Request $request)
 {
     // Messages d'erreur personnalisés
     $messages = [
-        'therapist_id.required'   => 'Le thérapeute est requis.',
-        'therapist_id.exists'     => 'Le thérapeute sélectionné est invalide.',
+        'therapist_id.required'   => 'Le professionnel est requis.',
+        'therapist_id.exists'     => 'Le professionnel sélectionné est invalide.',
         'first_name.required'     => 'Le prénom est requis.',
         'last_name.required'      => 'Le nom est requis.',
         'email.required'          => 'L’adresse e-mail est requise.',
@@ -3514,8 +3514,8 @@ public function storeByToken(Request $request, string $token)
 
     // Messages d'erreur personnalisés
     $messages = [
-        'therapist_id.required'   => 'Le thérapeute est requis.',
-        'therapist_id.exists'     => 'Le thérapeute sélectionné est invalide.',
+        'therapist_id.required'   => 'Le professionnel est requis.',
+        'therapist_id.exists'     => 'Le professionnel sélectionné est invalide.',
         'first_name.required'     => 'Le prénom est requis.',
         'last_name.required'      => 'Le nom est requis.',
         'email.required'          => 'L’adresse e-mail est requise.',

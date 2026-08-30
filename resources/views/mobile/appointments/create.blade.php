@@ -13,6 +13,8 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
     @php
+        $bookingProfessionalName = $therapist->company_name ?: ($therapist->name ?: __('Professionnel'));
+
         // Ensure we have locations (lazy load if not provided)
         $practiceLocations = $practiceLocations ?? ($therapist->practiceLocations ?? collect());
 
@@ -85,9 +87,9 @@
                 <div id="step-1">
                     <!-- Selected therapist -->
                     <div class="details-box mb-3">
-                        <label class="details-label">{{ __('Thérapeute Sélectionné') }}</label>
+                        <label class="details-label">{{ __('Vous prenez rendez-vous avec :') }}</label>
                         <p class="text-sm">
-                            {{ $therapist->company_name ?? $therapist->name }}
+                            {{ $bookingProfessionalName }}
                         </p>
                     </div>
 
@@ -310,7 +312,7 @@
                             </button>
                         </div>
                         <p class="text-[11px] text-gray-500 mt-1 text-center">
-                            {{ __('En confirmant, votre demande sera envoyée au thérapeute.') }}
+                            {{ __('En confirmant, votre demande sera envoyée à ce professionnel.') }}
                         </p>
                     </div>
                 </div>

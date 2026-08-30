@@ -119,6 +119,9 @@ class ProfileController extends Controller
             'company_address' => 'nullable|string',
             'company_email' => 'nullable|email|max:255',
             'company_phone' => 'nullable|string|max:20',
+            'facebook_url' => ['nullable', 'url:http,https', 'max:2048'],
+            'instagram_url' => ['nullable', 'url:http,https', 'max:2048'],
+            'linkedin_url' => ['nullable', 'url:http,https', 'max:2048'],
             'legal_mentions' => 'nullable|string',
             'about' => 'nullable|string',
             'minimum_notice_hours' => 'nullable|integer|min:0',
@@ -187,6 +190,13 @@ class ProfileController extends Controller
             'buffer_time_between_appointments' => $validatedData['buffer_time_between_appointments'] ?? null,
             'global_daily_booking_limit' => $validatedData['global_daily_booking_limit'] ?? null,
         ]);
+
+        foreach (['facebook_url', 'instagram_url', 'linkedin_url'] as $socialField) {
+            if (array_key_exists($socialField, $validatedData)) {
+                $url = trim((string) ($validatedData[$socialField] ?? ''));
+                $user->{$socialField} = $url !== '' ? $url : null;
+            }
+        }
 
         if (array_key_exists('booking_notes_placeholder', $validatedData)) {
             $placeholder = trim((string) ($validatedData['booking_notes_placeholder'] ?? ''));

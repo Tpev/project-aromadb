@@ -349,6 +349,48 @@
                 </div>
             @endif
 
+            @php
+                $socialLinks = collect([
+                    [
+                        'label' => 'Facebook',
+                        'url' => trim((string) $therapist->facebook_url),
+                        'icon' => 'fab fa-facebook-f',
+                    ],
+                    [
+                        'label' => 'Instagram',
+                        'url' => trim((string) $therapist->instagram_url),
+                        'icon' => 'fab fa-instagram',
+                    ],
+                    [
+                        'label' => 'LinkedIn',
+                        'url' => trim((string) $therapist->linkedin_url),
+                        'icon' => 'fab fa-linkedin-in',
+                    ],
+                ])->filter(function (array $socialLink) {
+                    $scheme = strtolower((string) parse_url($socialLink['url'], PHP_URL_SCHEME));
+
+                    return $socialLink['url'] !== '' && in_array($scheme, ['http', 'https'], true);
+                });
+            @endphp
+
+            @if($socialLinks->isNotEmpty())
+                <div class="mt-6 rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
+                    <h4 class="text-lg font-semibold text-[#647a0b]">{{ __('Retrouvez-moi sur') }}</h4>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        @foreach($socialLinks as $socialLink)
+                            <a href="{{ $socialLink['url'] }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center gap-2 rounded-full border border-[#d8e1b9] bg-[#f7f9ec] px-4 py-2 text-sm font-semibold text-[#647a0b] transition hover:border-[#647a0b] hover:bg-[#e8f0d8] focus:outline-none focus:ring-2 focus:ring-[#647a0b] focus:ring-offset-2"
+                               aria-label="{{ __('Ouvrir le profil :network de :name', ['network' => $socialLink['label'], 'name' => $therapist->company_name ?: $therapist->name]) }}">
+                                <i class="{{ $socialLink['icon'] }}" aria-hidden="true"></i>
+                                <span>{{ $socialLink['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <ul class="mt-6 space-y-6">
 @if ($therapist->share_address_publicly)
     <li class="flex items-start">

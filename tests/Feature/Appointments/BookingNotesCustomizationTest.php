@@ -87,6 +87,29 @@ test('each practitioner booking form uses only their customized placeholder', fu
         ->assertDontSee('Avez-vous une information pratique à partager ?');
 });
 
+test('public booking forms clearly identify who the appointment is with without the therapist label', function () {
+    $therapist = User::factory()->create([
+        'is_therapist' => true,
+        'accept_online_appointments' => true,
+        'company_name' => 'Cabinet Solène',
+        'slug' => 'cabinet-solene-booking-label',
+    ]);
+    bookingNotesProduct($therapist);
+
+    $this->get(route('appointments.createPatient', $therapist))
+        ->assertOk()
+        ->assertSee('Vous prenez rendez-vous avec :')
+        ->assertSee('Cabinet Solène')
+        ->assertDontSee('<label class="details-label">Thérapeute</label>', false);
+
+    $this->get(route('mobile.appointments.create_from_therapist', $therapist->slug))
+        ->assertOk()
+        ->assertSee('Vous prenez rendez-vous avec :')
+        ->assertSee('Cabinet Solène')
+        ->assertDontSee('Thérapeute Sélectionné')
+        ->assertDontSee('envoyée au thérapeute');
+});
+
 test('a prestation question overrides the global question in normal partner and mobile booking catalogs', function () {
     $therapist = User::factory()->create([
         'is_therapist' => true,

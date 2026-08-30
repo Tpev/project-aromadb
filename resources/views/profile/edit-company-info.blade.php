@@ -38,7 +38,12 @@
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Mettre à Jour les Informations de l\'Entreprise') }}</h1>
 
-            <div x-data="{ activeTab: @js($errors->has('booking_notes_placeholder') ? 'booking' : 'company') }">
+            @php
+                $initialTab = $errors->has('booking_notes_placeholder')
+                    ? 'booking'
+                    : ($errors->hasAny(['facebook_url', 'instagram_url', 'linkedin_url']) ? 'public' : 'company');
+            @endphp
+            <div x-data="{ activeTab: @js($initialTab) }">
                 {{-- Tabs header --}}
                 <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200">
                     <button type="button"
@@ -416,6 +421,77 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="details-box">
+                            <div class="mb-4">
+                                <h3 class="text-lg font-semibold text-[#647a0b]">
+                                    {{ __('Réseaux sociaux du portail') }}
+                                </h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    {{ __('Ajoutez les liens complets de vos profils. Un bouton apparaîtra sur votre portail uniquement pour les réseaux renseignés.') }}
+                                </p>
+                            </div>
+
+                            <div class="grid gap-5 md:grid-cols-3">
+                                <div>
+                                    <label class="details-label" for="facebook_url">
+                                        <i class="fab fa-facebook text-[#1877F2] mr-1" aria-hidden="true"></i>
+                                        {{ __('Facebook') }}
+                                    </label>
+                                    <input type="url"
+                                           id="facebook_url"
+                                           name="facebook_url"
+                                           class="form-control"
+                                           inputmode="url"
+                                           autocomplete="url"
+                                           placeholder="https://www.facebook.com/votre-page"
+                                           value="{{ old('facebook_url', $user->facebook_url) }}">
+                                    @error('facebook_url')
+                                        <p class="text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="details-label" for="instagram_url">
+                                        <i class="fab fa-instagram text-[#C13584] mr-1" aria-hidden="true"></i>
+                                        {{ __('Instagram') }}
+                                    </label>
+                                    <input type="url"
+                                           id="instagram_url"
+                                           name="instagram_url"
+                                           class="form-control"
+                                           inputmode="url"
+                                           autocomplete="url"
+                                           placeholder="https://www.instagram.com/votre-compte"
+                                           value="{{ old('instagram_url', $user->instagram_url) }}">
+                                    @error('instagram_url')
+                                        <p class="text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="details-label" for="linkedin_url">
+                                        <i class="fab fa-linkedin text-[#0A66C2] mr-1" aria-hidden="true"></i>
+                                        {{ __('LinkedIn') }}
+                                    </label>
+                                    <input type="url"
+                                           id="linkedin_url"
+                                           name="linkedin_url"
+                                           class="form-control"
+                                           inputmode="url"
+                                           autocomplete="url"
+                                           placeholder="https://www.linkedin.com/in/votre-profil"
+                                           value="{{ old('linkedin_url', $user->linkedin_url) }}">
+                                    @error('linkedin_url')
+                                        <p class="text-red-500 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <small class="text-gray-500 block mt-3">
+                                {{ __('Utilisez une adresse commençant par http:// ou https://. Laissez un champ vide pour masquer son bouton.') }}
+                            </small>
                         </div>
 
                         <!-- Public sharing checkboxes -->

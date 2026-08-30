@@ -7,9 +7,8 @@
 @php
     // Therapist name (safe)
     $therapistName = $therapist->company_name
-        ?? $therapist->business_name
-        ?? $therapist->name
-        ?? __('Thérapeute');
+        ?: ($therapist->business_name
+        ?: ($therapist->name ?: __('Professionnel')));
 
     // Location (safe)
     $city  = trim($therapist->city_setByAdmin  ?? '');
@@ -22,7 +21,7 @@
     $servicesRaw = json_decode($therapist->services, true) ?? [];
     $servicesArr = is_array($servicesRaw) ? array_filter($servicesRaw) : [];
     $services    = collect($servicesArr)->unique()->take(3)->implode(', ');
-    $label       = $services ?: __('Thérapeute');
+    $label       = $services ?: __('Professionnel');
 
     // Snippet (prefer profile_description, fallback about)
     $rawAbout = $therapist->profile_description ?: ($therapist->about ?? '');
@@ -496,9 +495,9 @@
 
                     <div class="card-soft">
                         <div class="details-box mb-2">
-                            <label class="details-label">{{ __('Thérapeute') }}</label>
+                            <label class="details-label">{{ __('Vous prenez rendez-vous avec :') }}</label>
                             <div class="hint">
-                                <b style="color:#0f172a;">{{ $therapist->company_name ?? $therapist->name }}</b>
+                                <b style="color:#0f172a;">{{ $therapistName }}</b>
                             </div>
                         </div>
 
