@@ -70,10 +70,9 @@ function bookingV2Availability(User $user, Carbon $date, string $end = '13:00:00
     ]);
 }
 
-function enableBookingV2For(User $user): void
+function enableBookingV2(): void
 {
     config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', [$user->id]);
 }
 
 function bookingV2Template(User $user, Product $product): Appointment
@@ -91,31 +90,27 @@ function bookingV2Template(User $user, Product $product): Appointment
     return $appointment;
 }
 
-test('booking v2 requires both the switch and an explicit allowlist entry', function () {
-    $allowed = bookingV2User();
+test('booking v2 is available to every practitioner when the global switch is enabled', function () {
+    $practitioner = bookingV2User();
     $other = bookingV2User();
 
     config()->set('appointments.booking_v2.enabled', false);
-    config()->set('appointments.booking_v2.allowed_user_ids', [$allowed->id]);
-    expect(app(BookingV2Access::class)->enabledFor($allowed))->toBeFalse();
+    expect(app(BookingV2Access::class)->enabledFor($practitioner))->toBeFalse();
 
     config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', []);
-    expect(app(BookingV2Access::class)->enabledFor($allowed))->toBeFalse();
-
-    config()->set('appointments.booking_v2.allowed_user_ids', [$allowed->id]);
-    expect(app(BookingV2Access::class)->enabledFor($allowed))->toBeTrue()
-        ->and(app(BookingV2Access::class)->enabledFor($other))->toBeFalse();
+    expect(app(BookingV2Access::class)->enabledFor($practitioner))->toBeTrue()
+        ->and(app(BookingV2Access::class)->enabledFor($other))->toBeTrue()
+        ->and(app(BookingV2Access::class)->enabledFor(null))->toBeFalse()
+        ->and(app(BookingV2Access::class)->enabledFor(0))->toBeFalse();
 });
 
-test('a non allowlisted practitioner keeps the exact legacy fifteen minute grid', function () {
+test('a practitioner keeps the exact legacy fifteen minute grid while booking v2 is disabled', function () {
     $user = bookingV2User(['booking_slot_interval_minutes' => 60]);
     $product = bookingV2Product($user);
     $date = bookingV2Date();
     bookingV2Availability($user, $date, '11:00:00');
 
-    config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', []);
+    config()->set('appointments.booking_v2.enabled', false);
 
     $starts = collect(app(AppointmentAvailabilityService::class)->slotsForDate(
         bookingV2Template($user, $product),
@@ -125,14 +120,13 @@ test('a non allowlisted practitioner keeps the exact legacy fifteen minute grid'
     expect($starts)->toBe(['09:00', '09:15', '09:30', '09:45', '10:00']);
 });
 
-test('non allowlisted public endpoints keep accepting services handled by the legacy form', function () {
+test('public endpoints keep accepting services handled by the legacy form while booking v2 is disabled', function () {
     $user = bookingV2User();
     $product = bookingV2Product($user, ['can_be_booked_online' => false]);
     $date = bookingV2Date();
     bookingV2Availability($user, $date, '11:00:00');
 
-    config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', []);
+    config()->set('appointments.booking_v2.enabled', false);
 
     $payload = [
         'therapist_id' => $user->id,
@@ -163,7 +157,7 @@ test('fixed booking grids support every configured interval', function (int $int
     $product = bookingV2Product($user);
     $date = bookingV2Date();
     bookingV2Availability($user, $date, '11:00:00');
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $starts = collect(app(AppointmentAvailabilityService::class)->slotsForDate(
         bookingV2Template($user, $product),
@@ -184,7 +178,7 @@ test('optimized scheduling adapts to each selected service duration and buffer',
     $long = bookingV2Product($user, ['name' => 'Séance longue', 'duration' => 90, 'buffer_time_after_minutes' => 15]);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $shortStarts = collect(app(AppointmentAvailabilityService::class)->slotsForDate(bookingV2Template($user, $short), $date))->pluck('start')->all();
     $longStarts = collect(app(AppointmentAvailabilityService::class)->slotsForDate(bookingV2Template($user, $long), $date))->pluck('start')->all();
@@ -199,7 +193,7 @@ test('optimized scheduling proposes useful starts immediately before an existing
     $existingProduct = bookingV2Product($user, ['name' => 'Séance suivante']);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
     $client = ClientProfile::create([
         'user_id' => $user->id,
         'first_name' => 'Nora',
@@ -242,7 +236,7 @@ test('the ninety day v2 date scan preserves slot results with a bounded query co
             'applies_to_all' => true,
         ]);
     }
-    enableBookingV2For($user);
+    enableBookingV2();
     $template = bookingV2Template($user, $product);
     $service = app(AppointmentAvailabilityService::class);
 
@@ -270,7 +264,7 @@ test('v2 keeps the consultation mode selected for a multi mode service and rejec
         'visio' => true,
         'adomicile' => true,
     ]);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $template = bookingV2Template($user, $product);
     $template->type = 'domicile';
@@ -310,7 +304,7 @@ test('single cabinet selection uses only locations configured for the selected s
         'applies_to_all' => true,
         'practice_location_id' => $configured->id,
     ]);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $map = app(BookingLocationService::class)->compatibleLocationsByProduct($user, collect([$product]));
 
@@ -389,7 +383,7 @@ test('v2 profile only advertises booking when the service has a usable destinati
         'is_primary' => true,
     ]);
     bookingV2Availability($user, bookingV2Date());
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $bookingUrl = route('appointments.createPatient', [
         'therapist' => $user->id,
@@ -415,7 +409,7 @@ test('asymmetric preparation and post appointment buffers protect the gap', func
     $nextProduct = bookingV2Product($user, ['name' => 'Deuxième séance', 'preparation_time_minutes' => 10]);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $client = ClientProfile::create([
         'user_id' => $user->id,
@@ -443,7 +437,7 @@ test('the final booking service rejects a slot taken after the page availability
     $product = bookingV2Product($user);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
     $client = ClientProfile::create([
         'user_id' => $user->id,
         'first_name' => 'Lou',
@@ -489,7 +483,7 @@ test('v2 appointment snapshots remain protective after the pilot switch is disab
     ]);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
     $client = ClientProfile::create([
         'user_id' => $user->id,
         'first_name' => 'Noa',
@@ -522,7 +516,7 @@ test('the public slot endpoint rejects a product belonging to another practition
     $user = bookingV2User();
     $other = bookingV2User();
     $foreignProduct = bookingV2Product($other);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $this->post(route('appointments.available-slots-patient'), [
         'therapist_id' => $user->id,
@@ -536,7 +530,7 @@ test('the public slot endpoint rejects a product belonging to another practition
 test('a stale public post cannot book a v2 service that is no longer available online', function () {
     $user = bookingV2User();
     $product = bookingV2Product($user, ['can_be_booked_online' => false]);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $this->post(route('appointments.storePatient'), [
         'therapist_id' => $user->id,
@@ -553,9 +547,9 @@ test('a stale public post cannot book a v2 service that is no longer available o
     expect(Appointment::query()->where('user_id', $user->id)->exists())->toBeFalse();
 });
 
-test('product scheduling and email settings are saved only for an allowlisted practitioner', function () {
-    $allowed = bookingV2User();
-    enableBookingV2For($allowed);
+test('product scheduling and email settings follow the global booking v2 switch', function () {
+    $practitioner = bookingV2User();
+    enableBookingV2();
 
     $payload = [
         'name' => 'Bilan',
@@ -577,15 +571,15 @@ test('product scheduling and email settings are saved only for an allowlisted pr
         'reminder_email_note' => 'Merci d’arriver à l’heure.',
     ];
 
-    $this->actingAs($allowed)->post(route('products.store'), $payload)->assertRedirect();
-    $stored = Product::query()->where('user_id', $allowed->id)->where('name', 'Bilan')->firstOrFail();
+    $this->actingAs($practitioner)->post(route('products.store'), $payload)->assertRedirect();
+    $stored = Product::query()->where('user_id', $practitioner->id)->where('name', 'Bilan')->firstOrFail();
     expect($stored->preparation_time_minutes)->toBe(10)
         ->and($stored->buffer_time_after_minutes)->toBe(20)
         ->and($stored->booking_notes_placeholder)->toBe('Quel est votre objectif pour ce bilan ?')
         ->and($stored->confirmation_email_note)->toBe('Préparez votre questionnaire.');
 
     $legacy = bookingV2User();
-    config()->set('appointments.booking_v2.allowed_user_ids', [$allowed->id]);
+    config()->set('appointments.booking_v2.enabled', false);
     $this->actingAs($legacy)->post(route('products.store'), array_merge($payload, ['name' => 'Bilan legacy']))->assertRedirect();
     $legacyProduct = Product::query()->where('user_id', $legacy->id)->where('name', 'Bilan legacy')->firstOrFail();
     expect($legacyProduct->preparation_time_minutes)->toBeNull()
@@ -599,7 +593,7 @@ test('a disabled information request is rejected before storage or email work', 
         'slug' => 'cabinet-pilote-info',
         'information_requests_enabled' => false,
     ]);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $this->post(route('therapist.sendInformationRequest', $user->slug), [
         'first_name' => 'Marie',
@@ -626,7 +620,7 @@ test('the private booking form explains a rejected slot and restores client inpu
     $product = bookingV2Product($user);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
     $client = ClientProfile::create([
         'user_id' => $user->id,
         'first_name' => 'Déjà',
@@ -696,7 +690,7 @@ test('the booking v2 migration can be safely rerun after a partial deployment', 
         ]))->toBeTrue();
 });
 
-test('allowlisted portal service cards link to the ordinary preselected booking flow on desktop and mobile', function () {
+test('portal service cards link to the ordinary preselected booking flow on desktop and mobile', function () {
     $user = bookingV2User([
         'slug' => 'cabinet-pilote-reservation-directe',
         'company_name' => 'Cabinet Pilote',
@@ -706,7 +700,7 @@ test('allowlisted portal service cards link to the ordinary preselected booking 
         'description' => 'Faire le point sur vos besoins.',
         'visible_in_portal' => true,
     ]);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     $desktopBookingUrl = route('appointments.createPatient', [
         'therapist' => $user->id,
@@ -759,7 +753,7 @@ test('direct booking buttons distinguish same-name prestation variants on deskto
         'visible_in_portal' => true,
         'price_visible_in_portal' => true,
     ]);
-    enableBookingV2For($user);
+    enableBookingV2();
 
     foreach ([
         route('therapist.show', $user->slug),
@@ -778,7 +772,7 @@ test('snapshotted product notes appear only in the appropriate escaped client em
         'confirmation_email_note' => 'Confirmation personnalisée <script>alert(1)</script>',
         'reminder_email_note' => 'Rappel personnalisé',
     ]);
-    enableBookingV2For($user);
+    enableBookingV2();
     $client = ClientProfile::create([
         'user_id' => $user->id,
         'first_name' => 'Lina',
@@ -842,7 +836,7 @@ test('rescheduling a legacy paid appointment under v2 preserves identity payment
     ]);
     $originalToken = $appointment->token;
 
-    enableBookingV2For($user);
+    enableBookingV2();
     $result = app(AppointmentLifecycleService::class)->reschedule(
         $appointment,
         $date->copy()->setTime(11, 0),
@@ -867,7 +861,7 @@ test('cancelling a v2 appointment releases its duration and protected buffers', 
     $product = bookingV2Product($user, ['buffer_time_after_minutes' => 30]);
     $date = bookingV2Date();
     bookingV2Availability($user, $date);
-    enableBookingV2For($user);
+    enableBookingV2();
     $client = ClientProfile::create([
         'user_id' => $user->id,
         'first_name' => 'Eli',

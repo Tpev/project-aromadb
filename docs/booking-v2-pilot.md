@@ -1,8 +1,8 @@
-# Pilote Booking V2
+# Déploiement Booking V2
 
 ## Portée
 
-Le pilote ajoute, pour les seuls praticiens explicitement autorisés :
+Lorsque le switch global est actif, Booking V2 ajoute pour tous les praticiens :
 
 - une grille de départ fixe (15, 30, 45 ou 60 minutes) ou optimisée selon la prestation ;
 - un temps de préparation et un battement après chaque prestation ;
@@ -15,10 +15,10 @@ Les rendez-vous existants ne sont ni modifiés ni backfillés. Les champs nullab
 
 ## Décisions de compatibilité
 
-- Tous les écrans et règles V2 passent par un gate serveur central. Un compte non autorisé conserve les contrôleurs, formulaires et créneaux historiques.
-- Les nouveaux rendez-vous du pilote mémorisent les buffers et messages effectivement utilisés. Une modification ultérieure de la prestation ne réécrit pas ces rendez-vous.
-- Un ancien rendez-vous replanifié pendant le pilote applique les règles courantes uniquement après validation du nouveau créneau.
-- Le mode réellement choisi est conservé pour les prestations proposant plusieurs formats, sans modifier le helper historique utilisé hors pilote.
+- Tous les écrans et règles V2 passent par un gate serveur central. Lorsque le switch est désactivé, tous les comptes conservent les contrôleurs, formulaires et créneaux historiques.
+- Les nouveaux rendez-vous V2 mémorisent les buffers et messages effectivement utilisés. Une modification ultérieure de la prestation ne réécrit pas ces rendez-vous.
+- Un ancien rendez-vous replanifié avec Booking V2 actif applique les règles courantes uniquement après validation du nouveau créneau.
+- Le mode réellement choisi est conservé pour les prestations proposant plusieurs formats, sans modifier le helper historique utilisé lorsque le switch est désactivé.
 - Le dernier contrôle de création et de déplacement est transactionnel. Les deux parcours utilisent les mêmes verrous par praticien et, au cabinet, par lieu afin d’éviter les réservations concurrentes, y compris dans les cabinets partagés.
 - Une prestation publique supprimée, déplacée vers un autre compte ou rendue non réservable est refusée lors d'une soumission obsolète. Un lien partenaire conserve sa propre liste de prestations autorisées.
 - Les cabinets proposés sont accessibles au praticien et associés à une disponibilité de la prestation. Zéro cabinet affiche une explication, un cabinet est sélectionné automatiquement, plusieurs cabinets conservent le choix.
@@ -27,43 +27,41 @@ Les rendez-vous existants ne sont ni modifiés ni backfillés. Les champs nullab
 
 ```dotenv
 BOOKING_V2_ENABLED=false
-BOOKING_V2_ALLOWED_USER_IDS=
 ```
 
-Le pilote n'est actif que si le switch vaut `true` et si l'identifiant du praticien figure dans la liste séparée par des virgules. Une liste vide n'autorise personne.
+`BOOKING_V2_ENABLED` est un switch global : `true` active Booking V2 pour tous les praticiens et `false` le désactive pour tous.
 
-Exemple pour un seul compte de test :
+Activation globale :
 
 ```dotenv
 BOOKING_V2_ENABLED=true
-BOOKING_V2_ALLOWED_USER_IDS=123
 ```
 
-## Déploiement progressif
+## Déploiement
 
 1. Déployer le code avec `BOOKING_V2_ENABLED=false`.
 2. Exécuter `php artisan migrate --force`.
 3. Exécuter `php artisan optimize:clear` puis `php artisan config:cache`.
 4. Redémarrer les workers avec `php artisan queue:restart`.
-5. Vérifier les créneaux d'un praticien non allowlisté : ils doivent rester identiques.
-6. Avant d'autoriser un compte pilote, contrôler ses disponibilités hebdomadaires et ponctuelles :
+5. Tant que le switch est désactivé, vérifier les créneaux d'un praticien : ils doivent rester identiques.
+6. Avant l'activation globale, contrôler les disponibilités hebdomadaires et ponctuelles de tous les praticiens :
 
 ```bash
-php artisan app:backfill-availability-locations --user-id=123 --dry-run
+php artisan app:backfill-availability-locations --dry-run
 ```
 
-7. Si la sortie est correcte, affecter uniquement les disponibilités sans cabinet au cabinet principal de ce praticien :
+7. Si la sortie est correcte, affecter uniquement les disponibilités sans cabinet au cabinet principal de chaque praticien :
 
 ```bash
-php artisan app:backfill-availability-locations --user-id=123
-php artisan app:backfill-availability-locations --user-id=123 --dry-run
+php artisan app:backfill-availability-locations
+php artisan app:backfill-availability-locations --dry-run
 ```
 
-Le dernier dry-run doit annoncer zéro modification. La commande ne modifie ni les rendez-vous, ni les disponibilités qui possèdent déjà un cabinet. Si le praticien n'a pas de cabinet principal, elle ne change rien et affiche un avertissement : il faut d'abord choisir explicitement le bon cabinet dans Olithea. Pour plusieurs pilotes, répéter l'option, par exemple `--user-id=123 --user-id=456`.
+Le dernier dry-run doit annoncer zéro modification. La commande ne modifie ni les rendez-vous, ni les disponibilités qui possèdent déjà un cabinet. Si un praticien n'a pas de cabinet principal, elle ne change rien et affiche un avertissement : il faut d'abord choisir explicitement le bon cabinet dans Olithea.
 
-8. Renseigner uniquement l'ID du compte Olithea de test, activer le switch, puis reconstruire le cache de configuration.
-9. Effectuer la checklist navigateur ci-dessous avec des prestations de test gratuites.
-10. Ajouter Céline puis deux ou trois pilotes volontaires seulement après validation.
+8. Mettre `BOOKING_V2_ENABLED=true`, puis reconstruire le cache de configuration et redémarrer les workers.
+9. Effectuer la checklist navigateur ci-dessous avec des prestations de test gratuites sur plusieurs comptes représentatifs.
+10. Surveiller les files, les échecs et les logs après l'activation.
 
 Le changement ne nécessite ni nouveau paquet Composer, ni nouvelle dépendance JavaScript, ni compilation Vite.
 
@@ -81,8 +79,8 @@ Aucun rollback de migration n'est nécessaire. Les rendez-vous créés sous V2 c
 
 ## Checklist navigateur en production
 
-1. Compte non allowlisté : vérifier que réglages et formulaires n'affichent aucun champ V2 et que la grille reste à 15 minutes.
-2. Compte pilote : tester les intervalles 15, 30, 45 et 60 minutes sur une disponibilité commençant à une heure non ronde.
+1. Switch désactivé : vérifier que réglages et formulaires n'affichent aucun champ V2 et que la grille reste à 15 minutes.
+2. Switch activé : tester les intervalles 15, 30, 45 et 60 minutes sur une disponibilité commençant à une heure non ronde.
 3. Tester le mode optimisé avec deux prestations de 45 et 90 minutes sur la même disponibilité.
 4. Ajouter préparation et battement, puis vérifier qu'ils bloquent les horaires sans changer la durée affichée ni l'événement Google.
 5. Réserver depuis le portail, le lien public normal, le lien partenaire et un téléphone.
@@ -101,6 +99,6 @@ Pour deux rendez-vous A puis B, l'écart exigé est le maximum entre le battemen
 
 ## Limites connues
 
-- Le pilote n'ajoute aucune personnalisation des numéros de facture.
+- Booking V2 n'ajoute aucune personnalisation des numéros de facture.
 - Les buffers sont des contraintes Olithea et ne créent pas de faux rendez-vous dans Google.
 - L'envoi d'un email de test depuis la fiche prestation n'est pas inclus ; l'aperçu local est disponible avant enregistrement.

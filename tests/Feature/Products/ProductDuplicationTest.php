@@ -12,7 +12,6 @@ test('duplicating a Stripe-backed prestation does not copy unique Stripe identif
     ]);
 
     config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', [$practitioner->id]);
 
     $source = Product::create([
         'user_id' => $practitioner->id,

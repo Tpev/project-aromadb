@@ -118,7 +118,6 @@ test('a prestation question overrides the global question in normal partner and 
         'booking_notes_placeholder' => 'Question générale du cabinet ?',
     ]);
     config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', [$therapist->id]);
 
     $product = bookingNotesProduct($therapist);
     $product->update([

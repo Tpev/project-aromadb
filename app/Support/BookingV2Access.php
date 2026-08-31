@@ -12,14 +12,7 @@ class BookingV2Access
             ? (int) $practitioner->getKey()
             : (int) $practitioner;
 
-        if (! config('appointments.booking_v2.enabled', false) || $practitionerId <= 0) {
-            return false;
-        }
-
-        return in_array(
-            $practitionerId,
-            array_map('intval', config('appointments.booking_v2.allowed_user_ids', [])),
-            true
-        );
+        return config('appointments.booking_v2.enabled', false)
+            && $practitionerId > 0;
     }
 }

@@ -280,7 +280,6 @@ test('booking v2 earlier slot offers respect optimized grids and appointment buf
         'booking_slot_interval_minutes' => 30,
     ]);
     config()->set('appointments.booking_v2.enabled', true);
-    config()->set('appointments.booking_v2.allowed_user_ids', [$practitioner->id]);
 
     $product = earlierSlotProduct($practitioner, [
         'preparation_time_minutes' => 15,
