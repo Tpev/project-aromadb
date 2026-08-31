@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 class PackPurchaseInvoicingService
 {
+    public function __construct(private readonly DocumentNumberingService $numbering) {}
+
     public function ensureInvoiceForPurchase(PackPurchase $purchase): ?Invoice
     {
         if (!$purchase->client_profile_id || !$purchase->user_id) {
@@ -27,31 +29,23 @@ class PackPurchaseInvoicingService
                 return $existing;
             }
 
-            $lastInvoice = Invoice::query()
-                ->where('user_id', $purchase->user_id)
-                ->where('type', 'invoice')
-                ->lockForUpdate()
-                ->orderByDesc('invoice_number')
-                ->first();
-
-            $nextInvoiceNumber = $lastInvoice ? ((int) $lastInvoice->invoice_number + 1) : 1;
-
             [$amountHt, $taxRate, $amountTax, $amountTtc, $mainLabel] = $this->resolvePricingSnapshot($purchase);
+            $invoiceDate = optional($purchase->purchased_at)->toDateString() ?: now()->toDateString();
+            $numbering = $this->numbering->allocateInvoice($purchase->user_id, $invoiceDate);
 
-            $invoice = Invoice::create([
+            $invoice = Invoice::create(array_merge([
                 'client_profile_id' => $purchase->client_profile_id,
                 'pack_purchase_id' => $purchase->id,
                 'user_id' => $purchase->user_id,
-                'invoice_date' => optional($purchase->purchased_at)->toDateString() ?: now()->toDateString(),
+                'invoice_date' => $invoiceDate,
                 'due_date' => null,
                 'notes' => 'Facture générée automatiquement depuis un achat en ligne.',
-                'invoice_number' => $nextInvoiceNumber,
                 'total_amount' => round($amountHt, 2),
                 'total_tax_amount' => round($amountTax, 2),
                 'total_amount_with_tax' => round($amountTtc, 2),
                 'status' => 'En attente',
                 'type' => 'invoice',
-            ]);
+            ], $numbering));
 
             $invoice->items()->create([
                 'type' => 'custom',

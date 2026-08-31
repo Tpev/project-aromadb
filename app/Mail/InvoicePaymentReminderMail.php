@@ -42,7 +42,7 @@ class InvoicePaymentReminderMail extends Mailable implements ShouldQueue
             ->markdown('emails.invoices.payment_reminder')
             ->attachData(
                 $pdf,
-                "facture_{$this->invoice->invoice_number}.pdf",
+                "facture_{$this->invoice->safe_document_number}.pdf",
                 ['mime' => 'application/pdf']
             );
     }

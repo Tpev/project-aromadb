@@ -12,12 +12,13 @@ class DashboardFinancialMetricsService
     {
         $now = $now ? $now->copy() : now();
         $monthStart = $now->copy()->startOfMonth();
-        $monthEnd = $now->copy()->endOfMonth();
+        $nextMonthStart = $monthStart->copy()->addMonth();
         $yearStart = $now->copy()->startOfYear();
-        $yearEnd = $now->copy()->endOfYear();
+        $nextYearStart = $yearStart->copy()->addYear();
 
         $monthReceipts = Receipt::where('user_id', $userId)
-            ->whereBetween('encaissement_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ->where('encaissement_date', '>=', $monthStart->toDateString())
+            ->where('encaissement_date', '<', $nextMonthStart->toDateString())
             ->get(['direction', 'amount_ttc']);
 
         $netReceived = $monthReceipts->sum(fn (Receipt $receipt) => $receipt->signed_amount_ttc);
@@ -27,7 +28,8 @@ class DashboardFinancialMetricsService
 
         $billedThisMonth = (float) Invoice::where('user_id', $userId)
             ->where('type', 'invoice')
-            ->whereBetween('invoice_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ->where('invoice_date', '>=', $monthStart->toDateString())
+            ->where('invoice_date', '<', $nextMonthStart->toDateString())
             ->sum('total_amount_with_tax');
 
         $invoices = Invoice::where('user_id', $userId)
@@ -50,7 +52,8 @@ class DashboardFinancialMetricsService
 
         $monthlyNetReceived = array_fill(1, 12, 0.0);
         Receipt::where('user_id', $userId)
-            ->whereBetween('encaissement_date', [$yearStart->toDateString(), $yearEnd->toDateString()])
+            ->where('encaissement_date', '>=', $yearStart->toDateString())
+            ->where('encaissement_date', '<', $nextYearStart->toDateString())
             ->get(['encaissement_date', 'direction', 'amount_ttc'])
             ->each(function (Receipt $receipt) use (&$monthlyNetReceived) {
                 $monthlyNetReceived[(int) $receipt->encaissement_date->month] += $receipt->signed_amount_ttc;
@@ -59,7 +62,8 @@ class DashboardFinancialMetricsService
         $monthlyBilled = array_fill(1, 12, 0.0);
         Invoice::where('user_id', $userId)
             ->where('type', 'invoice')
-            ->whereBetween('invoice_date', [$yearStart->toDateString(), $yearEnd->toDateString()])
+            ->where('invoice_date', '>=', $yearStart->toDateString())
+            ->where('invoice_date', '<', $nextYearStart->toDateString())
             ->get(['invoice_date', 'total_amount_with_tax'])
             ->each(function (Invoice $invoice) use (&$monthlyBilled) {
                 $monthlyBilled[(int) $invoice->invoice_date->month] += (float) $invoice->total_amount_with_tax;

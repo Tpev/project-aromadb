@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class GiftVoucherInvoiceService
 {
+    public function __construct(private readonly DocumentNumberingService $numbering) {}
+
     public function createSaleInvoice(
         GiftVoucher $voucher,
         string $paymentMethod = 'other',
@@ -37,28 +39,23 @@ class GiftVoucherInvoiceService
         }
 
         return DB::transaction(function () use ($voucher, $therapist, $client, $paymentMethod, $note, $providerReference) {
-            $lastInvoice = Invoice::where('user_id', $therapist->id)
-                ->lockForUpdate()
-                ->orderBy('invoice_number', 'desc')
-                ->first();
-
-            $nextInvoiceNumber = $lastInvoice ? ((int) $lastInvoice->invoice_number + 1) : 1;
             $amountHt = round((float) $voucher->original_amount_cents / 100, 2);
             $taxRate = 0.0;
+            $invoiceDate = now()->toDateString();
+            $numbering = $this->numbering->allocateInvoice($therapist, $invoiceDate);
 
-            $invoice = Invoice::create([
+            $invoice = Invoice::create(array_merge([
                 'client_profile_id' => $client->id,
                 'user_id' => $therapist->id,
-                'invoice_date' => now()->toDateString(),
+                'invoice_date' => $invoiceDate,
                 'due_date' => now()->toDateString(),
                 'total_amount' => $amountHt,
                 'total_tax_amount' => 0,
                 'total_amount_with_tax' => $amountHt,
                 'status' => 'En attente',
                 'notes' => $note,
-                'invoice_number' => $nextInvoiceNumber,
                 'type' => 'invoice',
-            ]);
+            ], $numbering));
 
             $invoice->items()->create([
                 'type' => 'custom',

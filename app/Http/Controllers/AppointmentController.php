@@ -2865,13 +2865,10 @@ protected function createInvoiceFromAppointment(Appointment $appointment)
         $taxAmount = ($totalPrice * $product->tax_rate) / 100;
         $totalPriceWithTax = $totalPrice + $taxAmount;
 
-        $lastInvoice = Invoice::where('user_id', $therapist->id)
-            ->lockForUpdate()
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-        $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
+        $numbering = app(\App\Services\DocumentNumberingService::class)
+            ->allocateInvoice($therapist, $invoiceDate);
 
-        $invoice = Invoice::create([
+        $invoice = Invoice::create(array_merge([
             'client_profile_id' => $client->id,
             'user_id' => $therapist->id,
             'invoice_date' => $invoiceDate,
@@ -2881,9 +2878,8 @@ protected function createInvoiceFromAppointment(Appointment $appointment)
             'total_amount_with_tax' => $totalPriceWithTax,
             'status' => 'En attente',
             'notes' => $appointment->notes,
-            'invoice_number' => $nextInvoiceNumber,
             'appointment_id' => $appointment->id,
-        ]);
+        ], $numbering));
 
         $invoice->items()->create([
             'type' => 'product',

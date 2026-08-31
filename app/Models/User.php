@@ -161,6 +161,11 @@ class User extends Authenticatable
         return $this->hasMany(Invoice::class);
     }
 
+    public function documentNumberingSettings()
+    {
+        return $this->hasMany(DocumentNumberingSetting::class);
+    }
+
     public function superPdpConnection()
     {
         return $this->hasOne(SuperPdpConnection::class);

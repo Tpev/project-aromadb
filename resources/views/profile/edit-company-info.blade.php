@@ -39,9 +39,23 @@
             <h1 class="details-title">{{ __('Mettre à Jour les Informations de l\'Entreprise') }}</h1>
 
             @php
-                $initialTab = $errors->has('booking_notes_placeholder')
-                    ? 'booking'
-                    : ($errors->hasAny(['facebook_url', 'instagram_url', 'linkedin_url']) ? 'public' : 'company');
+                $numberingErrorFields = [
+                    'invoice_numbering_enabled',
+                    'invoice_numbering_format',
+                    'invoice_numbering_reset_frequency',
+                    'invoice_numbering_next_sequence',
+                    'quote_numbering_enabled',
+                    'quote_numbering_format',
+                    'quote_numbering_reset_frequency',
+                    'quote_numbering_next_sequence',
+                    'confirm_numbering_change',
+                    'numbering',
+                ];
+                $initialTab = $errors->hasAny($numberingErrorFields)
+                    ? 'numbering'
+                    : ($errors->has('booking_notes_placeholder')
+                        ? 'booking'
+                        : ($errors->hasAny(['facebook_url', 'instagram_url', 'linkedin_url']) ? 'public' : 'company'));
             @endphp
             <div x-data="{ activeTab: @js($initialTab) }">
                 {{-- Tabs header --}}
@@ -71,6 +85,15 @@
                                 : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
                             @click="activeTab = 'booking'">
                         {{ __('Prise de RDV & agenda') }}
+                    </button>
+
+                    <button type="button"
+                            class="px-4 py-2 text-sm font-semibold border-b-2 -mb-[1px]"
+                            :class="activeTab === 'numbering'
+                                ? 'border-[#647a0b] text-[#647a0b]'
+                                : 'border-transparent text-gray-500 hover:text-[#647a0b]'"
+                            @click="activeTab = 'numbering'">
+                        {{ __('Numérotation') }}
                     </button>
 
                     <button type="button"
@@ -683,7 +706,160 @@
                         </div>
                     </div>
 
-                    {{-- TAB 4: Mentions légales & CGV --}}
+                    {{-- TAB 4: Numérotation des documents --}}
+                    <div x-show="activeTab === 'numbering'" x-cloak>
+                        <input type="hidden" name="numbering_settings_submitted" value="1">
+
+                        <div class="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                            <div class="flex items-start gap-3">
+                                <i class="fas fa-exclamation-triangle mt-0.5" aria-hidden="true"></i>
+                                <div>
+                                    <p class="font-semibold">{{ __('Modification sensible de votre facturation') }}</p>
+                                    <p class="mt-1">
+                                        {{ __('La personnalisation est facultative. Tant qu’elle reste désactivée, la numérotation actuelle ne change pas. Toute modification s’applique uniquement aux futurs documents : les factures, avoirs, devis et brouillons déjà créés conservent définitivement leur numéro.') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        @php
+                            $numberingCards = [
+                                'invoice' => [
+                                    'title' => __('Factures et avoirs'),
+                                    'description' => __('Les avoirs partagent la même séquence que les factures.'),
+                                    'configuration' => $invoiceNumbering,
+                                ],
+                                'quote' => [
+                                    'title' => __('Devis'),
+                                    'description' => __('Le compteur des devis est indépendant de celui des factures.'),
+                                    'configuration' => $quoteNumbering,
+                                ],
+                            ];
+                            $numberingPresets = [
+                                '{YYYY}{MM}{SEQ:4}' => '2026080282',
+                                'FAC-{YYYY}-{SEQ:4}' => 'FAC-2026-0282',
+                                '{YYYY}/{SEQ:4}' => '2026/0282',
+                                'DEV-{YYYY}-{SEQ:4}' => 'DEV-2026-0282',
+                            ];
+                        @endphp
+
+                        <div class="grid gap-5 xl:grid-cols-2">
+                            @foreach($numberingCards as $numberingType => $card)
+                                @php
+                                    $configuration = $card['configuration'];
+                                    $enabledField = $numberingType.'_numbering_enabled';
+                                    $formatField = $numberingType.'_numbering_format';
+                                    $resetField = $numberingType.'_numbering_reset_frequency';
+                                    $nextField = $numberingType.'_numbering_next_sequence';
+                                    $enabledValue = (bool) old($enabledField, $configuration['enabled']);
+                                    $formatValue = old($formatField, $configuration['format']);
+                                    $resetValue = old($resetField, $configuration['reset_frequency']);
+                                    $nextValue = (int) old($nextField, $configuration['next_sequence']);
+                                @endphp
+
+                                <section class="details-box h-full" data-numbering-card>
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-[#647a0b]">{{ $card['title'] }}</h3>
+                                            <p class="mt-1 text-sm text-gray-600">{{ $card['description'] }}</p>
+                                        </div>
+                                        <label class="inline-flex items-center gap-2 rounded-full bg-[#f3f6e8] px-3 py-2">
+                                            <input type="hidden" name="{{ $enabledField }}" value="0">
+                                            <input type="checkbox"
+                                                   name="{{ $enabledField }}"
+                                                   value="1"
+                                                   class="form-checkbox h-5 w-5 text-[#647a0b]"
+                                                   data-numbering-enabled
+                                                   @checked($enabledValue)>
+                                            <span class="text-sm font-semibold text-gray-700">{{ __('Personnaliser') }}</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="mt-5 space-y-4">
+                                        <div>
+                                            <label class="details-label" for="{{ $numberingType }}_numbering_preset">{{ __('Format rapide') }}</label>
+                                            <select id="{{ $numberingType }}_numbering_preset" class="form-control" data-numbering-preset>
+                                                <option value="">{{ __('Format personnalisé') }}</option>
+                                                @foreach($numberingPresets as $presetFormat => $presetExample)
+                                                    <option value="{{ $presetFormat }}" @selected($formatValue === $presetFormat)>
+                                                        {{ $presetFormat }} → {{ $presetExample }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="details-label" for="{{ $formatField }}">{{ __('Format enregistré') }}</label>
+                                            <input type="text"
+                                                   id="{{ $formatField }}"
+                                                   name="{{ $formatField }}"
+                                                   class="form-control font-mono"
+                                                   maxlength="64"
+                                                   data-numbering-format
+                                                   value="{{ $formatValue }}">
+                                            <small class="text-gray-500">
+                                                {{ __('Éléments disponibles : {YYYY}, {YY}, {MM}, {SEQ} ou {SEQ:4}. La largeur de séquence est un minimum et ne tronque jamais un numéro.') }}
+                                            </small>
+                                            @error($formatField)<p class="text-red-500 mt-1">{{ $message }}</p>@enderror
+                                        </div>
+
+                                        <div class="grid gap-4 sm:grid-cols-2">
+                                            <div>
+                                                <label class="details-label" for="{{ $resetField }}">{{ __('Remise à zéro du compteur') }}</label>
+                                                <select id="{{ $resetField }}" name="{{ $resetField }}" class="form-control" data-numbering-reset>
+                                                    <option value="never" @selected($resetValue === 'never')>{{ __('Jamais') }}</option>
+                                                    <option value="yearly" @selected($resetValue === 'yearly')>{{ __('Chaque année') }}</option>
+                                                    <option value="monthly" @selected($resetValue === 'monthly')>{{ __('Chaque mois') }}</option>
+                                                </select>
+                                                @error($resetField)<p class="text-red-500 mt-1">{{ $message }}</p>@enderror
+                                            </div>
+
+                                            <div>
+                                                <label class="details-label" for="{{ $nextField }}">{{ __('Prochaine séquence à utiliser') }}</label>
+                                                <input type="number"
+                                                       id="{{ $nextField }}"
+                                                       name="{{ $nextField }}"
+                                                       class="form-control"
+                                                       min="1"
+                                                       max="999999999999999999"
+                                                       step="1"
+                                                       data-numbering-sequence
+                                                       value="{{ $nextValue }}">
+                                                <small class="text-gray-500">{{ __('Saisissez le prochain numéro, pas le dernier déjà utilisé.') }}</small>
+                                                @error($nextField)<p class="text-red-500 mt-1">{{ $message }}</p>@enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-lg border border-[#d8e1b9] bg-[#f7f9ec] p-3">
+                                            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Aperçu du prochain numéro') }}</span>
+                                            <div class="mt-1 break-all font-mono text-lg font-bold text-[#647a0b]" data-numbering-preview>
+                                                {{ $configuration['preview'] }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            @endforeach
+                        </div>
+
+                        <div class="mt-5 rounded-xl border border-red-200 bg-red-50 p-4">
+                            <label class="flex items-start gap-3">
+                                <input type="hidden" name="confirm_numbering_change" value="0">
+                                <input type="checkbox"
+                                       name="confirm_numbering_change"
+                                       value="1"
+                                       class="form-checkbox mt-0.5 h-5 w-5 text-red-700"
+                                       @checked(old('confirm_numbering_change'))>
+                                <span class="text-sm text-red-900">
+                                    <strong>{{ __('Je confirme cette modification sensible.') }}</strong>
+                                    {{ __('J’ai compris qu’elle concerne uniquement les futurs documents et qu’une mauvaise séquence peut rompre la continuité de ma numérotation.') }}
+                                </span>
+                            </label>
+                            @error('confirm_numbering_change')<p class="mt-2 text-red-600">{{ $message }}</p>@enderror
+                            @error('numbering')<p class="mt-2 text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+
+                    {{-- TAB 5: Mentions légales & CGV --}}
                     <div x-show="activeTab === 'legal'" x-cloak>
                         <!-- Mentions Légales -->
                         <div class="details-box">
@@ -1606,6 +1782,74 @@
                     imageSmoothingEnabled: true,
                     imageSmoothingQuality: 'high',
                 },
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pad = (value, width) => String(value).padStart(width, '0');
+            const today = new Date();
+            const year = String(today.getFullYear());
+            const month = pad(today.getMonth() + 1, 2);
+
+            document.querySelectorAll('[data-numbering-card]').forEach(function (card) {
+                const enabled = card.querySelector('[data-numbering-enabled]');
+                const preset = card.querySelector('[data-numbering-preset]');
+                const format = card.querySelector('[data-numbering-format]');
+                const sequence = card.querySelector('[data-numbering-sequence]');
+                const reset = card.querySelector('[data-numbering-reset]');
+                const preview = card.querySelector('[data-numbering-preview]');
+
+                if (!enabled || !preset || !format || !sequence || !reset || !preview) return;
+
+                function renderPreview() {
+                    const sequenceValue = Math.max(1, Number.parseInt(sequence.value || '1', 10) || 1);
+                    let rendered = String(format.value || '')
+                        .replace('{YYYY}', year)
+                        .replace('{YY}', year.slice(-2))
+                        .replace('{MM}', month);
+                    let sequenceCount = 0;
+                    rendered = rendered.replace(/\{SEQ(?::([1-9]|10))?\}/g, function (_, width) {
+                        sequenceCount += 1;
+                        return pad(sequenceValue, Number.parseInt(width || '1', 10));
+                    });
+
+                    const hasYear = format.value.includes('{YYYY}') || format.value.includes('{YY}');
+                    const resetIsSafe = reset.value === 'never'
+                        || (reset.value === 'yearly' && hasYear)
+                        || (reset.value === 'monthly' && hasYear && format.value.includes('{MM}'));
+
+                    if (!resetIsSafe) {
+                        preview.textContent = reset.value === 'monthly'
+                            ? @js(__('Ajoutez une année et {MM} pour éviter les doublons mensuels'))
+                            : @js(__('Ajoutez une année pour éviter les doublons annuels'));
+                        preview.classList.add('text-red-600');
+                    } else if (sequenceCount !== 1 || /[{}]/.test(rendered)) {
+                        preview.textContent = @js(__('Format incomplet ou invalide'));
+                        preview.classList.add('text-red-600');
+                    } else {
+                        preview.textContent = rendered;
+                        preview.classList.remove('text-red-600');
+                    }
+
+                    card.classList.toggle('opacity-75', !enabled.checked);
+                }
+
+                preset.addEventListener('change', function () {
+                    if (preset.value) format.value = preset.value;
+                    renderPreview();
+                });
+                format.addEventListener('input', function () {
+                    const matchingOption = Array.from(preset.options)
+                        .find(option => option.value && option.value === format.value);
+                    preset.value = matchingOption ? matchingOption.value : '';
+                    renderPreview();
+                });
+                sequence.addEventListener('input', renderPreview);
+                reset.addEventListener('change', renderPreview);
+                enabled.addEventListener('change', renderPreview);
+                renderPreview();
             });
         });
     </script>

@@ -7,8 +7,10 @@ use App\Services\ProfileAvatarService;
 use App\Services\PortalLogoService;
 use App\Services\SuperPdp\SuperPdpOAuthService;
 use App\Support\SuperPdpFeature;
+use App\Services\DocumentNumberingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -86,12 +88,17 @@ class ProfileController extends Controller
                 ->first()
             : null;
         $superPdpConfigured = $superPdpAvailable ? $superPdpOAuthService->isConfigured() : false;
+        $numberingService = app(DocumentNumberingService::class);
+        $invoiceNumbering = $numberingService->configuration($user, DocumentNumberingService::INVOICE);
+        $quoteNumbering = $numberingService->configuration($user, DocumentNumberingService::QUOTE);
 
         return view('profile.edit-company-info', compact(
             'user',
             'superPdpAvailable',
             'superPdpConnection',
-            'superPdpConfigured'
+            'superPdpConfigured',
+            'invoiceNumbering',
+            'quoteNumbering'
         ));
     }
 
@@ -122,6 +129,16 @@ class ProfileController extends Controller
             'facebook_url' => ['nullable', 'url:http,https', 'max:2048'],
             'instagram_url' => ['nullable', 'url:http,https', 'max:2048'],
             'linkedin_url' => ['nullable', 'url:http,https', 'max:2048'],
+            'numbering_settings_submitted' => ['nullable', 'boolean'],
+            'invoice_numbering_enabled' => ['nullable', 'boolean'],
+            'invoice_numbering_format' => ['nullable', 'string', 'max:64'],
+            'invoice_numbering_reset_frequency' => ['nullable', 'in:never,yearly,monthly'],
+            'invoice_numbering_next_sequence' => ['nullable', 'integer', 'min:1', 'max:999999999999999999'],
+            'quote_numbering_enabled' => ['nullable', 'boolean'],
+            'quote_numbering_format' => ['nullable', 'string', 'max:64'],
+            'quote_numbering_reset_frequency' => ['nullable', 'in:never,yearly,monthly'],
+            'quote_numbering_next_sequence' => ['nullable', 'integer', 'min:1', 'max:999999999999999999'],
+            'confirm_numbering_change' => ['nullable', 'boolean'],
             'legal_mentions' => 'nullable|string',
             'about' => 'nullable|string',
             'minimum_notice_hours' => 'nullable|integer|min:0',
@@ -154,6 +171,37 @@ class ProfileController extends Controller
 
         ]);
 
+        $numberingConfigurations = null;
+        $user = auth()->user();
+        if ($request->boolean('numbering_settings_submitted')) {
+            $numberingConfigurations = [
+                DocumentNumberingService::INVOICE => [
+                    'enabled' => $request->boolean('invoice_numbering_enabled'),
+                    'format' => $validatedData['invoice_numbering_format'] ?? null,
+                    'reset_frequency' => $validatedData['invoice_numbering_reset_frequency'] ?? 'never',
+                    'next_sequence' => $validatedData['invoice_numbering_next_sequence'] ?? 1,
+                ],
+                DocumentNumberingService::QUOTE => [
+                    'enabled' => $request->boolean('quote_numbering_enabled'),
+                    'format' => $validatedData['quote_numbering_format'] ?? null,
+                    'reset_frequency' => $validatedData['quote_numbering_reset_frequency'] ?? 'never',
+                    'next_sequence' => $validatedData['quote_numbering_next_sequence'] ?? 1,
+                ],
+            ];
+
+            $numberingService = app(DocumentNumberingService::class);
+            $numberingChanges = collect($numberingConfigurations)
+                ->contains(fn (array $configuration, string $documentType) =>
+                    $numberingService->requiresConfirmation($user, $documentType, $configuration)
+                );
+
+            if ($numberingChanges && ! $request->boolean('confirm_numbering_change')) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'confirm_numbering_change' => 'Confirmez avoir compris que cette modification concerne uniquement les futurs documents.',
+                ]);
+            }
+        }
+
         $hasExistingRetractationDocument = filled(auth()->user()->digital_sales_retractation_document_path)
             || filled(auth()->user()->digital_sales_retractation_url);
 
@@ -168,8 +216,6 @@ class ProfileController extends Controller
                 ])
                 ->withInput();
         }
-
-        $user = auth()->user();
 
         // Checkbox fields
         $user->share_address_publicly = $request->has('share_address_publicly');
@@ -313,7 +359,18 @@ class ProfileController extends Controller
 
         $user->cancellation_notice_hours = (int) ($request->input('cancellation_notice_hours', 0));
 
-        $user->save();
+        if ($numberingConfigurations) {
+            $numberingService = app(DocumentNumberingService::class);
+            DB::transaction(function () use ($numberingConfigurations, $numberingService, $user): void {
+                $user->save();
+
+                foreach ($numberingConfigurations as $documentType => $configuration) {
+                    $numberingService->updateConfiguration($user, $documentType, $configuration, $user);
+                }
+            }, 3);
+        } else {
+            $user->save();
+        }
 
         return redirect()->route('profile.editCompanyInfo')->with('success', 'Informations mises à jour avec succès.');
     }

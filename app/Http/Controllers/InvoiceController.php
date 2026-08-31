@@ -32,6 +32,7 @@ use App\Services\ReceiptRecordingService;
 use App\Services\InvoiceActivityService;
 use App\Services\InvoiceLifecycleService;
 use App\Services\InvoiceRecipientSnapshotService;
+use App\Services\DocumentNumberingService;
 
 
 class InvoiceController extends Controller
@@ -303,20 +304,15 @@ public function store(Request $request)
             }
         }
 
-        $lastInvoice = Invoice::where('user_id', Auth::id())
-            ->lockForUpdate()
-            ->orderBy('invoice_number', 'desc')
-            ->first();
+        $numbering = app(DocumentNumberingService::class)
+            ->allocateInvoice(Auth::id(), $validatedData['invoice_date']);
 
-        $nextInvoiceNumber = $lastInvoice ? $lastInvoice->invoice_number + 1 : 1;
-
-        $invoice = Invoice::create([
+        $invoice = Invoice::create(array_merge([
             'client_profile_id'      => $validatedData['client_profile_id'] ?? null,
             'user_id'                => Auth::id(),
             'invoice_date'           => $validatedData['invoice_date'],
             'due_date'               => $validatedData['due_date'] ?? null,
             'notes'                  => $validatedData['notes'] ?? null,
-            'invoice_number'         => $nextInvoiceNumber,
             'status'                 => 'En attente',
             'type'                   => 'invoice',
             'appointment_id'         => $validatedData['appointment_id'] ?? null,
@@ -330,7 +326,7 @@ public function store(Request $request)
             'global_discount_type'      => $validatedData['global_discount_type'] ?? null,
             'global_discount_value'     => $validatedData['global_discount_value'] ?? null,
             'global_discount_amount_ht' => 0,
-        ]);
+        ], $numbering));
 
         // Optional: invoice is billed directly to a corporate client
         if (!empty($validatedData['corporate_client_id'])) {
@@ -643,7 +639,7 @@ public function clientPdf(Invoice $invoice)
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
-    return $pdf->download(($invoice->isCreditNote() ? 'avoir_' : 'facture_') . $invoice->invoice_number . '.pdf');
+    return $pdf->download(($invoice->isCreditNote() ? 'avoir_' : 'facture_') . $invoice->safe_document_number . '.pdf');
 }
 
 public function generatePDF(Invoice $invoice)
@@ -662,7 +658,7 @@ public function generatePDF(Invoice $invoice)
 
     $pdf = PDF::loadView('invoices.pdf', ['invoice' => $invoice]);
 
-    return $pdf->download(($invoice->isCreditNote() ? 'avoir_' : 'facture_').$invoice->invoice_number.'.pdf');
+    return $pdf->download(($invoice->isCreditNote() ? 'avoir_' : 'facture_').$invoice->safe_document_number.'.pdf');
 }
 
 
@@ -1119,15 +1115,11 @@ public function storeQuote(Request $request)
     $validated = $validator->validate();
 
     $quote = DB::transaction(function () use ($validated) {
-        $last = Invoice::where('type', 'quote')
-            ->where('user_id', auth()->id())
-            ->orderByDesc('id')
-            ->first();
-
-        $num = 'D-' . str_pad(($last?->id ?? 0) + 1, 5, '0', STR_PAD_LEFT);
+        $numbering = app(DocumentNumberingService::class)
+            ->allocateQuote(auth()->id(), $validated['quote_date']);
 
         /** @var \App\Models\Invoice $quote */
-        $quote = Invoice::create([
+        $quote = Invoice::create(array_merge([
             'client_profile_id'        => $validated['client_profile_id'] ?? null,
             'user_id'                  => auth()->id(),
             // Keep your existing storage mapping
@@ -1136,14 +1128,13 @@ public function storeQuote(Request $request)
             'notes'                    => $validated['notes'] ?? null,
             'status'                   => 'Devis',
             'type'                     => 'quote',
-            'quote_number'             => $num,
             'total_amount'             => 0,
             'total_tax_amount'         => 0,
             'total_amount_with_tax'    => 0,
             'global_discount_type'     => $validated['global_discount_type'] ?? null,
             'global_discount_value'    => $validated['global_discount_value'] ?? null,
             'global_discount_amount_ht'=> 0,
-        ]);
+        ], $numbering));
 
         // Optional: quote is billed directly to a corporate client
         if (!empty($validated['corporate_client_id'])) {
@@ -1302,7 +1293,7 @@ public function generateQuotePDF(Invoice $invoice)
 
     $pdf = PDF::loadView('invoices.pdf_quote', ['invoice' => $invoice]);
 
-    return $pdf->download('devis_' . ($invoice->quote_number ?? $invoice->id) . '.pdf');
+    return $pdf->download('devis_' . $invoice->safe_document_number . '.pdf');
 }
 
 

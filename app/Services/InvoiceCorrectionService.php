@@ -12,6 +12,7 @@ class InvoiceCorrectionService
     public function __construct(
         private readonly InvoiceActivityService $activity,
         private readonly InvoiceLifecycleService $lifecycle,
+        private readonly DocumentNumberingService $numbering,
     ) {}
 
     public function create(Invoice $original, string $kind, string $reason, User $actor): Invoice
@@ -67,17 +68,10 @@ class InvoiceCorrectionService
                 ]);
             }
 
-            $lastInvoice = Invoice::query()
-                ->where('user_id', $lockedOriginal->user_id)
-                ->whereNotNull('invoice_number')
-                ->lockForUpdate()
-                ->orderByDesc('invoice_number')
-                ->first();
-
-            $nextInvoiceNumber = ((int) ($lastInvoice?->invoice_number ?? 0)) + 1;
-
             $isCreditNote = $kind === 'credit_note';
-            $document = Invoice::create([
+            $invoiceDate = now();
+            $numbering = $this->numbering->allocateInvoice($lockedOriginal->user_id, $invoiceDate);
+            $document = Invoice::create(array_merge([
                 'client_profile_id' => $lockedOriginal->client_profile_id,
                 'corporate_client_id' => $lockedOriginal->corporate_client_id,
                 'appointment_id' => $lockedOriginal->appointment_id,
@@ -85,9 +79,8 @@ class InvoiceCorrectionService
                 'correction_kind' => $kind,
                 'correction_reason' => $reason,
                 'user_id' => $lockedOriginal->user_id,
-                'invoice_date' => now()->toDateString(),
+                'invoice_date' => $invoiceDate->toDateString(),
                 'due_date' => $isCreditNote ? null : $lockedOriginal->due_date,
-                'invoice_number' => $nextInvoiceNumber,
                 'status' => $isCreditNote ? 'Émise' : 'En attente',
                 'type' => $isCreditNote ? 'credit_note' : 'invoice',
                 'notes' => $isCreditNote
@@ -101,7 +94,7 @@ class InvoiceCorrectionService
                 'global_discount_amount_ht' => $lockedOriginal->global_discount_amount_ht,
                 'recipient_snapshot' => $lockedOriginal->recipient_data,
                 'finalized_at' => $isCreditNote ? now() : null,
-            ]);
+            ], $numbering));
 
             foreach ($lockedOriginal->items as $item) {
                 $attributes = $item->getAttributes();

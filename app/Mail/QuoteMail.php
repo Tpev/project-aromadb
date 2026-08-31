@@ -61,7 +61,7 @@ class QuoteMail extends Mailable implements ShouldQueue
                 'therapistName' => $this->therapistName,
                 'recipientName' => $this->recipientName,
             ])
-            ->attachData($pdf, 'devis_' . ($this->quote->quote_number ?? 'devis') . '.pdf', [
+            ->attachData($pdf, 'devis_' . $this->quote->safe_document_number . '.pdf', [
                 'mime' => 'application/pdf',
             ]);
     }

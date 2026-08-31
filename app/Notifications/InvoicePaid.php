@@ -44,10 +44,10 @@ class InvoicePaid extends Notification implements ShouldQueue
     {
         return [
             'invoice_id' => $this->invoice->id,
-            'invoice_number' => $this->invoice->number, // Assurez-vous que le modèle Invoice a un attribut 'number'
+            'invoice_number' => $this->invoice->invoice_number,
             'client_name' => $this->invoice->clientProfile->first_name . ' ' . $this->invoice->clientProfile->last_name,
-            'amount_paid' => number_format($this->invoice->amount, 2, ',', ' ') . ' €',
-            'message' => 'La facture n°' . $this->invoice->number . ' a été payée par ' . $this->invoice->clientProfile->first_name . ' ' . $this->invoice->clientProfile->last_name . '.',
+            'amount_paid' => number_format((float) $this->invoice->total_amount_with_tax, 2, ',', ' ') . ' €',
+            'message' => 'La facture n°' . $this->invoice->invoice_number . ' a été payée par ' . $this->invoice->clientProfile->first_name . ' ' . $this->invoice->clientProfile->last_name . '.',
             'url' => route('invoices.show', $this->invoice->id),
             // 'appointment_date' => ... (Supprimé)
         ];

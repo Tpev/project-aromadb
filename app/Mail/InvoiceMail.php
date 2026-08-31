@@ -49,7 +49,7 @@ class InvoiceMail extends Mailable implements ShouldQueue
                     ->markdown('emails.invoices.mail')
                     ->attachData(
                         $pdf,
-                        "{$filenamePrefix}_{$this->invoice->invoice_number}.pdf",
+                        "{$filenamePrefix}_{$this->invoice->safe_document_number}.pdf",
                         ['mime' => 'application/pdf']
                     );
     }

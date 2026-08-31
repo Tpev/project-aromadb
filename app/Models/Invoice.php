@@ -39,6 +39,11 @@ class Invoice extends Model
         'payment_reminder_count',
 		'type',
 		'quote_number',
+        'custom_number',
+        'numbering_family',
+        'number_sequence',
+        'number_period',
+        'numbering_version',
         'global_discount_type',
         'global_discount_value',
         'global_discount_amount_ht',
@@ -113,7 +118,49 @@ public function activityLogs()
         'finalized_at' => 'datetime',
         'recipient_snapshot' => 'array',
         'last_payment_reminder_sent_at' => 'datetime',
+        'number_sequence' => 'integer',
+        'numbering_version' => 'integer',
     ];
+
+public function getInvoiceNumberAttribute($value)
+{
+    if (($this->attributes['type'] ?? 'invoice') !== 'quote'
+        && filled($this->attributes['custom_number'] ?? null)) {
+        return $this->attributes['custom_number'];
+    }
+
+    return $value;
+}
+
+public function getQuoteNumberAttribute($value)
+{
+    if (($this->attributes['type'] ?? null) === 'quote'
+        && filled($this->attributes['custom_number'] ?? null)) {
+        return $this->attributes['custom_number'];
+    }
+
+    return $value;
+}
+
+public function getDisplayNumberAttribute(): string
+{
+    return (string) ($this->isQuote() ? $this->quote_number : $this->invoice_number);
+}
+
+public function getSafeDocumentNumberAttribute(): string
+{
+    $safe = preg_replace('/[^\pL\pN._-]+/u', '_', $this->display_number);
+    $safe = trim((string) $safe, '._-');
+
+    return $safe !== '' ? $safe : (string) $this->id;
+}
+
+public function getInternalInvoiceNumberAttribute(): ?int
+{
+    $value = $this->getRawOriginal('invoice_number');
+
+    return is_null($value) ? null : (int) $value;
+}
 	
 	
 public function receipts()
