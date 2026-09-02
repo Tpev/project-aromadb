@@ -161,13 +161,17 @@
                         @endphp
                         <tr>
                             <td class="selection-cell">
-                                <input type="checkbox"
-                                       id="unavailability-{{ $unavailability->id }}"
-                                       name="unavailability_ids[]"
-                                       value="{{ $unavailability->id }}"
-                                       form="bulkDeleteForm"
-                                       class="selection-checkbox unavailability-checkbox"
-                                       aria-label="{{ __('Sélectionner l’indisponibilité du :date', ['date' => $startAt->format('d/m/Y à H:i')]) }}">
+                                @if(!$unavailability->event_id)
+                                    <input type="checkbox"
+                                           id="unavailability-{{ $unavailability->id }}"
+                                           name="unavailability_ids[]"
+                                           value="{{ $unavailability->id }}"
+                                           form="bulkDeleteForm"
+                                           class="selection-checkbox unavailability-checkbox"
+                                           aria-label="{{ __('Sélectionner l’indisponibilité du :date', ['date' => $startAt->format('d/m/Y à H:i')]) }}">
+                                @else
+                                    <i class="fas fa-link text-muted" title="{{ __('Gérée par un événement') }}"></i>
+                                @endif
                             </td>
                             <td>
                                 <div class="date-cell">
@@ -185,15 +189,22 @@
                             <td>{{ $endAt->format('H:i') }}</td>
                             <td>{{ $unavailability->reason ?? __('Aucune raison spécifiée') }}</td>
                             <td class="action-buttons">
-                                <a href="{{ route('unavailabilities.edit', $unavailability->id) }}"
-                                   class="btn btn-primary btn-sm me-2">
-                                    {{ __('Modifier') }}
-                                </a>
-                                <form action="{{ route('unavailabilities.destroy', $unavailability->id) }}" method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cette indisponibilité ?') }}');">{{ __('Supprimer') }}</button>
-                                </form>
+                                @if($unavailability->event_id)
+                                    <a href="{{ route('events.show', $unavailability->event_id) }}"
+                                       class="btn btn-secondary btn-sm">
+                                        {{ __('Voir l’événement') }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('unavailabilities.edit', $unavailability->id) }}"
+                                       class="btn btn-primary btn-sm me-2">
+                                        {{ __('Modifier') }}
+                                    </a>
+                                    <form action="{{ route('unavailabilities.destroy', $unavailability->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{{ __('Êtes-vous sûr de vouloir supprimer cette indisponibilité ?') }}');">{{ __('Supprimer') }}</button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

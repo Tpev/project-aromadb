@@ -272,6 +272,14 @@ class PublicCheckoutController extends Controller
                 if (Schema::hasColumn('pack_purchases', 'payment_state')) {
                     $payload['payment_state'] = 'pending';
                 }
+                if (Schema::hasColumn('pack_purchases', 'digital_training_ids_snapshot')) {
+                    $payload['digital_training_ids_snapshot'] = $pack->digitalTrainings()
+                        ->where('digital_trainings.user_id', $therapist->id)
+                        ->pluck('digital_trainings.id')
+                        ->map(fn ($trainingId) => (int) $trainingId)
+                        ->values()
+                        ->all();
+                }
 
                 $purchase = PackPurchase::create($payload);
 
@@ -533,6 +541,10 @@ class PublicCheckoutController extends Controller
                 $payload['activated_at'] = Carbon::now();
             }
             $purchase->update($payload);
+
+            if ($type === 'pack') {
+                app(\App\Services\PackDigitalTrainingAccessService::class)->grant($purchase->fresh());
+            }
         }
 
         return redirect()->route('therapist.show', $therapist->slug)

@@ -378,9 +378,16 @@
 
     <script>
         const PRODUCT_VARIANTS = @json($productVariants);
+        const CALENDAR_PREFILL_DATE = @json(request()->query('appointment_date'));
+        const CALENDAR_PREFILL_TIME = @json(request()->query('appointment_time'));
+
+        @include('appointments.partials.progressive-availability-loader')
 
         let allowedDates = [];
+        let datesFullyLoaded = false;
         let currentSlotsRequestId = 0;
+        let calendarDatePrefillPending = Boolean(CALENDAR_PREFILL_DATE);
+        let calendarTimePrefillPending = Boolean(CALENDAR_PREFILL_TIME);
 
         $(function () {
             // Client dropdown: searchable + tri alpha (nom puis prénom)
@@ -400,6 +407,56 @@
                 locale: "fr",
                 disableMobile: true,
                 enable: [() => true], // therapist can pick any future date; we'll warn if not recommended
+                defaultDate: CALENDAR_PREFILL_DATE || null,
+            });
+
+            const progressiveDateLoader = createProgressiveAvailabilityLoader({
+                requestRange: function (context, stage) {
+                    return $.post('{{ route("appointments.available-dates-concrete-therapist") }}', {
+                        product_id: context.productId,
+                        mode: context.modeSlug,
+                        location_id: context.locationId,
+                        start_offset: stage.startOffset,
+                        days: stage.days,
+                        _token: '{{ csrf_token() }}'
+                    });
+                },
+                onReset: function () {
+                    allowedDates = [];
+                    datesFullyLoaded = false;
+                    currentSlotsRequestId++;
+                    fp.set('enable', [() => true]);
+                    if (!calendarDatePrefillPending) fp.clear();
+                    resetSlotsUI();
+                    $('#date-loading-message').show().text('Chargement des jours disponibles…');
+                },
+                onProgress: function (state) {
+                    $('#date-loading-message')
+                        .show()
+                        .text(state.hasDates
+                            ? 'Chargement des prochaines disponibilités…'
+                            : 'Recherche du prochain créneau disponible…');
+                },
+                onMerge: function (state) {
+                    allowedDates = state.allDates;
+                    fp.set('enable', [() => true]);
+
+                    if (calendarDatePrefillPending && CALENDAR_PREFILL_DATE) {
+                        calendarDatePrefillPending = false;
+                        fp.setDate(CALENDAR_PREFILL_DATE, true);
+                    }
+                },
+                onComplete: function () {
+                    datesFullyLoaded = true;
+                    $('#date-loading-message').hide().text('');
+                },
+                onError: function (state) {
+                    console.error('Error fetching recommended appointment dates:', state.xhr.responseText);
+                    $('#date-loading-message').hide().text('');
+                    alert(state.allDates.length
+                        ? 'Certaines dates recommandées n’ont pas pu être chargées.'
+                        : 'Erreur lors du chargement des dates.');
+                }
             });
 
             function isBackfillMode() {
@@ -489,6 +546,8 @@
             }
 
             function enableBackfillModeUI() {
+                progressiveDateLoader.cancel();
+                datesFullyLoaded = false;
                 fp.set('minDate', null);
                 fp.set('maxDate', 'today');
                 fp.set('enable', [() => true]);
@@ -640,6 +699,31 @@
                 }
             }
 
+            function applyCalendarTimePrefill() {
+                if (!calendarTimePrefillPending || !CALENDAR_PREFILL_TIME) return;
+
+                let selectedButton = null;
+                document.querySelectorAll('.time-slot-btn').forEach(button => {
+                    if (!selectedButton && String(button.dataset.time) === String(CALENDAR_PREFILL_TIME)) {
+                        selectedButton = button;
+                    }
+                });
+
+                if (!selectedButton) {
+                    renderManualSlotsEvery15Min(true);
+                    document.querySelectorAll('.time-slot-btn').forEach(button => {
+                        if (!selectedButton && String(button.dataset.time) === String(CALENDAR_PREFILL_TIME)) {
+                            selectedButton = button;
+                        }
+                    });
+                }
+
+                if (selectedButton) {
+                    selectedButton.click();
+                    calendarTimePrefillPending = false;
+                }
+            }
+
             /**
              * THERAPIST endpoints
              * IMPORTANT: These routes must exist:
@@ -647,23 +731,7 @@
              * - appointments.available-slots-therapist
              */
             function fetchDates(productId, modeSlug, locationId = null) {
-                $('#date-loading-message').show();
-
-                $.post('{{ route("appointments.available-dates-concrete-therapist") }}', {
-                    product_id: productId,
-                    mode: modeSlug,
-                    location_id: locationId,
-                    days: 90,
-                    _token: '{{ csrf_token() }}'
-                })
-                .done(res => {
-                    allowedDates = res.dates || [];
-                    fp.set('enable', [() => true]); // warning-only mode
-                    fp.clear();
-                    resetSlotsUI();
-                })
-                .fail(() => alert('Erreur lors du chargement des dates.'))
-                .always(() => $('#date-loading-message').hide());
+                progressiveDateLoader.load({ productId, modeSlug, locationId });
             }
 
             function fetchSlots(date, productId, modeSlug, locationId = null) {
@@ -692,10 +760,12 @@
                         renderManualSlotsEvery15Min(true);
                         $('#force_availability_override').val('1');
                         showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
+                        applyCalendarTimePrefill();
                         return;
                     }
 
                     renderSlots(res.slots);
+                    applyCalendarTimePrefill();
                 })
                 .fail(() => {
                     $('#time-slots-container').html('<span class="text-red-500">Erreur lors de la récupération.</span>');
@@ -713,7 +783,9 @@
                 const loc       = slug === 'cabinet' ? $('#practice_location_id').val() : null;
 
                 if (!productId || !slug || (slug === 'cabinet' && !loc)) {
+                    progressiveDateLoader.cancel();
                     allowedDates = [];
+                    datesFullyLoaded = false;
                     fp.set('enable', [() => true]);
                     fp.clear();
                     resetSlotsUI();
@@ -894,7 +966,7 @@
                     return;
                 }
 
-                if (Array.isArray(allowedDates) && allowedDates.length && !allowedDates.includes(date)) {
+                if (datesFullyLoaded && Array.isArray(allowedDates) && allowedDates.length && !allowedDates.includes(date)) {
                     showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
                 }
 

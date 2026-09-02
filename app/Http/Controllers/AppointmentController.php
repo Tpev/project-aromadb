@@ -161,12 +161,21 @@ class AppointmentController extends Controller
     $unavailabilities = Unavailability::where('user_id', Auth::id())
         ->get()
         ->map(function ($unavailability) {
+            $isEventManaged = $unavailability->event_id !== null;
+
             return [
                 'title' => $unavailability->reason ?: 'Indisponible',
                 'start' => $unavailability->start_date->format('Y-m-d H:i:s'),
                 'end'   => $unavailability->end_date->format('Y-m-d H:i:s'),
                 'color' => '#808080',
-                'url'   => route('unavailabilities.index'),
+                'textColor' => '#ffffff',
+                'url' => $isEventManaged
+                    ? route('events.show', $unavailability->event_id)
+                    : route('unavailabilities.edit', $unavailability->id),
+                'extendedProps' => [
+                    'kind' => 'unavailability',
+                    'managedByEvent' => $isEventManaged,
+                ],
             ];
         });
 
@@ -1958,6 +1967,7 @@ public function availableConcreteDatesPatient(Request $request)
         'mode'         => 'nullable|string|in:cabinet,visio,domicile,entreprise',
         'location_id'  => 'nullable|integer',
         'days'         => 'nullable|integer|min:1|max:90',
+        'start_offset' => 'nullable|integer|min:0|max:89',
     ]);
 
     $therapistId = (int) $request->therapist_id;
@@ -1993,14 +2003,15 @@ public function availableConcreteDatesPatient(Request $request)
         }
     }
 
-    $days  = (int) $request->input('days', 90);
-    $today = Carbon::today();
+    $startOffset = (int) $request->input('start_offset', 0);
+    $days = min((int) $request->input('days', 90), 90 - $startOffset);
+    $firstDate = Carbon::today()->addDays($startOffset);
 
     if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
         return response()->json(
             app(\App\Services\AppointmentAvailabilityService::class)->availableDates(
                 $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId),
-                $today,
+                $firstDate,
                 $days,
             )
         );
@@ -2010,7 +2021,7 @@ public function availableConcreteDatesPatient(Request $request)
     $next  = null;
 
     for ($i = 0; $i < $days; $i++) {
-        $date      = $today->copy()->addDays($i);
+        $date      = $firstDate->copy()->addDays($i);
         $dayOfWeek = $date->dayOfWeekIso - 1; // 0..6
         $dateStr   = $date->format('Y-m-d');
 
@@ -2302,6 +2313,13 @@ public function availableDatesPatient(Request $request)
     {
         [$validated, $startDateTime, $endDateTime] = $this->validatedUnavailabilityPayload($request);
 
+        $conflicts = $this->unavailabilityConflicts($startDateTime, $endDateTime);
+        if ($this->requiresUnavailabilityConflictConfirmation($request, $conflicts)) {
+            return back()
+                ->withInput()
+                ->with('unavailability_conflicts', $conflicts);
+        }
+
         Unavailability::create([
             'user_id' => Auth::id(),
             'start_date' => $startDateTime,
@@ -2309,8 +2327,12 @@ public function availableDatesPatient(Request $request)
             'reason' => $validated['reason'] ?? null,
         ]);
 
+        $redirectRoute = $request->input('unavailability_source') === 'calendar'
+            ? 'appointments.index'
+            : 'unavailabilities.index';
+
         return redirect()
-            ->route('unavailabilities.index')
+            ->route($redirectRoute)
             ->with('success', 'Indisponibilité ajoutée avec succès.');
     }
 
@@ -2335,6 +2357,12 @@ public function availableDatesPatient(Request $request)
                 ->with('error', 'Vous n\'êtes pas autorisé à modifier cette indisponibilité.');
         }
 
+        if ($unavailability->event_id) {
+            return redirect()
+                ->route('events.show', $unavailability->event_id)
+                ->with('error', 'Cette indisponibilité est gérée depuis l’événement associé.');
+        }
+
         return view('unavailabilities.edit', compact('unavailability'));
     }
 
@@ -2349,7 +2377,20 @@ public function availableDatesPatient(Request $request)
                 ->with('error', 'Vous n\'êtes pas autorisé à modifier cette indisponibilité.');
         }
 
+        if ($unavailability->event_id) {
+            return redirect()
+                ->route('events.show', $unavailability->event_id)
+                ->with('error', 'Cette indisponibilité est gérée depuis l’événement associé.');
+        }
+
         [$validated, $startDateTime, $endDateTime] = $this->validatedUnavailabilityPayload($request);
+
+        $conflicts = $this->unavailabilityConflicts($startDateTime, $endDateTime, $unavailability->id);
+        if ($this->requiresUnavailabilityConflictConfirmation($request, $conflicts)) {
+            return back()
+                ->withInput()
+                ->with('unavailability_conflicts', $conflicts);
+        }
 
         $unavailability->update([
             'start_date' => $startDateTime,
@@ -2377,6 +2418,12 @@ public function availableDatesPatient(Request $request)
                 ->with('error', 'Vous n\'êtes pas autorisé à supprimer cette indisponibilité.');
         }
 
+        if ($unavailability->event_id) {
+            return redirect()
+                ->route('events.show', $unavailability->event_id)
+                ->with('error', 'Cette indisponibilité est gérée depuis l’événement associé et ne peut pas être supprimée séparément.');
+        }
+
         $unavailability->delete();
 
         return redirect()
@@ -2397,6 +2444,7 @@ public function availableDatesPatient(Request $request)
 
         $deletedCount = Unavailability::query()
             ->where('user_id', Auth::id())
+            ->whereNull('event_id')
             ->whereIn('id', $validated['unavailability_ids'])
             ->delete();
 
@@ -2435,6 +2483,78 @@ public function availableDatesPatient(Request $request)
         }
 
         return [$validated, $startDateTime, $endDateTime];
+    }
+
+    /**
+     * @return array{appointments:array<int, string>,unavailabilities:array<int, string>,appointment_count:int,unavailability_count:int,confirmation_token:string}
+     */
+    private function unavailabilityConflicts(Carbon $start, Carbon $end, ?int $excludeUnavailabilityId = null): array
+    {
+        $appointmentQuery = Appointment::query()
+            ->where('user_id', Auth::id());
+        $this->applyBlockingAppointmentsFilter($appointmentQuery);
+
+        $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+        $appointments = $appointmentQuery
+            ->where('appointment_date', '<', $end)
+            ->where(function ($query) use ($start, $isSqlite): void {
+                if ($isSqlite) {
+                    $query->whereRaw(
+                        "datetime(appointment_date, '+' || COALESCE(duration, 60) || ' minutes') > ?",
+                        [$start]
+                    );
+                } else {
+                    $query->whereRaw(
+                        'DATE_ADD(appointment_date, INTERVAL COALESCE(duration, 60) MINUTE) > ?',
+                        [$start]
+                    );
+                }
+            })
+            ->with('clientProfile:id,first_name,last_name')
+            ->get();
+
+        $unavailabilityQuery = Unavailability::query()
+            ->where('user_id', Auth::id())
+            ->where('start_date', '<', $end)
+            ->where('end_date', '>', $start);
+
+        if ($excludeUnavailabilityId !== null) {
+            $unavailabilityQuery->whereKeyNot($excludeUnavailabilityId);
+        }
+
+        $unavailabilities = $unavailabilityQuery->get();
+
+        return [
+            'appointments' => $appointments->take(5)->map(function (Appointment $appointment): string {
+                $clientName = trim(($appointment->clientProfile?->first_name ?? '').' '.($appointment->clientProfile?->last_name ?? ''));
+
+                return ($clientName !== '' ? $clientName : 'Rendez-vous')
+                    .' — '.$appointment->appointment_date->format('d/m/Y H:i');
+            })->values()->all(),
+            'unavailabilities' => $unavailabilities->take(5)->map(
+                fn (Unavailability $unavailability): string => ($unavailability->reason ?: 'Indisponibilité')
+                    .' — '.$unavailability->start_date->format('d/m/Y H:i')
+            )->values()->all(),
+            'appointment_count' => $appointments->count(),
+            'unavailability_count' => $unavailabilities->count(),
+            'confirmation_token' => hash('sha256', implode('|', [
+                (string) Auth::id(),
+                $start->format('Y-m-d H:i:s'),
+                $end->format('Y-m-d H:i:s'),
+                (string) ($excludeUnavailabilityId ?? 0),
+            ])),
+        ];
+    }
+
+    private function requiresUnavailabilityConflictConfirmation(Request $request, array $conflicts): bool
+    {
+        $hasConflicts = ($conflicts['appointment_count'] ?? 0) > 0
+            || ($conflicts['unavailability_count'] ?? 0) > 0;
+        $expectedToken = (string) ($conflicts['confirmation_token'] ?? '');
+        $providedToken = (string) $request->input('confirm_conflicts', '');
+
+        return $hasConflicts
+            && ($expectedToken === '' || ! hash_equals($expectedToken, $providedToken));
     }
 
 public function markAsCompleted(Appointment $appointment)
@@ -3413,6 +3533,7 @@ public function availableConcreteDatesTherapist(Request $request)
         'mode'         => 'nullable|string|in:cabinet,visio,domicile,entreprise',
         'location_id'  => 'nullable|integer',
         'days'         => 'nullable|integer|min:1|max:90',
+        'start_offset' => 'nullable|integer|min:0|max:89',
     ]);
 
     // Therapist creating for himself only
@@ -3439,12 +3560,13 @@ public function availableConcreteDatesTherapist(Request $request)
         }
     }
 
-    $days   = (int) $request->input('days', 90);
-    $today  = Carbon::today();
+    $startOffset = (int) $request->input('start_offset', 0);
+    $days = min((int) $request->input('days', 90), 90 - $startOffset);
+    $firstDate = Carbon::today()->addDays($startOffset);
     $dates  = [];
 
     for ($i = 0; $i < $days; $i++) {
-        $dateObj   = $today->copy()->addDays($i);
+        $dateObj   = $firstDate->copy()->addDays($i);
         $dateStr   = $dateObj->format('Y-m-d');
 
         // IMPORTANT: compute slots therapist-side (no minimum notice)

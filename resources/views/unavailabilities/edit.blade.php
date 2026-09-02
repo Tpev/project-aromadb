@@ -72,9 +72,28 @@
                 </div>
             @endif
 
+            @if(session('unavailability_conflicts'))
+                @php
+                    $conflicts = session('unavailability_conflicts');
+                @endphp
+                <div class="alert alert-warning">
+                    <strong>{{ __('Attention : cette modification recouvre des éléments existants.') }}</strong>
+                    <ul class="mb-2 mt-2">
+                        @foreach($conflicts['appointments'] ?? [] as $conflict)
+                            <li>{{ $conflict }}</li>
+                        @endforeach
+                        @foreach($conflicts['unavailabilities'] ?? [] as $conflict)
+                            <li>{{ $conflict }}</li>
+                        @endforeach
+                    </ul>
+                    <span>{{ __('En enregistrant à nouveau, vous confirmez la modification sans déplacer les rendez-vous existants.') }}</span>
+                </div>
+            @endif
+
             <form id="unavailability-form" action="{{ route('unavailabilities.update', $unavailability->id) }}" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="confirm_conflicts" value="{{ session('unavailability_conflicts.confirmation_token') ?? '' }}">
 
                 <div class="details-box">
                     <label class="details-label" for="reason">{{ __('Raison (optionnelle)') }}</label>

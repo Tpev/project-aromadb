@@ -15,7 +15,8 @@ class StripePurchaseWebhookService
 {
     public function __construct(
         private readonly PackPurchaseInvoicingService $purchaseInvoicingService,
-        private readonly GiftVoucherCheckoutService $giftVoucherCheckoutService
+        private readonly GiftVoucherCheckoutService $giftVoucherCheckoutService,
+        private readonly PackDigitalTrainingAccessService $digitalTrainingAccessService
     ) {
     }
 
@@ -123,6 +124,9 @@ class StripePurchaseWebhookService
 
             if (!empty($updates)) {
                 $purchase->update($updates);
+                if (($updates['status'] ?? null) === 'cancelled') {
+                    $this->digitalTrainingAccessService->revoke($purchase);
+                }
             }
 
             $this->markProcessed($eventId, $type, $connectedAccountId);
@@ -148,6 +152,7 @@ class StripePurchaseWebhookService
                 'status' => 'cancelled',
                 'canceled_effective_at' => Carbon::now(),
             ]);
+            $this->digitalTrainingAccessService->revoke($purchase);
             $this->markProcessed($eventId, $type, $connectedAccountId);
             return true;
         }
@@ -248,6 +253,10 @@ class StripePurchaseWebhookService
 
             $purchase->update($payload);
 
+            if ($paid) {
+                $this->digitalTrainingAccessService->grant($purchase->fresh());
+            }
+
             // Create/refresh the invoice shell early so therapist sees it immediately.
             $this->purchaseInvoicingService->ensureInvoiceForPurchase($purchase->fresh());
             return true;
@@ -262,6 +271,8 @@ class StripePurchaseWebhookService
         ]);
 
         if ($paid) {
+            $this->digitalTrainingAccessService->grant($purchase->fresh());
+
             $providerReference = !empty($session->payment_intent)
                 ? (is_object($session->payment_intent)
                     ? (string) ($session->payment_intent->id ?? '')
@@ -360,6 +371,7 @@ class StripePurchaseWebhookService
         }
 
         $purchase->refresh();
+        $this->digitalTrainingAccessService->grant($purchase);
 
         $paidAt = null;
         if (!empty($invoice->status_transitions?->paid_at)) {

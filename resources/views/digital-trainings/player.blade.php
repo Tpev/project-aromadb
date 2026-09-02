@@ -545,7 +545,7 @@
                             <div class="sidebar-title">{{ $training->title }}</div>
                             <div class="sidebar-meta">
                                 @if($training->estimated_duration_minutes)
-                                    {{ __('Durée estimée :') }} <strong>{{ $training->estimated_duration_minutes }} h</strong>
+                                    {{ __('Durée estimée :') }} <strong>{{ \App\Support\EventDuration::format($training->estimated_duration_minutes) }}</strong>
                                 @endif
                             </div>
 

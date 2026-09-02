@@ -86,6 +86,20 @@
                 </div>
             @endif
 
+            @if(session('warning'))
+                <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+                    <div class="text-sm font-extrabold">Attention</div>
+                    <div class="mt-0.5 text-sm">{{ session('warning') }}</div>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+                    <div class="text-sm font-extrabold">Erreur</div>
+                    <div class="mt-0.5 text-sm">{{ session('error') }}</div>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {{-- Pack details --}}
                 <div class="lg:col-span-2 am-card p-5">
@@ -205,6 +219,29 @@
 
                         <div class="mt-2 text-xs text-slate-600">
                             Les crédits sont consommés lorsque vous utilisez ce pack lors d’un rendez-vous / facture.
+                        </div>
+
+                        <div class="mt-5 rounded-xl border border-[#dfe6bd] bg-[#f8faef] p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="text-sm font-extrabold text-slate-900">Formations digitales</h4>
+                                    <p class="mt-1 text-xs text-slate-600">Accès personnel envoyé automatiquement lors de l’attribution.</p>
+                                </div>
+                                <i class="fas fa-graduation-cap text-[#647a0b]"></i>
+                            </div>
+
+                            @if($pack->digitalTrainings->isEmpty())
+                                <p class="mt-3 text-xs text-slate-500">Aucune formation incluse.</p>
+                            @else
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    @foreach($pack->digitalTrainings as $training)
+                                        <span class="inline-flex items-center gap-2 rounded-full border border-[#d7dfaa] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">
+                                            <span class="h-2 w-2 rounded-full bg-[#647a0b]"></span>
+                                            {{ $training->title }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -363,12 +400,20 @@
                                         @endif
 
                                         @if($p->status === 'active')
+                                            @if($p->digitalTrainingEnrollments->isNotEmpty())
+                                                <form action="{{ route('pack-purchases.digital-access.resend', $p->id) }}" method="POST">
+                                                    @csrf
+                                                    <button class="rounded-lg border border-[#b9c477] px-2 py-1 text-xs font-semibold text-[#647a0b] hover:bg-[#f5f7eb]">
+                                                        Renvoyer l’accès
+                                                    </button>
+                                                </form>
+                                            @endif
                                             <form action="{{ route('pack-purchases.revoke', $p->id) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button class="rounded-lg border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
-                                                        onclick="return confirm('Revoquer ce pack client ? Il ne sera plus utilisable.');">
-                                                    Revoquer
+                                                        onclick="return confirm('Révoquer ce pack client ? Le pack et les accès aux formations associées ne seront plus utilisables.');">
+                                                    Révoquer
                                                 </button>
                                             </form>
                                         @elseif(!(($p->payment_mode ?? 'one_time') === 'installments' && !empty($p->stripe_subscription_id)))

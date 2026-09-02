@@ -263,6 +263,8 @@ const therapistId          = '{{ $therapist->id }}';
 
 const EDITING_APPOINTMENT_ID = @json($editingAppointmentId);
 
+@include('appointments.partials.progressive-availability-loader')
+
 let allowedDates = [];
 let currentSlotsRequestId = 0;
 
@@ -276,6 +278,50 @@ $(function() {
         locale: "fr",
         disableMobile: true,
         enable: []
+    });
+
+    const progressiveDateLoader = createProgressiveAvailabilityLoader({
+        requestRange: function (context, stage) {
+            return $.post('{{ route("appointments.available-dates-concrete-therapist") }}', {
+                product_id: context.productId,
+                mode: context.modeSlug,
+                location_id: context.locationId,
+                include_conflicts: 1,
+                exclude_appointment_id: EDITING_APPOINTMENT_ID,
+                start_offset: stage.startOffset,
+                days: stage.days,
+                _token: '{{ csrf_token() }}'
+            });
+        },
+        onReset: function () {
+            allowedDates = [];
+            currentSlotsRequestId++;
+            fp.set('enable', [() => true]);
+            resetSlotsUI();
+            $('#date-loading-message').show().text('Chargement des dates…');
+        },
+        onProgress: function (state) {
+            $('#date-loading-message')
+                .show()
+                .text(state.hasDates
+                    ? 'Chargement des prochaines disponibilités…'
+                    : 'Recherche du prochain créneau disponible…');
+        },
+        onMerge: function (state) {
+            allowedDates = state.allDates;
+            fp.set('enable', [() => true]);
+        },
+        onComplete: function () {
+            $('#date-loading-message').hide().text('');
+        },
+        onError: function (state) {
+            console.error('Error fetching recommended appointment dates:', state.xhr.responseText);
+            fp.set('enable', [() => true]);
+            $('#date-loading-message').hide().text('');
+            alert(state.allDates.length
+                ? 'Certaines dates recommandées n’ont pas pu être chargées.'
+                : 'Erreur lors du chargement des dates.');
+        }
     });
 
     function resetSlotsUI() {
@@ -393,36 +439,7 @@ $(function() {
     }
 
     function fetchDates(productId, modeSlug, locationId = null) {
-        $('#date-loading-message').show().text('Chargement des dates…');
-
-        $.post('{{ route("appointments.available-dates-concrete-therapist") }}', {
-            product_id: productId,
-            mode: modeSlug,
-            location_id: locationId,
-            include_conflicts: 1,
-            days: 90,
-
-            // ⭐ crucial for edit
-            exclude_appointment_id: EDITING_APPOINTMENT_ID,
-
-            _token: '{{ csrf_token() }}'
-        })
-        .done(res => {
-            allowedDates = res.dates || [];
-            // Warning-only mode: allow selecting any date, even outside availability.
-            fp.set('enable', [() => true]);
-
-            // Don't nuke the edit date if it exists (avoid fp.clear() here)
-            resetSlotsUI();
-        })
-        .fail(() => {
-            allowedDates = [];
-            fp.set('enable', []);
-            fp.clear();
-            resetSlotsUI();
-            alert('Erreur lors du chargement des dates.');
-        })
-        .always(() => $('#date-loading-message').hide().text(''));
+        progressiveDateLoader.load({ productId, modeSlug, locationId });
     }
 
     function fetchSlots(date, productId, modeSlug, locationId = null) {
@@ -495,6 +512,7 @@ $(function() {
         const loc       = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
 
         if (!productId || !slug || (slug === 'cabinet' && !loc)) {
+            progressiveDateLoader.cancel();
             allowedDates = [];
             fp.set('enable', []);
             fp.clear();
@@ -553,6 +571,7 @@ $(function() {
         $('#mode-error').addClass('d-none').text('');
         $('#location-error').addClass('d-none').text('');
 
+        progressiveDateLoader.cancel();
         allowedDates = [];
         fp.set('enable', []);
         fp.clear();

@@ -165,6 +165,46 @@
                 </div>
             </div>
 
+            {{-- Digital training access --}}
+            <div class="rounded-xl border border-[#dfe6bd] bg-[#f8faef] p-4">
+                <input type="hidden" name="digital_training_ids_present" value="1">
+                <div class="flex items-start gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#647a0b]/10 text-[#647a0b]">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Formations digitales incluses</h3>
+                        <p class="mt-1 text-xs leading-5 text-slate-600">
+                            À l’attribution du pack, le client recevra automatiquement un email avec son lien d’accès personnel.
+                        </p>
+                    </div>
+                </div>
+
+                @if($digitalTrainings->isEmpty())
+                    <div class="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+                        Aucune formation disponible. Créez d’abord une formation digitale si vous souhaitez en inclure une.
+                    </div>
+                @else
+                    <div class="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2">
+                        @foreach($digitalTrainings as $training)
+                            <label class="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-3 has-[:checked]:border-[#647a0b] has-[:checked]:bg-[#647a0b]/5">
+                                <input type="checkbox"
+                                       name="digital_training_ids[]"
+                                       value="{{ $training->id }}"
+                                       class="mt-0.5 rounded border-slate-300 text-[#647a0b] focus:ring-[#647a0b]"
+                                       @checked(in_array($training->id, array_map('intval', old('digital_training_ids', [])), true))>
+                                <span class="min-w-0">
+                                    <span class="block truncate text-sm font-semibold text-slate-800">{{ $training->title }}</span>
+                                    <span class="mt-0.5 block text-xs text-slate-500">
+                                        {{ $training->status === 'published' ? 'Publiée' : 'Brouillon — vérifiez le contenu avant attribution' }}
+                                    </span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
             {{-- Actions --}}
             <div class="flex justify-end gap-2 pt-4">
                 <a href="{{ route('pack-products.index') }}"

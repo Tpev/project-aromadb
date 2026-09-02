@@ -596,6 +596,7 @@ class MobileAppointmentController extends Controller
             'mode'         => 'nullable|string|in:cabinet,visio,domicile,entreprise',
             'location_id'  => 'nullable|integer',
             'days'         => 'nullable|integer|min:1|max:90',
+            'start_offset' => 'nullable|integer|min:0|max:89',
         ]);
 
         $therapistId = (int) $request->therapist_id;
@@ -629,23 +630,25 @@ class MobileAppointmentController extends Controller
             }
         }
 
+        $startOffset = (int) $request->input('start_offset', 0);
+        $days = min((int) $request->input('days', 90), 90 - $startOffset);
+        $firstDate = Carbon::today()->addDays($startOffset);
+
         if (app(\App\Support\BookingV2Access::class)->enabledFor($therapist)) {
             $template = $this->bookingAvailabilityTemplate($therapist, $product, $mode, $locationId);
             $result = app(\App\Services\AppointmentAvailabilityService::class)->availableDates(
                 $template,
-                Carbon::today(),
-                (int) $request->input('days', 90),
+                $firstDate,
+                $days,
             );
 
             return response()->json(['dates' => $result['dates']]);
         }
 
-        $days  = (int) $request->input('days', 90);
-        $today = Carbon::today();
         $dates = [];
 
         for ($i = 0; $i < $days; $i++) {
-            $date      = $today->copy()->addDays($i);
+            $date      = $firstDate->copy()->addDays($i);
             $dayOfWeek = $date->dayOfWeekIso - 1;
             $dateStr   = $date->format('Y-m-d');
 

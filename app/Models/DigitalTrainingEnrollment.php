@@ -14,14 +14,17 @@ class DigitalTrainingEnrollment extends Model
     public const SOURCE_MANUAL = 'manual';
     public const SOURCE_FREE_GATE = 'free_gate';
     public const SOURCE_OPEN_FREE_ACCESS = 'free_open';
+    public const SOURCE_PACK = 'pack';
 
     protected $fillable = [
         'digital_training_id',
+        'pack_purchase_id',
         'client_profile_id',
         'participant_name',
         'participant_email',
         'access_token',
         'token_expires_at',
+        'access_email_sent_at',
         'progress_percent',
         'first_accessed_at',
         'last_accessed_at',
@@ -34,6 +37,7 @@ class DigitalTrainingEnrollment extends Model
 
     protected $casts = [
         'token_expires_at'  => 'datetime',
+        'access_email_sent_at' => 'datetime',
         'first_accessed_at' => 'datetime',
         'last_accessed_at'  => 'datetime',
         'completed_at'      => 'datetime',
@@ -53,6 +57,11 @@ class DigitalTrainingEnrollment extends Model
         return $this->belongsTo(ClientProfile::class);
     }
 
+    public function packPurchase()
+    {
+        return $this->belongsTo(PackPurchase::class);
+    }
+
     public function comments()
     {
         return $this->hasMany(DigitalTrainingBlockComment::class, 'digital_training_enrollment_id');
@@ -63,6 +72,7 @@ class DigitalTrainingEnrollment extends Model
         return match ((string) $this->source) {
             self::SOURCE_FREE_GATE => 'Accès gratuit',
             self::SOURCE_OPEN_FREE_ACCESS => 'Accès libre',
+            self::SOURCE_PACK => 'Pack',
             self::SOURCE_MANUAL => 'Manuel',
             default => ucfirst(str_replace('_', ' ', (string) $this->source)),
         };

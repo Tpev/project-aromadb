@@ -94,9 +94,28 @@
                 </div>
             @endif
 
+            @if(session('unavailability_conflicts'))
+                @php
+                    $conflicts = session('unavailability_conflicts');
+                @endphp
+                <div class="alert alert-warning">
+                    <strong>{{ __('Attention : ce bloc recouvre des éléments existants.') }}</strong>
+                    <ul class="mb-2 mt-2">
+                        @foreach($conflicts['appointments'] ?? [] as $conflict)
+                            <li>{{ $conflict }}</li>
+                        @endforeach
+                        @foreach($conflicts['unavailabilities'] ?? [] as $conflict)
+                            <li>{{ $conflict }}</li>
+                        @endforeach
+                    </ul>
+                    <span>{{ __('En enregistrant à nouveau, les rendez-vous existants seront conservés mais aucun nouveau rendez-vous ne pourra être pris sur cette période.') }}</span>
+                </div>
+            @endif
+
             <!-- Unavailability Form -->
             <form id="unavailability-form" action="{{ route('unavailabilities.store') }}" method="POST">
                 @csrf
+                <input type="hidden" name="confirm_conflicts" value="{{ session('unavailability_conflicts.confirmation_token') ?? '' }}">
                 <div class="details-box">
                     <label class="details-label" for="reason">{{ __('Raison (optionnelle)') }}</label>
                     <textarea id="reason" name="reason" class="form-control" placeholder="{{ __('Indiquez une raison (facultatif)') }}">{{ old('reason') }}</textarea>
@@ -106,7 +125,7 @@
                 </div>
                 <div class="details-box">
                     <label class="details-label" for="start_date">{{ __('Date de début') }}</label>
-                    <input type="text" id="start_date" name="start_date" class="form-control" required placeholder="Sélectionner une date">
+                    <input type="text" id="start_date" name="start_date" class="form-control" required value="{{ old('start_date') }}" placeholder="Sélectionner une date">
                     @error('start_date')
                         <p class="error-message">{{ $message }}</p>
                     @enderror
@@ -114,7 +133,7 @@
 
                 <div class="details-box">
                     <label class="details-label" for="start_time">{{ __('Heure de début') }}</label>
-                    <input type="text" id="start_time" name="start_time" class="form-control" required placeholder="Sélectionner une heure">
+                    <input type="text" id="start_time" name="start_time" class="form-control" required value="{{ old('start_time') }}" placeholder="Sélectionner une heure">
                     @error('start_time')
                         <p class="error-message">{{ $message }}</p>
                     @enderror
@@ -122,7 +141,7 @@
 
                 <div class="details-box">
                     <label class="details-label" for="end_date">{{ __('Date de fin') }}</label>
-                    <input type="text" id="end_date" name="end_date" class="form-control" required placeholder="Sélectionner une date">
+                    <input type="text" id="end_date" name="end_date" class="form-control" required value="{{ old('end_date') }}" placeholder="Sélectionner une date">
                     @error('end_date')
                         <p class="error-message">{{ $message }}</p>
                     @enderror
@@ -130,7 +149,7 @@
 
                 <div class="details-box">
                     <label class="details-label" for="end_time">{{ __('Heure de fin') }}</label>
-                    <input type="text" id="end_time" name="end_time" class="form-control" required placeholder="Sélectionner une heure">
+                    <input type="text" id="end_time" name="end_time" class="form-control" required value="{{ old('end_time') }}" placeholder="Sélectionner une heure">
                     @error('end_time')
                         <p class="error-message">{{ $message }}</p>
                     @enderror
@@ -230,7 +249,7 @@
                 const startDateTime = new Date(`${startDate}T${startTime}`);
                 const endDateTime = new Date(`${endDate}T${endTime}`);
 
-                if (endDateTime < startDateTime) {
+                if (endDateTime <= startDateTime) {
                     $('#custom-error').text('La date et l\'heure de fin doivent être après la date et l\'heure de début.');
                     e.preventDefault();
                 }

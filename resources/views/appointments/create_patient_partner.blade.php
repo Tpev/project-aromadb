@@ -257,6 +257,8 @@
     let pendingOldDate = @json(old('appointment_date'));
     let pendingOldTime = @json(old('appointment_time'));
 
+    @include('appointments.partials.progressive-availability-loader')
+
     const $prestationSelect = $('#prestation_name');
     const $variantSelect = $('#variant_select');
     const $practiceLocationSelect = $('#practice_location_id');
@@ -365,51 +367,89 @@
         }
     });
 
-    function fetchDates(productId, mode, locationId) {
-        dateLoadingMessage.textContent = "{{ __('Chargement des jours disponibles...') }}";
-        dateLoadingMessage.style.display = 'block';
-
-        $.ajax({
-            url: '{{ route("appointments.available-dates-concrete-patient") }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                product_id: productId,
-                therapist_id: therapistId,
-                mode: mode,
-                location_id: (mode === 'cabinet' ? locationId : undefined),
-            },
-            success: function (res) {
-                dateLoadingMessage.style.display = 'none';
-
-                const dates = (res && Array.isArray(res.dates)) ? res.dates : [];
-                fp.clear();
-                fp.set('enable', dates);
-
-                if (!dates.length) {
-                    resetTimeSelect();
-                    noSlotsMessage.classList.remove('d-none');
-                    noSlotsMessage.textContent = "{{ __('Aucune date disponible pour cette prestation.') }}";
-                } else {
-                    noSlotsMessage.classList.add('d-none');
-                    noSlotsMessage.textContent = "";
-
-                    if (pendingOldDate && dates.includes(pendingOldDate)) {
-                        const dateToRestore = pendingOldDate;
-                        pendingOldDate = null;
-                        fp.setDate(dateToRestore, true);
-                    }
+    const progressiveDateLoader = createProgressiveAvailabilityLoader({
+        requestRange: function (context, stage) {
+            return $.ajax({
+                url: '{{ route("appointments.available-dates-concrete-patient") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    product_id: context.productId,
+                    therapist_id: therapistId,
+                    mode: context.mode,
+                    location_id: context.mode === 'cabinet' ? context.locationId : undefined,
+                    start_offset: stage.startOffset,
+                    days: stage.days
                 }
-            },
-            error: function (xhr) {
-                console.error('Error fetching dates:', xhr.responseText);
-                dateLoadingMessage.style.display = 'none';
+            });
+        },
+        onReset: function () {
+            fp.clear();
+            fp.set('enable', []);
+            resetTimeSelect();
+            noSlotsMessage.classList.add('d-none');
+            noSlotsMessage.textContent = '';
+            dateLoadingMessage.textContent = "{{ __('Chargement des jours disponibles...') }}";
+            dateLoadingMessage.style.display = 'block';
+        },
+        onProgress: function (state) {
+            dateLoadingMessage.textContent = state.hasDates
+                ? "{{ __('Chargement des prochaines disponibilités...') }}"
+                : "{{ __('Recherche du prochain créneau disponible...') }}";
+            dateLoadingMessage.style.display = 'block';
+        },
+        onMerge: function (state) {
+            fp.set('enable', state.allDates);
+
+            if (pendingOldDate && state.allDates.includes(pendingOldDate)) {
+                const dateToRestore = pendingOldDate;
+                pendingOldDate = null;
+                fp.setDate(dateToRestore, true);
+                return;
+            }
+
+            if (!pendingOldDate && !fp.input.value && state.newDates.length > 0) {
+                const nextDate = state.response.next && state.response.next.date
+                    ? state.response.next.date
+                    : state.newDates[0];
+                fp.setDate(nextDate, true);
+            }
+        },
+        onComplete: function (state) {
+            dateLoadingMessage.style.display = 'none';
+            dateLoadingMessage.textContent = '';
+
+            if (state.allDates.length === 0) {
+                resetTimeSelect();
+                noSlotsMessage.classList.remove('d-none');
+                noSlotsMessage.textContent = "{{ __('Aucune date disponible pour cette prestation.') }}";
+                return;
+            }
+
+            if (pendingOldDate) {
+                pendingOldDate = null;
+                fp.setDate(state.allDates[0], true);
+            }
+        },
+        onError: function (state) {
+            console.error('Error fetching dates:', state.xhr.responseText);
+            dateLoadingMessage.style.display = 'none';
+
+            if (state.allDates.length === 0) {
                 fp.set('enable', []);
                 resetTimeSelect();
                 noSlotsMessage.classList.remove('d-none');
                 noSlotsMessage.textContent = "{{ __('Une erreur est survenue lors de la récupération des dates.') }}";
+                return;
             }
-        });
+
+            noSlotsMessage.classList.remove('d-none');
+            noSlotsMessage.textContent = "{{ __('Certaines dates n’ont pas pu être chargées.') }}";
+        }
+    });
+
+    function fetchDates(productId, mode, locationId) {
+        progressiveDateLoader.load({ productId, mode, locationId });
     }
 
     function fetchAvailableSlots(dateStr, productId, mode, locationId) {
@@ -513,6 +553,7 @@
         if (typeInput) typeInput.value = mode || '';
         toggleAddressBox(mode);
 
+        progressiveDateLoader.cancel();
         fp.clear();
         fp.set('enable', []);
         resetTimeSelect();
@@ -542,6 +583,7 @@
         setVariantMeta(null);
         toggleAddressBox(null);
 
+        progressiveDateLoader.cancel();
         fp.clear();
         fp.set('enable', []);
         resetTimeSelect();
@@ -613,6 +655,7 @@
             practiceLocationBox.style.display = 'none';
             toggleAddressBox(null);
 
+            progressiveDateLoader.cancel();
             fp.clear();
             fp.set('enable', []);
             resetTimeSelect();

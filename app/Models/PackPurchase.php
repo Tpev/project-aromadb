@@ -30,6 +30,7 @@ class PackPurchase extends Model
 		'installment_amount_cents',
 		'purchase_type',
 		'digital_training_id',
+		'digital_training_ids_snapshot',
 		'activated_at',
 		'completed_at',
 		'canceled_requested_at',
@@ -53,6 +54,7 @@ class PackPurchase extends Model
         'installment_amount_cents' => 'integer',
         'retractation_notice_required' => 'boolean',
         'retractation_notice_accepted_at' => 'datetime',
+        'digital_training_ids_snapshot' => 'array',
     ];
 
     public function user()
@@ -83,6 +85,11 @@ class PackPurchase extends Model
     public function digitalTraining()
     {
         return $this->belongsTo(DigitalTraining::class, 'digital_training_id');
+    }
+
+    public function digitalTrainingEnrollments()
+    {
+        return $this->hasMany(DigitalTrainingEnrollment::class, 'pack_purchase_id');
     }
 
     public function invoice()

@@ -198,6 +198,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('pack-purchases/{packPurchase}/revoke', [PackProductController::class, 'revokePurchase'])
         ->name('pack-purchases.revoke');
 
+    Route::post('pack-purchases/{packPurchase}/digital-access/resend', [PackProductController::class, 'resendDigitalAccess'])
+        ->name('pack-purchases.digital-access.resend');
+
 });
 
 

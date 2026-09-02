@@ -70,6 +70,12 @@ class DigitalTraining extends Model
         return $this->hasMany(DigitalTrainingEnrollment::class);
     }
 
+    public function packs()
+    {
+        return $this->belongsToMany(PackProduct::class, 'digital_training_pack_product')
+            ->withTimestamps();
+    }
+
     public function comments()
     {
         return $this->hasMany(DigitalTrainingBlockComment::class);

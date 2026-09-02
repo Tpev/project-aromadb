@@ -452,6 +452,8 @@
         const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
         const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
 
+        @include('appointments.partials.progressive-availability-loader')
+
         let allowedDates = [];
         let currentSlotsRequestId = 0;
         let currentStep = 1;
@@ -530,48 +532,81 @@
                 return true;
             }
 
-            function fetchDates(productId, modeSlug, locationId = null) {
-                $('#date-loading-message')
-                    .text('{{ __("Chargement des jours disponibles...") }}')
-                    .show();
-
-                $.ajax({
-                    url: '{{ route("appointments.available-dates-concrete-patient") }}',
-                    method: 'POST',
-                    data: {
-                        product_id:  productId,
-                        therapist_id: therapistId,
-                        mode:        modeSlug || undefined,
-                        location_id: (modeSlug === 'cabinet' ? (locationId || undefined) : undefined),
-                        days:        90,
-                        _token:      '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        allowedDates = Array.isArray(response.dates) ? response.dates : [];
-
-                        if (allowedDates.length === 0) {
-                            fp.set('enable', []);
-                            fp.clear();
-                            resetTimeSelect();
-                            alert('{{ __("Aucune date disponible pour cette prestation.") }}');
-                        } else {
-                            fp.set('enable', allowedDates);
-                            fp.clear();
-                            resetTimeSelect();
+            const progressiveDateLoader = createProgressiveAvailabilityLoader({
+                requestRange: function (context, stage) {
+                    return $.ajax({
+                        url: '{{ route("appointments.available-dates-concrete-patient") }}',
+                        method: 'POST',
+                        data: {
+                            product_id: context.productId,
+                            therapist_id: therapistId,
+                            mode: context.modeSlug || undefined,
+                            location_id: context.modeSlug === 'cabinet' ? (context.locationId || undefined) : undefined,
+                            start_offset: stage.startOffset,
+                            days: stage.days,
+                            _token: '{{ csrf_token() }}'
                         }
+                    });
+                },
+                onReset: function () {
+                    allowedDates = [];
+                    currentSlotsRequestId++;
+                    fp.set('enable', []);
+                    fp.clear();
+                    resetTimeSelect();
+                    $('#date-loading-message')
+                        .text('{{ __("Chargement des jours disponibles...") }}')
+                        .show();
+                },
+                onProgress: function (state) {
+                    $('#date-loading-message')
+                        .text(state.hasDates
+                            ? '{{ __("Chargement des prochaines disponibilités...") }}'
+                            : '{{ __("Recherche du prochain créneau disponible...") }}')
+                        .show();
+                },
+                onMerge: function (state) {
+                    allowedDates = state.allDates;
+                    fp.set('enable', allowedDates);
 
-                        $('#date-loading-message').hide().text('');
-                    },
-                    error: function(xhr) {
-                        console.error('Error fetching available dates:', xhr.responseText);
+                    if (!$('#appointment_date').val() && state.newDates.length > 0) {
+                        const nextDate = state.response.next && state.response.next.date
+                            ? state.response.next.date
+                            : state.newDates[0];
+                        fp.setDate(nextDate, true);
+                    }
+                },
+                onComplete: function (state) {
+                    $('#date-loading-message').hide().text('');
+
+                    if (state.allDates.length === 0) {
+                        fp.set('enable', []);
+                        fp.clear();
+                        resetTimeSelect();
+                        alert('{{ __("Aucune date disponible pour cette prestation.") }}');
+                    }
+                },
+                onError: function (state) {
+                    console.error('Error fetching available dates:', state.xhr.responseText);
+
+                    if (state.allDates.length === 0) {
                         allowedDates = [];
                         fp.set('enable', []);
                         fp.clear();
                         resetTimeSelect();
                         $('#date-loading-message').hide().text('');
                         alert('{{ __("Une erreur est survenue lors de la récupération des jours disponibles.") }}');
+                        return;
                     }
-                });
+
+                    $('#date-loading-message')
+                        .text('{{ __("Certaines dates n’ont pas pu être chargées.") }}')
+                        .show();
+                }
+            });
+
+            function fetchDates(productId, modeSlug, locationId = null) {
+                progressiveDateLoader.load({ productId, modeSlug, locationId });
             }
 
             function fetchAvailableSlots(date, productId, modeSlug, locationId) {
@@ -657,6 +692,7 @@
                 const locId     = (modeSlug === 'cabinet' ? $('#practice_location_id').val() : null);
 
                 if (!productId || !modeSlug || (modeSlug === 'cabinet' && !locId)) {
+                    progressiveDateLoader.cancel();
                     allowedDates = [];
                     fp.set('enable', []);
                     fp.clear();
@@ -772,6 +808,7 @@
                 $('#location-error').addClass('d-none').text('');
                 configureCabinetLocations(null);
 
+                progressiveDateLoader.cancel();
                 allowedDates = [];
                 fp.set('enable', []);
                 fp.clear();

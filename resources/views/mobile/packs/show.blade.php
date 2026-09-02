@@ -79,6 +79,18 @@
             </div>
         @endif
 
+        @if(session('warning'))
+            <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                {{ session('warning') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {{ session('error') }}
+            </div>
+        @endif
+
         @if($errors->any())
             <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <div class="font-semibold">A corriger</div>
@@ -113,6 +125,31 @@
                                         {{ $item->quantity }} credit{{ $item->quantity > 1 ? 's' : '' }}
                                     </span>
                                 </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
+            <section class="rounded-lg border border-[#dfe6bd] bg-[#f8faef] p-4 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#647a0b]/10 text-[#647a0b]">
+                        <i class="fas fa-graduation-cap text-sm"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-semibold text-gray-900">Formations digitales</h2>
+                        <p class="mt-0.5 text-xs text-gray-500">Envoyées par email à l’attribution.</p>
+                    </div>
+                </div>
+
+                @if($pack->digitalTrainings->isEmpty())
+                    <p class="mt-3 text-sm text-gray-500">Aucune formation incluse.</p>
+                @else
+                    <div class="mt-3 space-y-2">
+                        @foreach($pack->digitalTrainings as $training)
+                            <div class="flex items-center gap-2 rounded-lg border border-[#e4e8d5] bg-white px-3 py-2 text-sm font-medium text-gray-800">
+                                <span class="h-2 w-2 rounded-full bg-[#647a0b]"></span>
+                                {{ $training->title }}
                             </div>
                         @endforeach
                     </div>
@@ -237,16 +274,28 @@
                                 @endif
 
                                 @if($purchase->status === 'active')
+                                    @if($purchase->digitalTrainingEnrollments->isNotEmpty())
+                                        <form method="POST"
+                                              action="{{ route('mobile.packs.purchases.digital-access.resend', $purchase) }}"
+                                              class="mt-3">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#d7dfaa] bg-[#f5f7eb] text-xs font-semibold text-[#647a0b]">
+                                                <i class="fas fa-paper-plane mr-1.5 text-[11px]"></i>
+                                                Renvoyer l’accès formation
+                                            </button>
+                                        </form>
+                                    @endif
                                     <form method="POST"
                                           action="{{ route('mobile.packs.purchases.revoke', $purchase) }}"
                                           class="mt-3"
-                                          onsubmit="return confirm('Revoquer ce pack client ?');">
+                                          onsubmit="return confirm('Révoquer ce pack et les accès aux formations associées ?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit"
                                                 class="inline-flex h-10 w-full items-center justify-center rounded-lg border border-red-100 bg-red-50 text-xs font-semibold text-red-600">
                                             <i class="fas fa-ban mr-1.5 text-[11px]"></i>
-                                            Revoquer
+                                            Révoquer
                                         </button>
                                     </form>
                                 @endif

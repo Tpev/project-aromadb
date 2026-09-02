@@ -54,6 +54,7 @@ class PackPurchaseSubscriptionController extends Controller
                     'canceled_requested_at' => Carbon::now(),
                     'canceled_effective_at' => Carbon::now(),
                 ]);
+                app(\App\Services\PackDigitalTrainingAccessService::class)->revoke($packPurchase);
 
                 return back()->with('success', 'Abonnement annulé immédiatement.');
             }

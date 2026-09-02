@@ -258,6 +258,88 @@ test('the ninety day v2 date scan preserves slot results with a bounded query co
         ->and($queryCount)->toBeLessThan(20);
 });
 
+test('public booking dates can be loaded in non overlapping progressive windows', function () {
+    Carbon::setTestNow(Carbon::parse('2026-09-02 08:00:00'));
+
+    try {
+        $user = bookingV2User();
+        $product = bookingV2Product($user);
+
+        foreach (range(0, 6) as $dayOfWeek) {
+            Availability::create([
+                'user_id' => $user->id,
+                'day_of_week' => $dayOfWeek,
+                'start_time' => '09:00:00',
+                'end_time' => '18:00:00',
+                'applies_to_all' => true,
+            ]);
+        }
+
+        enableBookingV2();
+        $basePayload = [
+            'therapist_id' => $user->id,
+            'product_id' => $product->id,
+            'mode' => 'visio',
+        ];
+        $stages = [
+            ['start_offset' => 0, 'days' => 7],
+            ['start_offset' => 7, 'days' => 23],
+            ['start_offset' => 30, 'days' => 60],
+        ];
+        $allDates = collect();
+
+        foreach ($stages as $stage) {
+            $response = $this->postJson(
+                route('appointments.available-dates-concrete-patient'),
+                array_merge($basePayload, $stage),
+            )->assertOk();
+
+            $dates = collect($response->json('dates'));
+            $rangeStart = Carbon::today()->addDays($stage['start_offset']);
+            $rangeEnd = $rangeStart->copy()->addDays($stage['days']);
+
+            expect($dates)->toHaveCount($stage['days'])
+                ->and($dates->every(function (string $date) use ($rangeStart, $rangeEnd): bool {
+                    $value = Carbon::parse($date);
+
+                    return $value->gte($rangeStart) && $value->lt($rangeEnd);
+                }))->toBeTrue()
+                ->and($response->json('next.date'))->toBe($rangeStart->toDateString());
+
+            $allDates = $allDates->concat($dates);
+        }
+
+        expect($allDates)->toHaveCount(90)
+            ->and($allDates->unique())->toHaveCount(90)
+            ->and($allDates->values()->all())->toBe(
+                collect(range(0, 89))
+                    ->map(fn (int $offset): string => Carbon::today()->addDays($offset)->toDateString())
+                    ->all()
+            );
+
+        $this->actingAs($user)
+            ->postJson(route('appointments.available-dates-concrete-therapist'), [
+                'product_id' => $product->id,
+                'mode' => 'visio',
+                'start_offset' => 7,
+                'days' => 2,
+            ])
+            ->assertOk()
+            ->assertJsonCount(2, 'dates')
+            ->assertJsonPath('dates.0', Carbon::today()->addDays(7)->toDateString());
+
+        $this->getJson(route('mobile.appointments.concrete_dates', array_merge($basePayload, [
+            'start_offset' => 30,
+            'days' => 2,
+        ])))
+            ->assertOk()
+            ->assertJsonCount(2, 'dates')
+            ->assertJsonPath('dates.0', Carbon::today()->addDays(30)->toDateString());
+    } finally {
+        Carbon::setTestNow();
+    }
+});
+
 test('v2 keeps the consultation mode selected for a multi mode service and rejects an unsupported mode', function () {
     $user = bookingV2User();
     $product = bookingV2Product($user, [

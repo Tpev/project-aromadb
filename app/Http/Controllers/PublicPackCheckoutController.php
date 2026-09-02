@@ -94,6 +94,10 @@ class PublicPackCheckoutController extends Controller
                     }
                     $purchase->update($payload);
                 }
+
+                if ($paid && $purchaseKind === 'pack') {
+                    app(\App\Services\PackDigitalTrainingAccessService::class)->grant($purchase->fresh());
+                }
             }
         }
 
@@ -135,6 +139,7 @@ class PublicPackCheckoutController extends Controller
                     $payload['payment_state'] = 'canceled';
                 }
                 $purchase->update($payload);
+                app(\App\Services\PackDigitalTrainingAccessService::class)->revoke($purchase);
 
                 $therapist = User::find($purchase->user_id);
                 if ($therapist?->slug) {

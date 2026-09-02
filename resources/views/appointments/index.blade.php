@@ -13,6 +13,13 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
     <div class="am-page">
+        @if(session('success'))
+            <div class="alert alert-success mb-4" role="status">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger mb-4" role="alert">{{ session('error') }}</div>
+        @endif
+
         {{-- En-tête + recherche + bouton --}}
         <div class="am-card mb-4">
             <div class="am-card-body">
@@ -150,13 +157,118 @@
                     Calendrier des rendez-vous
                 </h2>
                 <p class="text-muted small mb-0">
-                    Cliquez sur un événement dans le calendrier pour ouvrir le détail du rendez-vous.
+                    Cliquez sur une période libre pour ajouter un rendez-vous ou une indisponibilité. Cliquez sur un élément existant pour l’ouvrir.
                 </p>
             </div>
             <div class="am-card-body">
                 <div id="calendar" class="am-calendar-wrapper"></div>
             </div>
         </div>
+
+        <div id="calendar-action-modal" class="calendar-action-modal" aria-hidden="true">
+            <div class="calendar-action-backdrop" data-calendar-modal-close></div>
+            <section class="calendar-action-panel" role="dialog" aria-modal="true" aria-labelledby="calendar-action-title">
+                <button type="button" class="calendar-action-close" data-calendar-modal-close aria-label="Fermer">×</button>
+
+                <div id="calendar-action-choice">
+                    <p class="calendar-action-eyebrow">Agenda</p>
+                    <h3 id="calendar-action-title">Que souhaitez-vous ajouter ?</h3>
+                    <p id="calendar-action-selected-slot" class="calendar-action-copy"></p>
+
+                    <div class="calendar-action-options">
+                        <a id="calendar-create-appointment" href="{{ route('appointments.create') }}" class="calendar-action-option calendar-action-option-primary">
+                            <i class="fas fa-user-clock" aria-hidden="true"></i>
+                            <span>
+                                <strong>Créer un rendez-vous</strong>
+                                <small>Le formulaire RDV sera prérempli avec ce créneau.</small>
+                            </span>
+                        </a>
+                        <button type="button" id="calendar-show-unavailability" class="calendar-action-option">
+                            <i class="fas fa-calendar-times" aria-hidden="true"></i>
+                            <span>
+                                <strong>Créer une indisponibilité</strong>
+                                <small>Bloquer cette période pour les nouvelles réservations.</small>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="calendar-unavailability-form-panel" hidden>
+                    <button type="button" id="calendar-action-back" class="calendar-action-back">← Retour au choix</button>
+                    <p class="calendar-action-eyebrow">Nouvelle indisponibilité</p>
+                    <h3>Bloquer une période</h3>
+                    <p class="calendar-action-copy">Les rendez-vous déjà présents seront conservés. Un avertissement vous demandera confirmation en cas de chevauchement.</p>
+
+                    @if(old('unavailability_source') === 'calendar' && session('unavailability_conflicts'))
+                        @php
+                            $calendarConflicts = session('unavailability_conflicts');
+                        @endphp
+                        <div class="calendar-conflict-warning" role="alert">
+                            <strong>Chevauchement détecté</strong>
+                            <ul>
+                                @foreach($calendarConflicts['appointments'] ?? [] as $conflict)
+                                    <li>{{ $conflict }}</li>
+                                @endforeach
+                                @foreach($calendarConflicts['unavailabilities'] ?? [] as $conflict)
+                                    <li>{{ $conflict }}</li>
+                                @endforeach
+                            </ul>
+                            <span>Enregistrez à nouveau pour confirmer. Aucun rendez-vous existant ne sera supprimé.</span>
+                        </div>
+                    @endif
+
+                    @if(old('unavailability_source') === 'calendar' && $errors->any())
+                        <div class="calendar-conflict-warning" role="alert">
+                            <strong>Vérifiez les informations saisies</strong>
+                            <ul>
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('unavailabilities.store') }}" method="POST" class="calendar-unavailability-form">
+                        @csrf
+                        <input type="hidden" name="unavailability_source" value="calendar">
+                        <input type="hidden" name="confirm_conflicts" value="{{ old('unavailability_source') === 'calendar' ? (session('unavailability_conflicts.confirmation_token') ?? '') : '' }}">
+
+                        <div class="calendar-form-grid">
+                            <label>
+                                <span>Date de début</span>
+                                <input type="date" id="calendar-unavailability-start-date" name="start_date" value="{{ old('unavailability_source') === 'calendar' ? old('start_date') : '' }}" required>
+                            </label>
+                            <label>
+                                <span>Heure de début</span>
+                                <input type="time" id="calendar-unavailability-start-time" name="start_time" value="{{ old('unavailability_source') === 'calendar' ? old('start_time') : '' }}" required>
+                            </label>
+                            <label>
+                                <span>Date de fin</span>
+                                <input type="date" id="calendar-unavailability-end-date" name="end_date" value="{{ old('unavailability_source') === 'calendar' ? old('end_date') : '' }}" required>
+                            </label>
+                            <label>
+                                <span>Heure de fin</span>
+                                <input type="time" id="calendar-unavailability-end-time" name="end_time" value="{{ old('unavailability_source') === 'calendar' ? old('end_time') : '' }}" required>
+                            </label>
+                        </div>
+
+                        <label class="calendar-form-reason">
+                            <span>Motif <small>(optionnel, visible uniquement dans votre agenda)</small></span>
+                            <input type="text" name="reason" maxlength="255" value="{{ old('unavailability_source') === 'calendar' ? old('reason') : '' }}" placeholder="Ex. Congés, formation, absence personnelle">
+                        </label>
+
+                        <button type="submit" class="calendar-unavailability-submit">
+                            <i class="fas fa-calendar-times" aria-hidden="true"></i>
+                            Enregistrer l’indisponibilité
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <style>
+            .calendar-action-modal{position:fixed;inset:0;z-index:1055;display:none;align-items:center;justify-content:center;padding:1rem}.calendar-action-modal.is-open{display:flex}.calendar-action-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px)}.calendar-action-panel{position:relative;width:min(100%,620px);max-height:calc(100vh - 2rem);overflow:auto;border-radius:1.25rem;background:#fff;padding:1.5rem;box-shadow:0 24px 70px rgba(15,23,42,.28)}.calendar-action-close{position:absolute;right:1rem;top:1rem;width:2.25rem;height:2.25rem;border:0;border-radius:999px;background:#f1f5f9;color:#475569;font-size:1.5rem;line-height:1}.calendar-action-eyebrow{margin:0 0 .25rem;color:#647a0b;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.calendar-action-panel h3{margin:0;color:#1e293b;font-size:1.35rem;font-weight:800}.calendar-action-copy{margin:.5rem 0 1rem;color:#64748b;font-size:.875rem}.calendar-action-options{display:grid;gap:.75rem}.calendar-action-option{display:flex;width:100%;align-items:center;gap:1rem;border:1px solid #dbe2be;border-radius:1rem;background:#fbfcf7;padding:1rem;color:#334155;text-align:left;text-decoration:none;transition:.15s}.calendar-action-option:hover{border-color:#647a0b;background:#f5f7eb;color:#334155;transform:translateY(-1px)}.calendar-action-option i{display:flex;width:2.75rem;height:2.75rem;flex:0 0 auto;align-items:center;justify-content:center;border-radius:.8rem;background:#fff;color:#647a0b}.calendar-action-option span{display:grid;gap:.15rem}.calendar-action-option strong{font-size:.95rem}.calendar-action-option small{color:#64748b;font-size:.78rem}.calendar-action-option-primary{background:#647a0b;border-color:#647a0b;color:#fff}.calendar-action-option-primary:hover{background:#526409;color:#fff}.calendar-action-option-primary i{background:rgba(255,255,255,.16);color:#fff}.calendar-action-option-primary small{color:rgba(255,255,255,.82)}.calendar-action-back{margin:0 0 1rem;padding:0;border:0;background:transparent;color:#647a0b;font-size:.8rem;font-weight:700}.calendar-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}.calendar-unavailability-form label{display:grid;gap:.35rem;color:#475569;font-size:.78rem;font-weight:700}.calendar-unavailability-form input{width:100%;min-height:2.75rem;border:1px solid #cbd5e1;border-radius:.75rem;padding:.55rem .7rem;color:#1e293b}.calendar-unavailability-form input:focus{border-color:#647a0b;box-shadow:0 0 0 3px rgba(100,122,11,.12);outline:0}.calendar-form-reason{margin-top:.85rem}.calendar-form-reason small{font-weight:500}.calendar-unavailability-submit{display:inline-flex;width:100%;align-items:center;justify-content:center;gap:.5rem;margin-top:1rem;border:0;border-radius:.8rem;background:#647a0b;padding:.75rem 1rem;color:#fff;font-size:.9rem;font-weight:800}.calendar-conflict-warning{margin:0 0 1rem;border:1px solid #f6c453;border-radius:.8rem;background:#fff8df;padding:.8rem;color:#7c5512;font-size:.8rem}.calendar-conflict-warning ul{margin:.4rem 0 .4rem 1.1rem;padding:0}@media(max-width:575px){.calendar-action-panel{padding:1.2rem}.calendar-form-grid{grid-template-columns:1fr}.calendar-action-option{padding:.85rem}}
+        </style>
 
         @php
             $appointmentStatusOptions = [
@@ -478,6 +590,9 @@
                     day:   'Jour',
                 },
                 firstDay: 1, // Lundi
+                dateClick: function(info) {
+                    openCalendarAction(info.date, info.allDay);
+                },
                 events: @json($events),
                 eventClick: function(info) {
                     if (info.event.url) {
@@ -488,6 +603,83 @@
             });
 
             calendar.render();
+
+            const modal = document.getElementById('calendar-action-modal');
+            const choicePanel = document.getElementById('calendar-action-choice');
+            const unavailabilityPanel = document.getElementById('calendar-unavailability-form-panel');
+            const appointmentLink = document.getElementById('calendar-create-appointment');
+            const selectedSlotCopy = document.getElementById('calendar-action-selected-slot');
+            const appointmentCreateUrl = @json(route('appointments.create'));
+
+            function localDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            function localTime(date) {
+                return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            }
+
+            function openCalendarAction(date, allDay) {
+                const start = new Date(date.getTime());
+                const end = new Date(date.getTime());
+                if (allDay) {
+                    start.setHours(0, 0, 0, 0);
+                    end.setDate(end.getDate() + 1);
+                    end.setHours(0, 0, 0, 0);
+                } else {
+                    end.setMinutes(end.getMinutes() + 60);
+                }
+
+                document.getElementById('calendar-unavailability-start-date').value = localDate(start);
+                document.getElementById('calendar-unavailability-start-time').value = localTime(start);
+                document.getElementById('calendar-unavailability-end-date').value = localDate(end);
+                document.getElementById('calendar-unavailability-end-time').value = localTime(end);
+
+                const params = new URLSearchParams({ appointment_date: localDate(start) });
+                if (!allDay) params.set('appointment_time', localTime(start));
+                appointmentLink.href = `${appointmentCreateUrl}?${params.toString()}`;
+
+                selectedSlotCopy.textContent = allDay
+                    ? `Le ${start.toLocaleDateString('fr-FR')}`
+                    : `Le ${start.toLocaleDateString('fr-FR')} à ${localTime(start)}`;
+
+                choicePanel.hidden = false;
+                unavailabilityPanel.hidden = true;
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeCalendarAction() {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            document.querySelectorAll('[data-calendar-modal-close]').forEach(button => button.addEventListener('click', closeCalendarAction));
+            document.getElementById('calendar-show-unavailability').addEventListener('click', function() {
+                choicePanel.hidden = true;
+                unavailabilityPanel.hidden = false;
+                document.getElementById('calendar-unavailability-start-date').focus();
+            });
+            document.getElementById('calendar-action-back').addEventListener('click', function() {
+                choicePanel.hidden = false;
+                unavailabilityPanel.hidden = true;
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) closeCalendarAction();
+            });
+
+            @if(old('unavailability_source') === 'calendar')
+                choicePanel.hidden = true;
+                unavailabilityPanel.hidden = false;
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            @endif
 
             // Clic sur la ligne -> show rendez-vous
             const rows = document.querySelectorAll('.table-row');

@@ -93,7 +93,7 @@
                             </div>
                             @if($training->estimated_duration_minutes)
                                 <div class="mt-1 text-xs text-slate-600">
-                                    {{ __('Durée estimée :') }} {{ $training->estimated_duration_minutes }} h
+                                    {{ __('Durée estimée :') }} {{ \App\Support\EventDuration::format($training->estimated_duration_minutes) }}
                                 </div>
                             @endif
                             @if($training->tags)

@@ -45,6 +45,12 @@ class PackProduct extends Model
         return $this->hasMany(PackPurchase::class);
     }
 
+    public function digitalTrainings()
+    {
+        return $this->belongsToMany(DigitalTraining::class, 'digital_training_pack_product')
+            ->withTimestamps();
+    }
+
     public function getPriceInclTaxAttribute()
     {
         return $this->price + ($this->price * $this->tax_rate / 100);

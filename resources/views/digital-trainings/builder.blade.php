@@ -85,7 +85,7 @@
                                     <div class="text-[11px] text-slate-500">
                                         ⏱ {{ __('Durée estimée :') }}
                                         <span class="font-medium text-slate-800">
-                                            {{ $training->estimated_duration_minutes }} h
+                                            {{ \App\Support\EventDuration::format($training->estimated_duration_minutes) }}
                                         </span>
                                     </div>
                                 @endif

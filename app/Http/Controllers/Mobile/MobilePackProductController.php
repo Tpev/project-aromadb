@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\ClientProfile;
+use App\Models\DigitalTraining;
 use App\Models\PackProduct;
 use App\Models\PackProductItem;
 use App\Models\PackPurchase;
 use App\Models\PackPurchaseItem;
 use App\Models\Product;
+use App\Services\PackDigitalTrainingAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +43,7 @@ class MobilePackProductController extends Controller
                 'installments_enabled' => false,
             ]),
             'products' => $this->ownedProducts(),
+            'digitalTrainings' => $this->ownedDigitalTrainings(),
             'action' => route('mobile.packs.store'),
             'method' => 'POST',
             'submitLabel' => 'Creer',
@@ -68,6 +71,7 @@ class MobilePackProductController extends Controller
             ]);
 
             $this->replacePackItems($pack, $validated['items']);
+            $pack->digitalTrainings()->sync($validated['digital_training_ids'] ?? []);
         });
 
         return redirect()
@@ -79,7 +83,7 @@ class MobilePackProductController extends Controller
     {
         $this->ensureOwnsPack($packProduct);
 
-        $packProduct->load(['items.product']);
+        $packProduct->load(['items.product', 'digitalTrainings']);
         $packProduct->loadCount(['items', 'purchases']);
 
         $clients = ClientProfile::query()
@@ -90,7 +94,7 @@ class MobilePackProductController extends Controller
 
         $recentPurchases = $packProduct->purchases()
             ->where('user_id', Auth::id())
-            ->with(['clientProfile', 'items.product', 'invoice'])
+            ->with(['clientProfile', 'items.product', 'invoice', 'digitalTrainingEnrollments.training'])
             ->orderByDesc('id')
             ->limit(12)
             ->get();
@@ -106,12 +110,13 @@ class MobilePackProductController extends Controller
     {
         $this->ensureOwnsPack($packProduct);
 
-        $packProduct->load('items');
+        $packProduct->load(['items', 'digitalTrainings']);
 
         return view('mobile.packs.form', [
             'title' => 'Modifier le pack',
             'pack' => $packProduct,
             'products' => $this->ownedProducts(),
+            'digitalTrainings' => $this->ownedDigitalTrainings(),
             'action' => route('mobile.packs.update', $packProduct),
             'method' => 'PUT',
             'submitLabel' => 'Enregistrer',
@@ -139,6 +144,7 @@ class MobilePackProductController extends Controller
 
             $packProduct->items()->delete();
             $this->replacePackItems($packProduct, $validated['items']);
+            $packProduct->digitalTrainings()->sync($validated['digital_training_ids'] ?? []);
         });
 
         return redirect()
@@ -173,13 +179,13 @@ class MobilePackProductController extends Controller
             ->where('id', $validated['client_profile_id'])
             ->exists();
 
-        if (!$clientOk) {
+        if (! $clientOk) {
             return back()->withErrors(['client_profile_id' => 'Ce client ne vous appartient pas.']);
         }
 
         $packProduct->load('items');
 
-        DB::transaction(function () use ($packProduct, $validated) {
+        $purchase = DB::transaction(function () use ($packProduct, $validated) {
             $purchase = PackPurchase::create([
                 'user_id' => Auth::id(),
                 'pack_product_id' => $packProduct->id,
@@ -198,11 +204,35 @@ class MobilePackProductController extends Controller
                     'quantity_remaining' => (int) $item->quantity,
                 ]);
             }
+
+            return $purchase;
         });
 
-        return redirect()
-            ->route('mobile.packs.show', $packProduct)
-            ->with('success', 'Pack attribue au client.');
+        $access = app(PackDigitalTrainingAccessService::class)->grant($purchase);
+
+        $redirect = redirect()->route('mobile.packs.show', $packProduct);
+
+        if ($access['trainings'] === 0) {
+            return $redirect->with('success', 'Pack attribué au client.');
+        }
+
+        if ($access['missing_email']) {
+            return $redirect
+                ->with('success', 'Pack attribué au client.')
+                ->with('warning', 'Le client n’a pas d’adresse email : l’accès à la formation n’a pas pu être envoyé.');
+        }
+
+        if ($access['email_failed'] > 0) {
+            return $redirect
+                ->with('success', 'Pack attribué au client.')
+                ->with('warning', 'L’accès à la formation existe, mais l’email n’a pas pu être envoyé.');
+        }
+
+        $message = $access['emailed'] > 0
+            ? 'Pack attribué et accès à la formation envoyé par email.'
+            : 'Pack attribué au client.';
+
+        return $redirect->with('success', $message);
     }
 
     public function revokePurchase(PackPurchase $packPurchase)
@@ -225,9 +255,43 @@ class MobilePackProductController extends Controller
             $packPurchase->update($data);
         }
 
+        $revokedAccesses = app(PackDigitalTrainingAccessService::class)->revoke($packPurchase);
+
+        $message = 'Pack client révoqué.';
+        if ($revokedAccesses > 0) {
+            $message .= ' L’accès à la formation a également été révoqué.';
+        }
+
         return redirect()
             ->route('mobile.packs.show', $packPurchase->pack_product_id)
-            ->with('success', 'Pack client revoque.');
+            ->with('success', $message);
+    }
+
+    public function resendDigitalAccess(PackPurchase $packPurchase)
+    {
+        if ((int) $packPurchase->user_id !== (int) Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($packPurchase->status !== 'active') {
+            return back()->with('error', 'Ce pack n’est plus actif.');
+        }
+
+        $access = app(PackDigitalTrainingAccessService::class)->grant($packPurchase, true);
+
+        if ($access['trainings'] === 0) {
+            return back()->with('error', 'Aucune formation digitale n’est associée à ce pack.');
+        }
+
+        if ($access['missing_email']) {
+            return back()->with('error', 'Ajoutez une adresse email à la fiche client avant l’envoi.');
+        }
+
+        if ($access['email_failed'] > 0) {
+            return back()->with('error', 'Email non envoyé. Réessayez dans quelques instants.');
+        }
+
+        return back()->with('success', 'Accès à la formation renvoyé au client.');
     }
 
     private function validatedPackPayload(Request $request): array
@@ -246,6 +310,8 @@ class MobilePackProductController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
+            'digital_training_ids' => ['nullable', 'array'],
+            'digital_training_ids.*' => ['integer', 'distinct', 'exists:digital_trainings,id'],
         ]);
 
         $productIds = collect($validated['items'])->pluck('product_id')->unique()->values();
@@ -257,6 +323,18 @@ class MobilePackProductController extends Controller
         if ($ownedCount !== $productIds->count()) {
             throw ValidationException::withMessages([
                 'items' => 'Un ou plusieurs produits ne vous appartiennent pas.',
+            ]);
+        }
+
+        $trainingIds = collect($validated['digital_training_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
+        $ownedTrainingCount = DigitalTraining::query()
+            ->where('user_id', Auth::id())
+            ->whereIn('id', $trainingIds)
+            ->count();
+
+        if ($ownedTrainingCount !== $trainingIds->count()) {
+            throw ValidationException::withMessages([
+                'digital_training_ids' => 'Une ou plusieurs formations ne vous appartiennent pas.',
             ]);
         }
 
@@ -299,6 +377,14 @@ class MobilePackProductController extends Controller
         return Product::query()
             ->where('user_id', Auth::id())
             ->orderBy('name')
+            ->get();
+    }
+
+    private function ownedDigitalTrainings()
+    {
+        return DigitalTraining::query()
+            ->where('user_id', Auth::id())
+            ->orderBy('title')
             ->get();
     }
 
