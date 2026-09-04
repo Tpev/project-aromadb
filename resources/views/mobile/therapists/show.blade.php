@@ -352,10 +352,21 @@
             {{-- ─────────────────── PRESTATIONS ─────────────────── --}}
             @php
                 $visiblePrestations = $prestations->filter(fn($p) => $p->visible_in_portal !== false);
-                $groupedPrestations = $visiblePrestations->groupBy('name');
+                $categorySections = $visiblePrestations
+                    ->filter(fn($p) => $p->category !== null)
+                    ->groupBy('product_category_id')
+                    ->map(fn($products) => [
+                        'category' => $products->first()->category,
+                        'groups' => $products->groupBy('name'),
+                    ])
+                    ->sortBy(fn($section) => sprintf('%010d|%s', $section['category']->display_order, mb_strtolower($section['category']->name)))
+                    ->values();
+                $uncategorizedPrestations = $visiblePrestations
+                    ->filter(fn($p) => $p->category === null)
+                    ->groupBy('name');
             @endphp
 
-            @if($groupedPrestations->count() > 0)
+            @if($visiblePrestations->count() > 0)
                 <x-ts-card class="rounded-3xl shadow-md border border-secondary-50 bg-white px-5 py-6">
                     <div class="space-y-4">
                         <div class="flex items-center gap-2">
@@ -367,8 +378,45 @@
                             </h2>
                         </div>
 
+                        @if($categorySections->isNotEmpty())
+                            <div class="space-y-3" data-testid="prestation-categories">
+                                @foreach($categorySections as $section)
+                                    @php
+                                        $category = $section['category'];
+                                    @endphp
+                                    <div x-data="{ open: false }" class="overflow-hidden rounded-2xl border border-[#dfe6c7] bg-[#fbfcf6]">
+                                        <button type="button"
+                                                class="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
+                                                @click="open = !open"
+                                                :aria-expanded="open.toString()"
+                                                aria-controls="mobile-prestation-category-{{ $category->id }}">
+                                            <span class="min-w-0">
+                                                <span class="block text-[15px] font-semibold text-[#536508] break-words">{{ $category->name }}</span>
+                                                <span class="mt-0.5 block text-[11px] text-gray-500">
+                                                    {{ trans_choice(':count prestation|:count prestations', $section['groups']->count(), ['count' => $section['groups']->count()]) }}
+                                                </span>
+                                            </span>
+                                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#647a0b] shadow-sm" aria-hidden="true">
+                                                <i class="fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                                            </span>
+                                        </button>
+
+                                        <div id="mobile-prestation-category-{{ $category->id }}" x-show="open" x-transition x-cloak class="space-y-3 border-t border-[#e4e8d5] bg-white px-3 py-4">
+                                            @if(filled($category->description))
+                                                <p class="whitespace-pre-line px-1 text-[13px] leading-relaxed text-gray-600">{{ $category->description }}</p>
+                                            @endif
+                                            @foreach($section['groups'] as $group)
+                                                @include('mobile.therapists.partials.prestation-card', ['group' => $group])
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Prestations non classées : affichage historique, sans libellé. --}}
                         <div class="space-y-4">
-                            @foreach($groupedPrestations as $name => $group)
+                            @foreach($uncategorizedPrestations as $name => $group)
                                 @php
                                     /** @var \App\Models\Product $prestation */
                                     $prestation      = $group->first();

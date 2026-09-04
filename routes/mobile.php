@@ -25,6 +25,7 @@ use App\Http\Controllers\Mobile\MobileMetricController;
 use App\Http\Controllers\Mobile\MobileNewsletterController;
 use App\Http\Controllers\Mobile\MobilePackProductController;
 use App\Http\Controllers\Mobile\MobileProductController;
+use App\Http\Controllers\Mobile\MobileProductCategoryController;
 use App\Http\Controllers\Mobile\MobileProfileController;
 use App\Http\Controllers\Mobile\MobileQuestionnaireController;
 use App\Http\Controllers\Mobile\MobileReceiptController;
@@ -94,6 +95,10 @@ Route::middleware('web')
         Route::redirect('/pro/more', '/mobile/menu')->name('pro.more.redirect');
 
         Route::middleware('auth')->group(function () {
+            Route::get('/categories-prestations', [MobileProductCategoryController::class, 'index'])->name('product-categories.index');
+            Route::post('/categories-prestations', [MobileProductCategoryController::class, 'store'])->name('product-categories.store');
+            Route::put('/categories-prestations/{productCategory}', [MobileProductCategoryController::class, 'update'])->name('product-categories.update');
+            Route::delete('/categories-prestations/{productCategory}', [MobileProductCategoryController::class, 'destroy'])->name('product-categories.destroy');
             Route::get('/prestations', [MobileProductController::class, 'index'])->name('products.index');
             Route::get('/prestations/create', [MobileProductController::class, 'create'])->name('products.create');
             Route::post('/prestations', [MobileProductController::class, 'store'])->name('products.store');

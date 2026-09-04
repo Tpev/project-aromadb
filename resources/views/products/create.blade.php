@@ -30,6 +30,8 @@
                     @enderror
                 </div>
 
+                @include('products.partials.category-field')
+
                 <!-- Prix -->
                 <div class="details-box">
                     <label class="details-label" for="price">{{ __('Prix (€)') }}</label>

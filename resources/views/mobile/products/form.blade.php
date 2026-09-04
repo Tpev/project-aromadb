@@ -59,6 +59,21 @@
                                   class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ $fieldValue('description') }}</textarea>
                     </label>
 
+                    <label class="block">
+                        <span class="flex items-center justify-between gap-2 text-sm font-medium text-gray-700">
+                            <span>{{ __('Catégorie') }}</span>
+                            <a href="{{ route('mobile.product-categories.index') }}" class="text-xs font-semibold text-[#647a0b]">{{ __('Gérer') }}</a>
+                        </span>
+                        <select name="product_category_id" class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
+                            <option value="">{{ __('Aucune catégorie') }}</option>
+                            @foreach(($categories ?? collect()) as $category)
+                                <option value="{{ $category->id }}" @selected((string) old('product_category_id', $product->product_category_id) === (string) $category->id)>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
+
                     <div class="grid grid-cols-2 gap-3">
                         <label class="block">
                             <span class="text-sm font-medium text-gray-700">Prix EUR</span>

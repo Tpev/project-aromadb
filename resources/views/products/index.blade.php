@@ -54,6 +54,24 @@
 
     {{-- Button Wrapper --}}
     <div style="position: relative; display: inline-flex; margin-top: 6px;">
+<a href="{{ route('product-categories.index') }}"
+   class="btn"
+   style="
+       background-color: #f7f8f1;
+       border: 1px solid #d7dfaa;
+       color: #536508;
+       font-weight: 600;
+       padding: 0.5rem 1rem;
+       border-radius: 7px;
+       white-space: nowrap;
+       margin-right: 10px;
+       display: inline-flex;
+       align-items: center;
+       gap: 6px;
+   ">
+    <i class="fas fa-folder-open"></i>
+    Catégories
+</a>
 {{-- Packs index button --}}
 <a href="{{ route('pack-products.index') }}"
    class="btn"
@@ -157,7 +175,14 @@
                             class="table-row" 
                             onclick="animateAndRedirect(this, '{{ route('products.show', $product->id) }}');"
                         >
-                            <td>{{ $product->name }}</td>
+                            <td>
+                                <div>{{ $product->name }}</div>
+                                @if($product->category)
+                                    <small style="display:inline-flex;align-items:center;gap:5px;margin-top:4px;padding:2px 8px;border-radius:9999px;background:#f5f7eb;color:#647a0b;font-weight:600;">
+                                        <i class="fas fa-folder"></i>{{ $product->category->name }}
+                                    </small>
+                                @endif
+                            </td>
 
                             <td>
                                 @php

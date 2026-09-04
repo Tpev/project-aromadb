@@ -35,6 +35,7 @@ class MobileTherapistController extends Controller
 
         // Prestations (produits) du thérapeute
         $prestations = $therapist->products()
+            ->with('category')
             ->orderBy('display_order')
             ->get();
         $bookingV2Enabled = app(\App\Support\BookingV2Access::class)->enabledFor($therapist);

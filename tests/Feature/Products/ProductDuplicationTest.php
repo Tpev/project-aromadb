@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -13,8 +14,14 @@ test('duplicating a Stripe-backed prestation does not copy unique Stripe identif
 
     config()->set('appointments.booking_v2.enabled', true);
 
+    $category = ProductCategory::create([
+        'user_id' => $practitioner->id,
+        'name' => 'Prestations premium',
+    ]);
+
     $source = Product::create([
         'user_id' => $practitioner->id,
+        'product_category_id' => $category->id,
         'name' => 'Prestation Stripe',
         'description' => 'Prestation source',
         'price' => 75,
@@ -70,6 +77,7 @@ test('duplicating a Stripe-backed prestation does not copy unique Stripe identif
 
     expect($duplicate->stripe_product_id)->toBeNull()
         ->and($duplicate->stripe_price_id)->toBeNull()
+        ->and($duplicate->product_category_id)->toBe($category->id)
         ->and($duplicate->collect_payment)->toBeTrue()
         ->and($duplicate->preparation_time_minutes)->toBe(10)
         ->and($duplicate->buffer_time_after_minutes)->toBe(15)

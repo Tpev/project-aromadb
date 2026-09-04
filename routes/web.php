@@ -18,6 +18,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceCorrectionController;
 use App\Http\Controllers\AppointmentInvoiceController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicTherapistController;
@@ -982,6 +983,11 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(fu
 });
 
 Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class])->group(function () {
+    Route::get('/product-categories', [ProductCategoryController::class, 'index'])->name('product-categories.index');
+    Route::post('/product-categories', [ProductCategoryController::class, 'store'])->name('product-categories.store');
+    Route::put('/product-categories/{productCategory}', [ProductCategoryController::class, 'update'])->name('product-categories.update');
+    Route::delete('/product-categories/{productCategory}', [ProductCategoryController::class, 'destroy'])->name('product-categories.destroy');
+
     // Liste des produits de l'utilisateur authentifié
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 

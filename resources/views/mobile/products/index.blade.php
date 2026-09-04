@@ -46,13 +46,17 @@
             </div>
         </div>
 
-        <div class="mb-4 grid grid-cols-2 gap-2">
+        <div class="mb-4 grid grid-cols-3 gap-2">
             <a href="{{ route('mobile.products.create') }}"
                class="inline-flex h-11 items-center justify-center rounded-lg bg-[#647a0b] px-3 text-sm font-semibold text-white shadow-sm active:scale-[0.99]">
                 Ajouter
             </a>
+            <a href="{{ route('mobile.product-categories.index') }}"
+               class="inline-flex h-11 items-center justify-center rounded-lg border border-[#d7dfaa] bg-[#f7f8f1] px-2 text-xs font-semibold text-[#536508] shadow-sm active:scale-[0.99]">
+                Catégories
+            </a>
             <a href="{{ route('products.index') }}"
-               class="inline-flex h-11 items-center justify-center rounded-lg border border-[#e4e8d5] bg-white px-3 text-sm font-semibold text-gray-700 shadow-sm active:scale-[0.99]">
+               class="inline-flex h-11 items-center justify-center rounded-lg border border-[#e4e8d5] bg-white px-2 text-xs font-semibold text-gray-700 shadow-sm active:scale-[0.99]">
                 Vue web
             </a>
         </div>
@@ -131,6 +135,11 @@
                             <span class="rounded-full bg-[#f5f7eb] px-2 py-1 text-[11px] text-gray-600">
                                 {{ $product->visible_in_portal ? 'Portail visible' : 'Portail masque' }}
                             </span>
+                            @if($product->category)
+                                <span class="rounded-full bg-[#647a0b]/10 px-2 py-1 text-[11px] font-medium text-[#536508]">
+                                    <i class="fas fa-folder mr-1 text-[9px]"></i>{{ $product->category->name }}
+                                </span>
+                            @endif
                             @if($product->collect_payment)
                                 <span class="rounded-full bg-[#f5f7eb] px-2 py-1 text-[11px] text-gray-600">
                                     Paiement en ligne

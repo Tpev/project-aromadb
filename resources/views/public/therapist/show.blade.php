@@ -527,7 +527,18 @@
     @php
         // 1) Prestations unitaires (Product)
         $visiblePrestations = ($prestations ?? collect())->filter(fn($p) => $p->visible_in_portal !== false);
-        $groupedPrestations = $visiblePrestations->groupBy('name');
+        $categorySections = $visiblePrestations
+            ->filter(fn($p) => $p->category !== null)
+            ->groupBy('product_category_id')
+            ->map(fn($products) => [
+                'category' => $products->first()->category,
+                'groups' => $products->groupBy('name'),
+            ])
+            ->sortBy(fn($section) => sprintf('%010d|%s', $section['category']->display_order, mb_strtolower($section['category']->name)))
+            ->values();
+        $uncategorizedPrestations = $visiblePrestations
+            ->filter(fn($p) => $p->category === null)
+            ->groupBy('name');
 
         // 2) Packs (PackProduct) depuis le controller
         $packProducts = $packProducts ?? collect();
@@ -536,12 +547,14 @@
         );
     @endphp
 
-    @if($visiblePacks->count() > 0 || $groupedPrestations->count() > 0)
-        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    @if($visiblePacks->count() > 0 || $visiblePrestations->count() > 0)
+        <div class="mt-8 space-y-8">
 
             {{-- =======================
                  PACKS
                  ======================= --}}
+            @if($visiblePacks->isNotEmpty())
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             @foreach($visiblePacks as $pack)
                 @php
                     $packDesc = (string)($pack->description ?? '');
@@ -651,108 +664,58 @@
                     </div>
                 </div>
             @endforeach
+            </div>
+            @endif
 
             {{-- =======================
-                 PRESTATIONS UNITAIRES
+                 CATÉGORIES DE PRESTATIONS
                  ======================= --}}
-            @foreach($groupedPrestations as $name => $group)
-                @php
-                    /** @var \App\Models\Product $prestation */
-                    $prestation = $group->first();
-
-                    $truncatedDescription = \Illuminate\Support\Str::limit($prestation->description, 200);
-
-                    $hasCabinet  = $group->contains(fn($p) => (bool) $p->dans_le_cabinet);
-                    $hasDomicile = $group->contains(fn($p) => (bool) $p->adomicile);
-                    $hasVisio    = $group->contains(fn($p) => (bool) $p->visio);
-
-                    $locationBadges = [];
-                    if ($hasCabinet)  $locationBadges[] = ['📍', __('Cabinet')];
-                    if ($hasDomicile) $locationBadges[] = ['🏠', __('À domicile')];
-                    if ($hasVisio)    $locationBadges[] = ['💻', __('Visio')];
-
-                    $canCollectOnline = $group->contains(fn($p) => (bool) $p->collect_payment);
-                @endphp
-
-                <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item bg-[#f9fafb]">
-                    @if($prestation->image)
-                        <img src="{{ asset('storage/' . $prestation->image) }}" alt="{{ $prestation->name }}" class="w-full h-48 object-cover">
-                    @endif
-
-                    <div class="p-6">
-                        <h4 class="text-2xl font-semibold text-[#647a0b]">{{ $prestation->name }}</h4>
-
-                        {{-- Badges : lieux, durée, paiement --}}
-                        @if(count($locationBadges) > 0 || !is_null($prestation->duration) || $canCollectOnline)
-                            <div class="mt-3 flex flex-wrap gap-2 text-xs sm:text-sm">
-                                @foreach($locationBadges as [$icon, $label])
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#647a0b]">
-                                        <span class="mr-1">{{ $icon }}</span> {{ $label }}
+            @if($categorySections->isNotEmpty())
+                <div class="space-y-4" data-testid="prestation-categories">
+                    @foreach($categorySections as $section)
+                        @php
+                            $category = $section['category'];
+                        @endphp
+                        <div x-data="{ open: false }" class="overflow-hidden rounded-2xl border border-[#dfe6c7] bg-[#fbfcf6] shadow-sm">
+                            <button type="button"
+                                    class="flex w-full items-center justify-between gap-4 px-5 py-5 text-left transition hover:bg-[#f5f7eb] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#647a0b]"
+                                    @click="open = !open"
+                                    :aria-expanded="open.toString()"
+                                    aria-controls="prestation-category-{{ $category->id }}">
+                                <span class="min-w-0">
+                                    <span class="block text-xl font-semibold text-[#536508]">{{ $category->name }}</span>
+                                    <span class="mt-1 block text-sm text-gray-500">
+                                        {{ trans_choice(':count prestation|:count prestations', $section['groups']->count(), ['count' => $section['groups']->count()]) }}
                                     </span>
-                                @endforeach
+                                </span>
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#647a0b] shadow-sm" aria-hidden="true">
+                                    <i class="fas fa-chevron-down text-sm transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                                </span>
+                            </button>
 
-                                @if(!is_null($prestation->duration))
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-gray-700">
-                                        <span class="mr-1">⏱</span> {{ $prestation->duration }} {{ __('min') }}
-                                    </span>
+                            <div id="prestation-category-{{ $category->id }}" x-show="open" x-transition x-cloak class="border-t border-[#e4e8d5] bg-white px-5 py-6">
+                                @if(filled($category->description))
+                                    <p class="mb-6 max-w-3xl whitespace-pre-line text-base leading-7 text-gray-600">{{ $category->description }}</p>
                                 @endif
-
-                                @if($canCollectOnline)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-white border border-[#e4e8d5] text-[#854f38]">
-                                        <span class="mr-1">💳</span> {{ __('Paiement en ligne possible') }}
-                                    </span>
-                                @endif
-                            </div>
-                        @endif
-
-                        {{-- Prix --}}
-                        @if($prestation->price_visible_in_portal && $prestation->price > 0)
-                            <p class="mt-3 text-gray-600 font-semibold">
-                                {{ __('Prix :') }}
-                                {{ number_format($prestation->price_incl_tax ?? $prestation->price, 2, ',', ' ') }} €
-                            </p>
-                        @endif
-
-                        {{-- Description --}}
-                        <p class="mt-4 text-gray-700 prestation-description"
-                           data-full-text="{{ e($prestation->description) }}"
-                           data-truncated-text="{{ e($truncatedDescription) }}">
-                            {!! nl2br(e($truncatedDescription)) !!}
-                            @if(\Illuminate\Support\Str::length($prestation->description) > 200)
-                                <span class="text-[#854f38] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
-                            @endif
-                        </p>
-
-                        {{-- Brochure --}}
-                        @if($prestation->brochure)
-                            <a href="{{ asset('storage/' . $prestation->brochure) }}"
-                               target="_blank"
-                               class="mt-4 inline-block text-[#854f38] hover:text-[#6a3f2c]">
-                                {{ __('Télécharger la brochure') }}
-                            </a>
-                        @endif
-
-                        @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && $therapist->accept_online_appointments)
-                            @php
-                                $bookableVariants = $group->filter(fn($variant) =>
-                                    $variant->can_be_booked_online
-                                    && in_array((int) $variant->id, $directlyBookableProductIds ?? [], true)
-                                );
-                            @endphp
-                            @if($bookableVariants->isNotEmpty())
-                                <div class="mt-5 flex flex-wrap gap-2">
-                                    @foreach($bookableVariants as $variant)
-                                        <a href="{{ route('appointments.createPatient', ['therapist' => $therapist->id, 'product_id' => $variant->id]) }}"
-                                           class="inline-flex items-center justify-center rounded-full bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8ea633]">
-                                            {{ $bookableVariants->count() === 1 ? __('Voir les créneaux') : $variant->direct_booking_variant_label }}
-                                        </a>
+                                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    @foreach($section['groups'] as $group)
+                                        @include('public.therapist.partials.prestation-card', ['group' => $group])
                                     @endforeach
                                 </div>
-                            @endif
-                        @endif
-                    </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
+            @endif
+
+            {{-- Prestations non classées : affichage historique, sans titre supplémentaire. --}}
+            @if($uncategorizedPrestations->isNotEmpty())
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="uncategorized-prestations">
+                    @foreach($uncategorizedPrestations as $group)
+                        @include('public.therapist.partials.prestation-card', ['group' => $group])
+                    @endforeach
+                </div>
+            @endif
 
         </div>
     @else

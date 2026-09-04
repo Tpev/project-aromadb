@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Invoice;
 use App\Models\BookingLink;
 use App\Models\Questionnaire;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -24,7 +26,8 @@ class ProductController extends Controller
             return redirect('/license-tiers/pricing');
         }
 
-        $products = Product::where('user_id', Auth::id())
+        $products = Product::with('category')
+            ->where('user_id', Auth::id())
             ->orderBy('display_order', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -35,8 +38,9 @@ class ProductController extends Controller
     public function create()
     {
         $questionnaires = Questionnaire::where('user_id', Auth::id())->orderBy('title')->get();
+        $categories = $this->ownedCategories();
 
-        return $this->noCacheView('products.create', compact('questionnaires'));
+        return $this->noCacheView('products.create', compact('questionnaires', 'categories'));
     }
 
     public function store(Request $request)
@@ -44,6 +48,11 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            'product_category_id'  => [
+                'nullable',
+                'integer',
+                Rule::exists('product_categories', 'id')->where(fn ($query) => $query->where('user_id', Auth::id())),
+            ],
             'price'                => 'required|numeric|min:0',
             'tax_rate'             => 'required|numeric|min:0|max:100',
             'duration'             => 'nullable|integer|min:1',
@@ -86,6 +95,7 @@ class ProductController extends Controller
 
         $product = Product::create([
             'user_id'               => Auth::id(),
+            'product_category_id'   => $validatedData['product_category_id'] ?? null,
             'name'                  => $validatedData['name'],
             'description'           => $validatedData['description'] ?? null,
             'price'                 => $validatedData['price'],
@@ -147,6 +157,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $questionnaires = Questionnaire::where('user_id', Auth::id())->orderBy('title')->get();
+        $categories = $this->ownedCategories();
 
         // Direct booking link (active) for this product (for the checkbox + copy link)
         $directBookingLink = BookingLink::query()
@@ -160,7 +171,7 @@ class ProductController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        return $this->noCacheView('products.edit', compact('product', 'directBookingLink', 'questionnaires'));
+        return $this->noCacheView('products.edit', compact('product', 'directBookingLink', 'questionnaires', 'categories'));
     }
 
     private function noCacheView(string $view, array $data = [])
@@ -178,6 +189,11 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            'product_category_id'  => [
+                'nullable',
+                'integer',
+                Rule::exists('product_categories', 'id')->where(fn ($query) => $query->where('user_id', Auth::id())),
+            ],
             'price'                => 'required|numeric|min:0',
             'tax_rate'             => 'required|numeric|min:0|max:100',
             'duration'             => 'nullable|integer|min:1',
@@ -234,6 +250,7 @@ class ProductController extends Controller
         $dansLeCabinet   = $validatedData['mode'] === 'dans_le_cabinet';
 
         $product->update([
+            'product_category_id'  => $validatedData['product_category_id'] ?? null,
             'name'                 => $validatedData['name'],
             'description'          => $validatedData['description'] ?? null,
             'price'                => $validatedData['price'],
@@ -356,7 +373,9 @@ class ProductController extends Controller
             return redirect()->route('products.index')->with('error', 'Vous n\'êtes pas autorisé à dupliquer cette prestation.');
         }
 
-        return view('products.duplicate', compact('product'));
+        $categories = $this->ownedCategories();
+
+        return view('products.duplicate', compact('product', 'categories'));
     }
 
 public function storeDuplicate(Request $request, Product $product)
@@ -369,6 +388,11 @@ public function storeDuplicate(Request $request, Product $product)
     $validatedData = $request->validate([
         'name'                    => 'required|string|max:255',
         'description'             => 'nullable|string',
+        'product_category_id'     => [
+            'nullable',
+            'integer',
+            Rule::exists('product_categories', 'id')->where(fn ($query) => $query->where('user_id', Auth::id())),
+        ],
         'price'                   => 'required|numeric|min:0',
         'tax_rate'                => 'required|numeric|min:0|max:100',
         'duration'                => 'nullable|integer|min:1',
@@ -424,6 +448,9 @@ public function storeDuplicate(Request $request, Product $product)
         'stripe_price_id',
     ]);
     $newProduct->fill([
+        'product_category_id'     => array_key_exists('product_category_id', $validatedData)
+            ? $validatedData['product_category_id']
+            : $product->product_category_id,
         'name'                    => $validatedData['name'],
         'description'             => $validatedData['description'] ?? null,
         'price'                   => $validatedData['price'],
@@ -462,6 +489,15 @@ public function storeDuplicate(Request $request, Product $product)
 
     return redirect()->route('products.show', $newProduct)->with('success', 'Prestation dupliquée avec succès.');
 }
+
+    private function ownedCategories()
+    {
+        return ProductCategory::query()
+            ->where('user_id', Auth::id())
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get();
+    }
 
     private function bookingV2ProductPayload(array $validatedData): array
     {

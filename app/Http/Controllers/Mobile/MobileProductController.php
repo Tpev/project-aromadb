@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Questionnaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class MobileProductController extends Controller
 {
@@ -21,6 +23,7 @@ class MobileProductController extends Controller
         }
 
         $products = Product::query()
+            ->with('category')
             ->withCount(['availabilities', 'invoiceItems'])
             ->where('user_id', Auth::id())
             ->orderBy('display_order')
@@ -50,6 +53,7 @@ class MobileProductController extends Controller
             ]),
             'mode' => old('mode', 'dans_le_cabinet'),
             'questionnaires' => $this->ownedQuestionnaires(),
+            'categories' => $this->ownedCategories(),
             'action' => route('mobile.products.store'),
             'method' => 'POST',
             'submitLabel' => 'Creer',
@@ -107,6 +111,7 @@ class MobileProductController extends Controller
             'product' => $product,
             'mode' => old('mode', $this->productMode($product)),
             'questionnaires' => $this->ownedQuestionnaires(),
+            'categories' => $this->ownedCategories(),
             'action' => route('mobile.products.update', $product),
             'method' => 'PUT',
             'submitLabel' => 'Enregistrer',
@@ -148,6 +153,11 @@ class MobileProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'product_category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('product_categories', 'id')->where(fn ($query) => $query->where('user_id', Auth::id())),
+            ],
             'price' => ['required', 'numeric', 'min:0'],
             'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'duration' => ['nullable', 'integer', 'min:1'],
@@ -201,6 +211,7 @@ class MobileProductController extends Controller
 
         $payload = [
             'name' => $validated['name'],
+            'product_category_id' => $validated['product_category_id'] ?? null,
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
             'tax_rate' => $validated['tax_rate'],
@@ -238,6 +249,15 @@ class MobileProductController extends Controller
         return Questionnaire::query()
             ->where('user_id', Auth::id())
             ->orderBy('title')
+            ->get();
+    }
+
+    private function ownedCategories(): Collection
+    {
+        return ProductCategory::query()
+            ->where('user_id', Auth::id())
+            ->orderBy('display_order')
+            ->orderBy('name')
             ->get();
     }
 

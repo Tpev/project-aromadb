@@ -17,6 +17,7 @@ class Product extends Model
 
     protected $fillable = [
         'user_id',
+        'product_category_id',
         'name',
         'description',
         'price',
@@ -68,6 +69,11 @@ class Product extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
     /** Les lignes de facture liées. */
