@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\SuperPdpConnection;
+use App\Models\SuperPdpOAuthAttempt;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -85,9 +86,179 @@ test('starting onboarding redirects to the super pdp authorization endpoint', fu
     expect($query['state'])->not->toBeEmpty();
 
     $connection = SuperPdpConnection::first();
+    $attempt = SuperPdpOAuthAttempt::first();
 
     expect($connection->status)->toBe(SuperPdpConnection::STATUS_AUTHORIZATION_STARTED);
     expect($connection->receiving_invoices_enabled)->toBeTrue();
+    expect($attempt)->not->toBeNull();
+    expect($attempt->state_hash)->toBe(hash('sha256', $query['state']));
+    expect($attempt->state_hash)->not->toBe($query['state']);
+    expect($attempt->receive_in_app)->toBeTrue();
+    expect($attempt->expires_at->isFuture())->toBeTrue();
+});
+
+test('oauth callback survives a lost Laravel session state', function () {
+    superPdpTestConfig();
+
+    Http::fake([
+        'https://api.superpdp.tech/oauth2/token' => Http::response([
+            'access_token' => 'access-token',
+            'refresh_token' => 'refresh-token',
+            'expires_in' => 1800,
+            'token_type' => 'Bearer',
+        ]),
+        'https://api.superpdp.tech/v1.beta/companies/me' => Http::response([
+            'id' => 42,
+            'env' => 'sandbox',
+            'formal_name' => 'Burger Queen',
+            'number' => '000000001',
+            'number_scheme' => 'sandbox',
+        ]),
+    ]);
+
+    $user = superPdpTestUser();
+
+    $start = $this->actingAs($user)
+        ->post(route('super-pdp.connect'), ['receive_in_app' => '1']);
+
+    parse_str(parse_url($start->headers->get('Location'), PHP_URL_QUERY), $query);
+
+    $this->actingAs($user)
+        ->withSession([
+            'super_pdp.oauth_state' => null,
+            'super_pdp.receive_in_app' => false,
+        ])
+        ->get(route('super-pdp.oauth.callback', [
+            'code' => 'authorization-code',
+            'state' => $query['state'],
+        ]))
+        ->assertRedirect(route('profile.editCompanyInfo'))
+        ->assertSessionHas('success');
+
+    $connection = SuperPdpConnection::first();
+    $attempt = SuperPdpOAuthAttempt::first();
+
+    expect($connection->status)->toBe(SuperPdpConnection::STATUS_CONNECTED);
+    expect($connection->receiving_invoices_enabled)->toBeTrue();
+    expect($attempt->consumed_at)->not->toBeNull();
+});
+
+test('multiple oauth starts do not overwrite an earlier valid state', function () {
+    superPdpTestConfig();
+
+    Http::fake([
+        'https://api.superpdp.tech/oauth2/token' => Http::response([
+            'access_token' => 'access-token',
+            'refresh_token' => 'refresh-token',
+            'expires_in' => 1800,
+            'token_type' => 'Bearer',
+        ]),
+        'https://api.superpdp.tech/v1.beta/companies/me' => Http::response([
+            'id' => 42,
+            'env' => 'sandbox',
+            'formal_name' => 'Burger Queen',
+            'number' => '000000001',
+            'number_scheme' => 'sandbox',
+        ]),
+    ]);
+
+    $user = superPdpTestUser();
+
+    $firstStart = $this->actingAs($user)
+        ->post(route('super-pdp.connect'), ['receive_in_app' => '1']);
+    parse_str(parse_url($firstStart->headers->get('Location'), PHP_URL_QUERY), $firstQuery);
+
+    $secondStart = $this->actingAs($user)
+        ->post(route('super-pdp.connect'));
+    parse_str(parse_url($secondStart->headers->get('Location'), PHP_URL_QUERY), $secondQuery);
+
+    expect($firstQuery['state'])->not->toBe($secondQuery['state']);
+    expect(SuperPdpOAuthAttempt::count())->toBe(2);
+
+    $this->actingAs($user)
+        ->get(route('super-pdp.oauth.callback', [
+            'code' => 'authorization-code',
+            'state' => $firstQuery['state'],
+        ]))
+        ->assertRedirect(route('profile.editCompanyInfo'))
+        ->assertSessionHas('success');
+
+    $connection = SuperPdpConnection::first();
+
+    expect($connection->status)->toBe(SuperPdpConnection::STATUS_CONNECTED);
+    expect($connection->receiving_invoices_enabled)->toBeTrue();
+});
+
+test('durable oauth states cannot be used by another Olithea account', function () {
+    superPdpTestConfig();
+    Http::fake();
+
+    $owner = superPdpTestUser();
+    $otherUser = superPdpTestUser([
+        'email' => 'other-therapist@example.test',
+    ]);
+    config(['services.super_pdp.allowed_emails' => [$owner->email, $otherUser->email]]);
+
+    $start = $this->actingAs($owner)
+        ->post(route('super-pdp.connect'));
+    parse_str(parse_url($start->headers->get('Location'), PHP_URL_QUERY), $query);
+
+    $this->actingAs($otherUser)
+        ->withSession(['super_pdp.oauth_state' => $query['state']])
+        ->get(route('super-pdp.oauth.callback', [
+            'code' => 'authorization-code',
+            'state' => $query['state'],
+        ]))
+        ->assertRedirect(route('profile.editCompanyInfo'))
+        ->assertSessionHas('error');
+
+    Http::assertNothingSent();
+
+    expect(SuperPdpOAuthAttempt::first()->consumed_at)->toBeNull();
+    expect(SuperPdpConnection::where('user_id', $owner->id)->first()->status)
+        ->toBe(SuperPdpConnection::STATUS_AUTHORIZATION_STARTED);
+});
+
+test('an oauth state is single use and a callback replay keeps the connection active', function () {
+    superPdpTestConfig();
+
+    Http::fake([
+        'https://api.superpdp.tech/oauth2/token' => Http::response([
+            'access_token' => 'access-token',
+            'refresh_token' => 'refresh-token',
+            'expires_in' => 1800,
+            'token_type' => 'Bearer',
+        ]),
+        'https://api.superpdp.tech/v1.beta/companies/me' => Http::response([
+            'id' => 42,
+            'env' => 'sandbox',
+            'formal_name' => 'Burger Queen',
+            'number' => '000000001',
+            'number_scheme' => 'sandbox',
+        ]),
+    ]);
+
+    $user = superPdpTestUser();
+
+    $start = $this->actingAs($user)
+        ->post(route('super-pdp.connect'));
+    parse_str(parse_url($start->headers->get('Location'), PHP_URL_QUERY), $query);
+
+    $callbackUrl = route('super-pdp.oauth.callback', [
+        'code' => 'authorization-code',
+        'state' => $query['state'],
+    ]);
+
+    $this->actingAs($user)
+        ->get($callbackUrl)
+        ->assertSessionHas('success');
+
+    $this->actingAs($user)
+        ->get($callbackUrl)
+        ->assertSessionHas('error');
+
+    expect(SuperPdpConnection::first()->status)->toBe(SuperPdpConnection::STATUS_CONNECTED);
+    Http::assertSentCount(2);
 });
 
 test('oauth callback stores encrypted tokens and company metadata', function () {

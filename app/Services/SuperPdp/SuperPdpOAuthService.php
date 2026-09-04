@@ -3,6 +3,7 @@
 namespace App\Services\SuperPdp;
 
 use App\Models\SuperPdpConnection;
+use App\Models\SuperPdpOAuthAttempt;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -11,7 +12,10 @@ use RuntimeException;
 class SuperPdpOAuthService
 {
     private const SESSION_STATE = 'super_pdp.oauth_state';
+
     private const SESSION_RECEIVE_IN_APP = 'super_pdp.receive_in_app';
+
+    private const AUTHORIZATION_ATTEMPT_TTL_MINUTES = 15;
 
     public function isConfigured(): bool
     {
@@ -42,6 +46,19 @@ class SuperPdpOAuthService
 
         $state = Str::random(48);
 
+        SuperPdpOAuthAttempt::query()
+            ->where('expires_at', '<=', now())
+            ->delete();
+
+        SuperPdpOAuthAttempt::create([
+            'user_id' => $user->id,
+            'environment' => $this->environment(),
+            'state_hash' => $this->stateHash($state),
+            'receive_in_app' => $receiveInApp,
+            'expires_at' => now()->addMinutes(self::AUTHORIZATION_ATTEMPT_TTL_MINUTES),
+        ]);
+
+        // Kept temporarily so callbacks started before this durable-state rollout still work.
         session([
             self::SESSION_STATE => $state,
             self::SESSION_RECEIVE_IN_APP => $receiveInApp,
@@ -57,7 +74,7 @@ class SuperPdpOAuthService
             'superpdp_only_future' => 'true',
         ];
 
-        return rtrim((string) config('services.super_pdp.authorize_url'), '?') . '?' . http_build_query($query);
+        return rtrim((string) config('services.super_pdp.authorize_url'), '?').'?'.http_build_query($query);
     }
 
     /**
@@ -65,11 +82,7 @@ class SuperPdpOAuthService
      */
     public function exchangeAuthorizationCode(User $user, string $code, string $state): SuperPdpConnection
     {
-        if (! hash_equals((string) session(self::SESSION_STATE), $state)) {
-            throw new RuntimeException('Invalid SUPER PDP OAuth state.');
-        }
-
-        $receiveInApp = (bool) session(self::SESSION_RECEIVE_IN_APP, false);
+        $receiveInApp = $this->consumeAuthorizationAttempt($user, $state);
 
         $tokenPayload = $this->tokenRequest([
             'grant_type' => 'authorization_code',
@@ -104,6 +117,49 @@ class SuperPdpOAuthService
         session()->forget([self::SESSION_STATE, self::SESSION_RECEIVE_IN_APP]);
 
         return $connection;
+    }
+
+    private function consumeAuthorizationAttempt(User $user, string $state): bool
+    {
+        $attempt = SuperPdpOAuthAttempt::query()
+            ->where('environment', $this->environment())
+            ->where('state_hash', $this->stateHash($state))
+            ->first();
+
+        if ($attempt) {
+            if ((int) $attempt->user_id !== (int) $user->id) {
+                throw new RuntimeException('Invalid SUPER PDP OAuth state owner.');
+            }
+
+            if ($attempt->consumed_at || ! $attempt->expires_at || $attempt->expires_at->isPast()) {
+                throw new RuntimeException('Invalid or expired SUPER PDP OAuth state.');
+            }
+
+            $claimed = SuperPdpOAuthAttempt::query()
+                ->whereKey($attempt->id)
+                ->whereNull('consumed_at')
+                ->where('expires_at', '>', now())
+                ->update(['consumed_at' => now()]);
+
+            if ($claimed !== 1) {
+                throw new RuntimeException('Invalid or already used SUPER PDP OAuth state.');
+            }
+
+            return $attempt->receive_in_app;
+        }
+
+        $sessionState = (string) session(self::SESSION_STATE);
+
+        if ($sessionState === '' || ! hash_equals($sessionState, $state)) {
+            throw new RuntimeException('Invalid SUPER PDP OAuth state.');
+        }
+
+        return (bool) session(self::SESSION_RECEIVE_IN_APP, false);
+    }
+
+    private function stateHash(string $state): string
+    {
+        return hash('sha256', $state);
     }
 
     /**
@@ -154,6 +210,10 @@ class SuperPdpOAuthService
     public function markError(User $user, string $message): SuperPdpConnection
     {
         $connection = $this->connectionFor($user);
+
+        if ($connection->isConnected()) {
+            return $connection;
+        }
 
         $connection->fill([
             'status' => SuperPdpConnection::STATUS_ERROR,
