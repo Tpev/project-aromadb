@@ -48,6 +48,16 @@
         margin-bottom: 6px;
     }
     .subtle { color:#6b7280; font-size:.92rem; }
+    .booking-notes-guidance {
+        margin: 0 0 8px;
+        padding: 10px 12px;
+        border-left: 3px solid #647a0b;
+        border-radius: 8px;
+        background: #f8faef;
+        color: #374151;
+        font-size: .92rem;
+        line-height: 1.45;
+    }
     .badge-mode {
         display:inline-block;
         padding: 4px 10px;
@@ -209,9 +219,10 @@
 
             <div class="details-box">
                 <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
+                <p id="booking-notes-guidance" class="booking-notes-guidance">{{ $therapist->resolvedBookingNotesPlaceholder() }}</p>
                 <textarea id="notes" name="notes" class="form-control"
-                          placeholder="{{ $therapist->resolvedBookingNotesPlaceholder() }}">{{ old('notes') }}</textarea>
-                <small class="subtle">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
+                          aria-describedby="booking-notes-guidance booking-notes-transmission-hint">{{ old('notes') }}</textarea>
+                <small id="booking-notes-transmission-hint" class="subtle">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
                 @error('notes')<p class="text-danger mt-2">{{ $message }}</p>@enderror
             </div>
 
@@ -251,7 +262,7 @@
     const catalog = @json($catalog);
     const bookingV2Locations = @json($compatibleLocationsByProduct ?? []);
     const bookingV2Active = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
-    const defaultBookingNotesPlaceholder = @json($therapist->resolvedBookingNotesPlaceholder());
+    const defaultBookingNotesGuidance = @json($therapist->resolvedBookingNotesPlaceholder());
     const oldProductId = @json((string) old('product_id', ''));
     const oldLocationId = @json((string) old('practice_location_id', ''));
     let pendingOldDate = @json(old('appointment_date'));
@@ -273,7 +284,7 @@
 
     const prestationHelp = document.getElementById('prestationHelp');
     const variantMeta = document.getElementById('variantMeta');
-    const notesInput = document.getElementById('notes');
+    const notesGuidance = document.getElementById('booking-notes-guidance');
 
     const dateLoadingMessage = document.getElementById('date-loading-message');
     const noSlotsMessage = document.getElementById('no-slots-message');
@@ -287,8 +298,8 @@
     $practiceLocationSelect.select2({ width: '100%' });
 
     function setVariantMeta(v) {
-        if (notesInput) {
-            notesInput.placeholder = v?.booking_notes_placeholder || defaultBookingNotesPlaceholder;
+        if (notesGuidance) {
+            notesGuidance.textContent = v?.booking_notes_placeholder || defaultBookingNotesGuidance;
         }
 
         if (!v) {

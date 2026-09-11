@@ -39,7 +39,7 @@ function bookingNotesLink(User $therapist, Product $product, string $token): Boo
     ]);
 }
 
-test('legacy practitioners use the existing booking notes placeholder in both public forms', function () {
+test('legacy practitioners show the existing booking notes guidance outside the textarea', function () {
     $therapist = User::factory()->create([
         'is_therapist' => true,
         'accept_online_appointments' => true,
@@ -55,12 +55,14 @@ test('legacy practitioners use the existing booking notes placeholder in both pu
         $this->get($url)
             ->assertOk()
             ->assertSee('name="notes"', false)
-            ->assertSee('placeholder="'.User::DEFAULT_BOOKING_NOTES_PLACEHOLDER.'"', false)
+            ->assertSee('id="booking-notes-guidance"', false)
+            ->assertSee(User::DEFAULT_BOOKING_NOTES_PLACEHOLDER)
+            ->assertDontSee('placeholder="'.User::DEFAULT_BOOKING_NOTES_PLACEHOLDER.'"', false)
             ->assertSee('Informations complémentaires (facultatif)');
     }
 });
 
-test('each practitioner booking form uses only their customized placeholder', function () {
+test('each practitioner booking form uses only their customized guidance', function () {
     $firstTherapist = User::factory()->create([
         'is_therapist' => true,
         'accept_online_appointments' => true,
@@ -78,12 +80,16 @@ test('each practitioner booking form uses only their customized placeholder', fu
 
     $this->get(route('appointments.createPatient', $firstTherapist))
         ->assertOk()
-        ->assertSee('placeholder="Quel est votre objectif pour cette séance ?"', false)
+        ->assertSee('id="booking-notes-guidance"', false)
+        ->assertSee('Quel est votre objectif pour cette séance ?')
+        ->assertDontSee('placeholder="Quel est votre objectif pour cette séance ?"', false)
         ->assertDontSee('Avez-vous une information pratique à partager ?');
 
     $this->get(route('bookingLinks.create', $firstLink->token))
         ->assertOk()
-        ->assertSee('placeholder="Quel est votre objectif pour cette séance ?"', false)
+        ->assertSee('id="booking-notes-guidance"', false)
+        ->assertSee('Quel est votre objectif pour cette séance ?')
+        ->assertDontSee('placeholder="Quel est votre objectif pour cette séance ?"', false)
         ->assertDontSee('Avez-vous une information pratique à partager ?');
 });
 

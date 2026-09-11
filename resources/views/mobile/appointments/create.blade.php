@@ -279,9 +279,10 @@
                     <!-- Notes -->
                     <div class="details-box mb-3">
                         <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
+                        <p id="booking-notes-guidance" class="booking-notes-guidance">{{ $therapist->resolvedBookingNotesPlaceholder() }}</p>
                         <textarea id="notes" name="notes" class="form-control"
-                                  rows="3" placeholder="{{ $therapist->resolvedBookingNotesPlaceholder() }}">{{ old('notes') }}</textarea>
-                        <small class="text-xs text-gray-500">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
+                                  rows="3" aria-describedby="booking-notes-guidance booking-notes-transmission-hint">{{ old('notes') }}</textarea>
+                        <small id="booking-notes-transmission-hint" class="text-xs text-gray-500">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
                         @error('notes')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
 
@@ -333,6 +334,16 @@
         .details-label { font-weight: 700; color: #647a0b; display:block; margin-bottom: 5px; font-size: 0.9rem; }
         .form-control { width: 100%; padding: 8px 10px; border: 1px solid #854f38; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
         .form-control:focus { border-color:#647a0b; outline: none; box-shadow: 0 0 5px rgba(100,122,11,.4); }
+        .booking-notes-guidance {
+            margin: 0 0 8px;
+            padding: 10px 12px;
+            border-left: 3px solid #647a0b;
+            border-radius: 8px;
+            background: #f8faef;
+            color: #374151;
+            font-size: .85rem;
+            line-height: 1.45;
+        }
         .earlier-slot-choice {
             display:flex; align-items:flex-start; gap:10px; padding:13px;
             border:1px solid #dfe5c9; border-radius:8px; background:#f8faef; cursor:pointer;
@@ -447,7 +458,7 @@
 
     <script>
         const PRODUCT_MODES = @json($productModes);
-        const DEFAULT_BOOKING_NOTES_PLACEHOLDER = @json($therapist->resolvedBookingNotesPlaceholder());
+        const DEFAULT_BOOKING_NOTES_GUIDANCE = @json($therapist->resolvedBookingNotesPlaceholder());
         const OLD_TIME      = @json(old('appointment_time'));
         const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
         const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
@@ -798,7 +809,7 @@
 
                 // reset hidden state & UI
                 $('#product_id').val('');
-                $('#notes').attr('placeholder', DEFAULT_BOOKING_NOTES_PLACEHOLDER);
+                $('#booking-notes-guidance').text(DEFAULT_BOOKING_NOTES_GUIDANCE);
                 $('#selected_mode_slug').val('');
                 $('#cabinet-location-section').hide();
                 $('#therapist-address-section').hide();
@@ -826,7 +837,7 @@
 
                 const selectedName = $('#product_name').val();
                 const selectedMode = (PRODUCT_MODES[selectedName] || []).find(m => String(m.product.id) === String(productId));
-                $('#notes').attr('placeholder', selectedMode?.product?.booking_notes_placeholder || DEFAULT_BOOKING_NOTES_PLACEHOLDER);
+                $('#booking-notes-guidance').text(selectedMode?.product?.booking_notes_placeholder || DEFAULT_BOOKING_NOTES_GUIDANCE);
 
                 resetTimeSelect();
                 fp.set('enable', []);

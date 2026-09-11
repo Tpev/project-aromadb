@@ -313,6 +313,16 @@
             font-size: .9rem;
             color:#64748b;
         }
+        .booking-notes-guidance {
+            margin: 0 0 8px;
+            padding: 10px 12px;
+            border-left: 3px solid var(--brand);
+            border-radius: 8px;
+            background: #f8faef;
+            color: #374151;
+            font-size: .9rem;
+            line-height: 1.45;
+        }
         .earlier-slot-choice {
             display:flex;
             align-items:flex-start;
@@ -670,8 +680,9 @@
 
                         <div class="details-box">
                             <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
-                            <textarea id="notes" name="notes" class="form-control" placeholder="{{ $therapist->resolvedBookingNotesPlaceholder() }}">{{ old('notes') }}</textarea>
-                            <small class="hint">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
+                            <p id="booking-notes-guidance" class="booking-notes-guidance">{{ $therapist->resolvedBookingNotesPlaceholder() }}</p>
+                            <textarea id="notes" name="notes" class="form-control" aria-describedby="booking-notes-guidance booking-notes-transmission-hint">{{ old('notes') }}</textarea>
+                            <small id="booking-notes-transmission-hint" class="hint">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
                             @error('notes')<p class="text-red-500">{{ $message }}</p>@enderror
                         </div>
 
@@ -731,7 +742,7 @@
             const OLD_TIME        = @json(old('appointment_time'));
             const BOOKING_V2_LOCATIONS = @json($compatibleLocationsByProduct ?? []);
             const BOOKING_V2_ACTIVE = @json(app(\App\Support\BookingV2Access::class)->enabledFor($therapist));
-            const DEFAULT_BOOKING_NOTES_PLACEHOLDER = @json($therapist->resolvedBookingNotesPlaceholder());
+            const DEFAULT_BOOKING_NOTES_GUIDANCE = @json($therapist->resolvedBookingNotesPlaceholder());
 
         @include('appointments.partials.progressive-availability-loader')
 
@@ -822,19 +833,19 @@
                 $('#practice_location_id_hidden').val(locId || '');
             }
 
-            function updateBookingNotesPlaceholder(productId) {
-                let placeholder = DEFAULT_BOOKING_NOTES_PLACEHOLDER;
+            function updateBookingNotesGuidance(productId) {
+                let guidance = DEFAULT_BOOKING_NOTES_GUIDANCE;
 
                 Object.values(PRODUCT_CATALOG).some(function (product) {
                     return Object.values(product.modes || {}).some(function (mode) {
                         const variant = (mode.products || []).find(v => String(v.id) === String(productId || ''));
                         if (!variant) return false;
-                        placeholder = variant.booking_notes_placeholder || DEFAULT_BOOKING_NOTES_PLACEHOLDER;
+                        guidance = variant.booking_notes_placeholder || DEFAULT_BOOKING_NOTES_GUIDANCE;
                         return true;
                     });
                 });
 
-                $('#notes').attr('placeholder', placeholder);
+                $('#booking-notes-guidance').text(guidance);
             }
 
             function resetTimeSelect() {
@@ -1156,7 +1167,7 @@
 
                 // reset hidden state & UI
                 $('#product_id').val('');
-                updateBookingNotesPlaceholder(null);
+                updateBookingNotesGuidance(null);
                 $('#selected_mode_slug').val('');
                 $('#product_variant').empty().append('<option value="" disabled selected>{{ __("Sélectionner un format") }}</option>');
                 $('#format-section').hide();
@@ -1225,7 +1236,7 @@
                     $('#product_id').val(String(chosen));
                 }
 
-                updateBookingNotesPlaceholder($('#product_id').val());
+                updateBookingNotesGuidance($('#product_id').val());
 
                 autoPickDate = null;
                 autoPickTime = null;
@@ -1254,7 +1265,7 @@
                 if (productId) {
                     $('#product_id').val(productId);
                 }
-                updateBookingNotesPlaceholder(productId);
+                updateBookingNotesGuidance(productId);
                 if ($('#selected_mode_slug').val() === 'cabinet') {
                     configureCabinetLocations(productId);
                 }
