@@ -278,7 +278,7 @@
 
                     <!-- Notes -->
                     <div class="details-box mb-3">
-                        <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
+                        <label class="details-label" for="notes">{{ __('Informations complémentaires') }}</label>
                         <p id="booking-notes-guidance" class="booking-notes-guidance">{{ $therapist->resolvedBookingNotesPlaceholder() }}</p>
                         <textarea id="notes" name="notes" class="form-control"
                                   rows="3" aria-describedby="booking-notes-guidance booking-notes-transmission-hint">{{ old('notes') }}</textarea>

@@ -58,7 +58,8 @@ test('legacy practitioners show the existing booking notes guidance outside the 
             ->assertSee('id="booking-notes-guidance"', false)
             ->assertSee(User::DEFAULT_BOOKING_NOTES_PLACEHOLDER)
             ->assertDontSee('placeholder="'.User::DEFAULT_BOOKING_NOTES_PLACEHOLDER.'"', false)
-            ->assertSee('Informations complémentaires (facultatif)');
+            ->assertSee('Informations complémentaires')
+            ->assertDontSee('Informations complémentaires (facultatif)');
     }
 });
 

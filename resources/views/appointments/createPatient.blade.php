@@ -679,7 +679,7 @@
                         </div>
 
                         <div class="details-box">
-                            <label class="details-label" for="notes">{{ __('Informations complémentaires (facultatif)') }}</label>
+                            <label class="details-label" for="notes">{{ __('Informations complémentaires') }}</label>
                             <p id="booking-notes-guidance" class="booking-notes-guidance">{{ $therapist->resolvedBookingNotesPlaceholder() }}</p>
                             <textarea id="notes" name="notes" class="form-control" aria-describedby="booking-notes-guidance booking-notes-transmission-hint">{{ old('notes') }}</textarea>
                             <small id="booking-notes-transmission-hint" class="hint">{{ __('Ces informations seront transmises au praticien avec votre rendez-vous.') }}</small>
