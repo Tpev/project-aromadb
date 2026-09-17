@@ -289,7 +289,8 @@
                 {{-- Hidden final values --}}
                 <input type="hidden" name="product_id" id="product_id">
                 <input type="hidden" name="type" id="selected_mode_slug"> {{-- cabinet/visio/domicile/entreprise --}}
-                <input type="hidden" name="force_availability_override" id="force_availability_override" value="0">
+                {{-- Therapist creation is manual: slot availability is advisory, even for a green preview. --}}
+                <input type="hidden" name="force_availability_override" id="force_availability_override" value="1">
 
                 {{-- Cabinet location --}}
                 <div class="details-box" id="cabinet-location-section" style="display:none;">
@@ -538,7 +539,6 @@
 
             function resetSlotsUI() {
                 $('#appointment_time').val('');
-                $('#force_availability_override').val('0');
                 $('#time-slots-container').html('<span class="text-muted">Sélectionnez prestation, mode et date.</span>');
                 $('#no-slots-message').hide().text('');
                 hideSlotWarning();
@@ -758,7 +758,6 @@
                             .show();
 
                         renderManualSlotsEvery15Min(true);
-                        $('#force_availability_override').val('1');
                         showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
                         applyCalendarTimePrefill();
                         return;
@@ -962,7 +961,6 @@
 
                 if (isBackfillMode()) {
                     renderManualSlotsEvery15Min(false);
-                    $('#force_availability_override').val('0');
                     return;
                 }
 
@@ -983,10 +981,7 @@
                 renderManualSlotsEvery15Min(isBackfillMode() ? false : true);
 
                 if (!isBackfillMode()) {
-                    $('#force_availability_override').val('1');
                     showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
-                } else {
-                    $('#force_availability_override').val('0');
                 }
 
                 initSlotTooltips();
@@ -1000,8 +995,6 @@
                 $('#no-slots-message').hide();
 
                 const hasConflict = String($(this).attr('data-has-conflict') || '0') === '1';
-                $('#force_availability_override').val(hasConflict ? '1' : '0');
-
                 if (!hasConflict) {
                     hideSlotWarning();
                     return;

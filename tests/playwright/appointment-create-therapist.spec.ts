@@ -165,13 +165,17 @@ test.describe('Therapist-created appointments', () => {
     // Your JS calls fetchSlots on date change, which should create .time-slot-btn buttons.
     await page.waitForSelector('.time-slot-btn', { timeout: 15000 });
 
-    const firstSlot = page.locator('.time-slot-btn').first();
+    const firstSlot = page.locator('.time-slot-btn.status-ok').first();
     const slotTime = await firstSlot.getAttribute('data-time');
     await firstSlot.click();
 
     if (slotTime) {
       await expect(page.locator('#appointment_time')).toHaveValue(slotTime);
     }
+    // A green preview must not disable manual therapist booking: server-side
+    // rules (for example minimum notice) can still reject an otherwise free slot.
+    await expect(page.locator('#force_availability_override')).toHaveValue('1');
+    await expect(page.locator('#slot-warning-banner')).toBeHidden();
 
     // -----------------------------
     // NOTES + SUBMIT
