@@ -1337,6 +1337,13 @@ Route::get('/admin/license', [AdminController::class, 'showLicenseManagement'])-
 Route::post('/admin/license/{therapist}', [AdminController::class, 'assignLicense'])->name('admin.license.assign');
 Route::get('/admin/therapists', [AdminController::class, 'indexTherapists'])->name('admin.therapists.index');
 Route::get('/admin/therapists/{id}', [AdminController::class, 'showTherapist'])->name('admin.therapists.show');
+Route::middleware('auth')->prefix('admin/therapists/{therapist}/newsletter-imports')
+    ->name('admin.therapists.newsletter-imports.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\NewsletterImportController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\NewsletterImportController::class, 'preview'])->name('preview');
+        Route::get('/{import}', [\App\Http\Controllers\Admin\NewsletterImportController::class, 'show'])->name('show');
+        Route::post('/{import}/commit', [\App\Http\Controllers\Admin\NewsletterImportController::class, 'commit'])->name('commit');
+    });
 Route::post('/admin/therapists/{therapist}/export-data', [AdminController::class, 'exportTherapistData'])
     ->middleware('auth')
     ->name('admin.therapists.exportData');

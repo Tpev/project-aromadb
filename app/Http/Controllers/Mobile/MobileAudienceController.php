@@ -15,7 +15,7 @@ class MobileAudienceController extends Controller
     {
         $audiences = Audience::query()
             ->where('user_id', Auth::id())
-            ->withCount('clients')
+            ->withCount(['clients', 'newsletterContacts'])
             ->orderBy('name')
             ->get();
 
@@ -59,7 +59,7 @@ class MobileAudienceController extends Controller
         $audience->load([
             'clients' => fn ($query) => $query->orderBy('last_name')->orderBy('first_name'),
         ]);
-        $audience->loadCount('clients');
+        $audience->loadCount(['clients', 'newsletterContacts']);
 
         return view('mobile.audiences.show', compact('audience'));
     }

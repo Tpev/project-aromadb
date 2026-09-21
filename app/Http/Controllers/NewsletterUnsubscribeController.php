@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\NewsletterRecipient;
 use App\Models\NewsletterOptOut;
+use App\Models\NewsletterContact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -66,7 +67,7 @@ class NewsletterUnsubscribeController extends Controller
         NewsletterOptOut::updateOrCreate(
             [
                 'user_id' => $therapist->id,
-                'email'   => $recipient->email,
+                'email'   => NewsletterContact::normalizeEmail($recipient->email),
             ],
             [
                 'newsletter_recipient_id' => $recipient->id,
@@ -74,6 +75,10 @@ class NewsletterUnsubscribeController extends Controller
                 'unsubscribed_at'         => Carbon::now(),
             ]
         );
+
+        NewsletterContact::where('user_id', $therapist->id)
+            ->where('email', NewsletterContact::normalizeEmail($recipient->email))
+            ->update(['status' => 'unsubscribed']);
 
         return view('newsletters.unsubscribe_done', [
             'recipient' => $recipient,

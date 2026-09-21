@@ -99,7 +99,7 @@
                         <option value="">Tous mes clients avec email</option>
                         @foreach($audiences as $audience)
                             <option value="{{ $audience->id }}" @selected((string) $selectedAudience === (string) $audience->id)>
-                                {{ $audience->name }} ({{ $audience->clients_count }})
+                                {{ $audience->name }} ({{ $audience->contacts_count }})
                             </option>
                         @endforeach
                     </select>

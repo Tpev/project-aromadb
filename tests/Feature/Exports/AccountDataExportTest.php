@@ -246,6 +246,40 @@ test('account export includes owned records and files while excluding every othe
         ->and($manifest['exported_files'])->toBe(1);
 });
 
+test('newsletter contacts import history and audience membership exports stay within their therapist', function () {
+    $owner = User::factory()->create(['is_therapist' => true]);
+    $other = User::factory()->create(['is_therapist' => true]);
+    foreach ([$owner, $other] as $user) {
+        $audience = \App\Models\Audience::create(['user_id' => $user->id, 'name' => 'Audience '.$user->id]);
+        $contact = \App\Models\NewsletterContact::create(['user_id' => $user->id, 'email' => 'contact-'.$user->id.'@example.test']);
+        $audience->newsletterContacts()->attach($contact);
+        \App\Models\NewsletterImport::create([
+            'user_id' => $user->id, 'audience_name' => $audience->name, 'audience_id' => $audience->id,
+            'original_filename' => 'contacts-'.$user->id.'.csv', 'file_hash' => str_repeat('a', 64), 'rows' => [], 'report' => [],
+        ]);
+    }
+    $ownedAudience = \App\Models\Audience::where('user_id', $owner->id)->first();
+    $ownedAudience->newsletterContacts()->attach(\App\Models\NewsletterContact::where('user_id', $other->id)->first());
+    $newsletter = \App\Models\Newsletter::create([
+        'user_id' => $owner->id, 'title' => 'Newsletter test', 'subject' => 'Test',
+        'from_name' => 'Test', 'from_email' => 'sender@example.test', 'content_json' => '[]', 'status' => 'draft',
+    ]);
+    foreach (\App\Models\NewsletterContact::all() as $contact) {
+        \App\Models\NewsletterRecipient::create([
+            'newsletter_id' => $newsletter->id, 'newsletter_contact_id' => $contact->id,
+            'email' => $contact->email, 'status' => 'sent', 'unsubscribe_token' => Str::uuid()->toString(),
+        ]);
+    }
+    $result = app(AccountDataExportService::class)->export($owner);
+    $entries = accountExportZipEntries($result->absolutePath);
+    expect($entries['marketing/contacts-newsletter.csv'])->toContain('contact-'.$owner->id.'@example.test')
+        ->not->toContain('contact-'.$other->id.'@example.test');
+    expect($entries['marketing/imports-newsletter.csv'])->toContain('contacts-'.$owner->id.'.csv')
+        ->not->toContain('contacts-'.$other->id.'.csv');
+    expect($result->datasetCounts['Contacts newsletter des audiences'])->toBe(1)
+        ->and($result->datasetCounts['Destinataires des newsletters'])->toBe(1);
+});
+
 test('dry run creates no archive and a real export requires exact email confirmation', function () {
     $user = User::factory()->create([
         'email' => 'confirmation@example.test',

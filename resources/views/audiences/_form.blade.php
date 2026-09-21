@@ -2,6 +2,8 @@
     $isEdit = isset($audience) && $audience->exists;
 @endphp
 
+@include('audiences.partials.newsletter-contacts')
+
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 space-y-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -32,7 +34,7 @@
 
     <div>
         <label class="block text-xs font-medium text-gray-600 mb-1">
-            Contacts dans cette liste
+            Fiches clients dans cette liste
         </label>
         <p class="text-[11px] text-gray-400 mb-2">
             Sélectionnez les clients qui recevront les newsletters envoyées à cette liste.

@@ -1,5 +1,5 @@
 @php
-    $clientCount = $audience->clients_count ?? $audience->clients->count();
+    $clientCount = $audience->contacts_count;
 @endphp
 
 <x-mobile-layout :title="$audience->name">
@@ -65,6 +65,7 @@
             </div>
         @endif
 
+        @include('audiences.partials.newsletter-contacts')
         <div class="space-y-4">
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
                 <div class="flex items-center justify-between gap-3">
@@ -75,7 +76,7 @@
                     </a>
                 </div>
 
-                @if($audience->clients->isEmpty())
+                @if($clientCount === 0)
                     <div class="mt-3 rounded-lg border border-dashed border-[#d7ddc6] bg-[#fbfcf7] p-4 text-center">
                         <h3 class="text-sm font-semibold text-gray-900">Audience vide</h3>
                         <p class="mt-1 text-sm leading-snug text-gray-600">

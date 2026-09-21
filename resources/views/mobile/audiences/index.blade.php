@@ -1,7 +1,7 @@
 @php
     $total = $audiences->count();
-    $contacts = $audiences->sum('clients_count');
-    $active = $audiences->filter(fn ($audience) => $audience->clients_count > 0)->count();
+    $contacts = $audiences->sum('contacts_count');
+    $active = $audiences->filter(fn ($audience) => $audience->contacts_count > 0)->count();
 @endphp
 
 <x-mobile-layout title="Audiences">
@@ -107,12 +107,12 @@
                         <div class="mt-3 grid grid-cols-2 gap-2">
                             <div class="rounded-lg bg-[#f7f8f1] p-2">
                                 <div class="text-[11px] font-medium text-gray-500">Contacts</div>
-                                <div class="mt-0.5 text-sm font-semibold text-gray-900">{{ $audience->clients_count }}</div>
+                                <div class="mt-0.5 text-sm font-semibold text-gray-900">{{ $audience->contacts_count }}</div>
                             </div>
                             <div class="rounded-lg bg-[#f7f8f1] p-2">
                                 <div class="text-[11px] font-medium text-gray-500">Statut</div>
                                 <div class="mt-0.5 truncate text-sm font-semibold text-gray-900">
-                                    {{ $audience->clients_count > 0 ? 'Prete' : 'Vide' }}
+                                    {{ $audience->contacts_count > 0 ? 'Prete' : 'Vide' }}
                                 </div>
                             </div>
                         </div>

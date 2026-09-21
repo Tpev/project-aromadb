@@ -48,7 +48,7 @@
                                     </p>
                                 @endif
                                 <p class="mt-2 text-xs text-gray-400">
-                                    {{ $audience->clients_count }} contact(s).
+                                    {{ $audience->contacts_count }} contact(s).
                                 </p>
                             </div>
                             <div class="flex items-center gap-2">

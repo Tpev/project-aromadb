@@ -36,6 +36,7 @@
         @endif
 
         <div class="space-y-4">
+            @include('audiences.partials.newsletter-contacts')
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
                 <h2 class="text-sm font-semibold text-gray-900">Informations</h2>
 
@@ -61,7 +62,7 @@
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <h2 class="text-sm font-semibold text-gray-900">Contacts</h2>
+                        <h2 class="text-sm font-semibold text-gray-900">Fiches clients</h2>
                         <p class="mt-1 text-xs leading-snug text-gray-500">
                             <span id="selectedAudienceClientsCount">{{ count($selectedIds) }}</span> selectionne(s).
                         </p>
@@ -80,7 +81,7 @@
                     <div class="mt-3 rounded-lg border border-dashed border-[#d7ddc6] bg-[#fbfcf7] p-4 text-center">
                         <h3 class="text-sm font-semibold text-gray-900">Aucun client</h3>
                         <p class="mt-1 text-sm leading-snug text-gray-600">
-                            Creez une fiche client avant de remplir cette audience.
+                            Créez une fiche client pour pouvoir l’ajouter à cette audience.
                         </p>
                         <a href="{{ route('mobile.clients.create') }}"
                            class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-lg bg-[#647a0b] text-xs font-semibold text-white">

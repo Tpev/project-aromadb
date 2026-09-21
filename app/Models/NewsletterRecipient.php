@@ -12,6 +12,7 @@ class NewsletterRecipient extends Model
     protected $fillable = [
         'newsletter_id',
         'client_profile_id',
+        'newsletter_contact_id',
         'email',
         'status',
         'unsubscribe_token',

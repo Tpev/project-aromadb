@@ -25,4 +25,15 @@ class Audience extends Model
         return $this->belongsToMany(ClientProfile::class, 'audience_client_profile')
                     ->withTimestamps();
     }
+
+    public function newsletterContacts()
+    {
+        return $this->belongsToMany(NewsletterContact::class, 'audience_newsletter_contact')->withTimestamps();
+    }
+
+    public function getContactsCountAttribute(): int
+    {
+        return (int) ($this->clients_count ?? $this->clients()->count())
+            + (int) ($this->newsletter_contacts_count ?? $this->newsletterContacts()->count());
+    }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Mail\NewsletterMail;
-use App\Models\ClientProfile;
 use App\Models\Newsletter;
 use App\Models\NewsletterRecipient;
 use App\Models\Audience;
@@ -11,8 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use App\Models\NewsletterOptOut;
 use App\Models\NewsletterMonthlyUsage;
+use App\Services\NewsletterAudienceService;
 
 class NewsletterController extends Controller
 {
@@ -217,35 +216,10 @@ public function sendNow(Newsletter $newsletter)
 
     $user = Auth::user();
 
-    // Emails désabonnés pour ce thérapeute
-    $optedOutEmails = NewsletterOptOut::where('user_id', $user->id)
-        ->pluck('email')
-        ->map(fn ($e) => strtolower($e))
-        ->toArray();
-
-    // Base query: clients with email, excluding opt-outs
-    $baseClientQuery = ClientProfile::query()
-        ->where('user_id', $user->id)
-        ->whereNotNull('email');
-
-    // If an audience is selected, restrict to that audience clients
-    if ($newsletter->audience_id) {
-        $audience = Audience::where('user_id', $user->id)
-            ->where('id', $newsletter->audience_id)
-            ->firstOrFail();
-
-        $clientIds = $audience->clients()->pluck('client_profiles.id');
-
-        $baseClientQuery->whereIn('id', $clientIds);
-    }
-
-    $clients = $baseClientQuery->get()
-        ->filter(function ($client) use ($optedOutEmails) {
-            return !in_array(strtolower($client->email), $optedOutEmails, true);
-        });
+    $clients = app(NewsletterAudienceService::class)->recipients($newsletter);
 
     if ($clients->isEmpty()) {
-        return back()->with('error', 'Aucun client avec email disponible pour l’envoi (ou tous sont désabonnés / hors audience).');
+        return back()->with('error', 'Aucun destinataire disponible pour l’envoi (adresses invalides, à vérifier, désabonnées ou hors audience).');
     }
 
     // ---- QUOTA CHECK (added) ----
@@ -257,7 +231,8 @@ public function sendNow(Newsletter $newsletter)
     foreach ($clients as $client) {
         $recipient = new NewsletterRecipient();
         $recipient->newsletter_id     = $newsletter->id;
-        $recipient->client_profile_id = $client->id;
+        $recipient->client_profile_id = $client->client_profile_id;
+        $recipient->newsletter_contact_id = $client->newsletter_contact_id;
         $recipient->email             = $client->email;
         $recipient->status            = 'pending';
         $recipient->unsubscribe_token = Str::uuid()->toString();

@@ -14,7 +14,7 @@ class AudienceController extends Controller
         $user = Auth::user();
 
         $audiences = Audience::where('user_id', $user->id)
-            ->withCount('clients')
+            ->withCount(['clients', 'newsletterContacts'])
             ->orderBy('name')
             ->get();
 

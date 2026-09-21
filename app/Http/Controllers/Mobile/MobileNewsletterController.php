@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Mobile;
 use App\Mail\NewsletterMail;
 use App\Http\Controllers\Controller;
 use App\Models\Audience;
-use App\Models\ClientProfile;
 use App\Models\Newsletter;
 use App\Models\NewsletterMonthlyUsage;
-use App\Models\NewsletterOptOut;
 use App\Models\NewsletterRecipient;
 use App\Models\User;
+use App\Services\NewsletterAudienceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -211,7 +210,8 @@ class MobileNewsletterController extends Controller
         foreach ($clients as $client) {
             $recipient = NewsletterRecipient::create([
                 'newsletter_id' => $newsletter->id,
-                'client_profile_id' => $client->id,
+                'client_profile_id' => $client->client_profile_id,
+                'newsletter_contact_id' => $client->newsletter_contact_id,
                 'email' => $client->email,
                 'status' => 'pending',
                 'unsubscribe_token' => Str::uuid()->toString(),
@@ -341,32 +341,10 @@ class MobileNewsletterController extends Controller
 
     private function targetClients(Newsletter $newsletter): Collection
     {
-        $user = Auth::user();
-        $optedOutEmails = NewsletterOptOut::query()
-            ->where('user_id', $user->id)
-            ->pluck('email')
-            ->map(fn ($email) => strtolower($email))
-            ->all();
-
-        $query = ClientProfile::query()
-            ->where('user_id', $user->id)
-            ->whereNotNull('email');
-
-        if ($newsletter->audience_id) {
-            $audience = Audience::query()
-                ->where('user_id', $user->id)
-                ->whereKey($newsletter->audience_id)
-                ->firstOrFail();
-
-            $query->whereIn('id', $audience->clients()->pluck('client_profiles.id'));
-        }
-
-        return $query->get()
-            ->filter(fn (ClientProfile $client) => !in_array(strtolower($client->email), $optedOutEmails, true))
-            ->values();
+        return app(NewsletterAudienceService::class)->recipients($newsletter);
     }
 
-    private function sendNewsletterEmail(Newsletter $newsletter, ClientProfile $client, NewsletterRecipient $recipient): void
+    private function sendNewsletterEmail(Newsletter $newsletter, object $client, NewsletterRecipient $recipient): void
     {
         $unsubscribeUrl = route('unsubscribe.newsletter', [
             'token' => $recipient->unsubscribe_token,
@@ -384,7 +362,7 @@ class MobileNewsletterController extends Controller
     {
         return Audience::query()
             ->where('user_id', Auth::id())
-            ->withCount('clients')
+            ->withCount(['clients', 'newsletterContacts'])
             ->orderBy('name')
             ->get();
     }

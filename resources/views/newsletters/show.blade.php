@@ -20,7 +20,7 @@
             '{{client.full_name}}'    => trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')),
         ];
 
-        return str_replace(array_keys($replacements), array_values($replacements), $html);
+        return str_replace(array_keys($replacements), array_map(fn ($value) => e($value), array_values($replacements)), $html);
     };
 
     // Map des polices "marketing" vers des stacks web safe
@@ -238,7 +238,7 @@
                         <tr>
                             <td style="padding:16px 24px 20px 24px; background-color:#f9fafb; border-top:1px solid #e5e7eb;">
                                 <div style="font-family: Arial, sans-serif; font-size:11px; color:#6b7280; line-height:1.4;">
-                                    Vous recevez cet email car vous êtes suivi(e) par
+                                    Vous recevez la newsletter de
                                     <span style="font-weight:600; color:#111827;">
                                         {{ $newsletter->from_name }}
                                     </span>.

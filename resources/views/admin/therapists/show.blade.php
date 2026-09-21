@@ -489,6 +489,17 @@
             </form>
         </div>
 
+        <div class="therapist-info-card">
+            <div class="info">
+                <h2>Contacts newsletter</h2>
+                <p>Importer une liste pour {{ $therapist->name }} et vérifier les adresses avant validation.</p>
+                <a href="{{ route('admin.therapists.newsletter-imports.index', $therapist) }}"
+                   style="display:inline-block;margin-top:12px;padding:12px 18px;background:#647a0b;color:#fff;border-radius:8px;text-decoration:none;">
+                    Importer des contacts newsletter
+                </a>
+            </div>
+        </div>
+
         <h2 class="section-title">Contenus créés par ce thérapeute</h2>
         <table class="styled-summary-table">
             <thead>

@@ -46,6 +46,8 @@ class AccountDataExportService
         'audiences',
         'newsletter_opt_outs',
         'newsletter_monthly_usages',
+        'newsletter_contacts',
+        'newsletter_imports',
         'digital_trainings',
         'pack_products',
         'gift_vouchers',
@@ -272,6 +274,9 @@ class AccountDataExportService
             ['label' => 'Destinataires des newsletters', 'table' => 'newsletter_recipients', 'path' => 'marketing/destinataires-newsletters.csv'],
             ['label' => 'Desinscriptions newsletters', 'table' => 'newsletter_opt_outs', 'path' => 'marketing/desinscriptions-newsletters.csv'],
             ['label' => 'Usage newsletters', 'table' => 'newsletter_monthly_usages', 'path' => 'marketing/usage-newsletters.csv'],
+            ['label' => 'Contacts newsletter importes', 'table' => 'newsletter_contacts', 'path' => 'marketing/contacts-newsletter.csv'],
+            ['label' => 'Historique des imports newsletter', 'table' => 'newsletter_imports', 'path' => 'marketing/imports-newsletter.csv'],
+            ['label' => 'Contacts newsletter des audiences', 'table' => 'audience_newsletter_contact', 'path' => 'marketing/audiences-contacts-newsletter.csv'],
             ...$this->offerJourneyDatasets(),
         ];
     }
@@ -451,6 +456,7 @@ class AccountDataExportService
             'community_messages' => $this->communityMessageQuery($query, $userId),
             'community_message_attachments' => $this->byParent($query, 'community_message_id', 'community_messages', $userId),
             'audience_client_profile' => $this->twoParents($query, 'audience_id', 'audiences', 'client_profile_id', 'client_profiles', $userId),
+            'audience_newsletter_contact' => $this->twoParents($query, 'audience_id', 'audiences', 'newsletter_contact_id', 'newsletter_contacts', $userId),
             'newsletter_recipients' => $this->newsletterRecipientQuery($query, $userId),
             'offer_journey_versions', 'offer_journey_pages' => $this->byParent($query, 'offer_journey_id', 'offer_journeys', $userId),
             'offer_journey_campaign_links' => $this->ownedForeign($query->where('user_id', $userId), 'offer_journey_id', 'offer_journeys', $userId),
@@ -549,6 +555,7 @@ class AccountDataExportService
     private function newsletterRecipientQuery(Builder $query, int $userId): Builder
     {
         $this->ownedForeign($query, 'newsletter_id', 'newsletters', $userId);
+        $this->nullableOwnedForeign($query, 'newsletter_contact_id', 'newsletter_contacts', $userId);
 
         return $this->nullableOwnedForeign($query, 'client_profile_id', 'client_profiles', $userId);
     }
