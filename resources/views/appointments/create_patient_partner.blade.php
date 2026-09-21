@@ -137,6 +137,7 @@
 
             {{-- Variant selector --}}
             <div class="details-box" id="variantBox" style="display:none;">
+                <p id="consultation-mode-guidance" role="status" class="mb-3 rounded-lg border-2 border-[#647a0b] bg-[#f3f6e7] p-3 font-bold text-[#374606]">{{ __("Sélectionnez un format de consultation pour voir les créneaux disponibles.") }}</p>
                 <label class="details-label" for="variant_select">{{ __('Format') }}</label>
                 <select id="variant_select" class="form-select">
                     <option value="">{{ __('Choisir un format') }}</option>
@@ -213,8 +214,8 @@
             </div>
 
             <div class="details-box">
-                <label class="details-label" for="phone">{{ __('Téléphone') }}</label>
-                <input type="text" id="phone" name="phone" class="form-control" value="{{ old('phone') }}" required>
+                <label class="details-label" for="phone"><span class="text-sm">{{ $therapist->booking_phone_required ? __("Obligatoire — ") : __("Facultatif — ") }}</span>{{ __('Téléphone') }}</label>
+                <input type="text" id="phone" name="phone" class="form-control" value="{{ old('phone') }}" @required($therapist->booking_phone_required)>
             </div>
 
             <div class="details-box">
@@ -586,6 +587,7 @@
 
     function onPrestationChange() {
         if (internalUpdate) return;
+        document.getElementById('consultation-mode-guidance').hidden = false;
 
         const selectedName = $prestationSelect.val();
 
@@ -658,6 +660,7 @@
         if (internalUpdate) return;
 
         const selectedId = parseInt($variantSelect.val() || "0", 10);
+        document.getElementById('consultation-mode-guidance').hidden = !!selectedId;
 
         if (!selectedId) {
             productIdInput.value = '';

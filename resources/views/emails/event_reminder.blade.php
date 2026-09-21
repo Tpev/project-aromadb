@@ -22,6 +22,10 @@ Ceci est un rappel concernant votre réservation pour l’événement **{{ $even
 @endif
 @endisset
 
+@if(filled($event->reminder_email_note))
+<div style="margin:16px 0;padding:12px 16px;border-left:4px solid #647a0b;">{!! \App\Support\EmailNote::html($event->reminder_email_note) !!}</div>
+@endif
+
 @if(($isVisio ?? false))
 ---
 

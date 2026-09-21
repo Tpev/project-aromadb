@@ -43,7 +43,7 @@ class StripeWebhookController extends Controller
             return response()->json(['error' => 'Invalid payload'], 400);
         }
 
-        if ($connectedAccountId === '' && !empty($event->account)) {
+        if (!empty($event->account)) {
             $connectedAccountId = (string) $event->account;
         }
 
@@ -54,6 +54,10 @@ class StripeWebhookController extends Controller
                 'event_type' => $event->type ?? null,
                 'event_id' => $event->id ?? null,
             ]);
+        }
+
+        if (app(\App\Services\EventPaymentService::class)->handleWebhook($event, $connectedAccountId)) {
+            return response()->json(['status' => 'success'], 200);
         }
 
         if (app(StripePurchaseWebhookService::class)->handleEvent($event, $connectedAccountId)) {

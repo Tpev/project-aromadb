@@ -55,6 +55,7 @@ class PackProductController extends Controller
             'visible_in_portal' => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
             'installments_enabled' => 'required|boolean',
+            'private_checkout_enabled' => ['sometimes', 'boolean'],
             'allowed_installments' => 'nullable|array',
             'allowed_installments.*' => 'integer|min:2|max:12',
 
@@ -101,6 +102,7 @@ class PackProductController extends Controller
                 'visible_in_portal' => (bool) $validated['visible_in_portal'],
                 'price_visible_in_portal' => (bool) $validated['price_visible_in_portal'],
                 'installments_enabled' => (bool) $validated['installments_enabled'],
+                'private_checkout_enabled' => (bool) ($validated['private_checkout_enabled'] ?? false),
                 'allowed_installments' => (bool) $validated['installments_enabled'] ? $allowedInstallments : null,
             ]);
 
@@ -178,6 +180,7 @@ class PackProductController extends Controller
             'visible_in_portal' => 'required|boolean',
             'price_visible_in_portal' => 'required|boolean',
             'installments_enabled' => 'required|boolean',
+            'private_checkout_enabled' => ['sometimes', 'boolean'],
             'allowed_installments' => 'nullable|array',
             'allowed_installments.*' => 'integer|min:2|max:12',
 
@@ -220,6 +223,7 @@ class PackProductController extends Controller
                 'visible_in_portal' => (bool) $validated['visible_in_portal'],
                 'price_visible_in_portal' => (bool) $validated['price_visible_in_portal'],
                 'installments_enabled' => (bool) $validated['installments_enabled'],
+                'private_checkout_enabled' => (bool) ($validated['private_checkout_enabled'] ?? $packProduct->private_checkout_enabled),
                 'allowed_installments' => (bool) $validated['installments_enabled'] ? $allowedInstallments : null,
             ]);
 

@@ -20,6 +20,7 @@ class PackProduct extends Model
         'price_visible_in_portal',
         'installments_enabled',
         'allowed_installments',
+        'private_checkout_enabled',
     ];
 
     protected $casts = [
@@ -28,7 +29,19 @@ class PackProduct extends Model
         'price_visible_in_portal' => 'boolean',
         'installments_enabled' => 'boolean',
         'allowed_installments' => 'array',
+        'private_checkout_enabled' => 'boolean',
     ];
+
+    protected $hidden = ['private_checkout_token'];
+
+    protected static function booted(): void
+    {
+        static::saving(function (PackProduct $pack): void {
+            if ($pack->private_checkout_enabled && !$pack->private_checkout_token) {
+                $pack->private_checkout_token = \Illuminate\Support\Str::random(64);
+            }
+        });
+    }
 
     public function user()
     {

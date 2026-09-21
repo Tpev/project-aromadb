@@ -684,6 +684,7 @@
                         </div>
 
                         <div class="details-box">
+                            @include('appointments.partials.booking-phone-setting')
                             <label class="details-label" for="cancellation_notice_hours">
                                 {{ __('Délai minimum de modification ou d\'annulation client (heures avant le rendez-vous)') }}
                             </label>

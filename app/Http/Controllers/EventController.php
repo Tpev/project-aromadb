@@ -51,6 +51,8 @@ class EventController extends Controller
         'name'               => 'required|string|max:255',
         'description'        => 'nullable|string',
         'start_date_time'    => 'required|date',
+        'confirmation_email_note' => ['nullable', 'string', 'max:2000'],
+        'reminder_email_note' => ['nullable', 'string', 'max:2000'],
         ...EventDuration::rules(),
         'block_calendar'     => 'nullable|boolean',
 
@@ -201,6 +203,8 @@ class EventController extends Controller
         'name'               => 'required|string|max:255',
         'description'        => 'nullable|string',
         'start_date_time'    => 'required|date',
+        'confirmation_email_note' => ['nullable', 'string', 'max:2000'],
+        'reminder_email_note' => ['nullable', 'string', 'max:2000'],
         ...EventDuration::rules(),
         'block_calendar'     => 'nullable|boolean',
 
@@ -430,6 +434,8 @@ public function storeDuplicate(Request $request, Event $event, EventCalendarBloc
         'name'               => 'required|string|max:255',
         'description'        => 'nullable|string',
         'start_date_time'    => 'required|date',
+        'confirmation_email_note' => ['nullable', 'string', 'max:2000'],
+        'reminder_email_note' => ['nullable', 'string', 'max:2000'],
         ...EventDuration::rules(),
         'block_calendar'     => 'nullable|boolean',
 

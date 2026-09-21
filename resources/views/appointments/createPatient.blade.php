@@ -537,6 +537,7 @@
 
                         {{-- Mode de consultation --}}
                         <div class="details-box" id="consultation-mode-section" style="display:none;">
+                            @include('appointments.partials.mode-guidance')
                             <label class="details-label" for="consultation_mode">{{ __('Mode de Consultation') }}</label>
                             <select id="consultation_mode" class="form-control" required>
                                 <option value="" disabled selected>{{ __('Sélectionner un mode de consultation') }}</option>
@@ -672,9 +673,9 @@
                         </div>
 
                         <div class="details-box">
-                            <label class="details-label" for="phone">{{ __('Votre Numéro de Téléphone') }}</label>
+                            <label class="details-label" for="phone"><span class="text-sm">{{ $therapist->booking_phone_required ? __("Obligatoire — ") : __("Facultatif — ") }}</span>{{ __('Votre Numéro de Téléphone') }}</label>
                             <input type="text" id="phone" name="phone" class="form-control"
-                                   value="{{ old('phone') }}" required>
+                                   value="{{ old('phone') }}" @required($therapist->booking_phone_required)>
                             @error('phone')<p class="text-red-500">{{ $message }}</p>@enderror
                         </div>
 
@@ -1156,6 +1157,7 @@
                 const data = PRODUCT_CATALOG[name] || null;
                 const modes = (data && data.modes) ? data.modes : {};
                 const $mode = $('#consultation_mode');
+                $('#consultation-mode-guidance').show();
 
                 $mode.empty().append('<option value="" disabled selected>{{ __("Sélectionner un mode de consultation") }}</option>');
                 $('#consultation-mode-section').toggle(Object.keys(modes).length > 0);
@@ -1195,6 +1197,7 @@
 
             // Mode change
             $('#consultation_mode').on('change', function () {
+                $('#consultation-mode-guidance').toggle(!$(this).val());
                 const name = $('#product_name').val();
                 const modeSlug = $(this).val();
 

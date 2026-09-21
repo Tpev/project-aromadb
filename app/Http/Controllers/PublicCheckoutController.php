@@ -24,14 +24,15 @@ class PublicCheckoutController extends Controller
             ->where('is_therapist', true)
             ->firstOrFail();
 
+        $privatePack = $request->attributes->get('private_pack');
         $packs = PackProduct::where('user_id', $therapist->id)
             ->where(function ($q) {
                 $q->whereNull('is_active')->orWhere('is_active', true);
             })
-            ->where(function ($q) {
+            ->when($privatePack, fn ($q) => $q->whereKey($privatePack->id), fn ($q) => $q->where(function ($q) {
                 $q->whereNull('visible_in_portal')->orWhere('visible_in_portal', '!=', false);
-            })
-            ->with(['items.product'])
+            }))
+            ->with(['items.product', 'digitalTrainings'])
             ->orderBy('name')
             ->get();
 
@@ -51,11 +52,11 @@ class PublicCheckoutController extends Controller
             $trainingsQuery->whereIn('status', ['published', 'active']);
         }
 
-        $trainings = $trainingsQuery->get();
+        $trainings = $privatePack ? collect() : $trainingsQuery->get();
 
         $selectedType = null;
         $selectedId = null;
-        $itemParam = (string) $request->query('item', '');
+        $itemParam = $privatePack ? 'pack:'.$privatePack->id : (string) $request->query('item', '');
         if (preg_match('/^(pack|training):(\d+)$/', $itemParam, $m)) {
             $selectedType = $m[1];
             $selectedId = (int) $m[2];
@@ -156,6 +157,7 @@ class PublicCheckoutController extends Controller
         }
 
         return view('packs.checkout', compact(
+            'privatePack',
             'therapist',
             'pack',
             'packs',
@@ -183,6 +185,11 @@ class PublicCheckoutController extends Controller
         $therapist = User::where('slug', $slug)
             ->where('is_therapist', true)
             ->firstOrFail();
+
+        $privatePack = $request->attributes->get('private_pack');
+        if ($privatePack && (!$therapist->stripe_account_id || !($stripeGuard->status($therapist)['ready'] ?? false))) {
+            return back()->withErrors(['payment' => 'Le paiement en ligne n’est pas disponible pour le moment. Contactez le praticien.'])->withInput();
+        }
 
         $request->validate([
             'item' => 'required|string',
@@ -243,7 +250,7 @@ class PublicCheckoutController extends Controller
                 ->with(['items.product'])
                 ->findOrFail($id);
 
-            abort_unless(($pack->is_active ?? true) && ($pack->visible_in_portal !== false), 404);
+            abort_unless(($pack->is_active ?? true) && ($privatePack ? ((int) $privatePack->id === (int) $pack->id && $pack->private_checkout_enabled) : $pack->visible_in_portal !== false), 404);
 
             $taxRate = (float) ($pack->tax_rate ?? 0);
             $amountHt = (float) ($pack->price ?? 0);
@@ -437,6 +444,10 @@ class PublicCheckoutController extends Controller
                     'payment_mode' => $paymentChoice === 'installments' ? 'installments' : 'one_time',
                 ];
 
+                if ($privatePack) {
+                    $metadata['private_pack_id'] = (string) $privatePack->id;
+                }
+
                 if ($type === 'pack' && isset($pack)) {
                     $metadata['pack_product_id'] = (string) $pack->id;
                 } elseif ($type === 'training') {
@@ -451,7 +462,6 @@ class PublicCheckoutController extends Controller
                     $metadata['installments_total'] = (string) $selectedPlan['count'];
 
                     $sessionData = [
-                        'payment_method_types' => ['card'],
                         'customer_email' => $request->email,
                         'mode' => 'subscription',
                         'line_items' => [[
@@ -473,7 +483,7 @@ class PublicCheckoutController extends Controller
                             'metadata' => $metadata,
                         ],
                         'success_url' => route('packs.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                        'cancel_url' => route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
+                        'cancel_url' => $privatePack ? route('packs.private.cancel', $privatePack->private_checkout_token) : route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
                     ];
 
                     $session = $stripe->checkout->sessions->create($sessionData, [
@@ -481,7 +491,6 @@ class PublicCheckoutController extends Controller
                     ]);
                 } else {
                     $session = $stripe->checkout->sessions->create([
-                        'payment_method_types' => ['card'],
                         'customer_email' => $request->email,
                         'line_items' => [[
                             'price_data' => [
@@ -494,7 +503,7 @@ class PublicCheckoutController extends Controller
                         'mode' => 'payment',
                         'metadata' => $metadata,
                         'success_url' => route('packs.checkout.success') . '?session_id={CHECKOUT_SESSION_ID}&account_id=' . $therapist->stripe_account_id,
-                        'cancel_url' => route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
+                        'cancel_url' => $privatePack ? route('packs.private.cancel', $privatePack->private_checkout_token) : route('packs.checkout.cancel') . ($purchase ? ('?purchase_id=' . $purchase->id) : ''),
                         'payment_intent_data' => [
                             'metadata' => $metadata,
                         ],

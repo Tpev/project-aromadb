@@ -22,6 +22,10 @@
     @endif
 </ul>
 
+@if(filled($a->cancellation_reason))
+<p><strong>Motif de l’annulation :</strong><br>{!! nl2br(e($a->cancellation_reason)) !!}</p>
+@endif
+
 @if($a->requiresFinancialFollowUp())
 <p><strong>À vérifier :</strong> ce rendez-vous comporte un paiement, une facture ou un bon cadeau. L’annulation n’a déclenché aucun remboursement ni recrédit automatique.</p>
 @endif

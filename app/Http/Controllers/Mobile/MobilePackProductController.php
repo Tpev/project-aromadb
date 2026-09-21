@@ -67,6 +67,7 @@ class MobilePackProductController extends Controller
                 'visible_in_portal' => $validated['visible_in_portal'],
                 'price_visible_in_portal' => $validated['price_visible_in_portal'],
                 'installments_enabled' => $validated['installments_enabled'],
+                'private_checkout_enabled' => (bool) ($validated['private_checkout_enabled'] ?? false),
                 'allowed_installments' => $validated['installments_enabled'] ? $validated['allowed_installments'] : null,
             ]);
 
@@ -139,6 +140,7 @@ class MobilePackProductController extends Controller
                 'visible_in_portal' => $validated['visible_in_portal'],
                 'price_visible_in_portal' => $validated['price_visible_in_portal'],
                 'installments_enabled' => $validated['installments_enabled'],
+                'private_checkout_enabled' => (bool) ($validated['private_checkout_enabled'] ?? $packProduct->private_checkout_enabled),
                 'allowed_installments' => $validated['installments_enabled'] ? $validated['allowed_installments'] : null,
             ]);
 
@@ -305,6 +307,7 @@ class MobilePackProductController extends Controller
             'visible_in_portal' => ['required', 'boolean'],
             'price_visible_in_portal' => ['required', 'boolean'],
             'installments_enabled' => ['required', 'boolean'],
+            'private_checkout_enabled' => ['sometimes', 'boolean'],
             'allowed_installments' => ['nullable', 'array'],
             'allowed_installments.*' => ['integer', 'min:2', 'max:12'],
             'items' => ['required', 'array', 'min:1'],

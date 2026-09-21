@@ -42,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
     {
 		 Carbon::setLocale('fr');
 		  Event::listen(MessageSending::class, AppointmentMailDeliveryGuard::class);
+          Event::listen(MessageSending::class, \App\Services\EventMailDeliveryGuard::class);
 		  // Queue workers are long-lived: close any cached SMTP transport between jobs.
 		  Queue::looping(static function (): void {
 		      Mail::purge();

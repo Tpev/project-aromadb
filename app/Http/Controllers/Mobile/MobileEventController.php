@@ -205,6 +205,8 @@ class MobileEventController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_date_time' => ['required', 'date'],
+            'confirmation_email_note' => ['nullable', 'string', 'max:2000'],
+            'reminder_email_note' => ['nullable', 'string', 'max:2000'],
             ...EventDuration::rules(),
             'booking_required' => ['required', 'boolean'],
             'limited_spot' => ['required', 'boolean'],

@@ -1,4 +1,5 @@
 <x-app-layout>
+
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -73,6 +74,7 @@
 
     <div class="container mt-6">
         <div class="am-shell p-4 md:p-6 space-y-5">
+            @include('pack_products.partials.private-link')
 
             @if(session('success'))
                 <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900">

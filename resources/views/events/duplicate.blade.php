@@ -332,6 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
+                @include('events.partials.email-notes')
+
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer le duplicata') }}</button>
                 <a href="{{ route('events.show', $event->id) }}" class="btn-secondary mt-4">{{ __('Annuler') }}</a>
             </form>

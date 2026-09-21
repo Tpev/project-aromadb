@@ -26,10 +26,18 @@ class Reservation extends Model
     ];
 
     protected $casts = [
+        'payment_confirmation_requested_at' => 'datetime',
         'amount_ttc' => 'float',
+        'confirmation_sent_at' => 'datetime',
+        'therapist_notification_sent_at' => 'datetime',
         'reminder_24h_sent_at' => 'datetime',
         'reminder_1h_sent_at'  => 'datetime',
     ];
+
+    public function isEmailEligible(): bool
+    {
+        return $this->event !== null && in_array($this->status, ['confirmed', 'paid'], true);
+    }
 
     public function event()
     {

@@ -323,7 +323,7 @@ public function success(Request $request)
     {
         $payload = $request->getContent();
         $sig_header = $request->header('Stripe-Signature');
-        $endpoint_secret = env('STRIPE_WEBHOOK_SECRET');
+        $endpoint_secret = config('services.stripe.webhook');
         $connectedAccountId = (string) $request->header('Stripe-Account', '');
 
         try {
@@ -338,7 +338,7 @@ public function success(Request $request)
             return response('Invalid signature', 400);
         }
 
-        if ($connectedAccountId === '' && !empty($event->account)) {
+        if (!empty($event->account)) {
             $connectedAccountId = (string) $event->account;
         }
 
@@ -349,6 +349,10 @@ public function success(Request $request)
                 'event_type' => $event->type ?? null,
                 'event_id' => $event->id ?? null,
             ]);
+        }
+
+        if (app(\App\Services\EventPaymentService::class)->handleWebhook($event, $connectedAccountId)) {
+            return response('Webhook handled', 200);
         }
 
         if (app(StripePurchaseWebhookService::class)->handleEvent($event, $connectedAccountId)) {

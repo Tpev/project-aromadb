@@ -74,7 +74,7 @@ test('client can cancel a future appointment from the patient link', function ()
         'appointment_date' => now()->addHours(30),
     ]);
 
-    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token));
+    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel']);
 
     $response->assertRedirect(route('appointments.showPatient', $appointment->token));
 
@@ -98,7 +98,7 @@ test('client cancellation is blocked when the cutoff window is exceeded', functi
         'appointment_date' => now()->addHours(2),
     ]);
 
-    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token));
+    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel']);
 
     $response->assertRedirect(route('appointments.showPatient', $appointment->token));
     $response->assertSessionHas('error');

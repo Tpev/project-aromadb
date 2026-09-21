@@ -48,6 +48,7 @@ test('normal and partner bookings require an email address and phone number', fu
     $therapist = User::factory()->create([
         'is_therapist' => true,
         'accept_online_appointments' => true,
+        'booking_phone_required' => true,
     ]);
 
     $product = Product::create([

@@ -93,7 +93,6 @@ public function store(Request $request, $eventId)
 
         try {
             $session = $stripe->checkout->sessions->create([
-                'payment_method_types' => ['card'],
                 'mode' => 'payment',
 
                 'line_items' => [[
@@ -113,6 +112,8 @@ public function store(Request $request, $eventId)
 
                 'cancel_url' => route('reservations.payment_cancel')
                     . '?reservation_id=' . $reservation->id,
+
+                'metadata' => ['reservation_id' => (string) $reservation->id, 'event_id' => (string) $event->id],
 
                 // Metadata is on PaymentIntent (easy to retrieve on success)
                 'payment_intent_data' => [
@@ -265,33 +266,17 @@ public function paymentSuccess(Request $request)
             return redirect()->route('welcome')->with('error', "Réservation introuvable.");
         }
 
-        // Idempotent
-        if ($reservation->status === 'paid') {
-            return redirect()->route('reservations.success', $reservation->event->id);
+        $confirmed = app(\App\Services\EventPaymentService::class)->confirm(
+            $reservation->id,
+            (string) $account_id,
+            (int) ($session->amount_total ?? 0),
+            (string) ($session->currency ?? ''),
+            (string) $paymentIntent->id,
+            (string) $session->id,
+        );
+        if (!$confirmed) {
+            return redirect()->route('welcome')->with('error', 'Le paiement ne correspond pas à cette réservation. Contactez le praticien.');
         }
-
-        // ✅ Mark paid
-        $reservation->status = 'paid';
-        $reservation->stripe_payment_intent_id = $paymentIntent->id;
-
-        // Optional safety: ensure amount matches expectation (only if amount_ttc is set)
-        // $paidAmount = (int) ($session->amount_total ?? 0); // cents
-        // if ($reservation->amount_ttc !== null && $paidAmount > 0) {
-        //     $expected = (int) round(((float)$reservation->amount_ttc) * 100);
-        //     if ($paidAmount !== $expected) {
-        //         Log::warning('Reservation amount mismatch', [
-        //             'reservation_id' => $reservation->id,
-        //             'expected' => $expected,
-        //             'paid' => $paidAmount,
-        //         ]);
-        //     }
-        // }
-
-        $reservation->save();
-
-        // Emails AFTER payment
-        Mail::to($reservation->email)->queue(new ReservationConfirmation($reservation));
-        Mail::to($reservation->event->user->email)->queue(new NewReservationNotification($reservation));
 
         return redirect()->route('reservations.success', $reservation->event->id);
 

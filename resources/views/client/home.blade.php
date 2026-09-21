@@ -101,10 +101,7 @@ window.addEventListener('DOMContentLoaded', () => {
                             <a href="{{ route('client.appointments.show', $appointment) }}" class="inline-flex min-h-10 items-center rounded-md bg-[#647a0b] px-3 py-2 font-semibold text-white">Voir</a>
                             @if($appointment->canBeManagedOnline())
                                 <a href="{{ route('client.appointments.reschedule', $appointment) }}" class="inline-flex min-h-10 items-center rounded-md border border-[#647a0b] px-3 py-2 font-semibold text-[#526508]">Modifier</a>
-                                <form method="POST" action="{{ route('client.appointments.cancel', $appointment) }}" onsubmit="return confirm('Confirmer l’annulation de ce rendez-vous ?');">
-                                    @csrf
-                                    <button type="submit" class="inline-flex min-h-10 items-center rounded-md border border-[#a5513b] px-3 py-2 font-semibold text-[#934832]">Annuler</button>
-                                </form>
+                                <a href="{{ route('client.appointments.show', $appointment) }}#cancellation_reason" class="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#a5513b] px-3 py-2 text-sm font-semibold text-[#934832]">Annuler</a>
                             @endif
                         </span>
                     </li>

@@ -358,6 +358,8 @@
                     </p>
                 </div>
 
+                @include('events.partials.email-notes')
+
                 <button type="submit" class="btn-primary mt-4">{{ __('Créer l\'Événement') }}</button>
 
             </form>

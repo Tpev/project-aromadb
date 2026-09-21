@@ -205,6 +205,8 @@
                     </label>
                 </div>
 
+                @include('appointments.partials.booking-phone-setting')
+
                 @if(app(\App\Support\BookingV2Access::class)->enabledFor($user))
                     <div class="mt-4 space-y-3 border-t border-[#e4e8d5] pt-4"
                          x-data="{ bookingMode: @js(old('booking_schedule_mode', $user->booking_schedule_mode ?: 'legacy')) }">

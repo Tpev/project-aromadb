@@ -1,4 +1,5 @@
 <x-app-layout>
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Détails du Rendez-vous') }} - {{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}
@@ -7,6 +8,7 @@
 
     <div class="container-fluid mt-5">
         <div class="details-container p-4">
+            @include('appointments.partials.cancellation-reason-details')
             <h1 class="details-title">
                 <i class="fas fa-calendar-alt"></i>
                 {{ __('Rendez-vous avec ') }}{{ $appointment->clientProfile->first_name }} {{ $appointment->clientProfile->last_name }}

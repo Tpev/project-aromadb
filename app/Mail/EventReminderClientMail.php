@@ -30,8 +30,17 @@ class EventReminderClientMail extends Mailable implements ShouldQueue
         $this->timingLabel = $timingLabel;
     }
 
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(text: [
+            \App\Services\EventMailDeliveryGuard::RESERVATION_HEADER => (string) $this->reservation->id,
+            \App\Services\EventMailDeliveryGuard::MESSAGE_HEADER => 'reminder:'.$this->timingLabel,
+        ]);
+    }
+
     public function build()
     {
+        $this->event = $this->event->fresh(['user', 'associatedProduct']) ?? $this->event;
         $subject = match ($this->timingLabel) {
             '1h' => 'Rappel : votre événement commence dans 1 heure',
             default => 'Rappel : votre événement approche',

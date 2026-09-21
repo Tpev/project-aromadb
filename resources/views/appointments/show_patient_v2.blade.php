@@ -113,10 +113,7 @@
 
                         <form method="POST" action="{{ route('appointment.confirmation.cancel', $appointment->token) }}" onsubmit="return confirm('Confirmer l’annulation de ce rendez-vous ?');">
                             @csrf
-                            <div class="appointment-reason">
-                                <label for="cancellation_reason">Motif facultatif, sans information médicale</label>
-                                <input id="cancellation_reason" name="cancellation_reason" maxlength="500" placeholder="Ex. : empêchement personnel">
-                            </div>
+                            @include('appointments.partials.cancellation-reason')
                             <div class="appointment-actions"><button class="appointment-button danger" type="submit">Annuler le rendez-vous</button></div>
                         </form>
 

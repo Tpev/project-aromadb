@@ -5,6 +5,10 @@
 Votre réservation est bien enregistrée ✅  
 Voici les informations pour l’événement **{{ $event->name }}**.
 
+@if(filled($event->confirmation_email_note))
+<div style="margin:16px 0;padding:12px 16px;border-left:4px solid #647a0b;">{!! \App\Support\EmailNote::html($event->confirmation_email_note) !!}</div>
+@endif
+
 ---
 
 ## Détails de l’événement

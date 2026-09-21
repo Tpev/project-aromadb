@@ -19,6 +19,8 @@ protected $fillable = [
     'user_id',
     'name',
     'description',
+    'confirmation_email_note',
+    'reminder_email_note',
     'start_date_time',
     'duration',
     'end_date_time',

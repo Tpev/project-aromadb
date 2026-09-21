@@ -287,6 +287,8 @@
             </section>
         </div>
 
+        @include('events.partials.email-notes')
+
         <div class="fixed bottom-0 left-0 z-50 w-full border-t border-[#e4e8d5] bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-lg backdrop-blur">
             <div class="mx-auto grid max-w-lg grid-cols-2 gap-2">
                 <a href="{{ $event->exists ? route('mobile.events.show', $event) : route('mobile.events.index') }}"

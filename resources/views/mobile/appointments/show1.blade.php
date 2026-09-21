@@ -35,6 +35,7 @@
 
 <x-mobile-layout :title="__('Détails du rendez-vous')">
     <div class="px-4 pt-4 pb-24 space-y-4">
+        @include('appointments.partials.cancellation-reason-details')
 
         {{-- Top header card --}}
         <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">

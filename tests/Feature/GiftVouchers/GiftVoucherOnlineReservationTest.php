@@ -131,7 +131,7 @@ test('gift voucher reservation is released only after secure appointment cancell
     ]));
     $paymentReturn->assertRedirect(route('appointments.showPatient', $appointment->token));
 
-    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token));
+    $response = $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel']);
     $response->assertRedirect(route('appointments.showPatient', $appointment->token));
     $this->assertDatabaseHas('appointments', [
         'id' => $appointment->id,

@@ -222,6 +222,10 @@ class ProfileController extends Controller
         $user->share_email_publicly   = $request->has('share_email_publicly');
         $user->share_phone_publicly   = $request->has('share_phone_publicly');
         $user->accept_online_appointments = $request->has('accept_online_appointments');
+        if ($request->has('booking_phone_required')) {
+            $request->validate(['booking_phone_required' => ['required', 'boolean']]);
+            $user->booking_phone_required = $request->boolean('booking_phone_required');
+        }
 
         // Update company information except 'services'
         $user->fill([
@@ -408,6 +412,10 @@ class ProfileController extends Controller
         $user->share_email_publicly   = $request->has('share_email_publicly');
         $user->share_phone_publicly   = $request->has('share_phone_publicly');
         $user->accept_online_appointments = $request->has('accept_online_appointments');
+        if ($request->has('booking_phone_required')) {
+            $request->validate(['booking_phone_required' => ['required', 'boolean']]);
+            $user->booking_phone_required = $request->boolean('booking_phone_required');
+        }
 
         $user->fill([
             'company_name' => $validatedData['company_name'],

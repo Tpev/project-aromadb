@@ -82,6 +82,10 @@ class MobileProfileController extends Controller
         $user->share_email_publicly = $request->boolean('share_email_publicly');
         $user->share_phone_publicly = $request->boolean('share_phone_publicly');
         $user->accept_online_appointments = $request->boolean('accept_online_appointments');
+        if ($request->has('booking_phone_required')) {
+            $request->validate(['booking_phone_required' => ['required', 'boolean']]);
+            $user->booking_phone_required = $request->boolean('booking_phone_required');
+        }
 
         if (app(\App\Support\BookingV2Access::class)->enabledFor($user)) {
             $user->booking_schedule_mode = $validated['booking_schedule_mode'] ?? 'legacy';

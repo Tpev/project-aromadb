@@ -224,7 +224,8 @@
             </section>
 
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
-                <label class="flex items-start justify-between gap-4 rounded-lg bg-[#f7f8f1] px-3 py-3">
+                @include('pack_products.partials.private-link', ['editable' => true])
+                    <label class="flex items-start justify-between gap-4 rounded-lg bg-[#f7f8f1] px-3 py-3">
                     <span>
                         <span class="block text-sm font-semibold text-gray-900">Paiement en plusieurs fois</span>
                         <span class="mt-0.5 block text-xs leading-snug text-gray-500">Autoriser des echeances client sur le portail.</span>

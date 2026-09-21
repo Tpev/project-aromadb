@@ -1,6 +1,7 @@
 {{-- resources/views/packs/checkout.blade.php --}}
 
 @php
+    $privatePack = $privatePack ?? null;
     $packs = $packs ?? collect();
     $trainings = $trainings ?? collect();
 
@@ -10,7 +11,7 @@
     $therapistName = $therapist->company_name ?? $therapist->name;
 
     // Canonical checkout route (no pack in URL)
-    $currentCheckoutUrl = route('public.checkout.show', ['slug' => $therapist->slug]);
+    $currentCheckoutUrl = $privatePack ? route('packs.private.show', $privatePack->private_checkout_token) : route('public.checkout.show', ['slug' => $therapist->slug]);
 
     $isPack = ($selectedType === 'pack');
     $currentItemValue = $selectedId ? ($selectedType . ':' . (int) $selectedId) : null;
@@ -32,7 +33,7 @@
 
     <style>
         :root { --brand:#647a0b; --brown:#854f38; --bg:#f9f9f9; }
-        .container { max-width: 900px; }
+        .container { max-width: 900px; width:100%; margin-left:auto; margin-right:auto; padding-left:16px; padding-right:16px; }
         .details-container{
             background:var(--bg); border-radius:14px; padding:22px;
             box-shadow:0 10px 25px rgba(0,0,0,.08);
@@ -75,11 +76,12 @@
             </h1>
 
             <p class="subtle">
-                {{ __('Paiement sécurisé — vous recevrez un email avec les informations et l’accès après confirmation.') }}
+                {{ __('Un accompagnement proposé par :name.', ['name' => $therapistName]) }}
             </p>
 
             {{-- Item selector --}}
             <div class="card-soft">
+                @unless($privatePack)
                 <label class="details-label" for="item">
                     {{ __('Choisir un achat') }}
                 </label>
@@ -126,6 +128,19 @@
                 <p class="hint mt-2">
                     {{ __('Vous pouvez acheter un pack ou une formation digitale. Le prix affiché correspond à la sélection en cours.') }}
                 </p>
+
+                @endunless
+                @if($isPack && filled($pack->description))
+                    <div class="my-4 whitespace-pre-line text-slate-700">{{ $pack->description }}</div>
+                @endif
+                @if($isPack && $pack->digitalTrainings->isNotEmpty())
+                    <div class="my-4">
+                        <strong>{{ __('Formations incluses') }}</strong>
+                        <ul class="list-disc pl-5">
+                            @foreach($pack->digitalTrainings as $includedTraining)<li>{{ $includedTraining->title }}</li>@endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 {{-- Summary --}}
                 @if($isPack)
@@ -181,6 +196,12 @@
                 @endif
             </div>
 
+            @foreach(['success', 'warning', 'error'] as $notice)
+                @if(session($notice))<p class="my-4 rounded-lg border border-[#dfe6c7] bg-white p-4" role="status">{{ session($notice) }}</p>@endif
+            @endforeach
+            @if($privatePack && !$stripeReady)
+                <p class="my-4 rounded-lg bg-amber-50 p-4 text-amber-900" role="status">{{ __('Le paiement en ligne n’est pas disponible pour le moment. Contactez le praticien.') }}</p>
+            @endif
             {{-- Checkout form --}}
             <div class="mt-6 card-soft">
                 @if($errors->any())
@@ -190,7 +211,7 @@
                     </div>
                 @endif
 
-                <form class="mt-4" method="POST" action="{{ route('public.checkout.store', ['slug' => $therapist->slug]) }}">
+                <form class="mt-4" method="POST" action="{{ $privatePack ? route('packs.private.store', $privatePack->private_checkout_token) : route('public.checkout.store', ['slug' => $therapist->slug]) }}">
                     @csrf
 
                     {{-- IMPORTANT: the selected item is posted --}}
@@ -224,7 +245,7 @@
                                     @endforeach
                                 </select>
                                 <p class="hint mt-2">
-                                    {{ __("Chaque mensualité est identique pour que Stripe accepte le paiement. Si le montant ne tombe pas juste, le total est légèrement inférieur de quelques centimes.") }}
+                                    {{ __("Paiement en mensualités égales, selon l’échéancier choisi ci-dessus.") }}
                                 </p>
                             </div>
 
@@ -291,7 +312,7 @@
                     @error('payment') <div class="text-red-500 mt-3">{{ $message }}</div> @enderror
 
                     <div class="mt-5 flex flex-wrap gap-3 justify-center">
-                        <button type="submit" class="btn-primary">
+                        <button type="submit" class="btn-primary" @disabled($privatePack && !$stripeReady)>
                             <i class="fas fa-lock"></i>
                             {{ __('Payer') }}
                         </button>

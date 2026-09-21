@@ -78,6 +78,8 @@ class MobileAppointmentController extends Controller
      */
     public function store(Request $request)
     {
+        $bookingTherapistId = filter_var($request->input('therapist_id'), FILTER_VALIDATE_INT);
+        $requiresPhone = $bookingTherapistId !== false && (bool) User::find($bookingTherapistId)?->booking_phone_required;
         // Messages d'erreur personnalisés
         $messages = [
             'therapist_id.required'   => 'Le professionnel est requis.',
@@ -93,11 +95,11 @@ class MobileAppointmentController extends Controller
 
         // Validation de base
         $request->validate([
-            'therapist_id'     => 'required|exists:users,id',
+            'therapist_id'     => 'bail|required|integer|exists:users,id',
             'first_name'       => 'required|string|max:255',
             'last_name'        => 'required|string|max:255',
             'email'            => 'nullable|email|max:255',
-            'phone'            => 'nullable|string|max:20',
+            'phone'            => [Rule::requiredIf($requiresPhone), 'nullable', 'string', 'max:20'],
             'address'          => 'nullable|string',
             'birthdate'        => 'nullable|date',
             'appointment_date' => 'required|date',

@@ -7,8 +7,6 @@ use App\Models\PackProduct;
 use App\Models\PackPurchase;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Schema;
 use Stripe\StripeClient;
 
 class PublicPackCheckoutController extends Controller
@@ -45,59 +43,32 @@ class PublicPackCheckoutController extends Controller
         ]);
 
         $paid = (($session->payment_status ?? null) === 'paid');
-        $meta = (array) ($session->metadata ?? []);
+        $meta = $session->metadata?->toArray() ?? [];
         if (empty($meta)) {
-            $meta = (array) ($session->payment_intent->metadata ?? []);
+            $meta = is_object($session->payment_intent) ? ($session->payment_intent->metadata?->toArray() ?? []) : [];
         }
 
         $purchaseKind = $meta['purchase_kind'] ?? 'pack';
-        $paymentMode = $meta['payment_mode'] ?? 'one_time';
 
         if (!empty($meta['pack_purchase_id'])) {
-            $purchase = PackPurchase::find((int) $meta['pack_purchase_id']);
-            if ($purchase) {
-                if ($paymentMode === 'installments') {
-                    $payload = [
-                        'status' => $paid ? 'active' : 'pending',
-                    ];
-
-                    if (Schema::hasColumn('pack_purchases', 'stripe_subscription_id')) {
-                        $payload['stripe_subscription_id'] = (string) ($session->subscription->id ?? $session->subscription ?? '');
-                    }
-                    if (Schema::hasColumn('pack_purchases', 'stripe_customer_id')) {
-                        $payload['stripe_customer_id'] = (string) ($session->customer ?? '');
-                    }
-                    if (Schema::hasColumn('pack_purchases', 'payment_state')) {
-                        $payload['payment_state'] = $paid ? 'active' : 'pending';
-                    }
-                    if ($paid && Schema::hasColumn('pack_purchases', 'activated_at')) {
-                        $payload['activated_at'] = Carbon::now();
-                    }
-                    if ($paid && Schema::hasColumn('pack_purchases', 'purchased_at')) {
-                        $payload['purchased_at'] = $purchase->purchased_at ?: Carbon::now();
-                    }
-
-                    $purchase->update($payload);
-                } else {
-                    $payload = [
-                        'status' => $paid ? 'active' : 'failed',
-                        'purchased_at' => $paid ? Carbon::now() : null,
-                    ];
-                    if (Schema::hasColumn('pack_purchases', 'payment_state')) {
-                        $payload['payment_state'] = $paid ? 'completed' : 'failed';
-                    }
-                    if ($paid && Schema::hasColumn('pack_purchases', 'activated_at')) {
-                        $payload['activated_at'] = Carbon::now();
-                    }
-                    if ($paid && Schema::hasColumn('pack_purchases', 'completed_at')) {
-                        $payload['completed_at'] = Carbon::now();
-                    }
-                    $purchase->update($payload);
+            $purchase = PackPurchase::with('user')->findOrFail((int) $meta['pack_purchase_id']);
+            abort_unless($purchase->user && hash_equals((string) $purchase->user->stripe_account_id, $accountId), 404);
+            abort_unless(!$purchase->stripe_session_id || hash_equals($purchase->stripe_session_id, $sessionId), 404);
+            if ($paid) {
+                $fulfilled = app(\App\Services\StripePurchaseWebhookService::class)->fulfillCheckoutSession($session, $accountId);
+                if (!$fulfilled) {
+                    return redirect()->route('therapist.show', $purchase->user->slug)
+                        ->with('warning', 'Le paiement a été reçu. Contactez le praticien pour vérifier votre achat.');
                 }
+            }
+        }
 
-                if ($paid && $purchaseKind === 'pack') {
-                    app(\App\Services\PackDigitalTrainingAccessService::class)->grant($purchase->fresh());
-                }
+        if (!empty($meta['private_pack_id'])) {
+            $privatePack = PackProduct::find((int) $meta['private_pack_id']);
+            if ($privatePack && (int) $privatePack->user_id === (int) ($meta['therapist_id'] ?? 0)
+                && $privatePack->private_checkout_enabled && $privatePack->is_active) {
+                return redirect()->route('packs.private.show', $privatePack->private_checkout_token)
+                    ->with($paid ? 'success' : 'warning', $paid ? 'Paiement confirmé. Votre achat est enregistré.' : 'La confirmation du paiement est en cours.');
             }
         }
 
@@ -134,24 +105,20 @@ class PublicPackCheckoutController extends Controller
         if ($purchaseId > 0) {
             $purchase = PackPurchase::find($purchaseId);
             if ($purchase && in_array($purchase->status, ['pending', 'failed'], true)) {
-                $payload = ['status' => 'cancelled'];
-                if (Schema::hasColumn('pack_purchases', 'payment_state')) {
-                    $payload['payment_state'] = 'canceled';
-                }
-                $purchase->update($payload);
-                app(\App\Services\PackDigitalTrainingAccessService::class)->revoke($purchase);
+                // A browser return is not proof that Stripe cancelled the payment.
+                // Keep this purchase fulfillable if its verified payment arrives later.
 
                 $therapist = User::find($purchase->user_id);
                 if ($therapist?->slug) {
                     return redirect()->route('therapist.show', $therapist->slug)
-                        ->with('success', 'Paiement annulé.');
+                        ->with('warning', 'Paiement interrompu. Vous pouvez réessayer.');
                 }
 
                 return redirect('/')
-                    ->with('success', 'Paiement annulé.');
+                    ->with('warning', 'Paiement interrompu.');
             }
         }
 
-        return redirect('/')->with('success', 'Paiement annulé.');
+        return redirect('/')->with('warning', 'Paiement interrompu.');
     }
 }

@@ -90,6 +90,8 @@
                 </label>
             </div>
 
+            @include('pack_products.partials.private-link', ['editable' => true])
+
             {{-- Installments --}}
             <div class="rounded-xl border border-slate-200 p-4">
                 <div class="flex items-center justify-between gap-3">

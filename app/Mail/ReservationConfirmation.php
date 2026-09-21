@@ -39,8 +39,17 @@ class ReservationConfirmation extends Mailable
     /**
      * Build the message.
      */
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(text: [
+            \App\Services\EventMailDeliveryGuard::RESERVATION_HEADER => (string) $this->reservation->id,
+            \App\Services\EventMailDeliveryGuard::MESSAGE_HEADER => 'confirmation',
+        ]);
+    }
+
     public function build()
     {
+        $this->event = $this->event->fresh(['user', 'associatedProduct']) ?? $this->event;
         return $this->applyPractitionerReplyTo($this->event?->user)
             ->subject('Confirmation de votre réservation')
             ->markdown('emails.reservation_confirmation', [

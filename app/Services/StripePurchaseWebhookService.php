@@ -30,7 +30,7 @@ class StripePurchaseWebhookService
             return false;
         }
 
-        if ($type === 'checkout.session.completed') {
+        if (in_array($type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded'], true)) {
             $meta = $this->extractMetadata($object);
             $purchaseKind = (string) ($meta['purchase_kind'] ?? '');
 
@@ -54,7 +54,7 @@ class StripePurchaseWebhookService
                 return true;
             }
 
-            $handled = $this->handleCheckoutSessionCompleted($object, $connectedAccountId);
+            $handled = $this->fulfillCheckoutSession($object, $connectedAccountId);
             if ($handled) {
                 $this->markProcessed($eventId, $type, $connectedAccountId);
             }
@@ -79,16 +79,19 @@ class StripePurchaseWebhookService
 
         if ($type === 'invoice.payment_failed') {
             $purchase = $this->resolvePurchaseFromInvoice($object, $connectedAccountId);
-            if (!$purchase) {
+            if (!$purchase || !$this->accountMatchesPurchase($purchase, $connectedAccountId)) {
                 return false;
             }
             if ($this->alreadyProcessed($eventId)) {
                 return true;
             }
 
-            $purchase->update([
-                'payment_state' => 'past_due',
-            ]);
+            // A delayed failure event must not undo a subsequently paid invoice.
+            if (!$this->installmentsComplete($purchase)
+                && !in_array($purchase->status, ['cancelled', 'revoked'], true)
+                && !PurchaseInstallment::where('pack_purchase_id', $purchase->id)->where('stripe_invoice_id', (string) ($object->id ?? ''))->exists()) {
+                $purchase->update(['payment_state' => 'past_due']);
+            }
             $this->markProcessed($eventId, $type, $connectedAccountId);
             return true;
         }
@@ -100,10 +103,16 @@ class StripePurchaseWebhookService
             }
 
             $purchase = PackPurchase::where('stripe_subscription_id', $subscriptionId)->first();
-            if (!$purchase) {
+            if (!$purchase || !$this->accountMatchesPurchase($purchase, $connectedAccountId)) {
                 return false;
             }
             if ($this->alreadyProcessed($eventId)) {
+                return true;
+            }
+
+            // Ending the billing schedule after its last payment is not revocation.
+            if ($this->installmentsComplete($purchase)) {
+                $this->markProcessed($eventId, $type, $connectedAccountId);
                 return true;
             }
 
@@ -140,10 +149,15 @@ class StripePurchaseWebhookService
             }
 
             $purchase = PackPurchase::where('stripe_subscription_id', $subscriptionId)->first();
-            if (!$purchase) {
+            if (!$purchase || !$this->accountMatchesPurchase($purchase, $connectedAccountId)) {
                 return false;
             }
             if ($this->alreadyProcessed($eventId)) {
+                return true;
+            }
+
+            if ($this->installmentsComplete($purchase)) {
+                $this->markProcessed($eventId, $type, $connectedAccountId);
                 return true;
             }
 
@@ -208,7 +222,22 @@ class StripePurchaseWebhookService
         return true;
     }
 
-    private function handleCheckoutSessionCompleted(object $session, ?string $connectedAccountId): bool
+    public function fulfillCheckoutSession(object $session, ?string $connectedAccountId): bool
+    {
+        // Serialize browser-return and webhook fulfillment for the same purchase.
+        $handled = DB::transaction(fn () => $this->fulfillLockedCheckoutSession($session, $connectedAccountId));
+        if ($handled && ($session->payment_status ?? null) === 'paid') {
+            $purchase = PackPurchase::find((int) ($this->extractMetadata($session)['pack_purchase_id'] ?? 0));
+            if ($purchase) {
+                // The accounting transaction must succeed before access emails leave.
+                $this->digitalTrainingAccessService->grant($purchase);
+            }
+        }
+
+        return $handled;
+    }
+
+    private function fulfillLockedCheckoutSession(object $session, ?string $connectedAccountId): bool
     {
         $meta = $this->extractMetadata($session);
         $purchaseId = isset($meta['pack_purchase_id']) ? (int) $meta['pack_purchase_id'] : 0;
@@ -216,7 +245,7 @@ class StripePurchaseWebhookService
             return false;
         }
 
-        $purchase = PackPurchase::find($purchaseId);
+        $purchase = PackPurchase::lockForUpdate()->find($purchaseId);
         if (!$purchase) {
             return false;
         }
@@ -225,13 +254,23 @@ class StripePurchaseWebhookService
             return false;
         }
 
+        if (($purchase->stripe_session_id && $purchase->stripe_session_id !== (string) ($session->id ?? ''))
+            || in_array($purchase->status, ['cancelled', 'revoked'], true)
+            || ($purchase->payment_state ?? null) === 'canceled') {
+            return false;
+        }
+        // Unpaid/delayed sessions must never grant access or overwrite a paid state.
+        if (($session->payment_status ?? null) !== 'paid') {
+            return true;
+        }
+
         $paymentMode = (string) ($meta['payment_mode'] ?? 'one_time');
         $paid = (($session->payment_status ?? null) === 'paid');
 
         if ($paymentMode === 'installments') {
             $payload = [
-                'status' => $paid ? 'active' : 'pending',
-                'payment_state' => $paid ? 'active' : 'pending',
+                'status' => in_array($purchase->status, ['pending', 'failed'], true) ? 'active' : $purchase->status,
+                'payment_state' => in_array($purchase->payment_state, [null, 'pending', 'failed'], true) ? 'active' : $purchase->payment_state,
             ];
 
             if (!empty($session->subscription)) {
@@ -253,26 +292,20 @@ class StripePurchaseWebhookService
 
             $purchase->update($payload);
 
-            if ($paid) {
-                $this->digitalTrainingAccessService->grant($purchase->fresh());
-            }
-
             // Create/refresh the invoice shell early so therapist sees it immediately.
             $this->purchaseInvoicingService->ensureInvoiceForPurchase($purchase->fresh());
             return true;
         }
 
         $purchase->update([
-            'status' => $paid ? 'active' : 'failed',
+            'status' => in_array($purchase->status, ['pending', 'failed'], true) ? 'active' : $purchase->status,
             'payment_state' => $paid ? 'completed' : 'failed',
-            'purchased_at' => $paid ? Carbon::now() : null,
-            'activated_at' => $paid ? Carbon::now() : null,
-            'completed_at' => $paid ? Carbon::now() : null,
+            'purchased_at' => $purchase->purchased_at ?: Carbon::now(),
+            'activated_at' => $purchase->activated_at ?: Carbon::now(),
+            'completed_at' => $purchase->completed_at ?: Carbon::now(),
         ]);
 
         if ($paid) {
-            $this->digitalTrainingAccessService->grant($purchase->fresh());
-
             $providerReference = !empty($session->payment_intent)
                 ? (is_object($session->payment_intent)
                     ? (string) ($session->payment_intent->id ?? '')
@@ -318,12 +351,19 @@ class StripePurchaseWebhookService
             &$sequenceNumber,
             &$installmentCreated
         ) {
-            if ($invoiceId !== '' && PurchaseInstallment::where('stripe_invoice_id', $invoiceId)->exists()) {
+            $locked = PackPurchase::query()->lockForUpdate()->find($purchase->id);
+            if (!$locked) {
                 return;
             }
 
-            $locked = PackPurchase::query()->lockForUpdate()->find($purchase->id);
-            if (!$locked) {
+            // Check under the purchase lock. Retried events must finish accounting
+            // and schedule cancellation even when the installment already exists.
+            $existing = $invoiceId !== '' ? PurchaseInstallment::where('stripe_invoice_id', $invoiceId)->first() : null;
+            if ($existing) {
+                if ((int) $existing->pack_purchase_id === (int) $locked->id) {
+                    $sequenceNumber = $existing->sequence_number;
+                    $installmentCreated = true;
+                }
                 return;
             }
 
@@ -351,7 +391,7 @@ class StripePurchaseWebhookService
 
             $newPaidCount = ((int) ($locked->installments_paid ?? 0)) + 1;
             $updates = [
-                'status' => 'active',
+                'status' => in_array($locked->status, ['pending', 'failed'], true) ? 'active' : $locked->status,
                 'payment_state' => 'active',
                 'installments_paid' => $newPaidCount,
                 'purchased_at' => $locked->purchased_at ?: Carbon::now(),
@@ -371,7 +411,6 @@ class StripePurchaseWebhookService
         }
 
         $purchase->refresh();
-        $this->digitalTrainingAccessService->grant($purchase);
 
         $paidAt = null;
         if (!empty($invoice->status_transitions?->paid_at)) {
@@ -386,6 +425,8 @@ class StripePurchaseWebhookService
             (int) ($purchase->installments_total ?? 0),
             $paidAt
         );
+
+        $this->digitalTrainingAccessService->grant($purchase);
 
         if (
             ($purchase->payment_mode === 'installments')
@@ -406,6 +447,8 @@ class StripePurchaseWebhookService
                     'subscription_id' => $purchase->stripe_subscription_id,
                     'error' => $e->getMessage(),
                 ]);
+                // Leave the webhook unprocessed so Stripe can retry stopping billing.
+                throw $e;
             }
         }
 
@@ -428,41 +471,50 @@ class StripePurchaseWebhookService
             $stripe = new StripeClient((string) config('services.stripe.secret'));
             $options = $connectedAccountId ? ['stripe_account' => $connectedAccountId] : [];
             $subscription = $stripe->subscriptions->retrieve($subscriptionId, [], $options);
-            $meta = (array) ($subscription->metadata ?? []);
+            $meta = $this->extractMetadata($subscription);
             $purchaseId = isset($meta['pack_purchase_id']) ? (int) $meta['pack_purchase_id'] : 0;
             if ($purchaseId <= 0) {
                 return null;
             }
 
             $purchase = PackPurchase::find($purchaseId);
-            if (!$purchase) {
+            if (!$purchase || !$this->accountMatchesPurchase($purchase, $connectedAccountId)) {
                 return null;
             }
 
             if (!$purchase->stripe_subscription_id) {
-                $purchase->stripe_subscription_id = $subscriptionId;
-                $purchase->save();
+                PackPurchase::whereKey($purchase->id)->whereNull('stripe_subscription_id')->update(['stripe_subscription_id' => $subscriptionId]);
+                $purchase->refresh();
             }
 
-            return $purchase;
+            return $purchase->stripe_subscription_id === $subscriptionId ? $purchase : null;
         } catch (\Throwable $e) {
             Log::warning('Unable to resolve purchase from Stripe invoice subscription', [
                 'subscription_id' => $subscriptionId,
                 'error' => $e->getMessage(),
             ]);
-            return null;
+            throw $e;
         }
+    }
+
+    private function installmentsComplete(PackPurchase $purchase): bool
+    {
+        return $purchase->payment_mode === 'installments'
+            && (int) $purchase->installments_total > 0
+            && (int) $purchase->installments_paid >= (int) $purchase->installments_total;
     }
 
     private function extractMetadata(object $source): array
     {
-        $meta = (array) ($source->metadata ?? []);
+        $metadata = $source->metadata ?? [];
+        $meta = $metadata instanceof \Stripe\StripeObject ? $metadata->toArray() : (array) $metadata;
         if (!empty($meta)) {
             return $meta;
         }
 
         if (!empty($source->payment_intent) && is_object($source->payment_intent)) {
-            return (array) ($source->payment_intent->metadata ?? []);
+            $metadata = $source->payment_intent->metadata ?? [];
+            return $metadata instanceof \Stripe\StripeObject ? $metadata->toArray() : (array) $metadata;
         }
 
         return [];

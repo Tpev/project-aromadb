@@ -161,6 +161,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/communautes/{community}/salons/{channel}/epingler', [CommunityMessageController::class, 'unpin'])->name('communities.channels.unpin');
     Route::get('/communautes/fichiers/{attachment}', [CommunityAttachmentController::class, 'downloadForPractitioner'])->name('communities.attachments.download');
 });
+Route::get('/p/{token}', [\App\Http\Controllers\PrivatePackCheckoutController::class, 'show'])->name('packs.private.show');
+Route::post('/p/{token}', [\App\Http\Controllers\PrivatePackCheckoutController::class, 'store'])->middleware('throttle:15,1')->name('packs.private.store');
+Route::get('/p/{token}/retour', [\App\Http\Controllers\PrivatePackCheckoutController::class, 'cancel'])->name('packs.private.cancel');
+
 Route::get('/pro/{slug}/checkout', [PublicCheckoutController::class, 'show'])
     ->name('public.checkout.show');
 

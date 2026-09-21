@@ -1,5 +1,7 @@
 {{-- resources/views/mobile/appointments/show.blade.php --}}
 <x-mobile-layout>
+    @include('appointments.partials.cancellation-reason-details')
+
 
     @php
         // Derive the actual consultation mode for this appointment

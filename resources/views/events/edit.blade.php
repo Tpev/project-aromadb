@@ -372,6 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </p>
                 </div>
 
+                @include('events.partials.email-notes')
+
                 <button type="submit" class="btn-primary mt-4">{{ __('Mettre à Jour l\'Événement') }}</button>
                 <a href="{{ route('events.index') }}" class="btn-secondary mt-4">{{ __('Retour à la liste') }}</a>
             </form>

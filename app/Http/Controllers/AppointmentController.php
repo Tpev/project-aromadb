@@ -1259,6 +1259,8 @@ public function createPatient(Request $request, $therapistId)
 
 public function storePatient(Request $request)
 {
+    $bookingTherapistId = filter_var($request->input('therapist_id'), FILTER_VALIDATE_INT);
+    $requiresPhone = $bookingTherapistId !== false && (bool) User::find($bookingTherapistId)?->booking_phone_required;
     // Messages d'erreur personnalisés
     $messages = [
         'therapist_id.required'   => 'Le professionnel est requis.',
@@ -1276,11 +1278,11 @@ public function storePatient(Request $request)
 
     // Validation de base
     $request->validate([
-        'therapist_id'     => 'required|exists:users,id',
+        'therapist_id'     => 'bail|required|integer|exists:users,id',
         'first_name'       => 'required|string|max:255',
         'last_name'        => 'required|string|max:255',
         'email'            => 'required|email|max:255',
-        'phone'            => 'required|string|max:20',
+        'phone'            => [Rule::requiredIf($requiresPhone), 'nullable', 'string', 'max:20'],
         'address'          => 'nullable|string',
         'birthdate'        => 'nullable|date',
         'appointment_date' => 'required|date',
@@ -3651,7 +3653,7 @@ public function storeByToken(Request $request, string $token)
         'first_name'       => 'required|string|max:255',
         'last_name'        => 'required|string|max:255',
         'email'            => 'required|email|max:255',
-        'phone'            => 'required|string|max:20',
+        'phone'            => [Rule::requiredIf(fn () => (bool) User::find($request->therapist_id)?->booking_phone_required), 'nullable', 'string', 'max:20'],
         'address'          => 'nullable|string',
         'birthdate'        => 'nullable|date',
         'appointment_date' => 'required|date',

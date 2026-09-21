@@ -20,6 +20,8 @@ class PackPurchaseInvoicingService
         $purchase->loadMissing(['pack', 'items.product', 'clientProfile', 'digitalTraining']);
 
         return DB::transaction(function () use ($purchase) {
+            // Checkout returns and invoice webhooks can arrive concurrently.
+            PackPurchase::whereKey($purchase->id)->lockForUpdate()->firstOrFail();
             $existing = Invoice::query()
                 ->where('user_id', $purchase->user_id)
                 ->where('pack_purchase_id', $purchase->id)

@@ -27,6 +27,7 @@ class SendEventReminders extends Command
         $to   = now()->addHours(24)->addMinutes(5);
 
         $reservations = Reservation::query()
+            ->whereIn('status', ['confirmed', 'paid'])
             ->whereNull('reminder_24h_sent_at')
             ->whereHas('event', function ($q) use ($from, $to) {
                 $q->whereBetween('start_date_time', [$from, $to]);
@@ -61,6 +62,7 @@ class SendEventReminders extends Command
         $to   = now()->addHour()->addMinutes(5);
 
         $reservations = Reservation::query()
+            ->whereIn('status', ['confirmed', 'paid'])
             ->whereNull('reminder_1h_sent_at')
             ->whereHas('event', function ($q) use ($from, $to) {
                 $q->whereBetween('start_date_time', [$from, $to]);

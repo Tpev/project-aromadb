@@ -187,7 +187,7 @@ test('client cancellation is non destructive, idempotent and audited', function 
         ->and($meeting->fresh())->not->toBeNull()
         ->and($fresh->activities()->where('action', 'cancelled')->count())->toBe(1);
 
-    $this->post(route('appointment.confirmation.cancel', $appointment->token))->assertRedirect();
+    $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel'])->assertRedirect();
     expect($fresh->activities()->where('action', 'cancelled')->count())->toBe(1);
 
     Mail::assertQueued(AppointmentCancellationConfirmedClientMail::class);
@@ -482,7 +482,7 @@ test('the practitioner deadline applies to cancellation and rescheduling', funct
         ->assertOk()
         ->assertDontSee('Modifier le créneau');
 
-    $this->post(route('appointment.confirmation.cancel', $appointment->token))
+    $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel'])
         ->assertSessionHas('error');
 
     expect($appointment->fresh()->isCancelled())->toBeFalse();
@@ -553,7 +553,7 @@ test('paid pack and voucher references remain intact after cancellation', functi
         ->assertOk()
         ->assertSee('n’entraîne pas automatiquement un remboursement');
 
-    $this->post(route('appointment.confirmation.cancel', $appointment->token))->assertRedirect();
+    $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel'])->assertRedirect();
 
     $fresh = $appointment->fresh();
     expect($fresh->isCancelled())->toBeTrue()
@@ -756,7 +756,7 @@ test('clients still cannot cancel past appointments', function () {
         'status' => Appointment::STATUS_CONFIRMED,
     ]);
 
-    $this->post(route('appointment.confirmation.cancel', $appointment->token))
+    $this->post(route('appointment.confirmation.cancel', $appointment->token), ['cancellation_reason' => 'Empêchement personnel'])
         ->assertRedirect(route('appointments.showPatient', $appointment->token))
         ->assertSessionHas('error');
 

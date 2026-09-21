@@ -113,8 +113,8 @@ class AppointmentManagementController extends Controller
         AppointmentLifecycleService $lifecycle
     ) {
         $data = $request->validate([
-            'cancellation_reason' => ['nullable', 'string', 'max:500'],
-        ]);
+            'cancellation_reason' => ['required', 'string', 'max:500'],
+        ], ['cancellation_reason.required' => 'Veuillez indiquer le motif de l’annulation.']);
 
         $appointment = $this->appointmentForToken($token);
 
@@ -276,8 +276,8 @@ class AppointmentManagementController extends Controller
     ) {
         $client = $this->authorizePortalAppointment($appointment);
         $data = $request->validate([
-            'cancellation_reason' => ['nullable', 'string', 'max:500'],
-        ]);
+            'cancellation_reason' => ['required', 'string', 'max:500'],
+        ], ['cancellation_reason.required' => 'Veuillez indiquer le motif de l’annulation.']);
 
         try {
             $lifecycle->cancel(
