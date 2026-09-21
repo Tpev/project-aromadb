@@ -42,7 +42,7 @@
                             @foreach($questionnaire->questions as $question)
                                 <tr>
                                     <td>{{ $question->text }}</td>
-                                    <td>{{ __(ucfirst(str_replace('_', ' ', $question->type))) }}</td>
+                                    <td>{{ $question->type === 'multiple_choice' ? ($question->allowsMultipleAnswers() ? 'Plusieurs réponses' : 'Une seule réponse') : 'Texte' }}</td>
                                     <td>{{ $question->options }}</td>
                                     <td>
                                         <form action="{{ route('question.destroy', ['questionnaire' => $questionnaire->id, 'question' => $question->id]) }}" method="POST" style="display:inline;">

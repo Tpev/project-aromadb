@@ -8,6 +8,7 @@
             'text' => $row['text'] ?? '',
             'type' => $row['type'] ?? 'text',
             'options' => $row['options'] ?? '',
+            'allow_multiple' => $row['allow_multiple'] ?? false,
         ]);
     } elseif($questionnaire->exists) {
         $questionRows = $questionnaire->questions->map(fn ($question) => [
@@ -15,6 +16,7 @@
             'text' => $question->text,
             'type' => $question->type,
             'options' => $question->options,
+            'allow_multiple' => $question->allowsMultipleAnswers(),
         ])->values();
     } else {
         $questionRows = collect([[
@@ -143,6 +145,7 @@
                                 <p class="mt-1 text-xs leading-snug text-gray-500">
                                     Separez les options par des virgules.
                                 </p>
+                                @include('questionnaires.partials.multiple-answer-setting')
                             </div>
                         </article>
                     @endforeach
@@ -213,6 +216,12 @@
                         <p class="mt-1 text-xs leading-snug text-gray-500">
                             Separez les options par des virgules.
                         </p>
+                        <input type="hidden" name="questions[${index}][allow_multiple]" value="0">
+                        <label class="mt-3 flex items-start gap-2">
+                            <input type="checkbox" name="questions[${index}][allow_multiple]" value="1" class="mt-1 rounded border-gray-300 text-[#647a0b]">
+                            <span>Autoriser plusieurs réponses <span class="text-sm text-gray-500">(facultatif)</span></span>
+                        </label>
+                        <p class="mt-1 text-sm text-gray-500">Si cette option est cochée, le client pourra sélectionner plusieurs réponses. Sinon, une seule réponse sera possible.</p>
                     </div>
                 </article>
             `;
@@ -239,6 +248,9 @@
             if (!options) return;
 
             options.classList.toggle('hidden', select.value !== 'multiple_choice');
+            if (select.value !== 'multiple_choice') {
+                options.querySelector('input[type="checkbox"]').checked = false;
+            }
         }
 
         document.querySelectorAll('[data-question-type]').forEach((select) => {

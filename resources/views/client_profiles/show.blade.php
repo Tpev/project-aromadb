@@ -941,7 +941,7 @@
                                                     <td>{{ $response->questionnaire->title }}</td>
                                                     <td>{{ $response->created_at }}</td>
                                                     <td>
-                                                        @if($response->answers === '[]')
+                                                        @if(empty($response->decodedAnswers()))
                                                             <span class="text-muted">{{ __('Pas encore rempli') }}</span>
                                                         @else
                                                             <a href="{{ route('questionnaires.responses.show', $response->id) }}"

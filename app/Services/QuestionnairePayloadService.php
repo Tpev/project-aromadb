@@ -27,6 +27,7 @@ class QuestionnairePayloadService
             'questions.*.text' => ['required', 'string', 'max:10000'],
             'questions.*.type' => ['required', 'string', 'in:text,multiple_choice'],
             'questions.*.options' => ['nullable', 'string', 'max:15000'],
+            'questions.*.allow_multiple' => ['nullable', 'boolean'],
         ], [
             'questions.max' => 'Un questionnaire peut contenir jusqu’à '.self::MAX_QUESTIONS.' questions.',
             'questions.*.text.max' => 'Une question ne peut pas dépasser 10 000 caractères.',
@@ -60,6 +61,10 @@ class QuestionnairePayloadService
                 'id' => ! empty($question['id']) ? (int) $question['id'] : null,
                 'text' => trim($question['text']),
                 'type' => $question['type'],
+                // Missing fields from older editors must not reset an existing setting.
+                'allow_multiple' => array_key_exists('allow_multiple', $question)
+                    ? (bool) $question['allow_multiple']
+                    : null,
                 'options' => $question['type'] === 'multiple_choice'
                     ? trim((string) ($question['options'] ?? ''))
                     : null,
@@ -87,6 +92,8 @@ class QuestionnairePayloadService
             $question->text = $row['text'];
             $question->type = $row['type'];
             $question->options = $row['options'];
+            $question->allow_multiple = $row['type'] === 'multiple_choice'
+                && ($row['allow_multiple'] ?? $question->allow_multiple ?? false);
             $question->save();
 
             $keptQuestionIds[] = $question->id;

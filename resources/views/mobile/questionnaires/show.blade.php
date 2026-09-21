@@ -96,7 +96,7 @@
                                     @endif
                                 </div>
                                 <span class="shrink-0 rounded-full border border-[#e4e8d5] bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600">
-                                    {{ $question->type === 'multiple_choice' ? 'Choix' : 'Texte' }}
+                                    {{ $question->type === 'multiple_choice' ? ($question->allowsMultipleAnswers() ? 'Plusieurs réponses' : 'Une seule réponse') : 'Texte' }}
                                 </span>
                             </div>
 

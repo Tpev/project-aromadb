@@ -15,7 +15,7 @@
 
     <h3>{{ __('Réponses') }}</h3>
     <ul>
-        @foreach (json_decode($response->answers, true) as $questionId => $answer)
+        @foreach ($response->decodedAnswers() as $questionId => $answer)
             @php
                 // Retrieve the question using the ID
                 $question = \App\Models\Question::find($questionId);
@@ -23,7 +23,7 @@
             <li>
                 <strong>{{ __('Question') }}: {{ $question->text ?? 'Question non trouvée' }}</strong>
                 <br>
-                {{ __('Réponse') }}: {{ $answer }}
+                {{ __('Réponse') }}: @include('questionnaires.partials.answer', ['answer' => $answer])
             </li>
         @endforeach
     </ul>

@@ -9,6 +9,7 @@ use App\Models\Question;
 use App\Models\Questionnaire;
 use App\Models\Response;
 use App\Services\QuestionnairePayloadService;
+use App\Services\QuestionnaireAnswerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -113,17 +114,13 @@ class QuestionnaireController extends Controller
         return view('questionnaires.fill', compact('token', 'questionnaire', 'questions'));
     }
 
-    public function storeResponses(Request $request, $token)
+    public function storeResponses(Request $request, $token, QuestionnaireAnswerService $answerService)
     {
         // Find the response based on the token
         $response = Response::with('questionnaire.user')->where('token', $token)->firstOrFail();
 
-        $request->validate([
-            'answers' => 'required|array',
-        ]);
-
         // Save the answers
-        $response->answers = json_encode($request->answers);
+        $response->answers = $answerService->validate($request, $response->questionnaire);
         $response->is_completed = true;
         $response->save();
 

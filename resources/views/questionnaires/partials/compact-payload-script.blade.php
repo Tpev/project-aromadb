@@ -6,6 +6,8 @@
                 text: row.querySelector('[name$="[text]"]')?.value || '',
                 type: row.querySelector('[name$="[type]"]')?.value || 'text',
                 options: row.querySelector('[name$="[options]"]')?.value || '',
+                allow_multiple: row.querySelector('[name$="[type]"]')?.value === 'multiple_choice'
+                    && (row.querySelector('input[type="checkbox"][name$="[allow_multiple]"]')?.checked ?? false),
             }));
 
             const payload = form.querySelector('[name="questions_payload"]');

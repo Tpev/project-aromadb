@@ -17,15 +17,22 @@
 
             <form action="{{ route('questionnaires.storeResponses', ['token' => $token]) }}" method="POST">
                 @csrf
+                @if($errors->any())
+                    <div role="alert" class="details-box text-red-500">
+                        {{ __('Veuillez vérifier vos réponses. Les questions à corriger sont indiquées ci-dessous.') }}
+                        @error('answers')<p>{{ $message }}</p>@enderror
+                    </div>
+                @endif
 
                 <!-- Iterate through each question and display based on its type -->
                 @foreach($questions as $index => $question)
+                    @php($previousAnswer = old('answers.'.$question->id))
                     <div class="details-box">
                         <label class="details-label">{{ __('Question') }} {{ $index + 1 }}: {{ $question->text }}</label>
 
                         @switch($question->type)
                             @case('text')
-                                <input type="text" name="answers[{{ $question->id }}]" class="form-control" placeholder="{{ __('Répondez ici') }}" required>
+                                <input type="text" name="answers[{{ $question->id }}]" value="{{ is_scalar($previousAnswer) ? $previousAnswer : '' }}" class="form-control" placeholder="{{ __('Répondez ici') }}" required>
                                 @break
 
                             @case('number')
@@ -33,12 +40,26 @@
                                 @break
 
                             @case('multiple_choice')
-                                <select name="answers[{{ $question->id }}]" class="form-control" required>
-                                    <option value="">{{ __('Choisissez une option') }}</option>
-                                    @foreach(explode(',', $question->options) as $option)
-                                        <option value="{{ trim($option) }}">{{ trim($option) }}</option>
-                                    @endforeach
-                                </select>
+                                @if($question->allowsMultipleAnswers())
+                                    <fieldset data-multiple-answer-group>
+                                        <legend class="text-sm">{{ __('Sélectionnez une ou plusieurs réponses.') }}</legend>
+                                        @foreach($question->choiceOptions() as $optionIndex => $option)
+                                            <label class="form-check" for="answer-{{ $question->id }}-{{ $optionIndex }}">
+                                                <input type="checkbox" name="answers[{{ $question->id }}][]" value="{{ $option }}"
+                                                       id="answer-{{ $question->id }}-{{ $optionIndex }}" class="form-check-input"
+                                                       @checked(in_array($option, (array) $previousAnswer, true))>
+                                                {{ $option }}
+                                            </label>
+                                        @endforeach
+                                    </fieldset>
+                                @else
+                                    <select name="answers[{{ $question->id }}]" class="form-control" required>
+                                        <option value="">{{ __('Choisissez une option') }}</option>
+                                        @foreach($question->choiceOptions() as $option)
+                                            <option value="{{ $option }}" @selected($previousAnswer === $option)>{{ $option }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
                                 @break
 
                             @case('date')
@@ -59,6 +80,14 @@
                             @default
                                 <p>{{ __('Type de question non reconnu.') }}</p>
                         @endswitch
+                        @foreach($errors->get('answers.'.$question->id) as $message)
+                            <p role="alert" class="text-red-500">{{ $message }}</p>
+                        @endforeach
+                        @foreach($errors->get('answers.'.$question->id.'.*') as $messages)
+                            @foreach($messages as $message)
+                                <p role="alert" class="text-red-500">{{ $message }}</p>
+                            @endforeach
+                        @endforeach
                     </div>
                 @endforeach
 
@@ -69,6 +98,20 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('[data-multiple-answer-group]').forEach((group) => {
+            const choices = Array.from(group.querySelectorAll('input[type="checkbox"]'));
+            const validate = () => {
+                if (choices.length) {
+                    choices[0].setCustomValidity(choices.some((choice) => choice.checked)
+                        ? '' : 'Veuillez sélectionner au moins une réponse.');
+                }
+            };
+            group.addEventListener('change', validate);
+            validate();
+        });
+    </script>
 
     <!-- Custom Styles -->
     <style>
@@ -108,6 +151,20 @@
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+        }
+
+        [data-multiple-answer-group] .form-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            cursor: pointer;
+            overflow-wrap: anywhere;
+        }
+
+        [data-multiple-answer-group] input {
+            flex-shrink: 0;
+            margin-top: 4px;
         }
 
         .btn-primary {

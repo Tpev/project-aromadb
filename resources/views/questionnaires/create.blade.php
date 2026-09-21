@@ -66,6 +66,7 @@
                                         @if(($row['type'] ?? 'text') === 'multiple_choice')
                                             <label class="details-label">{{ __('Options (séparer par des virgules)') }}</label>
                                             <input type="text" name="questions[{{ $index }}][options]" value="{{ $row['options'] ?? '' }}" class="form-control" placeholder="{{ __('Entrez les options') }}" required>
+                                            @include('questionnaires.partials.multiple-answer-setting')
                                         @endif
                                     </div>
                                 </div>
@@ -133,6 +134,12 @@
                 additionalFields.innerHTML = `
                     <label class="details-label">{{ __('Options (séparer par des virgules)') }}</label>
                     <input type="text" name="questions[${index}][options]" class="form-control" placeholder="{{ __('Entrez les options') }}" required>
+                    <input type="hidden" name="questions[${index}][allow_multiple]" value="0">
+                    <label class="mt-3 flex items-start gap-2">
+                        <input type="checkbox" name="questions[${index}][allow_multiple]" value="1" class="mt-1 rounded border-gray-300 text-[#647a0b]">
+                        <span>Autoriser plusieurs réponses <span class="text-sm text-gray-500">(facultatif)</span></span>
+                    </label>
+                    <p class="mt-1 text-sm text-gray-500">Si cette option est cochée, le client pourra sélectionner plusieurs réponses. Sinon, une seule réponse sera possible.</p>
                 `;
             } else if (selectedType === 'true_false') {
                 additionalFields.innerHTML = `

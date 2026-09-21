@@ -24,6 +24,17 @@ class Response extends Model
         'is_completed' => 'boolean',
     ];
 
+    public function decodedAnswers(): array
+    {
+        // Older controllers JSON-encoded answers before the Eloquent array cast.
+        $answers = $this->answers;
+        if (is_string($answers)) {
+            $answers = json_decode($answers, true);
+        }
+
+        return is_array($answers) ? $answers : [];
+    }
+
     /**
      * Get the questionnaire that the response belongs to.
      */
