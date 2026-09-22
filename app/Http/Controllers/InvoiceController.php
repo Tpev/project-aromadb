@@ -383,7 +383,7 @@ public function show(Invoice $invoice)
         'corporateClient',
         'items.product',
         'items.inventoryItem',
-        'receipts' => fn ($q) => $q->orderBy('encaissement_date')->orderBy('id'),
+        'receipts' => fn ($q) => $q->withAccountingDate()->orderBy('accounting_date')->orderBy('id'),
         'originalInvoice',
         'corrections',
         'activityLogs.user',

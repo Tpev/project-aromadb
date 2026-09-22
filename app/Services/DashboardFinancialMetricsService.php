@@ -16,9 +16,9 @@ class DashboardFinancialMetricsService
         $yearStart = $now->copy()->startOfYear();
         $nextYearStart = $yearStart->copy()->addYear();
 
-        $monthReceipts = Receipt::where('user_id', $userId)
-            ->where('encaissement_date', '>=', $monthStart->toDateString())
-            ->where('encaissement_date', '<', $nextMonthStart->toDateString())
+        $monthReceipts = Receipt::withAccountingDate()->where('user_id', $userId)
+            ->where('accounting_date', '>=', $monthStart->toDateString())
+            ->where('accounting_date', '<', $nextMonthStart->toDateString())
             ->get(['direction', 'amount_ttc']);
 
         $netReceived = $monthReceipts->sum(fn (Receipt $receipt) => $receipt->signed_amount_ttc);
@@ -51,12 +51,12 @@ class DashboardFinancialMetricsService
         })->count();
 
         $monthlyNetReceived = array_fill(1, 12, 0.0);
-        Receipt::where('user_id', $userId)
-            ->where('encaissement_date', '>=', $yearStart->toDateString())
-            ->where('encaissement_date', '<', $nextYearStart->toDateString())
-            ->get(['encaissement_date', 'direction', 'amount_ttc'])
+        Receipt::withAccountingDate()->where('user_id', $userId)
+            ->where('accounting_date', '>=', $yearStart->toDateString())
+            ->where('accounting_date', '<', $nextYearStart->toDateString())
+            ->get(['accounting_date', 'direction', 'amount_ttc'])
             ->each(function (Receipt $receipt) use (&$monthlyNetReceived) {
-                $monthlyNetReceived[(int) $receipt->encaissement_date->month] += $receipt->signed_amount_ttc;
+                $monthlyNetReceived[(int) $receipt->accounting_date->month] += $receipt->signed_amount_ttc;
             });
 
         $monthlyBilled = array_fill(1, 12, 0.0);

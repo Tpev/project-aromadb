@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
 class Receipt extends Model
@@ -36,6 +38,7 @@ class Receipt extends Model
     protected $casts = [
         'record_number'     => 'integer',
         'encaissement_date' => 'date',
+        'accounting_date'   => 'date',
         'is_reversal'       => 'boolean',
         'locked_at'         => 'datetime',
         'amount_ht'         => 'decimal:2',
@@ -95,6 +98,26 @@ class Receipt extends Model
     }
 
     // Relations contre-passations
+    /**
+     * Corrections cancel the original entry in its period, even when an older
+     * reversal was entered with a different date. Keep the stored dates intact.
+     * Refunds and unlinked entries retain their own cash movement date.
+     */
+    public function scopeWithAccountingDate(Builder $query): Builder
+    {
+        $rows = DB::table('receipts as recorded_receipts')
+            ->leftJoin('receipts as original_receipt', function (JoinClause $join) {
+                $join->on('original_receipt.id', '=', 'recorded_receipts.reversal_of_id')
+                    ->on('original_receipt.user_id', '=', 'recorded_receipts.user_id')
+                    ->where('recorded_receipts.source', 'correction')
+                    ->where('recorded_receipts.is_reversal', true);
+            })
+            ->select('recorded_receipts.*')
+            ->selectRaw('COALESCE(original_receipt.encaissement_date, recorded_receipts.encaissement_date) as accounting_date');
+
+        return $query->fromSub($rows, 'receipts');
+    }
+
     public function original()
     {
         return $this->belongsTo(self::class, 'reversal_of_id');

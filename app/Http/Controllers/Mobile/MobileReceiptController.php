@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Receipt;
 use App\Models\Invoice;
 use App\Services\ReceiptRecordingService;
+use App\Services\ReceiptReportingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,7 +15,7 @@ class MobileReceiptController extends Controller
     public function index(Request $request)
     {
         $canUseReceipts = $this->canUseReceipts();
-        $query = Receipt::query()->where('user_id', Auth::id());
+        $query = Receipt::withAccountingDate()->where('user_id', Auth::id());
 
         if (! $canUseReceipts) {
             $receipts = Receipt::query()
@@ -34,16 +35,17 @@ class MobileReceiptController extends Controller
         }
 
         if ($request->filled('from')) {
-            $query->whereDate('encaissement_date', '>=', $request->date('from'));
+            $query->whereDate('accounting_date', '>=', $request->date('from'));
         }
 
         if ($request->filled('to')) {
-            $query->whereDate('encaissement_date', '<=', $request->date('to'));
+            $query->whereDate('accounting_date', '<=', $request->date('to'));
         }
 
         $receipts = (clone $query)
+            ->select('receipts.*')
             ->withCount('reversals')
-            ->latest('encaissement_date')
+            ->latest('accounting_date')
             ->latest('id')
             ->paginate(30)
             ->withQueryString();
@@ -113,24 +115,7 @@ class MobileReceiptController extends Controller
 
         $year = (int) ($request->input('year') ?: now()->year);
 
-        $rows = Receipt::query()
-            ->where('user_id', Auth::id())
-            ->whereYear('encaissement_date', $year)
-            ->orderBy('encaissement_date')
-            ->get(['encaissement_date', 'nature', 'amount_ttc', 'direction']);
-
-        $data = $this->emptyMonthlyReceiptData();
-
-        foreach ($rows as $row) {
-            $month = (int) $row->encaissement_date->format('n');
-            $amount = $row->direction === 'credit'
-                ? (float) $row->amount_ttc
-                : -1 * (float) $row->amount_ttc;
-            $nature = in_array($row->nature, ['service', 'goods', 'other'], true) ? $row->nature : 'other';
-
-            $data[$month]['total'] += $amount;
-            $data[$month][$nature] += $amount;
-        }
+        $data = app(ReceiptReportingService::class)->monthly(Auth::id(), $year);
 
         return view('mobile.receipts.monthly', compact('data', 'year'));
     }
@@ -145,7 +130,6 @@ class MobileReceiptController extends Controller
         }
 
         $validated = $request->validate([
-            'encaissement_date' => ['required', 'date'],
             'amount_ttc' => ['nullable', 'numeric', 'min:0.01'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
@@ -169,7 +153,7 @@ class MobileReceiptController extends Controller
         Receipt::create([
             'user_id' => $receipt->user_id,
             'invoice_id' => $receipt->invoice_id,
-            'encaissement_date' => $validated['encaissement_date'],
+            'encaissement_date' => $receipt->encaissement_date,
             'invoice_number' => $receipt->invoice_number,
             'client_name' => $receipt->client_name,
             'nature' => $receipt->nature,
@@ -207,22 +191,6 @@ class MobileReceiptController extends Controller
             'invoice_number' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
-    }
-
-    protected function emptyMonthlyReceiptData(): array
-    {
-        $data = [];
-
-        for ($month = 1; $month <= 12; $month++) {
-            $data[$month] = [
-                'total' => 0.0,
-                'service' => 0.0,
-                'goods' => 0.0,
-                'other' => 0.0,
-            ];
-        }
-
-        return $data;
     }
 
     protected function canUseReceipts(): bool

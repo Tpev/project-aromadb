@@ -38,6 +38,7 @@
                 <h1 class="text-xl font-semibold leading-tight text-gray-900">CA mensuel</h1>
                 <p class="mt-1 text-sm leading-snug text-gray-600">
                     Chiffre d affaires encaisse par nature pour {{ $year }}.
+                    Les contre-passations corrigent le mois du paiement d’origine.
                 </p>
             </div>
 

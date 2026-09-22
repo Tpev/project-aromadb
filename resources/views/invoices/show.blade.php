@@ -442,7 +442,12 @@
                       @endphp
 
                       <tr x-data="{ openReverse:false }">
-                        <td>{{ \Illuminate\Support\Carbon::parse($r->encaissement_date)->format('d/m/Y') }}</td>
+                        <td>
+                          {{ $r->accounting_date->format('d/m/Y') }}
+                          @if(!$r->accounting_date->isSameDay($r->encaissement_date))
+                            <br><small class="text-muted">Date saisie : {{ $r->encaissement_date->format('d/m/Y') }}</small>
+                          @endif
+                        </td>
                         <td>{{ $r->invoice_number }}</td>
                         <td>{{ $r->client_name }}</td>
                         <td>{{ $r->payment_method_label }}</td>
@@ -475,8 +480,8 @@
                                 @csrf
                                 <div class="form-grid">
                                   <div class="form-field">
-                                    <label class="invoice-label">Date</label>
-                                    <input type="date" name="encaissement_date" class="form-control" value="{{ now()->toDateString() }}">
+                                    <label class="invoice-label">Date de prise en compte</label>
+                                    <p>Le montant sera annulé à la date de l’écriture d’origine : {{ $r->encaissement_date->format('d/m/Y') }}.</p>
                                   </div>
                                   <div class="form-field">
                                     <label class="invoice-label">Montant TTC (optionnel)</label>

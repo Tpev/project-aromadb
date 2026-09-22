@@ -39,6 +39,7 @@
     <p class="text-muted mb-4">
       Visualisez le total des encaissements mensuels ainsi que le détail entre prestations et marchandises pour l'année sélectionnée.
       Ces données proviennent automatiquement de votre livre de recettes.
+      Les contre-passations corrigent le mois du paiement d’origine ; les remboursements sont pris en compte à leur propre date.
     </p>
 
     <form method="GET" class="filter-form mb-4">

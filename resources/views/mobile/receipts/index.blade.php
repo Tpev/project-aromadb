@@ -226,11 +226,14 @@
                                     #{{ $receipt->record_number }} - {{ $receipt->client_name ?: 'Sans client' }}
                                 </h2>
                                 <p class="mt-1 text-xs leading-snug text-gray-600">
-                                    {{ $dateValue($receipt->encaissement_date) }}
+                                    {{ $dateValue($receipt->accounting_date) }}
                                     @if($receipt->invoice_number)
                                         <span class="text-gray-300">/</span> {{ $receipt->invoice_number }}
                                     @endif
                                 </p>
+                                @if(!$receipt->accounting_date->isSameDay($receipt->encaissement_date))
+                                    <p class="mt-1 text-xs text-gray-500">Date saisie : {{ $dateValue($receipt->encaissement_date) }}</p>
+                                @endif
                             </div>
 
                             <span class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $isDebit ? 'border-red-200 bg-red-50 text-red-600' : 'border-[#647a0b]/20 bg-[#647a0b]/10 text-[#647a0b]' }}">
@@ -303,14 +306,9 @@
                                     @csrf
 
                                     <div class="grid grid-cols-2 gap-3">
-                                        <label class="block min-w-0">
-                                            <span class="text-xs font-semibold text-gray-600">Date</span>
-                                            <input type="date"
-                                                   name="encaissement_date"
-                                                   value="{{ now()->format('Y-m-d') }}"
-                                                   required
-                                                   class="mt-1 h-10 w-full rounded-lg border-gray-300 text-sm focus:border-[#647a0b] focus:ring-[#647a0b]">
-                                        </label>
+                                        <p class="text-xs text-gray-600">
+                                            Le montant sera annulé à la date de l’écriture d’origine : {{ $dateValue($receipt->encaissement_date) }}.
+                                        </p>
                                         <label class="block min-w-0">
                                             <span class="text-xs font-semibold text-gray-600">TTC optionnel</span>
                                             <input type="number"
