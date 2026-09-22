@@ -33,7 +33,7 @@ class MobileInvoiceController extends Controller
             'corporateClient',
             'items.product',
             'items.inventoryItem',
-            'receipts' => fn ($query) => $query->withAccountingDate()->orderBy('accounting_date')->orderBy('id'),
+            'receipts' => fn ($query) => $query->orderBy('encaissement_date')->orderBy('id'),
             'originalInvoice',
             'corrections',
         ]);

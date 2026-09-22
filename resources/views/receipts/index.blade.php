@@ -50,6 +50,18 @@
           'manual'     => 'Manuel',
       ];
 
+      /**
+       * ✅ IMPORTANT:
+       * Cache les boutons "Contre-pass" sur les lignes déjà contre-passées.
+       * On récupère tous les reversal_of_id présents (dans la page affichée),
+       * et on cache le bouton sur la ligne originale correspondante.
+       */
+      $reversedOriginalIds = $receipts
+          ->pluck('reversal_of_id')
+          ->filter()
+          ->unique()
+          ->values()
+          ->all();
   @endphp
 
   <div class="container-fluid mt-5 details-container mx-auto p-4">
@@ -59,7 +71,6 @@
         <h1 class="details-title">Livre de recettes</h1>
         <p class="text-muted mb-0">
           Ce registre reprend automatiquement toutes les factures encaissées, et permet aussi l’ajout d’écritures manuelles.
-          Une contre-passation annule le montant à la date de l’écriture d’origine.
         </p>
       </div>
       <span class="chip chip-success">Mises à jour automatiques</span>
@@ -123,7 +134,7 @@
             <thead>
               <tr>
                 <th class="col-sm">N°</th>
-                <th class="col-date">Date de prise en compte</th>
+                <th class="col-date">Date</th>
                 <th class="col-invoice">N° Facture</th>
                 <th class="col-client">Client</th>
                 <th class="col-nature">Nature</th>
@@ -141,20 +152,19 @@
             @forelse($receipts as $r)
 
               @php
+                // ✅ bouton caché si:
+                // - la ligne est une contre-passation
+                // - la ligne est liée à une ligne originale (reversal_of_id)
+                // - la ligne originale a déjà une contre-passation (son id est dans $reversedOriginalIds)
                 $hideReverseButton =
                     ($r->is_reversal ?? false)
                     || !empty($r->reversal_of_id)
-                    || (int) $r->reversals_count > 0;
+                    || in_array($r->id, $reversedOriginalIds, true);
               @endphp
 
               <tr>
                 <td class="nowrap">{{ $r->record_number }}</td>
-                <td class="nowrap">
-                  {{ $r->accounting_date->format('d/m/Y') }}
-                  @if(!$r->accounting_date->isSameDay($r->encaissement_date))
-                    <br><small class="text-muted">Date saisie : {{ $r->encaissement_date->format('d/m/Y') }}</small>
-                  @endif
-                </td>
+                <td class="nowrap">{{ \Carbon\Carbon::parse($r->encaissement_date)->format('d/m/Y') }}</td>
 
                 <td class="nowrap">{{ $r->invoice_number ?: '—' }}</td>
 
@@ -199,8 +209,10 @@
                           class="reverse-inline-form"
                           onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='...';">
                       @csrf
-                      <button class="btn-mini" type="submit"
-                              title="Annuler à la date du {{ $r->encaissement_date->format('d/m/Y') }}">Contre-pass</button>
+                      <input type="date" name="encaissement_date"
+                             value="{{ now()->format('Y-m-d') }}"
+                             class="mini-input" required>
+                      <button class="btn-mini" type="submit">Contre-pass</button>
                     </form>
                   @endif
                 </td>

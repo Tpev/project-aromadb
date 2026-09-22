@@ -8,22 +8,21 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Models\Invoice;
 use App\Services\ReceiptRecordingService;
-use App\Services\ReceiptReportingService;
 
 class ReceiptController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Receipt::withAccountingDate()->where('user_id', Auth::id());
+        $query = Receipt::where('user_id', Auth::id());
 
         if ($request->filled('from')) {
-            $query->whereDate('accounting_date', '>=', $request->date('from'));
+            $query->whereDate('encaissement_date', '>=', $request->date('from'));
         }
         if ($request->filled('to')) {
-            $query->whereDate('accounting_date', '<=', $request->date('to'));
+            $query->whereDate('encaissement_date', '<=', $request->date('to'));
         }
 
-        $receipts = (clone $query)->select('receipts.*')->withCount('reversals')->orderBy('accounting_date')->orderBy('id')->paginate(50)->withQueryString();
+        $receipts = (clone $query)->orderBy('encaissement_date')->paginate(50);
 
         $total = (clone $query)
             ->selectRaw("SUM(CASE WHEN direction='credit' THEN amount_ttc ELSE -amount_ttc END) as net")
@@ -79,9 +78,9 @@ class ReceiptController extends Controller
 
     public function exportCsv(Request $request): StreamedResponse
     {
-        $query = Receipt::withAccountingDate()->where('user_id', Auth::id());
-        if ($request->filled('from')) $query->whereDate('accounting_date', '>=', $request->date('from'));
-        if ($request->filled('to'))   $query->whereDate('accounting_date', '<=', $request->date('to'));
+        $query = Receipt::where('user_id', Auth::id());
+        if ($request->filled('from')) $query->whereDate('encaissement_date', '>=', $request->date('from'));
+        if ($request->filled('to'))   $query->whereDate('encaissement_date', '<=', $request->date('to'));
 
         $filename = 'livre_recettes_' . now()->format('Ymd_His') . '.csv';
 
@@ -116,18 +115,18 @@ class ReceiptController extends Controller
             fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             fputcsv($out, [
-                'Date de prise en compte','N° facture','Client','Nature','Montant HT','Montant TTC',
-                'Mode règlement','Direction','Source','Note','Date saisie initialement'
+                'Date encaissement','N° facture','Client','Nature','Montant HT','Montant TTC',
+                'Mode règlement','Direction','Source','Note'
             ], ';');
 
-            $query->orderBy('accounting_date')->orderBy('id')->chunk(500, function ($rows) use ($out, $PAYMENT_METHOD_FR, $NATURE_FR, $SOURCE_FR) {
+            $query->orderBy('encaissement_date')->chunk(500, function ($rows) use ($out, $PAYMENT_METHOD_FR, $NATURE_FR, $SOURCE_FR) {
                 foreach ($rows as $r) {
                     $modeFr   = $PAYMENT_METHOD_FR[$r->payment_method] ?? ucfirst((string)$r->payment_method);
                     $natureFr = $NATURE_FR[$r->nature] ?? ucfirst((string)$r->nature);
                     $sourceFr = $SOURCE_FR[$r->source] ?? (string)$r->source;
 
                     fputcsv($out, [
-                        $r->accounting_date->format('d/m/Y'),
+                        \Carbon\Carbon::parse($r->encaissement_date)->format('d/m/Y'),
                         $r->invoice_number,
                         $r->client_name,
                         $natureFr,
@@ -137,7 +136,6 @@ class ReceiptController extends Controller
                         ucfirst((string)$r->direction),
                         $sourceFr,
                         $r->note,
-                        $r->encaissement_date->format('d/m/Y'),
                     ], ';');
                 }
             });
@@ -150,7 +148,36 @@ class ReceiptController extends Controller
     {
         $year = (int)($request->input('year') ?: now()->year);
 
-        $data = app(ReceiptReportingService::class)->monthly(Auth::id(), $year);
+        $rows = Receipt::selectRaw("
+                MONTH(encaissement_date) as m,
+                nature,
+                SUM(CASE WHEN direction='credit' THEN amount_ttc ELSE -amount_ttc END) as ca_ttc
+            ")
+            ->where('user_id', Auth::id())
+            ->whereYear('encaissement_date', $year)
+            ->groupBy('m', 'nature')
+            ->orderBy('m')
+            ->get();
+
+        $data = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $data[$i] = [
+                'total'   => 0.0,
+                'service' => 0.0,
+                'goods'   => 0.0,
+            ];
+        }
+
+        foreach ($rows as $r) {
+            $month = (int) $r->m;
+            $amount = (float) $r->ca_ttc;
+
+            $data[$month]['total'] += $amount;
+
+            if (in_array($r->nature, ['service', 'goods'], true)) {
+                $data[$month][$r->nature] += $amount;
+            }
+        }
 
         return view('receipts.ca-monthly', compact('data', 'year'));
     }
@@ -160,11 +187,12 @@ class ReceiptController extends Controller
         abort_if($receipt->user_id !== Auth::id(), 403);
 
         // déjà contre-passée / ou c'est une contre-passation
-        if (($receipt->is_reversal ?? false) || ($receipt->reversal_of_id ?? null) || $receipt->reversals()->exists()) {
+        if (($receipt->is_reversal ?? false) || ($receipt->reversal_of_id ?? null)) {
             return back()->with('error', 'Cette ligne a déjà été contre-passée ou est une contre-passation.');
         }
 
         $validated = $request->validate([
+            'encaissement_date' => ['required', 'date'],
             'amount_ttc'        => ['nullable', 'numeric', 'min:0.01'],
             'note'              => ['nullable', 'string', 'max:255'],
         ]);
@@ -189,7 +217,7 @@ class ReceiptController extends Controller
         Receipt::create([
             'user_id'           => $receipt->user_id,
             'invoice_id'        => $receipt->invoice_id,
-            'encaissement_date' => $receipt->encaissement_date,
+            'encaissement_date' => $validated['encaissement_date'],
             'invoice_number'    => $receipt->invoice_number,
             'client_name'       => $receipt->client_name,
             'nature'            => $receipt->nature,

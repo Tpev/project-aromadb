@@ -189,10 +189,7 @@
                         @forelse($document->receipts as $receipt)
                             <div class="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0 text-sm">
                                 <div>
-                                    <p class="font-medium text-gray-900">{{ $formatDate($receipt->accounting_date) }}</p>
-                                    @if(!$receipt->accounting_date->isSameDay($receipt->encaissement_date))
-                                        <p class="text-xs text-gray-500">Date saisie : {{ $formatDate($receipt->encaissement_date) }}</p>
-                                    @endif
+                                    <p class="font-medium text-gray-900">{{ $formatDate($receipt->encaissement_date) }}</p>
                                     <p class="text-xs text-gray-500">{{ $receipt->payment_method_label ?? $receipt->payment_method ?? 'Paiement' }}</p>
                                 </div>
                                 <span class="font-semibold {{ $receipt->direction === 'debit' ? 'text-red-600' : 'text-green-700' }}">
