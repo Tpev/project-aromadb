@@ -1,12 +1,13 @@
 {{-- resources/views/events/duplicate.blade.php --}}
 <x-app-layout>
+    @include('events.partials.responsive-styles')
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Dupliquer l\'Événement') }}
         </h2>
     </x-slot>
 
-    <div class="container mt-5">
+    <div class="container mt-5 therapist-events event-form-page">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Dupliquer l\'Événement') }}</h1>
 

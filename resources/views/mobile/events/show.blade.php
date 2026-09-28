@@ -11,7 +11,8 @@
 @endphp
 
 <x-mobile-layout :title="$event->name">
-    <div class="mx-auto w-full max-w-lg px-4 pb-24 pt-4">
+    @include('events.partials.responsive-styles')
+    <div class="therapist-events mx-auto w-full max-w-lg px-4 pb-24 pt-4">
         <div class="mb-4">
             <a href="{{ route('mobile.events.index') }}" class="mb-2 inline-flex items-center text-xs font-semibold text-[#647a0b]">
                 <i class="fas fa-arrow-left mr-1 text-[10px]"></i>
@@ -170,10 +171,10 @@
                     <div class="mt-3 space-y-2">
                         @foreach($event->active_reservations as $reservation)
                             <article class="rounded-lg border border-[#f1f3e6] bg-[#fbfcf7] p-3">
-                                <div class="flex items-start justify-between gap-3">
+                                <div class="event-participant-details flex items-start justify-between gap-3">
                                     <div class="min-w-0 flex-1">
-                                        <div class="truncate text-sm font-semibold text-gray-900">{{ $reservation->full_name }}</div>
-                                        <div class="mt-1 truncate text-xs text-gray-600">{{ $reservation->email }}</div>
+                                        <div class="text-sm font-semibold text-gray-900">{{ $reservation->full_name }}</div>
+                                        <div class="mt-1 text-xs text-gray-600">{{ $reservation->email }}</div>
                                     </div>
                                     <span class="shrink-0 rounded-full border border-[#e4e8d5] bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600">
                                         {{ match ($reservation->status) { 'paid' => 'Payée', 'pending_payment' => 'En attente de paiement', default => 'Confirmée' } }}

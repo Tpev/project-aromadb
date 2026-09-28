@@ -1,5 +1,6 @@
 {{-- resources/views/events/index.blade.php --}}
 <x-app-layout>
+    @include('events.partials.responsive-styles')
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Liste des Événements') }}
@@ -9,7 +10,7 @@
     <!-- Include FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     
-    <div class="container mt-5">
+    <div class="container mt-5 therapist-events">
         <h1 class="page-title">{{ __('Liste des Événements') }}</h1>
     
 @php
@@ -41,18 +42,18 @@
 @endphp
 
 <!-- Search Bar and Create Button -->
-<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap">
+<div class="mb-4 d-flex justify-content-between align-items-center flex-wrap event-list-controls">
     <input
         type="text"
         id="search"
         class="form-control"
         placeholder="{{ __('Recherche par nom...') }}"
-        onkeyup="filterTable()"
+        oninput="filterTable()"
         style="border-color: #854f38; max-width: 300px; margin-bottom: 10px;"
     >
 
     {{-- Button + pill wrapper --}}
-    <div style="position: relative; display: inline-flex; margin-bottom: 10px;">
+    <div class="event-create-action" style="position: relative; display: inline-flex; margin-bottom: 10px;">
 
         @if($canCreateEvent)
             {{-- Normal green button --}}
@@ -119,7 +120,8 @@
         <!-- Upcoming Events Table -->
         <div class="table-responsive mx-auto">
             <h2 class="table-title">{{ __('Événements à venir et en cours') }}</h2>
-            <table class="table table-bordered table-hover" id="upcomingEventTable">
+            @include('events.partials.mobile-sort', ['tableId' => 'upcomingEventTable'])
+            <table class="table table-bordered table-hover event-record-table" id="upcomingEventTable">
                 <thead>
                     <tr>
                         <th onclick="sortTable(0, 'upcomingEventTable')">{{ __('Nom de l\'Événement') }} <i class="fas fa-sort"></i></th>
@@ -130,11 +132,11 @@
                 </thead>
                 <tbody>
                     @foreach($upcomingEvents as $event)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('events.show', $event->id) }}');">
-                            <td>{{ $event->name }}</td>
-                            <td>{{ $event->formatted_period }}</td>
-                            <td>{{ $event->location }}</td>
-                            <td>
+                        <tr class="table-row" onclick="if (!event.target.closest('a')) animateAndRedirect(this, '{{ route('events.show', $event->id) }}');">
+                            <td class="event-record-title"><a href="{{ route('events.show', $event->id) }}">{{ $event->name }}</a></td>
+                            <td data-label="Date" data-sort="{{ $event->start_date_time->timestamp }}">{{ $event->formatted_period }}</td>
+                            <td data-label="Lieu">{{ $event->location }}</td>
+                            <td data-label="Réservations" data-sort="{{ $event->active_reservations->count() }}">
                                 @php
                                     $totalReservations = $event->active_reservations->count();
                                     $availableSpots = $event->limited_spot ? $event->number_of_spot : '∞';
@@ -150,7 +152,8 @@
         <!-- Past Events Table -->
         <div class="table-responsive mx-auto mt-5">
             <h2 class="table-title">{{ __('Événements Passés') }}</h2>
-            <table class="table table-bordered table-hover" id="pastEventTable">
+            @include('events.partials.mobile-sort', ['tableId' => 'pastEventTable'])
+            <table class="table table-bordered table-hover event-record-table" id="pastEventTable">
                 <thead>
                     <tr>
                         <th onclick="sortTable(0, 'pastEventTable')">{{ __('Nom de l\'Événement') }} <i class="fas fa-sort"></i></th>
@@ -161,11 +164,11 @@
                 </thead>
                 <tbody>
                     @foreach($pastEvents as $event)
-                        <tr class="table-row" onclick="animateAndRedirect(this, '{{ route('events.show', $event->id) }}');">
-                            <td>{{ $event->name }}</td>
-                            <td>{{ $event->formatted_period }}</td>
-                            <td>{{ $event->location }}</td>
-                            <td>
+                        <tr class="table-row" onclick="if (!event.target.closest('a')) animateAndRedirect(this, '{{ route('events.show', $event->id) }}');">
+                            <td class="event-record-title"><a href="{{ route('events.show', $event->id) }}">{{ $event->name }}</a></td>
+                            <td data-label="Date" data-sort="{{ $event->start_date_time->timestamp }}">{{ $event->formatted_period }}</td>
+                            <td data-label="Lieu">{{ $event->location }}</td>
+                            <td data-label="Réservations" data-sort="{{ $event->active_reservations->count() }}">
                                 @php
                                     $totalReservations = $event->active_reservations->count();
                                     $availableSpots = $event->limited_spot ? $event->number_of_spot : '∞';
@@ -349,18 +352,20 @@
             }
         }
 
-        function sortTable(n, tableId) {
+        function sortTable(n, tableId, direction = null) {
             let table = document.getElementById(tableId);
             let rows = Array.from(table.rows).slice(1);
-            let asc = table.getAttribute('data-sort-dir') === 'asc' ? false : true;
+            let asc = direction ?? table.getAttribute('data-sort-dir') !== 'asc';
 
             rows.sort(function(a, b) {
-                let x = a.getElementsByTagName('td')[n].innerText.toLowerCase();
-                let y = b.getElementsByTagName('td')[n].innerText.toLowerCase();
+                let xCell = a.getElementsByTagName('td')[n];
+                let yCell = b.getElementsByTagName('td')[n];
+                let x = xCell.innerText.toLowerCase();
+                let y = yCell.innerText.toLowerCase();
 
-                if (n === 1) {
-                    x = new Date(x.split('/').reverse().join('-'));
-                    y = new Date(y.split('/').reverse().join('-'));
+                if (n === 1 || n === 3) {
+                    x = Number(xCell.dataset.sort);
+                    y = Number(yCell.dataset.sort);
                 }
 
                 if (x < y) return asc ? -1 : 1;

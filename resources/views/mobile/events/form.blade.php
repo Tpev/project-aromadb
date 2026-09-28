@@ -14,7 +14,8 @@
 @endphp
 
 <x-mobile-layout :title="$title" :hide-nav="true">
-    <form method="POST" action="{{ $action }}" class="mx-auto w-full max-w-lg px-4 pb-28 pt-4">
+    @include('events.partials.responsive-styles')
+    <form method="POST" action="{{ $action }}" class="therapist-events mx-auto w-full max-w-lg px-4 pb-28 pt-4">
         @csrf
         @if($method !== 'POST')
             @method($method)

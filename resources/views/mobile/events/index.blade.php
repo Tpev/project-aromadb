@@ -5,7 +5,8 @@
 @endphp
 
 <x-mobile-layout title="Evenements">
-    <div class="mx-auto w-full max-w-lg px-4 pb-24 pt-4">
+    @include('events.partials.responsive-styles')
+    <div class="therapist-events mx-auto w-full max-w-lg px-4 pb-24 pt-4">
         <div class="mb-4 flex items-start justify-between gap-3">
             <div class="min-w-0">
                 <div class="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#647a0b]/10 text-[#647a0b]">
@@ -108,7 +109,7 @@
                        data-event="{{ $searchText }}">
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0 flex-1">
-                                <h2 class="truncate text-sm font-semibold text-gray-900">
+                                <h2 class="text-sm font-semibold text-gray-900">
                                     {{ $event->name }}
                                 </h2>
                                 <p class="mt-1 text-xs leading-snug text-gray-600">

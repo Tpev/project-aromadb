@@ -151,7 +151,7 @@
         </div>
 
         {{-- Calendrier --}}
-        <div class="am-card mb-4">
+        <div class="am-card mb-4 am-calendar-card">
             <div class="am-card-header text-center">
                 <h2 class="h5 mb-1" style="color:#647a0b;">
                     Calendrier des rendez-vous
@@ -567,6 +567,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialisation du calendrier
             var calendarEl = document.getElementById('calendar');
+            const mobileCalendar = window.matchMedia('(max-width: 767px)');
+
+            function mobileDayHeader(info) {
+                if (info.view.type !== 'timeGridWeek') return info.text;
+
+                const weekday = info.date.toLocaleDateString('fr-FR', { weekday: 'short' });
+                const day = info.date.getDate();
+                return { html: `<span class="am-calendar-weekday">${weekday}</span><span class="am-calendar-date">${day}</span>` };
+            }
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 plugins: [
@@ -576,9 +585,14 @@
                     FullCalendar.listPlugin,
                     FullCalendar.bootstrapPlugin
                 ],
-                locale: 'fr',
+                locale: FullCalendar.locales.fr,
                 initialView: 'dayGridMonth',
                 themeSystem: 'bootstrap',
+                // Let mobile users scroll through the whole day with the page.
+                height: mobileCalendar.matches ? 'auto' : undefined,
+                dayHeaderContent: mobileCalendar.matches ? mobileDayHeader : undefined,
+                allDayText: mobileCalendar.matches ? 'Journée' : undefined,
+                displayEventEnd: mobileCalendar.matches ? false : undefined,
                 headerToolbar: {
                     left: 'prev,next',
                     center: 'title',
@@ -603,6 +617,15 @@
             });
 
             calendar.render();
+
+            mobileCalendar.addEventListener('change', function() {
+                calendar.batchRendering(function() {
+                    calendar.setOption('height', mobileCalendar.matches ? 'auto' : undefined);
+                    calendar.setOption('dayHeaderContent', mobileCalendar.matches ? mobileDayHeader : undefined);
+                    calendar.setOption('allDayText', mobileCalendar.matches ? 'Journée' : undefined);
+                    calendar.setOption('displayEventEnd', mobileCalendar.matches ? false : undefined);
+                });
+            });
 
             const modal = document.getElementById('calendar-action-modal');
             const choicePanel = document.getElementById('calendar-action-choice');
@@ -783,6 +806,101 @@
         .am-calendar-wrapper {
             width: 100%;
             overflow-x: auto;
+        }
+
+        @media (max-width: 767px) {
+            .am-page {
+                padding-inline: 8px;
+            }
+
+            .am-calendar-card .am-card-body {
+                padding: 16px 6px;
+            }
+
+            #calendar .fc-header-toolbar {
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                gap: 12px 6px;
+                margin-bottom: 16px;
+            }
+
+            #calendar .fc-toolbar-chunk:nth-child(2) {
+                grid-column: 1 / -1;
+                grid-row: 1;
+                min-width: 0;
+            }
+
+            #calendar .fc-toolbar-chunk:last-child {
+                justify-self: end;
+            }
+
+            #calendar .fc-toolbar-title {
+                font-size: 1.1rem;
+                line-height: 1.4;
+                text-align: center;
+            }
+
+            #calendar .btn-group {
+                display: inline-flex;
+                gap: 3px;
+            }
+
+            #calendar .fc-header-toolbar .btn {
+                justify-content: center;
+                min-width: 44px;
+                min-height: 44px;
+                padding: 6px 8px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                white-space: nowrap;
+            }
+
+            #calendar .fc-header-toolbar .btn.active {
+                background-color: #854f38;
+                border-color: #854f38;
+            }
+
+            #calendar .fc-col-header-cell-cushion {
+                padding: 6px 1px;
+                font-size: 0.7rem;
+            }
+
+            #calendar .fc-scrollgrid,
+            #calendar .fc-scrollgrid th,
+            #calendar .fc-scrollgrid td {
+                border: 1px solid #e7ebd8;
+            }
+
+            #calendar .am-calendar-weekday,
+            #calendar .am-calendar-date {
+                display: block;
+                line-height: 1.5;
+            }
+
+            #calendar .am-calendar-date {
+                font-size: 0.8rem;
+            }
+
+            #calendar .fc-timegrid-axis-cushion,
+            #calendar .fc-timegrid-slot-label-cushion {
+                max-width: 44px;
+                padding-inline: 2px;
+                font-size: 0.65rem;
+                white-space: nowrap;
+            }
+
+            #calendar .fc-timegrid-event {
+                font-size: 0.7rem;
+            }
+
+            #calendar .fc-timegrid-slot {
+                height: 24px;
+            }
+
+            .am-page .google-events-toggle {
+                min-width: 0;
+                width: 100%;
+            }
         }
 
         .am-search-input {

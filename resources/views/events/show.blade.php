@@ -45,6 +45,7 @@
 @endphp
 
 <x-app-layout>
+    @include('events.partials.responsive-styles')
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
             <div>
@@ -92,7 +93,7 @@
         </div>
     </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 py-6 space-y-6 bg-[#f7fbe8]">
+    <div class="therapist-events max-w-7xl mx-auto px-4 py-6 space-y-6 bg-[#f7fbe8]">
 
         @if(session('success'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 shadow-sm">
@@ -356,7 +357,7 @@
 
                         {{-- Reservations --}}
                         <div class="rounded-xl border border-[#e2ecc3] bg-white px-4 py-4 sm:px-5 sm:py-5">
-                            <div class="flex items-start justify-between gap-3">
+                            <div class="event-participant-heading flex items-start justify-between gap-3">
                                 <div>
                                     <h3 class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#647a0b]">
                                         <i class="fas fa-clipboard-list text-[#647a0b]"></i>
@@ -427,7 +428,7 @@
 
                             <div class="mt-4 overflow-hidden rounded-xl border border-[#e2ecc3]">
                                 <div class="overflow-x-auto">
-                                    <table class="min-w-full text-sm">
+                                    <table class="event-record-table min-w-full text-sm" id="eventReservationTable">
                                         <thead class="bg-[#fbfff6] text-slate-700">
                                             <tr>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">{{ __('Nom') }}</th>
@@ -445,13 +446,13 @@
                                                     $clientId = $emailLower && isset($clientEmailsMap[$emailLower]) ? $clientEmailsMap[$emailLower] : null;
                                                 @endphp
                                                 <tr class="hover:bg-[#fbfff6]/60 transition">
-                                                    <td class="px-4 py-3 font-medium text-slate-900">
+                                                    <td class="event-record-title px-4 py-3 font-medium text-slate-900">
                                                         {{ $reservation->full_name ?: '—'}}
                                                     </td>
-                                                    <td class="px-4 py-3 text-slate-700">
+                                                    <td data-label="Email" class="px-4 py-3 text-slate-700">
                                                         {{ $reservation->email ?: '—' }}
                                                     </td>
-                                                    <td class="px-4 py-3 text-slate-700">
+                                                    <td data-label="Téléphone" class="px-4 py-3 text-slate-700">
                                                         {{ $reservation->phone ?? '—' }}
                                                     </td>
 													<td class="px-4 py-3">
@@ -474,7 +475,7 @@
 															{{ __($label) }}
 														</span>
 													</td>
-                                                    <td class="px-4 py-3 client-cell">
+                                                    <td data-label="Client" class="px-4 py-3 client-cell">
                                                         @if($clientId)
                                                             <div class="flex flex-col gap-1">
                                                                 <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-100">

@@ -1,11 +1,12 @@
 <x-app-layout>
+    @include('events.partials.responsive-styles')
     <x-slot name="header">
         <h2 class="font-semibold text-xl" style="color: #647a0b;">
             {{ __('Créer un Événement') }}
         </h2>
     </x-slot>
 
-    <div class="container mt-5">
+    <div class="container mt-5 therapist-events event-form-page">
         <div class="details-container mx-auto p-4">
             <h1 class="details-title">{{ __('Nouvel Événement') }}</h1>
 
@@ -228,7 +229,7 @@
 
                         <div id="paymentFields" style="display:none; margin-top: 12px;">
                             <div class="d-flex gap-3 flex-wrap">
-                                <div style="flex: 1; min-width: 200px;">
+                                <div class="event-payment-field">
                                     <label class="details-label" for="price">{{ __('Prix TTC (€)') }}</label>
                                     <input
                                         type="number"
@@ -244,7 +245,7 @@
                                     @enderror
                                 </div>
 
-                                <div style="flex: 1; min-width: 200px;">
+                                <div class="event-payment-field">
                                     <label class="details-label" for="tax_rate">{{ __('TVA (%) (optionnel)') }}</label>
                                     <input
                                         type="number"
