@@ -291,7 +291,7 @@
           @foreach($events as $event)
             @php
               $spotsLeft = $event->limited_spot
-                ? max($event->number_of_spot - $event->reservations->count(), 0)
+                ? max($event->number_of_spot - $event->active_reservations->count(), 0)
                 : null;
               $descPlain = trim(strip_tags((string) ($event->description ?? '')));
             @endphp

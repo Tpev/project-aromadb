@@ -136,7 +136,7 @@
                             <td>{{ $event->location }}</td>
                             <td>
                                 @php
-                                    $totalReservations = $event->reservations->count();
+                                    $totalReservations = $event->active_reservations->count();
                                     $availableSpots = $event->limited_spot ? $event->number_of_spot : '∞';
                                 @endphp
                                 {{ $totalReservations }} / {{ $availableSpots }}
@@ -167,7 +167,7 @@
                             <td>{{ $event->location }}</td>
                             <td>
                                 @php
-                                    $totalReservations = $event->reservations->count();
+                                    $totalReservations = $event->active_reservations->count();
                                     $availableSpots = $event->limited_spot ? $event->number_of_spot : '∞';
                                 @endphp
                                 {{ $totalReservations }} / {{ $availableSpots }}

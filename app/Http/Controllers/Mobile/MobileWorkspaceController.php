@@ -223,7 +223,7 @@ class MobileWorkspaceController extends Controller
     public function events()
     {
         $items = Event::query()
-            ->withCount('reservations')
+            ->withCount(['reservations' => fn ($query) => $query->active()])
             ->where('user_id', Auth::id())
             ->orderByDesc('start_date_time')
             ->limit(30)

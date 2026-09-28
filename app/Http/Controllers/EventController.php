@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 
 use App\Models\ClientProfile;
 use App\Models\Reservation;
+use App\Services\EventReservationService;
 
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ReservationConfirmation;
@@ -378,6 +379,7 @@ class EventController extends Controller
 
         // ✅ Doublon : même email déjà inscrit sur cet event
         $already = Reservation::where('event_id', $event->id)
+            ->active()
             ->whereRaw('LOWER(email) = ?', [$email])
             ->exists();
 
@@ -385,9 +387,9 @@ class EventController extends Controller
             return back()->with('error', "Ce client est déjà inscrit à cet événement.");
         }
 
-        // ✅ Limite de places : on compte toutes les réservations
+        // Only active reservations occupy a place.
         if ($event->limited_spot && (int) $event->number_of_spot > 0) {
-            $count = Reservation::where('event_id', $event->id)->count();
+            $count = $event->reservations()->active()->count();
 
             if ($count >= (int) $event->number_of_spot) {
                 return back()->with('error', "Il n'y a plus de place disponible pour cet événement.");
@@ -396,12 +398,12 @@ class EventController extends Controller
 
         $fullName = trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? ''));
 
-        $reservation = Reservation::create([
+        $reservation = app(EventReservationService::class)->reserve($event, [
             'event_id'  => $event->id,
             'full_name' => $fullName ?: ($client->email ?? 'Participant'),
             'email'     => $client->email,
             'phone'     => $client->phone,
-        ]);
+        ], preventDuplicate: true);
 
         // ✅ Emails (identique au flux public ReservationController@store)
         $event->loadMissing('user');
@@ -539,7 +541,7 @@ $validated['description'] = $this->sanitizeEventDescription($validated['descript
     if ($duplicateParticipants) {
         $event->loadMissing('reservations');
 
-        foreach ($event->reservations as $r) {
+        foreach ($event->active_reservations as $r) {
 
             $newReservation = Reservation::create([
                 'event_id'  => $newEvent->id,

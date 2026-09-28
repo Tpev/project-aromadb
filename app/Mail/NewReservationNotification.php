@@ -26,6 +26,14 @@ class NewReservationNotification extends Mailable
     /**
      * Build the message.
      */
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(text: [
+            \App\Services\EventMailDeliveryGuard::RESERVATION_HEADER => (string) $this->reservation->id,
+            \App\Services\EventMailDeliveryGuard::MESSAGE_HEADER => 'therapist_confirmation',
+        ]);
+    }
+
     public function build()
     {
         return $this->subject('Nouvelle réservation pour votre événement')

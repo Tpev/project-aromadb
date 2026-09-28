@@ -47,14 +47,7 @@
         // -----------------------------
         // Spots left (safer counting)
         // -----------------------------
-        $reservationsCollection = $event->reservations ?? collect();
-
-        // If reservations have a status column, count only active ones
-        $hasStatus = $reservationsCollection->first() && isset($reservationsCollection->first()->status);
-
-        $activeCount = $hasStatus
-            ? $reservationsCollection->whereIn('status', ['confirmed', 'paid', 'pending_payment'])->count()
-            : $reservationsCollection->count();
+        $activeCount = $event->active_reservations->count();
 
         $spotsLeft = $event->limited_spot
             ? max(((int)$event->number_of_spot) - $activeCount, 0)
@@ -221,9 +214,9 @@
                 </div>
             @endif
 
-            @if(session('error'))
+            @if(session('error') || $errors->has('reservation'))
                 <div class="alert alert-danger animate__animated animate__shakeX">
-                    <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
+                    <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') ?: $errors->first('reservation') }}
                 </div>
             @endif
 

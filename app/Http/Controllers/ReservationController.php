@@ -11,6 +11,9 @@ use App\Mail\NewReservationNotification;
 use App\Support\EventSocialImage;
 use Illuminate\Support\Facades\Log;
 use Stripe\StripeClient;
+use App\Services\EventReservationService;
+use App\Jobs\ExpireEventReservationCheckout;
+use Illuminate\Support\Facades\URL;
 
 class ReservationController extends Controller
 {
@@ -48,7 +51,7 @@ public function store(Request $request, $eventId)
     // Check if the event has limited spots (count only active-ish reservations)
     if ($event->limited_spot) {
         $currentReservations = $event->reservations()
-            ->whereIn('status', ['confirmed', 'pending_payment', 'paid'])
+            ->active()
             ->count();
 
         if ($currentReservations >= (int) $event->number_of_spot) {
@@ -79,7 +82,7 @@ public function store(Request $request, $eventId)
         }
 
         // Create a pending reservation BEFORE redirecting to Stripe
-        $reservation = Reservation::create([
+        $reservation = app(EventReservationService::class)->reserve($event, [
             'event_id'   => $event->id,
             'full_name'  => $request->full_name,
             'email'      => $request->email,
@@ -110,8 +113,7 @@ public function store(Request $request, $eventId)
                     . '?session_id={CHECKOUT_SESSION_ID}'
                     . '&account_id=' . $event->user->stripe_account_id,
 
-                'cancel_url' => route('reservations.payment_cancel')
-                    . '?reservation_id=' . $reservation->id,
+                'cancel_url' => URL::signedRoute('reservations.payment_cancel', ['reservation_id' => $reservation->id]),
 
                 'metadata' => ['reservation_id' => (string) $reservation->id, 'event_id' => (string) $event->id],
 
@@ -130,6 +132,12 @@ public function store(Request $request, $eventId)
             $reservation->stripe_session_id = $session->id;
             $reservation->save();
 
+            if ($reservation->fresh()->cancelled_at) {
+                ExpireEventReservationCheckout::dispatch($reservation->id);
+                return redirect()->route('events.reserve.create', $event)
+                    ->with('error', 'Cette réservation a été annulée.');
+            }
+
             return redirect($session->url);
 
         } catch (\Exception $e) {
@@ -147,7 +155,7 @@ public function store(Request $request, $eventId)
     }
 
     // ✅ FREE EVENT FLOW
-    $reservation = Reservation::create([
+    $reservation = app(EventReservationService::class)->reserve($event, [
         'event_id'  => $event->id,
         'full_name' => $request->full_name,
         'email'     => $request->email,
@@ -184,7 +192,7 @@ public function create($eventId, EventSocialImage $eventSocialImage)
 
         // ✅ Must match store(): count only active-ish reservations
         $currentReservations = $event->reservations()
-            ->whereIn('status', ['confirmed', 'pending_payment', 'paid'])
+            ->active()
             ->count();
 
         if ($currentReservations >= (int) $event->number_of_spot) {
@@ -211,20 +219,19 @@ public function create($eventId, EventSocialImage $eventSocialImage)
     }
 
     /**
-     * Delete a reservation (only event owner).
+     * Cancel attendance while retaining payment and reservation history.
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id, EventReservationService $reservations)
     {
         $reservation = Reservation::findOrFail($id);
 
-        // Check if the authenticated user is the owner of the event
-        if (auth()->id() !== $reservation->event->user_id) {
-            return redirect()->back()->with('error', __('Vous n\'êtes pas autorisé à supprimer cette réservation.'));
+        $reservation = $reservations->cancel($reservation, $request->user());
+        $message = 'Réservation annulée. La place est à nouveau disponible.';
+        if ($reservation->status === 'paid') {
+            $message .= ' Le paiement est conservé ; aucun remboursement automatique n’a été effectué.';
         }
 
-        $reservation->delete();
-
-        return redirect()->back()->with('success', __('La réservation a été supprimée avec succès.'));
+        return redirect()->back()->with('success', $message);
     }
 public function paymentSuccess(Request $request)
 {
@@ -278,6 +285,11 @@ public function paymentSuccess(Request $request)
             return redirect()->route('welcome')->with('error', 'Le paiement ne correspond pas à cette réservation. Contactez le praticien.');
         }
 
+        if ($reservation->fresh()->cancelled_at) {
+            return redirect()->route('events.reserve.create', $reservation->event)
+                ->with('error', 'Votre paiement a été reçu, mais cette réservation a été annulée. Contactez le praticien pour le remboursement.');
+        }
+
         return redirect()->route('reservations.success', $reservation->event->id);
 
     } catch (\Exception $e) {
@@ -292,14 +304,20 @@ public function paymentSuccess(Request $request)
 
 public function paymentCancel(Request $request)
 {
+    // Old unsigned return URLs may still be open in a browser, but must not mutate a reservation.
+    if (! $request->hasValidSignature()) {
+        return redirect()->route('welcome')->with('error', 'Paiement interrompu.');
+    }
     $reservationId = $request->get('reservation_id');
 
     if ($reservationId) {
-        $reservation = Reservation::find($reservationId);
-        if ($reservation && $reservation->status === 'pending_payment') {
-            $reservation->status = 'canceled';
-            $reservation->save();
-        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($reservationId) {
+            $reservation = Reservation::lockForUpdate()->find($reservationId);
+            if ($reservation && $reservation->status === 'pending_payment') {
+                $reservation->status = 'canceled';
+                $reservation->save();
+            }
+        });
     }
 
     return redirect()->route('welcome')->with('error', "Paiement annulé.");

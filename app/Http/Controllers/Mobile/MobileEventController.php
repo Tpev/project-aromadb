@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\Product;
 use App\Models\Reservation;
 use App\Services\EventCalendarBlockService;
+use App\Services\EventReservationService;
 use App\Support\EventDuration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,7 @@ class MobileEventController extends Controller
     public function index()
     {
         $events = Event::query()
-            ->withCount('reservations')
+            ->withCount(['reservations' => fn ($query) => $query->active()])
             ->where('user_id', Auth::id())
             ->orderBy('start_date_time')
             ->get();
@@ -87,7 +88,7 @@ class MobileEventController extends Controller
         $event->load([
             'associatedProduct',
             'reservations' => fn ($query) => $query->latest(),
-        ])->loadCount('reservations');
+        ])->loadCount(['reservations' => fn ($query) => $query->active()]);
 
         $clients = ClientProfile::query()
             ->where('user_id', Auth::id())
@@ -163,6 +164,7 @@ class MobileEventController extends Controller
         }
 
         $alreadyRegistered = Reservation::query()
+            ->active()
             ->where('event_id', $event->id)
             ->whereRaw('LOWER(email) = ?', [$email])
             ->exists();
@@ -173,6 +175,7 @@ class MobileEventController extends Controller
 
         if ($event->limited_spot && (int) $event->number_of_spot > 0) {
             $reservationCount = Reservation::query()
+                ->active()
                 ->where('event_id', $event->id)
                 ->count();
 
@@ -182,12 +185,12 @@ class MobileEventController extends Controller
         }
 
         $fullName = trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? ''));
-        $reservation = Reservation::create([
+        $reservation = app(EventReservationService::class)->reserve($event, [
             'event_id' => $event->id,
             'full_name' => $fullName ?: $email,
             'email' => $client->email,
             'phone' => $client->phone,
-        ]);
+        ], preventDuplicate: true);
 
         $event->loadMissing('user');
 

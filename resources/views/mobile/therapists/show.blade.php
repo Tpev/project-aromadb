@@ -516,7 +516,7 @@
                             @foreach($events as $event)
                                 @php
                                     $spotsLeft = $event->limited_spot
-                                        ? $event->number_of_spot - $event->reservations->count()
+                                        ? $event->number_of_spot - $event->active_reservations->count()
                                         : null;
                                 @endphp
 

@@ -3,10 +3,13 @@
 // app/Models/Reservation.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
 {
+    public const ACTIVE_STATUSES = ['confirmed', 'pending_payment', 'paid'];
+
     protected $fillable = [
         'event_id',
         'full_name',
@@ -26,6 +29,7 @@ class Reservation extends Model
     ];
 
     protected $casts = [
+        'cancelled_at' => 'datetime',
         'payment_confirmation_requested_at' => 'datetime',
         'amount_ttc' => 'float',
         'confirmation_sent_at' => 'datetime',
@@ -36,7 +40,17 @@ class Reservation extends Model
 
     public function isEmailEligible(): bool
     {
-        return $this->event !== null && in_array($this->status, ['confirmed', 'paid'], true);
+        return $this->event !== null && $this->isActive() && $this->status !== 'pending_payment';
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNull('cancelled_at')->whereIn('status', self::ACTIVE_STATUSES);
+    }
+
+    public function isActive(): bool
+    {
+        return ! $this->cancelled_at && in_array($this->status, self::ACTIVE_STATUSES, true);
     }
 
     public function event()

@@ -48,7 +48,7 @@ class OfferJourneyConversionAttributor
     {
         $reservation->loadMissing('event');
         $userId = (int) $reservation->event?->user_id;
-        $rawStatus = (string) $reservation->status;
+        $rawStatus = $reservation->cancelled_at ? 'cancelled' : (string) $reservation->status;
         $this->attribute(
             $reservation,
             $userId,

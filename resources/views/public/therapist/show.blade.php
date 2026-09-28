@@ -888,7 +888,7 @@
                                     </p>
                                     @if($event->limited_spot)
                                         <p class="text-gray-600 mt-1">
-                                            <i class="fas fa-users mr-1 text-[#854f38]"></i> {{ __('Places restantes :') }} {{ $event->number_of_spot - $event->reservations->count() }}
+                                            <i class="fas fa-users mr-1 text-[#854f38]"></i> {{ __('Places restantes :') }} {{ $event->number_of_spot - $event->active_reservations->count() }}
                                         </p>
                                     @endif
                                     
@@ -921,7 +921,7 @@
 
 @php
     $spotsLeft = $event->limited_spot
-        ? $event->number_of_spot - $event->reservations->count()
+        ? $event->number_of_spot - $event->active_reservations->count()
         : null;
 
     // Share the booking page only for reservable events; otherwise use the public info page.

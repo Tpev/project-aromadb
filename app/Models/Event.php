@@ -79,6 +79,11 @@ protected $fillable = [
         return $this->hasMany(Reservation::class);
     }
 
+    public function getActiveReservationsAttribute()
+    {
+        return $this->reservations->filter(fn (Reservation $reservation) => $reservation->isActive());
+    }
+
     public function calendarBlock()
     {
         return $this->hasOne(Unavailability::class);

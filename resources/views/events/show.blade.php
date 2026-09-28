@@ -11,7 +11,7 @@
             return $carry;
         }, []);
 
-    $totalReservations = $event->reservations->count();
+    $totalReservations = $event->active_reservations->count();
     $availableSpots    = $event->limited_spot ? $event->number_of_spot : '∞';
 
     // Always share the public event page so social previews use event OG metadata.
@@ -105,13 +105,13 @@
             </div>
         @endif
 
-        @if(session('error'))
+        @if(session('error') || $errors->has('reservation'))
             <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800 shadow-sm">
                 <div class="flex items-center gap-2 text-sm font-semibold">
                     <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-white">
                         <i class="fas fa-exclamation-triangle"></i>
                     </span>
-                    <span>{{ session('error') }}</span>
+                    <span>{{ session('error') ?: $errors->first('reservation') }}</span>
                 </div>
             </div>
         @endif
@@ -435,10 +435,11 @@
                                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">{{ __('Téléphone') }}</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">{{ __('Statut') }}</th>
                                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">{{ __('Client') }}</th>
+                                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">{{ __('Action') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-[#e2ecc3] bg-white">
-                                            @forelse($event->reservations as $reservation)
+                                            @forelse($event->active_reservations as $reservation)
                                                 @php
                                                     $emailLower = strtolower($reservation->email ?? '');
                                                     $clientId = $emailLower && isset($clientEmailsMap[$emailLower]) ? $clientEmailsMap[$emailLower] : null;
@@ -496,10 +497,13 @@
 
                                                         @endif
                                                     </td>
+                                                    <td class="px-4 py-3">
+                                                        @include('events.partials.cancel-reservation', ['reservation' => $reservation])
+                                                    </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="5" class="px-4 py-8 text-center text-slate-500">
+                                                    <td colspan="6" class="px-4 py-8 text-center text-slate-500">
                                                         {{ __('Aucune réservation pour le moment.') }}
                                                     </td>
                                                 </tr>
@@ -508,6 +512,7 @@
                                     </table>
                                 </div>
                             </div>
+                            @include('events.partials.cancelled-reservations')
                         </div>
 
                     </div>

@@ -69,9 +69,9 @@
             </div>
         @endif
 
-        @if(session('error'))
+        @if(session('error') || $errors->any())
             <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
-                {{ session('error') }}
+                {{ session('error') ?: $errors->first() }}
             </div>
         @endif
 
@@ -159,7 +159,7 @@
                     </form>
                 @endif
 
-                @if($event->reservations->isEmpty())
+                @if($event->active_reservations->isEmpty())
                     <div class="mt-3 rounded-lg border border-dashed border-[#d7ddc6] bg-[#fbfcf7] p-4 text-center">
                         <h3 class="text-sm font-semibold text-gray-900">Aucune reservation</h3>
                         <p class="mt-1 text-sm leading-snug text-gray-600">
@@ -168,7 +168,7 @@
                     </div>
                 @else
                     <div class="mt-3 space-y-2">
-                        @foreach($event->reservations as $reservation)
+                        @foreach($event->active_reservations as $reservation)
                             <article class="rounded-lg border border-[#f1f3e6] bg-[#fbfcf7] p-3">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0 flex-1">
@@ -176,16 +176,20 @@
                                         <div class="mt-1 truncate text-xs text-gray-600">{{ $reservation->email }}</div>
                                     </div>
                                     <span class="shrink-0 rounded-full border border-[#e4e8d5] bg-white px-2 py-0.5 text-[10px] font-medium text-gray-600">
-                                        {{ $reservation->status ?: 'confirme' }}
+                                        {{ match ($reservation->status) { 'paid' => 'Payée', 'pending_payment' => 'En attente de paiement', default => 'Confirmée' } }}
                                     </span>
                                 </div>
                                 @if($reservation->phone)
                                     <div class="mt-2 text-xs text-gray-500">{{ $reservation->phone }}</div>
                                 @endif
+                                <div class="mt-3">
+                                    @include('events.partials.cancel-reservation', ['reservation' => $reservation])
+                                </div>
                             </article>
                         @endforeach
                     </div>
                 @endif
+                @include('events.partials.cancelled-reservations')
             </section>
 
             <form method="POST"

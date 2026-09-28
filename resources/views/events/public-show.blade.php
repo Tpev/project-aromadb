@@ -1,6 +1,6 @@
 @php
     $spotsLeft = $event->limited_spot
-        ? max($event->number_of_spot - $event->reservations->whereIn('status', ['confirmed', 'pending_payment', 'paid'])->count(), 0)
+        ? max($event->number_of_spot - $event->active_reservations->count(), 0)
         : null;
 
     $desc = $event->description;

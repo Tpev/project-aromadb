@@ -19,7 +19,7 @@ class EventPaymentService
                 || strtolower($reservation->currency ?? 'eur') !== strtolower($currency)
                 || ($sessionId && $reservation->stripe_session_id && $reservation->stripe_session_id !== $sessionId)
                 || ($reservation->stripe_payment_intent_id && $reservation->stripe_payment_intent_id !== $paymentIntentId)
-                || ! in_array($reservation->status, ['pending_payment', 'canceled', 'paid'], true)) {
+                || ! in_array($reservation->status, ['pending_payment', 'canceled', 'expired', 'failed', 'paid'], true)) {
                 return null;
             }
 
@@ -27,7 +27,7 @@ class EventPaymentService
             // paid rows already had their confirmations queued by the old controller.
             // "canceled" is also set by the legacy checkout return URL; a later
             // verified payment still needs fulfillment, as with the old success handler.
-            if ($reservation->status !== 'paid') {
+            if ($reservation->status !== 'paid' && ! $reservation->cancelled_at) {
                 $reservation->payment_confirmation_requested_at = now();
             }
             $reservation->fill(['status' => 'paid', 'stripe_payment_intent_id' => $paymentIntentId])->save();
@@ -39,7 +39,7 @@ class EventPaymentService
             return false;
         }
 
-        if ($reservation->payment_confirmation_requested_at && (! $reservation->confirmation_sent_at || ! $reservation->therapist_notification_sent_at)) {
+        if ($reservation->isEmailEligible() && $reservation->payment_confirmation_requested_at && (! $reservation->confirmation_sent_at || ! $reservation->therapist_notification_sent_at)) {
             SendPaidEventConfirmationJob::dispatch($reservation->id)->afterCommit();
         }
 
@@ -55,6 +55,21 @@ class EventPaymentService
         $reservationId = (int) ($object->metadata->reservation_id ?? 0);
         if (! $reservationId) {
             return false;
+        }
+
+        if (in_array($event->type, ['checkout.session.expired', 'checkout.session.async_payment_failed'], true)) {
+            DB::transaction(function () use ($reservationId, $accountId, $object, $event) {
+                $reservation = Reservation::with('event.user')->lockForUpdate()->find($reservationId);
+                if (! $reservation || $accountId === ''
+                    || ! hash_equals((string) $reservation->event?->user?->stripe_account_id, $accountId)
+                    || $reservation->stripe_session_id !== (string) $object->id
+                    || ! in_array($reservation->status, ['pending_payment', 'canceled'], true)) {
+                    return;
+                }
+                $reservation->update(['status' => $event->type === 'checkout.session.expired' ? 'expired' : 'failed']);
+            });
+
+            return true;
         }
 
         if (in_array($event->type, ['checkout.session.completed', 'checkout.session.async_payment_succeeded'], true)) {
