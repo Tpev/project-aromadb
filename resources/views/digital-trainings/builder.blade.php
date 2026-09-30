@@ -4,6 +4,7 @@
     @php
         $videoUploadLimitLabel = \App\Support\UploadLimit::trainingVideoLimitLabel();
         $audioUploadLimitLabel = \App\Support\UploadLimit::trainingAudioLimitLabel();
+        $pdfUploadLimitLabel = \App\Support\UploadLimit::trainingPdfLimitLabel();
     @endphp
     <x-slot name="header">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -41,6 +42,16 @@
 
     <div class="container mt-6">
         <div class="mx-auto max-w-6xl space-y-4">
+            @if($errors->any())
+                <div role="alert" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">
+                    <ul class="list-disc pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if(session('success'))
                 <div class="rounded-xl border border-emerald-200 bg-emerald-50/90 px-4 py-2.5 text-sm text-emerald-800 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
@@ -757,6 +768,7 @@
                                                                class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                                         <p class="mt-1 text-[10px] text-slate-400">
                                                             {{ __('Le PDF sera affiché en grand dans un lecteur intégré côté client.') }}
+                                                            {{ __('Taille maximale : :size.', ['size' => $pdfUploadLimitLabel]) }}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1120,6 +1132,7 @@
                                                    class="w-full rounded-md border border-slate-200 px-2 py-1 text-[11px] file:mr-2 file:rounded-md file:border-0 file:bg-[#647a0b] file:px-3 file:py-1 file:text-[11px] file:font-semibold file:text-white">
                                             <p class="mt-1 text-[10px] text-slate-400">
                                                 {{ __('Le document sera consultable directement dans un lecteur PDF intégré côté client.') }}
+                                                {{ __('Taille maximale : :size.', ['size' => $pdfUploadLimitLabel]) }}
                                             </p>
                                         </div>
 

@@ -104,6 +104,24 @@ class UploadLimit
         return self::formatBytes(self::trainingAudioMaxBytes());
     }
 
+    public static function trainingPdfMaxBytes(): int
+    {
+        $appMax = 50 * 1024 * 1024;
+        $phpMax = self::phpUploadMaxBytes();
+
+        return $phpMax === null ? $appMax : min($appMax, $phpMax);
+    }
+
+    public static function trainingPdfValidationMaxKilobytes(): int
+    {
+        return max(1, (int) floor(self::trainingPdfMaxBytes() / 1024));
+    }
+
+    public static function trainingPdfLimitLabel(): string
+    {
+        return self::formatBytes(self::trainingPdfMaxBytes());
+    }
+
     public static function communityAttachmentMaxBytes(): int
     {
         $appMax = 20 * 1024 * 1024;

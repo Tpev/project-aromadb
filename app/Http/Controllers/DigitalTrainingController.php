@@ -469,7 +469,9 @@ class DigitalTrainingController extends Controller
         if ($request->hasFile('file')) {
             if ($data['type'] === 'pdf') {
                 $request->validate([
-                    'file' => 'file|mimes:pdf|max:20480',
+                    'file' => 'file|mimes:pdf|max:' . UploadLimit::trainingPdfValidationMaxKilobytes(),
+                ], [
+                    'file.max' => 'Le fichier PDF dépasse la taille maximale autorisée de ' . UploadLimit::trainingPdfLimitLabel() . '.',
                 ]);
                 $filePath = $request->file('file')->store('digital-trainings/blocks', 'public');
             }
@@ -519,7 +521,9 @@ class DigitalTrainingController extends Controller
         if ($request->hasFile('file')) {
             if ($block->type === 'pdf') {
                 $request->validate([
-                    'file' => 'file|mimes:pdf|max:20480',
+                    'file' => 'file|mimes:pdf|max:' . UploadLimit::trainingPdfValidationMaxKilobytes(),
+                ], [
+                    'file.max' => 'Le fichier PDF dépasse la taille maximale autorisée de ' . UploadLimit::trainingPdfLimitLabel() . '.',
                 ]);
 
                 if ($block->file_path) {
