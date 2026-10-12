@@ -47,7 +47,7 @@ public function show($slug)
 
     // ✅ Packs (PackProduct) + contenu (items + product)
     $packProducts = \App\Models\PackProduct::where('user_id', $therapist->id)
-        ->with(['items.product'])
+        ->with(['items.product', 'category'])
         ->orderBy('name')
         ->get();
 

@@ -26,6 +26,9 @@
                         <h1 class="text-xl font-semibold leading-tight text-gray-900">
                             {{ $pack->name }}
                         </h1>
+                        @if($pack->category)
+                            <p class="mt-1 text-xs font-semibold text-[#647a0b]">{{ $pack->category->name }}</p>
+                        @endif
                         <p class="mt-1 line-clamp-2 text-sm leading-snug text-gray-600">
                             {{ $pack->description ?: 'Forfait de prestations' }}
                         </p>

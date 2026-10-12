@@ -17,7 +17,7 @@ class ProductCategoryController extends Controller
 
         $categories = ProductCategory::query()
             ->where('user_id', Auth::id())
-            ->withCount('products')
+            ->withCount(['products', 'packs'])
             ->orderBy('display_order')
             ->orderBy('name')
             ->get();
@@ -57,7 +57,7 @@ class ProductCategoryController extends Controller
 
         return redirect()
             ->route('product-categories.index')
-            ->with('success', 'Catégorie supprimée. Les prestations associées restent disponibles sans catégorie.');
+            ->with('success', 'Catégorie supprimée. Les prestations et packs associés restent disponibles sans catégorie.');
     }
 
     private function validatedCategory(Request $request, ?ProductCategory $category = null): array

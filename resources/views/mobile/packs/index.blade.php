@@ -88,7 +88,7 @@
                             ? 'border-[#647a0b]/20 bg-[#647a0b]/10 text-[#647a0b]'
                             : 'border-gray-200 bg-gray-50 text-gray-600';
                         $portalText = $pack->visible_in_portal ? 'Portail visible' : 'Portail masque';
-                        $searchText = trim($pack->name . ' ' . ($pack->description ?? '') . ' ' . $portalText);
+                        $searchText = trim($pack->name . ' ' . ($pack->category?->name ?? '') . ' ' . ($pack->description ?? '') . ' ' . $portalText);
                     @endphp
 
                     <a href="{{ route('mobile.packs.show', $pack) }}"
@@ -99,6 +99,9 @@
                                 <h2 class="truncate text-sm font-semibold text-gray-900">
                                     {{ $pack->name }}
                                 </h2>
+                                @if($pack->category)
+                                    <p class="mt-1 text-xs font-semibold text-[#647a0b]">{{ $pack->category->name }}</p>
+                                @endif
                                 <p class="mt-1 line-clamp-2 text-xs leading-snug text-gray-600">
                                     {{ $pack->description ?: 'Pack sans description' }}
                                 </p>

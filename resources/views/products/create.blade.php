@@ -23,11 +23,7 @@
 
                 <!-- Description -->
                 <div class="details-box">
-                    <label class="details-label" for="description">{{ __('Description') }}</label>
-                    <textarea id="description" name="description" class="form-control">{{ old('description') }}</textarea>
-                    @error('description')
-                        <p class="text-red-500">{{ $message }}</p>
-                    @enderror
+                    @include('products.partials.description-field')
                 </div>
 
                 @include('products.partials.category-field')

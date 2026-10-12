@@ -1,7 +1,6 @@
 @php
     /** @var \App\Models\Product $prestation */
     $prestation = $group->first();
-    $truncatedDescription = \Illuminate\Support\Str::limit($prestation->description, 200);
     $hasCabinet = $group->contains(fn ($product) => (bool) $product->dans_le_cabinet);
     $hasDomicile = $group->contains(fn ($product) => (bool) $product->adomicile);
     $hasVisio = $group->contains(fn ($product) => (bool) $product->visio);
@@ -51,14 +50,7 @@
         @endif
 
         @if(filled($prestation->description))
-            <p class="mt-4 text-gray-700 prestation-description"
-               data-full-text="{{ e($prestation->description) }}"
-               data-truncated-text="{{ e($truncatedDescription) }}">
-                {!! nl2br(e($truncatedDescription)) !!}
-                @if(\Illuminate\Support\Str::length($prestation->description) > 200)
-                    <span class="text-[#854f38] cursor-pointer voir-plus">{{ __('Voir plus') }}</span>
-                @endif
-            </p>
+            <x-product-description :product="$prestation" :limit="200" class="mt-4 text-gray-700" />
         @endif
 
         @if($prestation->brochure)

@@ -7,6 +7,7 @@ use App\Models\ProductCategory;
 use App\Models\Invoice;
 use App\Models\BookingLink;
 use App\Models\Questionnaire;
+use App\Support\ProductDescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -48,6 +49,7 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            'description_html'     => 'nullable|string',
             'product_category_id'  => [
                 'nullable',
                 'integer',
@@ -97,7 +99,7 @@ class ProductController extends Controller
             'user_id'               => Auth::id(),
             'product_category_id'   => $validatedData['product_category_id'] ?? null,
             'name'                  => $validatedData['name'],
-            'description'           => $validatedData['description'] ?? null,
+            ...ProductDescription::payload($validatedData),
             'price'                 => $validatedData['price'],
             'tax_rate'              => $validatedData['tax_rate'],
             'duration'              => $validatedData['duration'] ?? null,
@@ -189,6 +191,7 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
+            'description_html'     => 'nullable|string',
             'product_category_id'  => [
                 'nullable',
                 'integer',
@@ -252,7 +255,7 @@ class ProductController extends Controller
         $product->update([
             'product_category_id'  => $validatedData['product_category_id'] ?? null,
             'name'                 => $validatedData['name'],
-            'description'          => $validatedData['description'] ?? null,
+            ...ProductDescription::payload($validatedData, $product),
             'price'                => $validatedData['price'],
             'tax_rate'             => $validatedData['tax_rate'],
             'duration'             => $validatedData['duration'] ?? null,
@@ -388,6 +391,7 @@ public function storeDuplicate(Request $request, Product $product)
     $validatedData = $request->validate([
         'name'                    => 'required|string|max:255',
         'description'             => 'nullable|string',
+        'description_html'        => 'nullable|string',
         'product_category_id'     => [
             'nullable',
             'integer',
@@ -452,7 +456,7 @@ public function storeDuplicate(Request $request, Product $product)
             ? $validatedData['product_category_id']
             : $product->product_category_id,
         'name'                    => $validatedData['name'],
-        'description'             => $validatedData['description'] ?? null,
+        ...ProductDescription::payload($validatedData, $product),
         'price'                   => $validatedData['price'],
         'tax_rate'                => $validatedData['tax_rate'],
         'duration'                => $validatedData['duration'] ?? null,

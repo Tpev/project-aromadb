@@ -9,11 +9,13 @@ use App\Models\PackProductItem;
 use App\Models\PackPurchase;
 use App\Models\PackPurchaseItem;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Services\PackDigitalTrainingAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 
 class PackProductController extends Controller
 {
@@ -24,6 +26,7 @@ class PackProductController extends Controller
         }
 
         $packs = PackProduct::where('user_id', Auth::id())
+            ->with('category')
             ->withCount('purchases')
             ->orderByDesc('id')
             ->get();
@@ -39,7 +42,9 @@ class PackProductController extends Controller
 
         $digitalTrainings = $this->ownedDigitalTrainings();
 
-        return view('pack_products.create', compact('products', 'digitalTrainings'));
+        $categories = $this->ownedCategories();
+
+        return view('pack_products.create', compact('products', 'digitalTrainings', 'categories'));
     }
 
     public function store(Request $request)
@@ -47,6 +52,7 @@ class PackProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'product_category_id' => ['nullable', 'integer', Rule::exists('product_categories', 'id')->where('user_id', Auth::id())],
 
             'price' => 'required|numeric|min:0',
             'tax_rate' => 'required|numeric|min:0|max:100',
@@ -94,6 +100,7 @@ class PackProductController extends Controller
         DB::transaction(function () use (&$pack, $validated, $allowedInstallments) {
             $pack = PackProduct::create([
                 'user_id' => Auth::id(),
+                'product_category_id' => $validated['product_category_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'price' => $validated['price'],
@@ -125,7 +132,7 @@ class PackProductController extends Controller
     {
         $this->ensureOwner($packProduct);
 
-        $packProduct->load(['items.product', 'digitalTrainings']);
+        $packProduct->load(['items.product', 'digitalTrainings', 'category']);
 
         // Pour attribuer au client depuis la page show
         $clients = ClientProfile::where('user_id', Auth::id())
@@ -162,6 +169,7 @@ class PackProductController extends Controller
             'pack' => $packProduct,
             'products' => $products,
             'digitalTrainings' => $digitalTrainings,
+            'categories' => $this->ownedCategories(),
         ]);
     }
 
@@ -172,6 +180,7 @@ class PackProductController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'product_category_id' => ['nullable', 'integer', Rule::exists('product_categories', 'id')->where('user_id', Auth::id())],
 
             'price' => 'required|numeric|min:0',
             'tax_rate' => 'required|numeric|min:0|max:100',
@@ -215,6 +224,7 @@ class PackProductController extends Controller
 
         DB::transaction(function () use ($packProduct, $validated, $allowedInstallments) {
             $packProduct->update([
+                'product_category_id' => array_key_exists('product_category_id', $validated) ? $validated['product_category_id'] : $packProduct->product_category_id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'price' => $validated['price'],
@@ -432,6 +442,12 @@ class PackProductController extends Controller
         if ($pack->user_id !== Auth::id()) {
             abort(403);
         }
+    }
+
+    private function ownedCategories()
+    {
+        return ProductCategory::where('user_id', Auth::id())
+            ->orderBy('display_order')->orderBy('name')->get();
     }
 
     private function ownedDigitalTrainings()

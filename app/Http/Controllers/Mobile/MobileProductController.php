@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Questionnaire;
+use App\Support\ProductDescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -122,7 +123,7 @@ class MobileProductController extends Controller
     {
         $this->ensureOwnsProduct($product);
 
-        $product->update($this->validatedProductPayload($request));
+        $product->update($this->validatedProductPayload($request, $product));
 
         return redirect()
             ->route('mobile.products.show', $product)
@@ -148,11 +149,12 @@ class MobileProductController extends Controller
             ->with('success', 'Prestation supprimee.');
     }
 
-    private function validatedProductPayload(Request $request): array
+    private function validatedProductPayload(Request $request, ?Product $product = null): array
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'description_html' => ['nullable', 'string'],
             'product_category_id' => [
                 'nullable',
                 'integer',
@@ -212,7 +214,7 @@ class MobileProductController extends Controller
         $payload = [
             'name' => $validated['name'],
             'product_category_id' => $validated['product_category_id'] ?? null,
-            'description' => $validated['description'] ?? null,
+            ...ProductDescription::payload($validated, $product),
             'price' => $validated['price'],
             'tax_rate' => $validated['tax_rate'],
             'duration' => $validated['duration'] ?? null,

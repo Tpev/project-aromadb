@@ -39,7 +39,7 @@
                         <i class="fas fa-align-left icon"></i>
                         <div class="product-details">
                             <p class="product-label">{{ __('Description') }}</p>
-                            <p class="product-value">{!! nl2br(e($product->description)) !!}</p>
+                            <x-product-description :product="$product" class="product-value" />
                         </div>
                     </div>
                 @endif

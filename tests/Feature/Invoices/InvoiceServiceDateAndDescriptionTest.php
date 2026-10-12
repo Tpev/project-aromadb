@@ -78,6 +78,24 @@ test('manual description overrides the catalog snapshot', function () {
     expect($item->billing_description)->toBe('Libellé choisi par le praticien');
 });
 
+test('formatted catalog descriptions keep invoice snapshots plain and unchanged after catalog edits', function () {
+    $context = serviceDateContext();
+    $context['product']->update(\App\Support\ProductDescription::payload([
+        'description_html' => '<p><strong>Bilan</strong> &amp; <u>suivi</u></p><p>Deuxième ligne</p>',
+    ]));
+
+    $this->actingAs($context['user'])->post(route('invoices.store'), serviceDatePayload($context))
+        ->assertSessionHasNoErrors()->assertRedirect();
+    $item = Invoice::where('user_id', $context['user']->id)->latest('id')->firstOrFail()->items()->firstOrFail();
+    expect($item->description_snapshot)->toBe("Bilan & suivi\nDeuxième ligne")
+        ->and($item->billing_description)->toBe("Bilan & suivi\nDeuxième ligne");
+
+    $context['product']->update(\App\Support\ProductDescription::payload([
+        'description_html' => '<p><em>Nouvelle description</em></p>',
+    ]));
+    expect($item->fresh()->billing_description)->toBe("Bilan & suivi\nDeuxième ligne");
+});
+
 test('current invoice form can keep a catalog product description empty', function () {
     $context = serviceDateContext();
     $payload = serviceDatePayload($context);

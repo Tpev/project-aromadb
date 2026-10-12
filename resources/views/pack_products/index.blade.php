@@ -181,6 +181,9 @@
                                         {{ $pack->name }}
                                     </a>
 
+                                    @if($pack->category)
+                                        <p class="mt-1 text-xs font-semibold text-[#647a0b]">{{ $pack->category->name }}</p>
+                                    @endif
                                     @if($pack->description)
                                         <div class="text-xs text-slate-600 mt-1 line-clamp-2">
                                             {{ $pack->description }}

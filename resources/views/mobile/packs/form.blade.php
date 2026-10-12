@@ -73,6 +73,8 @@
                                   class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ $fieldValue('description') }}</textarea>
                     </label>
 
+                    @include('pack_products.partials.category-field', ['mobile' => true])
+
                     <div class="grid grid-cols-2 gap-3">
                         <label class="block">
                             <span class="text-sm font-medium text-gray-700">Prix HT</span>

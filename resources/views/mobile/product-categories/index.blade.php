@@ -3,7 +3,7 @@
         <a href="{{ route('mobile.products.index') }}" class="inline-flex items-center text-xs font-semibold text-[#647a0b]">
             <i class="fas fa-arrow-left mr-1 text-[10px]"></i>{{ __('Prestations') }}
         </a>
-        <h1 class="mt-3 text-xl font-semibold text-gray-900">{{ __('Catégories de prestations') }}</h1>
+        <h1 class="mt-3 text-xl font-semibold text-gray-900">{{ __('Catégories') }}</h1>
         <p class="mt-1 text-sm leading-snug text-gray-600">{{ __('Organisez votre portail avec des accordéons simples et lisibles.') }}</p>
 
         @if(session('success'))
@@ -49,7 +49,7 @@
                         </div>
                         <label class="block">
                             <span class="mb-1 flex items-center justify-between text-[11px] text-gray-400">
-                                <span>{{ trans_choice(':count prestation|:count prestations', $category->products_count, ['count' => $category->products_count]) }}</span>
+                                <span>{{ trans_choice(':count prestation|:count prestations', $category->products_count, ['count' => $category->products_count]) }} @if($category->packs_count > 0) · {{ trans_choice(':count pack|:count packs', $category->packs_count, ['count' => $category->packs_count]) }} @endif</span>
                                 <span data-counter-for="mobile-category-description-{{ $category->id }}">0 / 500</span>
                             </span>
                             <textarea id="mobile-category-description-{{ $category->id }}" name="description" rows="3" maxlength="500"
@@ -66,7 +66,7 @@
                     </div>
                 </article>
             @empty
-                <div class="rounded-xl border border-dashed border-[#d7ddc6] bg-white p-6 text-center text-sm text-gray-500">{{ __('Aucune catégorie. Vos prestations restent affichées normalement.') }}</div>
+                <div class="rounded-xl border border-dashed border-[#d7ddc6] bg-white p-6 text-center text-sm text-gray-500">{{ __('Aucune catégorie. Vos prestations et packs restent affichés normalement.') }}</div>
             @endforelse
         </div>
     </div>

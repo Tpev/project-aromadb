@@ -10,11 +10,13 @@ use App\Models\PackProductItem;
 use App\Models\PackPurchase;
 use App\Models\PackPurchaseItem;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Services\PackDigitalTrainingAccessService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class MobilePackProductController extends Controller
@@ -22,6 +24,7 @@ class MobilePackProductController extends Controller
     public function index()
     {
         $packs = PackProduct::query()
+            ->with('category')
             ->withCount(['items', 'purchases'])
             ->where('user_id', Auth::id())
             ->latest('id')
@@ -44,6 +47,7 @@ class MobilePackProductController extends Controller
             ]),
             'products' => $this->ownedProducts(),
             'digitalTrainings' => $this->ownedDigitalTrainings(),
+            'categories' => $this->ownedCategories(),
             'action' => route('mobile.packs.store'),
             'method' => 'POST',
             'submitLabel' => 'Creer',
@@ -59,6 +63,7 @@ class MobilePackProductController extends Controller
         DB::transaction(function () use (&$pack, $validated) {
             $pack = PackProduct::create([
                 'user_id' => Auth::id(),
+                'product_category_id' => $validated['product_category_id'] ?? null,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'price' => $validated['price'],
@@ -84,7 +89,7 @@ class MobilePackProductController extends Controller
     {
         $this->ensureOwnsPack($packProduct);
 
-        $packProduct->load(['items.product', 'digitalTrainings']);
+        $packProduct->load(['items.product', 'digitalTrainings', 'category']);
         $packProduct->loadCount(['items', 'purchases']);
 
         $clients = ClientProfile::query()
@@ -118,6 +123,7 @@ class MobilePackProductController extends Controller
             'pack' => $packProduct,
             'products' => $this->ownedProducts(),
             'digitalTrainings' => $this->ownedDigitalTrainings(),
+            'categories' => $this->ownedCategories(),
             'action' => route('mobile.packs.update', $packProduct),
             'method' => 'PUT',
             'submitLabel' => 'Enregistrer',
@@ -132,6 +138,7 @@ class MobilePackProductController extends Controller
 
         DB::transaction(function () use ($packProduct, $validated) {
             $packProduct->update([
+                'product_category_id' => array_key_exists('product_category_id', $validated) ? $validated['product_category_id'] : $packProduct->product_category_id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'price' => $validated['price'],
@@ -301,6 +308,7 @@ class MobilePackProductController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'product_category_id' => ['nullable', 'integer', Rule::exists('product_categories', 'id')->where('user_id', Auth::id())],
             'price' => ['required', 'numeric', 'min:0'],
             'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'is_active' => ['required', 'boolean'],
@@ -381,6 +389,12 @@ class MobilePackProductController extends Controller
             ->where('user_id', Auth::id())
             ->orderBy('name')
             ->get();
+    }
+
+    private function ownedCategories()
+    {
+        return ProductCategory::where('user_id', Auth::id())
+            ->orderBy('display_order')->orderBy('name')->get();
     }
 
     private function ownedDigitalTrainings()

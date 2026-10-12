@@ -52,12 +52,7 @@
                                class="mt-1 h-11 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">
                     </label>
 
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700">Description</span>
-                        <textarea name="description"
-                                  rows="3"
-                                  class="mt-1 w-full rounded-lg border-gray-300 text-base focus:border-[#647a0b] focus:ring-[#647a0b]">{{ $fieldValue('description') }}</textarea>
-                    </label>
+                    @include('products.partials.description-field')
 
                     <label class="block">
                         <span class="flex items-center justify-between gap-2 text-sm font-medium text-gray-700">

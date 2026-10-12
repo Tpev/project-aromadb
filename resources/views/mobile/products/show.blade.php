@@ -33,9 +33,7 @@
                         <h1 class="text-xl font-semibold leading-tight text-gray-900">
                             {{ $product->name }}
                         </h1>
-                        <p class="mt-1 line-clamp-3 text-sm leading-snug text-gray-600">
-                            {{ $product->description ?: 'Prestation sans description' }}
-                        </p>
+                        <x-product-description :product="$product" class="mt-1 text-sm leading-snug text-gray-600" />
                     </div>
                 </div>
 

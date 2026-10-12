@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-[#647a0b]">{{ __('Catégories de prestations') }}</h2>
+        <h2 class="text-xl font-semibold text-[#647a0b]">{{ __('Catégories') }}</h2>
     </x-slot>
 
     <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -9,7 +9,7 @@
                 <a href="{{ route('products.index') }}" class="text-sm font-semibold text-[#647a0b] hover:underline">
                     <i class="fas fa-arrow-left mr-1"></i>{{ __('Retour aux prestations') }}
                 </a>
-                <h1 class="mt-3 text-3xl font-semibold text-gray-900">{{ __('Organiser les prestations') }}</h1>
+                <h1 class="mt-3 text-3xl font-semibold text-gray-900">{{ __('Organiser les prestations et packs') }}</h1>
                 <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
                     {{ __('Créez vos propres catégories. Sur le portail, chaque catégorie apparaît sous forme d’accordéon fermé par défaut.') }}
                 </p>
@@ -41,7 +41,7 @@
                     </span>
                     <div>
                         <h2 class="font-semibold text-gray-900">{{ __('Nouvelle catégorie') }}</h2>
-                        <p class="text-xs text-gray-500">{{ __('Visible dès qu’elle contient une prestation publiée.') }}</p>
+                        <p class="text-xs text-gray-500">{{ __('Visible dès qu’elle contient une prestation ou un pack publié.') }}</p>
                     </div>
                 </div>
 
@@ -119,13 +119,13 @@
                         <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
                             <span class="text-xs font-medium text-gray-500">
                                 <i class="fas fa-spa mr-1 text-[#647a0b]"></i>
-                                {{ trans_choice(':count prestation|:count prestations', $category->products_count, ['count' => $category->products_count]) }}
+                                {{ trans_choice(':count prestation|:count prestations', $category->products_count, ['count' => $category->products_count]) }} @if($category->packs_count > 0) · {{ trans_choice(':count pack|:count packs', $category->packs_count, ['count' => $category->packs_count]) }} @endif
                             </span>
                             <div class="flex items-center gap-2">
                                 <button type="submit" form="category-form-{{ $category->id }}" class="rounded-lg bg-[#647a0b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#536508]">
                                     {{ __('Enregistrer') }}
                                 </button>
-                                <form action="{{ route('product-categories.destroy', $category) }}" method="POST" onsubmit="return confirm('{{ __('Supprimer cette catégorie ? Les prestations resteront disponibles sans catégorie.') }}')">
+                                <form action="{{ route('product-categories.destroy', $category) }}" method="POST" onsubmit="return confirm('{{ __('Supprimer cette catégorie ? Les prestations et packs resteront disponibles sans catégorie.') }}')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50" aria-label="{{ __('Supprimer :category', ['category' => $category->name]) }}">
@@ -141,7 +141,7 @@
                             <i class="fas fa-folder-open"></i>
                         </span>
                         <h3 class="mt-4 font-semibold text-gray-900">{{ __('Aucune catégorie pour le moment') }}</h3>
-                        <p class="mt-1 text-sm text-gray-500">{{ __('Vos prestations continuent d’apparaître normalement sur le portail.') }}</p>
+                        <p class="mt-1 text-sm text-gray-500">{{ __('Vos prestations et packs continuent d’apparaître normalement sur le portail.') }}</p>
                     </div>
                 @endforelse
             </section>

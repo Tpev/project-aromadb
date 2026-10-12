@@ -118,6 +118,9 @@
                                 </div>
                             </div>
 
+                            @if($pack->category)
+                                <p class="mt-1 text-xs font-semibold text-[#647a0b]">{{ $pack->category->name }}</p>
+                            @endif
                             @if($pack->description)
                                 <div class="mt-4 text-sm text-slate-700 whitespace-pre-line">
                                     {{ $pack->description }}

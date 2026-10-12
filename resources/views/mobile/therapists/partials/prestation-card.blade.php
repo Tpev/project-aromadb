@@ -6,7 +6,7 @@
     $hasVisio = $group->contains(fn ($product) => (bool) $product->visio);
     $hasEntreprise = $group->contains(fn ($product) => (bool) $product->en_entreprise);
     $canCollectOnline = $group->contains(fn ($product) => (bool) $product->collect_payment);
-    $truncated = \Illuminate\Support\Str::limit(strip_tags($prestation->description ?? ''), 120);
+
 @endphp
 
 <div class="border border-gray-100 rounded-2xl px-3 py-3 bg-[#fdfbf8] space-y-2">
@@ -30,8 +30,8 @@
         @endif
     </div>
 
-    @if($truncated)
-        <p class="mt-1 text-[13px] text-gray-700 leading-snug break-words">{{ $truncated }}</p>
+    @if(filled($prestation->description))
+        <x-product-description :product="$prestation" :limit="120" class="mt-1 text-[13px] text-gray-700 leading-snug break-words" />
     @endif
 
     @if(app(\App\Support\BookingV2Access::class)->enabledFor($therapist) && $therapist->accept_online_appointments)

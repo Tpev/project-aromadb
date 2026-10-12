@@ -69,6 +69,8 @@
                 </div>
             </div>
 
+            @include('pack_products.partials.category-field')
+
             {{-- Visibility --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <label class="flex items-center gap-2 rounded-xl border border-slate-200 p-3">

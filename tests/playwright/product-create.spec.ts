@@ -24,10 +24,14 @@ test.describe('Therapist products (prestations)', () => {
     const productName = 'Consultation test Playwright';
 
     await page.fill('#name', productName);
-    await page.fill(
-      '#description',
+    const description = page.getByRole('textbox', { name: 'Description', exact: true });
+    await description.fill(
       'Une prestation de test créée automatiquement par Playwright pour vérifier le flux de création.'
     );
+    await description.press('ControlOrMeta+A');
+    for (const name of ['Gras', 'Italique', 'Souligné']) {
+      await page.getByRole('button', { name, exact: true }).click();
+    }
     await page.fill('#price', '60');
     await page.fill('#tax_rate', '0');
     await page.fill('#duration', '60');
@@ -56,9 +60,8 @@ test.describe('Therapist products (prestations)', () => {
     // 10. Ordre d’affichage
     await page.fill('#display_order', '1');
 
-    // 11. Options avancées
-    // Ouvre le bloc "Options avancées"
-    await page.getByRole('button', { name: /Options avancées/i }).click();
+    // 11. Advanced settings are displayed directly in the current form.
+    await expect(page.getByRole('heading', { name: /Options avancées/i })).toBeVisible();
 
     // Attendre que les champs avancés apparaissent
     await page.waitForSelector('#max_per_day');
@@ -86,6 +89,9 @@ test.describe('Therapist products (prestations)', () => {
     await expect(
       page.getByRole('heading', { name: productName })
     ).toBeVisible();
+    for (const tag of ['strong', 'em', 'u']) {
+      await expect(page.locator(`.product-description-full ${tag}`)).toContainText('Une prestation de test');
+    }
 
     // (If you prefer the value in the list, you could instead do:)
     // await expect(page.getByText(productName, { exact: true }).first()).toBeVisible();

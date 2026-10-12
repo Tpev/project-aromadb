@@ -25,6 +25,11 @@ class ProductCategory extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function packs()
+    {
+        return $this->hasMany(PackProduct::class)->orderBy('name');
+    }
+
     public function products()
     {
         return $this->hasMany(Product::class)->orderBy('display_order')->orderBy('id');
