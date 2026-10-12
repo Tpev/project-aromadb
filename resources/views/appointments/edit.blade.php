@@ -164,7 +164,7 @@
                 {{-- Hidden final values --}}
                 <input type="hidden" name="product_id" id="product_id" value="{{ $initialProductId }}">
                 <input type="hidden" name="type" id="selected_mode_slug" value="{{ $initialModeSlug }}">
-                <input type="hidden" name="force_availability_override" id="force_availability_override" value="0">
+                <input type="hidden" name="force_availability_override" id="force_availability_override" value="1">
 
                 {{-- Cabinet --}}
                 <div class="details-box" id="cabinet-location-section" style="display:none;">
@@ -274,7 +274,6 @@ $(function() {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "d-m-Y",
-        minDate: "today",
         locale: "fr",
         disableMobile: true,
         enable: []
@@ -326,7 +325,6 @@ $(function() {
 
     function resetSlotsUI() {
         $('#appointment_time').val('');
-        $('#force_availability_override').val('0');
         $('#time-slots-container').html('<span class="text-muted">Sélectionnez prestation, mode et date.</span>');
         $('#no-slots-message').hide().text('');
         hideSlotWarning();
@@ -395,7 +393,6 @@ $(function() {
             $('#time-slots-container').html('<span class="text-muted">Aucun crÇ¸neau disponible.</span>');
             $('#no-slots-message').text('Pas de crÇ¸neaux pour ce jour.').show();
             renderManualSlotsEvery15Min();
-            $('#force_availability_override').val('1');
             showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
             return;
         }
@@ -447,7 +444,6 @@ $(function() {
         const reqId = currentSlotsRequestId;
 
         $('#appointment_time').val('');
-        $('#force_availability_override').val('0');
         hideSlotWarning();
         $('#time-slots-container').html('<span class="text-muted">Chargement des créneaux…</span>');
         $('#no-slots-message').hide().text('');
@@ -472,7 +468,6 @@ $(function() {
                     .text('Aucun créneau recommandé pour ce jour. Vous pouvez sélectionner un horaire manuellement.')
                     .show();
                 renderManualSlotsEvery15Min();
-                $('#force_availability_override').val('1');
                 showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
                 return;
             }
@@ -486,7 +481,6 @@ $(function() {
                         $(this).addClass('active');
 
                         const hasConflict = String($(this).attr('data-has-conflict') || '0') === '1';
-                        $('#force_availability_override').val(hasConflict ? '1' : '0');
 
                         if (hasConflict) {
                             let conflicts = [];
@@ -525,7 +519,6 @@ $(function() {
     // show all hours (manual, outside dispo)
     $(document).on('click', '#show-all-hours', function() {
         renderManualSlotsEvery15Min();
-        $('#force_availability_override').val('1');
         showSlotWarning(['outside_dispo'], [conflictLabel('outside_dispo')]);
     });
 
@@ -537,7 +530,6 @@ $(function() {
         $('#no-slots-message').hide();
 
         const hasConflict = String($(this).attr('data-has-conflict') || '0') === '1';
-        $('#force_availability_override').val(hasConflict ? '1' : '0');
 
         if (!hasConflict) {
             hideSlotWarning();
@@ -628,43 +620,29 @@ $(function() {
     if (INITIAL_PRODUCT_NAME) {
         $('#product_name').val(INITIAL_PRODUCT_NAME).trigger('change');
 
-        setTimeout(function () {
-            // fill mode select & select current mode/product
-            const modes = PRODUCT_MODES[INITIAL_PRODUCT_NAME] || [];
-            const match = modes.find(m => String(m.product.id) === String(@json($initialProductId)) && m.slug === INITIAL_MODE_SLUG)
-                       || modes.find(m => m.slug === INITIAL_MODE_SLUG)
-                       || modes[0];
+        // These controls populate synchronously. Delayed initialization could
+        // overwrite a date the therapist had already selected.
+        const modes = PRODUCT_MODES[INITIAL_PRODUCT_NAME] || [];
+        const match = modes.find(m => String(m.product.id) === String(@json($initialProductId)) && m.slug === INITIAL_MODE_SLUG)
+                   || modes.find(m => m.slug === INITIAL_MODE_SLUG)
+                   || modes[0];
 
-            if (match) {
-                $('#consultation_mode option').each(function () {
-                    if (String($(this).val()) === String(match.product.id) && $(this).data('slug') === match.slug) {
-                        $(this).prop('selected', true);
-                    }
-                });
-                $('#consultation_mode').trigger('change');
-            }
+        if (match) {
+            $('#consultation_mode option').each(function () {
+                if (String($(this).val()) === String(match.product.id) && $(this).data('slug') === match.slug) {
+                    $(this).prop('selected', true);
+                }
+            });
+            $('#consultation_mode').trigger('change');
+        }
 
-            if (INITIAL_MODE_SLUG === 'cabinet' && INITIAL_LOCATION_ID) {
-                $('#practice_location_id').val(INITIAL_LOCATION_ID).trigger('change');
-            }
+        if (INITIAL_MODE_SLUG === 'cabinet' && INITIAL_LOCATION_ID) {
+            $('#practice_location_id').val(INITIAL_LOCATION_ID).trigger('change');
+        }
 
-            // set date + fetch slots
-            if (INITIAL_DATE) {
-                setTimeout(function () {
-                    fp.setDate(INITIAL_DATE, true);
-
-                    const slug = $('#selected_mode_slug').val();
-                    const loc  = (slug === 'cabinet') ? $('#practice_location_id').val() : null;
-                    const pid  = $('#product_id').val();
-
-                    if (pid && slug) {
-                        // important: refresh dates first so the date is enabled, then fetch slots
-                        refreshDates();
-                        setTimeout(() => fetchSlots(INITIAL_DATE, pid, slug, loc), 350);
-                    }
-                }, 450);
-            }
-        }, 250);
+        if (INITIAL_DATE) {
+            fp.setDate(INITIAL_DATE, true);
+        }
     }
 
 });

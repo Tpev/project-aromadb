@@ -129,7 +129,11 @@ class AppointmentLifecycleService
                     ->lockForUpdate()
                     ->findOrFail($appointment->id);
 
-                $this->assertManageable($locked, $enforceDeadline, 'modification');
+                // Practitioners can correct past or completed appointments. Client/token
+                // rescheduling retains the existing status, date and deadline restrictions.
+                if ($actorType !== 'practitioner' || $locked->isCancelled() || !$locked->appointment_date) {
+                    $this->assertManageable($locked, $enforceDeadline, 'modification');
+                }
                 $oldStart = $locked->appointment_date->copy();
 
                 if ($oldStart->equalTo($newStart)) {

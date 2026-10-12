@@ -673,18 +673,8 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
     // DateTime
     $appointmentDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->appointment_date.' '.$request->appointment_time);
 
-    // Therapist can intentionally bypass availability checks (same behavior as create flow).
-    $forceOverride = $request->boolean('force_availability_override');
-
-    // Vérification disponibilité (exclure le RDV en cours d’édition, passer mode + location)
-    if (
-        !$forceOverride &&
-        !$this->isAvailable($appointmentDateTime, $duration, $therapistId, $product->id, $appointment->id, $locationId, $mode)
-    ) {
-        return redirect()->back()
-            ->withErrors(['appointment_time' => 'Le créneau horaire est déjà réservé ou en dehors des disponibilités.'])
-            ->withInput();
-    }
+    // This authorized practitioner edit is manual: availability warnings are advisory.
+    // Client booking and rescheduling enforce their own availability checks.
 
     $previousDate = $appointment->appointment_date?->copy();
 
@@ -705,8 +695,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
             $appointment,
             $editableAttributes,
             $appointmentDateTime,
-            $therapistId,
-            $forceOverride
+            $therapistId
         ) {
             // The lifecycle save performs the single Google sync after commit.
             $appointment->forceFill($editableAttributes)->saveQuietly();
@@ -717,7 +706,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
                 'practitioner',
                 (int) $therapistId,
                 false,
-                $forceOverride
+                true
             );
             $appointment->refresh();
         }, 3);
