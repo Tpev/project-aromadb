@@ -53,6 +53,7 @@
                     </label>
 
                     @include('products.partials.description-field')
+                    @include('products.partials.calendar-color-field')
 
                     <label class="block">
                         <span class="flex items-center justify-between gap-2 text-sm font-medium text-gray-700">

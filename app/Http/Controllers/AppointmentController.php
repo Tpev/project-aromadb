@@ -35,6 +35,7 @@ use App\Services\CabinetAccessService;
 use App\Services\SharedCabinetSchedulingService;
 use App\Services\ReceiptRecordingService;
 use App\Models\PracticeLocation;
+use App\Support\ProductCalendarColor;
 
 class AppointmentController extends Controller
 {
@@ -101,9 +102,10 @@ class AppointmentController extends Controller
         }
 
         // ---------- Couleur ----------
-        $color = $appointment->external
+        $customColor = ProductCalendarColor::forAppointment($appointment);
+        $color = $customColor ?? ($appointment->external
             ? '#999999'
-            : ($isPast ? '#854f38' : '#647a0b');
+            : ($isPast ? '#854f38' : '#647a0b'));
 
         // ---------- Push dans FullCalendar ----------
         $events[] = [
@@ -117,7 +119,8 @@ class AppointmentController extends Controller
                                 ? null
                                 : route('appointments.show', $appointment->id),
             'color'     => $color,
-            'textColor' => $isPast ? '#ffffff' : '#636363',
+            'display'   => $customColor ? 'block' : 'auto',
+            'textColor' => $customColor ? ProductCalendarColor::textColor($customColor) : ($isPast ? '#ffffff' : '#636363'),
         ];
     }
 

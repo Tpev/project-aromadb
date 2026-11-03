@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Questionnaire;
 use App\Support\ProductDescription;
+use App\Support\ProductCalendarColor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -155,6 +156,7 @@ class MobileProductController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'description_html' => ['nullable', 'string'],
+            'calendar_color' => ProductCalendarColor::RULES,
             'product_category_id' => [
                 'nullable',
                 'integer',
@@ -215,6 +217,7 @@ class MobileProductController extends Controller
             'name' => $validated['name'],
             'product_category_id' => $validated['product_category_id'] ?? null,
             ...ProductDescription::payload($validated, $product),
+            ...ProductCalendarColor::payload($validated),
             'price' => $validated['price'],
             'tax_rate' => $validated['tax_rate'],
             'duration' => $validated['duration'] ?? null,

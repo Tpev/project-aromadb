@@ -19,6 +19,7 @@ class Product extends Model
         'user_id',
         'product_category_id',
         'name',
+        'calendar_color',
         'description',
         'description_html',
         'price',

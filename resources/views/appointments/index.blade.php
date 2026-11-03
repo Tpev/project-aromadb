@@ -381,7 +381,7 @@
 
                                         {{-- Produit --}}
                                         <td>
-                                            {{ $appointment->product->name ?? '—' }}
+                                            @include('appointments.partials.service-label', ['appointment' => $appointment])
                                         </td>
 
                                         {{-- Statut --}}
@@ -515,7 +515,7 @@
 
                                         {{-- Produit --}}
                                         <td>
-                                            {{ $appointment->product->name ?? '—' }}
+                                            @include('appointments.partials.service-label', ['appointment' => $appointment])
                                         </td>
 
                                         <td class="appointment-status-column">

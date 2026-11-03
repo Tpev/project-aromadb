@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\BookingLink;
 use App\Models\Questionnaire;
 use App\Support\ProductDescription;
+use App\Support\ProductCalendarColor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -50,6 +51,7 @@ class ProductController extends Controller
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
             'description_html'     => 'nullable|string',
+            'calendar_color'       => ProductCalendarColor::RULES,
             'product_category_id'  => [
                 'nullable',
                 'integer',
@@ -100,6 +102,7 @@ class ProductController extends Controller
             'product_category_id'   => $validatedData['product_category_id'] ?? null,
             'name'                  => $validatedData['name'],
             ...ProductDescription::payload($validatedData),
+            ...ProductCalendarColor::payload($validatedData),
             'price'                 => $validatedData['price'],
             'tax_rate'              => $validatedData['tax_rate'],
             'duration'              => $validatedData['duration'] ?? null,
@@ -158,6 +161,8 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        abort_unless((int) $product->user_id === (int) Auth::id(), 403);
+
         $questionnaires = Questionnaire::where('user_id', Auth::id())->orderBy('title')->get();
         $categories = $this->ownedCategories();
 
@@ -188,10 +193,13 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        abort_unless((int) $product->user_id === (int) Auth::id(), 403);
+
         $validatedData = $request->validate([
             'name'                 => 'required|string|max:255',
             'description'          => 'nullable|string',
             'description_html'     => 'nullable|string',
+            'calendar_color'       => ProductCalendarColor::RULES,
             'product_category_id'  => [
                 'nullable',
                 'integer',
@@ -256,6 +264,7 @@ class ProductController extends Controller
             'product_category_id'  => $validatedData['product_category_id'] ?? null,
             'name'                 => $validatedData['name'],
             ...ProductDescription::payload($validatedData, $product),
+            ...ProductCalendarColor::payload($validatedData),
             'price'                => $validatedData['price'],
             'tax_rate'             => $validatedData['tax_rate'],
             'duration'             => $validatedData['duration'] ?? null,
@@ -392,6 +401,7 @@ public function storeDuplicate(Request $request, Product $product)
         'name'                    => 'required|string|max:255',
         'description'             => 'nullable|string',
         'description_html'        => 'nullable|string',
+        'calendar_color'          => ProductCalendarColor::RULES,
         'product_category_id'     => [
             'nullable',
             'integer',
@@ -457,6 +467,7 @@ public function storeDuplicate(Request $request, Product $product)
             : $product->product_category_id,
         'name'                    => $validatedData['name'],
         ...ProductDescription::payload($validatedData, $product),
+        ...ProductCalendarColor::payload($validatedData),
         'price'                   => $validatedData['price'],
         'tax_rate'                => $validatedData['tax_rate'],
         'duration'                => $validatedData['duration'] ?? null,

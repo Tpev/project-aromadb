@@ -26,6 +26,7 @@
                 </div>
 
                 @include('products.partials.category-field')
+                @include('products.partials.calendar-color-field')
 
                 <!-- Prix -->
                 <div class="details-box">

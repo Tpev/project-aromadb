@@ -11,7 +11,6 @@
             optional($appointment->clientProfile)->last_name
         );
 
-    $productName = optional($appointment->product)->name ?? '—';
     $status = $appointment->status_label;
 
     $statusClasses = match ($appointment->canonicalStatus()) {
@@ -68,7 +67,7 @@
 
         <p class="text-xs {{ $textMuted }} flex items-center gap-2">
             <i class="fas fa-spa text-[11px]"></i>
-            <span class="truncate">{{ $productName }}</span>
+            <span class="truncate">@include('appointments.partials.service-label', ['appointment' => $appointment])</span>
         </p>
     </div>
 
