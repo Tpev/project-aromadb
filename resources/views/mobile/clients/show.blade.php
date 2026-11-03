@@ -31,9 +31,6 @@
         ? $client->password_setup_expires_at->copy()->subDays(3)
         : null;
 
-    // Testimonial request
-    $testimonialRequest = $client->testimonialRequests()->latest()->first();
-
     // Messages (last 10)
     $messages = $client->messages->sortBy('created_at');
     $latestMessages = $messages->take(10);
@@ -202,30 +199,8 @@
             {{-- Témoignage --}}
             @can('requestTestimonial', $client)
                 <div class="mt-3 border-t border-[#f1f3e6] pt-3 text-xs">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-gray-700 font-medium">
-                            ⭐ {{ __('Demande de témoignage') }}
-                        </span>
-
-                        @if(is_null($testimonialRequest))
-                            <form action="{{ route('testimonial.request', ['clientProfile' => $client->id]) }}"
-                                  method="POST" class="flex-shrink-0">
-                                @csrf
-                                <button type="submit"
-                                        class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-[#e4e8d5] text-[10px] text-gray-800">
-                                    {{ __('Demander un témoignage') }}
-                                </button>
-                            </form>
-                        @elseif($testimonialRequest->status === 'pending')
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px]">
-                                {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}
-                            </span>
-                        @elseif($testimonialRequest->status === 'completed')
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-[10px]">
-                                {{ __('Témoignage reçu le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}
-                            </span>
-                        @endif
-                    </div>
+                    <h2 class="mb-3 font-medium text-gray-700">⭐ {{ __('Demande de témoignage') }}</h2>
+                    <x-testimonial-request :client-profile="$client" :requests="$testimonialRequests" />
                 </div>
             @endcan
         </div>

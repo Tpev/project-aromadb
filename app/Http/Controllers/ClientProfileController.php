@@ -226,7 +226,7 @@ class ClientProfileController extends Controller
     // -----------------------------
     // Testimonial
     // -----------------------------
-    $testimonialRequest = $clientProfile->testimonialRequests()->latest()->first();
+    $testimonialRequests = $clientProfile->testimonialRequests()->latest('id')->get();
 
     // -----------------------------
     // PACKS (Forfaits) — NEW
@@ -248,6 +248,7 @@ class ClientProfileController extends Controller
         return view('mobile.clients.show', [
             'clientProfile' => $clientProfile,
             'appointments'  => $mobileAppointments,
+            'testimonialRequests' => $testimonialRequests,
 
             // packs (optional for mobile, harmless if not used)
             'packPurchases' => $packPurchases,
@@ -263,7 +264,7 @@ class ClientProfileController extends Controller
         'sessionNotes',
         'invoices',
         'responses',
-        'testimonialRequest',
+        'testimonialRequests',
         'packPurchases',
         'availablePacks',
         'clientTagsEnabled',

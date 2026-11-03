@@ -16,6 +16,7 @@ class TestimonialController extends Controller
     public function showSubmitForm($token)
     {
         $testimonialRequest = TestimonialRequest::where('token', $token)
+                                                ->forDestination('internal')
                                                 ->where('status', 'pending')
                                                 ->firstOrFail();
 
@@ -28,6 +29,7 @@ class TestimonialController extends Controller
     public function submit(Request $request, $token)
     {
         $testimonialRequest = TestimonialRequest::where('token', $token)
+                                                ->forDestination('internal')
                                                 ->where('status', 'pending')
                                                 ->firstOrFail();
 

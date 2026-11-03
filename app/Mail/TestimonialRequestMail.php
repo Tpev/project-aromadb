@@ -30,7 +30,7 @@ class TestimonialRequestMail extends Mailable
         $this->testimonialRequest->loadMissing('therapist');
 
         return $this->applyPractitionerReplyTo($this->testimonialRequest->therapist)
-                    ->subject('Demande de Témoignage')
-                    ->markdown('emails.testimonial_request');
+                    ->subject($this->testimonialRequest->isGoogle() ? 'Votre avis sur Google' : 'Demande de Témoignage')
+                    ->markdown($this->testimonialRequest->isGoogle() ? 'emails.google_review_request' : 'emails.testimonial_request');
     }
 }

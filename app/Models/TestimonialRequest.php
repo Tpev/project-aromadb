@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,7 +15,25 @@ class TestimonialRequest extends Model
         'client_profile_id',
         'token',
         'status',
+        'destination',
+        'google_review_url',
     ];
+
+    public function isGoogle(): bool
+    {
+        return $this->destination === 'google';
+    }
+
+    public function scopeForDestination(Builder $query, string $destination): Builder
+    {
+        return $query->where(function (Builder $query) use ($destination) {
+            $query->where('destination', $destination);
+
+            if ($destination === 'internal') {
+                $query->orWhereNull('destination');
+            }
+        });
+    }
 
     /**
      * Get the therapist that owns the testimonial request.

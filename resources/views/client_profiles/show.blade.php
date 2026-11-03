@@ -427,31 +427,7 @@
         </div>
 
     @else
-        {{-- Original allowed logic --}}
-        @can('requestTestimonial', $clientProfile)
-
-            @if(is_null($testimonialRequest))
-                <form action="{{ route('testimonial.request', ['clientProfile' => $clientProfile->id]) }}"
-                      method="POST"
-                      class="mt-6">
-                    @csrf
-                    <button type="submit" class="btn btn-primary">
-                        {{ __('Demander un Témoignage') }}
-                    </button>
-                </form>
-
-            @elseif($testimonialRequest->status === 'pending')
-                <p class="mt-6 text-lg text-gray-600">
-                    {{ __('Demande envoyée le') }} {{ $testimonialRequest->created_at->format('d/m/Y') }}.
-                </p>
-
-            @elseif($testimonialRequest->status === 'completed')
-                <p class="mt-6 text-lg text-gray-600">
-                    {{ __('Témoignage fait le') }} {{ $testimonialRequest->updated_at->format('d/m/Y') }}.
-                </p>
-            @endif
-
-        @endcan
+        <x-testimonial-request :client-profile="$clientProfile" :requests="$testimonialRequests" />
     @endunless
 
 </section>
