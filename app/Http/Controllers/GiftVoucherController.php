@@ -135,6 +135,10 @@ class GiftVoucherController extends Controller
         $this->authorizeGiftVoucherFeature($user);
 
         $user->gift_voucher_online_enabled = $request->boolean('gift_voucher_online_enabled');
+        if ($request->has('gift_voucher_validity_months')) {
+            $user->gift_voucher_validity_months = $request->filled('gift_voucher_validity_months')
+                ? $request->integer('gift_voucher_validity_months') : null;
+        }
 
         $mode = $request->input('gift_voucher_background_mode', 'default');
         $removeBackground = $request->boolean('remove_gift_voucher_background');

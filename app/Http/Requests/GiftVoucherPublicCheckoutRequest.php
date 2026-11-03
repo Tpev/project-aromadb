@@ -21,7 +21,7 @@ class GiftVoucherPublicCheckoutRequest extends FormRequest
             'recipient_name' => ['nullable', 'string', 'max:120'],
             'recipient_email' => ['nullable', 'email', 'max:190'],
             'message' => ['nullable', 'string', 'max:1000'],
-            'expires_at' => ['nullable', 'date', 'after_or_equal:today'],
+            'validity_months_displayed' => ['sometimes', 'required', 'integer', 'min:0', 'max:120'],
         ];
     }
 }

@@ -295,6 +295,22 @@
                         </label>
                     </div>
 
+                    <div class="md:col-span-3 rounded-xl border border-[#dfe6c7] bg-[#fbfcf6] p-4">
+                        <label for="gift_voucher_validity_months" class="block text-sm font-bold text-slate-900">Validité des bons achetés en ligne</label>
+                        <p id="gift-voucher-validity-help" class="mt-1 text-sm text-slate-600">La durée commence à la confirmation du paiement. Par exemple, 12 mois pour un bon valable un an.</p>
+                        <div class="mt-3 flex items-center gap-2">
+                            <input id="gift_voucher_validity_months" name="gift_voucher_validity_months" type="number" min="1" max="120" step="1"
+                                   value="{{ old('gift_voucher_validity_months', $user->gift_voucher_validity_months) }}" placeholder="Sans limite"
+                                   aria-describedby="gift-voucher-validity-help gift-voucher-validity-note"
+                                   class="w-36 rounded-xl border-slate-300 bg-white text-sm">
+                            <span class="text-sm font-semibold text-slate-700">mois</span>
+                        </div>
+                        @if(isset($errors) && $errors->has('gift_voucher_validity_months'))
+                            <p class="mt-2 text-sm text-red-700">{{ $errors->first('gift_voucher_validity_months') }}</p>
+                        @endif
+                        <p id="gift-voucher-validity-note" class="mt-2 text-xs text-slate-600">Laissez vide pour une validité illimitée. Ce réglage s’applique aux nouveaux achats en ligne ; les bons existants et les achats déjà engagés conservent leur validité.</p>
+                    </div>
+
                     <div>
                         <div class="text-xs font-bold text-slate-600 uppercase">Mode visuel</div>
                         <select name="gift_voucher_background_mode" class="mt-1 w-full rounded-xl border-slate-300">

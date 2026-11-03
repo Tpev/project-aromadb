@@ -55,6 +55,7 @@
 
         <form method="POST" action="{{ route('gift-vouchers.checkout.store', ['slug' => $therapist->slug]) }}">
             @csrf
+            <input type="hidden" name="validity_months_displayed" value="{{ $therapist->gift_voucher_validity_months ?? 0 }}">
 
             <div class="am-grid">
                 <div class="am-field">
@@ -63,10 +64,14 @@
                     @error('amount_eur') <div class="am-error">{{ $message }}</div> @enderror
                 </div>
 
-                <div class="am-field">
-                    <label for="expires_at">{{ __('Date d’expiration (optionnel)') }}</label>
-                    <input id="expires_at" class="am-input" type="date" name="expires_at" value="{{ old('expires_at') }}">
-                    @error('expires_at') <div class="am-error">{{ $message }}</div> @enderror
+                <div class="am-field rounded-xl border border-[#dfe6c7] bg-[#fbfcf6] p-4">
+                    <p class="font-bold text-[#647a0b]">Validité du bon cadeau</p>
+                    @if($therapist->gift_voucher_validity_months)
+                        <p class="mt-1 font-semibold">{{ $therapist->gift_voucher_validity_months }} mois à compter de l’achat</p>
+                        <p class="mt-1 text-sm text-slate-600">La validité commence à la confirmation du paiement. La date limite figurera sur le bon cadeau et dans les emails de confirmation.</p>
+                    @else
+                        <p class="mt-1 font-semibold">Sans date d’expiration</p>
+                    @endif
                 </div>
             </div>
 

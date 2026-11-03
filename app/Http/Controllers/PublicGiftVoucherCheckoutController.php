@@ -44,6 +44,13 @@ class PublicGiftVoucherCheckoutController extends Controller
             ])->withInput();
         }
 
+        if ($request->has('validity_months_displayed')
+            && $request->integer('validity_months_displayed') !== (int) ($therapist->gift_voucher_validity_months ?? 0)) {
+            return back()->withErrors([
+                'validity_months_displayed' => 'La durée de validité a changé. Vérifiez les nouvelles conditions affichées avant de poursuivre le paiement.',
+            ])->withInput();
+        }
+
         $amountCents = (int) round(((float) $request->input('amount_eur')) * 100);
 
         $order = GiftVoucherOrder::create([
@@ -57,7 +64,9 @@ class PublicGiftVoucherCheckoutController extends Controller
             'recipient_name' => $request->input('recipient_name'),
             'recipient_email' => $request->input('recipient_email'),
             'message' => $request->input('message'),
-            'expires_at' => $request->input('expires_at') ?: null,
+            // Freeze the therapist's policy before checkout. Buyer-supplied expiry values are ignored.
+            'validity_months' => $therapist->gift_voucher_validity_months,
+            'expires_at' => null,
             'status' => 'pending',
         ]);
 
@@ -189,7 +198,7 @@ class PublicGiftVoucherCheckoutController extends Controller
         try {
             $stripe = new StripeClient((string) config('services.stripe.secret'));
             $session = $stripe->checkout->sessions->retrieve($sessionId, [
-                'expand' => ['payment_intent'],
+                'expand' => ['payment_intent.latest_charge'],
             ], [
                 'stripe_account' => $resolvedAccountId,
             ]);
@@ -217,7 +226,8 @@ class PublicGiftVoucherCheckoutController extends Controller
             $checkoutService->finalizePaidOrder(
                 $order,
                 (string) $session->id,
-                $paymentIntentId !== '' ? $paymentIntentId : null
+                $paymentIntentId !== '' ? $paymentIntentId : null,
+                $checkoutService->paymentTimestampFromSession($session)
             );
 
             return redirect()

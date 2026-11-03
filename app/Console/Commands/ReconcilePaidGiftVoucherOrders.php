@@ -62,7 +62,7 @@ class ReconcilePaidGiftVoucherOrders extends Command
                 try {
                     $session = $stripe->checkout->sessions->retrieve(
                         (string) $order->stripe_session_id,
-                        ['expand' => ['payment_intent']],
+                        ['expand' => ['payment_intent.latest_charge']],
                         ['stripe_account' => $therapist->stripe_account_id]
                     );
 
@@ -88,7 +88,8 @@ class ReconcilePaidGiftVoucherOrders extends Command
                     $voucher = $checkoutService->finalizePaidOrder(
                         $order,
                         (string) $session->id,
-                        $paymentIntentId !== '' ? $paymentIntentId : null
+                        $paymentIntentId !== '' ? $paymentIntentId : null,
+                        $checkoutService->paymentTimestampFromSession($session)
                     );
 
                     $stats['finalized']++;

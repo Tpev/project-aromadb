@@ -39,7 +39,7 @@ class StripePurchaseWebhookService
                     return true;
                 }
 
-                $handled = $this->handleGiftVoucherCheckoutSessionCompleted($object, $connectedAccountId);
+                $handled = $this->handleGiftVoucherCheckoutSessionCompleted($object, $connectedAccountId, isset($event->created) ? (int) $event->created : null);
                 if ($handled) {
                     $this->markProcessed($eventId, $type, $connectedAccountId);
                 }
@@ -174,7 +174,7 @@ class StripePurchaseWebhookService
         return false;
     }
 
-    private function handleGiftVoucherCheckoutSessionCompleted(object $session, ?string $connectedAccountId): bool
+    private function handleGiftVoucherCheckoutSessionCompleted(object $session, ?string $connectedAccountId, ?int $purchasedAtTimestamp = null): bool
     {
         if (($session->payment_status ?? null) !== 'paid') {
             return false;
@@ -216,7 +216,8 @@ class StripePurchaseWebhookService
         $this->giftVoucherCheckoutService->finalizePaidOrder(
             $order,
             (string) ($session->id ?? ''),
-            $paymentIntentId !== '' ? $paymentIntentId : null
+            $paymentIntentId !== '' ? $paymentIntentId : null,
+            $purchasedAtTimestamp
         );
 
         return true;

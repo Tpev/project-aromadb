@@ -19,6 +19,8 @@ class GiftVoucherOrder extends Model
         'recipient_email',
         'message',
         'expires_at',
+        'validity_months',
+        'purchased_at',
         'status',
         'gift_voucher_id',
         'sale_invoice_id',
@@ -28,6 +30,8 @@ class GiftVoucherOrder extends Model
 
     protected $casts = [
         'expires_at' => 'datetime',
+        'validity_months' => 'integer',
+        'purchased_at' => 'datetime',
     ];
 
     public function therapist(): BelongsTo
