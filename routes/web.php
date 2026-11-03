@@ -1109,6 +1109,7 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAn
     Route::get('/client_profiles/{clientProfile}', [ClientProfileController::class, 'show'])->name('client_profiles.show');
     Route::get('/client_profiles/{clientProfile}/edit', [ClientProfileController::class, 'edit'])->name('client_profiles.edit'); // Show form to edit a client profile
     Route::put('/client_profiles/{clientProfile}', [ClientProfileController::class, 'update'])->name('client_profiles.update'); // Handle form submission for updating a client profile
+    Route::put('/client_profiles/{clientProfile}/booking-block', [\App\Http\Controllers\ClientBookingBlockController::class, 'update'])->name('client_profiles.booking-block');
     Route::delete('/client_profiles/{clientProfile}', [ClientProfileController::class, 'destroy'])->name('client_profiles.destroy'); // Handle the deletion of a client profile
 
 Route::resource('client_profiles.metrics', MetricController::class);

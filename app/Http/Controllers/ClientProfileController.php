@@ -20,6 +20,7 @@ use App\Models\PackProduct;
 use App\Models\PackPurchase;
 use App\Domain\OfferJourneys\Models\OfferJourneyTag;
 use App\Support\OfferJourneys\OfferJourneyAccess;
+use App\Services\ClientBookingBlockService;
 
 class ClientProfileController extends Controller
 {
@@ -184,6 +185,8 @@ class ClientProfileController extends Controller
 {
     $this->authorize('view', $clientProfile);
 
+    $bookingEmailBlocked = app(ClientBookingBlockService::class)->isBlocked((int) $clientProfile->user_id, $clientProfile->email);
+
     // -----------------------------
     // Appointments (desktop + mobile)
     // -----------------------------
@@ -249,6 +252,7 @@ class ClientProfileController extends Controller
             'clientProfile' => $clientProfile,
             'appointments'  => $mobileAppointments,
             'testimonialRequests' => $testimonialRequests,
+            'bookingEmailBlocked' => $bookingEmailBlocked,
 
             // packs (optional for mobile, harmless if not used)
             'packPurchases' => $packPurchases,
@@ -265,6 +269,7 @@ class ClientProfileController extends Controller
         'invoices',
         'responses',
         'testimonialRequests',
+        'bookingEmailBlocked',
         'packPurchases',
         'availablePacks',
         'clientTagsEnabled',

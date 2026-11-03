@@ -26,6 +26,7 @@ use App\Services\AppointmentQuestionnaireAutomationService;
 use App\Services\AppointmentIcsService;
 use App\Services\CabinetAccessService;
 use App\Services\SharedCabinetSchedulingService;
+use App\Services\ClientBookingBlockService;
 use Stripe\StripeClient;
 
 class MobileAppointmentController extends Controller
@@ -116,6 +117,7 @@ class MobileAppointmentController extends Controller
         // Produit & thérapeute
         $product   = Product::findOrFail($request->product_id);
         $therapist = User::findOrFail($request->therapist_id);
+        app(ClientBookingBlockService::class)->assertAllowed((int) $therapist->id, $request->input('email'));
         if (
             app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
             && ((int) $product->user_id !== (int) $therapist->id || ! $product->can_be_booked_online)

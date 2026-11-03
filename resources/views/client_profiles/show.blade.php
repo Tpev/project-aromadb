@@ -430,6 +430,8 @@
         <x-testimonial-request :client-profile="$clientProfile" :requests="$testimonialRequests" />
     @endunless
 
+    @include('client_profiles.partials.booking-block')
+
 </section>
 
 

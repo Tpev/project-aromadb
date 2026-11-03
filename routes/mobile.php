@@ -279,6 +279,10 @@ Route::middleware('web')
             ->middleware('auth')
             ->name('clients.show');
 
+        Route::put('/clients/{clientProfile}/booking-block', [\App\Http\Controllers\ClientBookingBlockController::class, 'update'])
+            ->middleware('auth')
+            ->name('clients.booking-block');
+
         Route::get('/invoices', [InvoiceController::class, 'index'])
             ->middleware('auth')
             ->name('invoices.index');

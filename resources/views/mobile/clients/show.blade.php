@@ -203,6 +203,8 @@
                     <x-testimonial-request :client-profile="$client" :requests="$testimonialRequests" />
                 </div>
             @endcan
+
+            @include('client_profiles.partials.booking-block')
         </div>
 
         {{-- =======================

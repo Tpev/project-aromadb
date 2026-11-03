@@ -36,6 +36,7 @@ use App\Services\SharedCabinetSchedulingService;
 use App\Services\ReceiptRecordingService;
 use App\Models\PracticeLocation;
 use App\Support\ProductCalendarColor;
+use App\Services\ClientBookingBlockService;
 
 class AppointmentController extends Controller
 {
@@ -1292,6 +1293,7 @@ public function storePatient(Request $request)
     // Produit & thérapeute
     $product   = Product::findOrFail($request->product_id);
     $therapist = User::findOrFail($request->therapist_id);
+    app(ClientBookingBlockService::class)->assertAllowed((int) $therapist->id, $request->input('email'));
     if (
         app(\App\Support\BookingV2Access::class)->enabledFor($therapist)
         && ((int) $product->user_id !== (int) $therapist->id || ! $product->can_be_booked_online)
@@ -3670,6 +3672,8 @@ public function storeByToken(Request $request, string $token)
             'product_id' => 'Cette prestation n’est pas disponible via ce lien partenaire.',
         ])->withInput();
     }
+
+    app(ClientBookingBlockService::class)->assertAllowed((int) $therapist->id, $request->input('email'));
 
     $voucherForBooking = $this->resolveGiftVoucherForBooking($therapist, $request->input('gift_voucher_code'));
     $totalAmountCents = $this->computeBookableAmountCents($product);
