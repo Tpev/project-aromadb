@@ -271,6 +271,7 @@
     </table>
 
     <div class="header-sep"></div>
+    @include('invoices.partials.event-context')
 
     {{-- EMETTEUR + CLIENT (CARDS) --}}
     <table class="row-table">

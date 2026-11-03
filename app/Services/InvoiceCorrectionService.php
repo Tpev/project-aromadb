@@ -75,6 +75,7 @@ class InvoiceCorrectionService
                 'client_profile_id' => $lockedOriginal->client_profile_id,
                 'corporate_client_id' => $lockedOriginal->corporate_client_id,
                 'appointment_id' => $lockedOriginal->appointment_id,
+                'event_snapshot' => $lockedOriginal->event_snapshot,
                 'original_invoice_id' => $lockedOriginal->id,
                 'correction_kind' => $kind,
                 'correction_reason' => $reason,

@@ -7,6 +7,7 @@
         <ul class="mt-3 space-y-3">
             @foreach($inactiveReservations as $inactiveReservation)
                 <li class="text-sm text-gray-600">
+                    @include('events.partials.invoice-action', ['reservation' => $inactiveReservation])
                     <span class="font-semibold">{{ $inactiveReservation->full_name }}</span>
                     <span class="block break-words text-xs">{{ $inactiveReservation->email }}</span>
                     <span class="block text-xs">

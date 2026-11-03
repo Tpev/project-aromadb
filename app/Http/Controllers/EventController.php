@@ -638,6 +638,7 @@ public function show(Event $event)
 
     // The show blade expects reservations + related data
     $event->load([
+        'reservations.invoice',
         'user',
         'associatedProduct',
         'reservations' => function ($q) {

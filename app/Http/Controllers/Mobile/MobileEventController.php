@@ -86,6 +86,7 @@ class MobileEventController extends Controller
         $this->authorizeOwner($event);
 
         $event->load([
+            'reservations.invoice',
             'associatedProduct',
             'reservations' => fn ($query) => $query->latest(),
         ])->loadCount(['reservations' => fn ($query) => $query->active()]);

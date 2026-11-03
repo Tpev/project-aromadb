@@ -33,6 +33,7 @@ use App\Services\InvoiceActivityService;
 use App\Services\InvoiceLifecycleService;
 use App\Services\InvoiceRecipientSnapshotService;
 use App\Services\DocumentNumberingService;
+use App\Services\EventInvoiceService;
 
 
 class InvoiceController extends Controller
@@ -111,7 +112,28 @@ public function index(Request $request)
 
 public function create(Request $request)
 {
+    $request->validate(['event_reservation_id' => ['nullable', 'integer']]);
+    $selectedReservation = null;
+    $eventInvoiceItem = null;
+    $eventClients = collect();
+    if ($request->filled('event_reservation_id')) {
+        $service = app(EventInvoiceService::class);
+        $selectedReservation = $service->reservation($request->integer('event_reservation_id'), auth()->id());
+        if ($selectedReservation->invoice) {
+            return redirect()->route('invoices.show', $selectedReservation->invoice);
+        }
+        try {
+            $service->ensureEligible($selectedReservation);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            return redirect()->route('events.show', $selectedReservation->event)->with('error', $exception->getMessage());
+        }
+        $eventClients = $service->matchingClients($selectedReservation);
+        $eventInvoiceItem = $service->item($selectedReservation);
+    }
     $clients        = ClientProfile::where('user_id', auth()->id())->get();
+    if ($selectedReservation && filled($selectedReservation->email)) {
+        $clients = $eventClients;
+    }
     $corporateClients = CorporateClient::where('user_id', auth()->id())->get();
     $products       = Product::where('user_id', auth()->id())->get();
     $inventoryItems = InventoryItem::where('user_id', auth()->id())->get();
@@ -123,7 +145,7 @@ public function create(Request $request)
     $selectedCorporateClient = null;
     $selectedAppointment = null;
 
-    if ($request->filled('appointment_id')) {
+    if (! $selectedReservation && $request->filled('appointment_id')) {
         $selectedAppointment = Appointment::where('user_id', auth()->id())
             ->where(function ($query) {
                 $query->where('external', false)->orWhereNull('external');
@@ -133,10 +155,10 @@ public function create(Request $request)
     }
 
     // Support both legacy ?client_id=... and current ?client_profile_id=...
-    $selectedClientId    = $selectedAppointment?->client_profile_id
+    $selectedClientId    = $selectedReservation ? ($eventClients->count() === 1 ? $eventClients->first()->id : null) : ($selectedAppointment?->client_profile_id
         ?? $request->input('client_profile_id')
-        ?? $request->input('client_id');
-    $selectedCorporateId = $request->input('corporate_client_id');
+        ?? $request->input('client_id'));
+    $selectedCorporateId = $selectedReservation ? null : $request->input('corporate_client_id');
 
     if ($selectedClientId) {
         $selectedClient = ClientProfile::where('user_id', auth()->id())->find($selectedClientId);
@@ -148,7 +170,7 @@ public function create(Request $request)
 
     $selectedProduct = $selectedAppointment?->product;
 
-		if (!$selectedProduct && $request->filled('product_id')) {
+		if (!$selectedReservation && !$selectedProduct && $request->filled('product_id')) {
 			$selectedProduct = Product::where('user_id', auth()->id())
 				->find($request->input('product_id'));
 		}
@@ -163,7 +185,10 @@ public function create(Request $request)
         'selectedClient',
         'selectedCorporateClient',
         'selectedProduct',
-        'selectedAppointment'
+        'selectedAppointment',
+        'selectedReservation',
+        'eventInvoiceItem',
+        'eventClients'
     ));
 }
 
@@ -180,6 +205,8 @@ public function store(Request $request)
         'corporate_client_id'  => ['nullable', Rule::exists('corporate_clients', 'id')->where(fn ($q) => $q->where('user_id', Auth::id()))],
 
         'invoice_date'      => ['required', 'date'],
+        'event_reservation_id' => ['nullable', 'integer'],
+        'event_payment_date' => ['nullable', 'date', 'before_or_equal:today'],
         'due_date'          => ['nullable', 'date', 'after_or_equal:invoice_date'],
         'notes'             => ['nullable', 'string'],
         'appointment_id'    => ['nullable', Rule::exists('appointments', 'id')->where(fn ($q) => $q
@@ -291,6 +318,16 @@ public function store(Request $request)
         : true;
 
     $result = DB::transaction(function () use ($validatedData) {
+        $reservation = null;
+        $eventService = app(EventInvoiceService::class);
+        if (! empty($validatedData['event_reservation_id'])) {
+            $reservation = $eventService->reservation((int) $validatedData['event_reservation_id'], Auth::id(), true);
+            if ($reservation->invoice) {
+                return ['invoice' => $reservation->invoice, 'duplicate' => true, 'event' => true];
+            }
+            $eventService->ensureEligible($reservation);
+            $eventService->validateRecipient($reservation, $validatedData);
+        }
         if (! empty($validatedData['appointment_id']) && empty($validatedData['allow_additional_invoice'])) {
             $existing = Invoice::query()
                 ->where('appointment_id', $validatedData['appointment_id'])
@@ -316,6 +353,8 @@ public function store(Request $request)
             'status'                 => 'En attente',
             'type'                   => 'invoice',
             'appointment_id'         => $validatedData['appointment_id'] ?? null,
+            'event_reservation_id'   => $reservation?->id,
+            'event_snapshot'         => $reservation ? $eventService->snapshot($reservation) : null,
 
             // Totals will be recomputed
             'total_amount'           => 0,
@@ -343,6 +382,9 @@ public function store(Request $request)
         );
 
         app(InvoiceRecipientSnapshotService::class)->capture($invoice, true);
+        if ($reservation) {
+            $eventService->recordPayment($invoice->fresh(), $reservation, $validatedData['event_payment_date'] ?? null);
+        }
         app(InvoiceActivityService::class)->record(
             $invoice,
             'created',
@@ -360,7 +402,9 @@ public function store(Request $request)
     $invoice = $result['invoice'];
     if ($result['duplicate']) {
         return redirect()->route('invoices.show', $invoice)
-            ->with('error', 'Ce rendez-vous possède déjà une facture. Vous avez été redirigé vers celle-ci.');
+            ->with('error', ! empty($result['event'])
+                ? 'Cette participation possède déjà une facture. Vous avez été redirigé vers celle-ci.'
+                : 'Ce rendez-vous possède déjà une facture. Vous avez été redirigé vers celle-ci.');
     }
 
     return redirect()->route('invoices.show', $invoice)->with('success', 'Facture créée avec succès.');
@@ -427,6 +471,13 @@ public function edit(Invoice $invoice)
 public function update(Request $request, Invoice $invoice)
 {
     $this->authorize('view', $invoice);
+
+    if ($invoice->event_snapshot && ((int) $request->input('client_profile_id') !== (int) $invoice->client_profile_id
+        || $request->filled('corporate_client_id') || $request->filled('appointment_id'))) {
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            'client_profile_id' => 'Cette facture est liée au participant de l’événement. Son destinataire ne peut pas être remplacé.',
+        ]);
+    }
 
     if (! $invoice->isEditable()) {
         app(InvoiceActivityService::class)->record(

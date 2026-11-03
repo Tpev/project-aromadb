@@ -499,6 +499,7 @@
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-3">
+                                                        <div class="mb-2">@include('events.partials.invoice-action')</div>
                                                         @include('events.partials.cancel-reservation', ['reservation' => $reservation])
                                                     </td>
                                                 </tr>

@@ -29,7 +29,7 @@
                 // Avoid "Undefined variable $selectedClient"
                 $selectedClientId = old('client_profile_id', isset($selectedClient) ? $selectedClient->id : null);
                 $selectedCorporateId = old('corporate_client_id', isset($selectedCorporateClient) ? $selectedCorporateClient->id : null);
-                $billingTarget = old('billing_target', $selectedCorporateId ? 'corporate' : 'client');
+                $billingTarget = ($selectedReservation ?? null) ? 'client' : old('billing_target', $selectedCorporateId ? 'corporate' : 'client');
 
                 $gType = old('global_discount_type');
                 $gVal  = old('global_discount_value');
@@ -41,6 +41,9 @@
 
             <form id="invoiceForm" action="{{ route('invoices.store') }}" method="POST" class="am-form">
                 @csrf
+                @if($selectedReservation ?? null)
+                    @include('invoices.partials.event-prefill')
+                @endif
                 @if(isset($selectedAppointment) && $selectedAppointment)
                     <input type="hidden" name="appointment_id" value="{{ $selectedAppointment->id }}">
                 @endif
@@ -64,10 +67,12 @@
                                 <input type="radio" name="billing_target" value="client" {{ $billingTarget === 'client' ? 'checked' : '' }}>
                                 <span>{{ __('Particulier') }}</span>
                             </label>
+                            @unless($selectedReservation ?? null)
                             <label style="display:flex; gap:8px; align-items:center;">
                                 <input type="radio" name="billing_target" value="corporate" {{ $billingTarget === 'corporate' ? 'checked' : '' }}>
                                 <span>{{ __('Entreprise') }}</span>
                             </label>
+                            @endunless
                         </div>
 
                         <div id="billToClientWrap">
@@ -935,6 +940,38 @@ row.innerHTML = `
                 : null);
             const tbody = document.querySelector('#invoice-items-table tbody');
             const hasRows = tbody && tbody.querySelectorAll('tr').length > 0;
+
+            @if($selectedReservation ?? null)
+                const eventItems = @js(array_values((array) old('items', [$eventInvoiceItem])));
+                if (Array.isArray(eventItems) && !hasRows) {
+                    eventItems.forEach(item => {
+                        if (!item || typeof item !== 'object') return;
+                        if (item.product_id) {
+                            addProductItem();
+                        } else if (item.inventory_item_id && document.querySelector('#inventory_item_id option[value="' + Number(item.inventory_item_id) + '"]')) {
+                            document.getElementById('inventory_item_id').value = String(item.inventory_item_id);
+                            document.getElementById('inventory_quantity').value = item.quantity || 1;
+                            addInventoryItem();
+                        } else if (item.pack_product_id && document.querySelector('#pack_product_id option[value="' + Number(item.pack_product_id) + '"]')) {
+                            document.getElementById('pack_product_id').value = String(item.pack_product_id);
+                            addPackItem();
+                        } else {
+                            addCustomItem();
+                        }
+                        const row = tbody.lastElementChild;
+                        ['product_id', 'label', 'description', 'quantity', 'unit_price', 'tax_rate', 'line_discount_type', 'line_discount_value', 'service_date', 'service_period_start', 'service_period_end'].forEach(field => {
+                            const input = row.querySelector('[name$="[' + field + ']"]');
+                            if (input && (item[field] === null || ['string', 'number'].includes(typeof item[field]))) input.value = item[field] ?? '';
+                        });
+                        const mode = row.querySelector('.am-service-mode');
+                        if (mode) {
+                            mode.value = item.service_date ? 'date' : (item.service_period_start || item.service_period_end ? 'period' : 'none');
+                            syncServiceDateMode(mode);
+                        }
+                    });
+                    recomputeAllTotals();
+                }
+            @endif
 
             if (preselectedProductId && !hasRows) {
                 addProductItem(preselectedServiceDate || '');

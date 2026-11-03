@@ -15,6 +15,7 @@
         <div class="details-container mx-auto p-4">
 
             {{-- Flash messages --}}
+            @include('invoices.partials.event-context')
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif

@@ -184,6 +184,7 @@
                                     <div class="mt-2 text-xs text-gray-500">{{ $reservation->phone }}</div>
                                 @endif
                                 <div class="mt-3">
+                                    <div class="mb-2">@include('events.partials.invoice-action')</div>
                                     @include('events.partials.cancel-reservation', ['reservation' => $reservation])
                                 </div>
                             </article>

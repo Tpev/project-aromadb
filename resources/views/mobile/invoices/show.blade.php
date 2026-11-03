@@ -36,6 +36,7 @@
 
 <x-mobile-layout :title="$number">
     <div class="mx-auto w-full max-w-lg px-4 pb-24 pt-4">
+        @include('invoices.partials.event-context', ['invoice' => $document])
         <div class="mb-4">
             <a href="{{ route('mobile.invoices.index') }}" class="mb-2 inline-flex items-center text-xs font-semibold text-[#647a0b]">
                 <i class="fas fa-arrow-left mr-1 text-[10px]"></i>

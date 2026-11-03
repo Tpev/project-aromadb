@@ -19,6 +19,8 @@ class Invoice extends Model
         'pack_purchase_id',
         'corporate_client_id',
         'appointment_id',
+        'event_reservation_id',
+        'event_snapshot',
         'original_invoice_id',
         'correction_kind',
         'correction_reason',
@@ -96,6 +98,11 @@ public function appointment()
     return $this->belongsTo(Appointment::class);
 }
 
+public function eventReservation()
+{
+    return $this->belongsTo(Reservation::class, 'event_reservation_id');
+}
+
 public function originalInvoice()
 {
     return $this->belongsTo(self::class, 'original_invoice_id');
@@ -117,6 +124,7 @@ public function activityLogs()
         'sent_at' => 'datetime',
         'finalized_at' => 'datetime',
         'recipient_snapshot' => 'array',
+        'event_snapshot' => 'array',
         'last_payment_reminder_sent_at' => 'datetime',
         'number_sequence' => 'integer',
         'numbering_version' => 'integer',

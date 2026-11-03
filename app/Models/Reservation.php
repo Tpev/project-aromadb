@@ -57,4 +57,9 @@ class Reservation extends Model
     {
         return $this->belongsTo(Event::class);
     }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class, 'event_reservation_id');
+    }
 }

@@ -7,6 +7,7 @@
 
     <div class="am-wrap">
         <div class="am-card">
+            @include('invoices.partials.event-context')
             @if ($errors->any())
                 <div class="am-alert">
                     <div class="am-alert-title">{{ __('Erreurs') }}</div>
@@ -35,7 +36,10 @@
                         <label class="am-label">{{ __('Facturer à') }}</label>
 
                         @php
-                            $billTo = old('bill_to', !empty($invoice->corporate_client_id) ? 'corporate' : 'client');
+                            $billTo = $invoice->event_snapshot ? 'client' : old('bill_to', !empty($invoice->corporate_client_id) ? 'corporate' : 'client');
+                            if ($invoice->event_snapshot) {
+                                $clients = $clients->where('id', $invoice->client_profile_id);
+                            }
                             $corporateClients = $corporateClients ?? collect();
                         @endphp
 
@@ -44,10 +48,12 @@
                                 <input type="radio" name="bill_to" value="client" {{ $billTo === 'client' ? 'checked' : '' }}>
                                 <span>{{ __('Particulier') }}</span>
                             </label>
+                            @unless($invoice->event_snapshot)
                             <label class="inline-flex items-center gap-2">
                                 <input type="radio" name="bill_to" value="corporate" {{ $billTo === 'corporate' ? 'checked' : '' }}>
                                 <span>{{ __('Entreprise') }}</span>
                             </label>
+                            @endunless
                         </div>
 
                         <div id="billto-client-wrap">
