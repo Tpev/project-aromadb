@@ -176,6 +176,7 @@
                         @forelse($packs as $pack)
                             <tr class="am-row">
                                 <td class="px-4 py-3">
+                                    <x-pack-photo :pack="$pack" :compact="true" />
                                     <a class="font-extrabold text-slate-900 hover:underline"
                                        href="{{ route('pack-products.show', $pack) }}">
                                         {{ $pack->name }}

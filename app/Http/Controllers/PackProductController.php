@@ -11,6 +11,7 @@ use App\Models\PackPurchaseItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Services\PackDigitalTrainingAccessService;
+use App\Services\PackPhotoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,7 @@ class PackProductController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            ...PackPhotoService::rules(),
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'product_category_id' => ['nullable', 'integer', Rule::exists('product_categories', 'id')->where('user_id', Auth::id())],
@@ -70,7 +72,7 @@ class PackProductController extends Controller
             'items.*.quantity' => 'required|integer|min:1|max:999',
             'digital_training_ids' => 'nullable|array',
             'digital_training_ids.*' => 'integer|distinct|exists:digital_trainings,id',
-        ]);
+        ], PackPhotoService::messages());
 
         // Vérifier que les produits appartiennent au user
         $productIds = collect($validated['items'])->pluck('product_id')->unique()->values();
@@ -95,10 +97,9 @@ class PackProductController extends Controller
             ]);
         }
 
-        $pack = null;
-
-        DB::transaction(function () use (&$pack, $validated, $allowedInstallments) {
+        $pack = app(PackPhotoService::class)->save((int) Auth::id(), null, $validated, function (array $photoAttributes) use ($validated, $allowedInstallments) {
             $pack = PackProduct::create([
+                ...$photoAttributes,
                 'user_id' => Auth::id(),
                 'product_category_id' => $validated['product_category_id'] ?? null,
                 'name' => $validated['name'],
@@ -123,6 +124,8 @@ class PackProductController extends Controller
             }
 
             $pack->digitalTrainings()->sync($validated['digital_training_ids'] ?? []);
+
+            return $pack;
         });
 
         return redirect()->route('pack-products.show', $pack)->with('success', 'Pack créé avec succès.');
@@ -178,6 +181,7 @@ class PackProductController extends Controller
         $this->ensureOwner($packProduct);
 
         $validated = $request->validate([
+            ...PackPhotoService::rules(),
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'product_category_id' => ['nullable', 'integer', Rule::exists('product_categories', 'id')->where('user_id', Auth::id())],
@@ -198,7 +202,7 @@ class PackProductController extends Controller
             'items.*.quantity' => 'required|integer|min:1|max:999',
             'digital_training_ids' => 'nullable|array',
             'digital_training_ids.*' => 'integer|distinct|exists:digital_trainings,id',
-        ]);
+        ], PackPhotoService::messages());
 
         $productIds = collect($validated['items'])->pluck('product_id')->unique()->values();
         $ownedCount = Product::where('user_id', Auth::id())->whereIn('id', $productIds)->count();
@@ -222,8 +226,9 @@ class PackProductController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($packProduct, $validated, $allowedInstallments) {
+        app(PackPhotoService::class)->save((int) Auth::id(), $packProduct, $validated, function (array $photoAttributes) use ($packProduct, $validated, $allowedInstallments) {
             $packProduct->update([
+                ...$photoAttributes,
                 'product_category_id' => array_key_exists('product_category_id', $validated) ? $validated['product_category_id'] : $packProduct->product_category_id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
@@ -250,6 +255,8 @@ class PackProductController extends Controller
             }
 
             $packProduct->digitalTrainings()->sync($validated['digital_training_ids'] ?? []);
+
+            return $packProduct;
         });
 
         return redirect()->route('pack-products.show', $packProduct)->with('success', 'Pack mis à jour avec succès.');

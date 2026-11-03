@@ -1,4 +1,4 @@
-param([int]$Port = 8011, [switch]$SetupOnly, [switch]$CalendarDemo)
+param([int]$Port = 8011, [switch]$SetupOnly, [switch]$CalendarDemo, [switch]$PackPhotoDemo)
 
 $ErrorActionPreference = 'Stop'
 $reviewRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -29,7 +29,7 @@ if (-not (Test-Path -LiteralPath $env:DB_DATABASE)) {
 
 & php artisan migrate --force
 if ($LASTEXITCODE -ne 0) { throw 'Demo database migration failed.' }
-$demoSeeder = if ($CalendarDemo) { 'CalendarColorDemoSeeder' } else { 'ReviewRequestDemoSeeder' }
+$demoSeeder = if ($PackPhotoDemo) { 'PackPhotoDemoSeeder' } elseif ($CalendarDemo) { 'CalendarColorDemoSeeder' } else { 'ReviewRequestDemoSeeder' }
 & php artisan db:seed --class=$demoSeeder --force
 if ($LASTEXITCODE -ne 0) { throw 'Demo seeding failed.' }
 

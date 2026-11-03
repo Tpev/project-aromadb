@@ -1,0 +1,5 @@
+Generated locally for the fictional Pack Sérénité demo with the built-in imagegen tool.
+The WebP fixture is a 1200 × 675 optimized derivative; it is not a customer upload.
+
+Prompt:
+Use case: photorealistic-natural. Asset type: cover photograph for a fictional wellness therapist's 'Pack Sérénité' on a booking application. Create one realistic horizontal 16:9 photo: a calm, welcoming therapy room, neatly folded natural linen towels and a small ceramic cup of herbal tea on a light wood side table, a comfortable chair and softly out-of-focus greenery in the background. Gentle daylight, authentic natural textures, understated sage and warm neutral tones. Keep the main subject near the center, suitable for cropping as a small card. No people, no text, no logos, no watermark. This is an illustrative demo image, no medical claims.

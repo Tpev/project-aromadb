@@ -27,6 +27,7 @@
 @endphp
 
 <div class="border border-[#e8e8e8] rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300 prestation-item bg-[#f9fafb]">
+    <x-pack-photo :pack="$pack" />
     <div class="p-6">
         <div class="flex items-start justify-between gap-3">
             <h4 class="text-2xl font-semibold text-[#647a0b] leading-tight">

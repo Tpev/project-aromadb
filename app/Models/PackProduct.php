@@ -14,6 +14,7 @@ class PackProduct extends Model
         'product_category_id',
         'name',
         'description',
+        'photo_path',
         'price',
         'tax_rate',
         'is_active',
@@ -37,6 +38,9 @@ class PackProduct extends Model
 
     protected static function booted(): void
     {
+        static::deleted(function (PackProduct $pack): void {
+            \Illuminate\Support\Facades\DB::afterCommit(fn () => app(\App\Services\PackPhotoService::class)->delete($pack->photo_path, (int) $pack->user_id));
+        });
         static::saving(function (PackProduct $pack): void {
             if ($pack->private_checkout_enabled && !$pack->private_checkout_token) {
                 $pack->private_checkout_token = \Illuminate\Support\Str::random(64);
@@ -47,6 +51,17 @@ class PackProduct extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return \App\Services\PackPhotoService::ownsPath($this->photo_path, (int) $this->user_id)
+            ? '/storage/'.$this->photo_path : null;
+    }
+
+    public function getPhotoThumbnailUrlAttribute(): ?string
+    {
+        return $this->photo_url ? '/storage/'.\App\Services\PackPhotoService::thumbnailPath($this->photo_path) : null;
     }
 
     public function category()

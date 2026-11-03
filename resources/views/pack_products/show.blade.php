@@ -105,6 +105,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {{-- Pack details --}}
                 <div class="lg:col-span-2 am-card p-5">
+                    <x-pack-photo :pack="$pack" style="max-width:480px;" />
                     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                         <div class="min-w-0">
                             <div class="text-xs font-semibold text-slate-600">Prix du pack</div>

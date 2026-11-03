@@ -94,6 +94,7 @@
                     <a href="{{ route('mobile.packs.show', $pack) }}"
                        class="block rounded-lg border border-[#e4e8d5] bg-white p-3 shadow-sm active:scale-[0.99]"
                        data-pack="{{ Str::lower($searchText) }}">
+                        <x-pack-photo :pack="$pack" :compact="true" />
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0 flex-1">
                                 <h2 class="truncate text-sm font-semibold text-gray-900">

@@ -81,6 +81,9 @@
 
             {{-- Item selector --}}
             <div class="card-soft">
+                @if($isPack)
+                    <x-pack-photo :pack="$pack" sizes="(max-width: 900px) 100vw, 800px" />
+                @endif
                 @unless($privatePack)
                 <label class="details-label" for="item">
                     {{ __('Choisir un achat') }}

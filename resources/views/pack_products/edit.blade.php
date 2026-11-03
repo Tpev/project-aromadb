@@ -41,7 +41,7 @@
             </div>
         @endif
 
-        <form action="{{ route('pack-products.update', $pack) }}" method="POST"
+        <form action="{{ route('pack-products.update', $pack) }}" method="POST" enctype="multipart/form-data"
               class="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 p-6 space-y-6">
             @csrf
             @method('PUT')
@@ -78,6 +78,8 @@
             </div>
 
             @include('pack_products.partials.category-field')
+
+            @include('pack_products.partials.photo-field')
 
             {{-- Visibility --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">

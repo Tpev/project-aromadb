@@ -18,6 +18,7 @@
             </a>
 
             <div class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
+                <x-pack-photo :pack="$pack" />
                 <div class="flex items-start gap-3">
                     <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#647a0b]/10 text-[#647a0b]">
                         <i class="fas fa-layer-group text-sm"></i>

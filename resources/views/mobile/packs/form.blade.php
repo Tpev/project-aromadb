@@ -23,7 +23,7 @@
 @endphp
 
 <x-mobile-layout :title="$title" :hide-nav="true">
-    <form method="POST" action="{{ $action }}" class="mx-auto w-full max-w-lg px-4 pb-28 pt-4">
+    <form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="mx-auto w-full max-w-lg px-4 pb-28 pt-4">
         @csrf
         @if($method !== 'POST')
             @method($method)
@@ -74,6 +74,8 @@
                     </label>
 
                     @include('pack_products.partials.category-field', ['mobile' => true])
+
+                    @include('pack_products.partials.photo-field')
 
                     <div class="grid grid-cols-2 gap-3">
                         <label class="block">

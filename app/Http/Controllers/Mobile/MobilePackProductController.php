@@ -12,6 +12,7 @@ use App\Models\PackPurchaseItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Services\PackDigitalTrainingAccessService;
+use App\Services\PackPhotoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -58,10 +59,9 @@ class MobilePackProductController extends Controller
     {
         $validated = $this->validatedPackPayload($request);
 
-        $pack = null;
-
-        DB::transaction(function () use (&$pack, $validated) {
+        $pack = app(PackPhotoService::class)->save((int) Auth::id(), null, $validated, function (array $photoAttributes) use ($validated) {
             $pack = PackProduct::create([
+                ...$photoAttributes,
                 'user_id' => Auth::id(),
                 'product_category_id' => $validated['product_category_id'] ?? null,
                 'name' => $validated['name'],
@@ -78,6 +78,8 @@ class MobilePackProductController extends Controller
 
             $this->replacePackItems($pack, $validated['items']);
             $pack->digitalTrainings()->sync($validated['digital_training_ids'] ?? []);
+
+            return $pack;
         });
 
         return redirect()
@@ -136,8 +138,9 @@ class MobilePackProductController extends Controller
 
         $validated = $this->validatedPackPayload($request);
 
-        DB::transaction(function () use ($packProduct, $validated) {
+        app(PackPhotoService::class)->save((int) Auth::id(), $packProduct, $validated, function (array $photoAttributes) use ($packProduct, $validated) {
             $packProduct->update([
+                ...$photoAttributes,
                 'product_category_id' => array_key_exists('product_category_id', $validated) ? $validated['product_category_id'] : $packProduct->product_category_id,
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
@@ -154,6 +157,8 @@ class MobilePackProductController extends Controller
             $packProduct->items()->delete();
             $this->replacePackItems($packProduct, $validated['items']);
             $packProduct->digitalTrainings()->sync($validated['digital_training_ids'] ?? []);
+
+            return $packProduct;
         });
 
         return redirect()
@@ -306,6 +311,7 @@ class MobilePackProductController extends Controller
     private function validatedPackPayload(Request $request): array
     {
         $validated = $request->validate([
+            ...PackPhotoService::rules(),
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'product_category_id' => ['nullable', 'integer', Rule::exists('product_categories', 'id')->where('user_id', Auth::id())],
@@ -323,7 +329,7 @@ class MobilePackProductController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:999'],
             'digital_training_ids' => ['nullable', 'array'],
             'digital_training_ids.*' => ['integer', 'distinct', 'exists:digital_trainings,id'],
-        ]);
+        ], PackPhotoService::messages());
 
         $productIds = collect($validated['items'])->pluck('product_id')->unique()->values();
         $ownedCount = Product::query()
