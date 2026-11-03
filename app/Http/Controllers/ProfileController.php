@@ -129,6 +129,7 @@ class ProfileController extends Controller
             'facebook_url' => ['nullable', 'url:http,https', 'max:2048'],
             'instagram_url' => ['nullable', 'url:http,https', 'max:2048'],
             'linkedin_url' => ['nullable', 'url:http,https', 'max:2048'],
+            'portal_offer_order' => ['sometimes', 'required', 'in:packs_first,prestations_first'],
             'numbering_settings_submitted' => ['nullable', 'boolean'],
             'invoice_numbering_enabled' => ['nullable', 'boolean'],
             'invoice_numbering_format' => ['nullable', 'string', 'max:64'],
@@ -169,6 +170,9 @@ class ProfileController extends Controller
             'digital_sales_retractation_document' => 'nullable|file|mimes:pdf|max:10096',
 
 
+        ], [
+            'portal_offer_order.required' => 'Choisissez l’ordre d’affichage des offres sur votre portail.',
+            'portal_offer_order.in' => 'Choisissez « Prestations individuelles d’abord » ou « Packs d’abord ».',
         ]);
 
         $numberingConfigurations = null;
@@ -246,6 +250,11 @@ class ProfileController extends Controller
                 $url = trim((string) ($validatedData[$socialField] ?? ''));
                 $user->{$socialField} = $url !== '' ? $url : null;
             }
+        }
+
+        // Older forms omit this preference and must preserve the saved order.
+        if (array_key_exists('portal_offer_order', $validatedData)) {
+            $user->portal_offer_order = $validatedData['portal_offer_order'];
         }
 
         if (array_key_exists('booking_notes_placeholder', $validatedData)) {

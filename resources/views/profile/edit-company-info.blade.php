@@ -55,7 +55,7 @@
                     ? 'numbering'
                     : ($errors->has('booking_notes_placeholder')
                         ? 'booking'
-                        : ($errors->hasAny(['facebook_url', 'instagram_url', 'linkedin_url']) ? 'public' : 'company'));
+                        : ($errors->hasAny(['facebook_url', 'instagram_url', 'linkedin_url', 'portal_offer_order']) ? 'public' : 'company'));
             @endphp
             <div x-data="{ activeTab: @js($initialTab) }">
                 {{-- Tabs header --}}
@@ -192,6 +192,8 @@
 
                     {{-- TAB 2: Profil public --}}
                     <div x-show="activeTab === 'public'" x-cloak>
+
+                        @include('profile.partials.portal-offer-order')
                         <!-- About Us (Quill) -->
                         <div class="details-box">
                             <label class="details-label" for="about">{{ __('À Propos') }}</label>

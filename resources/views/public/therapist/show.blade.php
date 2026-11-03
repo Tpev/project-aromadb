@@ -545,16 +545,22 @@
                 'packs' => $visiblePacks->where('product_category_id', $category->id),
             ])->values();
         $uncategorizedPacks = $visiblePacks->filter(fn($pack) => $pack->category === null);
+        // A missing preference preserves the historical packs-first layout.
+        $prestationsFirst = $therapist->portal_offer_order === 'prestations_first';
+        $offerSections = $prestationsFirst ? ['prestations', 'categories', 'packs'] : ['packs', 'categories', 'prestations'];
+        $offerTypes = $prestationsFirst ? ['prestations', 'packs'] : ['packs', 'prestations'];
     @endphp
 
     @if($visiblePacks->count() > 0 || $visiblePrestations->count() > 0)
-        <div class="mt-8 space-y-8">
+        <div class="mt-8 space-y-8" data-testid="portal-offers">
+
+            @foreach($offerSections as $offerSection)
 
             {{-- =======================
                  PACKS
                  ======================= --}}
-            @if($uncategorizedPacks->isNotEmpty())
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            @if($offerSection === 'packs' && $uncategorizedPacks->isNotEmpty())
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="uncategorized-packs">
                     @foreach($uncategorizedPacks as $pack)
                         @include('public.therapist.partials.pack-card', ['pack' => $pack])
                     @endforeach
@@ -564,7 +570,7 @@
             {{-- =======================
                  CATÉGORIES DE PRESTATIONS
                  ======================= --}}
-            @if($categorySections->isNotEmpty())
+            @if($offerSection === 'categories' && $categorySections->isNotEmpty())
                 <div class="space-y-4" data-testid="prestation-categories">
                     @foreach($categorySections as $section)
                         @php
@@ -598,11 +604,16 @@
                                     <p class="mb-6 max-w-3xl whitespace-pre-line text-base leading-7 text-gray-600">{{ $category->description }}</p>
                                 @endif
                                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                    @foreach($section['packs'] as $pack)
-                                        @include('public.therapist.partials.pack-card', ['pack' => $pack])
-                                    @endforeach
-                                    @foreach($section['groups'] as $group)
-                                        @include('public.therapist.partials.prestation-card', ['group' => $group])
+                                    @foreach($offerTypes as $offerType)
+                                        @if($offerType === 'packs')
+                                            @foreach($section['packs'] as $pack)
+                                                @include('public.therapist.partials.pack-card', ['pack' => $pack])
+                                            @endforeach
+                                        @else
+                                            @foreach($section['groups'] as $group)
+                                                @include('public.therapist.partials.prestation-card', ['group' => $group])
+                                            @endforeach
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
@@ -612,7 +623,7 @@
             @endif
 
             {{-- Prestations non classées : affichage historique, sans titre supplémentaire. --}}
-            @if($uncategorizedPrestations->isNotEmpty())
+            @if($offerSection === 'prestations' && $uncategorizedPrestations->isNotEmpty())
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" data-testid="uncategorized-prestations">
                     @foreach($uncategorizedPrestations as $group)
                         @include('public.therapist.partials.prestation-card', ['group' => $group])
@@ -620,6 +631,7 @@
                 </div>
             @endif
 
+            @endforeach
         </div>
     @else
         <p class="mt-6 text-gray-600">{{ __('Aucune prestation disponible pour le moment.') }}</p>
