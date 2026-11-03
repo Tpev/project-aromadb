@@ -61,6 +61,7 @@ class AppointmentController extends Controller
             'clientProfile',
             'product',
             'billingInvoices.receipts',
+            'giftVoucherRedemptions',
             'sessionNotes:id,appointment_id,client_profile_id,user_id',
         ])
         ->orderBy('appointment_date', 'asc') // tri global par date croissante
@@ -109,8 +110,10 @@ class AppointmentController extends Controller
             : ($isPast ? '#854f38' : '#647a0b'));
 
         // ---------- Push dans FullCalendar ----------
+        $voucherLabel = $appointment->external ? null : $appointment->gift_voucher_payment_label;
         $events[] = [
-            'title'     => $title,
+            'title'     => $voucherLabel ? '🎁 '.$title : $title,
+            'extendedProps' => ['giftVoucherLabel' => $voucherLabel],
             'start'     => $appointment->appointment_date->format('Y-m-d H:i:s'),
             'end'       => $appointment->appointment_date
                                         ->copy()
@@ -473,6 +476,7 @@ public function show(Appointment $appointment, JitsiJwtService $jitsi)
         'product',
         'meeting',
         'billingInvoices.receipts',
+        'giftVoucherRedemptions.voucher',
         'sessionNotes' => fn ($query) => $query->latest(),
     ]);
 
@@ -1414,6 +1418,7 @@ public function storePatient(Request $request)
         'product_id'            => $product->id,
         'gift_voucher_id'       => $voucherForBooking?->id,
         'gift_voucher_amount_cents' => $voucherPlannedCents > 0 ? $voucherPlannedCents : null,
+        'gift_voucher_total_cents' => $voucherPlannedCents > 0 ? $totalAmountCents : null,
     ];
     if (config('appointments.earlier_slots.enabled', false)) {
         $appointmentAttributes['wants_earlier_slot'] = $wantsEarlierSlot;
@@ -3787,6 +3792,7 @@ public function storeByToken(Request $request, string $token)
         'product_id'            => $product->id,
         'gift_voucher_id'       => $voucherForBooking?->id,
         'gift_voucher_amount_cents' => $voucherPlannedCents > 0 ? $voucherPlannedCents : null,
+        'gift_voucher_total_cents' => $voucherPlannedCents > 0 ? $totalAmountCents : null,
 
         // ✅ partner tracking
         'booking_link_id'       => $bookingLink->id,

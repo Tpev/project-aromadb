@@ -220,6 +220,7 @@
             </div>
 
             @unless($appointment->external)
+                @include('appointments.partials.gift-voucher-payment')
                 <div class="row mt-4">
                     <div class="col-md-12">
                         <h2 class="details-subtitle">Suivi de la séance</h2>

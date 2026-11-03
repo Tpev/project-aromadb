@@ -72,6 +72,9 @@
     </div>
 
     @unless($isExternal)
+        @if($voucherLabel = $appointment->gift_voucher_payment_label)
+            <p class="mt-3 text-xs text-gray-500"><i class="fas fa-gift" aria-hidden="true"></i> {{ $voucherLabel }}</p>
+        @endif
         <div class="mt-3 grid grid-cols-2 gap-1.5 text-[10px] font-semibold">
             <span class="inline-flex min-h-7 items-center rounded-md bg-[#f7f8f1] px-2 text-[#4b5722]">
                 <i class="fas fa-notes-medical mr-1.5"></i>{{ $appointment->note_tracking_label }}

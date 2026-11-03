@@ -68,6 +68,7 @@ class Appointment extends Model
         'stripe_session_id',
         'gift_voucher_id',
         'gift_voucher_amount_cents',
+        'gift_voucher_total_cents',
         'google_event_id',
         'external',                // imported busy slot from Google
         'practice_location_id',    // ← SELECTED cabinet location (if cabinet)
@@ -104,6 +105,7 @@ class Appointment extends Model
         'external'             => 'boolean',
         'duration'             => 'integer',
         'gift_voucher_amount_cents' => 'integer',
+        'gift_voucher_total_cents' => 'integer',
         'cancelled_at'         => 'datetime',
         'rescheduled_at'       => 'datetime',
         'reminder_24h_sent_at' => 'datetime',
@@ -616,5 +618,15 @@ public function syncToGoogle(): void
     public function giftVoucher()
     {
         return $this->belongsTo(GiftVoucher::class, 'gift_voucher_id');
+    }
+
+    public function giftVoucherRedemptions()
+    {
+        return $this->hasMany(GiftVoucherRedemption::class);
+    }
+
+    public function getGiftVoucherPaymentLabelAttribute(): ?string
+    {
+        return app(\App\Services\AppointmentGiftVoucherService::class)->paymentLabel($this);
     }
 }

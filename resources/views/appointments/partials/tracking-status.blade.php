@@ -5,6 +5,11 @@
 @endphp
 
 <div class="appointment-status-stack d-flex flex-column align-items-center gap-1" aria-label="Suivi du rendez-vous">
+    @if($voucherLabel = $appointment->gift_voucher_payment_label)
+        <span class="badge rounded-pill bg-light text-secondary" style="white-space: normal; line-height: 1.5;">
+            <i class="fas fa-gift" aria-hidden="true"></i> {{ $voucherLabel }}
+        </span>
+    @endif
     <span class="appointment-status-pill badge rounded-pill {{ $sessionLabel === 'Terminée' ? 'bg-success-subtle text-success' : ($sessionLabel === 'Annulée' ? 'bg-secondary-subtle text-secondary' : 'bg-warning-subtle text-warning') }}">
         <i class="fas fa-calendar-check" aria-hidden="true"></i>
         <span class="appointment-status-label">{{ $sessionLabel }}</span>

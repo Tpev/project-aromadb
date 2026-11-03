@@ -608,6 +608,11 @@
                     openCalendarAction(info.date, info.allDay);
                 },
                 events: @json($events),
+                eventDidMount: function(info) {
+                    if (info.event.extendedProps.giftVoucherLabel) {
+                        info.el.title = info.event.title + ' · ' + info.event.extendedProps.giftVoucherLabel;
+                    }
+                },
                 eventClick: function(info) {
                     if (info.event.url) {
                         window.location.href = info.event.url;

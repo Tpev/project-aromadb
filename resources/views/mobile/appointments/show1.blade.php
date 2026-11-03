@@ -208,6 +208,8 @@
             </div>
         @endif
 
+        @include('appointments.partials.gift-voucher-payment')
+
         {{-- Notes --}}
         <div class="rounded-2xl border border-[#e4e8d5] bg-white p-4 shadow-sm">
             <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">

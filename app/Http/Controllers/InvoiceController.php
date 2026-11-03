@@ -318,6 +318,10 @@ public function store(Request $request)
         : true;
 
     $result = DB::transaction(function () use ($validatedData) {
+        // Serialize invoice creation with voucher application on this appointment.
+        $voucherAppointment = ! empty($validatedData['appointment_id'])
+            ? Appointment::where('user_id', Auth::id())->lockForUpdate()->findOrFail($validatedData['appointment_id'])
+            : null;
         $reservation = null;
         $eventService = app(EventInvoiceService::class);
         if (! empty($validatedData['event_reservation_id'])) {
@@ -382,6 +386,9 @@ public function store(Request $request)
         );
 
         app(InvoiceRecipientSnapshotService::class)->capture($invoice, true);
+        if ($voucherAppointment) {
+            app(\App\Services\AppointmentGiftVoucherService::class)->recordOnInvoice($voucherAppointment, $invoice);
+        }
         if ($reservation) {
             $eventService->recordPayment($invoice->fresh(), $reservation, $validatedData['event_payment_date'] ?? null);
         }

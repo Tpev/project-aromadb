@@ -1162,6 +1162,10 @@ Route::middleware(['auth',\App\Http\Middleware\TrackPageViews::class,'can:viewAn
     Route::delete('/appointments/{appointment}', [App\Http\Controllers\AppointmentController::class, 'destroy'])->name('appointments.destroy');
     Route::post('/appointments/{appointment}/associate-invoice', [AppointmentInvoiceController::class, 'associate'])
         ->name('appointments.invoices.associate');
+    Route::post('/appointments/{appointment}/gift-voucher/preview', [\App\Http\Controllers\AppointmentGiftVoucherController::class, 'preview'])
+        ->name('appointments.gift-voucher.preview');
+    Route::post('/appointments/{appointment}/gift-voucher', [\App\Http\Controllers\AppointmentGiftVoucherController::class, 'store'])
+        ->name('appointments.gift-voucher.store');
     
  
 });
