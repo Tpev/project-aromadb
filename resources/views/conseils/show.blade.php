@@ -65,6 +65,8 @@
                     {!! $conseil->content !!}
                 </div>
 
+                @include('conseils.partials.links')
+
                 <!-- Pièce Jointe (PDF) -->
                 @if($conseil->attachment)
                     <div class="mt-6">

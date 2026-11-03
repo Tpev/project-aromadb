@@ -51,11 +51,13 @@
                             {{ __('Rédigez votre conseil ci-dessous. Vous pouvez mettre en forme le texte, insérer des images ou des liens, et organiser votre contenu pour le rendre plus clair.') }}
                         </p>
                         <!-- Hidden input to store the HTML content -->
-                        <input type="hidden" name="content" id="content-input">
+                        <input type="hidden" name="content" id="content-input" value="{{ old('content') }}">
 
                         <!-- Quill Editor Container -->
                         <div id="quill-editor" class="border border-[#854f38] rounded-md" style="min-height: 200px;"></div>
                     </div>
+
+                    @include('conseils.partials.links-field')
 
                     <!-- Image -->
                     <div class="mb-4">
@@ -111,9 +113,7 @@
             });
 
             // Charger le contenu précédent si disponible
-            @if(old('content'))
-                quill.root.innerHTML = `{!! addslashes(old('content')) !!}`;
-            @endif
+            quill.root.innerHTML = document.getElementById('content-input').value;
 
             // Mettre à jour le champ caché
             function updateHiddenInput() {

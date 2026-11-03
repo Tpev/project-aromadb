@@ -98,6 +98,8 @@
         {!! $conseil->content !!}
     </div>
 
+    @include('conseils.partials.links')
+
     @if($conseil->attachment)
         <div class="attachment-section">
             <p>

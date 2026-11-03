@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Conseil;
-use Illuminate\Http\Request;
+use App\Http\Requests\ConseilRequest;
 use Illuminate\Support\Facades\Auth;
 
 class ConseilController extends Controller
@@ -30,15 +30,9 @@ class ConseilController extends Controller
     /**
      * Store a newly created conseil in storage.
      */
-    public function store(Request $request)
+    public function store(ConseilRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'content' => 'nullable|string',
-            'image' => 'nullable|image|max:4048',
-            'attachment' => 'nullable|file|mimes:pdf|max:10048',
-            'tag' => 'nullable|string|max:255',
-        ]);
+        $data = $request->validated();
 
         // Handle file uploads if necessary
         if ($request->hasFile('image')) {
@@ -86,20 +80,14 @@ public function edit(Conseil $conseil)
     /**
      * Update the specified conseil in storage.
      */
-    public function update(Request $request, Conseil $conseil)
+    public function update(ConseilRequest $request, Conseil $conseil)
     {
       //  $this->authorize('update', $conseil);
     // Check that the conseil belongs to the currently authenticated user
     if ($conseil->user_id !== Auth::id()) {
         abort(403, 'Accès refusé. Ce conseil ne vous appartient pas.');
     }
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'content' => 'nullable|string',
-            'image' => 'nullable|image|max:4048',
-            'attachment' => 'nullable|file|mimes:pdf|max:10048',
-            'tag' => 'nullable|string|max:255',
-        ]);
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('conseils/images', 'public');
