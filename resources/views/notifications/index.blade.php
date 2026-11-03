@@ -61,14 +61,17 @@
                             @foreach($notifications as $notification)
                                 <tr class="hover:bg-gray-100 cursor-pointer">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <a href="{{ $notification->data['url'] }}" class="text-[#647a0b] hover:text-[#854f38]">
-                                            {{ $notification->data['message'] }}
-                                        </a>
+                                        <form method="POST" action="{{ route('notifications.open', $notification->id) }}">
+                                            @csrf
+                                            <button type="submit" class="text-left text-[#647a0b] hover:text-[#854f38]">
+                                                {{ $notification->data['message'] ?? 'Notification' }}
+                                            </button>
+                                        </form>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {{ $notification->created_at->format('d/m/Y H:i') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td data-notification-read-state class="px-6 py-4 whitespace-nowrap">
                                         @if(is_null($notification->read_at))
                                             <form method="POST" action="{{ route('notifications.markAsRead', $notification->id) }}" class="inline">
                                                 @csrf
@@ -93,6 +96,7 @@
                     </table>
                 </div>
             </div>
+            {{ $notifications->links() }}
         </div>
     </div>
 

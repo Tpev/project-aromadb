@@ -253,41 +253,47 @@
             <!-- Dropdown des Paramètres et Notifications -->
             <div class="hidden lg:flex lg:items-center lg:ml-6 space-x-4">
                 <!-- Notification Bell Icon -->
+                @php
+                    $notificationUnreadCount = auth()->user()->unreadNotifications()->count();
+                    $notificationPreviews = auth()->user()->unreadNotifications()->limit(5)->get();
+                @endphp
                 <div class="relative">
-                    <button id="notificationButton" class="relative text-gray-700 hover:text-[#854f38] focus:outline-none">
+                    <button id="notificationButton" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationsDropdown" class="relative text-gray-700 hover:text-[#854f38] focus:outline-none">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        @if(auth()->user()->unreadNotifications->count() > 0)
-                            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
-                                {{ auth()->user()->unreadNotifications->count() }}
+                        @if($notificationUnreadCount > 0)
+                            <span data-notification-count class="badge absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full transform translate-x-1/2 -translate-y-1/2">
+                                {{ $notificationUnreadCount }}
                             </span>
                         @endif
                     </button>
 
                     <!-- Notifications Dropdown -->
-                    <div id="notificationsDropdown" class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50 hidden">
+                    <div id="notificationsDropdown" data-fetch-url="{{ route('notifications.fetch') }}" class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50 hidden">
                         <div class="px-4 py-2 border-b border-gray-200 flex justify-between items-center">
                             <span class="font-semibold text-gray-700">Notifications</span>
-                            @if(auth()->user()->unreadNotifications->count() > 0)
-                                <form id="markAllAsReadForm" method="POST" action="{{ route('notifications.markAllAsRead') }}">
+                                <form id="markAllNotificationsAsReadForm" method="POST" action="{{ route('notifications.markAllAsRead') }}" @class(['hidden' => $notificationUnreadCount === 0])>
                                     @csrf
-                                    <button type="submit" class="text-sm text-blue-600 hover:underline">Mark all as read</button>
+                                    <button type="submit" class="text-sm text-blue-600 hover:underline">Tout marquer comme lu</button>
                                 </form>
-                            @endif
                         </div>
-                        <div class="max-h-60 overflow-y-auto">
-                            @forelse(auth()->user()->unreadNotifications as $notification)
-                                <a href="{{ $notification->data['url'] }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    {{ $notification->data['message'] }}
+                        <p data-notification-error role="alert" class="hidden px-4 py-2 text-sm text-red-700"></p>
+                        <div data-notification-list class="max-h-60 overflow-y-auto">
+                            @forelse($notificationPreviews as $notification)
+                                <form method="POST" action="{{ route('notifications.open', $notification->id) }}">
+                                    @csrf
+                                    <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
+                                    {{ $notification->data['message'] ?? 'Notification' }}
                                     <br>
                                     <small class="text-gray-500">
                                         {{ $notification->data['amount_paid'] ?? '' }}
                                         @if(!empty($notification->data['amount_paid']) && !empty($notification->data['appointment_date'])) – @endif
                                         {{ $notification->data['appointment_date'] ?? '' }}
                                     </small>
-                                </a>
+                                    </button>
+                                </form>
                             @empty
                                 <div class="px-4 py-2 text-sm text-gray-500">Aucune notification</div>
                             @endforelse
