@@ -1,16 +1,13 @@
 @php
     $money = fn (int $cents) => number_format($cents / 100, 2, ',', ' ') . ' EUR';
-    $statusLabel = 'Actif';
+    $statusLabel = $voucher->statusLabel();
     $statusClass = 'border-[#647a0b]/20 bg-[#647a0b]/10 text-[#647a0b]';
 
-    if (! $voucher->is_active) {
-        $statusLabel = 'Desactive';
+    if ($voucher->displayStatus() === 'disabled') {
         $statusClass = 'border-red-200 bg-red-50 text-red-700';
-    } elseif ($voucher->isExpired()) {
-        $statusLabel = 'Expire';
+    } elseif (in_array($voucher->displayStatus(), ['expired', 'reserved'])) {
         $statusClass = 'border-amber-200 bg-amber-50 text-amber-700';
-    } elseif ((int) $voucher->remaining_amount_cents <= 0) {
-        $statusLabel = 'Epuise';
+    } elseif ($voucher->displayStatus() === 'exhausted') {
         $statusClass = 'border-gray-200 bg-gray-50 text-gray-600';
     }
 @endphp
@@ -159,7 +156,9 @@
             </section>
 
             <section class="rounded-lg border border-[#e4e8d5] bg-white p-4 shadow-sm">
-                <h2 class="text-sm font-semibold text-gray-900">Deduction</h2>
+                <h2 class="text-sm font-semibold text-gray-900">Utiliser ce bon cadeau</h2>
+                <p class="mt-2 text-xs text-gray-600">Cette action utilise le bon pour régler une prestation. Elle n’est pas nécessaire pour créer ou offrir le bon.</p>
+                @include('gift-vouchers.partials.reservation-notice')
 
                 @unless($voucher->isUsable())
                     <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -167,15 +166,17 @@
                     </div>
                 @endunless
 
-                <form method="POST" action="{{ route('mobile.gift-vouchers.redeem', $voucher) }}" class="mt-3 space-y-3">
+                <form method="POST" action="{{ route('mobile.gift-vouchers.redeem', $voucher) }}" data-voucher-redeem-form class="mt-3 space-y-3">
                     @csrf
+                    <input type="hidden" name="expected_balance_cents" value="{{ $voucher->remaining_amount_cents }}">
 
                     <label class="block">
-                        <span class="text-sm font-medium text-gray-700">Montant a deduire</span>
+                        <span class="text-sm font-medium text-gray-700">Montant à utiliser (€)</span>
                         <input type="number"
                                name="amount_eur"
                                step="0.01"
                                min="0.01"
+                               max="{{ number_format($voucher->remaining_amount_cents / 100, 2, '.', '') }}" required
                                inputmode="decimal"
                                placeholder="35"
                                {{ $voucher->isUsable() ? '' : 'disabled' }}
@@ -194,7 +195,7 @@
                     <button type="submit"
                             {{ $voucher->isUsable() ? '' : 'disabled' }}
                             class="inline-flex h-11 w-full items-center justify-center rounded-lg bg-[#647a0b] text-sm font-semibold text-white disabled:bg-gray-300">
-                        Deduire du solde
+                        Utiliser ce bon cadeau
                     </button>
                 </form>
             </section>
@@ -211,7 +212,7 @@
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
                                         <div class="text-sm font-semibold text-gray-900">
-                                            -{{ $money((int) $redemption->amount_cents) }}
+                                            {{ $redemption->amountLabel() }}
                                         </div>
                                         @if($redemption->note)
                                             <p class="mt-1 line-clamp-2 text-xs leading-snug text-gray-600">{{ $redemption->note }}</p>
@@ -224,7 +225,7 @@
 
                                 <div class="mt-2 flex flex-wrap gap-1.5">
                                     <span class="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600">
-                                        {{ $redemption->status ?: 'applied' }}
+                                        {{ $redemption->statusLabel() }}
                                     </span>
                                     <span class="rounded-full bg-white px-2 py-1 text-[11px] text-gray-600">
                                         {{ $redemption->source ?: 'manual' }}

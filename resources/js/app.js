@@ -1,6 +1,7 @@
 // Importing required libraries
 import './bootstrap';
 import './notifications';
+import './gift-vouchers';
 import Alpine from 'alpinejs';
 import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';

@@ -4426,7 +4426,7 @@ test('authenticated practitioners can view and redeem a gift voucher from mobile
         ->assertOk()
         ->assertSee('AM-MOBILE-REDEEM-0001')
         ->assertSee('Camille Cadeau')
-        ->assertSee('Deduction');
+        ->assertSee('Utiliser ce bon cadeau');
 
     $this->actingAs($user)
         ->from("/mobile/bons-cadeaux/{$voucher->id}")

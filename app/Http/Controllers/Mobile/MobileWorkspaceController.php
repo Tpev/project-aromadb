@@ -403,6 +403,7 @@ class MobileWorkspaceController extends Controller
     {
         $items = GiftVoucher::query()
             ->where('user_id', Auth::id())
+            ->withReservationTotals()
             ->latest('id')
             ->limit(40)
             ->get();
@@ -415,7 +416,7 @@ class MobileWorkspaceController extends Controller
             'webAction' => $this->action('Vue web', 'pro.gift-vouchers.index'),
             'stats' => [
                 ['label' => 'Bons', 'value' => $items->count()],
-                ['label' => 'Actifs', 'value' => $items->filter->isUsable()->count()],
+                ['label' => 'Actifs', 'value' => $items->filter(fn ($voucher) => $voucher->displayStatus() === 'active')->count()],
                 ['label' => 'Solde', 'value' => $this->money($items->sum('remaining_amount_cents') / 100)],
             ],
             'items' => $items->map(fn (GiftVoucher $voucher) => [

@@ -1,36 +1,17 @@
 @php
     $money = fn (int $cents) => number_format($cents / 100, 2, ',', ' ') . ' EUR';
     $total = $allVouchers->count();
-    $active = $allVouchers->filter->isUsable()->count();
+    $active = $allVouchers->filter(fn ($voucher) => $voucher->displayStatus() === 'active')->count();
     $remaining = (int) $allVouchers->sum('remaining_amount_cents');
-    $expired = $allVouchers->filter->isExpired()->count();
-    $statusOptions = [
-        'all' => 'Tous',
-        'active' => 'Actifs',
-        'expired' => 'Expires',
-        'exhausted' => 'Epuises',
-        'disabled' => 'Desactives',
-    ];
-    $statusLabel = function ($voucher) {
-        if (! $voucher->is_active) {
-            return 'Desactive';
-        }
-        if ($voucher->isExpired()) {
-            return 'Expire';
-        }
-        if ((int) $voucher->remaining_amount_cents <= 0) {
-            return 'Epuise';
-        }
-        return 'Actif';
-    };
+    $statusOptions = \App\Models\GiftVoucher::STATUS_FILTERS;
     $statusClass = function ($voucher) {
-        if ($voucher->isUsable()) {
+        if ($voucher->displayStatus() === 'active') {
             return 'border-[#647a0b]/20 bg-[#647a0b]/10 text-[#647a0b]';
         }
-        if (! $voucher->is_active) {
+        if ($voucher->displayStatus() === 'disabled') {
             return 'border-red-200 bg-red-50 text-red-700';
         }
-        if ($voucher->isExpired()) {
+        if (in_array($voucher->displayStatus(), ['expired', 'reserved'])) {
             return 'border-amber-200 bg-amber-50 text-amber-700';
         }
         return 'border-gray-200 bg-gray-50 text-gray-600';
@@ -176,7 +157,7 @@
                             </div>
 
                             <span class="shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium {{ $statusClass($voucher) }}">
-                                {{ $statusLabel($voucher) }}
+                                {{ $voucher->statusLabel() }}
                             </span>
                         </div>
 

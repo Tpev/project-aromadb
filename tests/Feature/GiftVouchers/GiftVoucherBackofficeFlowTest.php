@@ -129,7 +129,7 @@ test('therapist can upload a custom global gift voucher background', function ()
 
     expect($therapist->gift_voucher_background_mode)->toBe('custom_upload');
     expect($therapist->gift_voucher_background_path)->not->toBeNull();
-    expect(str_ends_with((string) $therapist->gift_voucher_background_path, 'background.jpg'))->toBeTrue();
+    expect($therapist->gift_voucher_background_path)->toStartWith("gift-vouchers/backgrounds/{$therapist->id}/background-")->toEndWith('.jpg');
     Storage::disk('public')->assertExists((string) $therapist->gift_voucher_background_path);
 });
 

@@ -25,25 +25,17 @@ class GiftVoucherController extends Controller
     {
         $user = auth()->user();
 
-        $status = $request->query('status', 'all'); // all|active|expired|exhausted|disabled
-
-        $query = GiftVoucher::where('user_id', $user->id)->orderByDesc('created_at');
-
-        if ($status === 'active') {
-            $query->where('is_active', true)
-                ->where(function ($q) {
-                    $q->whereNull('expires_at')->orWhere('expires_at', '>=', now());
-                })
-                ->where('remaining_amount_cents', '>', 0);
-        } elseif ($status === 'expired') {
-            $query->whereNotNull('expires_at')->where('expires_at', '<', now());
-        } elseif ($status === 'exhausted') {
-            $query->where('remaining_amount_cents', '<=', 0);
-        } elseif ($status === 'disabled') {
-            $query->where('is_active', false);
+        $status = $request->query('status', 'all');
+        if (!is_string($status) || !array_key_exists($status, GiftVoucher::STATUS_FILTERS)) {
+            $status = 'all';
         }
-
-        $vouchers = $query->paginate(20)->withQueryString();
+        $baseQuery = GiftVoucher::where('user_id', $user->id);
+        $statusCounts = [];
+        foreach (array_keys(GiftVoucher::STATUS_FILTERS) as $key) {
+            $statusCounts[$key] = (clone $baseQuery)->withDisplayStatus($key)->count();
+        }
+        $vouchers = $baseQuery->withReservationTotals()->withDisplayStatus($status)
+            ->orderByDesc('created_at')->paginate(20)->withQueryString();
         $backgroundPreviewUrl = null;
         $backgroundPreviewDataUri = null;
         if (
@@ -61,7 +53,7 @@ class GiftVoucherController extends Controller
             $backgroundPreviewDataUri = 'data:' . $mime . ';base64,' . base64_encode($binary);
         }
 
-        return view('dashboard-pro/gift-vouchers/index', compact('vouchers', 'status', 'user', 'backgroundPreviewUrl', 'backgroundPreviewDataUri'));
+        return view('dashboard-pro/gift-vouchers/index', compact('vouchers', 'status', 'statusCounts', 'user', 'backgroundPreviewUrl', 'backgroundPreviewDataUri'));
     }
 
     public function create()
@@ -224,7 +216,8 @@ class GiftVoucherController extends Controller
             $request->integer('appointment_id') ?: null,
             $request->integer('invoice_id') ?: null,
             'manual',
-            'applied'
+            'applied',
+            $request->filled('expected_balance_cents') ? $request->integer('expected_balance_cents') : null
         );
 
         return back()->with('success', 'Montant déduit du bon cadeau.');

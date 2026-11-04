@@ -23,14 +23,18 @@ class MobileGiftVoucherController extends Controller
         $user = Auth::user();
         $canUseGiftVouchers = $user?->canUseFeature('gift_vouchers') ?? false;
         $status = $request->query('status', 'all');
+        if (!is_string($status) || !array_key_exists($status, GiftVoucher::STATUS_FILTERS)) {
+            $status = 'all';
+        }
 
         $allVouchers = GiftVoucher::query()
             ->where('user_id', Auth::id())
+            ->withReservationTotals()
             ->latest('id')
             ->get();
 
         $vouchers = $allVouchers
-            ->filter(fn (GiftVoucher $voucher) => $this->matchesStatus($voucher, $status))
+            ->filter(fn (GiftVoucher $voucher) => $status === 'all' || $voucher->displayStatus() === $status)
             ->values();
 
         return view('mobile.gift-vouchers.index', [
@@ -163,7 +167,8 @@ class MobileGiftVoucherController extends Controller
             $request->integer('appointment_id') ?: null,
             $request->integer('invoice_id') ?: null,
             'manual',
-            'applied'
+            'applied',
+            $request->filled('expected_balance_cents') ? $request->integer('expected_balance_cents') : null
         );
 
         return redirect()
@@ -181,17 +186,6 @@ class MobileGiftVoucherController extends Controller
         return redirect()
             ->route('mobile.gift-vouchers.show', $voucher)
             ->with('success', 'Bon cadeau desactive.');
-    }
-
-    private function matchesStatus(GiftVoucher $voucher, string $status): bool
-    {
-        return match ($status) {
-            'active' => $voucher->isUsable(),
-            'expired' => $voucher->isExpired(),
-            'exhausted' => (int) $voucher->remaining_amount_cents <= 0,
-            'disabled' => ! $voucher->is_active,
-            default => true,
-        };
     }
 
     private function authorizeGiftVoucherFeature(?User $user): void

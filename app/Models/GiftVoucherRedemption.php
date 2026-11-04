@@ -23,6 +23,26 @@ class GiftVoucherRedemption extends Model
         'released_at' => 'datetime',
     ];
 
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'reserved' => 'Réservation en cours',
+            'released' => 'Réservation libérée',
+            default => 'Utilisation confirmée',
+        };
+    }
+
+    public function amountLabel(): string
+    {
+        $prefix = match ($this->status) {
+            'reserved' => 'Montant réservé : ',
+            'released' => 'Montant libéré : ',
+            default => 'Montant utilisé : ',
+        };
+
+        return $prefix.number_format($this->amount_cents / 100, 2, ',', ' ').' €';
+    }
+
     public function voucher(): BelongsTo
     {
         return $this->belongsTo(GiftVoucher::class, 'gift_voucher_id');

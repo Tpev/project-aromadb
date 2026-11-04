@@ -285,7 +285,7 @@
                         Le visuel défini ici s’appliquera aux futurs bons cadeaux (les anciens restent inchangés).
                     </div>
 
-                    <form method="POST" action="{{ route('pro.gift-vouchers.settings.update') }}" enctype="multipart/form-data" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <form method="POST" action="{{ route('pro.gift-vouchers.settings.update') }}" enctype="multipart/form-data" data-voucher-background-form class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
                         @csrf
 
                     <div class="md:col-span-3">
@@ -312,49 +312,51 @@
                     </div>
 
                     <div>
-                        <div class="text-xs font-bold text-slate-600 uppercase">Mode visuel</div>
-                        <select name="gift_voucher_background_mode" class="mt-1 w-full rounded-xl border-slate-300">
+                        <label for="giftVoucherBackgroundMode" class="text-xs font-bold text-slate-600 uppercase">Mode visuel</label>
+                        <select id="giftVoucherBackgroundMode" name="gift_voucher_background_mode" class="mt-1 w-full rounded-xl border-slate-300">
                             <option value="default" {{ ($user->gift_voucher_background_mode ?? 'default') === 'default' ? 'selected' : '' }}>Par défaut</option>
                             <option value="custom_upload" {{ ($user->gift_voucher_background_mode ?? 'default') === 'custom_upload' ? 'selected' : '' }}>Image personnalisée</option>
                         </select>
                     </div>
 
                     <div>
-                        <div class="text-xs font-bold text-slate-600 uppercase">Image de fond (global)</div>
-                        <input id="giftVoucherBackgroundInput" type="file" name="gift_voucher_background" accept=".jpg,.jpeg,.png,.webp" class="mt-1 block w-full text-sm">
+                        <label for="giftVoucherBackgroundInput" class="text-xs font-bold text-slate-600 uppercase">Image de fond des futurs bons</label>
+                        <input id="giftVoucherBackgroundInput" type="file" name="gift_voucher_background" accept=".jpg,.jpeg,.png,.webp" aria-describedby="giftVoucherBackgroundHelp giftVoucherBackgroundError" class="mt-1 block w-full text-sm">
+                        <p id="giftVoucherBackgroundHelp" class="mt-2 text-xs text-slate-600">JPG, PNG ou WebP · 6 Mo maximum. Préférez une image verticale au format A4 (par exemple 794 × 1123 px), sans texte important près des bords. Elle sera recadrée au centre et optimisée automatiquement.</p>
+                        <p id="giftVoucherBackgroundError" hidden role="alert" style="color:#b91c1c;font-size:13px;margin-top:8px;"></p>
                     </div>
 
                     <div>
                         <label class="inline-flex items-center gap-2 text-sm text-slate-700 mt-6">
                             <input type="checkbox" name="remove_gift_voucher_background" value="1">
-                            Supprimer l’image personnalisée
+                            Revenir au thème par défaut pour les futurs bons
                         </label>
                     </div>
 
                     @php
                         $previewInlineStyle = $backgroundPreviewDataUri
                             ? "background-image:url('{$backgroundPreviewDataUri}');background-size:cover;background-position:center;"
-                            : "background:linear-gradient(145deg, rgba(100,122,11,0.30), rgba(107,79,42,0.25));";
+                            : "background-color:#fff;";
                     @endphp
                     <div class="md:col-span-3">
-                        <div class="text-xs font-bold text-slate-600 uppercase mb-2">Aperçu bon cadeau</div>
+                        <div class="text-xs font-bold text-slate-600 uppercase mb-2">Aperçu du fond au format A4</div>
                         <div class="rounded-2xl border border-slate-200/70 bg-white p-3">
                             <div id="giftVoucherBackgroundPreview"
                                  class="relative rounded-xl overflow-hidden border border-slate-200/70"
-                                 style="height:220px;{{ $previewInlineStyle }}">
-                                <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(15,23,42,0.10), rgba(15,23,42,0.28));"></div>
-                                <div style="position:absolute;left:16px;right:16px;bottom:16px;color:white;">
-                                <div style="font-size:20px;font-weight:800;line-height:1.1;">Bon cadeau</div>
-                                    <div style="font-size:12px;opacity:0.95;">Aperçu visuel du futur PDF</div>
+                                 style="width:100%;max-width:260px;aspect-ratio:794/1123;background-color:white;{{ $previewInlineStyle }}">
+                                <div style="position:absolute;left:16px;right:16px;bottom:16px;padding:14px;background:rgba(255,255,255,.85);color:#4f6108;border-radius:8px;">
+                                    <div style="font-size:20px;font-weight:800;line-height:1.1;">Bon cadeau</div>
+                                    <div style="font-size:12px;margin-top:6px;">Votre texte et le code seront ajoutés au PDF.</div>
                                 </div>
                             </div>
-                            <div id="giftVoucherBackgroundPreviewHint" class="mt-2 text-xs text-slate-600">
+                            <div id="giftVoucherBackgroundPreviewHint" aria-live="polite" class="mt-2 text-xs text-slate-600">
                                 @if($backgroundPreviewDataUri)
-                                    Fond personnalisé actif.
+                                    Image enregistrée pour les futurs bons cadeaux.
                                 @else
-                                    Aucun fond personnalisé actif (thème par défaut).
+                                    Thème par défaut enregistré.
                                 @endif
                             </div>
+                            <p class="mt-2 text-xs text-slate-600">Cet aperçu montre le cadrage du fond. Les bons déjà créés conservent leur visuel ; le contenu final dépend des informations du bon.</p>
                         </div>
                     </div>
 
@@ -384,19 +386,10 @@
             </div>
 
             @php
-                // Small stats (no controller changes required)
-                $total = $vouchers->total();
-                $activeCount = 0;
-                $expiredCount = 0;
-                $exhaustedCount = 0;
-                $disabledCount = 0;
-
-                foreach ($vouchers as $v) {
-                    if (!$v->is_active) { $disabledCount++; continue; }
-                    if (method_exists($v, 'isExpired') && $v->isExpired()) { $expiredCount++; continue; }
-                    if ($v->remaining_amount_cents <= 0) { $exhaustedCount++; continue; }
-                    $activeCount++;
-                }
+                $total = $statusCounts['all'];
+                $activeCount = $statusCounts['active'];
+                $expiredCount = $statusCounts['expired'];
+                $disabledCount = $statusCounts['disabled'];
             @endphp
 
             <div class="am-lock-wrapper {{ $canUseGiftVouchers ? '' : 'is-locked' }}">
@@ -423,7 +416,7 @@
                         <div class="h-10 w-10 rounded-2xl flex items-center justify-center"
                              style="background: rgba(100,122,11,0.10); color: var(--brand);">●</div>
                     </div>
-                    <div class="mt-2 text-xs text-slate-600">Utilisables.</div>
+                    <div class="mt-2 text-xs text-slate-600">Sans réservation en cours.</div>
                 </div>
 
                 <div class="am-card p-4">
@@ -452,13 +445,7 @@
             </div>
 
             @php
-                $tabs = [
-                    'all' => 'Tous',
-                    'active' => 'Actifs',
-                    'expired' => 'Expirés',
-                    'exhausted' => 'Épuisés',
-                    'disabled' => 'Désactivés',
-                ];
+                $tabs = \App\Models\GiftVoucher::STATUS_FILTERS;
                 $currentStatus = $status ?? request('status', 'all');
             @endphp
 
@@ -491,7 +478,7 @@
                             @foreach($tabs as $key => $label)
                                 <a href="{{ route('pro.gift-vouchers.index', ['status' => $key]) }}"
                                    class="am-chip {{ $currentStatus === $key ? 'am-chip-active' : 'text-slate-700' }}">
-                                    {{ $label }}
+                                    {{ $label }} ({{ $statusCounts[$key] }})
                                 </a>
                             @endforeach
                         </div>
@@ -705,26 +692,4 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const input = document.getElementById('giftVoucherBackgroundInput');
-            const preview = document.getElementById('giftVoucherBackgroundPreview');
-            const hint = document.getElementById('giftVoucherBackgroundPreviewHint');
-            if (!input || !preview || !hint) return;
-
-            input.addEventListener('change', function () {
-                const file = input.files && input.files[0] ? input.files[0] : null;
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    preview.style.backgroundImage = "url('" + event.target.result + "')";
-                    preview.style.backgroundSize = 'cover';
-                    preview.style.backgroundPosition = 'center';
-                    hint.textContent = 'Aperçu local: ce visuel sera utilisé après enregistrement.';
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-    </script>
 </x-app-layout>

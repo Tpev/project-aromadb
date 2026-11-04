@@ -2,6 +2,7 @@
 
 // Bootstrap & shared libs if needed
 import './bootstrap';
+import './gift-vouchers';
 
 // Optional: any mobile-specific logic
 console.log("Mobile JS Loaded");

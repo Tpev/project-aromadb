@@ -26,7 +26,8 @@ class GiftVoucherRedeemService
         ?int $appointmentId = null,
         ?int $invoiceId = null,
         string $source = 'manual',
-        string $status = 'applied'
+        string $status = 'applied',
+        ?int $expectedBalanceCents = null
     ): GiftVoucher
     {
         if ($amountCents <= 0) {
@@ -38,12 +39,16 @@ class GiftVoucherRedeemService
             throw ValidationException::withMessages(['amount_eur' => 'Utilisateur introuvable pour appliquer le bon cadeau.']);
         }
 
-        return DB::transaction(function () use ($voucher, $amountCents, $note, $actorUserId, $appointmentId, $invoiceId, $source, $status) {
+        return DB::transaction(function () use ($voucher, $amountCents, $note, $actorUserId, $appointmentId, $invoiceId, $source, $status, $expectedBalanceCents) {
             /** @var GiftVoucher $freshVoucher */
             $freshVoucher = GiftVoucher::query()
                 ->whereKey($voucher->id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            if ($expectedBalanceCents !== null && (int) $freshVoucher->remaining_amount_cents !== $expectedBalanceCents) {
+                throw ValidationException::withMessages(['amount_eur' => 'Le solde a changé depuis l’affichage de cette page. Vérifiez le solde actualisé avant de confirmer une nouvelle utilisation.']);
+            }
 
             if (!$freshVoucher->is_active) {
                 throw ValidationException::withMessages(['amount_eur' => 'Ce bon cadeau est désactivé.']);

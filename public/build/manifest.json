@@ -1,7 +1,7 @@
 {
-  "_bootstrap-z-Rg4TxU.js": {
-    "file": "assets/bootstrap-z-Rg4TxU.js",
-    "name": "bootstrap"
+  "_gift-vouchers-li4MBd03.js": {
+    "file": "assets/gift-vouchers-li4MBd03.js",
+    "name": "gift-vouchers"
   },
   "resources/css/app.css": {
     "file": "assets/app-Docua2yi.css",
@@ -14,21 +14,21 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CiQEArUf.js",
+    "file": "assets/app-CMiYtRwJ.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_bootstrap-z-Rg4TxU.js"
+      "_gift-vouchers-li4MBd03.js"
     ]
   },
   "resources/js/mobile.js": {
-    "file": "assets/mobile-Deo0mm1b.js",
+    "file": "assets/mobile-1v0w9pz5.js",
     "name": "mobile",
     "src": "resources/js/mobile.js",
     "isEntry": true,
     "imports": [
-      "_bootstrap-z-Rg4TxU.js"
+      "_gift-vouchers-li4MBd03.js"
     ]
   }
 }

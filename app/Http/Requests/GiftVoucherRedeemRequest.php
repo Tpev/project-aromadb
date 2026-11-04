@@ -18,6 +18,7 @@ class GiftVoucherRedeemRequest extends FormRequest
             'note' => ['nullable', 'string', 'max:255'],
             'appointment_id' => ['nullable', 'integer'],
             'invoice_id' => ['nullable', 'integer'],
+            'expected_balance_cents' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

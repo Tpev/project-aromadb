@@ -251,11 +251,12 @@
 
                     <div class="am-card">
                         <div class="p-4 md:p-6 border-b border-slate-200/70">
-                            <div class="text-sm font-extrabold text-slate-900">Déduire un montant</div>
-                            <div class="text-xs text-slate-600 mt-0.5">Utilisable en plusieurs fois. L’historique est conservé.</div>
+                            <div class="text-sm font-extrabold text-slate-900">Utiliser ce bon cadeau</div>
+                            <div class="text-xs text-slate-600 mt-0.5">Cette action utilise le bon pour régler une prestation. Elle n’est pas nécessaire pour créer ou offrir le bon.</div>
                         </div>
 
                         <div class="p-4 md:p-6">
+                            @include('gift-vouchers.partials.reservation-notice')
                             @if(!$voucher->isUsable())
                                 <div class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
                                     <div class="text-sm font-extrabold">Bon non utilisable</div>
@@ -265,12 +266,13 @@
                                 </div>
                             @endif
 
-                            <form action="{{ route('pro.gift-vouchers.redeem', $voucher) }}" method="POST" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <form action="{{ route('pro.gift-vouchers.redeem', $voucher) }}" method="POST" data-voucher-redeem-form class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
                                 @csrf
+                                <input type="hidden" name="expected_balance_cents" value="{{ $voucher->remaining_amount_cents }}">
 
                                 <div>
-                                    <div class="am-label">Montant à déduire (€)</div>
-                                    <input class="am-input" name="amount_eur" type="number" step="0.01" min="0.01"
+                                    <label for="voucher-use-amount" class="am-label">Montant à utiliser (€)</label>
+                                    <input id="voucher-use-amount" class="am-input" name="amount_eur" type="number" step="0.01" min="0.01" required max="{{ number_format($voucher->remaining_amount_cents / 100, 2, '.', '') }}"
                                            @if(!$voucher->isUsable()) disabled @endif
                                            placeholder="Ex: 35">
                                 </div>
@@ -279,13 +281,13 @@
                                     <div class="am-label">Note (optionnel)</div>
                                     <input class="am-input" name="note" type="text"
                                            @if(!$voucher->isUsable()) disabled @endif
-                                           placeholder="Ex: séance du 12/01, réglé en espèces…">
+                                           placeholder="Ex: séance du 12/01 réglée avec ce bon">
                                 </div>
 
                                 <div class="md:col-span-3 flex justify-end">
                                     <button class="am-btn am-btn-brand"
                                             @if(!$voucher->isUsable()) disabled style="opacity:.5;cursor:not-allowed;" @endif>
-                                        Déduire
+                                        Utiliser ce bon cadeau
                                     </button>
                                 </div>
                             </form>
@@ -301,7 +303,7 @@
                 <div class="am-card">
                     <div class="p-4 md:p-6 border-b border-slate-200/70">
                         <div class="text-sm font-extrabold text-slate-900">Historique</div>
-                        <div class="text-xs text-slate-600 mt-0.5">Toutes les déductions sont enregistrées.</div>
+                        <div class="text-xs text-slate-600 mt-0.5">Utilisations confirmées et réservations temporaires.</div>
                     </div>
 
                     <div class="p-4 md:p-6 space-y-3">
@@ -310,8 +312,9 @@
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
                                         <div class="text-sm font-extrabold text-slate-900">
-                                            -{{ number_format($r->amount_cents / 100, 2, ',', ' ') }} €
+                                            {{ $r->amountLabel() }}
                                         </div>
+                                        <div class="text-xs text-slate-600 mt-1">{{ $r->statusLabel() }}</div>
                                         @if($r->note)
                                             <div class="text-sm text-slate-700 mt-1">{{ $r->note }}</div>
                                         @endif
